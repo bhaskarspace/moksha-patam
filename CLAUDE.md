@@ -27,9 +27,10 @@ single static `index.html` at https://codebpr.com/moksha-patam/
   moments: `{name}` in both languages, Hindi agreement through `{m|f}` choices, an age on every
   earthly square, and a `moments: n/109` burn-down line.
 - `npm run format`: rewrites `content/*.json` one entry per line. Run it after editing content.
-- `npm run sim [games] [players] [firstSeed]`: headless games (one player averages about 42 turns).
+- `npm run sim [games] [players] [firstSeed] [--rules=brahmaloka] [--snake=HEAD:TAIL|none]`: headless
+  games, reporting median, p5, p95 and the share over 100 turns. Balance against the p95.
 - `npm run smoke`: Playwright checks of the built page in a real browser (needs Chrome installed).
-- `npm run golden [seeds]`: Phase 0 move-log equivalence against commit `fb0bc2a`.
+- `npm run golden [seeds]`: the built page and `sim.mjs` must produce the same move log.
 - `node tools/icons.mjs`: regenerates `icons/`. Only needed when the emblem changes.
 
 ## Guardrails (REDESIGN.md §5)

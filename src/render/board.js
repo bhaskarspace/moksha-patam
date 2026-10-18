@@ -18,9 +18,9 @@ export function colRow(n) {
 
 // The board's name for square n in the current language.
 export function squareName(n) {
+  if (HEAVEN[n]) return L(HEAVEN[n].en, HEAVEN[n].hi);
   const sl = SNAKES[n] || LADDERS[n];
   if (sl) return L(sl.en, sl.hi);
-  if (HEAVEN[n]) return L(HEAVEN[n].en, HEAVEN[n].hi);
   if (n === GOAL) return t("moksha");
   return SQ[n] ? L(SQ[n].en, SQ[n].hi) : "";
 }

@@ -2,7 +2,7 @@
 // At the end of a game, every moment a player landed on, in order, as prose: a paragraph per stage of
 // life, stitched with the joining phrases in strings.JOINS. Built from player.life and the moments alone,
 // so it reads in either language, and squares with no moment yet are passed over without a gap.
-import { ASHRAMAS, LADDERS, SNAKES, JOINS, squareOf } from "../content.js";
+import { ASHRAMAS, LADDERS, SNAKES, JOINS, squareOf, snakeOn } from "../content.js";
 import { lang, tIn, fill, numIn } from "../i18n.js";
 import { G, pnameIn } from "../state.js";
 import { $, COLORS, esc } from "../ui.js";
@@ -20,7 +20,8 @@ export function lifeOf(state, i, l) {
   const p = state.players[i], who = { name: pnameIn(p, l), gender: p.gender };
   const paras = [];
   let prev = null, prevHad = false, k = 0;
-  for (const n of p.life || []) {
+  const life = p.life || [];
+  for (const [i, n] of life.entries()) {
     const q = squareOf(n), m = q?.moment, from = prev, had = prevHad;
     prev = n; prevHad = !!m;
     if (!m) continue;
@@ -32,6 +33,9 @@ export function lifeOf(state, i, l) {
     const join = had && SNAKES[from]?.to === n ? JOINS.snake : had && LADDERS[from]?.to === n ? JOINS.ladder : para.parts.length ? JOINS.then[k++ % JOINS.then.length] : null;
     const text = fill(m[l] || m.en, who);
     para.parts.push(join ? join[l] + after(m[l] || m.en, text, l) : text);
+    // a snake that starts on a god's square was taken: its own moment follows the god's
+    const sn = snakeOn(n);
+    if (sn?.moment && life[i + 1] === sn.to) para.parts.push(fill(sn.moment[l] || sn.moment.en, who));
   }
   const T = (key, v) => tIn(l, key, v);
   const stage = s => (l === "hi" ? ASHRAMAS[s][2] : ASHRAMAS[s][1]);

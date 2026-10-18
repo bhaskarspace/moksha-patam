@@ -92,3 +92,14 @@ test("every moment, once written, names the player in both languages", () => {
     if (saved) q.moment = saved; else delete q.moment;
   }
 });
+
+test("Phase 4: the five paired snake tails name their remedy, and the merit snake on 109 leaves Shiva's card alone", async () => {
+  const { SNAKES, LADDERS, HEAVEN, squareOf, snakeOn } = await import("../src/content.js");
+  const withRemedy = Object.keys(SQ).filter(n => SQ[n].remedy).map(Number);
+  assert.deepEqual(withRemedy, [22, 43, 50, 64, 71]);
+  for (const n of withRemedy) assert.ok(Object.values(SNAKES).some(s => s.to === n) && LADDERS[n + 1]);
+  assert.equal(squareOf(109), HEAVEN[109]);
+  assert.equal(snakeOn(109), SNAKES[109]);
+  assert.ok(SNAKES[109].rebirth && SNAKES[109].src.startsWith("Bhagavad Gita"));
+  assert.ok(REFS.gita?.includes(109) && REFS.mimamsa.includes(109));
+});

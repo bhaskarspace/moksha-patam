@@ -55,11 +55,13 @@ async function takeTurn() {
   state.last = v;
   const plan = planTurn(state, v);
   plan.pre.forEach(log);
-  if (plan.target !== p.pos) {
+  // every roll moves now: a bounce can come back to the square it started from, but it still walks
+  {
     await sleep(150);
-    for (let n = p.pos + 1; n <= plan.target; n++) {
+    // the walk follows the planned path, which turns at 110 on a bounce
+    for (const n of plan.path) {
       if (g !== G.gen) return;
-      if (n > 1) { const dc = colRow(n).col - colRow(n - 1).col; if (dc) p.face = dc > 0 ? "r" : "l"; }
+      if (n > 1 && p.pos > 0) { const dc = colRow(n).col - colRow(p.pos).col; if (dc) p.face = dc > 0 ? "r" : "l"; }
       p.pos = n; el._frame = 1 - el._frame;
       retrigger(el, "hop");
       place();
@@ -135,8 +137,8 @@ function renderSetup() {
         ${[["", "genderAny"], ["f", "genderF"], ["m", "genderM"], ["n", "genderN"]].map(([v, k]) => `<option value="${v}"${(r.gender || "") === v ? " selected" : ""}>${t(k)}</option>`).join("")}
       </select>
     </div>`).join("");
-  $("ruleExact").checked = setup.rules.exact;
   $("ruleSix").checked = setup.rules.six;
+  $("ruleBrahmaloka").checked = !!setup.rules.brahmaloka;
   $("prefDepth").innerHTML = [["story", "depthStory"], ["school", "depthSchool"], ["scholar", "depthScholar"]]
     .map(([v, k]) => `<option value="${v}"${v === prefs.depth ? " selected" : ""}>${t(k)}</option>`).join("");
   $("prefLand").checked = prefs.landAll;
@@ -147,7 +149,7 @@ function readSetup() {
   setup.rows.slice(0, setup.count).forEach((r, i) => {
     r.name = $("pname" + i).value; r.type = $("ptype" + i).value; r.gender = $("pgender" + i).value;
   });
-  setup.rules = { exact: $("ruleExact").checked, six: $("ruleSix").checked };
+  setup.rules = { six: $("ruleSix").checked, brahmaloka: $("ruleBrahmaloka").checked };
 }
 
 // Static text, the ashrama labels on the frame and the language buttons.
@@ -155,7 +157,6 @@ function applyStatic() {
   document.documentElement.lang = lang;
   document.title = t("title");
   document.querySelectorAll("[data-t]").forEach(el => { el.textContent = t(el.dataset.t); });
-  $("ruleExactText").textContent = t("ruleExact", { n: GOAL });
   document.querySelectorAll("[data-lang]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.lang === lang)));
   renderMute();
   // band centres, in rows from the bottom: two rows per stage
@@ -300,6 +301,8 @@ if (new URLSearchParams(location.search).has("debug")) {
     data: { LADDERS, SNAKES, SQ, HEAVEN, STR },
     setLang,
     life: openLife,
+    // mp.rules({ brahmaloka: true }) changes the running game's rules
+    rules(r) { if (r) Object.assign(G.state.rules, r); return { ...G.state.rules }; },
     lifeText: (i = 0, l) => lifeText(G.state, i, l),
     naming: openNaming,
   };

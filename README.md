@@ -12,18 +12,23 @@ The old Indian game of snakes and ladders, played as one life, in English and Hi
 | 41–60 | Grihastha (householder) | Brihadaranyaka, Isha, Taittiriya, Mahabharata |
 | 61–80 | Vanaprastha (forest-dweller) | Brihadaranyaka, Kena, Chandogya |
 | 81–100 | Sannyasa (renunciate) | Mundaka, Mandukya, the four Mahavakyas |
-| 101–110 | Divine realms, ending in Moksha | |
+| 101–110 | Divine realms, ending in Moksha | Bhagavad Gita 9.21 on the merit snake at 109 |
 
 ## How the snakes and ladders are placed
 - **Nothing on squares 1–5.** A newborn can't climb by virtue or fall by vice.
 - **Childhood vices are small slips** (chatter, fibbing, laziness) **with short falls.** Adult enemies like anger, craving and greed only appear in the householder years. Ahankara (ego) waits at 99 and is the longest fall of all.
 - **Ladders are biggest in the middle of life** (truth, resolve, giving, duty) and short near the end. No ladder reaches heaven, so the divine row is reached on foot.
+- **Heaven can be fallen out of.** A snake at 109, one square below Moksha, drops a player back to 95: *kṣīṇe puṇye martya-lokaṃ viśanti*, when merit is spent you return to the world of mortals (Gītā 9.21). Some historical boards made a player who reached Brahmaloka descend a snake to earth before they could finish. It shares 109 with Shiva, whose card shows the snake after his own.
+- **No exact roll.** A roll that would pass 110 walks up to it and back down by the remainder, so a player is never stuck rolling for an exact number.
 - **Fall, then the remedy:** five snakes drop you one square before the ladder of the virtue that heals them:
   - Pride of learning → Guru-bhakti
   - Greed → Dana
   - Anger → Daya
   - Hypocrisy → Tapas
   - Clinging → Vairagya
+
+  The tail's card says the ladder is one step above.
+- **14 snakes to 11 ladders, on purpose.** The documented historical boards are balanced or ladder-heavy: the Jaina board 15 ladders to 9 snakes, the Vaiṣṇava board 10 to 10, the Mughal board 17 to 13 (`docs/BOARDCRAFT.md`). The popular claim that snakes outnumbered ladders two to one is folklore. This board is more punishing than any of them as a deliberate thesis, that the good path is the harder one, not as a restoration.
 
 | Ladder | Virtue | Story |
 |---|---|---|
@@ -54,11 +59,12 @@ The old Indian game of snakes and ladders, played as one life, in English and Hi
 | 88→71 | Dambha · Hypocrisy | The cat who played ascetic |
 | 93→64 | Asakti · Clinging | Jada Bharata and the fawn (Bhagavata 5.8) |
 | 99→61 | Ahankara · Ego | Virochana and the reflection (Chandogya 8.8) |
+| 109→95 | Kshina-punya · Merit spent | When merit is spent, back to the world (Gita 9.21) |
 
-A 20,000-game simulation (`npm run sim`) puts a single life at about 42 turns from birth to Moksha.
+A 20,000-game simulation (`npm run sim`) puts a single life at a median of 49 turns from birth to Moksha, with one game in twenty taking 128 or more. The distribution has a long tail, so the sim reports the median and the 95th percentile rather than the mean.
 
 ## Features
-- **Every square is a card you can read.** Tap any square on the board, or any move in the log, to open its card. The cards are drawn as pothi folios, palm-leaf manuscript pages. ‹ › (or the arrow keys) turns the leaves from 1 to 110, so you can read the whole board without rolling once. Cards can be linked: `#sq/36` opens square 36.
+- **Every square is a card you can read.** Tap any square on the board, or any move in the log, to open its card. The log also names every square a move passed over, and each of those opens too. The cards are drawn as pothi folios, palm-leaf manuscript pages. ‹ › (or the arrow keys) turns the leaves from 1 to 110, so you can read the whole board without rolling once. Cards can be linked: `#sq/36` opens square 36.
 - **Cards wait for you.** Your landing card stays open until you close it, and the computer waits while you read. A computer's own landing card closes itself after a moment, unless you start reading it.
 - **Every square is a scene with someone in it, and an argument.** Each lead line names a person, a school or a text, and at the default depth two schools disagree about it.
 - **Painted squares** in the Basohli manner: flat colour, one black outline, figures in profile with one large eye. The old emoji come back for any square without a picture.
