@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Moksha Patam</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rozha+One&family=Hind:wght@400;500;600;700&display=swap">
+<!-- Hind draws Devanagari digits in Western shapes, so the ten digits come from Noto instead -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@500;700&text=%E0%A5%A6%E0%A5%A7%E0%A5%A8%E0%A5%A9%E0%A5%AA%E0%A5%AB%E0%A5%AC%E0%A5%AD%E0%A5%AE%E0%A5%AF&display=swap">
+<!-- @style -->
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <h1 data-t="title">Moksha Patam</h1>
+    <div class="lang" role="group" aria-label="Language / भाषा">
+      <button type="button" data-lang="en" aria-pressed="true">EN</button>
+      <button type="button" data-lang="hi" aria-pressed="false" lang="hi">हिं</button>
+    </div>
+    <p data-t="intro"></p>
+  </header>
+
+  <div class="game">
+    <div class="board-col">
+      <div class="board-frame">
+        <div class="board-wrap" id="board">
+          <div class="ashramas" id="ashramas" aria-hidden="true"></div>
+          <div class="cells" id="cells"></div>
+          <canvas id="art"></canvas>
+          <div class="labels" id="labels"></div>
+          <canvas id="fx"></canvas>
+          <div class="tokens" id="tokens"></div>
+          <div class="sqcard" id="sqcard" hidden><div class="sq" role="dialog" aria-live="polite"></div></div>
+          <div id="toastSlot"></div>
+          <div class="win" id="win" hidden>
+            <div>
+              <h2 id="winTitle"></h2>
+              <p id="winText"></p>
+              <button id="again" type="button" data-t="again">Play again</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tray"><span class="label" data-t="start">Start</span><span class="slots" id="tray"></span></div>
+    </div>
+
+    <aside class="panel">
+      <section class="card" aria-live="polite">
+        <span class="eyebrow" data-t="turn">Turn</span>
+        <div class="turn"><span class="dot" id="turnDot"></span><span id="turnName"></span></div>
+        <div class="roll-row">
+          <div class="die" id="die" aria-label="Die"></div>
+          <div class="roll-info">
+            <button id="roll" type="button">Roll the die</button>
+            <span class="hint" id="hint"></span>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <span class="eyebrow" data-t="players">Players</span>
+        <ul class="players" id="players"></ul>
+      </section>
+
+      <section class="card">
+        <span class="eyebrow" data-t="moves">Moves</span>
+        <ul class="log" id="log"></ul>
+      </section>
+
+      <details class="card" id="setup">
+        <summary data-t="setup">Players &amp; rules</summary>
+        <div class="setup-body">
+          <div class="seg" id="count" role="group"></div>
+          <div id="prows" class="setup-body"></div>
+          <label class="check"><input type="checkbox" id="ruleExact" checked> <span id="ruleExactText"></span></label>
+          <label class="check"><input type="checkbox" id="ruleSix" checked> <span data-t="ruleSix"></span></label>
+          <label class="pick"><span data-t="cards"></span><select id="ruleCards"></select></label>
+          <button id="newGame" type="button" data-t="newGame">Start new game</button>
+          <span class="hint" id="seed"></span>
+        </div>
+      </details>
+    </aside>
+  </div>
+</div>
+
+<!-- @script -->
+</body>
+</html>
