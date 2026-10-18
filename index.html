@@ -55,7 +55,7 @@ body {
 
 header { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
 h1 { font-family: var(--f-display); font-weight: 400; font-size: clamp(34px, 6vw, 52px); line-height: 1; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
-header p { margin: 0; color: var(--muted); max-width: 56ch; }
+header p { margin: 0; color: var(--muted); max-width: 58ch; }
 
 .game { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 24px; align-items: start; }
 @media (max-width: 820px) { .game { grid-template-columns: 1fr; } }
@@ -63,8 +63,9 @@ header p { margin: 0; color: var(--muted); max-width: 56ch; }
 /* Board: an ornate red-and-gold printed frame around a 10 x 11 grid (100 earthly squares + a row of heavenly realms). */
 .board-col { display: flex; flex-direction: column; gap: 10px; }
 .board-frame {
+  --fp: clamp(8px, 2.6vw, 18px);
   width: 100%; max-width: 600px;
-  padding: clamp(8px, 2.2vw, 16px);
+  padding: var(--fp);
   background: radial-gradient(circle, var(--frame-gold) 0 1.6px, transparent 2.2px) 0 0 / 11px 11px, var(--frame-red);
   border: 3px solid var(--frame-dark); border-radius: 6px;
   box-shadow: inset 0 0 0 2px var(--frame-gold), 0 10px 30px rgba(10, 12, 40, 0.3);
@@ -77,6 +78,16 @@ header p { margin: 0; color: var(--muted); max-width: 56ch; }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .cells { filter: brightness(0.9) saturate(0.92); } }
 :root[data-theme="dark"] .cells { filter: brightness(0.9) saturate(0.92); }
 canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+#fx { z-index: 1; }
+
+/* The four ashramas, written up the left edge of the frame. */
+.ashramas { position: absolute; top: 0; bottom: 0; right: calc(100% + 3px); width: var(--fp); pointer-events: none; }
+.ashramas span {
+  position: absolute; left: 50%; transform: translate(-50%, -50%) rotate(180deg);
+  writing-mode: vertical-rl; white-space: nowrap;
+  font-size: calc(var(--fp) * 0.58); font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; line-height: 1;
+  color: var(--frame-gold); background: var(--frame-red); padding: 4px 0;
+}
 
 /* Square labels sit above the snakes and ladders so numbers and symbols stay readable. */
 .labels { z-index: 1; }
@@ -108,26 +119,104 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events
 .lab.goal .dv { color: #FFE7A0; }
 @keyframes glow { 50% { text-shadow: 0 0 2.4cqi rgba(255, 220, 110, 1); } }
 @container (max-width: 440px) {
-  .lab .nm { display: none; }
+  .lab .nm, .ashramas { display: none; }
   .lab .ic { width: 4.6cqi; font-size: 2.6cqi; }
 }
 
+/* Players: pixel-art figures that walk, climb and grow. Feet sit on the square, with a shadow in the player's colour. */
 .tokens { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
 .token {
-  position: absolute; width: 5.4%; aspect-ratio: 1; border-radius: 50%;
-  transform: translate(-50%, -50%);
-  border: 2px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.45), inset 0 -3px 0 rgba(0,0,0,0.25);
+  position: absolute; width: 7.4%; aspect-ratio: 12 / 16;
+  transform: translate(-50%, -92%);
   transition: left 0.14s ease-out, top 0.14s ease-out;
   z-index: 2;
 }
-.token.slide { transition: left 0.75s ease-in-out, top 0.75s ease-in-out; }
-.token.active { z-index: 3; animation: bob 1.1s ease-in-out infinite; }
-@keyframes bob { 50% { transform: translate(-50%, -62%); } }
-.tray .token { position: static; transform: none; width: 22px; animation: none; }
+.token.free { transition: none; }
+.token::after {
+  content: ""; position: absolute; left: 12%; right: 12%; bottom: -5%; height: 15%; border-radius: 50%;
+  background: var(--pc); box-shadow: 0 0 0 1.5px #fff, 0 1px 3px rgba(0, 0, 0, 0.5); z-index: -1;
+}
+.token .body { width: 100%; height: 100%; }
+.token .spr { width: 100%; height: 100%; background-size: 100% 100%; image-rendering: pixelated; filter: drop-shadow(0 0 0.6px #fff) drop-shadow(0 1px 1px rgba(0, 0, 0, 0.45)); }
+.token.left .spr { transform: scaleX(-1); }
+.token.divine .spr { filter: drop-shadow(0 0 3px #FFD54A) drop-shadow(0 0 1px #fff); }
+.token.active { z-index: 3; }
+.token.active .body { animation: bob 1.1s ease-in-out infinite; }
+.token.hop .body { animation: hop 0.18s ease-out; }
+.token.gulp .body { transform-origin: 50% 30%; animation: gulp 0.34s ease-in forwards; }
+.token.dizzy .body { animation: dizzy 0.7s ease-out; }
+.token.hide { opacity: 0; }
+.token.poof::before {
+  content: ""; position: absolute; inset: -45%; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 236, 150, 0.95) 0 18%, rgba(255, 200, 80, 0.55) 40%, transparent 66%);
+  animation: poof 0.65s ease-out forwards;
+}
+@keyframes bob { 50% { transform: translateY(-7%); } }
+@keyframes hop { 50% { transform: translateY(-24%); } }
+@keyframes gulp { to { transform: translateY(-30%) scale(0); } }
+@keyframes dizzy { 0% { transform: scale(0.2) rotate(0); } 60% { transform: scale(1.15) rotate(540deg); } 100% { transform: scale(1) rotate(720deg); } }
+@keyframes poof { from { transform: scale(0.3); opacity: 1; } to { transform: scale(1.5); opacity: 0; } }
+.tray .token { position: relative; left: auto !important; top: auto !important; transform: none; width: 24px; }
+.tray .token .body { animation: none; }
 
-.tray { display: flex; align-items: center; gap: 10px; min-height: 28px; color: var(--muted); font-size: 13px; }
+.tray { display: flex; align-items: center; gap: 10px; min-height: 40px; color: var(--muted); font-size: 13px; }
 .tray .label { text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; font-size: 11px; }
-.tray .slots { display: flex; gap: 6px; }
+.tray .slots { display: flex; gap: 8px; }
+
+/* Stage-change banner */
+.toast {
+  position: absolute; left: 50%; top: 11%; z-index: 4; pointer-events: none;
+  background: rgba(28, 16, 6, 0.9); color: #FFF3D6; border: 1px solid var(--frame-gold);
+  padding: 0.6cqi 2.4cqi; border-radius: 99px; white-space: nowrap;
+  font-size: max(12px, 2.3cqi); font-weight: 600;
+  animation: toast 2.4s ease forwards;
+}
+@keyframes toast { 0% { opacity: 0; transform: translate(-50%, -40%); } 10%, 82% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; transform: translate(-50%, 0); } }
+
+/* Landing card: the square's symbol zooms out of its cell. Fixed parchment colours so it reads the same in both themes. */
+.sqcard { position: absolute; inset: 0; display: grid; place-items: center; z-index: 4; cursor: pointer; }
+.sq {
+  position: relative; overflow: hidden; width: min(68%, 380px);
+  display: flex; flex-direction: column; align-items: center; gap: 0.9cqi;
+  padding: 4cqi 4cqi 3.4cqi; border-radius: 2cqi; text-align: center;
+  background: #FFF8E6; color: #2A1A08; border: 3px solid #C98B3E;
+  box-shadow: 0 1.6cqi 5cqi rgba(0, 0, 0, 0.5);
+}
+.sq > * { position: relative; z-index: 1; }
+.sq .eb { font-size: max(10px, 1.9cqi); font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #8A5A1E; }
+.sq .big { font-family: var(--f-emoji); font-size: 13cqi; line-height: 1.1; }
+.sq .nm { font-family: var(--f-display); font-size: 5.4cqi; line-height: 1.05; }
+.sq .dv { font-family: var(--f-display); font-size: 3.4cqi; line-height: 1.1; color: #7A4A12; }
+.sq .tc { margin: 0.6cqi 0 0; font-size: max(12px, 2.4cqi); line-height: 1.4; max-width: 34ch; text-wrap: pretty; }
+.sq .ft { font-size: max(11px, 2cqi); font-weight: 600; color: #8A5A1E; }
+.sq .rays, .sq .sp, .sq .pt { position: absolute; z-index: 0; pointer-events: none; }
+.sq .rays {
+  left: 50%; top: 32%; width: 80cqi; aspect-ratio: 1; transform: translate(-50%, -50%);
+  background: repeating-conic-gradient(rgba(255, 190, 50, 0.38) 0 9deg, transparent 9deg 18deg);
+  -webkit-mask: radial-gradient(circle, #000 12%, transparent 62%); mask: radial-gradient(circle, #000 12%, transparent 62%);
+  animation: spin 14s linear infinite;
+}
+.sq .sp { bottom: -6%; color: #E0A400; font-size: 2.6cqi; animation: rise 1.8s ease-out infinite; }
+.sq .pt { top: -8%; font-family: var(--f-emoji); font-size: 2.6cqi; animation: fall 2.6s linear infinite; }
+.sq.virtue { border-color: #2E7D4F; box-shadow: 0 0 0 0.6cqi rgba(80, 200, 120, 0.35), 0 0 6cqi rgba(255, 210, 90, 0.7), 0 1.6cqi 5cqi rgba(0, 0, 0, 0.45); }
+.sq.virtue .eb, .sq.virtue .ft { color: #2E7D4F; }
+.sq.vice { border-color: #B3261E; background: radial-gradient(circle at 50% 28%, #FFF1EA, #F3C9BE 62%, #C47E70); animation: shake 0.5s ease-in-out; }
+.sq.vice .eb, .sq.vice .ft { color: #9E2A1C; }
+.sq.vice .big { animation: throb 0.9s ease-in-out infinite; }
+.sq.vice::after { content: ""; position: absolute; inset: 0; z-index: 0; background: radial-gradient(circle at 50% 110%, rgba(40, 10, 6, 0.45), transparent 60%); animation: smoke 2.4s ease-in-out infinite alternate; }
+.sq.heaven { border-color: #D9A21E; background: radial-gradient(circle at 50% 28%, #FFFDF0, #FCE7A6 58%, #F2C14E); }
+.sq.goal { border-color: #FFD86B; background: radial-gradient(circle at 50% 30%, #4A5CD0, #1E2A78 70%); color: #FFF3D6; }
+.sq.goal .eb, .sq.goal .dv, .sq.goal .ft { color: #FFD86B; }
+.sq.goal .big { font-family: var(--f-display); font-size: 16cqi; color: #FFD86B; text-shadow: 0 0 2cqi rgba(255, 215, 100, 0.9); animation: bloom 1.6s ease-out; }
+.sq.decor { animation: pop 0.5s ease-out; }
+@keyframes spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+@keyframes rise { from { transform: translateY(0); opacity: 0; } 20% { opacity: 1; } to { transform: translateY(-34cqi); opacity: 0; } }
+@keyframes fall { from { transform: translateY(0) rotate(0); opacity: 0; } 15% { opacity: 1; } to { transform: translateY(44cqi) rotate(200deg); opacity: 0; } }
+@keyframes shake { 15%, 55% { transform: translateX(-2.2%); } 35%, 75% { transform: translateX(2.2%); } }
+@keyframes throb { 50% { transform: scale(1.12); filter: drop-shadow(0 0 1.4cqi rgba(200, 20, 10, 0.85)); } }
+@keyframes smoke { to { opacity: 0.4; } }
+@keyframes bloom { from { transform: scale(0.4); text-shadow: 0 0 8cqi rgba(255, 230, 140, 1); } }
+@keyframes pop { 50% { transform: scale(1.04); } }
 
 .win { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(17, 19, 42, 0.62); z-index: 5; }
 .win > div { background: var(--surface); color: var(--ink); padding: 24px 28px; border-radius: 6px; text-align: center; display: flex; flex-direction: column; gap: 12px; align-items: center; max-width: 80%; }
@@ -170,6 +259,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .players li.current .pname { font-weight: 700; }
 .players .pos { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 13px; }
 .players .kind { font-size: 11px; color: var(--muted); margin-left: 4px; }
+.players .stage { display: block; font-size: 12px; color: var(--muted); line-height: 1.3; }
 
 .log { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; max-height: 220px; overflow-y: auto; font-size: 13.5px; }
 .log li { display: grid; grid-template-columns: 10px 1fr; gap: 8px; align-items: baseline; }
@@ -200,7 +290,7 @@ label.check input { margin-top: 4px; accent-color: var(--accent); }
 
 @media (prefers-reduced-motion: reduce) {
   .token, .token.slide { transition: none; }
-  .token.active, .die.rolling, .lab.goal .om { animation: none; }
+  .token .body, .die.rolling, .lab.goal .om, .sq, .sq *, .sq::after, .toast { animation: none !important; }
 }
 </style>
 </head>
@@ -209,17 +299,26 @@ label.check input { margin-top: 4px; accent-color: var(--accent); }
 <div class="wrap">
   <header>
     <h1>Moksha Patam</h1>
-    <p>The old Indian game of snakes and ladders. Ladders are virtues that lift you up; snakes are vices that drag you down. Climb past square 100 into the realms of the gods, and the first to reach Moksha at 110 is liberated.</p>
+    <p>The old Indian game of snakes and ladders, played as one life. Grow from a baby through the four ashramas: student, householder, forest-dweller and renunciate. Virtues lift you up; vices drag you back to a younger self. The first to pass the realms of the gods and reach Moksha at 110 is liberated.</p>
   </header>
 
   <div class="game">
     <div class="board-col">
       <div class="board-frame">
         <div class="board-wrap" id="board">
+          <div class="ashramas" aria-hidden="true">
+            <span style="top:88.6%">Brahmacharya</span>
+            <span style="top:65.9%">Grihastha</span>
+            <span style="top:43.2%">Vanaprastha</span>
+            <span style="top:20.5%">Sannyasa</span>
+          </div>
           <div class="cells" id="cells"></div>
           <canvas id="art"></canvas>
           <div class="labels" id="labels"></div>
+          <canvas id="fx"></canvas>
           <div class="tokens" id="tokens"></div>
+          <div class="sqcard" id="sqcard" hidden><div class="sq" role="dialog" aria-live="polite"></div></div>
+          <div id="toastSlot"></div>
           <div class="win" id="win" hidden>
             <div>
               <h2 id="winTitle"></h2>
@@ -262,6 +361,7 @@ label.check input { margin-top: 4px; accent-color: var(--accent); }
           <div id="prows" class="setup-body"></div>
           <label class="check"><input type="checkbox" id="ruleExact" checked> Need the exact roll to land on Moksha (110)</label>
           <label class="check"><input type="checkbox" id="ruleSix" checked> Rolling a 6 gives another turn</label>
+          <label class="check"><input type="checkbox" id="ruleCards" checked> Show a card for special squares</label>
           <button id="newGame" type="button">Start new game</button>
         </div>
       </details>
@@ -271,31 +371,118 @@ label.check input { margin-top: 4px; accent-color: var(--accent); }
 
 <script>
 (() => {
-  // Head → [tail, vice, Sanskrit, symbol]; base → [top, virtue, Sanskrit, symbol]. Names from the Moksha Patam tradition.
-  const SNAKES = {
-    16:[6,"Envy","Irshya","👁️"], 47:[26,"Pride","Mada","👑"], 49:[11,"Anger","Krodha","🌋"], 56:[53,"Theft","Steya","🦹"],
-    62:[19,"Lying","Asatya","🗣️"], 64:[60,"Vanity","Dambha","🪞"], 87:[24,"Greed","Lobha","💰"], 93:[73,"Cruelty","Himsa","🗡️"],
-    95:[75,"Sloth","Alasya","💤"], 98:[78,"Debt","Rina","⛓️"], 99:[69,"Ego","Ahankara","🎭"],
-  };
+  // The board is one life through the four ashramas. Ladders are the virtues of each stage, snakes its inner enemies
+  // (the shad-ripu and others). Head/base → { to, name, skt, dev, ic, teach }.
   const LADDERS = {
-    1:[38,"Faith","Shraddha","🙏"], 4:[14,"Reliability","Vishvasa","⚓"], 9:[31,"Generosity","Dana","🤲"], 21:[42,"Knowledge","Jnana","📖"],
-    28:[84,"Asceticism","Tapas","🧘"], 36:[44,"Patience","Kshama","⏳"], 51:[67,"Kindness","Daya","🕊️"], 71:[91,"Devotion","Bhakti","🪔"],
-    80:[100,"Wisdom","Prajna","🌟"],
+    1:  { to: 38,  name: "Faith",          skt: "Shraddha", dev: "श्रद्धा",  ic: "🙏", teach: "One who has faith gains knowledge. (Gita 4.39)" },
+    4:  { to: 14,  name: "Humility",       skt: "Vinaya",   dev: "विनय",    ic: "🙇", teach: "Learn by bowing, by asking and by serving the wise. (Gita 4.34)" },
+    9:  { to: 31,  name: "Learning",       skt: "Vidya",    dev: "विद्या",   ic: "📖", teach: "Learning gives humility, and humility makes one worthy. (Hitopadesha)" },
+    21: { to: 42,  name: "Truth",          skt: "Satya",    dev: "सत्य",    ic: "🕯️", teach: "Truth alone triumphs. (Mundaka Upanishad 3.1.6)" },
+    28: { to: 84,  name: "Duty",           skt: "Dharma",   dev: "धर्म",    ic: "⚖️", teach: "Your right is to the work alone, never to its fruits. (Gita 2.47)" },
+    36: { to: 44,  name: "Generosity",     skt: "Dana",     dev: "दान",     ic: "🤲", teach: "A gift given as duty, at the right time, to one who cannot repay, is pure. (Gita 17.20)" },
+    51: { to: 67,  name: "Austerity",      skt: "Tapas",    dev: "तपस्",    ic: "🧘", teach: "Discipline of body, speech and mind purifies the seeker. (Gita 17.14–16)" },
+    71: { to: 91,  name: "Detachment",     skt: "Vairagya", dev: "वैराग्य",  ic: "🍂", teach: "The restless mind is tamed by practice and detachment. (Gita 6.35)" },
+    80: { to: 100, name: "Self-knowledge", skt: "Jnana",    dev: "ज्ञान",    ic: "🌟", teach: "Nothing in this world purifies like knowledge. (Gita 4.38)" },
   };
-  // Auspicious squares with no effect, echoing the painted pictures on traditional boards.
+  const SNAKES = {
+    16: { to: 6,  name: "Sloth",         skt: "Alasya",   dev: "आलस्य",   ic: "💤", teach: "Idleness is a great enemy living in our own body. (Subhashita)" },
+    47: { to: 26, name: "Craving",       skt: "Kama",     dev: "काम",     ic: "💘", teach: "Desire, anger and greed are the three gates to ruin. (Gita 16.21)" },
+    49: { to: 11, name: "Anger",         skt: "Krodha",   dev: "क्रोध",    ic: "🌋", teach: "From anger comes delusion; from delusion, lost memory, and then ruin. (Gita 2.63)" },
+    56: { to: 53, name: "Greed",         skt: "Lobha",    dev: "लोभ",     ic: "💰", teach: "Greed is the root of wrongdoing. (Hitopadesha)" },
+    62: { to: 19, name: "Delusion",      skt: "Moha",     dev: "मोह",     ic: "🌫️", teach: "Dwelling on objects breeds attachment, then desire, then anger. (Gita 2.62)" },
+    64: { to: 60, name: "Envy",          skt: "Matsarya", dev: "मात्सर्य",  ic: "👁️", teach: "Free from envy, content with what comes, one is not bound. (Gita 4.22)" },
+    87: { to: 24, name: "Falsehood",     skt: "Asatya",   dev: "असत्य",   ic: "🗣️", teach: "Speak what is true, kind and beneficial. (Gita 17.15)" },
+    93: { to: 73, name: "Hypocrisy",     skt: "Dambha",   dev: "दम्भ",    ic: "🎭", teach: "Hypocrisy, arrogance and pride mark the demonic nature. (Gita 16.4)" },
+    95: { to: 75, name: "Pride",         skt: "Mada",     dev: "मद",      ic: "👑", teach: "Pride, the intoxication of the self, is one of the six inner enemies." },
+    98: { to: 78, name: "Fear of death", skt: "Bhaya",    dev: "भय",      ic: "💀", teach: "The soul is never born and never dies. (Gita 2.20)" },
+    99: { to: 69, name: "Ego",           skt: "Ahankara", dev: "अहंकार",  ic: "🪞", teach: "Deluded by ego, one thinks, \"I am the doer.\" (Gita 3.27)" },
+  };
+  // Auspicious squares with no effect, chosen to suit each stage of life.
   const DECOR = {
-    2:["Birth","👶"], 13:["Home","🏡"], 25:["Cow","🐄"], 34:["Dawn","🌅"], 35:["Peacock","🦚"], 39:["Hanuman","🐒"], 46:["Banyan","🌳"],
-    58:["Abhaya","✋"], 66:["Nandi","🐂"], 70:["Marigold","🌼"], 74:["Temple","🛕"], 83:["Ganga","🌊"], 88:["Moon","🌙"], 90:["Dhruva","⭐"],
+    2:  { name: "Birth",     ic: "👶", teach: "Every soul begins the game anew, with the whole board ahead." },
+    13: { name: "Guru",      ic: "🧑‍🏫", teach: "\"Gu\" is darkness and \"ru\" is what removes it: the guru." },
+    18: { name: "Peacock",   ic: "🦚", teach: "Krishna's peacock feather: beauty worn lightly." },
+    30: { name: "Home",      ic: "🏡", teach: "The householder's home supports all the other ashramas." },
+    33: { name: "Kamadhenu", ic: "🐄", teach: "The wish-fulfilling cow: abundance that nourishes all." },
+    35: { name: "Marriage",  ic: "💍", teach: "Vivaha: two lives joined to walk the path of dharma together." },
+    39: { name: "Hanuman",   ic: "🐒", teach: "Strength in service, devotion without ego." },
+    46: { name: "Banyan",    ic: "🌳", teach: "The banyan shelters many generations under one canopy." },
+    54: { name: "Forest",    ic: "🌲", teach: "The forest-dweller hands over the household and turns inward." },
+    58: { name: "Abhaya",    ic: "✋", teach: "The raised palm of the gods: do not fear." },
+    66: { name: "Nandi",     ic: "🐂", teach: "Nandi waits patiently before Shiva: a mind turned toward the divine." },
+    70: { name: "Ashram",    ic: "🛖", teach: "A simple hut, a quiet mind." },
+    74: { name: "Temple",    ic: "🛕", teach: "The body is the temple; the deity within is the Self." },
+    83: { name: "Ganga",     ic: "🌊", teach: "The river said to wash away the burdens of a lifetime." },
+    85: { name: "Kamandalu", ic: "🏺", teach: "The renunciate's water pot: owning only what is needed." },
+    88: { name: "Moon",      ic: "🌙", teach: "The cool moon: a mind made calm." },
+    90: { name: "Dhruva",    ic: "⭐", teach: "Dhruva's steady devotion made him the unmoving Pole Star." },
+    96: { name: "Diya",      ic: "🪔", teach: "A single lamp dispels the darkness of ages." },
   };
-  // The heavenly row above 100: realm → [deity, Devanagari, symbol].
+  // The heavenly row above 100.
   const HEAVEN = {
-    101:["Indra","इन्द्र","⚡"], 102:["Agni","अग्नि","🔥"], 103:["Surya","सूर्य","☀️"], 104:["Ganesha","गणेश","🐘"], 105:["Lakshmi","लक्ष्मी","🪷"],
-    106:["Saraswati","सरस्वती","🦢"], 107:["Brahma","ब्रह्मा","📜"], 108:["Vishnu","विष्णु","🐚"], 109:["Shiva","शिव","🔱"],
+    101: { name: "Indra",     dev: "इन्द्र",   ic: "⚡", teach: "Svarga, Indra's heaven: the reward of good deeds, yet not the final goal." },
+    102: { name: "Agni",      dev: "अग्नि",   ic: "🔥", teach: "Agni carries every offering to the gods." },
+    103: { name: "Surya",     dev: "सूर्य",    ic: "☀️", teach: "Surya, the visible god, witness of all actions." },
+    104: { name: "Ganesha",   dev: "गणेश",    ic: "🐘", teach: "Ganesha removes the last obstacles." },
+    105: { name: "Lakshmi",   dev: "लक्ष्मी",  ic: "🪷", teach: "Grace that blooms like the lotus, untouched by the mud." },
+    106: { name: "Saraswati", dev: "सरस्वती",  ic: "🦢", teach: "Her swan is said to separate milk from water: true knowledge from false." },
+    107: { name: "Brahma",    dev: "ब्रह्मा",  ic: "📜", teach: "Brahma, the creator, from whom the Vedas flow." },
+    108: { name: "Vishnu",    dev: "विष्णु",   ic: "🐚", teach: "Vishnu, the preserver, who upholds dharma in every age." },
+    109: { name: "Shiva",     dev: "शिव",     ic: "🔱", teach: "Shiva, the auspicious one, who dissolves all that binds." },
   };
   const GOAL = 110, ROWS = 11;
+  const ASHRAMAS = [[25, "Brahmacharya"], [50, "Grihastha"], [75, "Vanaprastha"], [100, "Sannyasa"], [GOAL, "Divine realms"]];
+  const ashramaOf = n => ASHRAMAS.find(([max]) => n <= max)[1];
+
+  // ---- Pixel-art characters, one per stage of life (12 x 16, facing right) ----
+  // K outline, S skin, H hair, G grey hair, W white beard, E eye, C clothes (player colour), c dark clothes,
+  // w white cloth, O/o saffron robe, B staff, Y gold, R slate. Rows 14–15 are the legs; legsB is the other walk frame.
+  const ART = {
+    baby: { back: "H", legsB: ["..KSK.KSK...", "...K...K...."], rows: [
+      "............", "............", "............", "............", "............", "............", "............", "............",
+      "......KKKK..", ".....KHHHHK.", ".....KSSESK.", "..KKKKSSSSK.", ".KCCCCCKKK..", "KCwwwCCCK...", ".KSK..KSK...", "..K....K...."] },
+    toddler: { back: "H", legsB: ["....KSSK....", "....KKKK...."], rows: [
+      "............", "............", "............", "............", "............",
+      "....KKKKK...", "...KHHHHHK..", "..KHSSSSSK..", "..KSSSESEK..", "..KSSSSSSK..", "...KKSSKK...",
+      "...KCCCCK...", "..KSCCCCSK..", "...KwwwwK...", "...KS..SK...", "...KK..KK..."] },
+    student: { back: "H", legsB: ["....KSSK....", "....KKKK...."], rows: [
+      "............", "............", "............",
+      "....KKKKK...", "...KHHHHHK..", "..KHHSSSSK..", "..KHSSESEK..", "..KSSSSSSK..", "...KKSSKK...",
+      "...KCCCCK...", "..KCCCCCCKKK", "..KSCCCCKRRK", "...KCCCCKRRK", "...KwwwwKKKK", "...KS..SK...", "...KK..KK..."] },
+    youth: { back: "H", legsB: ["....KSSK....", "....KKKK...."], rows: [
+      "............",
+      "....KKKK....", "...KHHHHK...", "..KHHSSSSK..", "..KHSSESEK..", "..KSSSSSSK..", "...KSSSSK...", "....KSSK....",
+      "..KCCCCCCK..", ".KCCCCCCCCK.", ".KCKCCCCKCK.", ".KSKCCCCKSK.", "...KwwwwK...", "...KwwwwK...", "..KSK..KSK..", "..KK....KK.."] },
+    householder: { back: "H", legsB: ["....KSSK....", "....KKKK...."], rows: [
+      "....KKKK....", "...KccccK...", "..KccccccK..", "..KHSSSSSK..", "..KSSSESEK..", "..KSSKKKSK..", "...KSSSSK...", "....KSSK....",
+      "..KCCCCCCK..", ".KCCCCCCCCK.", ".KCKCCCCKCK.", ".KSKCCCCKSK.", "...KwwwwK...", "...KwwwwK...", "..KSK..KSK..", "..KK....KK.."] },
+    forest: { back: "G", legsB: ["....KSSK..B.", "....KKKK..B."], rows: [
+      "....KKKK..B.", "...KGGGGK.B.", "..KGGSSSSKB.", "..KGSSESEKB.", "..KSSSSSSKB.", "..KSGGGGSKB.", "...KGGGGK.B.", "....KGGK..B.",
+      "..KccccccKB.", ".KcccccccSB.", ".KcKccccKKB.", ".KSKccccK.B.", "...KccccK.B.", "...KccccK.B.", "..KSK..KSKB.", "..KK....KKB."] },
+    sage: { back: "S", legsB: ["...KOOOOK.B.", "...KK..KK.B."], rows: [
+      ".....KK...B.", "....KHHK..B.", "...KSSSSK.B.", "..KSSSYSSKB.", "..KSSSESEKB.", "..KSWWWWSKB.", "...KWWWWK.B.", "....KWWK..B.",
+      "..KOOOOCOKB.", ".KOOOOCOOSB.", ".KOKOCOOKKB.", ".KSKCOOOK.B.", "...KOOOOK.B.", "...KooooK.B.", "...KOOOOK.B.", "..KK....KKB."] },
+    divine: { back: "H", legsB: ["....KSSK....", "....KKKK...."], rows: [
+      "...YYYYYY...", "..YKKKKKKY..", ".Y.KYYYYK.Y.", ".YKHSSSSSKY.", ".YKSSSESEKY.", "..KSSSSSSK..", "...KSSSSK...", "....KSSK....",
+      "..KYCCCCYK..", ".KYCCCCCCYK.", ".KSKCCCCKSK.", "...KCCCCK...", "...KwwwwK...", "...KwwwwK...", "..KSK..KSK..", "..KK....KK.."] },
+  };
+  // Life stages follow board position: ladders age you, snakes send you back to a younger self.
+  const STAGES = [
+    { max: 8,    art: "baby",        name: "Baby",           skt: "Shishu" },
+    { max: 16,   art: "toddler",     name: "Toddler",        skt: "Bala" },
+    { max: 25,   art: "student",     name: "Student",        skt: "Brahmachari" },
+    { max: 37,   art: "youth",       name: "Youth",          skt: "Yuva" },
+    { max: 50,   art: "householder", name: "Householder",    skt: "Grihastha" },
+    { max: 75,   art: "forest",      name: "Forest-dweller", skt: "Vanaprasthi" },
+    { max: 100,  art: "sage",        name: "Renunciate",     skt: "Sannyasi" },
+    { max: GOAL, art: "divine",      name: "Divine soul",    skt: "Divya" },
+  ];
+  const stageOf = pos => STAGES.findIndex(s => Math.max(pos, 1) <= s.max);
+
   // [background, light ink?]: the bright printed colours of the traditional board.
   const PALETTE = [["#D2402E", true], ["#F2C232", false], ["#3A78C2", true], ["#EC8A2E", false], ["#3F9A52", true], ["#7CC3E8", false]];
   const COLORS = ["var(--p0)", "var(--p1)", "var(--p2)", "var(--p3)"];
+  const P_HEX = ["#C0392B", "#2E5BBA", "#2E8B57", "#D98300"];
   const COLOR_NAMES = ["Red", "Blue", "Green", "Saffron"];
   const PIPS = { 1:[4], 2:[0,8], 3:[0,4,8], 4:[0,2,6,8], 5:[0,2,4,6,8], 6:[0,2,3,5,6,8] };
   const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -310,17 +497,18 @@ label.check input { margin-top: 4px; accent-color: var(--accent); }
       { name: "Player 3", type: "cpu" },
       { name: "Player 4", type: "cpu" },
     ],
-    rules: { exact: true, six: true },
+    rules: { exact: true, six: true, cards: true },
   });
 
-  let setup, state, busy = false, cpuTimer = null;
+  // gen changes on every new game, so animations from an abandoned turn stop where they are.
+  let setup, state, busy = false, cpuTimer = null, gen = 0, forcedRoll = null, cardClose = null;
 
   function newState() {
     return {
-      players: setup.rows.slice(0, setup.count).map((r, i) => ({ name: r.name.trim() || COLOR_NAMES[i], type: r.type, color: i, pos: 0 })),
+      players: setup.rows.slice(0, setup.count).map((r, i) => ({ name: r.name.trim() || COLOR_NAMES[i], type: r.type, color: i, pos: 0, face: "r" })),
       rules: { ...setup.rules },
       turn: 0, winner: null, last: null,
-      log: [{ text: "New game. Roll to enter the board.", kind: "" }],
+      log: [{ text: "New game. Roll to be born onto the board.", kind: "" }],
     };
   }
 
@@ -334,13 +522,14 @@ label.check input { margin-top: 4px; accent-color: var(--accent); }
   function labelHtml(n) {
     const num = `<span class="n">${n}</span>`;
     if (n === GOAL) return num + `<span class="om">ॐ</span><span class="dv">मोक्ष</span>`;
-    if (HEAVEN[n]) return num + `<span class="ic">${HEAVEN[n][2]}</span><span class="dv">${HEAVEN[n][1]}</span>`;
+    if (HEAVEN[n]) return num + `<span class="ic">${HEAVEN[n].ic}</span><span class="dv">${HEAVEN[n].dev}</span>`;
     const sl = SNAKES[n] || LADDERS[n];
-    if (sl) return num + `<span class="ic">${sl[3]}</span><span class="nm">${sl[1]}</span>`;
-    if (DECOR[n]) return num + `<span class="ic">${DECOR[n][1]}</span>`;
+    if (sl) return num + `<span class="ic">${sl.ic}</span><span class="nm">${sl.name}</span>`;
+    if (DECOR[n]) return num + `<span class="ic">${DECOR[n].ic}</span>`;
     return num;
   }
 
+  const labEls = {};
   function buildCells() {
     const cells = $("cells"), labels = $("labels");
     cells.innerHTML = ""; labels.innerHTML = "";
@@ -358,20 +547,24 @@ label.check input { margin-top: 4px; accent-color: var(--accent); }
         const kind = n === GOAL ? " heaven goal" : heaven ? " heaven" : SNAKES[n] ? " vice" : LADDERS[n] ? " virtue" : DECOR[n] ? " decor" : "";
         lab.className = "lab" + kind + (light && !heaven ? " li" : "");
         lab.innerHTML = labelHtml(n);
-        if (SNAKES[n]) lab.title = `Snake of ${SNAKES[n][1]} (${SNAKES[n][2]}): down to ${SNAKES[n][0]}`;
-        else if (LADDERS[n]) lab.title = `Ladder of ${LADDERS[n][1]} (${LADDERS[n][2]}): up to ${LADDERS[n][0]}`;
+        const s = SNAKES[n], l = LADDERS[n];
+        if (s) lab.title = `Snake of ${s.name} (${s.skt}): down to ${s.to}`;
+        else if (l) lab.title = `Ladder of ${l.name} (${l.skt}): up to ${l.to}`;
         else if (n === GOAL) lab.title = "Moksha: liberation";
-        else if (HEAVEN[n]) lab.title = `Realm of ${HEAVEN[n][0]}`;
-        else if (DECOR[n]) lab.title = DECOR[n][0];
+        else if (HEAVEN[n]) lab.title = `Realm of ${HEAVEN[n].name}`;
+        else if (DECOR[n]) lab.title = DECOR[n].name;
         labels.appendChild(lab);
+        labEls[n] = lab;
       }
     }
   }
 
   // ---- Drawing snakes and ladders ----
   const canvas = $("art"), ctx = canvas.getContext("2d");
+  const fxCanvas = $("fx"), fx = fxCanvas.getContext("2d");
   let S = 0;
   const center = n => { const { col, row } = colRow(n); return { x: (col + 0.5) * S, y: (ROWS - 1 - row + 0.5) * S }; };
+  const fxClear = () => fx.clearRect(0, 0, S * 10, S * ROWS);
 
   function drawLadder(a, b) {
     const p = center(a), q = center(b);
@@ -399,8 +592,10 @@ label.check input { margin-top: 4px; accent-color: var(--accent); }
     ["#4A4F5C", "#262A33", "#C9CFC2"], ["#2F4C70", "#18293F", "#BFD3E6"], ["#5B5240", "#332D22", "#E3D3A8"],
     ["#3C5A44", "#1F3325", "#C8DDB8"], ["#6A3B32", "#3D1F1A", "#E8C2A8"],
   ];
+  const snakeColors = h => SNAKE_COLORS[Object.keys(SNAKES).indexOf(String(h)) % SNAKE_COLORS.length];
 
-  function drawSnake(h, t, k) {
+  // The wavy body from head (index 0) to tail, shared by drawing and the swallow animation.
+  function snakePath(h, t) {
     const p = center(h), q = center(t);
     const dx = q.x - p.x, dy = q.y - p.y, len = Math.hypot(dx, dy);
     const nx = -dy / len, ny = dx / len;
@@ -411,7 +606,30 @@ label.check input { margin-top: 4px; accent-color: var(--accent); }
       const tt = i / N, o = Math.sin(tt * Math.PI * 2 * waves) * amp * Math.sin(tt * Math.PI);
       pts.push({ x: p.x + dx * tt + nx * o, y: p.y + dy * tt + ny * o, w: S * (0.24 - 0.18 * tt) });
     }
-    const [body, band, belly] = SNAKE_COLORS[k % SNAKE_COLORS.length];
+    return pts;
+  }
+
+  function drawHood(c, a, b, [body, band, belly], flare = 1) {
+    const ang = Math.atan2(a.y - b.y, a.x - b.x);
+    c.save(); c.translate(a.x, a.y); c.rotate(ang); c.scale(flare, flare);
+    c.strokeStyle = "#B3261E"; c.lineWidth = S * 0.025;
+    c.beginPath(); c.moveTo(S * 0.16, 0); c.lineTo(S * 0.3, 0); c.lineTo(S * 0.35, -S * 0.04); c.moveTo(S * 0.3, 0); c.lineTo(S * 0.35, S * 0.04); c.stroke();
+    c.lineWidth = 2; c.strokeStyle = "#0E0C08";
+    c.fillStyle = body; c.beginPath(); c.ellipse(-S * 0.07, 0, S * 0.19, S * 0.3, 0, 0, Math.PI * 2); c.fill(); c.stroke();
+    c.fillStyle = band; c.beginPath(); c.ellipse(-S * 0.07, 0, S * 0.12, S * 0.2, 0, 0, Math.PI * 2); c.fill();
+    c.strokeStyle = belly; c.lineWidth = S * 0.022;
+    for (const sg of [-1, 1]) { c.beginPath(); c.arc(-S * 0.1, sg * S * 0.09, S * 0.045, 0, Math.PI * 2); c.stroke(); }
+    c.lineWidth = 1.5; c.strokeStyle = "#0E0C08";
+    c.fillStyle = body; c.beginPath(); c.ellipse(S * 0.06, 0, S * 0.13, S * 0.1, 0, 0, Math.PI * 2); c.fill(); c.stroke();
+    for (const sg of [-1, 1]) {
+      c.fillStyle = "#FFF6D8"; c.beginPath(); c.arc(S * 0.1, sg * S * 0.05, S * 0.03, 0, Math.PI * 2); c.fill();
+      c.fillStyle = "#111"; c.beginPath(); c.arc(S * 0.11, sg * S * 0.05, S * 0.015, 0, Math.PI * 2); c.fill();
+    }
+    c.restore();
+  }
+
+  function drawSnake(h, t) {
+    const pts = snakePath(h, t), N = pts.length - 1, cols = snakeColors(h), [body, band, belly] = cols;
     ctx.lineCap = "round";
     // outline, banded body, then a pale belly stripe
     for (let pass = 0; pass < 3; pass++) {
@@ -424,40 +642,54 @@ label.check input { margin-top: 4px; accent-color: var(--accent); }
       }
     }
     ctx.globalAlpha = 1;
-    // raised cobra hood and head, facing away from the body
-    const a = pts[0], b = pts[4], ang = Math.atan2(a.y - b.y, a.x - b.x);
-    ctx.save(); ctx.translate(a.x, a.y); ctx.rotate(ang);
-    ctx.strokeStyle = "#B3261E"; ctx.lineWidth = S * 0.025;
-    ctx.beginPath(); ctx.moveTo(S * 0.16, 0); ctx.lineTo(S * 0.3, 0); ctx.lineTo(S * 0.35, -S * 0.04); ctx.moveTo(S * 0.3, 0); ctx.lineTo(S * 0.35, S * 0.04); ctx.stroke();
-    ctx.lineWidth = 2; ctx.strokeStyle = "#0E0C08";
-    ctx.fillStyle = body; ctx.beginPath(); ctx.ellipse(-S * 0.07, 0, S * 0.19, S * 0.3, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = band; ctx.beginPath(); ctx.ellipse(-S * 0.07, 0, S * 0.12, S * 0.2, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = belly; ctx.lineWidth = S * 0.022;
-    for (const sg of [-1, 1]) { ctx.beginPath(); ctx.arc(-S * 0.1, sg * S * 0.09, S * 0.045, 0, Math.PI * 2); ctx.stroke(); }
-    ctx.lineWidth = 1.5; ctx.strokeStyle = "#0E0C08";
-    ctx.fillStyle = body; ctx.beginPath(); ctx.ellipse(S * 0.06, 0, S * 0.13, S * 0.1, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    for (const sg of [-1, 1]) {
-      ctx.fillStyle = "#FFF6D8"; ctx.beginPath(); ctx.arc(S * 0.1, sg * S * 0.05, S * 0.03, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = "#111"; ctx.beginPath(); ctx.arc(S * 0.11, sg * S * 0.05, S * 0.015, 0, Math.PI * 2); ctx.fill();
-    }
-    ctx.restore();
+    drawHood(ctx, pts[0], pts[4], cols);
   }
 
   function draw() {
     const W = $("cells").clientWidth, H = $("cells").clientHeight;
     if (!W) return;
     const dpr = window.devicePixelRatio || 1;
-    canvas.width = W * dpr; canvas.height = H * dpr;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    for (const [cv, c] of [[canvas, ctx], [fxCanvas, fx]]) {
+      cv.width = W * dpr; cv.height = H * dpr;
+      c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
     ctx.clearRect(0, 0, W, H);
     S = W / 10;
-    for (const [a, [b]] of Object.entries(LADDERS)) drawLadder(+a, b);
-    Object.entries(SNAKES).forEach(([h, [t]], k) => drawSnake(+h, t, k));
+    for (const [a, l] of Object.entries(LADDERS)) drawLadder(+a, l.to);
+    for (const [h, s] of Object.entries(SNAKES)) drawSnake(+h, s.to);
+  }
+
+  // ---- Sprites ----
+  const spriteCache = new Map();
+  function shade(hex, f) {
+    const n = parseInt(hex.slice(1), 16), ch = [n >> 16, (n >> 8) & 255, n & 255].map(v => Math.round(v * (1 + f)));
+    return "#" + ch.map(v => Math.max(0, Math.min(255, v)).toString(16).padStart(2, "0")).join("");
+  }
+  // frame: 0/1 walking, 2/3 climbing (seen from behind)
+  function spriteURL(stage, color, frame) {
+    const key = `${stage}|${color}|${frame}`;
+    if (spriteCache.has(key)) return spriteCache.get(key);
+    const art = ART[STAGES[stage].art];
+    let rows = art.rows.slice();
+    if (frame % 2) rows.splice(14, 2, ...art.legsB);
+    // from behind: everything down to just below the eyes becomes the back of the head
+    if (frame >= 2) { const eye = rows.findIndex(r => r.includes("E")); rows = rows.map((r, y) => (y <= eye + 1 ? r.replace(art.back === "S" ? /[SEWY]/g : /[SEW]/g, art.back) : r)); }
+    const pal = {
+      K: "#1A1208", S: "#E2A877", H: "#2A1A10", G: "#D9D6CF", W: "#F2F0EA", E: "#1A1208", w: "#F4F1E8",
+      O: "#F08A1C", o: "#B85E0A", B: "#7A4B22", Y: "#FFD54A", R: "#3E444C", C: P_HEX[color], c: shade(P_HEX[color], -0.35),
+    };
+    const cv = document.createElement("canvas"); cv.width = 12; cv.height = 16;
+    const c = cv.getContext("2d");
+    rows.forEach((r, y) => [...r].forEach((ch, x) => { if (pal[ch]) { c.fillStyle = pal[ch]; c.fillRect(x, y, 1, 1); } }));
+    const url = `url(${cv.toDataURL()})`;
+    spriteCache.set(key, url);
+    return url;
   }
 
   // ---- Tokens ----
   const tokenEls = [];
-  const OFFS = [[0, 0], [-1.6, -1.6], [1.6, -1.6], [-1.6, 1.6], [1.6, 1.6]];
+  const OFFS = [[0, 0], [-2.2, -1.2], [2.2, -1.2], [-2.2, 1.2], [2.2, 1.2]];
+  const FEET = 0.38; // feet sit this far below a square's centre, in squares
 
   function buildTokens() {
     tokenEls.length = 0;
@@ -465,28 +697,179 @@ label.check input { margin-top: 4px; accent-color: var(--accent); }
     state.players.forEach(p => {
       const el = document.createElement("div");
       el.className = "token";
-      el.style.background = COLORS[p.color];
+      el.innerHTML = `<div class="body"><div class="spr"></div></div>`;
+      el.style.setProperty("--pc", COLORS[p.color]);
       el.title = p.name;
+      el._frame = 0; el._stage = null;
       tokenEls.push(el);
     });
-    place();
+    place(true);
   }
 
-  function place() {
+  function setSprite(el, p, stage) {
+    el.querySelector(".spr").style.backgroundImage = spriteURL(stage, p.color, el._frame);
+    el.classList.toggle("divine", STAGES[stage].art === "divine");
+  }
+
+  function setXY(el, x, y) {
+    el.style.left = (x / (S * 10)) * 100 + "%";
+    el.style.top = ((y + FEET * S) / (S * ROWS)) * 100 + "%";
+  }
+
+  function retrigger(el, cls) { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); }
+
+  function place(silent = false) {
     const at = {};
     state.players.forEach((p, i) => (at[p.pos] ||= []).push(i));
     state.players.forEach((p, i) => {
       const el = tokenEls[i];
-      el.classList.toggle("active", i === state.turn && state.winner == null);
+      el.classList.toggle("active", i === state.turn && state.winner == null && !busy);
+      el.classList.toggle("left", p.face === "l" && el._frame < 2);
+      const stage = stageOf(p.pos);
+      if (el._stage !== stage) {
+        if (el._stage != null && !silent) {
+          const st = STAGES[stage], what = `a ${st.name} (${st.skt})`;
+          retrigger(el, "poof");
+          toast(stage > el._stage ? `${p.name} grew into ${what}` : `${p.name} ${p.name === "You" ? "are" : "is"} reborn as ${what}`);
+        }
+        el._stage = stage;
+      }
+      setSprite(el, p, stage);
       if (p.pos === 0) { if (el.parentNode !== $("tray")) $("tray").appendChild(el); return; }
       if (el.parentNode !== $("tokens")) $("tokens").appendChild(el);
       const group = at[p.pos], k = group.indexOf(i);
       const [ox, oy] = group.length === 1 ? OFFS[0] : OFFS[k + 1];
       const { col, row } = colRow(p.pos);
       el.style.left = (col + 0.5) * 10 + ox + "%";
-      el.style.top = ((ROWS - 1 - row + 0.5) * 10 + oy) * (10 / ROWS) + "%";
+      el.style.top = ((ROWS - 1 - row + 0.5 + FEET) * 10 + oy) * (10 / ROWS) + "%";
     });
+    renderPlayers();
   }
+
+  function toast(text) {
+    const slot = $("toastSlot");
+    slot.innerHTML = "";
+    const t = document.createElement("div");
+    t.className = "toast"; t.textContent = text;
+    slot.appendChild(t);
+    setTimeout(() => t.remove(), 2500);
+  }
+
+  // ---- Animations ----
+  // Runs fn(t) for t in 0..1 over ms; stops early if a new game starts.
+  const animate = (ms, fn) => new Promise(res => {
+    const g = gen, t0 = performance.now(), d = reduced ? 1 : ms;
+    const tick = now => {
+      if (g !== gen) return res();
+      const t = Math.min(1, (now - t0) / d);
+      fn(t);
+      t < 1 ? requestAnimationFrame(tick) : res();
+    };
+    requestAnimationFrame(tick);
+  });
+  const ease = f => (f < 0.5 ? 2 * f * f : 1 - (-2 * f + 2) ** 2 / 2);
+
+  async function climb(idx, a, b) {
+    const g = gen, el = tokenEls[idx], p = state.players[idx];
+    const P = center(a), Q = center(b), len = Math.hypot(Q.x - P.x, Q.y - P.y);
+    const rungs = Math.max(2, Math.floor(len / (S * 0.36)));
+    const trail = [];
+    el.classList.add("free"); el.classList.remove("left");
+    await animate(Math.min(1700, Math.max(900, (len / S) * 230)), t => {
+      const u = t * rungs, k = Math.min(rungs - 1, Math.floor(u)), f = u - k;
+      const e = (k + ease(f)) / rungs;
+      const x = P.x + (Q.x - P.x) * e, y = P.y + (Q.y - P.y) * e - Math.sin(f * Math.PI) * S * 0.08;
+      el._frame = 2 + (k % 2); setSprite(el, p, el._stage); setXY(el, x, y);
+      trail.push({ x, y, t });
+      fxClear();
+      for (const pt of trail) {
+        const alpha = 1 - (t - pt.t) * 3;
+        if (alpha <= 0) continue;
+        fx.fillStyle = `rgba(255, 214, 90, ${alpha * 0.7})`;
+        fx.beginPath(); fx.arc(pt.x, pt.y + S * 0.15, S * 0.08 * alpha, 0, Math.PI * 2); fx.fill();
+      }
+    });
+    fxClear();
+    if (g !== gen) return;
+    el.classList.remove("free"); el._frame = 0; p.pos = b; place();
+  }
+
+  async function swallow(idx, h, t) {
+    const g = gen, el = tokenEls[idx], p = state.players[idx];
+    const pts = snakePath(h, t), N = pts.length - 1, cols = snakeColors(h);
+    // the hood flares and strikes
+    await animate(450, u => {
+      fxClear();
+      fx.strokeStyle = `rgba(220, 40, 30, ${1 - u})`; fx.lineWidth = S * 0.05;
+      fx.beginPath(); fx.arc(pts[0].x, pts[0].y, S * (0.25 + 0.4 * u), 0, Math.PI * 2); fx.stroke();
+      drawHood(fx, pts[0], pts[4], cols, 1 + 0.35 * Math.sin(u * Math.PI));
+    });
+    if (g !== gen) return fxClear();
+    retrigger(el, "gulp");
+    await sleep(340);
+    if (g !== gen) return fxClear();
+    el.classList.add("hide"); el.classList.remove("gulp");
+    // a bulge in the player's colour travels down the body
+    let L = 0;
+    for (let i = 0; i < N; i++) L += Math.hypot(pts[i + 1].x - pts[i].x, pts[i + 1].y - pts[i].y);
+    await animate(Math.min(2000, Math.max(1000, (L / S) * 170)), u => {
+      const i = u * N, k = Math.min(N - 1, Math.floor(i)), f = i - k, a = pts[k], b = pts[k + 1];
+      const x = a.x + (b.x - a.x) * f, y = a.y + (b.y - a.y) * f, r = Math.max(S * 0.11, a.w * 0.95);
+      fxClear();
+      drawHood(fx, pts[0], pts[4], cols);
+      fx.lineWidth = 2; fx.strokeStyle = "#0E0C08"; fx.fillStyle = cols[0];
+      fx.beginPath(); fx.arc(x, y, r, 0, Math.PI * 2); fx.fill(); fx.stroke();
+      fx.globalAlpha = 0.6; fx.fillStyle = P_HEX[p.color];
+      fx.beginPath(); fx.arc(x, y, r * 0.65, 0, Math.PI * 2); fx.fill();
+      fx.globalAlpha = 1;
+    });
+    fxClear();
+    if (g !== gen) return;
+    // ...and spits the player out at the tail, younger and dizzy
+    p.pos = t; el.classList.remove("hide"); place();
+    retrigger(el, "dizzy");
+    await sleep(700);
+    el.classList.remove("dizzy");
+  }
+
+  // ---- Landing card ----
+  function squareInfo(n) {
+    const l = LADDERS[n], s = SNAKES[n];
+    if (l) return { kind: "virtue", big: l.ic, name: l.name, dev: `${l.dev} · ${l.skt}`, eb: `Virtue · ${ashramaOf(n)}`, teach: l.teach, ft: `Ladder up to ${l.to}` };
+    if (s) return { kind: "vice", big: s.ic, name: s.name, dev: `${s.dev} · ${s.skt}`, eb: `Vice · ${ashramaOf(n)}`, teach: s.teach, ft: `Snake down to ${s.to}` };
+    if (n === GOAL) return { kind: "goal", big: "ॐ", name: "Moksha", dev: "मोक्ष · Liberation", eb: "The end of the journey", teach: "Freedom from the cycle of birth and death.", ft: "" };
+    if (HEAVEN[n]) { const h = HEAVEN[n]; return { kind: "heaven", big: h.ic, name: h.name, dev: h.dev, eb: "Divine realm", teach: h.teach, ft: "" }; }
+    if (DECOR[n]) { const d = DECOR[n]; return { kind: "decor", big: d.ic, name: d.name, dev: "", eb: `Auspicious sign · ${ashramaOf(n)}`, teach: d.teach, ft: "" }; }
+    return null;
+  }
+
+  function cardExtras(kind) {
+    const rnd = i => (i * 37) % 100;
+    if (kind === "virtue") return `<div class="rays"></div>` + [...Array(7)].map((_, i) => `<span class="sp" style="left:${8 + rnd(i + 1) * 0.84}%;animation-delay:${(i * 0.26).toFixed(2)}s">✦</span>`).join("");
+    if (kind === "heaven" || kind === "goal") return `<div class="rays"></div>` + [...Array(6)].map((_, i) => `<span class="pt" style="left:${6 + rnd(i + 2) * 0.86}%;animation-delay:${(i * 0.4).toFixed(2)}s">🌸</span>`).join("");
+    return "";
+  }
+
+  async function showCard(n, quick) {
+    const info = squareInfo(n);
+    if (!info) return;
+    const g = gen, box = $("sqcard"), card = box.firstElementChild;
+    card.className = "sq " + info.kind;
+    card.innerHTML = cardExtras(info.kind) +
+      `<span class="eb">${info.eb}</span><span class="big">${info.big}</span><span class="nm">${info.name}</span>` +
+      (info.dev ? `<span class="dv">${info.dev}</span>` : "") + `<p class="tc">${info.teach}</p>` + (info.ft ? `<span class="ft">${info.ft}</span>` : "");
+    box.hidden = false;
+    // zoom out of the square the player landed on
+    const from = labEls[n].getBoundingClientRect(), to = card.getBoundingClientRect();
+    const dx = from.left + from.width / 2 - (to.left + to.width / 2), dy = from.top + from.height / 2 - (to.top + to.height / 2);
+    const shrunk = { transform: `translate(${dx}px, ${dy}px) scale(${from.width / to.width})`, opacity: 0.3 };
+    if (!reduced) card.animate([shrunk, { transform: "none", opacity: 1 }], { duration: 420, easing: "cubic-bezier(.2,.8,.25,1.15)" });
+    await new Promise(res => { cardClose = res; setTimeout(res, quick ? 1400 : 2600); });
+    cardClose = null;
+    if (!reduced && g === gen) await card.animate([{ transform: "none", opacity: 1 }, { ...shrunk, opacity: 0 }], { duration: 260, easing: "ease-in" }).finished.catch(() => {});
+    if (g === gen) box.hidden = true;
+  }
+  $("sqcard").addEventListener("click", () => cardClose?.());
 
   // ---- Die ----
   const dieEl = $("die");
@@ -498,7 +881,8 @@ label.check input { margin-top: 4px; accent-color: var(--accent); }
   async function rollDie() {
     dieEl.classList.remove("rolling"); void dieEl.offsetWidth; dieEl.classList.add("rolling");
     for (let i = 0; i < 7; i++) { showDie(1 + Math.floor(Math.random() * 6)); await sleep(75); }
-    const v = 1 + Math.floor(Math.random() * 6);
+    const v = forcedRoll ?? 1 + Math.floor(Math.random() * 6);
+    forcedRoll = null;
     showDie(v);
     return v;
   }
@@ -513,9 +897,11 @@ label.check input { margin-top: 4px; accent-color: var(--accent); }
 
   async function takeTurn() {
     if (busy || state.winner != null) return;
+    const g = gen;
     busy = true; render();
     const p = cur(), idx = state.turn, el = tokenEls[idx];
     const v = await rollDie();
+    if (g !== gen) return;
     state.last = v;
     let target = p.pos + v;
     if (target > GOAL) {
@@ -527,22 +913,29 @@ label.check input { margin-top: 4px; accent-color: var(--accent); }
     if (target !== p.pos) {
       const from = p.pos;
       await sleep(150);
-      for (let n = p.pos + 1; n <= target; n++) { p.pos = n; place(); await sleep(170); }
+      for (let n = p.pos + 1; n <= target; n++) {
+        if (g !== gen) return;
+        if (n > 1) { const dc = colRow(n).col - colRow(n - 1).col; if (dc) p.face = dc > 0 ? "r" : "l"; }
+        p.pos = n; el._frame = 1 - el._frame;
+        retrigger(el, "hop");
+        place();
+        await sleep(200);
+      }
+      if (g !== gen) return;
+      el._frame = 0; place();
+      if (state.rules.cards !== false) { await showCard(p.pos, p.type === "cpu"); if (g !== gen) return; }
       const s = SNAKES[p.pos], l = LADDERS[p.pos];
       if (s || l) {
-        await sleep(220);
-        el.classList.add("slide");
-        const [to, name, skt] = s || l;
-        log(s ? `${p.name} rolled ${v}, landed on ${p.pos} and met the snake of ${name} (${skt}). Slid down to ${to}.`
+        const { to, name, skt } = s || l;
+        log(s ? `${p.name} rolled ${v}, landed on ${p.pos} and was swallowed by the snake of ${name} (${skt}). Down to ${to}.`
               : `${p.pos === 1 && from === 0 ? `${p.name} rolled ${v} onto 1` : `${p.name} rolled ${v} to ${p.pos}`} and climbed the ladder of ${name} (${skt}) to ${to}.`,
             s ? "snake" : "ladder", idx);
-        p.pos = to; place();
-        await sleep(780);
-        el.classList.remove("slide");
+        await (s ? swallow(idx, p.pos, to) : climb(idx, p.pos, to));
+        if (g !== gen) return;
       } else if (HEAVEN[p.pos]) {
-        log(`${p.name} rolled ${v}: rose to ${p.pos}, the realm of ${HEAVEN[p.pos][0]}.`, "heaven", idx);
+        log(`${p.name} rolled ${v}: rose to ${p.pos}, the realm of ${HEAVEN[p.pos].name}.`, "heaven", idx);
       } else if (p.pos !== GOAL) {
-        log(`${p.name} rolled ${v}: ${from === 0 ? "entered at" : "moved to"} ${p.pos}.`, "", idx);
+        log(`${p.name} rolled ${v}: ${from === 0 ? "was born onto" : "moved to"} ${p.pos}.`, "", idx);
       }
     }
     if (p.pos === GOAL) {
@@ -574,13 +967,6 @@ label.check input { margin-top: 4px; accent-color: var(--accent); }
     $("hint").textContent = state.winner != null ? "Game over" : human ? "Press Space to roll" : "Computer turn";
     showDie(state.last || 6);
 
-    $("players").innerHTML = state.players.map((pl, i) => `
-      <li class="${i === state.turn && state.winner == null ? "current" : ""}">
-        <span class="dot" style="background:${COLORS[pl.color]}"></span>
-        <span><span class="pname">${esc(pl.name)}</span><span class="kind">${pl.type === "cpu" ? "Computer" : ""}</span></span>
-        <span class="pos">${pl.pos === 0 ? "Start" : pl.pos === GOAL ? "Moksha" : "Square " + pl.pos}</span>
-      </li>`).join("");
-
     place();
     renderLog();
 
@@ -589,8 +975,21 @@ label.check input { margin-top: 4px; accent-color: var(--accent); }
     if (w != null) {
       const wp = state.players[w];
       $("winTitle").textContent = `${wp.name} reached Moksha`;
-      $("winText").textContent = wp.type === "human" ? "You rose past every snake and through the realms of the gods. Well played." : "The computer got there first this time.";
+      $("winText").textContent = wp.type === "human" ? "From birth through every ashrama and past the realms of the gods: liberated. Well played." : "The computer got there first this time.";
     }
+  }
+
+  function renderPlayers() {
+    $("players").innerHTML = state.players.map((pl, i) => {
+      const st = STAGES[stageOf(pl.pos)];
+      return `
+      <li class="${i === state.turn && state.winner == null ? "current" : ""}">
+        <span class="dot" style="background:${COLORS[pl.color]}"></span>
+        <span><span class="pname">${esc(pl.name)}</span><span class="kind">${pl.type === "cpu" ? "Computer" : ""}</span>
+          <span class="stage">${pl.pos === 0 ? "Not yet born" : `${st.name} · ${ashramaOf(pl.pos)}`}</span></span>
+        <span class="pos">${pl.pos === 0 ? "Start" : pl.pos === GOAL ? "Moksha" : "Square " + pl.pos}</span>
+      </li>`;
+    }).join("");
   }
 
   function renderLog() {
@@ -614,12 +1013,13 @@ label.check input { margin-top: 4px; accent-color: var(--accent); }
       </div>`).join("");
     $("ruleExact").checked = setup.rules.exact;
     $("ruleSix").checked = setup.rules.six;
+    $("ruleCards").checked = setup.rules.cards !== false;
   }
   function readSetup() {
     setup.rows.slice(0, setup.count).forEach((r, i) => {
       r.name = $("pname" + i).value; r.type = $("ptype" + i).value;
     });
-    setup.rules = { exact: $("ruleExact").checked, six: $("ruleSix").checked };
+    setup.rules = { exact: $("ruleExact").checked, six: $("ruleSix").checked, cards: $("ruleCards").checked };
   }
 
   $("count").addEventListener("click", e => {
@@ -628,7 +1028,11 @@ label.check input { margin-top: 4px; accent-color: var(--accent); }
   });
 
   function startGame() {
+    gen++;
     clearTimeout(cpuTimer);
+    cardClose?.();
+    $("sqcard").hidden = true; $("toastSlot").innerHTML = "";
+    if (S) fxClear();
     busy = false;
     state = newState();
     buildTokens();
@@ -641,10 +1045,21 @@ label.check input { margin-top: 4px; accent-color: var(--accent); }
   document.addEventListener("keydown", e => {
     if (e.code !== "Space" || e.target.closest("input, select, button, textarea, summary")) return;
     e.preventDefault();
+    if (cardClose) return cardClose();
     if (cur().type === "human") takeTurn();
   });
 
   new ResizeObserver(draw).observe($("cells"));
+
+  // ?debug exposes helpers for testing: mp.jump(n) moves the current player, mp.roll(v) rolls a fixed number.
+  if (new URLSearchParams(location.search).has("debug")) {
+    window.mp = {
+      jump(n) { cur().pos = n; render(); },
+      roll(v) { forcedRoll = v; return takeTurn(); },
+      get state() { return state; },
+      sprite: spriteURL,
+    };
+  }
 
   function start(data) {
     setup = data?.setup || defaultSetup();
