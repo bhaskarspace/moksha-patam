@@ -1,0 +1,26 @@
+// ---- The players list and the move log ----
+import { GOAL } from "../content.js";
+import { t } from "../i18n.js";
+import { G, pname } from "../state.js";
+import { $, COLORS, esc } from "../ui.js";
+import { ashramaOf, squareName } from "./board.js";
+import { stageOf, stageName } from "./sprites.js";
+
+export function renderPlayers() {
+  $("players").innerHTML = G.state.players.map((pl, i) => `
+    <li class="${i === G.state.turn && G.state.winner == null ? "current" : ""}">
+      <span class="dot" style="background:${COLORS[pl.color]}"></span>
+      <span><span class="pname">${esc(pname(pl))}</span><span class="kind">${pl.type === "cpu" ? t("cpu") : ""}</span>
+        <span class="stage">${pl.pos === 0 ? t("notBorn") : [...new Set([stageName(stageOf(pl.pos)), ashramaOf(pl.pos)])].join(" · ")}</span></span>
+      <span class="pos">${pl.pos === 0 ? t("start") : pl.pos === GOAL ? t("moksha") : t("square", { n: pl.pos })}</span>
+    </li>`).join("");
+}
+
+export function renderLog() {
+  $("log").innerHTML = G.state.log.map(e => {
+    const who = e.who == null ? null : G.state.players[e.who];
+    const text = e.k ? t(e.k, { ...e.v, name: who ? pname(who) : "", what: e.v?.sq ? squareName(e.v.sq) : "" }) : e.text;
+    return `
+    <li class="${e.kind}"><span class="dot" style="background:${who ? COLORS[who.color] : "transparent"};${who ? "" : "border-color:transparent;box-shadow:none"}"></span><span>${esc(text)}</span></li>`;
+  }).join("");
+}

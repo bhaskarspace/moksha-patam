@@ -55,7 +55,7 @@ The old Indian game of snakes and ladders, played as one life, in English and Hi
 | 93→64 | Asakti · Clinging | Jada Bharata and the fawn (Bhagavata 5.8) |
 | 99→61 | Ahankara · Ego | Virochana and the reflection (Chandogya 8.8) |
 
-A 20,000-game simulation puts the average game at about 42 turns per player.
+A 20,000-game simulation (`npm run sim`) puts a single life at about 42 turns from birth to Moksha.
 
 ## Features
 - **English / हिंदी toggle** (remembered). Hindi mode uses Devanagari digits. Story cards always show both languages and the source.
@@ -63,4 +63,21 @@ A 20,000-game simulation puts the average game at about 42 turns per player.
 - **Animated ladder climbs and snake swallows**, plus a story card when you land on a square. Cards can be shown on every square, on special squares only, or turned off.
 - 2–4 players, each human or computer.
 
-To play locally, open `index.html`. Add `?debug` to get console helpers: `mp.jump(n)`, `mp.roll(v)` and `mp.setLang("hi")`.
+To play locally, open `index.html`. Add `?seed=N` to replay the same dice (the current seed is shown under *Players & rules*). Add `?debug` to get console helpers: `mp.jump(n)`, `mp.roll(v)`, `mp.seed()` / `mp.seed(n)` and `mp.setLang("hi")`.
+
+## Developing
+`index.html` is built, so don't edit it by hand. The sources are:
+
+- `src/`: the game as ES modules (`engine/` holds the rules, `render/` the drawing, and `rng.js` the only randomness)
+- `content/*.json`: the squares, stories and UI strings
+- `src/styles.css` and `src/index.html`: the page shell
+
+```
+npm install
+npm run build    # inline src/ and content/ into index.html (refuses any Math.random outside rng.js)
+npm test         # rules and RNG tests
+npm run sim      # 20,000 headless lives; `node tools/sim.mjs 20000 2` for two-player races
+npm run golden   # replays seeds through the pre-split game, the build and the sim, and checks the logs match
+```
+
+Commit the rebuilt `index.html` with your changes. GitHub Pages serves it straight from `main`. See `REDESIGN.md` for the phased plan.

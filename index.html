@@ -375,6 +375,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           <label class="check"><input type="checkbox" id="ruleSix" checked> <span data-t="ruleSix"></span></label>
           <label class="pick"><span data-t="cards"></span><select id="ruleCards"></select></label>
           <button id="newGame" type="button" data-t="newGame">Start new game</button>
+          <span class="hint" id="seed"></span>
         </div>
       </details>
     </aside>
@@ -383,287 +384,408 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
 
 <script>
 (() => {
-  // ---- Language ----
-  // The game runs in English or Hindi; story cards always show both.
-  let lang = "en";
-  try { lang = localStorage.getItem("mp-lang") || lang; } catch {}
-  const urlLang = new URLSearchParams(location.search).get("lang");
+  // content/squares.json
+  var squares_default = {
+    GOAL: 110,
+    ROWS: 11,
+    ASHRAMAS: [
+      [20, "Childhood", "बाल्यकाल"],
+      [40, "Brahmacharya", "ब्रह्मचर्य"],
+      [60, "Grihastha", "गृहस्थ"],
+      [80, "Vanaprastha", "वानप्रस्थ"],
+      [100, "Sannyasa", "संन्यास"],
+      [110, "Divine realms", "दिव्य लोक"]
+    ],
+    LADDERS: {
+      "6": { to: 15, ic: "🤝", en: "Friendship", hi: "मित्रता", skt: "Maitri", src: "Panchatantra", story: ["A crow, a mouse, a tortoise and a deer became true friends.", "कौआ, चूहा, कछुआ और हिरण सच्चे मित्र बने।"] },
+      "12": { to: 24, ic: "🐇", en: "Wit", hi: "बुद्धि", skt: "Buddhi", src: "Panchatantra", story: ["A little hare, sent to be the lion's meal, arrived late with a plan.", "शेर का भोजन बनने भेजा गया छोटा खरगोश एक योजना लेकर देर से पहुँचा।"] },
+      "23": { to: 37, ic: "🌾", en: "Devotion", hi: "गुरु-भक्ति", skt: "Guru-bhakti", src: "Mahabharata, Adi Parva", story: ["Told to stop water breaking through the field, Aruni lay down in the breach himself.", "खेत की मेड़ से बहता पानी रोकने के लिए आरुणि स्वयं मेड़ में लेट गए।"] },
+      "28": { to: 45, ic: "🗣️", en: "Truth", hi: "सत्य", skt: "Satya", src: "Chandogya Upanishad 4.4", story: ["Asked his lineage, Satyakama told the plain truth: he did not know who his father was.", "गोत्र पूछे जाने पर सत्यकाम ने सीधा सच कहा: उसे नहीं पता उसके पिता कौन हैं।"] },
+      "34": { to: 53, ic: "🚪", en: "Resolve", hi: "श्रद्धा", skt: "Shraddha", src: "Katha Upanishad 1.1", story: ["Nachiketa waited three days at Death's door without food or water.", "नचिकेता तीन दिन बिना अन्न-जल के यमराज के द्वार पर प्रतीक्षा करता रहा।"] },
+      "44": { to: 63, ic: "🤲", en: "Giving", hi: "दान", skt: "Dana", src: "Brihadaranyaka Upanishad 5.2", story: ["The thunder said 'Da'. Humans understood: Datta, give.", "मेघ ने कहा 'द'। मनुष्यों ने समझा: दत्त, दान करो।"] },
+      "51": { to: 67, ic: "💗", en: "Compassion", hi: "दया", skt: "Daya", src: "Brihadaranyaka Upanishad 5.2", story: ["The asuras heard the same 'Da' and understood: Dayadhvam, be compassionate.", "असुरों ने वही 'द' सुना और समझा: दयध्वम्, दया करो।"] },
+      "57": { to: 75, ic: "⚖️", en: "Duty", hi: "धर्म", skt: "Dharma", src: "Brihadaranyaka Upanishad 4", story: ["King Janaka ruled justly and was counted among the wisest of sages.", "राजा जनक न्याय से राज करते थे और श्रेष्ठ ज्ञानियों में गिने जाते थे।"] },
+      "65": { to: 83, ic: "🍂", en: "Detachment", hi: "वैराग्य", skt: "Vairagya", src: "Brihadaranyaka Upanishad 2.4", story: ["Offered half her husband's wealth, Maitreyi asked: 'Will it make me immortal?'", "पति की आधी संपत्ति मिलने पर मैत्रेयी ने पूछा: 'क्या इससे मैं अमर हो जाऊँगी?'"] },
+      "72": { to: 89, ic: "🧘", en: "Austerity", hi: "तप", skt: "Tapas", src: "Taittiriya Upanishad 3.1", story: ["Bhrigu asked his father Varuna, 'What is Brahman?' and was told: seek it through tapas.", "भृगु ने पिता वरुण से पूछा, 'ब्रह्म क्या है?' उत्तर मिला: तप से जानो।"] },
+      "85": { to: 94, ic: "🌳", en: "Discernment", hi: "विवेक", skt: "Viveka", src: "Mundaka Upanishad 3.1.1", story: ["Two birds sit on one tree: one eats the fruit, the other only watches.", "एक वृक्ष पर दो पक्षी: एक फल खाता है, दूसरा केवल देखता है।"] }
+    },
+    SNAKES: {
+      "14": { to: 8, ic: "🐢", en: "Chatter", hi: "बकबक", skt: "Vachalata", src: "Panchatantra", story: ["Geese flew the tortoise across the sky on a stick. It opened its mouth to talk.", "हंस कछुए को डंडी पर आकाश में ले उड़े। उसने बोलने के लिए मुँह खोला।"] },
+      "19": { to: 11, ic: "🐺", en: "Fibbing", hi: "झूठ", skt: "Asatya", src: "Panchatantra", story: ["A jackal fell into a vat of dye, turned blue and claimed to be king of the forest.", "रंग की हौदी में गिरकर नीला हुआ सियार खुद को जंगल का राजा बताने लगा।"] },
+      "29": { to: 17, ic: "💤", en: "Laziness", hi: "आलस्य", skt: "Alasya", src: "Subhashita", story: ["Idleness is the great enemy that lives in our own body.", "आलस्य हमारे शरीर में रहने वाला सबसे बड़ा शत्रु है।"] },
+      "39": { to: 22, ic: "🦴", en: "Pride of learning", hi: "विद्या-मद", skt: "Vidya-mada", src: "Panchatantra", story: ["Three learned brothers rebuilt a lion from its bones. The fourth, who had only common sense, climbed a tree.", "तीन विद्वान भाइयों ने हड्डियों से शेर बना दिया। चौथा, जिसमें बस समझ थी, पेड़ पर चढ़ गया।"] },
+      "47": { to: 31, ic: "💘", en: "Craving", hi: "काम", skt: "Kama", src: "Mahabharata, Adi Parva", story: ["Yayati borrowed his son's youth for a thousand years and found his desire still unquenched.", "ययाति ने पुत्र का यौवन लेकर हज़ार वर्ष भोग किया, फिर भी इच्छा नहीं बुझी।"] },
+      "55": { to: 43, ic: "💰", en: "Greed", hi: "लोभ", skt: "Lobha", src: "Panchatantra", story: ["Finding a hunter and a boar both dead, the jackal planned to make the feast last for days.", "शिकारी और सूअर को मरा देख सियार ने सोचा कि दावत कई दिन चलेगी।"] },
+      "59": { to: 50, ic: "🌋", en: "Anger", hi: "क्रोध", skt: "Krodha", src: "Panchatantra", story: ["Seeing blood on the mongoose's mouth, the brahmin's wife struck it dead in a rage.", "नेवले के मुँह पर खून देख ब्राह्मणी ने क्रोध में उसे मार डाला।"] },
+      "62": { to: 46, ic: "🙈", en: "Attachment", hi: "मोह", skt: "Moha", src: "Mahabharata", story: ["Blind King Dhritarashtra could never say no to his son Duryodhana.", "अंधे राजा धृतराष्ट्र अपने पुत्र दुर्योधन को कभी मना नहीं कर सके।"] },
+      "69": { to: 52, ic: "👁️", en: "Envy", hi: "मत्सर", skt: "Matsarya", src: "Mahabharata, Sabha Parva", story: ["Seeing the Pandavas' wondrous hall at Indraprastha, Duryodhana burned with envy.", "इंद्रप्रस्थ में पांडवों का अद्भुत सभाभवन देखकर दुर्योधन ईर्ष्या से जल उठा।"] },
+      "77": { to: 58, ic: "🦚", en: "Pride", hi: "मद", skt: "Mada", src: "Kena Upanishad 3", story: ["After a victory the gods boasted, 'This greatness is ours.' Then a mysterious Yaksha appeared.", "विजय के बाद देवता बोले, 'यह महिमा हमारी है।' तभी एक रहस्यमय यक्ष प्रकट हुआ।"] },
+      "88": { to: 71, ic: "🎭", en: "Hypocrisy", hi: "दंभ", skt: "Dambha", src: "Panchatantra", story: ["A cat posed as a holy ascetic. When a hare and a partridge came for judgment, it ate them both.", "बिल्ली तपस्वी होने का ढोंग करती रही। न्याय माँगने आए खरगोश और तीतर को खा गई।"] },
+      "93": { to: 64, ic: "🦌", en: "Clinging", hi: "आसक्ति", skt: "Asakti", src: "Bhagavata Purana 5.8", story: ["The sage Bharata had given up a kingdom, yet grew attached to an orphaned fawn.", "राजपाट त्याग चुके भरत मुनि एक अनाथ हिरण-शावक के मोह में बँध गए।"] },
+      "99": { to: 61, ic: "🪞", en: "Ego", hi: "अहंकार", skt: "Ahankara", src: "Chandogya Upanishad 8.8", story: ["Shown his reflection, Virochana took the body for the Self and went home content.", "अपना प्रतिबिंब देखकर विरोचन ने शरीर को ही आत्मा मान लिया और संतुष्ट लौट गया।"] }
+    },
+    SQ: {
+      "1": ["👶", "Birth", "जन्म", "A soul arrives. The whole board lies ahead.", "एक आत्मा का आगमन। पूरा जीवन सामने है।", ""],
+      "2": ["🤱", "Mother", "माँ", "Matru devo bhava: honour your mother as a god.", "मातृ देवो भव: माता को देवता मानो।", "Taittiriya Upanishad 1.11"],
+      "3": ["👨‍👦", "Father", "पिता", "Pitru devo bhava: honour your father as a god.", "पितृ देवो भव: पिता को देवता मानो।", "Taittiriya Upanishad 1.11"],
+      "4": ["🍚", "First rice", "अन्नप्राशन", "Annaprashana: the baby's first taste of rice, one of the rites of life.", "अन्नप्राशन: शिशु का पहला अन्न, जीवन के संस्कारों में से एक।", "Grihya Sutras"],
+      "5": ["🚶", "First steps", "पहले कदम", "Falling down and getting up again: the very first lesson.", "गिरना और फिर उठना: सबसे पहला पाठ।", ""],
+      "7": ["🧸", "Play", "खेल", "Play teaches sharing and waiting your turn.", "खेल से बाँटना और अपनी बारी की प्रतीक्षा करना आता है।", ""],
+      "8": ["🪂", "The fall", "गिरना", "The tortoise opened its mouth to talk and fell from the sky. Silence would have saved it.", "कछुए ने बोलने को मुँह खोला और आकाश से गिर पड़ा। चुप रहता तो बच जाता।", "Panchatantra"],
+      "9": ["📜", "Story time", "कथा का समय", "Vishnu Sharma taught three dull princes wisdom through animal stories: the Panchatantra.", "विष्णु शर्मा ने तीन मंदबुद्धि राजकुमारों को पशु-कथाओं से ज्ञान दिया: यही पंचतंत्र है।", "Panchatantra"],
+      "10": ["💬", "First words", "पहले शब्द", "Speech is a gift: keep it gentle and true.", "वाणी एक वरदान है: इसे मधुर और सच्चा रखो।", ""],
+      "11": ["🌧️", "Found out", "पोल खुली", "The blue jackal howled along with the other jackals and was found out. A lie never lasts.", "नीला सियार दूसरे सियारों के साथ हुआँ-हुआँ करने लगा और पकड़ा गया। झूठ टिकता नहीं।", "Panchatantra"],
+      "13": ["🐊", "Monkey and crocodile", "बंदर और मगरमच्छ", "Asked for its heart, the monkey said, 'I left it up in the tree!' and escaped.", "कलेजा माँगे जाने पर बंदर बोला, 'वह तो पेड़ पर छोड़ आया!' और बच निकला।", "Panchatantra"],
+      "15": ["🐭", "Set free", "मुक्ति", "When the deer was caught in a net, the mouse gnawed it through. Friends in need.", "हिरण जाल में फँसा तो चूहे ने जाल कुतर दिया। सच्चे मित्र संकट में काम आते हैं।", "Panchatantra"],
+      "16": ["🐦", "The crows' plan", "कौओं की युक्ति", "The crows dropped a queen's necklace into the cobra's hole; the guards came and killed the snake. Wit beats strength.", "कौओं ने रानी का हार साँप के बिल में डाल दिया; पहरेदारों ने आकर साँप मार दिया। बुद्धि बल से बड़ी है।", "Panchatantra"],
+      "17": ["😴", "Missed lesson", "छूटा पाठ", "The lazy one wakes to find the lesson already over.", "आलसी जब जागता है तो पाठ समाप्त हो चुका होता है।", ""],
+      "18": ["🧒", "Prahlada", "प्रह्लाद", "The boy Prahlada kept his faith in Vishnu, whatever his father threatened.", "बालक प्रह्लाद ने पिता की हर धमकी के बाद भी विष्णु में आस्था रखी।", "Bhagavata Purana 7"],
+      "20": ["🧵", "Sacred thread", "उपनयन", "Upanayana: with the sacred thread, a child becomes a student.", "उपनयन: यज्ञोपवीत धारण कर बालक विद्यार्थी बनता है।", ""],
+      "21": ["🛖", "Gurukul", "गुरुकुल", "Leaving home to live and learn with the teacher.", "घर छोड़कर गुरु के साथ रहना और सीखना।", ""],
+      "22": ["🦁", "The lion wakes", "शेर जागा", "The lion the brothers brought to life ate them. Learning without sense is dangerous.", "भाइयों का जिलाया शेर उन्हीं को खा गया। समझ के बिना विद्या खतरनाक है।", "Panchatantra"],
+      "24": ["💧", "The well", "कुआँ", "Shown 'another lion' in a well, the lion leapt at its own reflection.", "कुएँ में 'दूसरा शेर' देखकर शेर अपने ही प्रतिबिंब पर कूद पड़ा।", "Panchatantra"],
+      "25": ["📿", "Gayatri", "गायत्री", "'May the divine light inspire our minds.' The student's daily prayer.", "'वह दिव्य प्रकाश हमारी बुद्धि को प्रेरित करे।' विद्यार्थी की नित्य प्रार्थना।", "Rig Veda 3.62.10"],
+      "26": ["🪵", "Firewood", "समिधा", "The seeker goes to the teacher with firewood in hand, ready to serve and learn.", "जिज्ञासु हाथ में समिधा लेकर गुरु के पास जाता है, सेवा और सीखने को तैयार।", "Mundaka Upanishad 1.2.12"],
+      "27": ["❓", "Six seekers", "छह जिज्ञासु", "Six seekers came to sage Pippalada. He told them to live a year in discipline before asking.", "छह जिज्ञासु ऋषि पिप्पलाद के पास आए। उन्होंने कहा, पहले एक वर्ष संयम से रहो, फिर पूछो।", "Prashna Upanishad 1.2"],
+      "30": ["📖", "Speak the truth", "सत्यं वद", "Satyam vada, dharmam chara: speak the truth, live by dharma.", "सत्यं वद, धर्मं चर: सच बोलो, धर्म पर चलो।", "Taittiriya Upanishad 1.11"],
+      "31": ["🔥", "Yayati's fire", "ययाति की अग्नि", "Desire is never quenched by enjoying it; it grows like a fire fed with ghee.", "भोग से इच्छा कभी शांत नहीं होती; घी डालने से अग्नि की तरह बढ़ती है।", "Mahabharata, Adi Parva"],
+      "32": ["🧂", "Salt in water", "जल में नमक", "Shvetaketu could not see the salt in the water, yet tasted it in every sip. So is the Self.", "श्वेतकेतु को जल में नमक दिखा नहीं, पर हर घूँट में स्वाद था। आत्मा भी ऐसी ही है।", "Chandogya Upanishad 6.13"],
+      "33": ["🌱", "Banyan seed", "बरगद का बीज", "Break the tiny seed and you see nothing. From that subtle nothing grows the great banyan.", "नन्हा बीज तोड़ो तो कुछ नहीं दिखता। उसी सूक्ष्म से विशाल बरगद उगता है।", "Chandogya Upanishad 6.12"],
+      "35": ["🐎", "The chariot", "रथ", "The body is the chariot, the senses the horses, the mind the reins, the intellect the driver.", "शरीर रथ है, इंद्रियाँ घोड़े, मन लगाम और बुद्धि सारथी।", "Katha Upanishad 1.3.3–4"],
+      "36": ["💎", "You are That", "तत् त्वम् असि", "'You are That, Shvetaketu,' said his father Uddalaka.", "'तुम वही हो, श्वेतकेतु,' पिता उद्दालक ने कहा।", "Chandogya Upanishad 6.8.7"],
+      "37": ["🙌", "Blessing", "आशीर्वाद", "Pleased with Aruni, his teacher blessed him: all the Vedas shone in his mind.", "आरुणि से प्रसन्न होकर गुरु ने आशीर्वाद दिया: सारे वेद उसके मन में प्रकाशित हो उठे।", "Mahabharata, Adi Parva"],
+      "38": ["🎓", "Graduation", "समावर्तन", "Samavartana: the student's ritual bath and return home.", "समावर्तन: विद्यार्थी का स्नान और घर वापसी।", ""],
+      "40": ["🕯️", "Parting words", "दीक्षांत उपदेश", "'Never neglect study and teaching,' the teacher tells the departing student.", "'स्वाध्याय और प्रवचन में कभी प्रमाद न करना,' गुरु जाते हुए शिष्य से कहते हैं।", "Taittiriya Upanishad 1.11"],
+      "41": ["💍", "Marriage", "विवाह", "Seven steps around the fire: companions for life on the path of dharma.", "अग्नि के चारों ओर सात फेरे: धर्म के मार्ग पर जीवन भर के साथी।", ""],
+      "42": ["🏡", "Home", "गृह", "The householder's home feeds and supports all the other ashramas.", "गृहस्थ का घर बाकी सभी आश्रमों का पालन करता है।", "Manusmriti 3.77–78"],
+      "43": ["🏹", "The bowstring", "धनुष की डोरी", "To save the meat for later, the jackal gnawed the bowstring first. The bow sprang and killed him.", "मांस बचाने के लिए सियार ने पहले धनुष की डोरी चबाई। धनुष उछला और वह मर गया।", "Panchatantra"],
+      "45": ["🐄", "A thousand cows", "हज़ार गायें", "Satyakama returned with a thousand cows, his face shining like one who knows Brahman.", "सत्यकाम हज़ार गायें लेकर लौटा, उसका मुख ब्रह्मज्ञानी की तरह चमक रहा था।", "Chandogya Upanishad 4.9"],
+      "46": ["⚔️", "Kurukshetra", "कुरुक्षेत्र", "A father's blind love ended in a war that destroyed the family.", "पिता के अंधे मोह का अंत उस युद्ध में हुआ जिसने कुल का नाश कर दिया।", "Mahabharata"],
+      "48": ["🍛", "Food is sacred", "अन्नं ब्रह्म", "Do not despise food; make food plentiful. Food is Brahman.", "अन्न का निरादर न करो; अन्न बढ़ाओ। अन्न ब्रह्म है।", "Taittiriya Upanishad 3.7–9"],
+      "49": ["🌾", "Five offerings", "पंच महायज्ञ", "Each day the householder honours the gods, the sages, the ancestors, guests and all creatures.", "गृहस्थ प्रतिदिन देवताओं, ऋषियों, पितरों, अतिथियों और सभी प्राणियों का ऋण चुकाता है।", "Manusmriti 3.70"],
+      "50": ["💔", "Too late", "पछतावा", "Then she found the dead cobra: the mongoose had saved her child. Anger acts first and weeps later.", "फिर उसने मरा हुआ साँप देखा: नेवले ने बच्चे को बचाया था। क्रोध पहले करता है, बाद में पछताता है।", "Panchatantra"],
+      "52": ["🎲", "The dice game", "द्यूत क्रीड़ा", "Envy led Duryodhana to the rigged game of dice, and from there to ruin.", "ईर्ष्या दुर्योधन को कपट के जुए तक ले गई, और वहाँ से विनाश तक।", "Mahabharata, Sabha Parva"],
+      "53": ["🔆", "Yama teaches", "यम का उपदेश", "Moved by his resolve, Yama taught Nachiketa the secret of the deathless Self.", "उसके दृढ़ निश्चय से प्रसन्न होकर यम ने नचिकेता को अमर आत्मा का रहस्य बताया।", "Katha Upanishad 1.2"],
+      "54": ["🛞", "Raikva", "रैक्व", "Raikva, the humble man sitting under his cart, knew more than the king.", "अपनी गाड़ी के नीचे बैठे साधारण रैक्व राजा से अधिक जानते थे।", "Chandogya Upanishad 4.1"],
+      "56": ["🍽️", "The guest", "अतिथि", "Atithi devo bhava: honour the guest as a god.", "अतिथि देवो भव: अतिथि को देवता मानो।", "Taittiriya Upanishad 1.11"],
+      "58": ["🌿", "A blade of grass", "तिनका", "Agni could not burn a blade of grass, nor Vayu blow it away. All power is Brahman's.", "अग्नि एक तिनका न जला सके, न वायु उसे उड़ा सके। सारी शक्ति ब्रह्म की है।", "Kena Upanishad 3"],
+      "60": ["🧓", "Grey hair", "श्वेत केश", "When the householder sees grey hair and grandchildren, it is time for the forest.", "जब गृहस्थ के केश सफ़ेद हों और पोते-पोतियाँ दिखें, तब वन जाने का समय है।", "Manusmriti 6.2"],
+      "61": ["🔁", "Begin again", "फिर से आरंभ", "Indra was not satisfied with that answer. He came back to learn, again and again, for 101 years.", "इंद्र उस उत्तर से संतुष्ट न हुए। वे बार-बार सीखने लौटे, कुल १०१ वर्ष।", "Chandogya Upanishad 8.11"],
+      "63": ["🎁", "Enjoy by letting go", "त्यागपूर्वक भोग", "All this is pervaded by the Lord: enjoy it by letting go, and covet no one's wealth.", "यह सब ईश्वर से व्याप्त है: त्यागपूर्वक भोगो, किसी के धन का लोभ न करो।", "Isha Upanishad 1"],
+      "64": ["🐾", "Born a deer", "हिरण का जन्म", "Thinking of the fawn at the moment of death, Bharata was reborn as a deer.", "मृत्यु के समय शावक का ध्यान करते रहने से भरत हिरण बनकर जन्मे।", "Bhagavata Purana 5.8"],
+      "66": ["🌲", "To the forest", "वन की ओर", "Handing the home to the next generation, the householder turns toward the forest.", "घर अगली पीढ़ी को सौंपकर गृहस्थ वन की ओर चल पड़ता है।", ""],
+      "67": ["🫂", "No hatred", "द्वेष नहीं", "One who sees all beings in the Self, and the Self in all beings, hates no one.", "जो सब प्राणियों को आत्मा में और आत्मा को सब में देखता है, वह किसी से घृणा नहीं करता।", "Isha Upanishad 6"],
+      "68": ["📚", "Only words", "केवल शब्द", "Narada had mastered every scripture, yet came grieving: 'I know only words, not the Self.'", "नारद सब शास्त्र जानते थे, फिर भी दुखी होकर बोले: 'मैं केवल शब्द जानता हूँ, आत्मा नहीं।'", "Chandogya Upanishad 7.1"],
+      "70": ["🪆", "Five sheaths", "पंचकोश", "The Self is wrapped in five sheaths: food, breath, mind, intellect and bliss.", "आत्मा पाँच कोशों में ढकी है: अन्न, प्राण, मन, विज्ञान और आनंद।", "Taittiriya Upanishad 2"],
+      "71": ["🐈", "Unmasked", "ढोंग उजागर", "The cat's prayers were only a trap. True austerity needs no audience.", "बिल्ली की प्रार्थना केवल एक जाल थी। सच्चे तप को दर्शकों की ज़रूरत नहीं।", "Panchatantra"],
+      "73": ["🌬️", "Breath", "प्राण", "The senses argued over which was greatest; when breath began to leave, all of them failed.", "इंद्रियों में श्रेष्ठता का विवाद हुआ; जब प्राण जाने लगे तो सब शिथिल हो गईं।", "Chandogya Upanishad 5.1"],
+      "74": ["🛕", "Temple of the heart", "हृदय मंदिर", "In the city of the body is a small lotus-house; within it is a space as vast as the universe.", "शरीर रूपी नगर में एक छोटा कमल-गृह है; उसके भीतर ब्रह्मांड जितना विशाल आकाश है।", "Chandogya Upanishad 8.1"],
+      "75": ["👑", "Nothing of mine burns", "मेरा कुछ नहीं जलता", "When Mithila was on fire, Janaka said: nothing that is truly mine is burning.", "मिथिला जल रही थी, तब जनक बोले: जो सचमुच मेरा है, उसमें से कुछ नहीं जल रहा।", "Mahabharata, Shanti Parva"],
+      "76": ["🌅", "Sandhya", "संध्या", "Dawn, noon and dusk: the forest-dweller's day turns around prayer.", "प्रातः, मध्याह्न और संध्या: वानप्रस्थी का दिन उपासना के चारों ओर घूमता है।", ""],
+      "78": ["💞", "For the Self", "आत्मा के लिए", "'It is not for the husband's sake that a husband is dear, but for the sake of the Self.'", "'पति, पति के लिए प्रिय नहीं होता, आत्मा के लिए प्रिय होता है।'", "Brihadaranyaka Upanishad 2.4.5"],
+      "79": ["🎯", "Bow and arrow", "धनुष-बाण", "Om is the bow, the self is the arrow, and Brahman is the target.", "प्रणव धनुष है, आत्मा बाण है और ब्रह्म लक्ष्य है।", "Mundaka Upanishad 2.2.4"],
+      "80": ["🧡", "Saffron robe", "भगवा वस्त्र", "Taking sannyasa: the last fire, the saffron robe, a new name.", "संन्यास दीक्षा: अंतिम अग्नि, भगवा वस्त्र, नया नाम।", ""],
+      "81": ["🍃", "Neti neti", "नेति नेति", "Not this, not this: the Self is beyond every description.", "यह नहीं, यह नहीं: आत्मा हर वर्णन से परे है।", "Brihadaranyaka Upanishad 2.3.6"],
+      "82": ["🌙", "Four states", "चार अवस्थाएँ", "Waking, dreaming, deep sleep, and the fourth, Turiya, beyond them all.", "जाग्रत, स्वप्न, सुषुप्ति, और इन सबसे परे चौथी, तुरीय।", "Mandukya Upanishad 3–7"],
+      "83": ["🌌", "Immortality", "अमृतत्व", "Yajnavalkya taught Maitreyi the way to immortality, then left for the forest.", "याज्ञवल्क्य ने मैत्रेयी को अमृतत्व का मार्ग बताया और वन चले गए।", "Brihadaranyaka Upanishad 4.5"],
+      "84": ["🥣", "Alms", "भिक्षा", "The renunciate asks only for today's food and keeps nothing more.", "संन्यासी केवल आज का भोजन माँगता है, और कुछ नहीं रखता।", ""],
+      "86": ["❔", "By whom?", "केन?", "By whom is the mind sent forth? By whom does the eye see?", "किसके द्वारा मन प्रेरित होता है? किससे आँख देखती है?", "Kena Upanishad 1.1"],
+      "87": ["🌞", "The golden lid", "स्वर्ण पात्र", "The face of truth is covered by a golden disc. Uncover it, O Pushan, so I may see.", "सत्य का मुख सोने के पात्र से ढका है। हे पूषन्, उसे हटाओ ताकि मैं देख सकूँ।", "Isha Upanishad 15"],
+      "89": ["🌕", "Bliss", "आनंद", "At last Bhrigu knew: Brahman is bliss. From bliss all beings are born.", "अंत में भृगु ने जाना: ब्रह्म आनंद है। आनंद से ही सब प्राणी जन्मते हैं।", "Taittiriya Upanishad 3.6"],
+      "90": ["🪔", "Lead me to light", "तमसो मा ज्योतिर्गमय", "Lead me from the unreal to the real, from darkness to light, from death to immortality.", "असत् से सत् की ओर, तम से ज्योति की ओर, मृत्यु से अमृत की ओर ले चलो।", "Brihadaranyaka Upanishad 1.3.28"],
+      "91": ["🧠", "Prajnanam Brahma", "प्रज्ञानं ब्रह्म", "Consciousness is Brahman.", "चेतना ही ब्रह्म है।", "Aitareya Upanishad 3.3"],
+      "92": ["💫", "Aham Brahmasmi", "अहं ब्रह्मास्मि", "I am Brahman.", "मैं ब्रह्म हूँ।", "Brihadaranyaka Upanishad 1.4.10"],
+      "94": ["🐦", "The watching bird", "साक्षी पक्षी", "When the bird that eats sees the other, the witness, as its own glory, its grief ends.", "जब फल खाने वाला पक्षी दूसरे, साक्षी पक्षी को अपनी ही महिमा जानता है, तो उसका शोक मिट जाता है।", "Mundaka Upanishad 3.1.2"],
+      "95": ["🌀", "Ayam Atma Brahma", "अयमात्मा ब्रह्म", "This Self is Brahman.", "यह आत्मा ब्रह्म है।", "Mandukya Upanishad 2"],
+      "96": ["🌍", "All is Brahman", "सर्वं खल्विदं ब्रह्म", "All this, truly, is Brahman.", "यह सब कुछ निश्चय ही ब्रह्म है।", "Chandogya Upanishad 3.14.1"],
+      "97": ["⭕", "Wholeness", "पूर्णता", "That is whole, this is whole. Take the whole from the whole, and the whole remains.", "वह पूर्ण है, यह पूर्ण है। पूर्ण से पूर्ण निकालने पर भी पूर्ण ही शेष रहता है।", "Isha Upanishad, invocation"],
+      "98": ["🕊️", "Shanti", "शांति", "Om shanti, shanti, shanti: peace within, peace around, peace above.", "ॐ शांति, शांति, शांति: भीतर शांति, आसपास शांति, ऊपर शांति।", ""],
+      "100": ["🌄", "The threshold", "देहरी", "At the edge of the world. The realms of the gods begin above.", "संसार की सीमा पर। ऊपर देवलोक आरंभ होते हैं।", ""]
+    },
+    HEAVEN: {
+      "101": { en: "Indra", hi: "इन्द्र", ic: "⚡", story: ["Svarga, Indra's heaven: the reward of good deeds, yet not the final goal.", "स्वर्ग, इंद्र का लोक: पुण्य का फल, पर अंतिम लक्ष्य नहीं।"] },
+      "102": { en: "Agni", hi: "अग्नि", ic: "🔥", story: ["Agni carries every offering to the gods.", "अग्नि हर आहुति देवताओं तक पहुँचाते हैं।"] },
+      "103": { en: "Surya", hi: "सूर्य", ic: "☀️", story: ["Surya, the visible god, witness of all actions.", "सूर्य, प्रत्यक्ष देवता, सब कर्मों के साक्षी।"] },
+      "104": { en: "Ganesha", hi: "गणेश", ic: "🐘", story: ["Ganesha removes the last obstacles.", "गणेश अंतिम विघ्न दूर करते हैं।"] },
+      "105": { en: "Lakshmi", hi: "लक्ष्मी", ic: "🪷", story: ["Grace that blooms like the lotus, untouched by the mud.", "कमल की तरह खिलती कृपा, कीचड़ से अछूती।"] },
+      "106": { en: "Saraswati", hi: "सरस्वती", ic: "🦢", story: ["Her swan is said to separate milk from water: true knowledge from false.", "कहते हैं उनका हंस दूध और पानी को अलग कर देता है: सच्चे ज्ञान को झूठे से।"] },
+      "107": { en: "Brahma", hi: "ब्रह्मा", ic: "📜", story: ["Brahma, the creator, from whom the Vedas flow.", "सृष्टिकर्ता ब्रह्मा, जिनसे वेद प्रकट हुए।"] },
+      "108": { en: "Vishnu", hi: "विष्णु", ic: "🐚", story: ["Vishnu, the preserver, who upholds dharma in every age.", "पालनकर्ता विष्णु, जो हर युग में धर्म की रक्षा करते हैं।"] },
+      "109": { en: "Shiva", hi: "शिव", ic: "🔱", story: ["Shiva, the auspicious one, who dissolves all that binds.", "कल्याणकारी शिव, जो हर बंधन को मिटाते हैं।"] }
+    }
+  };
+
+  // content/strings.json
+  var strings_default = {
+    SRC_HI: [
+      ["Brihadaranyaka", "बृहदारण्यक"],
+      ["Taittiriya", "तैत्तिरीय"],
+      ["Chandogya", "छांदोग्य"],
+      ["Mandukya", "माण्डूक्य"],
+      ["Mundaka", "मुंडक"],
+      ["Katha", "कठ"],
+      ["Isha", "ईश"],
+      ["Kena", "केन"],
+      ["Prashna", "प्रश्न"],
+      ["Aitareya", "ऐतरेय"],
+      ["Upanishad", "उपनिषद्"],
+      ["Panchatantra", "पंचतंत्र"],
+      ["Mahabharata", "महाभारत"],
+      ["Adi Parva", "आदि पर्व"],
+      ["Sabha Parva", "सभा पर्व"],
+      ["Shanti Parva", "शांति पर्व"],
+      ["Bhagavata Purana", "भागवत पुराण"],
+      ["Manusmriti", "मनुस्मृति"],
+      ["Rig Veda", "ऋग्वेद"],
+      ["Subhashita", "सुभाषित"],
+      ["Grihya Sutras", "गृह्यसूत्र"],
+      ["invocation", "शांति पाठ"]
+    ],
+    STR: {
+      en: {
+        title: "Moksha Patam",
+        intro: "The old Indian game of snakes and ladders, played as one life. Grow from a baby through childhood and the four ashramas, with a story from the Panchatantra or the Upanishads on every square. Virtues lift you up; vices drag you back to a younger self, always just before the virtue that heals them. The first to reach Moksha at 110 is liberated.",
+        turn: "Turn",
+        players: "Players",
+        moves: "Moves",
+        setup: "Players & rules",
+        start: "Start",
+        roll: "Roll the die",
+        rolling: "{name} is rolling…",
+        hintHuman: "Press Space to roll",
+        hintCpu: "Computer turn",
+        hintOver: "Game over",
+        nPlayers: "{n} players",
+        human: "Human",
+        cpu: "Computer",
+        ruleExact: "Need the exact roll to land on Moksha ({n})",
+        ruleSix: "Rolling a 6 gives another turn",
+        cards: "Story cards",
+        cardsAll: "Every square",
+        cardsSpecial: "Special squares",
+        cardsOff: "Off",
+        newGame: "Start new game",
+        again: "Play again",
+        notBorn: "Not yet born",
+        square: "Square {n}",
+        moksha: "Moksha",
+        wins: "{name} wins",
+        winTitle: "{name} reached Moksha",
+        winHuman: "From birth through every ashrama and past the realms of the gods: liberated. Well played.",
+        winCpu: "The computer got there first this time.",
+        def0: "You",
+        def1: "Computer",
+        def2: "Player 3",
+        def3: "Player 4",
+        colour0: "Red",
+        colour1: "Blue",
+        colour2: "Green",
+        colour3: "Saffron",
+        lNew: "New game. Roll to be born onto the board.",
+        lExact: "{name} rolled {v} but needs exactly {need}. Stays on {pos}.",
+        lSnake: "{name} rolled {v}, landed on {pos} and was swallowed by the snake of {what}. Down to {to}.",
+        lLadder: "{name} rolled {v} to {pos} and climbed the ladder of {what} to {to}.",
+        lHeaven: "{name} rolled {v}: rose to {pos}, the realm of {what}.",
+        lMove: "{name} rolled {v}: moved to {pos}, {what}.",
+        lBorn: "{name} rolled {v}: was born onto {pos}.",
+        lWin: "{name} reached Moksha on square {pos}.",
+        lSix: "{name} rolled a 6 and goes again.",
+        grew: "{name} grew into a {stage}",
+        reborn: "{name} is reborn as a {stage}",
+        rebornYou: "You are reborn as a {stage}",
+        virtue: "Virtue",
+        vice: "Vice",
+        story: "Story",
+        realm: "Divine realm",
+        end: "The end of the journey",
+        ladderTo: "Ladder up to {n}",
+        snakeTo: "Snake down to {n}",
+        liberation: "Liberation",
+        seed: "Seed"
+      },
+      hi: {
+        title: "मोक्ष पटम",
+        intro: "साँप-सीढ़ी का पुराना भारतीय खेल, एक जीवन की तरह खेला जाता है। शिशु से बचपन और चारों आश्रमों से होकर बढ़ें, हर खाने पर पंचतंत्र या उपनिषदों की एक कथा है। गुण ऊपर उठाते हैं; दोष आपको छोटी उम्र में लौटा देते हैं, ठीक उस गुण के पास जो उन्हें ठीक करता है। जो सबसे पहले ११० पर मोक्ष पहुँचे, वही मुक्त।",
+        turn: "बारी",
+        players: "खिलाड़ी",
+        moves: "चालें",
+        setup: "खिलाड़ी और नियम",
+        start: "शुरुआत",
+        roll: "पासा फेंकें",
+        rolling: "{name} पासा फेंक रहे हैं…",
+        hintHuman: "फेंकने के लिए Space दबाएँ",
+        hintCpu: "कंप्यूटर की बारी",
+        hintOver: "खेल समाप्त",
+        nPlayers: "{n} खिलाड़ी",
+        human: "मनुष्य",
+        cpu: "कंप्यूटर",
+        ruleExact: "मोक्ष ({n}) पर पहुँचने के लिए ठीक उतना ही अंक चाहिए",
+        ruleSix: "6 आने पर एक और बारी",
+        cards: "कथा कार्ड",
+        cardsAll: "हर खाना",
+        cardsSpecial: "केवल विशेष खाने",
+        cardsOff: "बंद",
+        newGame: "नया खेल शुरू करें",
+        again: "फिर से खेलें",
+        notBorn: "अभी जन्म नहीं हुआ",
+        square: "खाना {n}",
+        moksha: "मोक्ष",
+        wins: "{name} जीते",
+        winTitle: "{name} को मोक्ष मिला",
+        winHuman: "जन्म से हर आश्रम और देवलोकों के पार: मुक्ति। बहुत बढ़िया।",
+        winCpu: "इस बार कंप्यूटर पहले पहुँच गया।",
+        def0: "आप",
+        def1: "कंप्यूटर",
+        def2: "खिलाड़ी ३",
+        def3: "खिलाड़ी ४",
+        colour0: "लाल",
+        colour1: "नीला",
+        colour2: "हरा",
+        colour3: "केसरिया",
+        lNew: "नया खेल। बोर्ड पर जन्म लेने के लिए पासा फेंकें।",
+        lExact: "{name} का {v} आया, पर ठीक {need} चाहिए। {pos} पर ही रहे।",
+        lSnake: "{name} का {v} आया, {pos} पर {what} के साँप ने निगल लिया। नीचे {to} पर।",
+        lLadder: "{name} का {v} आया, {pos} से {what} की सीढ़ी चढ़कर {to} पर।",
+        lHeaven: "{name} का {v} आया: {pos}, {what} लोक में पहुँचे।",
+        lMove: "{name} का {v} आया: {pos}, {what}।",
+        lBorn: "{name} का {v} आया: {pos} पर जन्म लिया।",
+        lWin: "{name} खाना {pos} पर मोक्ष पहुँचे।",
+        lSix: "{name} का 6 आया, एक और बारी।",
+        grew: "{name} अब {stage}",
+        reborn: "{name} का पुनर्जन्म: {stage}",
+        rebornYou: "आपका पुनर्जन्म: {stage}",
+        virtue: "गुण",
+        vice: "दोष",
+        story: "कथा",
+        realm: "दिव्य लोक",
+        end: "यात्रा का अंत",
+        ladderTo: "सीढ़ी: {n} तक",
+        snakeTo: "साँप: {n} तक नीचे",
+        liberation: "मुक्ति",
+        seed: "बीज"
+      }
+    }
+  };
+
+  // src/content.js
+  var { GOAL, ROWS, ASHRAMAS, LADDERS, SNAKES, HEAVEN } = squares_default;
+  var { SQ } = squares_default;
+  var { STR, SRC_HI } = strings_default;
+
+  // src/i18n.js
+  var lang = "en";
+  try {
+    lang = localStorage.getItem("mp-lang") || lang;
+  } catch {
+  }
+  var urlLang = new URLSearchParams(location.search).get("lang");
   if (urlLang === "en" || urlLang === "hi") lang = urlLang;
-  const L = (en, hi) => (lang === "hi" ? hi : en);
-  const DEV_DIGITS = "०१२३४५६७८९";
-  const num = n => (lang === "hi" ? String(n).replace(/\d/g, d => DEV_DIGITS[d]) : String(n));
-  // Source names, for showing citations in Hindi.
-  const SRC_HI = [
-    ["Brihadaranyaka", "बृहदारण्यक"], ["Taittiriya", "तैत्तिरीय"], ["Chandogya", "छांदोग्य"], ["Mandukya", "माण्डूक्य"],
-    ["Mundaka", "मुंडक"], ["Katha", "कठ"], ["Isha", "ईश"], ["Kena", "केन"], ["Prashna", "प्रश्न"], ["Aitareya", "ऐतरेय"],
-    ["Upanishad", "उपनिषद्"], ["Panchatantra", "पंचतंत्र"], ["Mahabharata", "महाभारत"], ["Adi Parva", "आदि पर्व"],
-    ["Sabha Parva", "सभा पर्व"], ["Shanti Parva", "शांति पर्व"], ["Bhagavata Purana", "भागवत पुराण"], ["Manusmriti", "मनुस्मृति"],
-    ["Rig Veda", "ऋग्वेद"], ["Subhashita", "सुभाषित"], ["Grihya Sutras", "गृह्यसूत्र"], ["invocation", "शांति पाठ"],
-  ];
-  const srcText = s => (lang === "hi" ? num(SRC_HI.reduce((a, [en, hi]) => a.replace(en, hi), s)) : s);
-
-  const STR = {
-    en: {
-      title: "Moksha Patam",
-      intro: "The old Indian game of snakes and ladders, played as one life. Grow from a baby through childhood and the four ashramas, with a story from the Panchatantra or the Upanishads on every square. Virtues lift you up; vices drag you back to a younger self, always just before the virtue that heals them. The first to reach Moksha at 110 is liberated.",
-      turn: "Turn", players: "Players", moves: "Moves", setup: "Players & rules", start: "Start",
-      roll: "Roll the die", rolling: "{name} is rolling…", hintHuman: "Press Space to roll", hintCpu: "Computer turn", hintOver: "Game over",
-      nPlayers: "{n} players", human: "Human", cpu: "Computer", ruleExact: "Need the exact roll to land on Moksha ({n})", ruleSix: "Rolling a 6 gives another turn",
-      cards: "Story cards", cardsAll: "Every square", cardsSpecial: "Special squares", cardsOff: "Off",
-      newGame: "Start new game", again: "Play again", notBorn: "Not yet born", square: "Square {n}", moksha: "Moksha",
-      wins: "{name} wins", winTitle: "{name} reached Moksha", winHuman: "From birth through every ashrama and past the realms of the gods: liberated. Well played.", winCpu: "The computer got there first this time.",
-      def0: "You", def1: "Computer", def2: "Player 3", def3: "Player 4", colour0: "Red", colour1: "Blue", colour2: "Green", colour3: "Saffron",
-      lNew: "New game. Roll to be born onto the board.",
-      lExact: "{name} rolled {v} but needs exactly {need}. Stays on {pos}.",
-      lSnake: "{name} rolled {v}, landed on {pos} and was swallowed by the snake of {what}. Down to {to}.",
-      lLadder: "{name} rolled {v} to {pos} and climbed the ladder of {what} to {to}.",
-      lHeaven: "{name} rolled {v}: rose to {pos}, the realm of {what}.",
-      lMove: "{name} rolled {v}: moved to {pos}, {what}.", lBorn: "{name} rolled {v}: was born onto {pos}.",
-      lWin: "{name} reached Moksha on square {pos}.", lSix: "{name} rolled a 6 and goes again.",
-      grew: "{name} grew into a {stage}", reborn: "{name} is reborn as a {stage}", rebornYou: "You are reborn as a {stage}",
-      virtue: "Virtue", vice: "Vice", story: "Story", realm: "Divine realm", end: "The end of the journey",
-      ladderTo: "Ladder up to {n}", snakeTo: "Snake down to {n}", liberation: "Liberation",
-    },
-    hi: {
-      title: "मोक्ष पटम",
-      intro: "साँप-सीढ़ी का पुराना भारतीय खेल, एक जीवन की तरह खेला जाता है। शिशु से बचपन और चारों आश्रमों से होकर बढ़ें, हर खाने पर पंचतंत्र या उपनिषदों की एक कथा है। गुण ऊपर उठाते हैं; दोष आपको छोटी उम्र में लौटा देते हैं, ठीक उस गुण के पास जो उन्हें ठीक करता है। जो सबसे पहले ११० पर मोक्ष पहुँचे, वही मुक्त।",
-      turn: "बारी", players: "खिलाड़ी", moves: "चालें", setup: "खिलाड़ी और नियम", start: "शुरुआत",
-      roll: "पासा फेंकें", rolling: "{name} पासा फेंक रहे हैं…", hintHuman: "फेंकने के लिए Space दबाएँ", hintCpu: "कंप्यूटर की बारी", hintOver: "खेल समाप्त",
-      nPlayers: "{n} खिलाड़ी", human: "मनुष्य", cpu: "कंप्यूटर", ruleExact: "मोक्ष ({n}) पर पहुँचने के लिए ठीक उतना ही अंक चाहिए", ruleSix: "6 आने पर एक और बारी",
-      cards: "कथा कार्ड", cardsAll: "हर खाना", cardsSpecial: "केवल विशेष खाने", cardsOff: "बंद",
-      newGame: "नया खेल शुरू करें", again: "फिर से खेलें", notBorn: "अभी जन्म नहीं हुआ", square: "खाना {n}", moksha: "मोक्ष",
-      wins: "{name} जीते", winTitle: "{name} को मोक्ष मिला", winHuman: "जन्म से हर आश्रम और देवलोकों के पार: मुक्ति। बहुत बढ़िया।", winCpu: "इस बार कंप्यूटर पहले पहुँच गया।",
-      def0: "आप", def1: "कंप्यूटर", def2: "खिलाड़ी ३", def3: "खिलाड़ी ४", colour0: "लाल", colour1: "नीला", colour2: "हरा", colour3: "केसरिया",
-      lNew: "नया खेल। बोर्ड पर जन्म लेने के लिए पासा फेंकें।",
-      lExact: "{name} का {v} आया, पर ठीक {need} चाहिए। {pos} पर ही रहे।",
-      lSnake: "{name} का {v} आया, {pos} पर {what} के साँप ने निगल लिया। नीचे {to} पर।",
-      lLadder: "{name} का {v} आया, {pos} से {what} की सीढ़ी चढ़कर {to} पर।",
-      lHeaven: "{name} का {v} आया: {pos}, {what} लोक में पहुँचे।",
-      lMove: "{name} का {v} आया: {pos}, {what}।", lBorn: "{name} का {v} आया: {pos} पर जन्म लिया।",
-      lWin: "{name} खाना {pos} पर मोक्ष पहुँचे।", lSix: "{name} का 6 आया, एक और बारी।",
-      grew: "{name} अब {stage}", reborn: "{name} का पुनर्जन्म: {stage}", rebornYou: "आपका पुनर्जन्म: {stage}",
-      virtue: "गुण", vice: "दोष", story: "कथा", realm: "दिव्य लोक", end: "यात्रा का अंत",
-      ladderTo: "सीढ़ी: {n} तक", snakeTo: "साँप: {n} तक नीचे", liberation: "मुक्ति",
-    },
+  var setLangValue = (l) => {
+    lang = l;
   };
-  const t = (k, v = {}) => STR[lang][k].replace(/\{(\w+)\}/g, (_, x) => v[x] ?? "").replace(/\d/g, d => num(d));
+  var L = (en, hi) => lang === "hi" ? hi : en;
+  var DEV_DIGITS = "०१२३४५६७८९";
+  var num = (n) => lang === "hi" ? String(n).replace(/\d/g, (d) => DEV_DIGITS[d]) : String(n);
+  var srcText = (s) => lang === "hi" ? num(SRC_HI.reduce((a, [en, hi]) => a.replace(en, hi), s)) : s;
+  var t = (k, v = {}) => STR[lang][k].replace(/\{(\w+)\}/g, (_, x) => v[x] ?? "").replace(/\d/g, (d) => num(d));
 
-  // ---- The board as one life ----
-  // Two rows per stage: childhood fables (Panchatantra), then the Upanishads' own stories for the student,
-  // householder, forest-dweller and renunciate. Snakes are short in childhood and long near the end; each ★
-  // snake's tail lands one square before the ladder of the virtue that heals it.
-  // Base/head → { to, ic, en, hi, skt, story: [en, hi], src }
-  const LADDERS = {
-    6:  { to: 15, ic: "🤝", en: "Friendship",  hi: "मित्रता",   skt: "Maitri",      src: "Panchatantra", story: ["A crow, a mouse, a tortoise and a deer became true friends.", "कौआ, चूहा, कछुआ और हिरण सच्चे मित्र बने।"] },
-    12: { to: 24, ic: "🐇", en: "Wit",         hi: "बुद्धि",    skt: "Buddhi",      src: "Panchatantra", story: ["A little hare, sent to be the lion's meal, arrived late with a plan.", "शेर का भोजन बनने भेजा गया छोटा खरगोश एक योजना लेकर देर से पहुँचा।"] },
-    23: { to: 37, ic: "🌾", en: "Devotion",    hi: "गुरु-भक्ति", skt: "Guru-bhakti", src: "Mahabharata, Adi Parva", story: ["Told to stop water breaking through the field, Aruni lay down in the breach himself.", "खेत की मेड़ से बहता पानी रोकने के लिए आरुणि स्वयं मेड़ में लेट गए।"] },
-    28: { to: 45, ic: "🗣️", en: "Truth",       hi: "सत्य",      skt: "Satya",       src: "Chandogya Upanishad 4.4", story: ["Asked his lineage, Satyakama told the plain truth: he did not know who his father was.", "गोत्र पूछे जाने पर सत्यकाम ने सीधा सच कहा: उसे नहीं पता उसके पिता कौन हैं।"] },
-    34: { to: 53, ic: "🚪", en: "Resolve",     hi: "श्रद्धा",    skt: "Shraddha",    src: "Katha Upanishad 1.1", story: ["Nachiketa waited three days at Death's door without food or water.", "नचिकेता तीन दिन बिना अन्न-जल के यमराज के द्वार पर प्रतीक्षा करता रहा।"] },
-    44: { to: 63, ic: "🤲", en: "Giving",      hi: "दान",       skt: "Dana",        src: "Brihadaranyaka Upanishad 5.2", story: ["The thunder said 'Da'. Humans understood: Datta, give.", "मेघ ने कहा 'द'। मनुष्यों ने समझा: दत्त, दान करो।"] },
-    51: { to: 67, ic: "💗", en: "Compassion",  hi: "दया",       skt: "Daya",        src: "Brihadaranyaka Upanishad 5.2", story: ["The asuras heard the same 'Da' and understood: Dayadhvam, be compassionate.", "असुरों ने वही 'द' सुना और समझा: दयध्वम्, दया करो।"] },
-    57: { to: 75, ic: "⚖️", en: "Duty",        hi: "धर्म",      skt: "Dharma",      src: "Brihadaranyaka Upanishad 4", story: ["King Janaka ruled justly and was counted among the wisest of sages.", "राजा जनक न्याय से राज करते थे और श्रेष्ठ ज्ञानियों में गिने जाते थे।"] },
-    65: { to: 83, ic: "🍂", en: "Detachment",  hi: "वैराग्य",   skt: "Vairagya",    src: "Brihadaranyaka Upanishad 2.4", story: ["Offered half her husband's wealth, Maitreyi asked: 'Will it make me immortal?'", "पति की आधी संपत्ति मिलने पर मैत्रेयी ने पूछा: 'क्या इससे मैं अमर हो जाऊँगी?'"] },
-    72: { to: 89, ic: "🧘", en: "Austerity",   hi: "तप",        skt: "Tapas",       src: "Taittiriya Upanishad 3.1", story: ["Bhrigu asked his father Varuna, 'What is Brahman?' and was told: seek it through tapas.", "भृगु ने पिता वरुण से पूछा, 'ब्रह्म क्या है?' उत्तर मिला: तप से जानो।"] },
-    85: { to: 94, ic: "🌳", en: "Discernment", hi: "विवेक",     skt: "Viveka",      src: "Mundaka Upanishad 3.1.1", story: ["Two birds sit on one tree: one eats the fruit, the other only watches.", "एक वृक्ष पर दो पक्षी: एक फल खाता है, दूसरा केवल देखता है।"] },
-  };
-  const SNAKES = {
-    14: { to: 8,  ic: "🐢", en: "Chatter",          hi: "बकबक",     skt: "Vachalata",  src: "Panchatantra", story: ["Geese flew the tortoise across the sky on a stick. It opened its mouth to talk.", "हंस कछुए को डंडी पर आकाश में ले उड़े। उसने बोलने के लिए मुँह खोला।"] },
-    19: { to: 11, ic: "🐺", en: "Fibbing",          hi: "झूठ",      skt: "Asatya",     src: "Panchatantra", story: ["A jackal fell into a vat of dye, turned blue and claimed to be king of the forest.", "रंग की हौदी में गिरकर नीला हुआ सियार खुद को जंगल का राजा बताने लगा।"] },
-    29: { to: 17, ic: "💤", en: "Laziness",         hi: "आलस्य",    skt: "Alasya",     src: "Subhashita", story: ["Idleness is the great enemy that lives in our own body.", "आलस्य हमारे शरीर में रहने वाला सबसे बड़ा शत्रु है।"] },
-    39: { to: 22, ic: "🦴", en: "Pride of learning", hi: "विद्या-मद", skt: "Vidya-mada", src: "Panchatantra", story: ["Three learned brothers rebuilt a lion from its bones. The fourth, who had only common sense, climbed a tree.", "तीन विद्वान भाइयों ने हड्डियों से शेर बना दिया। चौथा, जिसमें बस समझ थी, पेड़ पर चढ़ गया।"] },
-    47: { to: 31, ic: "💘", en: "Craving",          hi: "काम",      skt: "Kama",       src: "Mahabharata, Adi Parva", story: ["Yayati borrowed his son's youth for a thousand years and found his desire still unquenched.", "ययाति ने पुत्र का यौवन लेकर हज़ार वर्ष भोग किया, फिर भी इच्छा नहीं बुझी।"] },
-    55: { to: 43, ic: "💰", en: "Greed",            hi: "लोभ",      skt: "Lobha",      src: "Panchatantra", story: ["Finding a hunter and a boar both dead, the jackal planned to make the feast last for days.", "शिकारी और सूअर को मरा देख सियार ने सोचा कि दावत कई दिन चलेगी।"] },
-    59: { to: 50, ic: "🌋", en: "Anger",            hi: "क्रोध",    skt: "Krodha",     src: "Panchatantra", story: ["Seeing blood on the mongoose's mouth, the brahmin's wife struck it dead in a rage.", "नेवले के मुँह पर खून देख ब्राह्मणी ने क्रोध में उसे मार डाला।"] },
-    62: { to: 46, ic: "🙈", en: "Attachment",       hi: "मोह",      skt: "Moha",       src: "Mahabharata", story: ["Blind King Dhritarashtra could never say no to his son Duryodhana.", "अंधे राजा धृतराष्ट्र अपने पुत्र दुर्योधन को कभी मना नहीं कर सके।"] },
-    69: { to: 52, ic: "👁️", en: "Envy",             hi: "मत्सर",    skt: "Matsarya",   src: "Mahabharata, Sabha Parva", story: ["Seeing the Pandavas' wondrous hall at Indraprastha, Duryodhana burned with envy.", "इंद्रप्रस्थ में पांडवों का अद्भुत सभाभवन देखकर दुर्योधन ईर्ष्या से जल उठा।"] },
-    77: { to: 58, ic: "🦚", en: "Pride",            hi: "मद",       skt: "Mada",       src: "Kena Upanishad 3", story: ["After a victory the gods boasted, 'This greatness is ours.' Then a mysterious Yaksha appeared.", "विजय के बाद देवता बोले, 'यह महिमा हमारी है।' तभी एक रहस्यमय यक्ष प्रकट हुआ।"] },
-    88: { to: 71, ic: "🎭", en: "Hypocrisy",        hi: "दंभ",      skt: "Dambha",     src: "Panchatantra", story: ["A cat posed as a holy ascetic. When a hare and a partridge came for judgment, it ate them both.", "बिल्ली तपस्वी होने का ढोंग करती रही। न्याय माँगने आए खरगोश और तीतर को खा गई।"] },
-    93: { to: 64, ic: "🦌", en: "Clinging",         hi: "आसक्ति",   skt: "Asakti",     src: "Bhagavata Purana 5.8", story: ["The sage Bharata had given up a kingdom, yet grew attached to an orphaned fawn.", "राजपाट त्याग चुके भरत मुनि एक अनाथ हिरण-शावक के मोह में बँध गए।"] },
-    99: { to: 61, ic: "🪞", en: "Ego",              hi: "अहंकार",   skt: "Ahankara",   src: "Chandogya Upanishad 8.8", story: ["Shown his reflection, Virochana took the body for the Self and went home content.", "अपना प्रतिबिंब देखकर विरोचन ने शरीर को ही आत्मा मान लिया और संतुष्ट लौट गया।"] },
-  };
-  // Every other earthly square tells the next part of the story: [symbol, en, hi, story en, story hi, source].
-  const SQ = {
-    1:  ["👶", "Birth", "जन्म", "A soul arrives. The whole board lies ahead.", "एक आत्मा का आगमन। पूरा जीवन सामने है।", ""],
-    2:  ["🤱", "Mother", "माँ", "Matru devo bhava: honour your mother as a god.", "मातृ देवो भव: माता को देवता मानो।", "Taittiriya Upanishad 1.11"],
-    3:  ["👨‍👦", "Father", "पिता", "Pitru devo bhava: honour your father as a god.", "पितृ देवो भव: पिता को देवता मानो।", "Taittiriya Upanishad 1.11"],
-    4:  ["🍚", "First rice", "अन्नप्राशन", "Annaprashana: the baby's first taste of rice, one of the rites of life.", "अन्नप्राशन: शिशु का पहला अन्न, जीवन के संस्कारों में से एक।", "Grihya Sutras"],
-    5:  ["🚶", "First steps", "पहले कदम", "Falling down and getting up again: the very first lesson.", "गिरना और फिर उठना: सबसे पहला पाठ।", ""],
-    7:  ["🧸", "Play", "खेल", "Play teaches sharing and waiting your turn.", "खेल से बाँटना और अपनी बारी की प्रतीक्षा करना आता है।", ""],
-    8:  ["🪂", "The fall", "गिरना", "The tortoise opened its mouth to talk and fell from the sky. Silence would have saved it.", "कछुए ने बोलने को मुँह खोला और आकाश से गिर पड़ा। चुप रहता तो बच जाता।", "Panchatantra"],
-    9:  ["📜", "Story time", "कथा का समय", "Vishnu Sharma taught three dull princes wisdom through animal stories: the Panchatantra.", "विष्णु शर्मा ने तीन मंदबुद्धि राजकुमारों को पशु-कथाओं से ज्ञान दिया: यही पंचतंत्र है।", "Panchatantra"],
-    10: ["💬", "First words", "पहले शब्द", "Speech is a gift: keep it gentle and true.", "वाणी एक वरदान है: इसे मधुर और सच्चा रखो।", ""],
-    11: ["🌧️", "Found out", "पोल खुली", "The blue jackal howled along with the other jackals and was found out. A lie never lasts.", "नीला सियार दूसरे सियारों के साथ हुआँ-हुआँ करने लगा और पकड़ा गया। झूठ टिकता नहीं।", "Panchatantra"],
-    13: ["🐊", "Monkey and crocodile", "बंदर और मगरमच्छ", "Asked for its heart, the monkey said, 'I left it up in the tree!' and escaped.", "कलेजा माँगे जाने पर बंदर बोला, 'वह तो पेड़ पर छोड़ आया!' और बच निकला।", "Panchatantra"],
-    15: ["🐭", "Set free", "मुक्ति", "When the deer was caught in a net, the mouse gnawed it through. Friends in need.", "हिरण जाल में फँसा तो चूहे ने जाल कुतर दिया। सच्चे मित्र संकट में काम आते हैं।", "Panchatantra"],
-    16: ["🐦", "The crows' plan", "कौओं की युक्ति", "The crows dropped a queen's necklace into the cobra's hole; the guards came and killed the snake. Wit beats strength.", "कौओं ने रानी का हार साँप के बिल में डाल दिया; पहरेदारों ने आकर साँप मार दिया। बुद्धि बल से बड़ी है।", "Panchatantra"],
-    17: ["😴", "Missed lesson", "छूटा पाठ", "The lazy one wakes to find the lesson already over.", "आलसी जब जागता है तो पाठ समाप्त हो चुका होता है।", ""],
-    18: ["🧒", "Prahlada", "प्रह्लाद", "The boy Prahlada kept his faith in Vishnu, whatever his father threatened.", "बालक प्रह्लाद ने पिता की हर धमकी के बाद भी विष्णु में आस्था रखी।", "Bhagavata Purana 7"],
-    20: ["🧵", "Sacred thread", "उपनयन", "Upanayana: with the sacred thread, a child becomes a student.", "उपनयन: यज्ञोपवीत धारण कर बालक विद्यार्थी बनता है।", ""],
-    21: ["🛖", "Gurukul", "गुरुकुल", "Leaving home to live and learn with the teacher.", "घर छोड़कर गुरु के साथ रहना और सीखना।", ""],
-    22: ["🦁", "The lion wakes", "शेर जागा", "The lion the brothers brought to life ate them. Learning without sense is dangerous.", "भाइयों का जिलाया शेर उन्हीं को खा गया। समझ के बिना विद्या खतरनाक है।", "Panchatantra"],
-    24: ["💧", "The well", "कुआँ", "Shown 'another lion' in a well, the lion leapt at its own reflection.", "कुएँ में 'दूसरा शेर' देखकर शेर अपने ही प्रतिबिंब पर कूद पड़ा।", "Panchatantra"],
-    25: ["📿", "Gayatri", "गायत्री", "'May the divine light inspire our minds.' The student's daily prayer.", "'वह दिव्य प्रकाश हमारी बुद्धि को प्रेरित करे।' विद्यार्थी की नित्य प्रार्थना।", "Rig Veda 3.62.10"],
-    26: ["🪵", "Firewood", "समिधा", "The seeker goes to the teacher with firewood in hand, ready to serve and learn.", "जिज्ञासु हाथ में समिधा लेकर गुरु के पास जाता है, सेवा और सीखने को तैयार।", "Mundaka Upanishad 1.2.12"],
-    27: ["❓", "Six seekers", "छह जिज्ञासु", "Six seekers came to sage Pippalada. He told them to live a year in discipline before asking.", "छह जिज्ञासु ऋषि पिप्पलाद के पास आए। उन्होंने कहा, पहले एक वर्ष संयम से रहो, फिर पूछो।", "Prashna Upanishad 1.2"],
-    30: ["📖", "Speak the truth", "सत्यं वद", "Satyam vada, dharmam chara: speak the truth, live by dharma.", "सत्यं वद, धर्मं चर: सच बोलो, धर्म पर चलो।", "Taittiriya Upanishad 1.11"],
-    31: ["🔥", "Yayati's fire", "ययाति की अग्नि", "Desire is never quenched by enjoying it; it grows like a fire fed with ghee.", "भोग से इच्छा कभी शांत नहीं होती; घी डालने से अग्नि की तरह बढ़ती है।", "Mahabharata, Adi Parva"],
-    32: ["🧂", "Salt in water", "जल में नमक", "Shvetaketu could not see the salt in the water, yet tasted it in every sip. So is the Self.", "श्वेतकेतु को जल में नमक दिखा नहीं, पर हर घूँट में स्वाद था। आत्मा भी ऐसी ही है।", "Chandogya Upanishad 6.13"],
-    33: ["🌱", "Banyan seed", "बरगद का बीज", "Break the tiny seed and you see nothing. From that subtle nothing grows the great banyan.", "नन्हा बीज तोड़ो तो कुछ नहीं दिखता। उसी सूक्ष्म से विशाल बरगद उगता है।", "Chandogya Upanishad 6.12"],
-    35: ["🐎", "The chariot", "रथ", "The body is the chariot, the senses the horses, the mind the reins, the intellect the driver.", "शरीर रथ है, इंद्रियाँ घोड़े, मन लगाम और बुद्धि सारथी।", "Katha Upanishad 1.3.3–4"],
-    36: ["💎", "You are That", "तत् त्वम् असि", "'You are That, Shvetaketu,' said his father Uddalaka.", "'तुम वही हो, श्वेतकेतु,' पिता उद्दालक ने कहा।", "Chandogya Upanishad 6.8.7"],
-    37: ["🙌", "Blessing", "आशीर्वाद", "Pleased with Aruni, his teacher blessed him: all the Vedas shone in his mind.", "आरुणि से प्रसन्न होकर गुरु ने आशीर्वाद दिया: सारे वेद उसके मन में प्रकाशित हो उठे।", "Mahabharata, Adi Parva"],
-    38: ["🎓", "Graduation", "समावर्तन", "Samavartana: the student's ritual bath and return home.", "समावर्तन: विद्यार्थी का स्नान और घर वापसी।", ""],
-    40: ["🕯️", "Parting words", "दीक्षांत उपदेश", "'Never neglect study and teaching,' the teacher tells the departing student.", "'स्वाध्याय और प्रवचन में कभी प्रमाद न करना,' गुरु जाते हुए शिष्य से कहते हैं।", "Taittiriya Upanishad 1.11"],
-    41: ["💍", "Marriage", "विवाह", "Seven steps around the fire: companions for life on the path of dharma.", "अग्नि के चारों ओर सात फेरे: धर्म के मार्ग पर जीवन भर के साथी।", ""],
-    42: ["🏡", "Home", "गृह", "The householder's home feeds and supports all the other ashramas.", "गृहस्थ का घर बाकी सभी आश्रमों का पालन करता है।", "Manusmriti 3.77–78"],
-    43: ["🏹", "The bowstring", "धनुष की डोरी", "To save the meat for later, the jackal gnawed the bowstring first. The bow sprang and killed him.", "मांस बचाने के लिए सियार ने पहले धनुष की डोरी चबाई। धनुष उछला और वह मर गया।", "Panchatantra"],
-    45: ["🐄", "A thousand cows", "हज़ार गायें", "Satyakama returned with a thousand cows, his face shining like one who knows Brahman.", "सत्यकाम हज़ार गायें लेकर लौटा, उसका मुख ब्रह्मज्ञानी की तरह चमक रहा था।", "Chandogya Upanishad 4.9"],
-    46: ["⚔️", "Kurukshetra", "कुरुक्षेत्र", "A father's blind love ended in a war that destroyed the family.", "पिता के अंधे मोह का अंत उस युद्ध में हुआ जिसने कुल का नाश कर दिया।", "Mahabharata"],
-    48: ["🍛", "Food is sacred", "अन्नं ब्रह्म", "Do not despise food; make food plentiful. Food is Brahman.", "अन्न का निरादर न करो; अन्न बढ़ाओ। अन्न ब्रह्म है।", "Taittiriya Upanishad 3.7–9"],
-    49: ["🌾", "Five offerings", "पंच महायज्ञ", "Each day the householder honours the gods, the sages, the ancestors, guests and all creatures.", "गृहस्थ प्रतिदिन देवताओं, ऋषियों, पितरों, अतिथियों और सभी प्राणियों का ऋण चुकाता है।", "Manusmriti 3.70"],
-    50: ["💔", "Too late", "पछतावा", "Then she found the dead cobra: the mongoose had saved her child. Anger acts first and weeps later.", "फिर उसने मरा हुआ साँप देखा: नेवले ने बच्चे को बचाया था। क्रोध पहले करता है, बाद में पछताता है।", "Panchatantra"],
-    52: ["🎲", "The dice game", "द्यूत क्रीड़ा", "Envy led Duryodhana to the rigged game of dice, and from there to ruin.", "ईर्ष्या दुर्योधन को कपट के जुए तक ले गई, और वहाँ से विनाश तक।", "Mahabharata, Sabha Parva"],
-    53: ["🔆", "Yama teaches", "यम का उपदेश", "Moved by his resolve, Yama taught Nachiketa the secret of the deathless Self.", "उसके दृढ़ निश्चय से प्रसन्न होकर यम ने नचिकेता को अमर आत्मा का रहस्य बताया।", "Katha Upanishad 1.2"],
-    54: ["🛞", "Raikva", "रैक्व", "Raikva, the humble man sitting under his cart, knew more than the king.", "अपनी गाड़ी के नीचे बैठे साधारण रैक्व राजा से अधिक जानते थे।", "Chandogya Upanishad 4.1"],
-    56: ["🍽️", "The guest", "अतिथि", "Atithi devo bhava: honour the guest as a god.", "अतिथि देवो भव: अतिथि को देवता मानो।", "Taittiriya Upanishad 1.11"],
-    58: ["🌿", "A blade of grass", "तिनका", "Agni could not burn a blade of grass, nor Vayu blow it away. All power is Brahman's.", "अग्नि एक तिनका न जला सके, न वायु उसे उड़ा सके। सारी शक्ति ब्रह्म की है।", "Kena Upanishad 3"],
-    60: ["🧓", "Grey hair", "श्वेत केश", "When the householder sees grey hair and grandchildren, it is time for the forest.", "जब गृहस्थ के केश सफ़ेद हों और पोते-पोतियाँ दिखें, तब वन जाने का समय है।", "Manusmriti 6.2"],
-    61: ["🔁", "Begin again", "फिर से आरंभ", "Indra was not satisfied with that answer. He came back to learn, again and again, for 101 years.", "इंद्र उस उत्तर से संतुष्ट न हुए। वे बार-बार सीखने लौटे, कुल १०१ वर्ष।", "Chandogya Upanishad 8.11"],
-    63: ["🎁", "Enjoy by letting go", "त्यागपूर्वक भोग", "All this is pervaded by the Lord: enjoy it by letting go, and covet no one's wealth.", "यह सब ईश्वर से व्याप्त है: त्यागपूर्वक भोगो, किसी के धन का लोभ न करो।", "Isha Upanishad 1"],
-    64: ["🐾", "Born a deer", "हिरण का जन्म", "Thinking of the fawn at the moment of death, Bharata was reborn as a deer.", "मृत्यु के समय शावक का ध्यान करते रहने से भरत हिरण बनकर जन्मे।", "Bhagavata Purana 5.8"],
-    66: ["🌲", "To the forest", "वन की ओर", "Handing the home to the next generation, the householder turns toward the forest.", "घर अगली पीढ़ी को सौंपकर गृहस्थ वन की ओर चल पड़ता है।", ""],
-    67: ["🫂", "No hatred", "द्वेष नहीं", "One who sees all beings in the Self, and the Self in all beings, hates no one.", "जो सब प्राणियों को आत्मा में और आत्मा को सब में देखता है, वह किसी से घृणा नहीं करता।", "Isha Upanishad 6"],
-    68: ["📚", "Only words", "केवल शब्द", "Narada had mastered every scripture, yet came grieving: 'I know only words, not the Self.'", "नारद सब शास्त्र जानते थे, फिर भी दुखी होकर बोले: 'मैं केवल शब्द जानता हूँ, आत्मा नहीं।'", "Chandogya Upanishad 7.1"],
-    70: ["🪆", "Five sheaths", "पंचकोश", "The Self is wrapped in five sheaths: food, breath, mind, intellect and bliss.", "आत्मा पाँच कोशों में ढकी है: अन्न, प्राण, मन, विज्ञान और आनंद।", "Taittiriya Upanishad 2"],
-    71: ["🐈", "Unmasked", "ढोंग उजागर", "The cat's prayers were only a trap. True austerity needs no audience.", "बिल्ली की प्रार्थना केवल एक जाल थी। सच्चे तप को दर्शकों की ज़रूरत नहीं।", "Panchatantra"],
-    73: ["🌬️", "Breath", "प्राण", "The senses argued over which was greatest; when breath began to leave, all of them failed.", "इंद्रियों में श्रेष्ठता का विवाद हुआ; जब प्राण जाने लगे तो सब शिथिल हो गईं।", "Chandogya Upanishad 5.1"],
-    74: ["🛕", "Temple of the heart", "हृदय मंदिर", "In the city of the body is a small lotus-house; within it is a space as vast as the universe.", "शरीर रूपी नगर में एक छोटा कमल-गृह है; उसके भीतर ब्रह्मांड जितना विशाल आकाश है।", "Chandogya Upanishad 8.1"],
-    75: ["👑", "Nothing of mine burns", "मेरा कुछ नहीं जलता", "When Mithila was on fire, Janaka said: nothing that is truly mine is burning.", "मिथिला जल रही थी, तब जनक बोले: जो सचमुच मेरा है, उसमें से कुछ नहीं जल रहा।", "Mahabharata, Shanti Parva"],
-    76: ["🌅", "Sandhya", "संध्या", "Dawn, noon and dusk: the forest-dweller's day turns around prayer.", "प्रातः, मध्याह्न और संध्या: वानप्रस्थी का दिन उपासना के चारों ओर घूमता है।", ""],
-    78: ["💞", "For the Self", "आत्मा के लिए", "'It is not for the husband's sake that a husband is dear, but for the sake of the Self.'", "'पति, पति के लिए प्रिय नहीं होता, आत्मा के लिए प्रिय होता है।'", "Brihadaranyaka Upanishad 2.4.5"],
-    79: ["🎯", "Bow and arrow", "धनुष-बाण", "Om is the bow, the self is the arrow, and Brahman is the target.", "प्रणव धनुष है, आत्मा बाण है और ब्रह्म लक्ष्य है।", "Mundaka Upanishad 2.2.4"],
-    80: ["🧡", "Saffron robe", "भगवा वस्त्र", "Taking sannyasa: the last fire, the saffron robe, a new name.", "संन्यास दीक्षा: अंतिम अग्नि, भगवा वस्त्र, नया नाम।", ""],
-    81: ["🍃", "Neti neti", "नेति नेति", "Not this, not this: the Self is beyond every description.", "यह नहीं, यह नहीं: आत्मा हर वर्णन से परे है।", "Brihadaranyaka Upanishad 2.3.6"],
-    82: ["🌙", "Four states", "चार अवस्थाएँ", "Waking, dreaming, deep sleep, and the fourth, Turiya, beyond them all.", "जाग्रत, स्वप्न, सुषुप्ति, और इन सबसे परे चौथी, तुरीय।", "Mandukya Upanishad 3–7"],
-    83: ["🌌", "Immortality", "अमृतत्व", "Yajnavalkya taught Maitreyi the way to immortality, then left for the forest.", "याज्ञवल्क्य ने मैत्रेयी को अमृतत्व का मार्ग बताया और वन चले गए।", "Brihadaranyaka Upanishad 4.5"],
-    84: ["🥣", "Alms", "भिक्षा", "The renunciate asks only for today's food and keeps nothing more.", "संन्यासी केवल आज का भोजन माँगता है, और कुछ नहीं रखता।", ""],
-    86: ["❔", "By whom?", "केन?", "By whom is the mind sent forth? By whom does the eye see?", "किसके द्वारा मन प्रेरित होता है? किससे आँख देखती है?", "Kena Upanishad 1.1"],
-    87: ["🌞", "The golden lid", "स्वर्ण पात्र", "The face of truth is covered by a golden disc. Uncover it, O Pushan, so I may see.", "सत्य का मुख सोने के पात्र से ढका है। हे पूषन्, उसे हटाओ ताकि मैं देख सकूँ।", "Isha Upanishad 15"],
-    89: ["🌕", "Bliss", "आनंद", "At last Bhrigu knew: Brahman is bliss. From bliss all beings are born.", "अंत में भृगु ने जाना: ब्रह्म आनंद है। आनंद से ही सब प्राणी जन्मते हैं।", "Taittiriya Upanishad 3.6"],
-    90: ["🪔", "Lead me to light", "तमसो मा ज्योतिर्गमय", "Lead me from the unreal to the real, from darkness to light, from death to immortality.", "असत् से सत् की ओर, तम से ज्योति की ओर, मृत्यु से अमृत की ओर ले चलो।", "Brihadaranyaka Upanishad 1.3.28"],
-    91: ["🧠", "Prajnanam Brahma", "प्रज्ञानं ब्रह्म", "Consciousness is Brahman.", "चेतना ही ब्रह्म है।", "Aitareya Upanishad 3.3"],
-    92: ["💫", "Aham Brahmasmi", "अहं ब्रह्मास्मि", "I am Brahman.", "मैं ब्रह्म हूँ।", "Brihadaranyaka Upanishad 1.4.10"],
-    94: ["🐦", "The watching bird", "साक्षी पक्षी", "When the bird that eats sees the other, the witness, as its own glory, its grief ends.", "जब फल खाने वाला पक्षी दूसरे, साक्षी पक्षी को अपनी ही महिमा जानता है, तो उसका शोक मिट जाता है।", "Mundaka Upanishad 3.1.2"],
-    95: ["🌀", "Ayam Atma Brahma", "अयमात्मा ब्रह्म", "This Self is Brahman.", "यह आत्मा ब्रह्म है।", "Mandukya Upanishad 2"],
-    96: ["🌍", "All is Brahman", "सर्वं खल्विदं ब्रह्म", "All this, truly, is Brahman.", "यह सब कुछ निश्चय ही ब्रह्म है।", "Chandogya Upanishad 3.14.1"],
-    97: ["⭕", "Wholeness", "पूर्णता", "That is whole, this is whole. Take the whole from the whole, and the whole remains.", "वह पूर्ण है, यह पूर्ण है। पूर्ण से पूर्ण निकालने पर भी पूर्ण ही शेष रहता है।", "Isha Upanishad, invocation"],
-    98: ["🕊️", "Shanti", "शांति", "Om shanti, shanti, shanti: peace within, peace around, peace above.", "ॐ शांति, शांति, शांति: भीतर शांति, आसपास शांति, ऊपर शांति।", ""],
-    100: ["🌄", "The threshold", "देहरी", "At the edge of the world. The realms of the gods begin above.", "संसार की सीमा पर। ऊपर देवलोक आरंभ होते हैं।", ""],
-  };
-  // The heavenly row above 100.
-  const HEAVEN = {
-    101: { en: "Indra",     hi: "इन्द्र",   ic: "⚡", story: ["Svarga, Indra's heaven: the reward of good deeds, yet not the final goal.", "स्वर्ग, इंद्र का लोक: पुण्य का फल, पर अंतिम लक्ष्य नहीं।"] },
-    102: { en: "Agni",      hi: "अग्नि",   ic: "🔥", story: ["Agni carries every offering to the gods.", "अग्नि हर आहुति देवताओं तक पहुँचाते हैं।"] },
-    103: { en: "Surya",     hi: "सूर्य",    ic: "☀️", story: ["Surya, the visible god, witness of all actions.", "सूर्य, प्रत्यक्ष देवता, सब कर्मों के साक्षी।"] },
-    104: { en: "Ganesha",   hi: "गणेश",    ic: "🐘", story: ["Ganesha removes the last obstacles.", "गणेश अंतिम विघ्न दूर करते हैं।"] },
-    105: { en: "Lakshmi",   hi: "लक्ष्मी",  ic: "🪷", story: ["Grace that blooms like the lotus, untouched by the mud.", "कमल की तरह खिलती कृपा, कीचड़ से अछूती।"] },
-    106: { en: "Saraswati", hi: "सरस्वती",  ic: "🦢", story: ["Her swan is said to separate milk from water: true knowledge from false.", "कहते हैं उनका हंस दूध और पानी को अलग कर देता है: सच्चे ज्ञान को झूठे से।"] },
-    107: { en: "Brahma",    hi: "ब्रह्मा",  ic: "📜", story: ["Brahma, the creator, from whom the Vedas flow.", "सृष्टिकर्ता ब्रह्मा, जिनसे वेद प्रकट हुए।"] },
-    108: { en: "Vishnu",    hi: "विष्णु",   ic: "🐚", story: ["Vishnu, the preserver, who upholds dharma in every age.", "पालनकर्ता विष्णु, जो हर युग में धर्म की रक्षा करते हैं।"] },
-    109: { en: "Shiva",     hi: "शिव",     ic: "🔱", story: ["Shiva, the auspicious one, who dissolves all that binds.", "कल्याणकारी शिव, जो हर बंधन को मिटाते हैं।"] },
-  };
-  const GOAL = 110, ROWS = 11;
-  const ASHRAMAS = [
-    [20, "Childhood", "बाल्यकाल"], [40, "Brahmacharya", "ब्रह्मचर्य"], [60, "Grihastha", "गृहस्थ"],
-    [80, "Vanaprastha", "वानप्रस्थ"], [100, "Sannyasa", "संन्यास"], [GOAL, "Divine realms", "दिव्य लोक"],
-  ];
-  const ashramaOf = n => { const a = ASHRAMAS.find(([max]) => n <= max); return L(a[1], a[2]); };
+  // src/rng.js
+  var makeRng = (seed) => ({ seed: seed >>> 0, s: seed >>> 0 });
+  function next(r) {
+    r.s = r.s + 1831565813 | 0;
+    let t2 = Math.imul(r.s ^ r.s >>> 15, 1 | r.s);
+    t2 = t2 + Math.imul(t2 ^ t2 >>> 7, 61 | t2) ^ t2;
+    return ((t2 ^ t2 >>> 14) >>> 0) / 4294967296;
+  }
+  var die = (r) => 1 + Math.floor(next(r) * 6);
+  var freshSeed = () => crypto.getRandomValues(new Uint32Array(1))[0];
 
-  // ---- Pixel-art characters, one per stage of life (12 x 16, facing right) ----
-  // K outline, S skin, H hair, G grey hair, W white beard, E eye, C clothes (player colour), c dark clothes,
-  // w white cloth, O/o saffron robe, B staff, Y gold, R slate. Rows 14–15 are the legs; legsB is the other walk frame.
-  const ART = {
-    baby: { back: "H", legsB: ["..KSK.KSK...", "...K...K...."], rows: [
-      "............", "............", "............", "............", "............", "............", "............", "............",
-      "......KKKK..", ".....KHHHHK.", ".....KSSESK.", "..KKKKSSSSK.", ".KCCCCCKKK..", "KCwwwCCCK...", ".KSK..KSK...", "..K....K...."] },
-    toddler: { back: "H", legsB: ["....KSSK....", "....KKKK...."], rows: [
-      "............", "............", "............", "............", "............",
-      "....KKKKK...", "...KHHHHHK..", "..KHSSSSSK..", "..KSSSESEK..", "..KSSSSSSK..", "...KKSSKK...",
-      "...KCCCCK...", "..KSCCCCSK..", "...KwwwwK...", "...KS..SK...", "...KK..KK..."] },
-    student: { back: "H", legsB: ["....KSSK....", "....KKKK...."], rows: [
-      "............", "............", "............",
-      "....KKKKK...", "...KHHHHHK..", "..KHHSSSSK..", "..KHSSESEK..", "..KSSSSSSK..", "...KKSSKK...",
-      "...KCCCCK...", "..KCCCCCCKKK", "..KSCCCCKRRK", "...KCCCCKRRK", "...KwwwwKKKK", "...KS..SK...", "...KK..KK..."] },
-    youth: { back: "H", legsB: ["....KSSK....", "....KKKK...."], rows: [
-      "............",
-      "....KKKK....", "...KHHHHK...", "..KHHSSSSK..", "..KHSSESEK..", "..KSSSSSSK..", "...KSSSSK...", "....KSSK....",
-      "..KCCCCCCK..", ".KCCCCCCCCK.", ".KCKCCCCKCK.", ".KSKCCCCKSK.", "...KwwwwK...", "...KwwwwK...", "..KSK..KSK..", "..KK....KK.."] },
-    householder: { back: "H", legsB: ["....KSSK....", "....KKKK...."], rows: [
-      "....KKKK....", "...KccccK...", "..KccccccK..", "..KHSSSSSK..", "..KSSSESEK..", "..KSSKKKSK..", "...KSSSSK...", "....KSSK....",
-      "..KCCCCCCK..", ".KCCCCCCCCK.", ".KCKCCCCKCK.", ".KSKCCCCKSK.", "...KwwwwK...", "...KwwwwK...", "..KSK..KSK..", "..KK....KK.."] },
-    forest: { back: "G", legsB: ["....KSSK..B.", "....KKKK..B."], rows: [
-      "....KKKK..B.", "...KGGGGK.B.", "..KGGSSSSKB.", "..KGSSESEKB.", "..KSSSSSSKB.", "..KSGGGGSKB.", "...KGGGGK.B.", "....KGGK..B.",
-      "..KccccccKB.", ".KcccccccSB.", ".KcKccccKKB.", ".KSKccccK.B.", "...KccccK.B.", "...KccccK.B.", "..KSK..KSKB.", "..KK....KKB."] },
-    sage: { back: "S", legsB: ["...KOOOOK.B.", "...KK..KK.B."], rows: [
-      ".....KK...B.", "....KHHK..B.", "...KSSSSK.B.", "..KSSSYSSKB.", "..KSSSESEKB.", "..KSWWWWSKB.", "...KWWWWK.B.", "....KWWK..B.",
-      "..KOOOOCOKB.", ".KOOOOCOOSB.", ".KOKOCOOKKB.", ".KSKCOOOK.B.", "...KOOOOK.B.", "...KooooK.B.", "...KOOOOK.B.", "..KK....KKB."] },
-    divine: { back: "H", legsB: ["....KSSK....", "....KKKK...."], rows: [
-      "...YYYYYY...", "..YKKKKKKY..", ".Y.KYYYYK.Y.", ".YKHSSSSSKY.", ".YKSSSESEKY.", "..KSSSSSSK..", "...KSSSSK...", "....KSSK....",
-      "..KYCCCCYK..", ".KYCCCCCCYK.", ".KSKCCCCKSK.", "...KCCCCK...", "...KwwwwK...", "...KwwwwK...", "..KSK..KSK..", "..KK....KK.."] },
-  };
-  // Life stages follow board position: ladders age you, snakes send you back to a younger self.
-  const STAGES = [
-    { max: 10,   art: "baby",        en: "Baby",           hi: "शिशु" },
-    { max: 20,   art: "toddler",     en: "Child",          hi: "बालक" },
-    { max: 30,   art: "student",     en: "Student",        hi: "विद्यार्थी" },
-    { max: 40,   art: "youth",       en: "Young scholar",  hi: "युवा विद्यार्थी" },
-    { max: 60,   art: "householder", en: "Householder",    hi: "गृहस्थ" },
-    { max: 80,   art: "forest",      en: "Forest-dweller", hi: "वानप्रस्थी" },
-    { max: 100,  art: "sage",        en: "Renunciate",     hi: "संन्यासी" },
-    { max: GOAL, art: "divine",      en: "Divine soul",    hi: "दिव्य आत्मा" },
-  ];
-  const stageOf = pos => STAGES.findIndex(s => Math.max(pos, 1) <= s.max);
-  const stageName = i => L(STAGES[i].en, STAGES[i].hi);
-
-  // [background, light ink?]: the bright printed colours of the traditional board.
-  const PALETTE = [["#D2402E", true], ["#F2C232", false], ["#3A78C2", true], ["#EC8A2E", false], ["#3F9A52", true], ["#7CC3E8", false]];
-  const COLORS = ["var(--p0)", "var(--p1)", "var(--p2)", "var(--p3)"];
-  const P_HEX = ["#C0392B", "#2E5BBA", "#2E8B57", "#D98300"];
-  const PIPS = { 1:[4], 2:[0,8], 3:[0,4,8], 4:[0,2,6,8], 5:[0,2,4,6,8], 6:[0,2,3,5,6,8] };
-  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const sleep = ms => new Promise(r => setTimeout(r, reduced ? Math.min(ms, 60) : ms));
-  const $ = id => document.getElementById(id);
-
-  const defaultSetup = () => ({
-    count: 2,
-    rows: [{ name: "", type: "human" }, { name: "", type: "cpu" }, { name: "", type: "cpu" }, { name: "", type: "cpu" }],
-    rules: { exact: true, six: true, cards: "all" },
-  });
-  // older saves stored cards as true/false
-  const cardsMode = r => (r.cards === true || r.cards == null ? "all" : r.cards === false ? "off" : r.cards);
-
-  // gen changes on every new game, so animations from an abandoned turn stop where they are.
-  let setup, state, busy = false, cpuTimer = null, gen = 0, forcedRoll = null, cardClose = null;
-
-  const pname = p => p.name || t("def" + p.color);
-
-  function newState() {
+  // src/engine/turn.js
+  var TUMBLE = 7;
+  function createGame({ players, rules, seed }) {
     return {
-      players: setup.rows.slice(0, setup.count).map((r, i) => ({ name: r.name.trim(), type: r.type, color: i, pos: 0, face: "r" })),
-      rules: { ...setup.rules },
-      turn: 0, winner: null, last: null,
+      players: players.map((r, i) => ({ name: r.name.trim(), type: r.type, color: i, pos: 0, face: "r" })),
+      rules: { ...rules },
+      turn: 0,
+      winner: null,
+      last: null,
       log: [{ k: "lNew", kind: "" }],
+      rng: makeRng(seed)
     };
   }
-
-  // ---- Board geometry ----
-  function colRow(n) {
-    const i = n - 1, row = Math.floor(i / 10);
-    const col = row % 2 === 0 ? i % 10 : 9 - (i % 10);
-    return { col, row };
+  var entry = (k, v = {}, kind = "", who = null) => ({ k, v, kind, who });
+  function addLog(state, e) {
+    state.log.unshift(e);
+    state.log = state.log.slice(0, 60);
+  }
+  function planTurn(state, v) {
+    const idx = state.turn, from = state.players[idx].pos, rules = state.rules;
+    const pre = [], after = [], end = [];
+    let target = from + v;
+    if (target > GOAL) {
+      if (rules.exact) {
+        pre.push(entry("lExact", { v, need: GOAL - from, pos: from }, "", idx));
+        target = from;
+      } else target = GOAL;
+    }
+    let jump = null, final = target;
+    if (target !== from) {
+      const s = SNAKES[target], l = LADDERS[target];
+      if (s || l) {
+        jump = { kind: s ? "snake" : "ladder", to: (s || l).to };
+        final = jump.to;
+        after.push(entry(s ? "lSnake" : "lLadder", { v, pos: target, to: jump.to, sq: target }, s ? "snake" : "ladder", idx));
+      } else if (HEAVEN[target]) {
+        after.push(entry("lHeaven", { v, pos: target, sq: target }, "heaven", idx));
+      } else if (target !== GOAL) {
+        after.push(entry(from === 0 ? "lBorn" : "lMove", { v, pos: target, sq: target }, "", idx));
+      }
+    }
+    const win = final === GOAL, again = !win && v === 6 && rules.six;
+    if (win) end.push(entry("lWin", { pos: GOAL }, "heaven", idx));
+    else if (again) end.push(entry("lSix", {}, "", idx));
+    return { idx, v, from, target, final, jump, win, again, pre, after, end };
+  }
+  function endTurn(state, plan) {
+    state.players[plan.idx].pos = plan.final;
+    if (plan.win) state.winner = plan.idx;
+    else if (!plan.again) state.turn = (state.turn + 1) % state.players.length;
+    plan.end.forEach((e) => addLog(state, e));
   }
 
-  // The board's name for square n in the current language.
+  // src/state.js
+  var G = { setup: null, state: null, busy: false, cpuTimer: null, gen: 0, forcedRoll: null, cardClose: null };
+  var defaultSetup = () => ({
+    count: 2,
+    rows: [{ name: "", type: "human" }, { name: "", type: "cpu" }, { name: "", type: "cpu" }, { name: "", type: "cpu" }],
+    rules: { exact: true, six: true, cards: "all" }
+  });
+  var cardsMode = (r) => r.cards === true || r.cards == null ? "all" : r.cards === false ? "off" : r.cards;
+  var pname = (p) => p.name || t("def" + p.color);
+  var cur = () => G.state.players[G.state.turn];
+  function newState(seed = freshSeed()) {
+    return createGame({ players: G.setup.rows.slice(0, G.setup.count), rules: G.setup.rules, seed });
+  }
+
+  // src/ui.js
+  var COLORS = ["var(--p0)", "var(--p1)", "var(--p2)", "var(--p3)"];
+  var P_HEX = ["#C0392B", "#2E5BBA", "#2E8B57", "#D98300"];
+  var reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var sleep = (ms) => new Promise((r) => setTimeout(r, reduced ? Math.min(ms, 60) : ms));
+  var $ = (id) => document.getElementById(id);
+  var esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+
+  // src/render/board.js
+  var ashramaOf = (n) => {
+    const a = ASHRAMAS.find(([max]) => n <= max);
+    return L(a[1], a[2]);
+  };
+  var PALETTE = [["#D2402E", true], ["#F2C232", false], ["#3A78C2", true], ["#EC8A2E", false], ["#3F9A52", true], ["#7CC3E8", false]];
+  function colRow(n) {
+    const i = n - 1, row = Math.floor(i / 10);
+    const col = row % 2 === 0 ? i % 10 : 9 - i % 10;
+    return { col, row };
+  }
   function squareName(n) {
     const sl = SNAKES[n] || LADDERS[n];
     if (sl) return L(sl.en, sl.hi);
@@ -671,7 +793,6 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     if (n === GOAL) return t("moksha");
     return SQ[n] ? L(SQ[n][1], SQ[n][2]) : "";
   }
-
   function labelHtml(n) {
     const numEl = `<span class="n">${num(n)}</span>`;
     if (n === GOAL) return numEl + `<span class="om">ॐ</span><span class="dv">मोक्ष</span>`;
@@ -680,11 +801,11 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     if (sl) return numEl + `<span class="ic">${sl.ic}</span><span class="nm">${L(sl.en, sl.hi)}</span>`;
     return numEl;
   }
-
-  const labEls = {};
+  var labEls = {};
   function buildCells() {
     const cells = $("cells"), labels = $("labels");
-    cells.innerHTML = ""; labels.innerHTML = "";
+    cells.innerHTML = "";
+    labels.innerHTML = "";
     for (let r = ROWS - 1; r >= 0; r--) {
       for (let c = 0; c < 10; c++) {
         const n = r % 2 === 0 ? r * 10 + c + 1 : r * 10 + (9 - c) + 1;
@@ -695,7 +816,6 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         if (!heaven) el.style.background = bg;
         if (SQ[n]) el.innerHTML = `<span class="pic">${SQ[n][0]}</span>`;
         cells.appendChild(el);
-
         const lab = document.createElement("div");
         const kind = n === GOAL ? " heaven goal" : heaven ? " heaven" : SNAKES[n] ? " vice" : LADDERS[n] ? " virtue" : "";
         lab.className = "lab" + kind + (light && !heaven ? " li" : "");
@@ -707,14 +827,16 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       }
     }
   }
-
-  // ---- Drawing snakes and ladders ----
-  const canvas = $("art"), ctx = canvas.getContext("2d");
-  const fxCanvas = $("fx"), fx = fxCanvas.getContext("2d");
-  let S = 0;
-  const center = n => { const { col, row } = colRow(n); return { x: (col + 0.5) * S, y: (ROWS - 1 - row + 0.5) * S }; };
-  const fxClear = () => fx.clearRect(0, 0, S * 10, S * ROWS);
-
+  var canvas = $("art");
+  var ctx = canvas.getContext("2d");
+  var fxCanvas = $("fx");
+  var fx = fxCanvas.getContext("2d");
+  var S = 0;
+  var center = (n) => {
+    const { col, row } = colRow(n);
+    return { x: (col + 0.5) * S, y: (ROWS - 1 - row + 0.5) * S };
+  };
+  var fxClear = () => fx.clearRect(0, 0, S * 10, S * ROWS);
   function drawLadder(a, b) {
     const p = center(a), q = center(b);
     const dx = q.x - p.x, dy = q.y - p.y, len = Math.hypot(dx, dy);
@@ -725,27 +847,32 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       ctx.strokeStyle = pass ? "#F7DB64" : "#4A2E06";
       ctx.lineWidth = pass ? S * 0.055 : S * 0.095;
       for (let i = 1; i <= rungs; i++) {
-        const t = i / (rungs + 1), x = p.x + dx * t, y = p.y + dy * t;
-        ctx.beginPath(); ctx.moveTo(x - nx * half, y - ny * half); ctx.lineTo(x + nx * half, y + ny * half); ctx.stroke();
+        const t2 = i / (rungs + 1), x = p.x + dx * t2, y = p.y + dy * t2;
+        ctx.beginPath();
+        ctx.moveTo(x - nx * half, y - ny * half);
+        ctx.lineTo(x + nx * half, y + ny * half);
+        ctx.stroke();
       }
       ctx.strokeStyle = pass ? "#F4CF3A" : "#4A2E06";
       ctx.lineWidth = pass ? S * 0.07 : S * 0.115;
       for (const sg of [-1, 1]) {
-        ctx.beginPath(); ctx.moveTo(p.x + nx * half * sg, p.y + ny * half * sg); ctx.lineTo(q.x + nx * half * sg, q.y + ny * half * sg); ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(p.x + nx * half * sg, p.y + ny * half * sg);
+        ctx.lineTo(q.x + nx * half * sg, q.y + ny * half * sg);
+        ctx.stroke();
       }
     }
   }
-
-  // [body, band, belly] for each cobra, dark like the snakes on painted boards.
-  const SNAKE_COLORS = [
-    ["#4A4F5C", "#262A33", "#C9CFC2"], ["#2F4C70", "#18293F", "#BFD3E6"], ["#5B5240", "#332D22", "#E3D3A8"],
-    ["#3C5A44", "#1F3325", "#C8DDB8"], ["#6A3B32", "#3D1F1A", "#E8C2A8"],
+  var SNAKE_COLORS = [
+    ["#4A4F5C", "#262A33", "#C9CFC2"],
+    ["#2F4C70", "#18293F", "#BFD3E6"],
+    ["#5B5240", "#332D22", "#E3D3A8"],
+    ["#3C5A44", "#1F3325", "#C8DDB8"],
+    ["#6A3B32", "#3D1F1A", "#E8C2A8"]
   ];
-  const snakeColors = h => SNAKE_COLORS[Object.keys(SNAKES).indexOf(String(h)) % SNAKE_COLORS.length];
-
-  // The wavy body from head (index 0) to tail, shared by drawing and the swallow animation.
-  function snakePath(h, t) {
-    const p = center(h), q = center(t);
+  var snakeColors = (h) => SNAKE_COLORS[Object.keys(SNAKES).indexOf(String(h)) % SNAKE_COLORS.length];
+  function snakePath(h, t2) {
+    const p = center(h), q = center(t2);
     const dx = q.x - p.x, dy = q.y - p.y, len = Math.hypot(dx, dy);
     const nx = -dy / len, ny = dx / len;
     const amp = Math.min(S * 0.42, len * 0.14);
@@ -757,49 +884,83 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     }
     return pts;
   }
-
   function drawHood(c, a, b, [body, band, belly], flare = 1) {
     const ang = Math.atan2(a.y - b.y, a.x - b.x);
-    c.save(); c.translate(a.x, a.y); c.rotate(ang); c.scale(flare, flare);
-    c.strokeStyle = "#B3261E"; c.lineWidth = S * 0.025;
-    c.beginPath(); c.moveTo(S * 0.16, 0); c.lineTo(S * 0.3, 0); c.lineTo(S * 0.35, -S * 0.04); c.moveTo(S * 0.3, 0); c.lineTo(S * 0.35, S * 0.04); c.stroke();
-    c.lineWidth = 2; c.strokeStyle = "#0E0C08";
-    c.fillStyle = body; c.beginPath(); c.ellipse(-S * 0.07, 0, S * 0.19, S * 0.3, 0, 0, Math.PI * 2); c.fill(); c.stroke();
-    c.fillStyle = band; c.beginPath(); c.ellipse(-S * 0.07, 0, S * 0.12, S * 0.2, 0, 0, Math.PI * 2); c.fill();
-    c.strokeStyle = belly; c.lineWidth = S * 0.022;
-    for (const sg of [-1, 1]) { c.beginPath(); c.arc(-S * 0.1, sg * S * 0.09, S * 0.045, 0, Math.PI * 2); c.stroke(); }
-    c.lineWidth = 1.5; c.strokeStyle = "#0E0C08";
-    c.fillStyle = body; c.beginPath(); c.ellipse(S * 0.06, 0, S * 0.13, S * 0.1, 0, 0, Math.PI * 2); c.fill(); c.stroke();
+    c.save();
+    c.translate(a.x, a.y);
+    c.rotate(ang);
+    c.scale(flare, flare);
+    c.strokeStyle = "#B3261E";
+    c.lineWidth = S * 0.025;
+    c.beginPath();
+    c.moveTo(S * 0.16, 0);
+    c.lineTo(S * 0.3, 0);
+    c.lineTo(S * 0.35, -S * 0.04);
+    c.moveTo(S * 0.3, 0);
+    c.lineTo(S * 0.35, S * 0.04);
+    c.stroke();
+    c.lineWidth = 2;
+    c.strokeStyle = "#0E0C08";
+    c.fillStyle = body;
+    c.beginPath();
+    c.ellipse(-S * 0.07, 0, S * 0.19, S * 0.3, 0, 0, Math.PI * 2);
+    c.fill();
+    c.stroke();
+    c.fillStyle = band;
+    c.beginPath();
+    c.ellipse(-S * 0.07, 0, S * 0.12, S * 0.2, 0, 0, Math.PI * 2);
+    c.fill();
+    c.strokeStyle = belly;
+    c.lineWidth = S * 0.022;
     for (const sg of [-1, 1]) {
-      c.fillStyle = "#FFF6D8"; c.beginPath(); c.arc(S * 0.1, sg * S * 0.05, S * 0.03, 0, Math.PI * 2); c.fill();
-      c.fillStyle = "#111"; c.beginPath(); c.arc(S * 0.11, sg * S * 0.05, S * 0.015, 0, Math.PI * 2); c.fill();
+      c.beginPath();
+      c.arc(-S * 0.1, sg * S * 0.09, S * 0.045, 0, Math.PI * 2);
+      c.stroke();
+    }
+    c.lineWidth = 1.5;
+    c.strokeStyle = "#0E0C08";
+    c.fillStyle = body;
+    c.beginPath();
+    c.ellipse(S * 0.06, 0, S * 0.13, S * 0.1, 0, 0, Math.PI * 2);
+    c.fill();
+    c.stroke();
+    for (const sg of [-1, 1]) {
+      c.fillStyle = "#FFF6D8";
+      c.beginPath();
+      c.arc(S * 0.1, sg * S * 0.05, S * 0.03, 0, Math.PI * 2);
+      c.fill();
+      c.fillStyle = "#111";
+      c.beginPath();
+      c.arc(S * 0.11, sg * S * 0.05, S * 0.015, 0, Math.PI * 2);
+      c.fill();
     }
     c.restore();
   }
-
-  function drawSnake(h, t) {
-    const pts = snakePath(h, t), N = pts.length - 1, cols = snakeColors(h), [body, band, belly] = cols;
+  function drawSnake(h, t2) {
+    const pts = snakePath(h, t2), N = pts.length - 1, cols = snakeColors(h), [body, band, belly] = cols;
     ctx.lineCap = "round";
-    // outline, banded body, then a pale belly stripe
     for (let pass = 0; pass < 3; pass++) {
       ctx.globalAlpha = pass === 2 ? 0.45 : 1;
       for (let i = 0; i < N; i++) {
         const a = pts[i], b = pts[i + 1];
-        ctx.strokeStyle = pass === 0 ? "#0E0C08" : pass === 1 ? (Math.floor(i / 5) % 2 ? body : band) : belly;
+        ctx.strokeStyle = pass === 0 ? "#0E0C08" : pass === 1 ? Math.floor(i / 5) % 2 ? body : band : belly;
         ctx.lineWidth = pass === 0 ? a.w + 3 : pass === 1 ? a.w : a.w * 0.3;
-        ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(a.x, a.y);
+        ctx.lineTo(b.x, b.y);
+        ctx.stroke();
       }
     }
     ctx.globalAlpha = 1;
     drawHood(ctx, pts[0], pts[4], cols);
   }
-
   function draw() {
     const W = $("cells").clientWidth, H = $("cells").clientHeight;
     if (!W) return;
     const dpr = window.devicePixelRatio || 1;
     for (const [cv, c] of [[canvas, ctx], [fxCanvas, fx]]) {
-      cv.width = W * dpr; cv.height = H * dpr;
+      cv.width = W * dpr;
+      cv.height = H * dpr;
       c.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
     ctx.clearRect(0, 0, W, H);
@@ -808,71 +969,269 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     for (const [h, s] of Object.entries(SNAKES)) drawSnake(+h, s.to);
   }
 
-  // ---- Sprites ----
-  const spriteCache = new Map();
+  // src/render/sprites.js
+  var ART = {
+    baby: { back: "H", legsB: ["..KSK.KSK...", "...K...K...."], rows: [
+      "............",
+      "............",
+      "............",
+      "............",
+      "............",
+      "............",
+      "............",
+      "............",
+      "......KKKK..",
+      ".....KHHHHK.",
+      ".....KSSESK.",
+      "..KKKKSSSSK.",
+      ".KCCCCCKKK..",
+      "KCwwwCCCK...",
+      ".KSK..KSK...",
+      "..K....K...."
+    ] },
+    toddler: { back: "H", legsB: ["....KSSK....", "....KKKK...."], rows: [
+      "............",
+      "............",
+      "............",
+      "............",
+      "............",
+      "....KKKKK...",
+      "...KHHHHHK..",
+      "..KHSSSSSK..",
+      "..KSSSESEK..",
+      "..KSSSSSSK..",
+      "...KKSSKK...",
+      "...KCCCCK...",
+      "..KSCCCCSK..",
+      "...KwwwwK...",
+      "...KS..SK...",
+      "...KK..KK..."
+    ] },
+    student: { back: "H", legsB: ["....KSSK....", "....KKKK...."], rows: [
+      "............",
+      "............",
+      "............",
+      "....KKKKK...",
+      "...KHHHHHK..",
+      "..KHHSSSSK..",
+      "..KHSSESEK..",
+      "..KSSSSSSK..",
+      "...KKSSKK...",
+      "...KCCCCK...",
+      "..KCCCCCCKKK",
+      "..KSCCCCKRRK",
+      "...KCCCCKRRK",
+      "...KwwwwKKKK",
+      "...KS..SK...",
+      "...KK..KK..."
+    ] },
+    youth: { back: "H", legsB: ["....KSSK....", "....KKKK...."], rows: [
+      "............",
+      "....KKKK....",
+      "...KHHHHK...",
+      "..KHHSSSSK..",
+      "..KHSSESEK..",
+      "..KSSSSSSK..",
+      "...KSSSSK...",
+      "....KSSK....",
+      "..KCCCCCCK..",
+      ".KCCCCCCCCK.",
+      ".KCKCCCCKCK.",
+      ".KSKCCCCKSK.",
+      "...KwwwwK...",
+      "...KwwwwK...",
+      "..KSK..KSK..",
+      "..KK....KK.."
+    ] },
+    householder: { back: "H", legsB: ["....KSSK....", "....KKKK...."], rows: [
+      "....KKKK....",
+      "...KccccK...",
+      "..KccccccK..",
+      "..KHSSSSSK..",
+      "..KSSSESEK..",
+      "..KSSKKKSK..",
+      "...KSSSSK...",
+      "....KSSK....",
+      "..KCCCCCCK..",
+      ".KCCCCCCCCK.",
+      ".KCKCCCCKCK.",
+      ".KSKCCCCKSK.",
+      "...KwwwwK...",
+      "...KwwwwK...",
+      "..KSK..KSK..",
+      "..KK....KK.."
+    ] },
+    forest: { back: "G", legsB: ["....KSSK..B.", "....KKKK..B."], rows: [
+      "....KKKK..B.",
+      "...KGGGGK.B.",
+      "..KGGSSSSKB.",
+      "..KGSSESEKB.",
+      "..KSSSSSSKB.",
+      "..KSGGGGSKB.",
+      "...KGGGGK.B.",
+      "....KGGK..B.",
+      "..KccccccKB.",
+      ".KcccccccSB.",
+      ".KcKccccKKB.",
+      ".KSKccccK.B.",
+      "...KccccK.B.",
+      "...KccccK.B.",
+      "..KSK..KSKB.",
+      "..KK....KKB."
+    ] },
+    sage: { back: "S", legsB: ["...KOOOOK.B.", "...KK..KK.B."], rows: [
+      ".....KK...B.",
+      "....KHHK..B.",
+      "...KSSSSK.B.",
+      "..KSSSYSSKB.",
+      "..KSSSESEKB.",
+      "..KSWWWWSKB.",
+      "...KWWWWK.B.",
+      "....KWWK..B.",
+      "..KOOOOCOKB.",
+      ".KOOOOCOOSB.",
+      ".KOKOCOOKKB.",
+      ".KSKCOOOK.B.",
+      "...KOOOOK.B.",
+      "...KooooK.B.",
+      "...KOOOOK.B.",
+      "..KK....KKB."
+    ] },
+    divine: { back: "H", legsB: ["....KSSK....", "....KKKK...."], rows: [
+      "...YYYYYY...",
+      "..YKKKKKKY..",
+      ".Y.KYYYYK.Y.",
+      ".YKHSSSSSKY.",
+      ".YKSSSESEKY.",
+      "..KSSSSSSK..",
+      "...KSSSSK...",
+      "....KSSK....",
+      "..KYCCCCYK..",
+      ".KYCCCCCCYK.",
+      ".KSKCCCCKSK.",
+      "...KCCCCK...",
+      "...KwwwwK...",
+      "...KwwwwK...",
+      "..KSK..KSK..",
+      "..KK....KK.."
+    ] }
+  };
+  var STAGES = [
+    { max: 10, art: "baby", en: "Baby", hi: "शिशु" },
+    { max: 20, art: "toddler", en: "Child", hi: "बालक" },
+    { max: 30, art: "student", en: "Student", hi: "विद्यार्थी" },
+    { max: 40, art: "youth", en: "Young scholar", hi: "युवा विद्यार्थी" },
+    { max: 60, art: "householder", en: "Householder", hi: "गृहस्थ" },
+    { max: 80, art: "forest", en: "Forest-dweller", hi: "वानप्रस्थी" },
+    { max: 100, art: "sage", en: "Renunciate", hi: "संन्यासी" },
+    { max: GOAL, art: "divine", en: "Divine soul", hi: "दिव्य आत्मा" }
+  ];
+  var stageOf = (pos) => STAGES.findIndex((s) => Math.max(pos, 1) <= s.max);
+  var stageName = (i) => L(STAGES[i].en, STAGES[i].hi);
+  var spriteCache = /* @__PURE__ */ new Map();
   function shade(hex, f) {
-    const n = parseInt(hex.slice(1), 16), ch = [n >> 16, (n >> 8) & 255, n & 255].map(v => Math.round(v * (1 + f)));
-    return "#" + ch.map(v => Math.max(0, Math.min(255, v)).toString(16).padStart(2, "0")).join("");
+    const n = parseInt(hex.slice(1), 16), ch = [n >> 16, n >> 8 & 255, n & 255].map((v) => Math.round(v * (1 + f)));
+    return "#" + ch.map((v) => Math.max(0, Math.min(255, v)).toString(16).padStart(2, "0")).join("");
   }
-  // frame: 0/1 walking, 2/3 climbing (seen from behind)
   function spriteURL(stage, color, frame) {
     const key = `${stage}|${color}|${frame}`;
     if (spriteCache.has(key)) return spriteCache.get(key);
     const art = ART[STAGES[stage].art];
     let rows = art.rows.slice();
     if (frame % 2) rows.splice(14, 2, ...art.legsB);
-    // from behind: everything down to just below the eyes becomes the back of the head
-    if (frame >= 2) { const eye = rows.findIndex(r => r.includes("E")); rows = rows.map((r, y) => (y <= eye + 1 ? r.replace(art.back === "S" ? /[SEWY]/g : /[SEW]/g, art.back) : r)); }
+    if (frame >= 2) {
+      const eye = rows.findIndex((r) => r.includes("E"));
+      rows = rows.map((r, y) => y <= eye + 1 ? r.replace(art.back === "S" ? /[SEWY]/g : /[SEW]/g, art.back) : r);
+    }
     const pal = {
-      K: "#1A1208", S: "#E2A877", H: "#2A1A10", G: "#D9D6CF", W: "#F2F0EA", E: "#1A1208", w: "#F4F1E8",
-      O: "#F08A1C", o: "#B85E0A", B: "#7A4B22", Y: "#FFD54A", R: "#3E444C", C: P_HEX[color], c: shade(P_HEX[color], -0.35),
+      K: "#1A1208",
+      S: "#E2A877",
+      H: "#2A1A10",
+      G: "#D9D6CF",
+      W: "#F2F0EA",
+      E: "#1A1208",
+      w: "#F4F1E8",
+      O: "#F08A1C",
+      o: "#B85E0A",
+      B: "#7A4B22",
+      Y: "#FFD54A",
+      R: "#3E444C",
+      C: P_HEX[color],
+      c: shade(P_HEX[color], -0.35)
     };
-    const cv = document.createElement("canvas"); cv.width = 12; cv.height = 16;
+    const cv = document.createElement("canvas");
+    cv.width = 12;
+    cv.height = 16;
     const c = cv.getContext("2d");
-    rows.forEach((r, y) => [...r].forEach((ch, x) => { if (pal[ch]) { c.fillStyle = pal[ch]; c.fillRect(x, y, 1, 1); } }));
+    rows.forEach((r, y) => [...r].forEach((ch, x) => {
+      if (pal[ch]) {
+        c.fillStyle = pal[ch];
+        c.fillRect(x, y, 1, 1);
+      }
+    }));
     const url = `url(${cv.toDataURL()})`;
     spriteCache.set(key, url);
     return url;
   }
 
-  // ---- Tokens ----
-  const tokenEls = [];
-  const OFFS = [[0, 0], [-2.2, -1.2], [2.2, -1.2], [-2.2, 1.2], [2.2, 1.2]];
-  const FEET = 0.38; // feet sit this far below a square's centre, in squares
+  // src/render/log.js
+  function renderPlayers() {
+    $("players").innerHTML = G.state.players.map((pl, i) => `
+    <li class="${i === G.state.turn && G.state.winner == null ? "current" : ""}">
+      <span class="dot" style="background:${COLORS[pl.color]}"></span>
+      <span><span class="pname">${esc(pname(pl))}</span><span class="kind">${pl.type === "cpu" ? t("cpu") : ""}</span>
+        <span class="stage">${pl.pos === 0 ? t("notBorn") : [.../* @__PURE__ */ new Set([stageName(stageOf(pl.pos)), ashramaOf(pl.pos)])].join(" · ")}</span></span>
+      <span class="pos">${pl.pos === 0 ? t("start") : pl.pos === GOAL ? t("moksha") : t("square", { n: pl.pos })}</span>
+    </li>`).join("");
+  }
+  function renderLog() {
+    $("log").innerHTML = G.state.log.map((e) => {
+      const who = e.who == null ? null : G.state.players[e.who];
+      const text = e.k ? t(e.k, { ...e.v, name: who ? pname(who) : "", what: e.v?.sq ? squareName(e.v.sq) : "" }) : e.text;
+      return `
+    <li class="${e.kind}"><span class="dot" style="background:${who ? COLORS[who.color] : "transparent"};${who ? "" : "border-color:transparent;box-shadow:none"}"></span><span>${esc(text)}</span></li>`;
+    }).join("");
+  }
 
+  // src/render/tokens.js
+  var tokenEls = [];
+  var OFFS = [[0, 0], [-2.2, -1.2], [2.2, -1.2], [-2.2, 1.2], [2.2, 1.2]];
+  var FEET = 0.38;
   function buildTokens() {
     tokenEls.length = 0;
-    $("tokens").innerHTML = ""; $("tray").innerHTML = "";
-    state.players.forEach(p => {
+    $("tokens").innerHTML = "";
+    $("tray").innerHTML = "";
+    G.state.players.forEach((p) => {
       const el = document.createElement("div");
       el.className = "token";
       el.innerHTML = `<div class="body"><div class="spr"></div></div>`;
       el.style.setProperty("--pc", COLORS[p.color]);
-      el._frame = 0; el._stage = null;
+      el._frame = 0;
+      el._stage = null;
       tokenEls.push(el);
     });
     place(true);
   }
-
   function setSprite(el, p, stage) {
     el.querySelector(".spr").style.backgroundImage = spriteURL(stage, p.color, el._frame);
     el.classList.toggle("divine", STAGES[stage].art === "divine");
   }
-
   function setXY(el, x, y) {
-    el.style.left = (x / (S * 10)) * 100 + "%";
-    el.style.top = ((y + FEET * S) / (S * ROWS)) * 100 + "%";
+    el.style.left = x / (S * 10) * 100 + "%";
+    el.style.top = (y + FEET * S) / (S * ROWS) * 100 + "%";
   }
-
-  function retrigger(el, cls) { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); }
-
+  function retrigger(el, cls) {
+    el.classList.remove(cls);
+    void el.offsetWidth;
+    el.classList.add(cls);
+  }
   function place(silent = false) {
     const at = {};
-    state.players.forEach((p, i) => (at[p.pos] ||= []).push(i));
-    state.players.forEach((p, i) => {
+    G.state.players.forEach((p, i) => (at[p.pos] ||= []).push(i));
+    G.state.players.forEach((p, i) => {
       const el = tokenEls[i];
       el.title = pname(p);
-      el.classList.toggle("active", i === state.turn && state.winner == null && !busy);
+      el.classList.toggle("active", i === G.state.turn && G.state.winner == null && !G.busy);
       el.classList.toggle("left", p.face === "l" && el._frame < 2);
       const stage = stageOf(p.pos);
       if (el._stage !== stage) {
@@ -884,7 +1243,10 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         el._stage = stage;
       }
       setSprite(el, p, stage);
-      if (p.pos === 0) { if (el.parentNode !== $("tray")) $("tray").appendChild(el); return; }
+      if (p.pos === 0) {
+        if (el.parentNode !== $("tray")) $("tray").appendChild(el);
+        return;
+      }
       if (el.parentNode !== $("tokens")) $("tokens").appendChild(el);
       const group = at[p.pos], k = group.indexOf(i);
       const [ox, oy] = group.length === 1 ? OFFS[0] : OFFS[k + 1];
@@ -894,101 +1256,124 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     });
     renderPlayers();
   }
-
   function toast(text) {
     const slot = $("toastSlot");
     slot.innerHTML = "";
     const el = document.createElement("div");
-    el.className = "toast"; el.textContent = text;
+    el.className = "toast";
+    el.textContent = text;
     slot.appendChild(el);
     setTimeout(() => el.remove(), 2500);
   }
-
-  // ---- Animations ----
-  // Runs fn(t) for t in 0..1 over ms; stops early if a new game starts.
-  const animate = (ms, fn) => new Promise(res => {
-    const g = gen, t0 = performance.now(), d = reduced ? 1 : ms;
-    const tick = now => {
-      if (g !== gen) return res();
-      const u = Math.min(1, (now - t0) / d);
+  var animate = (ms, fn) => new Promise((res) => {
+    const g = G.gen, t0 = performance.now(), d = reduced ? 1 : ms;
+    const tick = (now) => {
+      if (g !== G.gen) return res();
+      const u = Math.max(0, Math.min(1, (now - t0) / d));
       fn(u);
       u < 1 ? requestAnimationFrame(tick) : res();
     };
     requestAnimationFrame(tick);
   });
-  const ease = f => (f < 0.5 ? 2 * f * f : 1 - (-2 * f + 2) ** 2 / 2);
-
+  var ease = (f) => f < 0.5 ? 2 * f * f : 1 - (-2 * f + 2) ** 2 / 2;
   async function climb(idx, a, b) {
-    const g = gen, el = tokenEls[idx], p = state.players[idx];
+    const g = G.gen, el = tokenEls[idx], p = G.state.players[idx];
     const P = center(a), Q = center(b), len = Math.hypot(Q.x - P.x, Q.y - P.y);
     const rungs = Math.max(2, Math.floor(len / (S * 0.36)));
     const trail = [];
-    el.classList.add("free"); el.classList.remove("left");
-    await animate(Math.min(1700, Math.max(900, (len / S) * 230)), u => {
+    el.classList.add("free");
+    el.classList.remove("left");
+    await animate(Math.min(1700, Math.max(900, len / S * 230)), (u) => {
       const r = u * rungs, k = Math.min(rungs - 1, Math.floor(r)), f = r - k;
       const e = (k + ease(f)) / rungs;
       const x = P.x + (Q.x - P.x) * e, y = P.y + (Q.y - P.y) * e - Math.sin(f * Math.PI) * S * 0.08;
-      el._frame = 2 + (k % 2); setSprite(el, p, el._stage); setXY(el, x, y);
+      el._frame = 2 + k % 2;
+      setSprite(el, p, el._stage);
+      setXY(el, x, y);
       trail.push({ x, y, u });
       fxClear();
       for (const pt of trail) {
         const alpha = 1 - (u - pt.u) * 3;
         if (alpha <= 0) continue;
         fx.fillStyle = `rgba(255, 214, 90, ${alpha * 0.7})`;
-        fx.beginPath(); fx.arc(pt.x, pt.y + S * 0.15, S * 0.08 * alpha, 0, Math.PI * 2); fx.fill();
+        fx.beginPath();
+        fx.arc(pt.x, pt.y + S * 0.15, S * 0.08 * alpha, 0, Math.PI * 2);
+        fx.fill();
       }
     });
     fxClear();
-    if (g !== gen) return;
-    el.classList.remove("free"); el._frame = 0; p.pos = b; place();
+    if (g !== G.gen) return;
+    el.classList.remove("free");
+    el._frame = 0;
+    p.pos = b;
+    place();
   }
-
   async function swallow(idx, h, tail) {
-    const g = gen, el = tokenEls[idx], p = state.players[idx];
+    const g = G.gen, el = tokenEls[idx], p = G.state.players[idx];
     const pts = snakePath(h, tail), N = pts.length - 1, cols = snakeColors(h);
-    // the hood flares and strikes
-    await animate(450, u => {
+    await animate(450, (u) => {
       fxClear();
-      fx.strokeStyle = `rgba(220, 40, 30, ${1 - u})`; fx.lineWidth = S * 0.05;
-      fx.beginPath(); fx.arc(pts[0].x, pts[0].y, S * (0.25 + 0.4 * u), 0, Math.PI * 2); fx.stroke();
+      fx.strokeStyle = `rgba(220, 40, 30, ${1 - u})`;
+      fx.lineWidth = S * 0.05;
+      fx.beginPath();
+      fx.arc(pts[0].x, pts[0].y, S * (0.25 + 0.4 * u), 0, Math.PI * 2);
+      fx.stroke();
       drawHood(fx, pts[0], pts[4], cols, 1 + 0.35 * Math.sin(u * Math.PI));
     });
-    if (g !== gen) return fxClear();
+    if (g !== G.gen) return fxClear();
     retrigger(el, "gulp");
     await sleep(340);
-    if (g !== gen) return fxClear();
-    el.classList.add("hide"); el.classList.remove("gulp");
-    // a bulge in the player's colour travels down the body
+    if (g !== G.gen) return fxClear();
+    el.classList.add("hide");
+    el.classList.remove("gulp");
     let len = 0;
     for (let i = 0; i < N; i++) len += Math.hypot(pts[i + 1].x - pts[i].x, pts[i + 1].y - pts[i].y);
-    await animate(Math.min(2000, Math.max(1000, (len / S) * 170)), u => {
+    await animate(Math.min(2e3, Math.max(1e3, len / S * 170)), (u) => {
       const i = u * N, k = Math.min(N - 1, Math.floor(i)), f = i - k, a = pts[k], b = pts[k + 1];
       const x = a.x + (b.x - a.x) * f, y = a.y + (b.y - a.y) * f, r = Math.max(S * 0.11, a.w * 0.95);
       fxClear();
       drawHood(fx, pts[0], pts[4], cols);
-      fx.lineWidth = 2; fx.strokeStyle = "#0E0C08"; fx.fillStyle = cols[0];
-      fx.beginPath(); fx.arc(x, y, r, 0, Math.PI * 2); fx.fill(); fx.stroke();
-      fx.globalAlpha = 0.6; fx.fillStyle = P_HEX[p.color];
-      fx.beginPath(); fx.arc(x, y, r * 0.65, 0, Math.PI * 2); fx.fill();
+      fx.lineWidth = 2;
+      fx.strokeStyle = "#0E0C08";
+      fx.fillStyle = cols[0];
+      fx.beginPath();
+      fx.arc(x, y, r, 0, Math.PI * 2);
+      fx.fill();
+      fx.stroke();
+      fx.globalAlpha = 0.6;
+      fx.fillStyle = P_HEX[p.color];
+      fx.beginPath();
+      fx.arc(x, y, r * 0.65, 0, Math.PI * 2);
+      fx.fill();
       fx.globalAlpha = 1;
     });
     fxClear();
-    if (g !== gen) return;
-    // ...and spits the player out at the tail, younger and dizzy
-    p.pos = tail; el.classList.remove("hide"); place();
+    if (g !== G.gen) return;
+    p.pos = tail;
+    el.classList.remove("hide");
+    place();
     retrigger(el, "dizzy");
     await sleep(700);
     el.classList.remove("dizzy");
   }
 
-  // ---- Landing card: always both languages, the current one first ----
+  // src/render/card.js
   function squareInfo(n) {
-    const both = (en, hi) => (lang === "hi" ? [hi, en] : [en, hi]);
+    const both = (en, hi) => lang === "hi" ? [hi, en] : [en, hi];
     const sl = LADDERS[n] || SNAKES[n];
     if (sl) {
       const virtue = !!LADDERS[n], [title, other] = both(sl.en, sl.hi), [story, story2] = both(...sl.story);
-      return { kind: virtue ? "virtue" : "vice", big: sl.ic, title, alt: `${other} · ${sl.skt}`, story, story2, src: sl.src,
-        eb: `${t(virtue ? "virtue" : "vice")} · ${ashramaOf(n)}`, ft: t(virtue ? "ladderTo" : "snakeTo", { n: sl.to }) };
+      return {
+        kind: virtue ? "virtue" : "vice",
+        big: sl.ic,
+        title,
+        alt: `${other} · ${sl.skt}`,
+        story,
+        story2,
+        src: sl.src,
+        eb: `${t(virtue ? "virtue" : "vice")} · ${ashramaOf(n)}`,
+        ft: t(virtue ? "ladderTo" : "snakeTo", { n: sl.to })
+      };
     }
     if (n === GOAL) {
       const [title, other] = both("Moksha", "मोक्ष"), [story, story2] = both("Freedom from the cycle of birth and death.", "जन्म और मृत्यु के चक्र से मुक्ति।");
@@ -1004,135 +1389,122 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     }
     return null;
   }
-
   function cardExtras(kind) {
-    const rnd = i => (i * 37) % 100;
+    const rnd = (i) => i * 37 % 100;
     if (kind === "virtue") return `<div class="rays"></div>` + [...Array(7)].map((_, i) => `<span class="sp" style="left:${8 + rnd(i + 1) * 0.84}%;animation-delay:${(i * 0.26).toFixed(2)}s">✦</span>`).join("");
     if (kind === "heaven" || kind === "goal") return `<div class="rays"></div>` + [...Array(6)].map((_, i) => `<span class="pt" style="left:${6 + rnd(i + 2) * 0.86}%;animation-delay:${(i * 0.4).toFixed(2)}s">🌸</span>`).join("");
     return "";
   }
-
   async function showCard(n, quick) {
     const info = squareInfo(n);
     if (!info) return;
-    const g = gen, box = $("sqcard"), card = box.firstElementChild, story = info.kind === "story";
+    const g = G.gen, box = $("sqcard"), card = box.firstElementChild, story = info.kind === "story";
     card.className = "sq " + info.kind;
-    card.innerHTML = cardExtras(info.kind) +
-      `<span class="eb">${info.eb}</span><span class="big">${info.big}</span><span class="nm">${info.title}</span>` +
-      `<span class="dv">${info.alt}</span><p class="tc">${info.story}</p><p class="tc2">${info.story2}</p>` +
-      (info.src ? `<span class="src">${srcText(info.src)}</span>` : "") + (info.ft ? `<span class="ft">${info.ft}</span>` : "");
+    card.innerHTML = cardExtras(info.kind) + `<span class="eb">${info.eb}</span><span class="big">${info.big}</span><span class="nm">${info.title}</span><span class="dv">${info.alt}</span><p class="tc">${info.story}</p><p class="tc2">${info.story2}</p>` + (info.src ? `<span class="src">${srcText(info.src)}</span>` : "") + (info.ft ? `<span class="ft">${info.ft}</span>` : "");
     box.hidden = false;
-    // zoom out of the square the player landed on
     const from = labEls[n].getBoundingClientRect(), to = card.getBoundingClientRect();
     const dx = from.left + from.width / 2 - (to.left + to.width / 2), dy = from.top + from.height / 2 - (to.top + to.height / 2);
     const shrunk = { transform: `translate(${dx}px, ${dy}px) scale(${from.width / to.width})`, opacity: 0.3 };
     if (!reduced) card.animate([shrunk, { transform: "none", opacity: 1 }], { duration: story ? 320 : 420, easing: "cubic-bezier(.2,.8,.25,1.15)" });
-    const ms = story ? (quick ? 1100 : 2600) : quick ? 1600 : 3400;
-    await new Promise(res => { cardClose = res; setTimeout(res, ms); });
-    cardClose = null;
-    if (!reduced && g === gen) await card.animate([{ transform: "none", opacity: 1 }, { ...shrunk, opacity: 0 }], { duration: 240, easing: "ease-in" }).finished.catch(() => {});
-    if (g === gen) box.hidden = true;
+    const ms = story ? quick ? 1100 : 2600 : quick ? 1600 : 3400;
+    await new Promise((res) => {
+      G.cardClose = res;
+      setTimeout(res, ms);
+    });
+    G.cardClose = null;
+    if (!reduced && g === G.gen) await card.animate([{ transform: "none", opacity: 1 }, { ...shrunk, opacity: 0 }], { duration: 240, easing: "ease-in" }).finished.catch(() => {
+    });
+    if (g === G.gen) box.hidden = true;
   }
-  $("sqcard").addEventListener("click", () => cardClose?.());
+  $("sqcard").addEventListener("click", () => G.cardClose?.());
 
-  // ---- Die ----
-  const dieEl = $("die");
+  // src/main.js
+  var PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
+  var dieEl = $("die");
   for (let i = 0; i < 9; i++) dieEl.appendChild(document.createElement("span"));
   function showDie(v) {
     [...dieEl.children].forEach((s, i) => s.classList.toggle("on", PIPS[v].includes(i)));
     dieEl.setAttribute("aria-label", `🎲 ${num(v)}`);
   }
   async function rollDie() {
-    dieEl.classList.remove("rolling"); void dieEl.offsetWidth; dieEl.classList.add("rolling");
-    for (let i = 0; i < 7; i++) { showDie(1 + Math.floor(Math.random() * 6)); await sleep(75); }
-    const v = forcedRoll ?? 1 + Math.floor(Math.random() * 6);
-    forcedRoll = null;
+    const rng = G.state.rng;
+    dieEl.classList.remove("rolling");
+    void dieEl.offsetWidth;
+    dieEl.classList.add("rolling");
+    for (let i = 0; i < TUMBLE; i++) {
+      showDie(die(rng));
+      await sleep(75);
+    }
+    const v = G.forcedRoll ?? die(rng);
+    G.forcedRoll = null;
     showDie(v);
     return v;
   }
-
-  // ---- Game flow ----
-  const cur = () => state.players[state.turn];
-  // Log entries keep a message key and values, so they re-translate when the language changes.
-  function log(k, v = {}, kind = "", who = null) {
-    state.log.unshift({ k, v, kind, who });
-    state.log = state.log.slice(0, 60);
+  function log(e) {
+    addLog(G.state, e);
     renderLog();
   }
-
   async function takeTurn() {
-    if (busy || state.winner != null) return;
-    const g = gen;
-    busy = true; render();
+    const state = G.state;
+    if (G.busy || state.winner != null) return;
+    const g = G.gen;
+    G.busy = true;
+    render();
     const p = cur(), idx = state.turn, el = tokenEls[idx];
     const v = await rollDie();
-    if (g !== gen) return;
+    if (g !== G.gen) return;
     state.last = v;
-    let target = p.pos + v;
-    if (target > GOAL) {
-      if (state.rules.exact) {
-        log("lExact", { v, need: GOAL - p.pos, pos: p.pos }, "", idx);
-        target = p.pos;
-      } else target = GOAL;
-    }
-    if (target !== p.pos) {
-      const from = p.pos;
+    const plan = planTurn(state, v);
+    plan.pre.forEach(log);
+    if (plan.target !== p.pos) {
       await sleep(150);
-      for (let n = p.pos + 1; n <= target; n++) {
-        if (g !== gen) return;
-        if (n > 1) { const dc = colRow(n).col - colRow(n - 1).col; if (dc) p.face = dc > 0 ? "r" : "l"; }
-        p.pos = n; el._frame = 1 - el._frame;
+      for (let n = p.pos + 1; n <= plan.target; n++) {
+        if (g !== G.gen) return;
+        if (n > 1) {
+          const dc = colRow(n).col - colRow(n - 1).col;
+          if (dc) p.face = dc > 0 ? "r" : "l";
+        }
+        p.pos = n;
+        el._frame = 1 - el._frame;
         retrigger(el, "hop");
         place();
         await sleep(200);
       }
-      if (g !== gen) return;
-      el._frame = 0; place();
-      const s = SNAKES[p.pos], l = LADDERS[p.pos], mode = cardsMode(state.rules);
-      if (mode === "all" || (mode === "special" && !SQ[p.pos])) { await showCard(p.pos, p.type === "cpu"); if (g !== gen) return; }
-      if (s || l) {
-        const to = (s || l).to;
-        log(s ? "lSnake" : "lLadder", { v, pos: p.pos, to, sq: p.pos }, s ? "snake" : "ladder", idx);
-        await (s ? swallow(idx, p.pos, to) : climb(idx, p.pos, to));
-        if (g !== gen) return;
-      } else if (HEAVEN[p.pos]) {
-        log("lHeaven", { v, pos: p.pos, sq: p.pos }, "heaven", idx);
-      } else if (p.pos !== GOAL) {
-        log(from === 0 ? "lBorn" : "lMove", { v, pos: p.pos, sq: p.pos }, "", idx);
+      if (g !== G.gen) return;
+      el._frame = 0;
+      place();
+      const mode = cardsMode(state.rules);
+      if (mode === "all" || mode === "special" && !SQ[p.pos]) {
+        await showCard(p.pos, p.type === "cpu");
+        if (g !== G.gen) return;
+      }
+      plan.after.forEach(log);
+      if (plan.jump) {
+        await (plan.jump.kind === "snake" ? swallow(idx, p.pos, plan.jump.to) : climb(idx, p.pos, plan.jump.to));
+        if (g !== G.gen) return;
       }
     }
-    if (p.pos === GOAL) {
-      state.winner = idx;
-      log("lWin", { pos: GOAL }, "heaven", idx);
-    } else if (!(v === 6 && state.rules.six)) {
-      state.turn = (state.turn + 1) % state.players.length;
-    } else {
-      log("lSix", {}, "", idx);
-    }
-    busy = false;
+    endTurn(state, plan);
+    G.busy = false;
     render();
     queueCpu();
   }
-
   function queueCpu() {
-    clearTimeout(cpuTimer);
-    if (state.winner == null && cur().type === "cpu") cpuTimer = setTimeout(takeTurn, reduced ? 200 : 700);
+    clearTimeout(G.cpuTimer);
+    if (G.state.winner == null && cur().type === "cpu") G.cpuTimer = setTimeout(takeTurn, reduced ? 200 : 700);
   }
-
-  // ---- Rendering ----
   function render() {
-    const p = cur();
+    const state = G.state, p = cur();
     $("turnDot").style.background = COLORS[p.color];
     $("turnName").textContent = state.winner != null ? t("wins", { name: pname(state.players[state.winner]) }) : pname(p);
     const human = p.type === "human";
-    $("roll").disabled = busy || state.winner != null || !human;
+    $("roll").disabled = G.busy || state.winner != null || !human;
     $("roll").textContent = human ? t("roll") : t("rolling", { name: pname(p) });
     $("hint").textContent = state.winner != null ? t("hintOver") : human ? t("hintHuman") : t("hintCpu");
     showDie(state.last || 6);
-
+    $("seed").textContent = `${t("seed")} ${state.rng.seed}`;
     place();
     renderLog();
-
     const w = state.winner;
     $("win").hidden = w == null;
     if (w != null) {
@@ -1141,129 +1513,133 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       $("winText").textContent = wp.type === "human" ? t("winHuman") : t("winCpu");
     }
   }
-
-  function renderPlayers() {
-    $("players").innerHTML = state.players.map((pl, i) => `
-      <li class="${i === state.turn && state.winner == null ? "current" : ""}">
-        <span class="dot" style="background:${COLORS[pl.color]}"></span>
-        <span><span class="pname">${esc(pname(pl))}</span><span class="kind">${pl.type === "cpu" ? t("cpu") : ""}</span>
-          <span class="stage">${pl.pos === 0 ? t("notBorn") : [...new Set([stageName(stageOf(pl.pos)), ashramaOf(pl.pos)])].join(" · ")}</span></span>
-        <span class="pos">${pl.pos === 0 ? t("start") : pl.pos === GOAL ? t("moksha") : t("square", { n: pl.pos })}</span>
-      </li>`).join("");
-  }
-
-  function renderLog() {
-    $("log").innerHTML = state.log.map(e => {
-      const who = e.who == null ? null : state.players[e.who];
-      const text = e.k ? t(e.k, { ...e.v, name: who ? pname(who) : "", what: e.v?.sq ? squareName(e.v.sq) : "" }) : e.text;
-      return `
-      <li class="${e.kind}"><span class="dot" style="background:${who ? COLORS[who.color] : "transparent"};${who ? "" : "border-color:transparent;box-shadow:none"}"></span><span>${esc(text)}</span></li>`;
-    }).join("");
-  }
-
-  const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-
-  // ---- Setup panel ----
   function renderSetup() {
+    const setup = G.setup;
     $("count").setAttribute("aria-label", t("players"));
-    $("count").innerHTML = [2, 3, 4].map(n => `<button type="button" data-n="${n}" aria-pressed="${n === setup.count}">${t("nPlayers", { n })}</button>`).join("");
+    $("count").innerHTML = [2, 3, 4].map((n) => `<button type="button" data-n="${n}" aria-pressed="${n === setup.count}">${t("nPlayers", { n })}</button>`).join("");
     $("prows").innerHTML = setup.rows.slice(0, setup.count).map((r, i) => `
-      <div class="prow">
-        <span class="dot" style="background:${COLORS[i]}"></span>
-        <input type="text" id="pname${i}" value="${esc(r.name)}" placeholder="${esc(t("def" + i))}" maxlength="16" aria-label="${t("colour" + i)}">
-        <select id="ptype${i}" aria-label="${t("colour" + i)}">
-          <option value="human"${r.type === "human" ? " selected" : ""}>${t("human")}</option>
-          <option value="cpu"${r.type === "cpu" ? " selected" : ""}>${t("cpu")}</option>
-        </select>
-      </div>`).join("");
+    <div class="prow">
+      <span class="dot" style="background:${COLORS[i]}"></span>
+      <input type="text" id="pname${i}" value="${esc(r.name)}" placeholder="${esc(t("def" + i))}" maxlength="16" aria-label="${t("colour" + i)}">
+      <select id="ptype${i}" aria-label="${t("colour" + i)}">
+        <option value="human"${r.type === "human" ? " selected" : ""}>${t("human")}</option>
+        <option value="cpu"${r.type === "cpu" ? " selected" : ""}>${t("cpu")}</option>
+      </select>
+    </div>`).join("");
     $("ruleExact").checked = setup.rules.exact;
     $("ruleSix").checked = setup.rules.six;
     const mode = cardsMode(setup.rules);
-    $("ruleCards").innerHTML = [["all", "cardsAll"], ["special", "cardsSpecial"], ["off", "cardsOff"]]
-      .map(([v, k]) => `<option value="${v}"${v === mode ? " selected" : ""}>${t(k)}</option>`).join("");
+    $("ruleCards").innerHTML = [["all", "cardsAll"], ["special", "cardsSpecial"], ["off", "cardsOff"]].map(([v, k]) => `<option value="${v}"${v === mode ? " selected" : ""}>${t(k)}</option>`).join("");
   }
   function readSetup() {
+    const setup = G.setup;
     setup.rows.slice(0, setup.count).forEach((r, i) => {
-      r.name = $("pname" + i).value; r.type = $("ptype" + i).value;
+      r.name = $("pname" + i).value;
+      r.type = $("ptype" + i).value;
     });
     setup.rules = { exact: $("ruleExact").checked, six: $("ruleSix").checked, cards: $("ruleCards").value };
   }
-
-  // Static text, the ashrama labels on the frame and the language buttons.
   function applyStatic() {
     document.documentElement.lang = lang;
     document.title = t("title");
-    document.querySelectorAll("[data-t]").forEach(el => { el.textContent = t(el.dataset.t); });
+    document.querySelectorAll("[data-t]").forEach((el) => {
+      el.textContent = t(el.dataset.t);
+    });
     $("ruleExactText").textContent = t("ruleExact", { n: GOAL });
-    document.querySelectorAll("[data-lang]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.lang === lang)));
-    // band centres, in rows from the bottom: two rows per stage
-    $("ashramas").innerHTML = ASHRAMAS.slice(0, 5).map(([, en, hi], i) => `<span style="top:${((ROWS - (2 * i + 1)) / ROWS) * 100}%">${L(en, hi)}</span>`).join("");
+    document.querySelectorAll("[data-lang]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.lang === lang)));
+    $("ashramas").innerHTML = ASHRAMAS.slice(0, 5).map(([, en, hi], i) => `<span style="top:${(ROWS - (2 * i + 1)) / ROWS * 100}%">${L(en, hi)}</span>`).join("");
   }
-
   function setLang(l) {
     if (l === lang) return;
     readSetup();
-    lang = l;
-    try { localStorage.setItem("mp-lang", l); } catch {}
+    setLangValue(l);
+    try {
+      localStorage.setItem("mp-lang", l);
+    } catch {
+    }
     applyStatic();
     buildCells();
     renderSetup();
     render();
   }
-  document.querySelectorAll("[data-lang]").forEach(b => b.addEventListener("click", () => setLang(b.dataset.lang)));
-
-  $("count").addEventListener("click", e => {
-    const b = e.target.closest("button[data-n]"); if (!b) return;
-    readSetup(); setup.count = +b.dataset.n; renderSetup();
+  document.querySelectorAll("[data-lang]").forEach((b) => b.addEventListener("click", () => setLang(b.dataset.lang)));
+  $("count").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-n]");
+    if (!b) return;
+    readSetup();
+    G.setup.count = +b.dataset.n;
+    renderSetup();
   });
-
+  var urlSeed = new URLSearchParams(location.search).get("seed");
+  var nextSeed = urlSeed != null && /^\d+$/.test(urlSeed) ? +urlSeed >>> 0 : null;
   function startGame() {
-    gen++;
-    clearTimeout(cpuTimer);
-    cardClose?.();
-    $("sqcard").hidden = true; $("toastSlot").innerHTML = "";
+    G.gen++;
+    clearTimeout(G.cpuTimer);
+    G.cardClose?.();
+    $("sqcard").hidden = true;
+    $("toastSlot").innerHTML = "";
     if (S) fxClear();
-    busy = false;
-    state = newState();
+    G.busy = false;
+    G.state = newState(nextSeed ?? freshSeed());
+    nextSeed = null;
     buildTokens();
     render();
     queueCpu();
   }
-  $("newGame").addEventListener("click", () => { readSetup(); startGame(); });
+  $("newGame").addEventListener("click", () => {
+    readSetup();
+    startGame();
+  });
   $("again").addEventListener("click", startGame);
   $("roll").addEventListener("click", takeTurn);
-  document.addEventListener("keydown", e => {
+  document.addEventListener("keydown", (e) => {
     if (e.code !== "Space" || e.target.closest("input, select, button, textarea, summary")) return;
     e.preventDefault();
-    if (cardClose) return cardClose();
+    if (G.cardClose) return G.cardClose();
     if (cur().type === "human") takeTurn();
   });
-
   new ResizeObserver(draw).observe($("cells"));
-
-  // ?debug exposes helpers for testing: mp.jump(n) moves the current player, mp.roll(v) rolls a fixed number.
   if (new URLSearchParams(location.search).has("debug")) {
     window.mp = {
-      jump(n) { cur().pos = n; render(); },
-      roll(v) { forcedRoll = v; return takeTurn(); },
-      get state() { return state; },
+      jump(n) {
+        cur().pos = n;
+        render();
+      },
+      roll(v) {
+        G.forcedRoll = v;
+        return takeTurn();
+      },
+      seed(n) {
+        if (n == null) return G.state.rng.seed;
+        nextSeed = n >>> 0;
+        startGame();
+        return G.state.rng.seed;
+      },
+      get state() {
+        return G.state;
+      },
       sprite: spriteURL,
       data: { LADDERS, SNAKES, SQ, HEAVEN, STR },
-      setLang,
+      setLang
     };
   }
-
   function start(data) {
-    setup = data?.setup || defaultSetup();
-    if (data?.setup?.lang && !urlLang) lang = data.setup.lang;
+    G.setup = data?.setup || defaultSetup();
+    if (data?.setup?.lang && !urlLang) setLangValue(data.setup.lang);
     applyStatic();
     buildCells();
     renderSetup();
-    if (data?.state) { state = data.state; busy = false; buildTokens(); render(); queueCpu(); }
-    else startGame();
+    if (data?.state) {
+      G.state = data.state;
+      G.state.rng ||= makeRng(freshSeed());
+      G.busy = false;
+      buildTokens();
+      render();
+      queueCpu();
+    } else startGame();
     draw();
   }
-  window.claude?.hot?.snapshot?.(() => ({ setup: { ...setup, lang }, state }));
+  window.claude?.hot?.snapshot?.(() => ({ setup: { ...G.setup, lang }, state: G.state }));
   window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
 })();
 </script>
