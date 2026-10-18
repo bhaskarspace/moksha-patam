@@ -395,7 +395,7 @@ readable life in both languages.
 
 ---
 
-### Phase 4 — Board craft
+### Phase 4 — Board craft  ✅ SHIPPED
 *Rules and reading, not art. Comes from `docs/BOARDCRAFT.md`, which analysed the board
 against the one quantitative study of historical gyan chaupar boards
 (arXiv:2304.14486, 100,000 simulated games per board, every element measured by
@@ -470,29 +470,38 @@ bounce-back makes easy to hit. If median game length jumps badly, try 107 → 81
 109 and shorten the fall to 95. Report before and after numbers and decide on the
 evidence.
 
-> **Shipped, and it needs a second pass.** Phase 4 took the gentler option, 109 → 95, and
-> the tail is still heavy: median 49, p95 **128**, 11.1% of games over 100 turns, max 427.
-> The Milton Bradley board runs 3.3% over 100. The cause is structural rather than a bad
-> constant: bounce-back makes 109 easy to land on, the fall lands at 95, and squares
-> 94–110 carry no ladder, so the player climbs fifteen squares on pure dice and can bounce
-> and fall again. It is a loop at the climax with no exit.
+> **Shipped, then fixed. Settled at 109 → 101.** Phase 4 first shipped 109 → 95 and the
+> tail was bad: median 49, p95 128, 11.1% of games over 100 turns, max 427, against 3.3%
+> on the Milton Bradley board. A sweep with `npm run sim --snake=HEAD:TAIL` found a cliff
+> between 101 and 95, not a bad constant:
 >
-> The fix to try first is **capping the fall at once per life** rather than shortening it
-> further. That bounds the tail, and it is the attested Brahmaloka rule rather than a
-> balance patch: the descent is required once, and once is the whole point. Shortening the
-> fall again or moving the snake to 107 only makes the loop cheaper, not finite.
+> | snake | median | p95 | over 100 | max |
+> |---|---|---|---|---|
+> | none | 38 | 78 | 1.3% | 204 |
+> | 109 → 105 | 38 | 78 | 1.2% | 202 |
+> | **109 → 101** | **41** | **82** | **1.7%** | **204** |
+> | 109 → 95 | 49 | 128 | 11.1% | 427 |
+> | 107 → 95 | 46 | 112 | 7.4% | 404 |
+> | 109 → 81 | 58 | 177 | 21.9% | 532 |
 >
-> **Second pass: 109 → 101.** A sweep of the tail (20,000 games each, `--snake`) found a cliff
-> between 101 and 95 rather than a slope: no snake gives median 38, p95 78, 1.3% over 100;
-> 109 → 101 gives 41, 82, 1.7%; 109 → 95 gives 49, 128, 11.1%; 109 → 81 gives 58, 177,
-> 21.9%. Landing on 101 keeps the player inside the divine row, nine squares from Moksha;
-> landing on 95 drops them below the line at 100 into the ladderless stretch where the loop
-> lives. So the loop is made short enough that it rarely repeats, at a cost of three turns
-> of median. The fall now goes from Shiva's realm to Indra's, highest heaven to lowest.
-> The Brahmaloka rule (`--rules=brahmaloka`, a required descent before 110 opens) was
-> not the fix: on the 95 snake it makes the tail worse, 16.6% over 100. On 101 it costs
-> less (median 44, p95 86, 2.1%) and stays an optional rule. A once-per-life cap on the
-> fall is still untried.
+> Landing at 101 keeps the player inside the divine row, nine squares to re-climb.
+> Landing at 95 drops them below the threshold at 100, and the re-climb is fifteen squares
+> through a stretch with no ladders where they can be caught again: a loop at the climax.
+> 109 → 101 costs three turns of median and removes the tail, and it reads better — the
+> fall goes from Śiva's realm to Indra's, highest heaven to lowest, landing on the card
+> that already says svarga is the fruit of good deeds and not the final goal.
+>
+> **An earlier draft of this note recommended capping the fall at once per life instead.
+> That was wrong and is superseded.** Shortening the fall solved it; the cap was never
+> needed and remains untested.
+>
+> **The `brahmaloka` rule stays optional and off.** It is the mandatory-descent rule (110
+> shut until the player has fallen once), and with the 101 snake it is cheap — median 44,
+> p95 86, 2.1% over 100. But it is not needed: measured over 20,000 games, **the snake
+> already fires in 66.5% of games, a mean of 1.97 falls per game.** The historical
+> Vaiṣṇava board's equivalent fired in about 83%, so the texture is already right.
+> Forcing it would buy the remaining third of games a toll booth, and the fall reads
+> better as something that happened to you than as a gate everyone must pass.
 
 **3. Say when the remedy is one step away.** The five snake-to-ladder pairings need the
 player to land on the snake head and *then* roll exactly 1, so the board's signature

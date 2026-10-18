@@ -17,8 +17,8 @@ single static `index.html` at https://codebpr.com/moksha-patam/
 - `docs/REFERENCE.md`: philosophy-to-mechanics mapping and the history of the board.
 - `docs/LANDSCAPE.md`: comparable games.
 
-**State:** Phases 0 to 3 have shipped. Phase 4, Board craft, is done on the `phase-4-board-craft`
-branch and not yet merged to `main`. Phase 5, The painted board, is next (REDESIGN.md §4).
+**State:** Phases 0 to 4 have shipped. Phase 4 was Board craft (`docs/BOARDCRAFT.md`). Phase 5, The Painted
+Board, is next (REDESIGN.md §4).
 
 ## Commands
 - `npm run build`: fails on any `Math.random` outside `src/rng.js` or on any content lint error.
