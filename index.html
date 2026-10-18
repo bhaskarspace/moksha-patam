@@ -5,11 +5,20 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Moksha Patam</title>
 <meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="The old Indian game of snakes and ladders, played as one life, with a story from the Panchatantra or the Upanishads on every square. In English and Hindi.">
+<meta name="theme-color" content="#B5261E">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-title" content="Moksha Patam">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rozha+One&family=Hind:wght@400;500;600;700&display=swap">
 <!-- Hind draws Devanagari digits in Western shapes, so the ten digits come from Noto instead -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@500;700&text=%E0%A5%A6%E0%A5%A7%E0%A5%A8%E0%A5%A9%E0%A5%AA%E0%A5%AB%E0%A5%AC%E0%A5%AD%E0%A5%AE%E0%A5%AF&display=swap">
+<!-- Card text: a book face for English and a Devanagari text face for Hindi -->
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;1,400&amp;family=Tiro+Devanagari+Hindi:ital@0;1&amp;display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;1,400&amp;family=Tiro+Devanagari+Hindi:ital@0;1&amp;display=swap">
 <style>
 /* Layout: board as the hero on the left, a narrow control column (turn, die, players, log) on the right; stacks on phones. */
 :root {
@@ -24,6 +33,8 @@
   --f-display: "Noto Sans Devanagari", "Rozha One", "Iowan Old Style", Georgia, serif;
   --f-body: "Noto Sans Devanagari", "Hind", system-ui, -apple-system, "Segoe UI", sans-serif;
   --f-emoji: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+  --f-card: "Crimson Pro", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  --f-card-hi: "Tiro Devanagari Hindi", "Noto Serif Devanagari", "Kohinoor Devanagari", "Noto Sans Devanagari", serif;
   --p0: #C0392B; --p1: #2E5BBA; --p2: #2E8B57; --p3: #D98300;
   --frame-red: #B5261E; --frame-dark: #5A1208; --frame-gold: #F6C443;
 }
@@ -56,6 +67,11 @@ body {
 .wrap { max-width: 1060px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
 
 header { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 12px 14px; }
+header .tools { display: flex; align-items: center; gap: 8px; }
+button.icon { width: 34px; height: 34px; padding: 0; border-radius: 50%; display: grid; place-items: center; }
+#mute .cross { display: none; }
+#mute.off .cross { display: inline; }
+#mute.off .wave { display: none; }
 h1 { font-family: var(--f-display); font-weight: 400; font-size: clamp(34px, 6vw, 52px); line-height: 1; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
 header p { margin: 0; color: var(--muted); max-width: 62ch; grid-column: 1 / -1; }
 .lang { display: inline-flex; border: 1px solid var(--line); border-radius: 99px; overflow: hidden; }
@@ -98,7 +114,10 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events
 
 /* Square labels sit above the snakes and ladders so numbers and symbols stay readable. */
 .labels { z-index: 1; }
-.lab { position: relative; min-width: 0; overflow: hidden; }
+.lab { position: relative; min-width: 0; overflow: hidden; cursor: pointer; }
+/* any square opens its card */
+.lab:hover { box-shadow: inset 0 0 0 2px rgba(255, 236, 170, 0.85); }
+.lab:focus-visible { outline: 3px solid var(--frame-gold); outline-offset: -3px; z-index: 2; }
 .lab .n { position: absolute; top: 3%; left: 5%; font-size: clamp(7px, 1.75cqi, 12px); font-weight: 700; line-height: 1; font-variant-numeric: tabular-nums; color: #3A2208; text-shadow: 0 0 2px rgba(255, 248, 230, 0.9); }
 .lab.li .n, .lab.goal .n { color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6); }
 .lab .ic {
@@ -179,56 +198,122 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events
 }
 @keyframes toast { 0% { opacity: 0; transform: translate(-50%, -40%); } 10%, 82% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; transform: translate(-50%, 0); } }
 
-/* Landing card: the square's symbol zooms out of its cell. Fixed parchment colours so it reads the same in both themes. */
-.sqcard { position: absolute; inset: 0; display: grid; place-items: center; z-index: 4; cursor: pointer; }
-.sq {
-  position: relative; overflow: hidden; width: min(68%, 380px);
-  display: flex; flex-direction: column; align-items: center; gap: 0.9cqi;
-  padding: 4cqi 4cqi 3.4cqi; border-radius: 2cqi; text-align: center;
-  background: #FFF8E6; color: #2A1A08; border: 3px solid #C98B3E;
-  box-shadow: 0 1.6cqi 5cqi rgba(0, 0, 0, 0.5);
+/* The card: a pothi folio, a landscape manuscript leaf with a string hole, its text held between double red rules.
+   Fixed paper colours, so it reads the same in both themes. */
+.folio {
+  padding: 0; border: 0; background: transparent; color: #2A1A08; overflow: visible;
+  width: min(780px, calc(100vw - 24px)); max-width: none; max-height: calc(100dvh - 24px);
 }
-.sq > * { position: relative; z-index: 1; }
-.sq .eb { font-size: max(10px, 1.9cqi); font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #8A5A1E; }
-.sq .big { font-family: var(--f-emoji); font-size: 13cqi; line-height: 1.1; }
-.sq .nm { font-family: var(--f-display); font-size: 5.4cqi; line-height: 1.05; }
-.sq .dv { font-family: var(--f-display); font-size: 3.4cqi; line-height: 1.1; color: #7A4A12; }
-.sq .tc { margin: 0.6cqi 0 0; font-size: max(12px, 2.4cqi); line-height: 1.4; max-width: 34ch; text-wrap: pretty; }
-.sq .tc2 { margin: 0; font-size: max(11px, 2.05cqi); line-height: 1.4; max-width: 36ch; color: #6B5A44; text-wrap: pretty; }
-.sq .src { font-size: max(10px, 1.8cqi); font-style: italic; color: #8A5A1E; }
-.sq.story { width: min(58%, 330px); padding: 3cqi 3.4cqi 2.6cqi; gap: 0.6cqi; animation: pop 0.5s ease-out; }
-.sq.story .big { font-size: 10cqi; }
-.sq.story .nm { font-size: 4.4cqi; }
-.sq.goal .tc2, .sq.goal .src { color: #E8DDB8; }
-.sq .ft { font-size: max(11px, 2cqi); font-weight: 600; color: #8A5A1E; }
-.sq .rays, .sq .sp, .sq .pt { position: absolute; z-index: 0; pointer-events: none; }
-.sq .rays {
-  left: 50%; top: 32%; width: 80cqi; aspect-ratio: 1; transform: translate(-50%, -50%);
-  background: repeating-conic-gradient(rgba(255, 190, 50, 0.38) 0 9deg, transparent 9deg 18deg);
-  -webkit-mask: radial-gradient(circle, #000 12%, transparent 62%); mask: radial-gradient(circle, #000 12%, transparent 62%);
-  animation: spin 14s linear infinite;
+.folio::backdrop { background: rgba(20, 12, 4, 0.58); }
+.leaf {
+  --l-ink: #2A1A08; --l-ink2: #5E4527; --l-gold: #8A5A1E; --l-rule: #B5261E; --l-line: rgba(110, 70, 20, 0.32);
+  view-transition-name: folio;
+  position: relative; display: flex; flex-direction: column; max-height: calc(100dvh - 24px);
+  border-radius: 14px / 18px; color: var(--l-ink); font-family: var(--f-card);
+  background:
+    radial-gradient(130% 150% at 50% 45%, transparent 55%, rgba(120, 72, 20, 0.3) 100%),
+    radial-gradient(60% 40% at 85% 12%, rgba(255, 255, 255, 0.35), transparent 70%),
+    linear-gradient(176deg, #FBF3DC, #F2DFB0 85%);
+  box-shadow: inset 0 0 0 1px rgba(110, 70, 20, 0.35), inset 0 0 34px rgba(120, 72, 20, 0.22), 0 22px 60px rgba(0, 0, 0, 0.5);
 }
-.sq .sp { bottom: -6%; color: #E0A400; font-size: 2.6cqi; animation: rise 1.8s ease-out infinite; }
-.sq .pt { top: -8%; font-family: var(--f-emoji); font-size: 2.6cqi; animation: fall 2.6s linear infinite; }
-.sq.virtue { border-color: #2E7D4F; box-shadow: 0 0 0 0.6cqi rgba(80, 200, 120, 0.35), 0 0 6cqi rgba(255, 210, 90, 0.7), 0 1.6cqi 5cqi rgba(0, 0, 0, 0.45); }
-.sq.virtue .eb, .sq.virtue .ft { color: #2E7D4F; }
-.sq.vice { border-color: #B3261E; background: radial-gradient(circle at 50% 28%, #FFF1EA, #F3C9BE 62%, #C47E70); animation: shake 0.5s ease-in-out; }
-.sq.vice .eb, .sq.vice .ft { color: #9E2A1C; }
-.sq.vice .big { animation: throb 0.9s ease-in-out infinite; }
-.sq.vice::after { content: ""; position: absolute; inset: 0; z-index: 0; background: radial-gradient(circle at 50% 110%, rgba(40, 10, 6, 0.45), transparent 60%); animation: smoke 2.4s ease-in-out infinite alternate; }
-.sq.heaven { border-color: #D9A21E; background: radial-gradient(circle at 50% 28%, #FFFDF0, #FCE7A6 58%, #F2C14E); }
-.sq.goal { border-color: #FFD86B; background: radial-gradient(circle at 50% 30%, #4A5CD0, #1E2A78 70%); color: #FFF3D6; }
-.sq.goal .eb, .sq.goal .dv, .sq.goal .ft { color: #FFD86B; }
-.sq.goal .big { font-family: var(--f-display); font-size: 16cqi; color: #FFD86B; text-shadow: 0 0 2cqi rgba(255, 215, 100, 0.9); animation: bloom 1.6s ease-out; }
-.sq.decor { animation: pop 0.5s ease-out; }
+.leaf > :not(.flourish) { position: relative; z-index: 1; }
+.leaf-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px 2px 24px; font-family: var(--f-body); }
+.leaf .eb { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--l-gold); }
+.leaf-tools { display: flex; gap: 8px; align-items: center; }
+.leaf button { font-family: var(--f-body); }
+.lang-mini { display: inline-flex; border: 1px solid var(--l-line); border-radius: 99px; overflow: hidden; }
+.lang-mini button { padding: 3px 11px; font-size: 12px; font-weight: 600; background: transparent; color: var(--l-ink); border: 0; border-radius: 0; }
+.lang-mini button[aria-pressed="true"] { background: var(--l-rule); color: #FFF6E0; }
+.leaf .x { width: 34px; height: 34px; padding: 0; border-radius: 50%; background: transparent; color: var(--l-ink); border: 1px solid var(--l-line); font-size: 20px; line-height: 1; }
+.leaf button:focus-visible, .leaf a:focus-visible { outline: 3px solid var(--l-rule); outline-offset: 2px; }
+.leaf-main { display: grid; grid-template-columns: 104px minmax(0, 1fr); padding: 8px 24px 4px; overflow-y: auto; min-height: 0; overscroll-behavior: contain; }
+.leaf-margin { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 14px 12px 0; border-right: 4px double var(--l-rule); }
+.leaf .glyph { font-family: var(--f-emoji); font-size: 52px; line-height: 1.1; filter: drop-shadow(0 2px 2px rgba(60, 30, 0, 0.25)); }
+.leaf.goal .glyph { font-family: var(--f-display); color: #FFD86B; text-shadow: 0 0 14px rgba(255, 215, 100, 0.8); }
+.leaf .sqn { font-family: var(--f-display); font-size: 22px; line-height: 1; color: var(--l-gold); }
+/* the hole the binding string passed through */
+.leaf .hole {
+  margin: auto 0; width: 16px; aspect-ratio: 1; border-radius: 50%;
+  background: radial-gradient(circle, #24160A 0 42%, #6B4A22 58%, rgba(107, 74, 34, 0) 72%);
+}
+.leaf-text { padding: 6px 18px 10px 22px; border-right: 4px double var(--l-rule); min-width: 0; }
+.leaf-text:lang(hi), .leaf-text :lang(hi) { font-family: var(--f-card-hi); }
+.leaf-text:lang(en), .leaf-text :lang(en) { font-family: var(--f-card); }
+.leaf .leaf-text h2 { font-family: var(--f-display); font-weight: 400; font-size: clamp(28px, 4.6vw, 38px); line-height: 1.05; margin: 0; text-wrap: balance; }
+.leaf .alt { margin: 4px 0 0; font-size: 17px; font-style: italic; color: var(--l-gold); }
+.leaf .tag { margin: 6px 0 0; font-family: var(--f-body); font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--l-ink2); }
+.leaf .story p { margin: 12px 0 0; font-size: 20px; line-height: 1.5; max-width: 58ch; text-wrap: pretty; }
+.leaf .story p.second, .leaf .chips p.second, .leaf .views p.second, .leaf p.note.second { font-size: 0.86em; color: var(--l-ink2); margin-top: 4px; }
+.leaf .story .line2 { font-style: italic; color: var(--l-ink2); font-size: 18px; }
+.leaf-text :lang(hi) p, .leaf-text:lang(hi) p { line-height: 1.7; }
+.leaf .sub { margin: 18px 0 0; padding-top: 12px; border-top: 1px solid var(--l-line); font-family: var(--f-body); font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--l-gold); }
+.leaf .chips, .leaf .views { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.leaf .chips p, .leaf .views p { margin: 4px 0 0; font-size: 17px; line-height: 1.45; }
+.leaf .views { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; }
+.leaf .views li { padding: 8px 10px; border-radius: 6px; background: rgba(255, 252, 240, 0.5); border: 1px solid var(--l-line); }
+.leaf .views p { font-size: 15.5px; }
+.leaf .chip {
+  display: inline-block; padding: 1px 10px; border-radius: 99px; text-decoration: none;
+  font-family: var(--f-body); font-size: 12.5px; font-weight: 600; background: #7A1F12; color: #FFF3D6;
+}
+.leaf .chip.new::after, .leaf .plink.new::after { content: " ✦"; color: #F6C443; }
+.leaf .chip:hover { background: #9E2A1C; }
+.leaf .note { margin: 16px 0 0; padding-left: 12px; border-left: 2px solid rgba(181, 38, 30, 0.5); font-size: 16.5px; line-height: 1.5; color: var(--l-ink2); }
+.leaf .moksha { margin: 8px 0 0; font-size: 17px; font-style: italic; }
+.leaf .people, .leaf .onboard { margin: 14px 0 0; font-size: 15px; line-height: 1.9; }
+.leaf .people > span, .leaf .onboard > span { font-family: var(--f-body); font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--l-gold); margin-right: 4px; }
+.leaf .people a, .leaf .onboard a { color: #7A1F12; text-underline-offset: 3px; }
+.leaf .onboard a { display: inline-block; min-width: 2.2em; padding: 0 4px; margin: 0 2px 4px 0; border: 1px solid var(--l-line); border-radius: 4px; text-align: center; text-decoration: none; font-variant-numeric: tabular-nums; }
+.leaf .srcline { margin: 16px 0 2px; font-size: 15px; }
+.leaf .src { color: #7A1F12; font-style: italic; text-underline-offset: 3px; text-decoration-color: rgba(122, 31, 18, 0.45); }
+.leaf .gloss { display: block; margin-top: 3px; font-size: 14.5px; color: var(--l-ink2); }
+.leaf-foot { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px; padding: 8px 16px 14px; font-family: var(--f-body); }
+.leaf-foot > :last-child { justify-self: end; }
+.leaf .nav { background: transparent; color: var(--l-ink); border: 1px solid var(--l-line); padding: 6px 12px; font-size: 14px; font-weight: 600; max-width: 22ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.leaf .nav:hover { background: rgba(255, 252, 240, 0.6); }
+.leaf .ft { font-size: 14px; font-weight: 700; color: var(--l-gold); text-align: center; }
+
+.leaf.virtue { --l-rule: #2E7D4F; --l-gold: #2E6B45; }
+.leaf.vice { --l-rule: #B3261E; --l-gold: #9E2A1C; background: radial-gradient(130% 150% at 50% 45%, transparent 55%, rgba(120, 30, 20, 0.3) 100%), linear-gradient(176deg, #FDF0E6, #F1CDBF 85%); }
+.leaf.heaven { --l-rule: #C08A14; background: radial-gradient(130% 150% at 50% 45%, transparent 55%, rgba(150, 100, 10, 0.3) 100%), linear-gradient(176deg, #FFFBEA, #F8E3A0 85%); }
+.leaf.goal { --l-ink: #FFF3D6; --l-ink2: #E2D6B4; --l-gold: #FFD86B; --l-rule: #FFD86B; --l-line: rgba(255, 216, 107, 0.35); background: radial-gradient(circle at 30% 30%, #4A5CD0, #1E2A78 75%); }
+.leaf.goal .chip { background: #FFD86B; color: #1E2A78; }
+.leaf.goal .views li { background: rgba(255, 255, 255, 0.08); }
+.leaf.goal .src, .leaf.goal .people a, .leaf.goal .onboard a { color: #FFE7A0; }
+.leaf.entry { --l-rule: #2B3A8F; --l-gold: #2B3A8F; }
+.leaf.vice.landed { animation: shake 0.5s ease-in-out; }
+
+/* virtue rays, falling petals for the realms */
+.flourish { position: absolute; inset: 0; overflow: hidden; border-radius: inherit; pointer-events: none; z-index: 0; }
+.flourish .rays {
+  position: absolute; left: 76px; top: 45%; width: 560px; aspect-ratio: 1; transform: translate(-50%, -50%);
+  background: repeating-conic-gradient(rgba(255, 190, 50, 0.2) 0 9deg, transparent 9deg 18deg);
+  -webkit-mask: radial-gradient(circle, #000 10%, transparent 60%); mask: radial-gradient(circle, #000 10%, transparent 60%);
+  animation: spin 24s linear infinite;
+}
+.flourish .sp { position: absolute; bottom: -4%; color: #E0A400; font-size: 13px; opacity: 0.7; animation: rise 2.4s ease-out infinite; }
+.flourish .pt { position: absolute; top: -6%; font-family: var(--f-emoji); font-size: 13px; opacity: 0.7; animation: fall 3.4s linear infinite; }
 @keyframes spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
-@keyframes rise { from { transform: translateY(0); opacity: 0; } 20% { opacity: 1; } to { transform: translateY(-34cqi); opacity: 0; } }
-@keyframes fall { from { transform: translateY(0) rotate(0); opacity: 0; } 15% { opacity: 1; } to { transform: translateY(44cqi) rotate(200deg); opacity: 0; } }
-@keyframes shake { 15%, 55% { transform: translateX(-2.2%); } 35%, 75% { transform: translateX(2.2%); } }
-@keyframes throb { 50% { transform: scale(1.12); filter: drop-shadow(0 0 1.4cqi rgba(200, 20, 10, 0.85)); } }
-@keyframes smoke { to { opacity: 0.4; } }
-@keyframes bloom { from { transform: scale(0.4); text-shadow: 0 0 8cqi rgba(255, 230, 140, 1); } }
-@keyframes pop { 50% { transform: scale(1.04); } }
+@keyframes rise { from { transform: translateY(0); opacity: 0; } 20% { opacity: 0.7; } to { transform: translateY(-260px); opacity: 0; } }
+@keyframes fall { from { transform: translateY(0) rotate(0); opacity: 0; } 15% { opacity: 0.7; } to { transform: translateY(380px) rotate(200deg); opacity: 0; } }
+@keyframes shake { 15%, 55% { transform: translateX(-1.2%); } 35%, 75% { transform: translateX(1.2%); } }
+
+/* the square morphs into the card and back */
+::view-transition-group(folio) { animation-duration: 340ms; animation-timing-function: cubic-bezier(0.2, 0.8, 0.25, 1); }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: 200ms; }
+
+@media (max-width: 600px) {
+  .leaf-top { padding: 12px 12px 0 16px; }
+  .leaf-main { grid-template-columns: 52px minmax(0, 1fr); padding: 6px 12px 2px; }
+  .leaf-margin { padding: 8px 8px 10px 0; border-right-width: 3px; }
+  .leaf .glyph { font-size: 32px; }
+  .leaf .sqn { font-size: 16px; }
+  .leaf-text { padding: 4px 4px 8px 14px; border-right: 0; }
+  .leaf .story p { font-size: 18px; }
+  .leaf .chips p, .leaf .note { font-size: 16px; }
+  .leaf-foot { padding: 6px 10px 12px; }
+  .leaf .nav { max-width: 12ch; }
+}
 
 .win { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(17, 19, 42, 0.62); z-index: 5; }
 .win > div { background: var(--surface); color: var(--ink); padding: 24px 28px; border-radius: 6px; text-align: center; display: flex; flex-direction: column; gap: 12px; align-items: center; max-width: 80%; }
@@ -301,9 +386,26 @@ label.check input { margin-top: 4px; accent-color: var(--accent); }
 label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-items: center; font-size: 14px; }
 .setup-body { display: flex; flex-direction: column; gap: 12px; }
 
+/* Moves | Codex */
+.tabs { display: flex; gap: 16px; border-bottom: 1px solid var(--line); }
+.tabs button { background: transparent; color: var(--muted); border: 0; border-bottom: 2px solid transparent; border-radius: 0; margin-bottom: -1px; padding: 0 0 8px; font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; }
+.tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+.tabs .count { font-variant-numeric: tabular-nums; letter-spacing: 0; color: var(--muted); }
+.logbtn { all: unset; cursor: pointer; border-radius: 3px; text-decoration: underline; text-decoration-color: transparent; text-underline-offset: 3px; }
+.logbtn:hover { text-decoration-color: currentColor; }
+.logbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.codex { display: flex; flex-direction: column; gap: 12px; max-height: 340px; overflow-y: auto; font-size: 13.5px; }
+.codex .hint { margin: 0; }
+.codex ul { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.codex .ent { display: inline-block; padding: 3px 10px; border-radius: 99px; border: 1px solid var(--line); background: var(--ground); color: var(--ink); text-decoration: none; font-size: 13px; }
+.codex a.ent:hover { border-color: var(--accent); }
+.codex .ent.unmet { color: var(--muted); }
+.codex .ent.locked { color: var(--muted); border-style: dashed; letter-spacing: 0.1em; }
+
 @media (prefers-reduced-motion: reduce) {
   .token, .token.slide { transition: none; }
-  .token .body, .die.rolling, .lab.goal .om, .sq, .sq *, .sq::after, .toast { animation: none !important; }
+  .token .body, .die.rolling, .lab.goal .om, .leaf, .leaf *, .flourish *, .toast { animation: none !important; }
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
 }
 </style>
 </head>
@@ -312,9 +414,14 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
 <div class="wrap">
   <header>
     <h1 data-t="title">Moksha Patam</h1>
-    <div class="lang" role="group" aria-label="Language / भाषा">
-      <button type="button" data-lang="en" aria-pressed="true">EN</button>
-      <button type="button" data-lang="hi" aria-pressed="false" lang="hi">हिं</button>
+    <div class="tools">
+      <button type="button" class="ghost icon" id="mute" aria-pressed="true">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path class="wave" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path class="cross" d="M16 9l6 6M22 9l-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+      <div class="lang" role="group" aria-label="Language / भाषा">
+        <button type="button" data-lang="en" aria-pressed="true">EN</button>
+        <button type="button" data-lang="hi" aria-pressed="false" lang="hi">हिं</button>
+      </div>
     </div>
     <p data-t="intro"></p>
   </header>
@@ -329,7 +436,6 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           <div class="labels" id="labels"></div>
           <canvas id="fx"></canvas>
           <div class="tokens" id="tokens"></div>
-          <div class="sqcard" id="sqcard" hidden><div class="sq" role="dialog" aria-live="polite"></div></div>
           <div id="toastSlot"></div>
           <div class="win" id="win" hidden>
             <div>
@@ -362,8 +468,12 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       </section>
 
       <section class="card">
-        <span class="eyebrow" data-t="moves">Moves</span>
-        <ul class="log" id="log"></ul>
+        <div class="tabs" role="tablist">
+          <button type="button" role="tab" id="tabMoves" aria-controls="log" aria-selected="true" data-t="moves">Moves</button>
+          <button type="button" role="tab" id="tabCodex" aria-controls="codexPanel" aria-selected="false"><span data-t="codex">Codex</span> <span class="count" id="codexCount"></span></button>
+        </div>
+        <ul class="log" id="log" role="tabpanel" aria-labelledby="tabMoves"></ul>
+        <div class="codex" id="codexPanel" role="tabpanel" aria-labelledby="tabCodex" hidden></div>
       </section>
 
       <details class="card" id="setup">
@@ -373,7 +483,9 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           <div id="prows" class="setup-body"></div>
           <label class="check"><input type="checkbox" id="ruleExact" checked> <span id="ruleExactText"></span></label>
           <label class="check"><input type="checkbox" id="ruleSix" checked> <span data-t="ruleSix"></span></label>
-          <label class="pick"><span data-t="cards"></span><select id="ruleCards"></select></label>
+          <label class="pick"><span data-t="depth"></span><select id="prefDepth"></select></label>
+          <label class="check"><input type="checkbox" id="prefLand"> <span data-t="landAll"></span></label>
+          <label class="check"><input type="checkbox" id="prefBoth"> <span data-t="cardBoth"></span></label>
           <button id="newGame" type="button" data-t="newGame">Start new game</button>
           <span class="hint" id="seed"></span>
         </div>
@@ -381,6 +493,10 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     </aside>
   </div>
 </div>
+
+<dialog class="folio" id="folio" aria-labelledby="leafTitle">
+  <article class="leaf" id="leaf" aria-live="polite"></article>
+</dialog>
 
 <script>
 (() => {
@@ -544,7 +660,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     STR: {
       en: {
         title: "Moksha Patam",
-        intro: "The old Indian game of snakes and ladders, played as one life. Grow from a baby through childhood and the four ashramas, with a story from the Panchatantra or the Upanishads on every square. Virtues lift you up; vices drag you back to a younger self, always just before the virtue that heals them. The first to reach Moksha at 110 is liberated.",
+        intro: "The old Indian game of snakes and ladders, played as one life. Grow from a baby through childhood and the four ashramas, with a story from the Panchatantra or the Upanishads on every square. Virtues lift you up; vices drag you back to a younger self, always just before the virtue that heals them. The first to reach Moksha at 110 is liberated. Tap any square to read it.",
         turn: "Turn",
         players: "Players",
         moves: "Moves",
@@ -560,10 +676,6 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         cpu: "Computer",
         ruleExact: "Need the exact roll to land on Moksha ({n})",
         ruleSix: "Rolling a 6 gives another turn",
-        cards: "Story cards",
-        cardsAll: "Every square",
-        cardsSpecial: "Special squares",
-        cardsOff: "Off",
         newGame: "Start new game",
         again: "Play again",
         notBorn: "Not yet born",
@@ -601,11 +713,48 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         ladderTo: "Ladder up to {n}",
         snakeTo: "Snake down to {n}",
         liberation: "Liberation",
-        seed: "Seed"
+        seed: "Seed",
+        depth: "Reading depth",
+        depthStory: "Story",
+        depthSchool: "Story + school",
+        depthScholar: "Scholar",
+        landAll: "Open a card on every landing (otherwise only snakes, ladders and realms)",
+        cardBoth: "Show both languages on cards, for Hindi learners",
+        close: "Close",
+        prevSq: "Previous square",
+        nextSq: "Next square",
+        prevEntry: "Previous entry",
+        nextEntry: "Next entry",
+        back: "Back to square {n}",
+        cardLang: "Card language",
+        codex: "Codex",
+        codexSchools: "Schools",
+        codexSources: "Sources",
+        codexFigures: "People",
+        codexLocked: "Not met yet",
+        codexHint: "Entries fill in as you read cards. {met} of {all} met.",
+        codexAll: "Show entries not met yet",
+        entrySchool: "Codex · School",
+        entrySource: "Codex · Source",
+        entryFigure: "Codex · Person",
+        onBoard: "On the board",
+        readMore: "Read more",
+        views: "Read three ways",
+        viewsGoal: "What liberation meant",
+        mokshaFor: "Liberation, for this school",
+        people: "People",
+        argued: "Someone standing here would have argued",
+        sound: "Sound",
+        soundOn: "Sound on",
+        soundOff: "Sound off",
+        sqLabel: "Square {n}: {name}. Open card",
+        school: "School",
+        openCodex: "Open in the Codex",
+        firstMet: "New in your Codex"
       },
       hi: {
         title: "मोक्ष पटम",
-        intro: "साँप-सीढ़ी का पुराना भारतीय खेल, एक जीवन की तरह खेला जाता है। शिशु से बचपन और चारों आश्रमों से होकर बढ़ें, हर खाने पर पंचतंत्र या उपनिषदों की एक कथा है। गुण ऊपर उठाते हैं; दोष आपको छोटी उम्र में लौटा देते हैं, ठीक उस गुण के पास जो उन्हें ठीक करता है। जो सबसे पहले ११० पर मोक्ष पहुँचे, वही मुक्त।",
+        intro: "साँप-सीढ़ी का पुराना भारतीय खेल, एक जीवन की तरह खेला जाता है। शिशु से बचपन और चारों आश्रमों से होकर बढ़ें, हर खाने पर पंचतंत्र या उपनिषदों की एक कथा है। गुण ऊपर उठाते हैं; दोष आपको छोटी उम्र में लौटा देते हैं, ठीक उस गुण के पास जो उन्हें ठीक करता है। जो सबसे पहले ११० पर मोक्ष पहुँचे, वही मुक्त। किसी भी खाने को छूकर उसकी कथा पढ़ें।",
         turn: "बारी",
         players: "खिलाड़ी",
         moves: "चालें",
@@ -621,10 +770,6 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         cpu: "कंप्यूटर",
         ruleExact: "मोक्ष ({n}) पर पहुँचने के लिए ठीक उतना ही अंक चाहिए",
         ruleSix: "6 आने पर एक और बारी",
-        cards: "कथा कार्ड",
-        cardsAll: "हर खाना",
-        cardsSpecial: "केवल विशेष खाने",
-        cardsOff: "बंद",
         newGame: "नया खेल शुरू करें",
         again: "फिर से खेलें",
         notBorn: "अभी जन्म नहीं हुआ",
@@ -662,8 +807,513 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         ladderTo: "सीढ़ी: {n} तक",
         snakeTo: "साँप: {n} तक नीचे",
         liberation: "मुक्ति",
-        seed: "बीज"
+        seed: "बीज",
+        depth: "पढ़ने की गहराई",
+        depthStory: "कथा",
+        depthSchool: "कथा + दर्शन",
+        depthScholar: "विद्वान",
+        landAll: "हर खाने पर उतरते ही कार्ड खोलें (नहीं तो केवल साँप, सीढ़ी और लोक)",
+        cardBoth: "कार्ड पर दोनों भाषाएँ दिखाएँ, हिंदी सीखने वालों के लिए",
+        close: "बंद करें",
+        prevSq: "पिछला खाना",
+        nextSq: "अगला खाना",
+        prevEntry: "पिछली प्रविष्टि",
+        nextEntry: "अगली प्रविष्टि",
+        back: "खाना {n} पर वापस",
+        cardLang: "कार्ड की भाषा",
+        codex: "दर्शन-कोश",
+        codexSchools: "दर्शन",
+        codexSources: "ग्रंथ",
+        codexFigures: "व्यक्ति",
+        codexLocked: "अभी नहीं मिले",
+        codexHint: "कार्ड पढ़ते-पढ़ते प्रविष्टियाँ भरती हैं। {all} में से {met} मिले।",
+        codexAll: "जो अभी नहीं मिले, उन्हें भी दिखाएँ",
+        entrySchool: "कोश · दर्शन",
+        entrySource: "कोश · ग्रंथ",
+        entryFigure: "कोश · व्यक्ति",
+        onBoard: "बोर्ड पर",
+        readMore: "और पढ़ें",
+        views: "तीन तरह से पढ़ा गया",
+        viewsGoal: "मुक्ति का अर्थ",
+        mokshaFor: "इस दर्शन में मुक्ति",
+        people: "व्यक्ति",
+        argued: "यहाँ खड़ा कोई यह तर्क देता",
+        sound: "ध्वनि",
+        soundOn: "ध्वनि चालू",
+        soundOff: "ध्वनि बंद",
+        sqLabel: "खाना {n}: {name}। कार्ड खोलें",
+        school: "दर्शन",
+        openCodex: "कोश में खोलें",
+        firstMet: "आपके कोश में नया"
       }
+    }
+  };
+
+  // content/readings.json
+  var readings_default = {
+    "1": {
+      schools: [{ id: "nyaya", en: "A newborn startles, smiles and reaches for milk before anyone teaches it to. Nyāya argued that it must be remembering a life before this one.", hi: "नवजात बिना सिखाए चौंकता है, मुस्कुराता है और दूध की ओर बढ़ता है। न्याय का तर्क था कि वह इससे पहले के किसी जीवन को याद कर रहा होगा।" }, { id: "carvaka", en: "The Cārvāka answer: a mind arises from the body's elements, as heady strength arises from fermenting grain. Nothing arrived; something began.", hi: "चार्वाक का उत्तर: मन शरीर के भूतों से उत्पन्न होता है, जैसे सड़ते अन्न से नशे की शक्ति। कुछ आया नहीं; कुछ शुरू हुआ।" }],
+      scholar: { en: "The newborn argument is Nyāya Sūtra 3.1.18–21. It is the board's first question, and the oldest one: is there a someone here at all before experience begins?", hi: "नवजात वाला तर्क न्यायसूत्र ३.१.१८–२१ में है। यह बोर्ड का पहला प्रश्न है, और सबसे पुराना भी: अनुभव शुरू होने से पहले क्या यहाँ कोई है भी?" },
+      figures: ["akshapada"]
+    },
+    "2": {
+      iast: "Mātṛ devo bhava",
+      scholar: { en: "This line and the next come from the teacher's farewell to a graduating student (Taittirīya 1.11). The board puts at the start of life what the Upaniṣad says at the end of schooling.", hi: "यह और अगली पंक्ति स्नातक होते शिष्य को गुरु की विदाई (तैत्तिरीय १.११) से हैं। जो उपनिषद् शिक्षा के अंत में कहता है, बोर्ड उसे जीवन के आरंभ में रखता है।" }
+    },
+    "3": {
+      iast: "Pitṛ devo bhava",
+      scholar: { en: "The full list runs: mother, father, teacher, guest. Each is to be treated as a god. The order is the order in which a person meets them.", hi: "पूरी सूची है: माता, पिता, आचार्य, अतिथि। हर एक को देवता मानना है। क्रम वही है जिसमें मनुष्य उनसे मिलता है।" }
+    },
+    "4": {
+      iast: "Annaprāśana",
+      schools: [{ id: "mimamsa", en: "Mīmāṃsā would ask what this rite actually does. Its answer: the injunction is the Veda's real content, and the result arrives later through apūrva, an unseen potency.", hi: "मीमांसा पूछती कि यह संस्कार वास्तव में करता क्या है। उसका उत्तर: विधि ही वेद का असली विषय है, और फल बाद में अपूर्व से, एक अदृश्य शक्ति से, आता है।" }],
+      scholar: { en: "The household manuals list about sixteen rites of passage (saṃskāra), and their lists differ. The same word, saṃskāra, later means an impression left on the mind, which the board will come back to.", hi: "गृह्यसूत्र लगभग सोलह संस्कार गिनाते हैं, और उनकी सूचियाँ भिन्न हैं। यही शब्द, संस्कार, आगे चलकर मन पर पड़ी छाप का अर्थ भी देता है, जिस पर बोर्ड लौटेगा।" }
+    },
+    "5": {
+      schools: [{ id: "yoga", en: "Yoga Sūtra 1.14: practice becomes firm only when kept up for a long time, without a break, and with care. Falling and getting up is the method, not a failure of it.", hi: "योगसूत्र १.१४: अभ्यास तभी दृढ़ होता है जब लंबे समय तक, निरंतर और आदर के साथ किया जाए। गिरना और उठना ही विधि है, उसकी विफलता नहीं।" }]
+    },
+    "6": {
+      iast: "Maitrī",
+      schools: [{ id: "yoga", en: "Yoga Sūtra 1.33: meet the happy with friendliness and the suffering with compassion, and the mind grows clear.", hi: "योगसूत्र १.३३: सुखी के प्रति मैत्री और दुःखी के प्रति करुणा रखो, तो चित्त प्रसन्न होता है।" }, { id: "bauddha", en: "For the Buddhists, mettā is the first of four boundless states, to be extended outward until it reaches every being.", hi: "बौद्धों के लिए मैत्री चार अपरिमित भावों में पहली है, जिसे बाहर की ओर फैलाते जाना है जब तक वह हर प्राणी तक न पहुँचे।" }],
+      scholar: { en: "From the Panchatantra's second book, 'The winning of friends'. The four animals each save the others once: friendship here is a network, not a pair.", hi: "पंचतंत्र की दूसरी पुस्तक, 'मित्रसंप्राप्ति' से। चारों पशु एक-एक बार दूसरों को बचाते हैं: यहाँ मित्रता एक जाल है, जोड़ा नहीं।" }
+    },
+    "8": {
+      scholar: { en: "The geese warned the tortoise not to speak. The story is in the Panchatantra's first book, and also among the Buddhist Jātakas, where the moral is the same.", hi: "हंसों ने कछुए को बोलने से मना किया था। यह कथा पंचतंत्र की पहली पुस्तक में है, और बौद्ध जातकों में भी, जहाँ सीख वही है।" }
+    },
+    "9": {
+      scholar: { en: "The frame story: King Amaraśakti despaired of his three sons, and the old Viṣṇuśarman promised to teach them statecraft in six months. Every fable on the board is part of that one lesson.", hi: "कथा का ढाँचा: राजा अमरशक्ति अपने तीन पुत्रों से निराश थे, और वृद्ध विष्णु शर्मा ने छह महीने में उन्हें नीति सिखाने का वचन दिया। बोर्ड की हर कथा उसी एक पाठ का अंश है।" },
+      figures: ["vishnusharma"]
+    },
+    "10": {
+      schools: [{ id: "mimamsa", en: "Mīmāṃsā held that words and their meanings are eternal, and the Veda authorless, so its testimony can be trusted with no speaker to vouch for it.", hi: "मीमांसा मानती थी कि शब्द और अर्थ का संबंध नित्य है, और वेद अपौरुषेय, इसलिए उसकी गवाही पर बिना किसी वक्ता के भरोसा किया जा सकता है।" }, { id: "nyaya", en: "Nyāya disagreed: meaning is a convention, and testimony is only as good as its speaker. The Veda is reliable because God, a reliable speaker, composed it.", hi: "न्याय असहमत था: अर्थ एक संकेत (परंपरा) है, और गवाही उतनी ही अच्छी जितना उसका वक्ता। वेद प्रमाण है क्योंकि उसे एक आप्त वक्ता, ईश्वर, ने रचा।" }]
+    },
+    "11": {
+      schools: [{ id: "nyaya", en: "Nyāya would call the blue fur a false sign: it did not always go with kingship. The howl was a true sign, because a jackal's howl always goes with a jackal.", hi: "न्याय नीले रंग को हेत्वाभास कहता: वह हमेशा राजा होने के साथ नहीं जाता। हुआँ-हुआँ सच्चा हेतु था, क्योंकि सियार की आवाज़ हमेशा सियार के साथ होती है।" }]
+    },
+    "12": {
+      iast: "Buddhi",
+      scholar: { en: "The hare told the lion of a rival lion in the well. In Sāṃkhya, buddhi is the intellect, the first thing to arise from matter, before even the sense of 'I'.", hi: "खरगोश ने शेर को कुएँ में दूसरे शेर की बात बताई। सांख्य में बुद्धि प्रकृति से उत्पन्न होने वाला पहला तत्त्व है, 'मैं' के भाव से भी पहले।" }
+    },
+    "13": {
+      scholar: { en: "This is the frame story of the Panchatantra's fourth book, 'Loss of what was gained'. The crocodile had the monkey on its back and talked too soon.", hi: "यह पंचतंत्र की चौथी पुस्तक, 'लब्धप्रणाश', की मुख्य कथा है। मगरमच्छ की पीठ पर बंदर था और वह जल्दी बोल पड़ा।" }
+    },
+    "14": {
+      iast: "Vācālatā",
+      schools: [{ id: "jaina", en: "Jain monks keep three guards (gupti): over the mind, the body and speech. Guarding speech means not speaking unless it is needed.", hi: "जैन मुनि तीन गुप्तियाँ रखते हैं: मन, काया और वचन की। वचन-गुप्ति का अर्थ है बिना आवश्यकता के न बोलना।" }]
+    },
+    "16": {
+      scholar: { en: "A story inside a story in the Panchatantra's first book, told by a jackal to show that a clever plan beats a stronger enemy.", hi: "पंचतंत्र की पहली पुस्तक में कथा के भीतर कथा, जिसे एक सियार यह दिखाने को कहता है कि चतुर योजना बलवान शत्रु को हरा देती है।" }
+    },
+    "17": {
+      schools: [{ id: "samkhya", en: "Sāṃkhya has a name for the heaviness that keeps you asleep: tamas, the strand of inertia woven into all matter. It is not a sin. It is weight.", hi: "सांख्य के पास उस भारीपन का नाम है जो आपको सुलाए रखता है: तमस्, जड़ता का गुण जो सारी प्रकृति में बुना है। यह पाप नहीं है। यह भार है।" }]
+    },
+    "18": {
+      schools: [{ id: "dvaita", en: "For Madhva, Prahlāda shows what bhakti is for: the devotee does not save himself. Viṣṇu does, by grace, when the pillar breaks open.", hi: "मध्व के लिए प्रह्लाद दिखाते हैं कि भक्ति किसलिए है: भक्त स्वयं को नहीं बचाता। खंभा फटने पर विष्णु बचाते हैं, कृपा से।" }],
+      scholar: { en: "His father Hiraṇyakaśipu tried poison, elephants, fire and a cliff. Viṣṇu came as Narasiṃha, half man and half lion, at dusk, on a threshold: neither inside nor outside.", hi: "उसके पिता हिरण्यकशिपु ने विष, हाथी, अग्नि और पहाड़ से गिराना, सब आज़माया। विष्णु नरसिंह बनकर आए, आधे मनुष्य आधे सिंह, संध्या के समय, देहरी पर: न भीतर, न बाहर।" }
+    },
+    "19": {
+      iast: "Asatya",
+      schools: [{ id: "yoga", en: "Yoga Sūtra 2.36: when someone is established in truthfulness, what they say comes to pass. The jackal had the reverse: his word made nothing true.", hi: "योगसूत्र २.३६: जो सत्य में प्रतिष्ठित हो, उसकी वाणी फलित होती है। सियार के साथ उल्टा था: उसके कहने से कुछ भी सच नहीं हुआ।" }],
+      scholar: { en: "The blue jackal is in the Panchatantra's first book. Satya, truthfulness, is the second of Yoga's five restraints and of the Jains' five great vows.", hi: "नीला सियार पंचतंत्र की पहली पुस्तक में है। सत्य योग के पाँच यमों में दूसरा है, और जैनों के पाँच महाव्रतों में भी।" }
+    },
+    "20": {
+      iast: "Upanayana",
+      schools: [{ id: "mimamsa", en: "Mīmāṃsā asks who is entitled (adhikārin) to perform a rite. Upanayana is where that entitlement begins, and who it shut out was argued over for centuries.", hi: "मीमांसा पूछती है कि कर्म करने का अधिकारी कौन है। उपनयन से वह अधिकार आरंभ होता है, और इसने किसे बाहर रखा, इस पर सदियों बहस हुई।" }],
+      scholar: { en: "Called the second birth: a twice-born (dvija) is one who has received the thread. The Gṛhya Sūtras restricted it by varṇa; reformers from the medieval bhakti poets onward challenged that.", hi: "इसे दूसरा जन्म कहा गया: द्विज वह है जिसने यज्ञोपवीत पाया। गृह्यसूत्रों ने इसे वर्ण से सीमित किया; मध्यकाल के भक्त कवियों से लेकर आगे के सुधारकों ने इसे चुनौती दी।" }
+    },
+    "21": {
+      iast: "Gurukula"
+    },
+    "22": {
+      scholar: { en: "From the Panchatantra's fifth book. The lesson is aimed at the princes who are hearing it: a learned fool is more dangerous than an ignorant one.", hi: "पंचतंत्र की पाँचवीं पुस्तक से। यह सीख उन राजकुमारों के लिए है जो इसे सुन रहे हैं: विद्वान मूर्ख, अनपढ़ मूर्ख से अधिक खतरनाक है।" }
+    },
+    "23": {
+      iast: "Guru-bhakti",
+      scholar: { en: "Āruṇi of Pāñcāla was a student of Āyoda Dhaumya, in the Pauṣya Parva of the Mahābhārata. His teacher renamed him Uddālaka, 'the one who rose up', when he got up out of the breach.", hi: "पांचाल के आरुणि आयोद धौम्य के शिष्य थे, महाभारत के पौष्य पर्व में। जब वे मेड़ से उठकर निकले, तो गुरु ने उनका नाम उद्दालक रखा, 'जो ऊपर उठा'।" }
+    },
+    "24": {
+      schools: [{ id: "advaita", en: "Advaita has a word for what the lion did: adhyāsa, superimposition, taking one thing for another. Taking the body for the Self, it says, is the same leap at a reflection.", hi: "अद्वैत के पास शेर की गलती का शब्द है: अध्यास, एक को दूसरा मान लेना। शरीर को आत्मा मान लेना, वह कहता है, प्रतिबिंब पर वही छलाँग है।" }]
+    },
+    "25": {
+      iast: "Gāyatrī",
+      scholar: { en: "Ṛg Veda 3.62.10, seen by the sage Viśvāmitra and addressed to Savitṛ, the sun as the one who sets things moving. It is named for its metre, gāyatrī, three lines of eight syllables.", hi: "ऋग्वेद ३.६२.१०, ऋषि विश्वामित्र द्वारा दृष्ट, सविता को संबोधित, वह सूर्य जो सबको गति देता है। इसका नाम इसके छंद, गायत्री, से है: आठ-आठ अक्षरों की तीन पंक्तियाँ।" }
+    },
+    "26": {
+      iast: "Samit-pāṇi",
+      schools: [{ id: "advaita", en: "Śaṅkara read this verse strictly: the Self is known from scripture heard from a teacher, not worked out alone. Even the most learned must go with fuel in hand.", hi: "शंकर ने इस मंत्र को कठोरता से पढ़ा: आत्मा गुरु से सुने शास्त्र से जानी जाती है, अकेले सोचकर नहीं। सबसे विद्वान को भी हाथ में समिधा लेकर जाना होता है।" }]
+    },
+    "27": {
+      scholar: { en: "The six asked where beings come from, which powers hold up the body, where breath comes from, what sleeps and what wakes, what meditating on Om attains, and who the person of sixteen parts is.", hi: "छहों ने पूछा: प्राणी कहाँ से आते हैं, कौन सी शक्तियाँ शरीर को धारण करती हैं, प्राण कहाँ से आता है, कौन सोता है और कौन जागता है, ॐ के ध्यान से क्या मिलता है, और सोलह कलाओं वाला पुरुष कौन है।" }
+    },
+    "28": {
+      iast: "Satya",
+      scholar: { en: "His mother Jabālā had told him: 'I do not know your lineage. You are Satyakāma, son of Jabālā.' The teacher Gautama accepted him, saying only a true brahmin would speak so plainly.", hi: "उसकी माँ जबाला ने कहा था: 'मैं तुम्हारा गोत्र नहीं जानती। तुम सत्यकाम जाबाल हो।' गुरु गौतम ने उसे यह कहकर स्वीकार किया कि इतना सीधा सच कोई सच्चा ब्राह्मण ही बोलेगा।" }
+    },
+    "29": {
+      iast: "Ālasya",
+      schools: [{ id: "yoga", en: "Yoga Sūtra 1.30 lists nine obstacles that scatter the mind. Sloth, ālasya, is the fifth, right after doubt and carelessness.", hi: "योगसूत्र १.३० चित्त को बिखेरने वाले नौ विघ्न गिनाता है। आलस्य पाँचवाँ है, संशय और प्रमाद के ठीक बाद।" }]
+    },
+    "30": {
+      iast: "Satyaṃ vada, dharmaṃ cara",
+      schools: [{ id: "mimamsa", en: "Note the grammar: commands. For Mīmāṃsā that is the whole point. Dharma is what the Veda enjoins (Mīmāṃsā Sūtra 1.1.2), not what anyone feels to be right.", hi: "व्याकरण देखिए: आज्ञाएँ। मीमांसा के लिए यही सार है। धर्म वह है जिसकी वेद विधि करता है (मीमांसासूत्र १.१.२), वह नहीं जो किसी को सही लगे।" }]
+    },
+    "31": {
+      schools: [{ id: "carvaka", en: "The Cārvāka reply, at full strength: would you throw away the rice because it comes in husks? Pleasure always comes mixed with pain, and that is a reason to husk carefully, not to stop eating.", hi: "चार्वाक का उत्तर, पूरी ताकत से: क्या भूसी के कारण चावल फेंक दोगे? सुख हमेशा दुःख के साथ आता है, और यह सावधानी से कूटने का कारण है, खाना छोड़ने का नहीं।" }],
+      scholar: { en: "Yayāti's verse, 'na jātu kāmaḥ kāmānām upabhogena śāmyati', is one of the most quoted lines in Sanskrit. Manu repeats it (2.94).", hi: "ययाति का श्लोक, 'न जातु कामः कामानामुपभोगेन शाम्यति', संस्कृत की सबसे अधिक उद्धृत पंक्तियों में से है। मनु इसे दोहराते हैं (२.९४)।" }
+    },
+    "32": {
+      schools: [{ id: "advaita", en: "Advaita takes the lesson at its word: the Self pervades you as salt pervades water, everywhere and nowhere in particular.", hi: "अद्वैत इस पाठ को शब्दशः लेता है: आत्मा आपमें वैसे ही व्याप्त है जैसे जल में नमक, हर जगह और किसी एक जगह नहीं।" }, { id: "nyaya", en: "Nyāya would add: the Self is not seen either, but it can be inferred from its marks, which are desire, aversion, effort, pleasure, pain and knowing (Nyāya Sūtra 1.1.10).", hi: "न्याय जोड़ता: आत्मा भी दिखती नहीं, पर उसके लक्षणों से उसका अनुमान होता है: इच्छा, द्वेष, प्रयत्न, सुख, दुःख और ज्ञान (न्यायसूत्र १.१.१०)।" }],
+      figures: ["uddalaka"]
+    },
+    "33": {
+      schools: [{ id: "samkhya", en: "Sāṃkhya: the tree was already in the seed. An effect pre-exists in its cause (satkāryavāda); otherwise, why does oil come from sesame and never from sand?", hi: "सांख्य: वृक्ष पहले से बीज में था। कार्य कारण में पहले से रहता है (सत्कार्यवाद); नहीं तो तेल तिल से ही क्यों निकलता है, रेत से कभी क्यों नहीं?" }, { id: "vaisheshika", en: "Vaiśeṣika: no, the tree is new. Atoms combine into a whole that did not exist before (asatkāryavāda). If the tree were already there, why plant anything?", hi: "वैशेषिक: नहीं, वृक्ष नया है। परमाणु मिलकर एक ऐसा संपूर्ण बनाते हैं जो पहले नहीं था (असत्कार्यवाद)। यदि वृक्ष पहले से था, तो कुछ बोना ही क्यों?" }],
+      figures: ["uddalaka", "kapila"]
+    },
+    "34": {
+      iast: "Śraddhā",
+      scholar: { en: "It began with a hollow sacrifice: his father Vājaśravas gave away cows too old to give milk. 'To whom will you give me?' the boy asked, three times. 'To Death,' said his father, and the boy went.", hi: "यह एक खोखले यज्ञ से शुरू हुआ: उसके पिता वाजश्रवा ने ऐसी गायें दान कीं जो दूध देने लायक नहीं थीं। 'मुझे किसे दोगे?' बालक ने तीन बार पूछा। 'मृत्यु को,' पिता बोले, और बालक चला गया।" }
+    },
+    "35": {
+      schools: [{ id: "samkhya", en: "The Katha's ladder goes on: beyond the senses the mind, beyond the mind the intellect, beyond that the unmanifest, then the Person. Sāṃkhya would later count these as its tattvas.", hi: "कठ की सीढ़ी आगे जाती है: इंद्रियों से परे मन, मन से परे बुद्धि, उससे परे अव्यक्त, फिर पुरुष। सांख्य ने आगे चलकर इन्हें अपने तत्त्वों में गिना।" }]
+    },
+    "36": {
+      iast: "Tat tvam asi",
+      views: [{ id: "advaita", en: "Śaṅkara: identity. 'You' minus the body and mind is the same as 'That', Brahman. Nothing is joined; an error is removed.", hi: "शंकर: अभेद। शरीर और मन हटाकर 'तुम' वही है जो 'तत्', ब्रह्म। कुछ जुड़ता नहीं; एक भूल मिटती है।" }, { id: "vishishtadvaita", en: "Rāmānuja: 'you' is a mode of Brahman, as a body is of its indweller. One reality, with real differences inside it.", hi: "रामानुज: 'तुम' ब्रह्म का एक प्रकार है, जैसे शरीर अपने अंतर्यामी का। एक सत्य, जिसके भीतर वास्तविक भेद हैं।" }, { id: "dvaita", en: "Madhva splits the sandhi differently: 'sa ātmā atat tvam asi', you are not That. The soul is like God, and forever distinct.", hi: "मध्व संधि को अलग तोड़ते हैं: 'स आत्मा अतत् त्वम् असि', तुम वह नहीं हो। जीव ईश्वर जैसा है, पर सदा भिन्न।" }],
+      scholar: { en: "Uddālaka says it nine times, at the end of nine lessons. One sentence of four syllables, and Vedānta splits three ways over it, all reading the same text with the same care.", hi: "उद्दालक इसे नौ बार कहते हैं, नौ पाठों के अंत में। चार अक्षरों का एक वाक्य, और वेदांत इस पर तीन ओर बँट जाता है, सब एक ही पाठ को उतनी ही सावधानी से पढ़ते हुए।" },
+      figures: ["uddalaka", "shankara", "ramanuja", "madhva"]
+    },
+    "38": {
+      iast: "Samāvartana",
+      scholar: { en: "The returning student is a snātaka, 'one who has bathed'. The bath marks the end of brahmacarya and the start of eligibility to marry.", hi: "लौटता विद्यार्थी स्नातक कहलाता है, 'जिसने स्नान किया'। यह स्नान ब्रह्मचर्य का अंत और विवाह की पात्रता का आरंभ है।" }
+    },
+    "39": {
+      iast: "Vidyā-mada",
+      schools: [{ id: "nyaya", en: "Nyāya ranked kinds of debate: honest inquiry (vāda), arguing to win (jalpa), and pure demolition with no thesis of your own (vitaṇḍā). The three brothers had learning without vāda.", hi: "न्याय ने कथा के प्रकार गिनाए: सच्ची जिज्ञासा (वाद), जीतने के लिए तर्क (जल्प), और अपना पक्ष रखे बिना केवल खंडन (वितंडा)। तीन भाइयों के पास विद्या थी, वाद नहीं।" }]
+    },
+    "40": {
+      iast: "Svādhyāya",
+      schools: [{ id: "mimamsa", en: "Mīmāṃsā starts here. 'One's own Veda must be studied' (svādhyāyo 'dhyetavyaḥ) is the injunction its commentators take as the ground of the whole inquiry.", hi: "मीमांसा यहीं से शुरू होती है। 'स्वाध्यायोऽध्येतव्यः' (अपने वेद का अध्ययन करना चाहिए) वह विधि है जिसे इसके भाष्यकार पूरी जिज्ञासा का आधार मानते हैं।" }]
+    },
+    "41": {
+      iast: "Vivāha · saptapadī",
+      schools: [{ id: "mimamsa", en: "Mīmāṃsā debated who may sacrifice and concluded that the householder does so jointly with his wife. The fire of the wedding is the fire of their rites.", hi: "मीमांसा ने विचार किया कि यज्ञ कौन कर सकता है और निष्कर्ष निकाला कि गृहस्थ अपनी पत्नी के साथ मिलकर करता है। विवाह की अग्नि ही उनके यज्ञों की अग्नि है।" }]
+    },
+    "42": {
+      iast: "Gṛha",
+      scholar: { en: "Manu calls the householder the highest āśrama, because all the others live on what it gives. The same text's rules on caste and on women have been contested from its own time to now.", hi: "मनु गृहस्थ को सबसे श्रेष्ठ आश्रम कहते हैं, क्योंकि बाकी सब उसी के दिए पर जीते हैं। इसी ग्रंथ के जाति और स्त्रियों संबंधी नियम अपने समय से आज तक विवादित रहे हैं।" }
+    },
+    "44": {
+      iast: "Dāna · datta",
+      schools: [{ id: "bauddha", en: "In Buddhism, generosity (dāna) is the first of the perfections. Its fruit is less in what is given than in the loosening of the hand that gives.", hi: "बौद्ध धर्म में दान पहली पारमिता है। इसका फल दी गई वस्तु में कम, देने वाले हाथ की पकड़ ढीली होने में अधिक है।" }],
+      scholar: { en: "Prajāpati's children came for teaching and he said one syllable, 'da'. The gods heard dāmyata, be restrained; humans heard datta, give; the asuras heard dayadhvam, be compassionate. The thunder still says it: da da da.", hi: "प्रजापति की संतानें उपदेश के लिए आईं और उन्होंने एक अक्षर कहा, 'द'। देवों ने सुना दाम्यत, संयम करो; मनुष्यों ने दत्त, दान करो; असुरों ने दयध्वम्, दया करो। मेघ आज भी यही कहता है: द द द।" }
+    },
+    "45": {
+      scholar: { en: "His teacher sent him off with four hundred thin cows and he stayed away until they were a thousand. On the way back a bull, a fire, a swan and a diver-bird each taught him a quarter of Brahman.", hi: "गुरु ने उसे चार सौ दुबली गायों के साथ भेजा और वह तब तक लौटा नहीं जब तक वे हज़ार न हो गईं। लौटते हुए एक बैल, अग्नि, हंस और जलपक्षी ने उसे ब्रह्म का एक-एक पाद सिखाया।" }
+    },
+    "46": {
+      scholar: { en: "Kurukṣetra is also where the Bhagavad Gītā is spoken, to a man refusing to fight his own family. The board puts the war on the snake's tail; the Gītā puts it at the start of a teaching.", hi: "कुरुक्षेत्र वही स्थान है जहाँ भगवद्गीता कही गई, उस व्यक्ति से जो अपने ही परिवार से लड़ने से मना कर रहा था। बोर्ड युद्ध को साँप की पूँछ पर रखता है; गीता उसे एक उपदेश के आरंभ में।" }
+    },
+    "47": {
+      iast: "Kāma",
+      schools: [{ id: "bauddha", en: "The Buddha's second noble truth names it: suffering arises from craving (taṇhā), and craving is exactly the fire Yayāti kept feeding.", hi: "बुद्ध का दूसरा आर्य सत्य इसका नाम लेता है: दुःख तृष्णा से उत्पन्न होता है, और तृष्णा ठीक वही आग है जिसे ययाति खिलाते रहे।" }],
+      scholar: { en: "Kāma is also one of the four aims of life (puruṣārtha), alongside dharma, artha and mokṣa. The snake is craving; the aim is desire kept within dharma.", hi: "काम जीवन के चार पुरुषार्थों में से भी एक है, धर्म, अर्थ और मोक्ष के साथ। साँप तृष्णा है; पुरुषार्थ धर्म की सीमा में रखी गई इच्छा है।" }
+    },
+    "48": {
+      iast: "Annaṃ brahma",
+      schools: [{ id: "carvaka", en: "Cārvāka would happily agree that the body is food, then stop there: the self is this body, and the Upaniṣad's further sheaths are a story told on top of it.", hi: "चार्वाक खुशी से मानता कि शरीर अन्न है, फिर वहीं रुक जाता: आत्मा यही शरीर है, और उपनिषद् के आगे के कोश उसके ऊपर कही गई कथा हैं।" }]
+    },
+    "49": {
+      iast: "Pañca mahāyajña",
+      schools: [{ id: "mimamsa", en: "For Mīmāṃsā these are nitya karma, obligatory daily rites. You do them because they are enjoined; skipping them is a fault, and doing them earns no special reward.", hi: "मीमांसा के लिए ये नित्य कर्म हैं, अनिवार्य दैनिक कर्तव्य। आप इन्हें इसलिए करते हैं क्योंकि इनकी विधि है; छोड़ना दोष है, और करने से कोई विशेष फल नहीं मिलता।" }]
+    },
+    "51": {
+      iast: "Dayā · dayadhvam",
+      schools: [{ id: "jaina", en: "For the Jains compassion reaches every living thing, down to the beings in water and air. Monks sweep the ground before they step so as not to crush what lives there.", hi: "जैनों के लिए दया हर प्राणी तक जाती है, जल और वायु के जीवों तक भी। मुनि कदम रखने से पहले ज़मीन बुहारते हैं ताकि वहाँ रहने वाले जीव न कुचलें।" }]
+    },
+    "52": {
+      scholar: { en: "Dice were an old danger. Ṛg Veda 10.34 is a gambler's lament: his wife has left, his mother-in-law hates him, and still the brown dice call him back to the board.", hi: "जुआ पुराना खतरा था। ऋग्वेद १०.३४ एक जुआरी का विलाप है: पत्नी छोड़ गई, सास घृणा करती है, फिर भी भूरे पासे उसे बार-बार बिसात पर बुलाते हैं।" }
+    },
+    "53": {
+      schools: [{ id: "advaita", en: "Yama's verse, 'it is not born, it does not die' (Katha 1.2.18), returns in the Gītā (2.20). For Advaita it is the plainest statement that the Self was never in danger.", hi: "यम का मंत्र, 'न जायते म्रियते वा' (कठ १.२.१८), गीता (२.२०) में लौटता है। अद्वैत के लिए यह सबसे सीधा कथन है कि आत्मा कभी संकट में थी ही नहीं।" }],
+      scholar: { en: "Death offered him every pleasure first: chariots, music, long life. 'Keep them,' said Naciketas. 'They wear out the senses.' Only then did Yama teach.", hi: "मृत्यु ने पहले उसे हर सुख दिया: रथ, संगीत, लंबी आयु। 'इन्हें रखिए,' नचिकेता ने कहा। 'ये इंद्रियों को घिसते हैं।' तभी यम ने उपदेश दिया।" }
+    },
+    "54": {
+      scholar: { en: "King Jānaśruti brought cows, a necklace and a chariot. Raikva, scratching his sores under his cart, sent him back with 'keep them, śūdra'. He taught the doctrine of absorption (saṃvarga): wind takes in all things, and breath takes in all the senses.", hi: "राजा जानश्रुति गायें, हार और रथ लेकर आए। अपनी गाड़ी के नीचे खुजली खुजाते रैक्व ने उन्हें 'हे शूद्र, इन्हें रखो' कहकर लौटा दिया। उन्होंने संवर्ग विद्या सिखाई: वायु सब कुछ अपने में समेटता है, और प्राण सब इंद्रियों को।" }
+    },
+    "55": {
+      iast: "Lobha",
+      schools: [{ id: "jaina", en: "The fifth Jain vow, aparigraha, non-possession, is the cure the jackal never tried: own as little as you can, and hold even that loosely.", hi: "जैनों का पाँचवाँ व्रत, अपरिग्रह, वह इलाज है जो सियार ने कभी नहीं आज़माया: जितना कम हो सके उतना रखो, और उसे भी ढीले हाथ से।" }]
+    },
+    "56": {
+      iast: "Atithi devo bhava",
+      scholar: { en: "A-tithi means one without a date: the guest who arrives unannounced. Feeding the guest is one of the five daily offerings of square 49.", hi: "अ-तिथि का अर्थ है जिसकी कोई तिथि न हो: बिना बताए आने वाला। अतिथि को खिलाना खाना ४९ के पंच महायज्ञों में से एक है।" }
+    },
+    "57": {
+      iast: "Dharma",
+      schools: [{ id: "mimamsa", en: "Mīmāṃsā would hold Janaka up as the model: keep doing your duties, and the duties themselves are the good.", hi: "मीमांसा जनक को आदर्श मानती: अपने कर्तव्य करते रहो, कर्तव्य ही स्वयं श्रेय हैं।" }, { id: "advaita", en: "Śaṅkara would answer that Janaka acted because he was already free, not in order to become free. Action can purify the mind; only knowledge liberates.", hi: "शंकर उत्तर देते कि जनक कर्म इसलिए करते थे क्योंकि वे पहले से मुक्त थे, मुक्त होने के लिए नहीं। कर्म मन को शुद्ध कर सकता है; मुक्ति केवल ज्ञान से है।" }],
+      scholar: { en: "The Gītā (3.20) cites Janaka as one who reached perfection through action itself. Whether action and knowledge can be combined was one of the long quarrels of Vedānta.", hi: "गीता (३.२०) जनक का उदाहरण देती है जिन्होंने कर्म से ही सिद्धि पाई। कर्म और ज्ञान मिलाए जा सकते हैं या नहीं, यह वेदांत के लंबे विवादों में से एक था।" },
+      figures: ["yajnavalkya"]
+    },
+    "58": {
+      schools: [{ id: "nyaya", en: "Nyāya would read the blade of grass as evidence: a world this ordered needs a maker, and that maker can be inferred the way a pot implies a potter.", hi: "न्याय तिनके को प्रमाण की तरह पढ़ता: इतने व्यवस्थित जगत को एक कर्ता चाहिए, और उसका अनुमान वैसे ही होता है जैसे घड़े से कुम्हार का।" }, { id: "mimamsa", en: "Mīmāṃsā would refuse: no creator is needed at all. The world has always been as it is, and the Veda's rites work on their own.", hi: "मीमांसा इनकार करती: किसी सृष्टिकर्ता की आवश्यकता ही नहीं। जगत सदा से ऐसा ही है, और वेद के कर्म अपने आप फल देते हैं।" }],
+      scholar: { en: "The Yakṣa vanished and in its place stood Umā Haimavatī, who told the gods that the victory had been Brahman's. In the Kena she is the first teacher of Brahman.", hi: "यक्ष अंतर्धान हो गया और उसकी जगह उमा हैमवती खड़ी थीं, जिन्होंने देवताओं को बताया कि विजय ब्रह्म की थी। केन में वे ब्रह्म की पहली उपदेशिका हैं।" }
+    },
+    "59": {
+      iast: "Krodha",
+      schools: [{ id: "yoga", en: "Yoga Sūtra 2.33 gives the method the brahmin's wife needed: when a harmful thought rises, cultivate its opposite (pratipakṣa-bhāvanā) before you act on it.", hi: "योगसूत्र २.३३ वह विधि देता है जो ब्राह्मणी को चाहिए थी: जब कोई हिंसक विचार उठे, तो उस पर कर्म करने से पहले उसके विपरीत भाव (प्रतिपक्ष-भावना) को साधो।" }]
+    },
+    "61": {
+      scholar: { en: "Prajāpati taught Indra in stages: first that the Self is the body, then the dreaming self, then the self in deep sleep, and at last the Self that is none of these. Indra rejected each answer until the last, which took 101 years in all.", hi: "प्रजापति ने इंद्र को क्रम से सिखाया: पहले कि आत्मा शरीर है, फिर स्वप्न का आत्मा, फिर सुषुप्ति का, और अंत में वह आत्मा जो इनमें से कोई नहीं। इंद्र ने अंतिम से पहले हर उत्तर को अस्वीकार किया, जिसमें कुल १०१ वर्ष लगे।" }
+    },
+    "62": {
+      iast: "Moha",
+      schools: [{ id: "yoga", en: "Yoga names attachment (rāga) as the affliction that follows pleasure (Yoga Sūtra 2.7). Dhṛtarāṣṭra's love for his son was real; it was the clinging that blinded him twice.", hi: "योग राग को वह क्लेश कहता है जो सुख के पीछे आता है (योगसूत्र २.७)। धृतराष्ट्र का पुत्र-प्रेम सच्चा था; उस पकड़ ने उन्हें दोबारा अंधा कर दिया।" }]
+    },
+    "63": {
+      iast: "Tena tyaktena bhuñjīthāḥ",
+      scholar: { en: "The verse can be read two ways. Śaṅkara takes 'tyaktena' as renunciation: protect the Self by giving everything up. Others read it as 'with what has been left to you': enjoy what the Lord has allotted, and want nothing more.", hi: "इस मंत्र को दो तरह पढ़ा जा सकता है। शंकर 'त्यक्तेन' को त्याग के रूप में लेते हैं: सब छोड़कर आत्मा की रक्षा करो। दूसरे इसे 'जो तुम्हें छोड़ा गया है उससे' पढ़ते हैं: ईश्वर ने जो दिया उसका भोग करो, और अधिक की इच्छा मत करो।" },
+      figures: ["shankara"]
+    },
+    "64": {
+      schools: [{ id: "carvaka", en: "The Cārvāka verse: 'once the body is ash, how can it ever return?' There was no Bharata left to become a deer; only a story that needs someone to be reborn.", hi: "चार्वाक का श्लोक: 'भस्मीभूतस्य देहस्य पुनरागमनं कुतः', राख हो चुका शरीर फिर कैसे लौटेगा? हिरण बनने को कोई भरत बचा ही नहीं था; बस एक कथा है जिसे पुनर्जन्म के लिए कोई चाहिए।" }],
+      scholar: { en: "Bharata was reborn as a deer and then as a brahmin who pretended to be simple-minded so that no one would attach him to anything again. That is why he is called Jaḍa Bharata, 'Bharata the dull'.", hi: "भरत हिरण बने और फिर एक ब्राह्मण, जो जड़ होने का ढोंग करते थे ताकि कोई उन्हें फिर किसी बंधन में न बाँधे। इसीलिए वे जड़ भरत कहलाते हैं।" }
+    },
+    "65": {
+      iast: "Vairāgya",
+      schools: [{ id: "yoga", en: "Yoga Sūtra 1.12 pairs it with practice: the mind is stilled by abhyāsa and vairāgya together. Detachment without practice drifts; practice without detachment grasps.", hi: "योगसूत्र १.१२ इसे अभ्यास के साथ जोड़ता है: चित्त का निरोध अभ्यास और वैराग्य दोनों से होता है। अभ्यास के बिना वैराग्य भटकता है; वैराग्य के बिना अभ्यास पकड़ता है।" }],
+      figures: ["yajnavalkya"]
+    },
+    "66": {
+      iast: "Vānaprastha"
+    },
+    "67": {
+      schools: [{ id: "vishishtadvaita", en: "Rāmānuja gives this verse a body: every being is part of the body of God. To hate any one of them is to wound God's own body.", hi: "रामानुज इस मंत्र को एक शरीर देते हैं: हर प्राणी ईश्वर के शरीर का अंग है। किसी एक से घृणा करना ईश्वर के अपने शरीर को घायल करना है।" }]
+    },
+    "68": {
+      schools: [{ id: "advaita", en: "Śaṅkara holds that words can liberate, but only the right sentence, heard from a teacher, by a mind ready for it. Nārada had all the words and none of the hearing.", hi: "शंकर मानते हैं कि शब्द मुक्त कर सकते हैं, पर केवल सही वाक्य, गुरु से सुना हुआ, तैयार मन से। नारद के पास सब शब्द थे, सुनना नहीं।" }],
+      scholar: { en: "Sanatkumāra led Nārada up a ladder of fifteen things, each 'greater' than the last: name, speech, mind, will, and so on up to breath, and then to bhūman, the boundless, where alone there is joy.", hi: "सनत्कुमार नारद को पंद्रह सीढ़ियों पर ले गए, हर एक पिछली से 'बड़ी': नाम, वाणी, मन, संकल्प, और इसी तरह प्राण तक, फिर भूमा तक, असीम, जहाँ अकेले सुख है।" }
+    },
+    "69": {
+      iast: "Mātsarya",
+      schools: [{ id: "bauddha", en: "The Buddhists name the antidote: muditā, sympathetic joy, being glad at someone else's good fortune. It is one of the four boundless states, and the hardest.", hi: "बौद्ध इसकी औषधि बताते हैं: मुदिता, दूसरे के सौभाग्य पर प्रसन्न होना। यह चार अपरिमित भावों में से एक है, और सबसे कठिन।" }],
+      scholar: { en: "In the hall built by the asura architect Maya, Duryodhana mistook a crystal floor for water and a pool for a floor, and fell in. The laughter of those who saw it is remembered as the spark.", hi: "असुर शिल्पी मय के बनाए सभाभवन में दुर्योधन ने स्फटिक के फर्श को पानी और तालाब को फर्श समझा, और गिर पड़ा। देखने वालों की हँसी को चिंगारी के रूप में याद किया जाता है।" }
+    },
+    "70": {
+      iast: "Pañca-kośa",
+      schools: [{ id: "advaita", en: "Advaita uses the sheaths as a method: look at each one, see that you are its witness, and set it aside. What cannot be set aside is the Self.", hi: "अद्वैत कोशों को एक विधि की तरह बरतता है: हर एक को देखो, जानो कि तुम उसके साक्षी हो, और उसे अलग रखो। जो अलग न किया जा सके, वही आत्मा है।" }]
+    },
+    "71": {
+      schools: [{ id: "carvaka", en: "The Cārvākas said much religion was a livelihood for those who perform it, and they would have recognised this cat. The charge is old, and it is not always wrong.", hi: "चार्वाकों ने कहा कि बहुत सा धर्म उसे करवाने वालों की आजीविका है, और वे इस बिल्ली को पहचान लेते। यह आरोप पुराना है, और हमेशा गलत भी नहीं।" }]
+    },
+    "72": {
+      iast: "Tapas",
+      schools: [{ id: "jaina", en: "For the Jains tapas is central: fasting and austerity burn off karmic matter already stuck to the soul, the way heat burns off impurities from gold.", hi: "जैनों के लिए तप केंद्रीय है: उपवास और तप जीव पर पहले से चिपके कर्म-पुद्गल को जला देते हैं, जैसे आग सोने का मैल।" }],
+      scholar: { en: "Varuṇa never gave Bhṛgu an answer. He gave him a method: 'Seek it by tapas.' Bhṛgu came back four times with food, breath, mind and understanding, and was sent away again each time.", hi: "वरुण ने भृगु को कभी उत्तर नहीं दिया। उन्होंने विधि दी: 'तप से जानो।' भृगु चार बार अन्न, प्राण, मन और विज्ञान लेकर लौटे, और हर बार फिर भेजे गए।" }
+    },
+    "73": {
+      iast: "Prāṇa",
+      schools: [{ id: "yoga", en: "Yoga makes breath the fourth limb: prāṇāyāma, the regulation of in-breath and out-breath (Yoga Sūtra 2.49), the hinge between body and mind.", hi: "योग प्राण को चौथा अंग बनाता है: प्राणायाम, श्वास और प्रश्वास का नियमन (योगसूत्र २.४९), शरीर और मन के बीच का कब्ज़ा।" }]
+    },
+    "74": {
+      iast: "Dahara",
+      scholar: { en: "This is the dahara-vidyā, the meditation on the small space within. The Brahma Sūtra (1.3.14) argues that the space meant here is Brahman, not the physical ether.", hi: "यह दहर-विद्या है, भीतर के छोटे आकाश का ध्यान। ब्रह्मसूत्र (१.३.१४) तर्क देता है कि यहाँ अभिप्रेत आकाश ब्रह्म है, भौतिक आकाश नहीं।" }
+    },
+    "75": {
+      schools: [{ id: "samkhya", en: "Sāṃkhya would agree with Janaka's grammar exactly: puruṣa owns nothing and does nothing. Whatever burns was prakṛti all along.", hi: "सांख्य जनक के वाक्य से पूरी तरह सहमत होता: पुरुष का कुछ नहीं और वह कुछ नहीं करता। जो जल रहा है वह सदा से प्रकृति था।" }]
+    },
+    "76": {
+      iast: "Sandhyā"
+    },
+    "77": {
+      iast: "Mada",
+      scholar: { en: "Agni went first and could not burn the grass, then Vāyu could not move it. When Indra approached, the Yakṣa vanished altogether, which is why Indra is said to have come nearest.", hi: "पहले अग्नि गए और तिनका न जला सके, फिर वायु उसे हिला न सके। जब इंद्र पास गए तो यक्ष पूरी तरह अंतर्धान हो गया, इसीलिए कहा जाता है कि इंद्र सबसे निकट पहुँचे।" }
+    },
+    "78": {
+      schools: [{ id: "nyaya", en: "Nyāya agrees that it is the self who loves, but insists that selves are many, one to each body. Yājñavalkya's 'Self' would be Maitreyī's own, not one shared by both.", hi: "न्याय सहमत है कि प्रेम करने वाला आत्मा है, पर ज़ोर देता है कि आत्माएँ अनेक हैं, हर शरीर में एक। याज्ञवल्क्य का 'आत्मा' मैत्रेयी का अपना होगा, दोनों में एक नहीं।" }],
+      figures: ["yajnavalkya"]
+    },
+    "79": {
+      schools: [{ id: "yoga", en: "Yoga Sūtra 1.27: the word for Īśvara is praṇava, Om. Repeat it with its meaning, and the obstacles fall away.", hi: "योगसूत्र १.२७: ईश्वर का वाचक प्रणव है, ॐ। उसका अर्थ सहित जप करो, और विघ्न हट जाते हैं।" }]
+    },
+    "80": {
+      iast: "Sannyāsa",
+      schools: [{ id: "mimamsa", en: "Mīmāṃsā was suspicious of all this. If dharma is ritual action, the man who gives up his fires has given up dharma. The householder's life was the whole of it.", hi: "मीमांसा इस सबको संदेह से देखती थी। यदि धर्म यज्ञ-कर्म है, तो अपनी अग्नि त्यागने वाले ने धर्म त्याग दिया। गृहस्थ का जीवन ही सब कुछ था।" }, { id: "advaita", en: "Advaita answered with monasteries. Śaṅkara's tradition made renunciation the natural life of one who has seen that action cannot free anyone.", hi: "अद्वैत ने मठों से उत्तर दिया। शंकर की परंपरा ने संन्यास को उसका स्वाभाविक जीवन बनाया जिसने देख लिया कि कर्म किसी को मुक्त नहीं कर सकता।" }]
+    },
+    "81": {
+      iast: "Neti neti",
+      schools: [{ id: "advaita", en: "Advaita reads 'not this, not this' as the most exact description there is: the Self is reached by subtracting everything it is not.", hi: "अद्वैत 'नेति नेति' को सबसे सटीक वर्णन मानता है: आत्मा तक वह सब घटाकर पहुँचा जाता है जो वह नहीं है।" }, { id: "bauddha", en: "A Buddhist would keep going: apply 'not this' to the Self as well. There is no remainder; that is anattā.", hi: "एक बौद्ध आगे बढ़ता: 'नेति' को आत्मा पर भी लागू करो। कुछ शेष नहीं बचता; यही अनात्म है।" }],
+      figures: ["yajnavalkya"]
+    },
+    "82": {
+      iast: "Turīya",
+      schools: [{ id: "advaita", en: "Gauḍapāda's verses on this Upaniṣad began Advaita. He argued that waking and dreaming are alike, both appearances to a fourth that never comes or goes.", hi: "इस उपनिषद् पर गौड़पाद की कारिका से अद्वैत आरंभ हुआ। उन्होंने तर्क दिया कि जाग्रत और स्वप्न एक जैसे हैं, दोनों एक चौथे के सामने प्रतीतियाँ, जो न आता है न जाता है।" }],
+      figures: ["gaudapada"]
+    },
+    "83": {
+      iast: "Amṛtatva",
+      schools: [{ id: "nyaya", en: "Yājñavalkya told Maitreyī that after death there is no awareness. Nyāya agreed that liberation is without pleasure or awareness; its critics joked that it turns you into a stone.", hi: "याज्ञवल्क्य ने मैत्रेयी से कहा कि मृत्यु के बाद संज्ञा नहीं रहती। न्याय सहमत था कि मुक्ति में न सुख है न चेतना; उसके आलोचक हँसते थे कि यह आपको पत्थर बना देती है।" }],
+      figures: ["yajnavalkya"]
+    },
+    "84": {
+      iast: "Bhikṣā",
+      schools: [{ id: "jaina", en: "Jain monks take alms by strict rules: food not cooked for them, taken from many houses so as to burden none, and, for Digambara monks, eaten once a day, standing.", hi: "जैन मुनि कठोर नियमों से भिक्षा लेते हैं: ऐसा भोजन जो उनके लिए न पकाया गया हो, कई घरों से थोड़ा-थोड़ा ताकि किसी पर भार न पड़े, और दिगंबर मुनियों के लिए, दिन में एक बार, खड़े होकर।" }]
+    },
+    "85": {
+      iast: "Viveka",
+      schools: [{ id: "samkhya", en: "Sāṃkhya-Yoga's whole goal is this discernment (viveka-khyāti): seeing that the watcher is not the eater, that puruṣa is not prakṛti.", hi: "सांख्य-योग का पूरा लक्ष्य यही विवेक (विवेकख्याति) है: यह देखना कि देखने वाला खाने वाला नहीं, कि पुरुष प्रकृति नहीं।" }, { id: "dvaita", en: "Madhva cites this verse as proof of difference: two birds, the soul and God, side by side forever and never one.", hi: "मध्व इस मंत्र को भेद के प्रमाण के रूप में उद्धृत करते हैं: दो पक्षी, जीव और ईश्वर, सदा साथ, पर कभी एक नहीं।" }]
+    },
+    "86": {
+      iast: "Kena",
+      schools: [{ id: "trika", en: "Kashmir Śaivism would say the one asking 'by whom?' is already the answer: consciousness is not only light but self-aware (vimarśa). It knows itself in the very act of asking.", hi: "काश्मीर शैव कहता कि 'किसके द्वारा?' पूछने वाला ही उत्तर है: चेतना केवल प्रकाश नहीं, विमर्श भी है। पूछने की क्रिया में ही वह स्वयं को जानती है।" }]
+    },
+    "87": {
+      scholar: { en: "Verses 15–18 of the Īśa are a prayer recited at death: to Pūṣan to uncover truth's face, then to fire to lead the departing by a good path. They are still recited at Hindu funerals.", hi: "ईश के मंत्र १५–१८ मृत्यु के समय की प्रार्थना हैं: पूषन् से सत्य का मुख खोलने की, फिर अग्नि से जाने वाले को शुभ मार्ग से ले जाने की। ये आज भी हिंदू अंत्येष्टि में पढ़े जाते हैं।" }
+    },
+    "88": {
+      iast: "Dambha",
+      scholar: { en: "From the Panchatantra's third book, 'Crows and owls'. The cat, Dadhikarṇa, quotes scripture on non-violence while it waits for the hare and the partridge to come closer.", hi: "पंचतंत्र की तीसरी पुस्तक, 'काकोलूकीय', से। बिल्ली, दधिकर्ण, अहिंसा पर शास्त्र उद्धृत करती है जबकि वह खरगोश और तीतर के पास आने की प्रतीक्षा करती है।" }
+    },
+    "89": {
+      iast: "Ānanda",
+      schools: [{ id: "advaita", en: "Advaita takes bliss into its definition of Brahman: sat, cit, ānanda, being, consciousness and bliss.", hi: "अद्वैत आनंद को ब्रह्म की परिभाषा में लेता है: सत्, चित्, आनंद, अस्तित्व, चेतना और आनंद।" }, { id: "nyaya", en: "Nyāya would object: bliss is still an experience, and every experience binds. Liberation is the end of suffering, and nothing more is promised.", hi: "न्याय आपत्ति करता: आनंद भी एक अनुभव है, और हर अनुभव बाँधता है। मुक्ति दुःख का अंत है, और इससे अधिक कुछ वचन नहीं।" }]
+    },
+    "90": {
+      iast: "Asato mā sad gamaya",
+      scholar: { en: "These are the pavamāna verses, sung by the priest during the Soma rite. The Upaniṣad itself explains them: the unreal is death, the real is immortality.", hi: "ये पवमान मंत्र हैं, जिन्हें सोमयज्ञ में पुरोहित गाता है। उपनिषद् स्वयं इनकी व्याख्या करता है: असत् मृत्यु है, सत् अमृत।" }
+    },
+    "91": {
+      iast: "Prajñānaṃ brahma",
+      schools: [{ id: "advaita", en: "The first of the four great sentences (mahāvākya), one from each Veda. This is the Ṛg Veda's: Brahman is consciousness itself.", hi: "चार महावाक्यों में पहला, हर वेद से एक। यह ऋग्वेद का है: ब्रह्म स्वयं चेतना है।" }, { id: "bauddha", en: "Yogācāra Buddhists also said that only consciousness is real. But for them it is a stream of moments, with no Self standing behind it.", hi: "योगाचार बौद्धों ने भी कहा कि केवल विज्ञान (चेतना) सत्य है। पर उनके लिए यह क्षणों की धारा है, जिसके पीछे कोई आत्मा खड़ी नहीं।" }]
+    },
+    "92": {
+      iast: "Ahaṃ brahmāsmi",
+      schools: [{ id: "trika", en: "Kashmir Śaivism would put it as recognition: not 'I shall become Śiva' but 'I see now that I am Śiva', the way you recognise a face you already knew.", hi: "काश्मीर शैव इसे प्रत्यभिज्ञा कहता: 'मैं शिव बनूँगा' नहीं, बल्कि 'अब देखता हूँ कि मैं शिव हूँ', जैसे कोई जाना-पहचाना चेहरा पहचान लेते हैं।" }, { id: "dvaita", en: "For Madhva this sentence cannot mean identity. It means that the soul depends on Brahman entirely, as a reflection depends on what it reflects.", hi: "मध्व के लिए इस वाक्य का अर्थ अभेद नहीं हो सकता। इसका अर्थ है कि जीव पूरी तरह ब्रह्म पर निर्भर है, जैसे प्रतिबिंब बिंब पर।" }],
+      scholar: { en: "The Yajur Veda's great sentence. Its context is a creation story: in the beginning Brahman knew only itself, as 'I am Brahman', and so became all this.", hi: "यजुर्वेद का महावाक्य। इसका संदर्भ एक सृष्टि-कथा है: आरंभ में ब्रह्म ने केवल स्वयं को जाना, 'अहं ब्रह्मास्मि' के रूप में, और इसी से वह सब कुछ बन गया।" }
+    },
+    "93": {
+      iast: "Āsakti",
+      schools: [{ id: "bauddha", en: "In the Buddha's chain of dependent origination, craving gives rise to clinging (upādāna), and clinging to becoming. Bharata's fawn is the whole chain in one small life.", hi: "बुद्ध के प्रतीत्यसमुत्पाद में तृष्णा से उपादान (पकड़) उत्पन्न होता है, और उपादान से भव। भरत का शावक एक छोटे से जीवन में पूरी शृंखला है।" }]
+    },
+    "94": {
+      iast: "Sākṣin",
+      schools: [{ id: "samkhya", en: "Sāṃkhya Kārikā 19 gives the watching bird's job description: puruṣa is witness (sākṣitva), isolated, indifferent, a seer and not a doer.", hi: "सांख्यकारिका १९ साक्षी पक्षी का काम बताती है: पुरुष साक्षी है, कैवल्य वाला, उदासीन, द्रष्टा, कर्ता नहीं।" }],
+      figures: ["kapila"]
+    },
+    "95": {
+      iast: "Ayam ātmā brahma",
+      schools: [{ id: "advaita", en: "The Atharva Veda's great sentence. Advaita hears in it the whole teaching in three words: this, here, now, is that.", hi: "अथर्ववेद का महावाक्य। अद्वैत इसमें तीन शब्दों में पूरी शिक्षा सुनता है: यह, यहीं, अभी, वही है।" }],
+      figures: ["gaudapada"]
+    },
+    "96": {
+      iast: "Sarvaṃ khalv idaṃ brahma",
+      schools: [{ id: "advaita", en: "Advaita: all this is Brahman, but 'all this' as you see it is appearance (vivarta), the way the snake is really rope.", hi: "अद्वैत: यह सब ब्रह्म है, पर जैसा आप 'यह सब' देखते हैं वह विवर्त है, प्रतीति, जैसे साँप वास्तव में रस्सी है।" }, { id: "vishishtadvaita", en: "Rāmānuja: all this is Brahman as a body is the person. The world is real, and it is real as God's.", hi: "रामानुज: यह सब ब्रह्म है जैसे शरीर व्यक्ति है। जगत वास्तविक है, और वह ईश्वर का है।" }],
+      scholar: { en: "From the meditation of Śāṇḍilya (Chāndogya 3.14). It goes on: 'As a person's resolve is in this world, so they become on departing.' It is one of the oldest statements of the idea of karma.", hi: "शाण्डिल्य-विद्या से (छांदोग्य ३.१४)। आगे कहा है: 'इस लोक में मनुष्य का जैसा संकल्प होता है, जाने पर वह वैसा ही होता है।' यह कर्म के विचार के सबसे पुराने कथनों में से एक है।" }
+    },
+    "97": {
+      iast: "Pūrṇam adaḥ pūrṇam idam",
+      scholar: { en: "The peace invocation (śānti-pāṭha) recited before the Īśa and the Bṛhadāraṇyaka. Its arithmetic, whole minus whole leaves whole, is the arithmetic of the infinite.", hi: "ईश और बृहदारण्यक से पहले पढ़ा जाने वाला शांति पाठ। इसका गणित, पूर्ण से पूर्ण घटाने पर पूर्ण शेष, अनंत का गणित है।" }
+    },
+    "98": {
+      iast: "Om śāntiḥ śāntiḥ śāntiḥ",
+      scholar: { en: "Said three times, one for each kind of trouble: from oneself (ādhyātmika), from other beings (ādhibhautika), and from the powers above (ādhidaivika).", hi: "तीन बार कहा जाता है, हर प्रकार के ताप के लिए एक: अपने से (आध्यात्मिक), अन्य प्राणियों से (आधिभौतिक), और ऊपर की शक्तियों से (आधिदैविक)।" }
+    },
+    "99": {
+      iast: "Ahaṅkāra",
+      schools: [{ id: "samkhya", en: "In Sāṃkhya, ahaṅkāra is a tattva, a piece of matter: the 'I-maker' that stamps 'mine' on whatever the intellect lights up. It is not the Self. It is the thing most often taken for it.", hi: "सांख्य में अहंकार एक तत्त्व है, प्रकृति का अंश: 'मैं' बनाने वाला, जो बुद्धि के प्रकाशित किए हर विषय पर 'मेरा' की मुहर लगाता है। यह आत्मा नहीं है। यह वह है जिसे सबसे अधिक आत्मा मान लिया जाता है।" }],
+      scholar: { en: "The Upaniṣad calls Virocana's teaching 'the doctrine of the asuras'. Later writers sometimes named it as the ancestor of the Cārvāka view that the body is the self.", hi: "उपनिषद् विरोचन के मत को 'असुरों का उपनिषद्' कहता है। बाद के लेखकों ने कभी-कभी इसे चार्वाक के देहात्मवाद का पूर्वज बताया।" }
+    },
+    "101": {
+      line2: { en: "When the merit is spent, the soul returns to earth. Heaven is a holiday, not a home.", hi: "पुण्य समाप्त होते ही जीव पृथ्वी पर लौटता है। स्वर्ग छुट्टी है, घर नहीं।" },
+      schools: [{ id: "mimamsa", en: "For Mīmāṃsā this square was the goal for centuries: 'one who desires heaven should sacrifice' (svargakāmo yajeta) is its model injunction. Under its law, you would stop here.", hi: "मीमांसा के लिए सदियों तक यही खाना लक्ष्य था: 'स्वर्गकामो यजेत' (स्वर्ग चाहने वाला यज्ञ करे) इसकी आदर्श विधि है। इसके नियम में आप यहीं रुक जाते।" }],
+      figures: ["kumarila"]
+    },
+    "102": {
+      line2: { en: "He is the oldest priest and the youngest flame, born anew each time the fire-sticks are rubbed.", hi: "वे सबसे पुराने पुरोहित और सबसे नई लौ हैं, अरणि मथने पर हर बार नए जन्मते हुए।" },
+      schools: [{ id: "mimamsa", en: "Some Mīmāṃsakas said a god like Agni exists only as the name in the mantra: what matters is the offering and the word, not a person who receives it.", hi: "कुछ मीमांसकों ने कहा कि अग्नि जैसे देवता केवल मंत्र में नाम के रूप में हैं: महत्त्व आहुति और शब्द का है, उसे ग्रहण करने वाले किसी व्यक्ति का नहीं।" }]
+    },
+    "103": {
+      line2: { en: "The Gāyatrī of square 25 is addressed to him as Savitṛ, the one who sets the world in motion each morning.", hi: "खाना २५ की गायत्री उन्हें सविता के रूप में संबोधित है, जो हर सुबह जगत को गति देते हैं।" }
+    },
+    "104": {
+      line2: { en: "Every beginning starts with him, so he waits here, near the end, to clear the way for the last one.", hi: "हर आरंभ उन्हीं से होता है, इसलिए वे यहाँ अंत के पास प्रतीक्षा करते हैं, अंतिम आरंभ का मार्ग खोलने के लिए।" }
+    },
+    "105": {
+      line2: { en: "She is fortune, and fortune is fickle; she is also Śrī, who never leaves Viṣṇu's side.", hi: "वे भाग्य हैं, और भाग्य चंचल है; वे श्री भी हैं, जो विष्णु का साथ कभी नहीं छोड़तीं।" },
+      schools: [{ id: "vishishtadvaita", en: "In Rāmānuja's tradition Śrī is the mediator (puruṣakāra): she turns God's face toward the soul that has fallen short.", hi: "रामानुज की परंपरा में श्री पुरुषकार हैं, मध्यस्थ: वे ईश्वर का मुख उस जीव की ओर मोड़ती हैं जो चूक गया है।" }]
+    },
+    "106": {
+      line2: { en: "Telling milk from water is called nīra-kṣīra-viveka, the discernment of square 85, given wings.", hi: "दूध और पानी अलग करना नीर-क्षीर-विवेक कहलाता है, खाना ८५ का विवेक, जिसे पंख मिल गए।" },
+      schools: [{ id: "nyaya", en: "Nyāya's whole project is the swan's: telling valid knowledge (pramā) from error, and showing exactly how you can tell.", hi: "न्याय का पूरा काम हंस का काम है: प्रमा को भ्रम से अलग करना, और ठीक-ठीक दिखाना कि यह कैसे पहचाना जाता है।" }]
+    },
+    "107": {
+      line2: { en: "His day lasts a thousand ages. When he sleeps the worlds dissolve, and when he wakes they begin again.", hi: "उनका एक दिन हज़ार युगों का होता है। वे सोते हैं तो लोक विलीन होते हैं, जागते हैं तो फिर आरंभ होते हैं।" },
+      schools: [{ id: "vaisheshika", en: "Vaiśeṣika pictured creation as atoms combining, pairs into triads into everything, set moving by God at the start of each cycle.", hi: "वैशेषिक ने सृष्टि को परमाणुओं के जुड़ने के रूप में देखा, दो से तीन, तीन से सब कुछ, जिन्हें हर कल्प के आरंभ में ईश्वर गति देते हैं।" }, { id: "mimamsa", en: "Mīmāṃsā and the Jains both denied it: the world was never created and will never wholly end.", hi: "मीमांसा और जैन दोनों ने इसे नकारा: जगत कभी रचा नहीं गया और कभी पूरी तरह समाप्त नहीं होगा।" }],
+      figures: ["kumarila"]
+    },
+    "108": {
+      line2: { en: "He comes down whenever dharma fails: as fish, tortoise, boar, man-lion, dwarf, and the rest.", hi: "जब भी धर्म डगमगाता है वे उतरते हैं: मत्स्य, कूर्म, वराह, नरसिंह, वामन, और आगे के रूपों में।" },
+      schools: [{ id: "dvaita", en: "For Madhva, Viṣṇu alone is fully independent (svatantra). Every soul and every god on this row depends on him.", hi: "मध्व के लिए केवल विष्णु पूर्णतः स्वतंत्र हैं। इस पंक्ति का हर जीव और हर देवता उन पर निर्भर है।" }]
+    },
+    "109": {
+      line2: { en: "He dances the world into being and out of it again; the destroyer is also the one who sets free.", hi: "वे नृत्य से जगत को रचते हैं और फिर उसे समेटते हैं; संहारक ही मुक्त करने वाले भी हैं।" },
+      schools: [{ id: "trika", en: "For the Kashmir Śaivas, Śiva is not a god up here but consciousness itself, everywhere on the board, freely appearing as all of it.", hi: "काश्मीर शैवों के लिए शिव यहाँ ऊपर बैठे कोई देवता नहीं, स्वयं चेतना हैं, पूरे बोर्ड पर, स्वतंत्रता से सब कुछ बनकर प्रकट।" }],
+      figures: ["abhinavagupta"]
+    },
+    "110": {
+      iast: "Mokṣa",
+      views: [{ id: "nyaya", en: "Nyāya: apavarga, the end of all suffering. Not bliss, and only after death.", hi: "न्याय: अपवर्ग, सब दुःखों का अंत। आनंद नहीं, और केवल मृत्यु के बाद।" }, { id: "samkhya", en: "Sāṃkhya and Yoga: kaivalya, the watcher alone, seeing it was never bound.", hi: "सांख्य और योग: कैवल्य, द्रष्टा अकेला, यह देखता हुआ कि वह कभी बँधा ही नहीं था।" }, { id: "mimamsa", en: "Mīmāṃsā, for centuries: there is no such square. Heaven at 101 was enough.", hi: "मीमांसा, सदियों तक: ऐसा कोई खाना नहीं। १०१ पर स्वर्ग पर्याप्त था।" }, { id: "advaita", en: "Advaita: knowing you were always Brahman. You did not arrive; you recognised.", hi: "अद्वैत: यह जानना कि आप सदा से ब्रह्म थे। आप पहुँचे नहीं; आपने पहचाना।" }, { id: "vishishtadvaita", en: "Viśiṣṭādvaita: eternal service in God's presence, still yourself.", hi: "विशिष्टाद्वैत: ईश्वर के सान्निध्य में नित्य सेवा, स्वयं बने रहते हुए।" }, { id: "dvaita", en: "Dvaita: loving nearness to Viṣṇu, by grace. Two, forever.", hi: "द्वैत: कृपा से विष्णु का प्रेमपूर्ण सान्निध्य। सदा दो।" }, { id: "jaina", en: "Jainism: the soul, free of karmic dust, rising to the top of the universe.", hi: "जैन: कर्म की धूल से मुक्त जीव, लोक के शिखर तक उठता हुआ।" }, { id: "bauddha", en: "Buddhism: nirvāṇa, the flame blown out, with no one left who was bound.", hi: "बौद्ध: निर्वाण, लौ का बुझ जाना, बिना किसी के जो बँधा था।" }, { id: "carvaka", en: "Cārvāka: death is liberation. Live well on the way.", hi: "चार्वाक: मृत्यु ही मोक्ष है। रास्ते में अच्छे से जियो।" }],
+      scholar: { en: "They all said you had arrived, and they meant very different things. Each name above opens that school in the Codex.", hi: "सबने कहा कि आप पहुँच गए, और सबका अर्थ बहुत अलग था। ऊपर का हर नाम कोश में उस दर्शन को खोलता है।" }
+    }
+  };
+
+  // content/codex.json
+  var codex_default = {
+    schools: {
+      nyaya: { name: { en: "Nyaya", hi: "न्याय" }, iast: "Nyāya", tag: { en: "Āstika · logic", hi: "आस्तिक · तर्कशास्त्र" }, url: "https://en.wikipedia.org/wiki/Nyaya", line: { en: "The school of argument: how do you know what you claim to know?", hi: "तर्क का दर्शन: जो आप जानने का दावा करते हैं, उसे आप जानते कैसे हैं?" }, body: { en: "Nyāya accepts four means of knowledge: perception, inference, comparison and testimony. Its five-step inference (the hill has fire, because it has smoke, as in a kitchen) became the grammar of Indian debate. It holds that selves are many and real, that God can be inferred as the maker of the world, and that the self is known from its marks: desire, aversion, effort, pleasure, pain and knowing.", hi: "न्याय ज्ञान के चार साधन मानता है: प्रत्यक्ष, अनुमान, उपमान और शब्द। इसका पाँच अंगों वाला अनुमान (पर्वत पर आग है, क्योंकि धुआँ है, जैसे रसोई में) भारतीय शास्त्रार्थ का व्याकरण बन गया। यह मानता है कि आत्माएँ अनेक और वास्तविक हैं, कि ईश्वर का अनुमान जगत के कर्ता के रूप में होता है, और आत्मा अपने लक्षणों से जानी जाती है: इच्छा, द्वेष, प्रयत्न, सुख, दुःख और ज्ञान।" }, moksha: { en: "Apavarga: the end of all suffering. Not bliss, and only after death.", hi: "अपवर्ग: सब दुःखों का अंत। आनंद नहीं, और केवल मृत्यु के बाद।" } },
+      vaisheshika: { name: { en: "Vaisheshika", hi: "वैशेषिक" }, iast: "Vaiśeṣika", tag: { en: "Āstika · physics", hi: "आस्तिक · पदार्थ-विज्ञान" }, url: "https://en.wikipedia.org/wiki/Vaisheshika", line: { en: "The world is made of partless atoms, and every whole is something new.", hi: "जगत अविभाज्य परमाणुओं से बना है, और हर संपूर्ण वस्तु कुछ नई होती है।" }, body: { en: "Kaṇāda's school sorts everything that exists into categories: substance, quality, motion, the universal, the particular and inherence. Earth, water, fire and air are made of atoms (paramāṇu) that combine in pairs and triads. A pot is a new thing, not the clay in disguise. It is the sister school of Nyāya, and the two later merged.", hi: "कणाद का यह दर्शन हर अस्तित्ववान वस्तु को पदार्थों में बाँटता है: द्रव्य, गुण, कर्म, सामान्य, विशेष और समवाय। पृथ्वी, जल, अग्नि और वायु परमाणुओं से बने हैं जो दो-दो और तीन-तीन मिलकर जुड़ते हैं। घड़ा एक नई वस्तु है, भेष बदली हुई मिट्टी नहीं। यह न्याय का सहोदर दर्शन है, और आगे चलकर दोनों एक हो गए।" }, moksha: { en: "The self freed of all its qualities, including pleasure and awareness.", hi: "आत्मा का अपने सब गुणों से, सुख और चेतना से भी, मुक्त हो जाना।" } },
+      samkhya: { name: { en: "Samkhya", hi: "सांख्य" }, iast: "Sāṃkhya", tag: { en: "Āstika · analysis", hi: "आस्तिक · विश्लेषण" }, url: "https://en.wikipedia.org/wiki/Samkhya", line: { en: "Two realities: the watching self, and the matter that does everything.", hi: "दो सत्य: देखने वाला पुरुष, और सब कुछ करने वाली प्रकृति।" }, body: { en: "Sāṃkhya counts twenty-five principles (tattva). Puruṣa is pure witnessing consciousness and never acts. Prakṛti is everything else: body, senses, mind, intellect and even the sense of 'I' (ahaṅkāra), all woven from three strands, the guṇas: sattva (clarity), rajas (drive) and tamas (inertia). Effects already exist in their causes, as the oil is in the sesame seed. It needs no God.", hi: "सांख्य पच्चीस तत्त्व गिनता है। पुरुष शुद्ध साक्षी चेतना है और कभी कर्म नहीं करता। प्रकृति बाकी सब कुछ है: शरीर, इंद्रियाँ, मन, बुद्धि और 'मैं' का भाव (अहंकार) भी, सब तीन गुणों से बुने हुए: सत्त्व (प्रकाश), रजस् (गति) और तमस् (जड़ता)। कार्य पहले से ही कारण में होता है, जैसे तिल में तेल। इसे ईश्वर की आवश्यकता नहीं।" }, moksha: { en: "Kaivalya: puruṣa sees that it was never bound to prakṛti. Possible in life.", hi: "कैवल्य: पुरुष देख लेता है कि वह प्रकृति से कभी बँधा ही नहीं था। जीते जी संभव।" } },
+      yoga: { name: { en: "Yoga", hi: "योग" }, iast: "Yoga", tag: { en: "Āstika · practice", hi: "आस्तिक · साधना" }, url: "https://en.wikipedia.org/wiki/Yoga_(philosophy)", line: { en: "Sāṃkhya's map, walked: a discipline for stilling the movements of the mind.", hi: "सांख्य का नक्शा, चलकर: मन की वृत्तियों को शांत करने का अनुशासन।" }, body: { en: "Patañjali's Yoga Sūtra opens by defining yoga as the stilling of the mind's fluctuations (citta-vṛtti-nirodha). It names five afflictions (kleśa): ignorance, I-am-ness, attachment, aversion and clinging to life. Against them it sets eight limbs, from ethical restraints such as truth and non-violence, through posture and breath, to meditative absorption. It keeps a special God (Īśvara) as a focus for devotion.", hi: "पतंजलि का योगसूत्र योग की परिभाषा से आरंभ होता है: चित्त की वृत्तियों का निरोध। यह पाँच क्लेश बताता है: अविद्या, अस्मिता, राग, द्वेष और अभिनिवेश। इनके सामने यह आठ अंग रखता है, सत्य और अहिंसा जैसे यमों से लेकर आसन और प्राणायाम तक, और फिर समाधि तक। यह भक्ति के आलंबन के रूप में एक विशेष ईश्वर को मानता है।" }, moksha: { en: "Kaivalya, as in Sāṃkhya, reached by trained stillness. Possible in life.", hi: "कैवल्य, सांख्य की तरह, साधे हुए निरोध से। जीते जी संभव।" } },
+      mimamsa: { name: { en: "Mimamsa", hi: "मीमांसा" }, iast: "Mīmāṃsā", tag: { en: "Āstika · ritual", hi: "आस्तिक · कर्मकांड" }, url: "https://en.wikipedia.org/wiki/Mimamsa", line: { en: "Dharma is what the Veda commands, and the command works by itself.", hi: "धर्म वही है जिसकी वेद आज्ञा देता है, और वह आज्ञा अपने आप फल देती है।" }, body: { en: "Mīmāṃsā is the science of reading the Veda's injunctions. It holds the Veda to be eternal and authorless, so no speaker's error can enter it. A rite produces its result through apūrva, an unseen potency, with no god needed to hand out rewards; Kumārila argued at length against a creator. For centuries its goal was heaven (svarga), not liberation.", hi: "मीमांसा वेद की विधियों को पढ़ने का शास्त्र है। यह वेद को नित्य और अपौरुषेय मानती है, इसलिए उसमें किसी वक्ता की भूल नहीं आ सकती। यज्ञ अपना फल अपूर्व से देता है, एक अदृश्य शक्ति से, फल बाँटने के लिए किसी देवता की ज़रूरत नहीं; कुमारिल ने सृष्टिकर्ता के विरुद्ध लंबे तर्क दिए। सदियों तक इसका लक्ष्य मोक्ष नहीं, स्वर्ग था।" }, moksha: { en: "For centuries, none: svarga was enough. Later teachers admitted mokṣa as the end of rebirth.", hi: "सदियों तक कोई नहीं: स्वर्ग पर्याप्त था। बाद के आचार्यों ने मोक्ष को पुनर्जन्म के अंत के रूप में माना।" } },
+      advaita: { name: { en: "Advaita Vedanta", hi: "अद्वैत वेदांत" }, iast: "Advaita Vedānta", tag: { en: "Āstika · Vedānta", hi: "आस्तिक · वेदांत" }, url: "https://en.wikipedia.org/wiki/Advaita_Vedanta", line: { en: "Not two: the self you are and the Brahman you seek are one.", hi: "दो नहीं: जो आत्मा आप हैं और जिस ब्रह्म को आप खोजते हैं, वे एक हैं।" }, body: { en: "Śaṅkara read the Upaniṣads as teaching one thing: ātman is Brahman. The world of many things is real enough to live in but not ultimately real, the way a rope is taken for a snake in dim light. The error is ignorance (avidyā), and only knowledge removes it: rites and good deeds can prepare the mind, never free it. The great sentences (mahāvākya) of the Upaniṣads are where that knowledge is heard.", hi: "शंकर ने उपनिषदों में एक ही शिक्षा पढ़ी: आत्मा ही ब्रह्म है। अनेक वस्तुओं का संसार जीने भर के लिए सत्य है, परम सत्य नहीं, जैसे धुँधली रोशनी में रस्सी साँप लगती है। यह भूल अविद्या है, और इसे केवल ज्ञान मिटाता है: कर्म और पुण्य मन को तैयार कर सकते हैं, मुक्त नहीं। उपनिषदों के महावाक्य वह स्थान हैं जहाँ यह ज्ञान सुना जाता है।" }, moksha: { en: "Knowing you were always Brahman. Possible while alive (jīvanmukti).", hi: "यह जानना कि आप सदा से ब्रह्म थे। जीते जी संभव (जीवन्मुक्ति)।" } },
+      vishishtadvaita: { name: { en: "Vishishtadvaita", hi: "विशिष्टाद्वैत" }, iast: "Viśiṣṭādvaita", tag: { en: "Āstika · Vedānta", hi: "आस्तिक · वेदांत" }, url: "https://en.wikipedia.org/wiki/Vishishtadvaita", line: { en: "One Brahman, with the world and every self as its body.", hi: "एक ब्रह्म, और जगत तथा हर आत्मा उसका शरीर।" }, body: { en: "Rāmānuja agreed that Brahman is one, but denied that the world is an illusion. Selves and matter are real, and they belong to Brahman as a body belongs to the one who lives in it. Brahman is a personal God, Viṣṇu-Nārāyaṇa, full of good qualities, and devotion (bhakti) together with surrender (prapatti) is the way to him.", hi: "रामानुज ने माना कि ब्रह्म एक है, पर जगत को माया नहीं माना। आत्माएँ और पदार्थ वास्तविक हैं, और वे ब्रह्म के हैं जैसे शरीर उसमें रहने वाले का होता है। ब्रह्म सगुण ईश्वर हैं, विष्णु-नारायण, कल्याण गुणों से पूर्ण, और भक्ति के साथ प्रपत्ति (शरणागति) उन तक पहुँचने का मार्ग है।" }, moksha: { en: "Eternal service of God in his presence, your individuality kept.", hi: "ईश्वर के सान्निध्य में उनकी नित्य सेवा, अपना व्यक्तित्व बनाए रखकर।" } },
+      dvaita: { name: { en: "Dvaita Vedanta", hi: "द्वैत वेदांत" }, iast: "Dvaita Vedānta", tag: { en: "Āstika · Vedānta", hi: "आस्तिक · वेदांत" }, url: "https://en.wikipedia.org/wiki/Dvaita_Vedanta", line: { en: "Two, always: God and the soul are never the same.", hi: "सदा दो: ईश्वर और जीव कभी एक नहीं होते।" }, body: { en: "Madhva taught five eternal differences: between God and souls, God and matter, soul and soul, soul and matter, and matter and matter. Viṣṇu alone is independent; everything else depends on him. Souls differ in nature, and liberation comes by God's grace, which answers devotion but is never earned like a wage.", hi: "मध्व ने पाँच नित्य भेद बताए: ईश्वर और जीव, ईश्वर और जड़, जीव और जीव, जीव और जड़, तथा जड़ और जड़ के बीच। केवल विष्णु स्वतंत्र हैं; बाकी सब उन पर निर्भर है। जीव स्वभाव से भिन्न हैं, और मुक्ति ईश्वर की कृपा से मिलती है, जो भक्ति का उत्तर देती है पर मज़दूरी की तरह कमाई नहीं जाती।" }, moksha: { en: "Loving, eternal nearness to Viṣṇu, by his grace. Never merging.", hi: "विष्णु की कृपा से उनका प्रेमपूर्ण, नित्य सान्निध्य। विलय कभी नहीं।" } },
+      carvaka: { name: { en: "Charvaka", hi: "चार्वाक" }, iast: "Cārvāka · Lokāyata", tag: { en: "Nāstika · materialism", hi: "नास्तिक · भौतिकवाद" }, url: "https://en.wikipedia.org/wiki/Charvaka", line: { en: "Only what you perceive is real. This body, this life, this world.", hi: "जो प्रत्यक्ष है वही सत्य है। यही शरीर, यही जीवन, यही संसार।" }, body: { en: "The Lokāyata, 'those of this world', accepted only perception as a means of knowledge. Inference, they argued, rests on a universal rule that no one has ever seen hold everywhere. Consciousness arises from the body's elements, as intoxicating power arises from fermented grain. There is no self that survives the body, no rebirth and no karma to fear, so a good life is a pleasant one, with pain avoided where you can. Their own books are lost; we know them from opponents, who rarely put the case at full strength.", hi: "लोकायत, 'इसी लोक वाले', केवल प्रत्यक्ष को प्रमाण मानते थे। उनका तर्क था कि अनुमान एक सार्वभौम नियम पर टिका है जिसे किसी ने कभी हर जगह लागू होते नहीं देखा। चेतना शरीर के भूतों से उत्पन्न होती है, जैसे सड़े अन्न से नशे की शक्ति। शरीर के बाद बचने वाली कोई आत्मा नहीं, न पुनर्जन्म, न डरने को कर्म; इसलिए अच्छा जीवन सुखी जीवन है, जहाँ तक हो सके दुःख से बचते हुए। उनके अपने ग्रंथ खो गए; हम उन्हें विरोधियों से जानते हैं, जो उनका पक्ष शायद ही पूरी ताकत से रखते थे।" }, moksha: { en: "Death itself is liberation. There is nothing after it to be freed from.", hi: "मृत्यु ही मोक्ष है। उसके बाद मुक्त होने को कुछ नहीं बचता।" } },
+      bauddha: { name: { en: "Buddhism", hi: "बौद्ध दर्शन" }, iast: "Bauddha", tag: { en: "Nāstika · the middle way", hi: "नास्तिक · मध्यम मार्ग" }, url: "https://en.wikipedia.org/wiki/Buddhist_philosophy", line: { en: "There is suffering, it has a cause, and there is no self to hold on to.", hi: "दुःख है, उसका कारण है, और पकड़कर रखने को कोई आत्मा नहीं।" }, body: { en: "The Buddha rejected the Veda's authority and the permanent self (anattā), and kept karma and rebirth. Craving (taṇhā) drives the cycle, and every thing arises dependent on conditions. Later schools argued fiercely with the Hindu darśanas: Yogācāra said only consciousness is real, Madhyamaka that nothing has a fixed nature at all. Buddhist logicians such as Dignāga and Dharmakīrti sharpened Nyāya by attacking it.", hi: "बुद्ध ने वेद के प्रामाण्य और नित्य आत्मा को नहीं माना (अनात्म), पर कर्म और पुनर्जन्म को रखा। तृष्णा इस चक्र को चलाती है, और हर वस्तु कारणों पर निर्भर होकर उत्पन्न होती है। बाद के संप्रदायों ने हिंदू दर्शनों से तीखा शास्त्रार्थ किया: योगाचार ने कहा केवल विज्ञान (चेतना) सत्य है, माध्यमिक ने कहा किसी वस्तु का कोई स्थिर स्वभाव है ही नहीं। दिङ्नाग और धर्मकीर्ति जैसे बौद्ध तार्किकों ने न्याय पर प्रहार करके उसे और पैना किया।" }, moksha: { en: "Nirvāṇa: craving blown out like a flame. No self is liberated, because none was bound.", hi: "निर्वाण: तृष्णा का दीपक की लौ की तरह बुझ जाना। कोई आत्मा मुक्त नहीं होती, क्योंकि कोई बँधी ही नहीं थी।" } },
+      jaina: { name: { en: "Jainism", hi: "जैन दर्शन" }, iast: "Jaina", tag: { en: "Nāstika · non-violence", hi: "नास्तिक · अहिंसा" }, url: "https://en.wikipedia.org/wiki/Jain_philosophy", line: { en: "Karma is a fine dust that sticks to the soul. Harm no living thing.", hi: "कर्म एक सूक्ष्म धूल है जो जीव पर चिपकती है। किसी प्राणी को हानि न पहुँचाओ।" }, body: { en: "For the Jains every living thing has a soul (jīva), and karma is a real, subtle matter that binds it, drawn in by passion and violence. Five great vows clean it off: non-violence, truth, not stealing, chastity and non-possession, with austerity (tapas) burning away what has already stuck. The universe was never created. Their doctrine of many-sidedness (anekāntavāda) holds that any claim is true only from some standpoint. Jain boards of this game, with 84 squares, survive from the medieval period.", hi: "जैनों के लिए हर प्राणी में जीव है, और कर्म एक वास्तविक, सूक्ष्म पुद्गल है जो उसे बाँधता है, कषाय और हिंसा से खिंचकर। पाँच महाव्रत उसे धोते हैं: अहिंसा, सत्य, अस्तेय, ब्रह्मचर्य और अपरिग्रह, और तप पहले से चिपके कर्म को जलाता है। ब्रह्मांड कभी बनाया नहीं गया। उनका अनेकांतवाद कहता है कि हर कथन किसी दृष्टि से ही सत्य है। इस खेल के चौरासी खानों वाले जैन बोर्ड मध्यकाल से बचे हुए हैं।" }, moksha: { en: "Kevala: the soul, freed of all karmic matter, rises to the top of the universe in endless knowing.", hi: "कैवल्य: सब कर्म-पुद्गल से मुक्त जीव लोक के शिखर पर पहुँचकर अनंत ज्ञान में रहता है।" } },
+      trika: { name: { en: "Kashmir Shaivism", hi: "काश्मीर शैव दर्शन" }, iast: "Trika · Pratyabhijñā", tag: { en: "Āgamic · outside the six", hi: "आगमिक · षड्दर्शन से बाहर" }, url: "https://en.wikipedia.org/wiki/Kashmir_Shaivism", line: { en: "You do not become Śiva. You recognise that you were Śiva all along.", hi: "आप शिव बनते नहीं। आप पहचानते हैं कि आप सदा से शिव थे।" }, body: { en: "The Trika of Kashmir, systematised by Abhinavagupta, takes its authority from the Śaiva Āgamas rather than the Veda, so it is usually left off the list of six. Like Advaita it says consciousness alone is real, but it insists the world is not illusion: it is Śiva's own free self-expression. Consciousness is not only light (prakāśa) but self-aware (vimarśa). Its path is pratyabhijñā, recognition, like suddenly seeing that a stranger is someone you already knew.", hi: "काश्मीर का त्रिक, जिसे अभिनवगुप्त ने व्यवस्थित किया, वेद की बजाय शैव आगमों से प्रमाण लेता है, इसलिए प्रायः छह दर्शनों की सूची से बाहर रहता है। अद्वैत की तरह यह कहता है कि केवल चेतना सत्य है, पर ज़ोर देता है कि जगत माया नहीं: वह शिव की अपनी स्वतंत्र अभिव्यक्ति है। चेतना केवल प्रकाश नहीं, विमर्श भी है, स्वयं को जानने वाली। इसका मार्ग प्रत्यभिज्ञा है, पहचान, जैसे अचानक दिखे कि कोई अजनबी वही है जिसे आप पहले से जानते थे।" }, moksha: { en: "Recognition of yourself as Śiva, with the world kept as your own play.", hi: "स्वयं को शिव के रूप में पहचानना, जगत को अपनी ही लीला मानते हुए।" } }
+    },
+    sources: {
+      panchatantra: { name: { en: "Panchatantra", hi: "पंचतंत्र" }, match: "Panchatantra", url: "https://en.wikipedia.org/wiki/Panchatantra", gloss: { en: "Five books of animal fables told to teach statecraft to three princes; among the most translated books in the world.", hi: "तीन राजकुमारों को नीति सिखाने के लिए कही गई पशु-कथाओं की पाँच पुस्तकें; दुनिया में सबसे अधिक अनूदित पुस्तकों में से एक।" } },
+      mahabharata: { name: { en: "Mahabharata", hi: "महाभारत" }, match: "Mahabharata", url: "https://en.wikipedia.org/wiki/Mahabharata", gloss: { en: "The great epic of the Kuru war, in eighteen books (parvas); it holds the Bhagavad Gītā and hundreds of shorter stories.", hi: "कुरु युद्ध का महाकाव्य, अठारह पर्वों में; इसमें भगवद्गीता और सैकड़ों छोटी कथाएँ हैं।" } },
+      chandogya: { name: { en: "Chandogya Upanishad", hi: "छांदोग्य उपनिषद्" }, match: "Chandogya Upanishad", url: "https://en.wikipedia.org/wiki/Chandogya_Upanishad", gloss: { en: "One of the oldest Upaniṣads, of the Sāma Veda; home of 'tat tvam asi' and of the stories of Śvetaketu, Satyakāma and Indra.", hi: "सामवेद का, सबसे पुराने उपनिषदों में से एक; 'तत् त्वम् असि' और श्वेतकेतु, सत्यकाम तथा इंद्र की कथाओं का घर।" } },
+      brihadaranyaka: { name: { en: "Brihadaranyaka Upanishad", hi: "बृहदारण्यक उपनिषद्" }, match: "Brihadaranyaka Upanishad", url: "https://en.wikipedia.org/wiki/Brihadaranyaka_Upanishad", gloss: { en: "The 'great forest' Upaniṣad of the White Yajur Veda, the longest of them; Yājñavalkya's debates and 'neti neti' are here.", hi: "शुक्ल यजुर्वेद का 'महान वन' उपनिषद्, सबसे लंबा; याज्ञवल्क्य के शास्त्रार्थ और 'नेति नेति' यहीं हैं।" } },
+      taittiriya: { name: { en: "Taittiriya Upanishad", hi: "तैत्तिरीय उपनिषद्" }, match: "Taittiriya Upanishad", url: "https://en.wikipedia.org/wiki/Taittiriya_Upanishad", gloss: { en: "An Upaniṣad of the Black Yajur Veda: a teacher's parting advice, the five sheaths, and Bhṛgu's search that ends in bliss.", hi: "कृष्ण यजुर्वेद का उपनिषद्: गुरु का दीक्षांत उपदेश, पंचकोश, और भृगु की खोज जो आनंद पर समाप्त होती है।" } },
+      katha: { name: { en: "Katha Upanishad", hi: "कठ उपनिषद्" }, match: "Katha Upanishad", url: "https://en.wikipedia.org/wiki/Katha_Upanishad", gloss: { en: "The boy Naciketas questions Death himself about what survives; it gives the image of the chariot.", hi: "बालक नचिकेता स्वयं मृत्यु से पूछता है कि क्या बचता है; रथ का रूपक इसी में है।" } },
+      mundaka: { name: { en: "Mundaka Upanishad", hi: "मुंडक उपनिषद्" }, match: "Mundaka Upanishad", url: "https://en.wikipedia.org/wiki/Mundaka_Upanishad", gloss: { en: "A verse Upaniṣad of the Atharva Veda that ranks rites below knowledge; the two birds on one tree are from here.", hi: "अथर्ववेद का पद्य उपनिषद् जो कर्मकांड को ज्ञान से नीचे रखता है; एक वृक्ष पर दो पक्षी यहीं से हैं।" } },
+      mandukya: { name: { en: "Mandukya Upanishad", hi: "माण्डूक्य उपनिषद्" }, match: "Mandukya Upanishad", url: "https://en.wikipedia.org/wiki/Mandukya_Upanishad", gloss: { en: "Twelve verses on Om and the four states of consciousness; Gauḍapāda's commentary on it began Advaita.", hi: "ॐ और चेतना की चार अवस्थाओं पर बारह मंत्र; इस पर गौड़पाद की कारिका से अद्वैत का आरंभ हुआ।" } },
+      isha: { name: { en: "Isha Upanishad", hi: "ईश उपनिषद्" }, match: "Isha Upanishad", url: "https://en.wikipedia.org/wiki/Isha_Upanishad", gloss: { en: "Eighteen verses that close the White Yajur Veda's Saṃhitā, on living in the world without grasping it.", hi: "शुक्ल यजुर्वेद संहिता के अंत के अठारह मंत्र, संसार में बिना पकड़े जीने पर।" } },
+      kena: { name: { en: "Kena Upanishad", hi: "केन उपनिषद्" }, match: "Kena Upanishad", url: "https://en.wikipedia.org/wiki/Kena_Upanishad", gloss: { en: "Named for its first word, 'by whom?'; it asks what moves the mind and tells of the gods humbled by a Yakṣa.", hi: "अपने पहले शब्द 'केन' (किसके द्वारा?) से नाम पाया; यह पूछता है कि मन को कौन चलाता है, और यक्ष से विनम्र हुए देवताओं की कथा कहता है।" } },
+      prashna: { name: { en: "Prashna Upanishad", hi: "प्रश्न उपनिषद्" }, match: "Prashna Upanishad", url: "https://en.wikipedia.org/wiki/Prashna_Upanishad", gloss: { en: "The Upaniṣad of questions: six seekers each put one question to the sage Pippalāda.", hi: "प्रश्नों का उपनिषद्: छह जिज्ञासु ऋषि पिप्पलाद से एक-एक प्रश्न पूछते हैं।" } },
+      aitareya: { name: { en: "Aitareya Upanishad", hi: "ऐतरेय उपनिषद्" }, match: "Aitareya Upanishad", url: "https://en.wikipedia.org/wiki/Aitareya_Upanishad", gloss: { en: "A short Upaniṣad of the Ṛg Veda on how the Self created the worlds; it ends in 'prajñānaṃ brahma'.", hi: "ऋग्वेद का छोटा उपनिषद्, आत्मा ने लोक कैसे रचे; इसका अंत 'प्रज्ञानं ब्रह्म' पर होता है।" } },
+      bhagavata: { name: { en: "Bhagavata Purana", hi: "भागवत पुराण" }, match: "Bhagavata Purana", url: "https://en.wikipedia.org/wiki/Bhagavata_Purana", gloss: { en: "The great devotional Purāṇa of Viṣṇu, in twelve books; the stories of Prahlāda and of Jaḍa Bharata are here.", hi: "विष्णु का महान भक्ति पुराण, बारह स्कंधों में; प्रह्लाद और जड़ भरत की कथाएँ यहीं हैं।" } },
+      manusmriti: { name: { en: "Manusmriti", hi: "मनुस्मृति" }, match: "Manusmriti", url: "https://en.wikipedia.org/wiki/Manusmriti", gloss: { en: "A treatise on dharma that sets out the four āśramas; its rules on caste and on women were contested in its own time and are now.", hi: "धर्म पर एक ग्रंथ जो चार आश्रमों का वर्णन करता है; जाति और स्त्रियों पर इसके नियम अपने समय में भी विवादित थे और आज भी हैं।" } },
+      rigveda: { name: { en: "Rig Veda", hi: "ऋग्वेद" }, match: "Rig Veda", url: "https://en.wikipedia.org/wiki/Rigveda", gloss: { en: "The oldest of the four Vedas: over a thousand hymns, arranged in ten books (maṇḍalas).", hi: "चारों वेदों में सबसे पुराना: एक हज़ार से अधिक सूक्त, दस मंडलों में।" } },
+      grihya: { name: { en: "Grihya Sutras", hi: "गृह्यसूत्र" }, match: "Grihya Sutras", url: "https://en.wikipedia.org/wiki/Grihya_Sutras", gloss: { en: "Manuals of the household rites, from birth and first food to the sacred thread, marriage and death.", hi: "गृहस्थ के संस्कारों की नियमावली, जन्म और अन्नप्राशन से उपनयन, विवाह और मृत्यु तक।" } },
+      subhashita: { name: { en: "Subhashita", hi: "सुभाषित" }, match: "Subhashita", url: "https://en.wikipedia.org/wiki/Subhashita", gloss: { en: "'Well said': the vast tradition of single Sanskrit verses of practical wisdom, quoted rather than read.", hi: "'अच्छा कहा गया': व्यावहारिक ज्ञान के एकल संस्कृत श्लोकों की विशाल परंपरा, जो पढ़ी कम, उद्धृत अधिक जाती है।" } }
+    },
+    figures: {
+      shankara: { name: { en: "Shankara", hi: "शंकराचार्य" }, iast: "Śaṅkara", school: "advaita", url: "https://en.wikipedia.org/wiki/Adi_Shankara", dates: { en: "c. 8th century", hi: "लगभग आठवीं सदी" }, line: { en: "Advaita's great commentator. He wrote on the Upaniṣads, the Gītā and the Brahma Sūtra, and is credited with founding monastic seats across India.", hi: "अद्वैत के महान भाष्यकार। उपनिषदों, गीता और ब्रह्मसूत्र पर भाष्य लिखे, और पूरे भारत में मठों की स्थापना का श्रेय उन्हें दिया जाता है।" } },
+      ramanuja: { name: { en: "Ramanuja", hi: "रामानुजाचार्य" }, iast: "Rāmānuja", school: "vishishtadvaita", url: "https://en.wikipedia.org/wiki/Ramanuja", dates: { en: "traditionally 1017–1137", hi: "परंपरा के अनुसार १०१७–११३७" }, line: { en: "Teacher of qualified non-dualism at Śrīraṅgam. He argued against Śaṅkara that the world and selves are real as Brahman's body.", hi: "श्रीरंगम में विशिष्टाद्वैत के आचार्य। उन्होंने शंकर के विरुद्ध तर्क दिया कि जगत और आत्माएँ ब्रह्म के शरीर के रूप में वास्तविक हैं।" } },
+      madhva: { name: { en: "Madhva", hi: "मध्वाचार्य" }, iast: "Madhva", school: "dvaita", url: "https://en.wikipedia.org/wiki/Madhvacharya", dates: { en: "c. 1238–1317", hi: "लगभग १२३८–१३१७" }, line: { en: "Founder of Dvaita at Uḍupi. He re-read the Upaniṣads' sentences of identity as sentences of difference and dependence.", hi: "उडुपी में द्वैत के संस्थापक। उन्होंने उपनिषदों के अभेद-वाक्यों को भेद और निर्भरता के वाक्यों के रूप में फिर से पढ़ा।" } },
+      kumarila: { name: { en: "Kumarila Bhatta", hi: "कुमारिल भट्ट" }, iast: "Kumārila Bhaṭṭa", school: "mimamsa", url: "https://en.wikipedia.org/wiki/Kumarila_Bhatta", dates: { en: "c. 7th century", hi: "लगभग सातवीं सदी" }, line: { en: "Mīmāṃsā's fiercest defender. He argued against Buddhists and against any creator God, and made room for mokṣa in a ritual school.", hi: "मीमांसा के सबसे प्रखर रक्षक। उन्होंने बौद्धों और किसी भी सृष्टिकर्ता ईश्वर के विरुद्ध तर्क दिए, और कर्मकांडी दर्शन में मोक्ष के लिए स्थान बनाया।" } },
+      gaudapada: { name: { en: "Gaudapada", hi: "गौड़पाद" }, iast: "Gauḍapāda", school: "advaita", url: "https://en.wikipedia.org/wiki/Gaudapada", dates: { en: "c. 6th century", hi: "लगभग छठी सदी" }, line: { en: "Author of the verses on the Māṇḍūkya, the first systematic Advaita text, and by tradition the teacher of Śaṅkara's teacher.", hi: "माण्डूक्य पर कारिका के रचयिता, अद्वैत का पहला व्यवस्थित ग्रंथ, और परंपरा के अनुसार शंकर के गुरु के गुरु।" } },
+      yajnavalkya: { name: { en: "Yajnavalkya", hi: "याज्ञवल्क्य" }, iast: "Yājñavalkya", school: null, url: "https://en.wikipedia.org/wiki/Yajnavalkya", dates: { en: "Upaniṣadic sage", hi: "उपनिषद् काल के ऋषि" }, line: { en: "The great debater of the Bṛhadāraṇyaka: he wins King Janaka's thousand cows, teaches Maitreyī, and says of the Self only 'not this, not this'.", hi: "बृहदारण्यक के महान शास्त्रार्थी: वे राजा जनक की हज़ार गायें जीतते हैं, मैत्रेयी को उपदेश देते हैं, और आत्मा के बारे में केवल 'नेति नेति' कहते हैं।" } },
+      uddalaka: { name: { en: "Uddalaka Aruni", hi: "उद्दालक आरुणि" }, iast: "Uddālaka Āruṇi", school: null, url: "https://en.wikipedia.org/wiki/Uddalaka_Aruni", dates: { en: "Upaniṣadic sage", hi: "उपनिषद् काल के ऋषि" }, line: { en: "Śvetaketu's father in the Chāndogya. He teaches with salt, seeds and rivers, and ends each lesson with 'you are That'.", hi: "छांदोग्य में श्वेतकेतु के पिता। वे नमक, बीज और नदियों से सिखाते हैं, और हर पाठ 'तत् त्वम् असि' पर समाप्त करते हैं।" } },
+      vishnusharma: { name: { en: "Vishnu Sharma", hi: "विष्णु शर्मा" }, iast: "Viṣṇuśarman", school: null, url: "https://en.wikipedia.org/wiki/Vishnu_Sharma", dates: { en: "the Panchatantra's narrator", hi: "पंचतंत्र के कथावाचक" }, line: { en: "The old teacher who promised a king to make his three dull sons wise in six months, and did it with stories.", hi: "वे वृद्ध गुरु जिन्होंने राजा को वचन दिया कि छह महीने में उसके तीन मंदबुद्धि पुत्रों को बुद्धिमान बना देंगे, और कथाओं से ऐसा किया।" } },
+      patanjali: { name: { en: "Patanjali", hi: "पतंजलि" }, iast: "Patañjali", school: "yoga", url: "https://en.wikipedia.org/wiki/Patanjali", dates: { en: "c. 2nd century BCE to 4th century CE", hi: "लगभग दूसरी सदी ई.पू. से चौथी सदी ई." }, line: { en: "Compiler of the Yoga Sūtra, 195 terse aphorisms on stilling the mind.", hi: "योगसूत्र के संकलनकर्ता, मन के निरोध पर १९५ संक्षिप्त सूत्र।" } },
+      kapila: { name: { en: "Kapila", hi: "कपिल" }, iast: "Kapila", school: "samkhya", url: "https://en.wikipedia.org/wiki/Kapila", dates: { en: "legendary founder", hi: "पौराणिक संस्थापक" }, line: { en: "The sage tradition names as Sāṃkhya's founder; the school's surviving classic is Īśvarakṛṣṇa's Sāṃkhya Kārikā.", hi: "वे ऋषि जिन्हें परंपरा सांख्य का संस्थापक मानती है; इस दर्शन का बचा हुआ मुख्य ग्रंथ ईश्वरकृष्ण की सांख्यकारिका है।" } },
+      akshapada: { name: { en: "Akshapada Gautama", hi: "अक्षपाद गौतम" }, iast: "Akṣapāda Gautama", school: "nyaya", url: "https://en.wikipedia.org/wiki/Aksapada_Gautama", dates: { en: "c. 2nd century", hi: "लगभग दूसरी सदी" }, line: { en: "Author of the Nyāya Sūtra. His nickname, 'eyes in his feet', comes from a story that he walked lost in thought into a well.", hi: "न्यायसूत्र के रचयिता। उनका उपनाम 'अक्षपाद' (पैरों में आँखें) उस कथा से आया कि वे विचारों में खोए चलते-चलते कुएँ में गिर पड़े।" } },
+      abhinavagupta: { name: { en: "Abhinavagupta", hi: "अभिनवगुप्त" }, iast: "Abhinavagupta", school: "trika", url: "https://en.wikipedia.org/wiki/Abhinavagupta", dates: { en: "c. 950–1016", hi: "लगभग ९५०–१०१६" }, line: { en: "Kashmir's great philosopher of recognition, and also of aesthetics: he explained why a sad poem can be a joy to read.", hi: "प्रत्यभिज्ञा के कश्मीरी महान दार्शनिक, और सौंदर्यशास्त्र के भी: उन्होंने समझाया कि करुण कविता पढ़ना आनंद क्यों हो सकता है।" } }
     }
   };
 
@@ -671,6 +1321,29 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var { GOAL, ROWS, ASHRAMAS, LADDERS, SNAKES, HEAVEN } = squares_default;
   var { SQ } = squares_default;
   var { STR, SRC_HI } = strings_default;
+  var READINGS = readings_default;
+  var CODEX = codex_default;
+  var srcOfSquare = (n) => (LADDERS[n] || SNAKES[n])?.src || SQ[n]?.[5] || "";
+  var sourceOf = (src) => src ? Object.keys(CODEX.sources).find((id) => src.startsWith(CODEX.sources[id].match)) ?? null : null;
+  var ENTRY_GROUPS = [["school", "schools"], ["source", "sources"], ["figure", "figures"]];
+  var ENTRY_IDS = ENTRY_GROUPS.flatMap(([, g]) => Object.keys(CODEX[g]));
+  function entryOf(id) {
+    for (const [kind, g] of ENTRY_GROUPS) if (CODEX[g][id]) return { kind, e: CODEX[g][id] };
+    return null;
+  }
+  var REFS = (() => {
+    const refs = {};
+    const add = (id, n) => {
+      if (id) (refs[id] ||= /* @__PURE__ */ new Set()).add(n);
+    };
+    for (let n = 1; n <= GOAL; n++) {
+      const r = READINGS[n] || {};
+      add(sourceOf(srcOfSquare(n)), n);
+      for (const s of [...r.schools || [], ...r.views || []]) add(s.id, n);
+      (r.figures || []).forEach((id) => add(id, n));
+    }
+    return Object.fromEntries(Object.entries(refs).map(([k, v]) => [k, [...v].sort((a, b) => a - b)]));
+  })();
 
   // src/i18n.js
   var lang = "en";
@@ -685,9 +1358,21 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   };
   var L = (en, hi) => lang === "hi" ? hi : en;
   var DEV_DIGITS = "०१२३४५६७८९";
-  var num = (n) => lang === "hi" ? String(n).replace(/\d/g, (d) => DEV_DIGITS[d]) : String(n);
-  var srcText = (s) => lang === "hi" ? num(SRC_HI.reduce((a, [en, hi]) => a.replace(en, hi), s)) : s;
-  var t = (k, v = {}) => STR[lang][k].replace(/\{(\w+)\}/g, (_, x) => v[x] ?? "").replace(/\d/g, (d) => num(d));
+  var numIn = (l, n) => l === "hi" ? String(n).replace(/\d/g, (d) => DEV_DIGITS[d]) : String(n);
+  var num = (n) => numIn(lang, n);
+  var srcIn = (l, s) => l === "hi" ? numIn(l, SRC_HI.reduce((a, [en, hi]) => a.replace(en, hi), s)) : s;
+  var tIn = (l, k, v = {}) => (STR[l][k] ?? STR.en[k]).replace(/\{(\w+)\}/g, (_, x) => v[x] ?? "").replace(/\d/g, (d) => numIn(l, d));
+  var t = (k, v = {}) => tIn(lang, k, v);
+  var warned = /* @__PURE__ */ new Set();
+  function pick(o, l = lang) {
+    if (!o) return "";
+    if (o[l]) return o[l];
+    if (l !== "en" && o.en && !warned.has(o.en)) {
+      warned.add(o.en);
+      console.warn("Missing Hindi:", o.en);
+    }
+    return o.en || "";
+  }
 
   // src/rng.js
   var makeRng = (seed) => ({ seed: seed >>> 0, s: seed >>> 0 });
@@ -754,18 +1439,53 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   }
 
   // src/state.js
-  var G = { setup: null, state: null, busy: false, cpuTimer: null, gen: 0, forcedRoll: null, cardClose: null };
+  var G = { setup: null, state: null, busy: false, cpuTimer: null, gen: 0, forcedRoll: null };
   var defaultSetup = () => ({
     count: 2,
     rows: [{ name: "", type: "human" }, { name: "", type: "cpu" }, { name: "", type: "cpu" }, { name: "", type: "cpu" }],
-    rules: { exact: true, six: true, cards: "all" }
+    rules: { exact: true, six: true }
   });
-  var cardsMode = (r) => r.cards === true || r.cards == null ? "all" : r.cards === false ? "off" : r.cards;
   var pname = (p) => p.name || t("def" + p.color);
   var cur = () => G.state.players[G.state.turn];
   function newState(seed = freshSeed()) {
     return createGame({ players: G.setup.rows.slice(0, G.setup.count), rules: G.setup.rules, seed });
   }
+
+  // src/prefs.js
+  var KEY = "mp-prefs";
+  var DEFAULTS = { depth: "school", landAll: true, both: false, mute: false };
+  var prefs = { ...DEFAULTS };
+  try {
+    Object.assign(prefs, JSON.parse(localStorage.getItem(KEY) || "{}"));
+  } catch {
+  }
+  var q = new URLSearchParams(location.search).get("depth");
+  if (q === "story" || q === "school" || q === "scholar") prefs.depth = q;
+  function setPref(k, v) {
+    prefs[k] = v;
+    try {
+      localStorage.setItem(KEY, JSON.stringify(prefs));
+    } catch {
+    }
+  }
+  var SEEN = "mp-codex";
+  var seen = /* @__PURE__ */ new Set();
+  try {
+    seen = new Set(JSON.parse(localStorage.getItem(SEEN) || "[]"));
+  } catch {
+  }
+  var hasMet = (id) => seen.has(id);
+  function meet(ids) {
+    const fresh = ids.filter((id) => id && !seen.has(id));
+    if (!fresh.length) return fresh;
+    fresh.forEach((id) => seen.add(id));
+    try {
+      localStorage.setItem(SEEN, JSON.stringify([...seen]));
+    } catch {
+    }
+    return fresh;
+  }
+  var metCount = (ids) => ids.filter((id) => seen.has(id)).length;
 
   // src/ui.js
   var COLORS = ["var(--p0)", "var(--p1)", "var(--p2)", "var(--p3)"];
@@ -776,10 +1496,11 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
 
   // src/render/board.js
-  var ashramaOf = (n) => {
+  var ashramaIn = (l, n) => {
     const a = ASHRAMAS.find(([max]) => n <= max);
-    return L(a[1], a[2]);
+    return l === "hi" ? a[2] : a[1];
   };
+  var ashramaOf = (n) => ashramaIn(lang, n);
   var PALETTE = [["#D2402E", true], ["#F2C232", false], ["#3A78C2", true], ["#EC8A2E", false], ["#3F9A52", true], ["#7CC3E8", false]];
   function colRow(n) {
     const i = n - 1, row = Math.floor(i / 10);
@@ -802,6 +1523,13 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     return numEl;
   }
   var labEls = {};
+  var focusN = 1;
+  function focusSquare(n) {
+    labEls[focusN].tabIndex = -1;
+    focusN = n;
+    labEls[n].tabIndex = 0;
+    labEls[n].focus();
+  }
   function buildCells() {
     const cells = $("cells"), labels = $("labels");
     cells.innerHTML = "";
@@ -822,6 +1550,10 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         lab.innerHTML = labelHtml(n);
         const s = SNAKES[n], l = LADDERS[n];
         lab.title = s ? `${squareName(n)} (${s.skt}) → ${num(s.to)}` : l ? `${squareName(n)} (${l.skt}) → ${num(l.to)}` : squareName(n);
+        lab.dataset.n = n;
+        lab.setAttribute("role", "button");
+        lab.setAttribute("aria-label", t("sqLabel", { n, name: squareName(n) }));
+        lab.tabIndex = n === focusN ? 0 : -1;
         labels.appendChild(lab);
         labEls[n] = lab;
       }
@@ -838,8 +1570,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   };
   var fxClear = () => fx.clearRect(0, 0, S * 10, S * ROWS);
   function drawLadder(a, b) {
-    const p = center(a), q = center(b);
-    const dx = q.x - p.x, dy = q.y - p.y, len = Math.hypot(dx, dy);
+    const p = center(a), q2 = center(b);
+    const dx = q2.x - p.x, dy = q2.y - p.y, len = Math.hypot(dx, dy);
     const nx = -dy / len, ny = dx / len, half = S * 0.18;
     ctx.lineCap = "round";
     const rungs = Math.max(2, Math.floor(len / (S * 0.36)));
@@ -858,7 +1590,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       for (const sg of [-1, 1]) {
         ctx.beginPath();
         ctx.moveTo(p.x + nx * half * sg, p.y + ny * half * sg);
-        ctx.lineTo(q.x + nx * half * sg, q.y + ny * half * sg);
+        ctx.lineTo(q2.x + nx * half * sg, q2.y + ny * half * sg);
         ctx.stroke();
       }
     }
@@ -872,8 +1604,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   ];
   var snakeColors = (h) => SNAKE_COLORS[Object.keys(SNAKES).indexOf(String(h)) % SNAKE_COLORS.length];
   function snakePath(h, t2) {
-    const p = center(h), q = center(t2);
-    const dx = q.x - p.x, dy = q.y - p.y, len = Math.hypot(dx, dy);
+    const p = center(h), q2 = center(t2);
+    const dx = q2.x - p.x, dy = q2.y - p.y, len = Math.hypot(dx, dy);
     const nx = -dy / len, ny = dx / len;
     const amp = Math.min(S * 0.42, len * 0.14);
     const waves = Math.max(1, Math.round(len / (S * 1.7)));
@@ -1133,13 +1865,13 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const n = parseInt(hex.slice(1), 16), ch = [n >> 16, n >> 8 & 255, n & 255].map((v) => Math.round(v * (1 + f)));
     return "#" + ch.map((v) => Math.max(0, Math.min(255, v)).toString(16).padStart(2, "0")).join("");
   }
-  function spriteURL(stage, color, frame) {
-    const key = `${stage}|${color}|${frame}`;
+  function spriteURL(stage, color, frame2) {
+    const key = `${stage}|${color}|${frame2}`;
     if (spriteCache.has(key)) return spriteCache.get(key);
     const art = ART[STAGES[stage].art];
     let rows = art.rows.slice();
-    if (frame % 2) rows.splice(14, 2, ...art.legsB);
-    if (frame >= 2) {
+    if (frame2 % 2) rows.splice(14, 2, ...art.legsB);
+    if (frame2 >= 2) {
       const eye = rows.findIndex((r) => r.includes("E"));
       rows = rows.map((r, y) => y <= eye + 1 ? r.replace(art.back === "S" ? /[SEWY]/g : /[SEW]/g, art.back) : r);
     }
@@ -1188,8 +1920,9 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     $("log").innerHTML = G.state.log.map((e) => {
       const who = e.who == null ? null : G.state.players[e.who];
       const text = e.k ? t(e.k, { ...e.v, name: who ? pname(who) : "", what: e.v?.sq ? squareName(e.v.sq) : "" }) : e.text;
+      const sq = e.v?.sq ?? (e.k === "lWin" ? GOAL : e.k === "lExact" ? e.v.pos || null : null);
       return `
-    <li class="${e.kind}"><span class="dot" style="background:${who ? COLORS[who.color] : "transparent"};${who ? "" : "border-color:transparent;box-shadow:none"}"></span><span>${esc(text)}</span></li>`;
+    <li class="${e.kind}"><span class="dot" style="background:${who ? COLORS[who.color] : "transparent"};${who ? "" : "border-color:transparent;box-shadow:none"}"></span>${sq ? `<button type="button" class="logbtn" data-sq="${sq}">${esc(text)}</button>` : `<span>${esc(text)}</span>`}</li>`;
     }).join("");
   }
 
@@ -1357,66 +2090,453 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     el.classList.remove("dizzy");
   }
 
+  // src/audio/engine.js
+  var ctx2 = null;
+  var noise = null;
+  var master = null;
+  var SOFT = reduced ? 0.6 : 1;
+  function unlockAudio() {
+    if (!ctx2) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      ctx2 = new AC();
+      master = ctx2.createGain();
+      master.gain.value = 0.5 * SOFT;
+      master.connect(ctx2.destination);
+      noise = ctx2.createBuffer(1, ctx2.sampleRate, ctx2.sampleRate);
+      const d = noise.getChannelData(0);
+      for (let i = 0, x = 2463534242; i < d.length; i++) {
+        x ^= x << 13;
+        x ^= x >>> 17;
+        x ^= x << 5;
+        d[i] = (x >>> 0) / 4294967296 * 2 - 1;
+      }
+    }
+    if (ctx2.state === "suspended") ctx2.resume();
+  }
+  var ready = () => ctx2 && !prefs.mute && ctx2.state === "running";
+  function env(g, at, peak, attack, decay) {
+    g.gain.setValueAtTime(1e-4, at);
+    g.gain.exponentialRampToValueAtTime(peak, at + attack);
+    g.gain.exponentialRampToValueAtTime(1e-4, at + attack + decay);
+  }
+  function hiss(at, dur, f0, f1, peak, q2 = 1.2, type = "bandpass") {
+    const src = ctx2.createBufferSource(), bp = ctx2.createBiquadFilter(), g = ctx2.createGain();
+    src.buffer = noise;
+    src.playbackRate.value = 1;
+    bp.type = type;
+    bp.Q.value = q2;
+    bp.frequency.setValueAtTime(f0, at);
+    bp.frequency.exponentialRampToValueAtTime(f1, at + dur);
+    env(g, at, peak, Math.min(0.03, dur / 4), dur);
+    src.connect(bp).connect(g).connect(master);
+    src.start(at, at * 7.3 % 0.5);
+    src.stop(at + dur + 0.1);
+  }
+  function tone(at, freq, dur, peak, type = "triangle", glideTo = null) {
+    const o = ctx2.createOscillator(), g = ctx2.createGain();
+    o.type = type;
+    o.frequency.setValueAtTime(freq, at);
+    if (glideTo) o.frequency.exponentialRampToValueAtTime(glideTo, at + dur);
+    env(g, at, peak, 0.01, dur);
+    o.connect(g).connect(master);
+    o.start(at);
+    o.stop(at + dur + 0.1);
+  }
+  var sound = {
+    // wooden die knocking about in a cupped hand
+    rattle() {
+      if (!ready()) return;
+      const now = ctx2.currentTime, n = reduced ? 3 : 7;
+      for (let i = 0; i < n; i++) {
+        const at = now + i * 0.075 + i * 37 % 11 / 1e3;
+        hiss(at, 0.035, 1800 + i * 53 % 7 * 220, 1200, 0.5, 6);
+        tone(at, 180 + i * 29 % 5 * 30, 0.04, 0.12, "square");
+      }
+    },
+    // a palm-leaf page drawn out of the bundle
+    open() {
+      if (!ready()) return;
+      const now = ctx2.currentTime;
+      hiss(now, 0.22 * SOFT, 700, 2600, 0.22, 0.8);
+    },
+    close() {
+      if (!ready()) return;
+      const now = ctx2.currentTime;
+      hiss(now, 0.16 * SOFT, 2200, 650, 0.18, 0.8);
+    },
+    // rising notes of a pentatonic scale: sa re ga pa dha sa
+    ladder() {
+      if (!ready()) return;
+      const now = ctx2.currentTime, base = 293.66;
+      [1, 9 / 8, 5 / 4, 3 / 2, 5 / 3, 2].forEach((r, i) => tone(now + i * 0.085, base * r, 0.5 * SOFT, 0.16, "triangle"));
+    },
+    // a low falling tone under a hiss
+    snake() {
+      if (!ready()) return;
+      const now = ctx2.currentTime;
+      hiss(now, 0.5 * SOFT, 5200, 3e3, 0.16, 0.7, "highpass");
+      tone(now + 0.05, 196, 0.7 * SOFT, 0.2, "sawtooth", 62);
+    }
+  };
+
   // src/render/card.js
-  function squareInfo(n) {
-    const both = (en, hi) => lang === "hi" ? [hi, en] : [en, hi];
-    const sl = LADDERS[n] || SNAKES[n];
+  var dlg = $("folio");
+  var leaf = $("leaf");
+  var other = (l) => l === "hi" ? "en" : "hi";
+  var DEPTHS = ["story", "school", "scholar"];
+  var deep = (d) => DEPTHS.indexOf(prefs.depth) >= DEPTHS.indexOf(d);
+  var view = null;
+  var cardLang = null;
+  var backTo = null;
+  var autoTimer = null;
+  var closing = false;
+  var waiters = [];
+  var onChange = /* @__PURE__ */ new Set();
+  var cardOpen = () => dlg.open;
+  var cardIdle = () => dlg.open ? new Promise((r) => waiters.push(r)) : Promise.resolve();
+  var onCardChange = (fn) => onChange.add(fn);
+  function squareInfo(n, l) {
+    const T = (k, v) => tIn(l, k, v), o = other(l), r = READINGS[n] || {};
+    const sl = LADDERS[n] || SNAKES[n], scholar = deep("scholar");
+    const skt = scholar && r.iast || sl?.skt || "";
     if (sl) {
-      const virtue = !!LADDERS[n], [title, other] = both(sl.en, sl.hi), [story, story2] = both(...sl.story);
+      const virtue = !!LADDERS[n];
       return {
         kind: virtue ? "virtue" : "vice",
         big: sl.ic,
-        title,
-        alt: `${other} · ${sl.skt}`,
-        story,
-        story2,
-        src: sl.src,
-        eb: `${t(virtue ? "virtue" : "vice")} · ${ashramaOf(n)}`,
-        ft: t(virtue ? "ladderTo" : "snakeTo", { n: sl.to })
+        title: sl[l],
+        alt: [sl[o], skt],
+        story: [sl.story[0], sl.story[1]],
+        eb: `${T(virtue ? "virtue" : "vice")} · ${ashramaIn(l, n)}`,
+        ft: T(virtue ? "ladderTo" : "snakeTo", { n: sl.to })
       };
     }
     if (n === GOAL) {
-      const [title, other] = both("Moksha", "मोक्ष"), [story, story2] = both("Freedom from the cycle of birth and death.", "जन्म और मृत्यु के चक्र से मुक्ति।");
-      return { kind: "goal", big: "ॐ", title, alt: `${other} · ${t("liberation")}`, story, story2, src: "", eb: t("end"), ft: "" };
+      return {
+        kind: "goal",
+        big: "ॐ",
+        title: l === "hi" ? "मोक्ष" : "Moksha",
+        alt: [o === "hi" ? "मोक्ष" : "Moksha", scholar ? r.iast : T("liberation")],
+        story: ["Freedom from the cycle of birth and death.", "जन्म और मृत्यु के चक्र से मुक्ति।"],
+        eb: T("end"),
+        ft: ""
+      };
     }
     if (HEAVEN[n]) {
-      const h = HEAVEN[n], [title, other] = both(h.en, h.hi), [story, story2] = both(...h.story);
-      return { kind: "heaven", big: h.ic, title, alt: other, story, story2, src: "", eb: t("realm"), ft: "" };
+      const h = HEAVEN[n];
+      return { kind: "heaven", big: h.ic, title: h[l], alt: [h[o], scholar ? r.iast : ""], story: h.story, eb: T("realm"), ft: "" };
     }
-    if (SQ[n]) {
-      const [ic, en, hi, sen, shi, src] = SQ[n], [title, other] = both(en, hi), [story, story2] = both(sen, shi);
-      return { kind: "story", big: ic, title, alt: other, story, story2, src, eb: `${t("story")} · ${ashramaOf(n)}`, ft: "" };
-    }
-    return null;
+    const [ic, en, hi, sen, shi] = SQ[n];
+    return {
+      kind: "story",
+      big: ic,
+      title: l === "hi" ? hi : en,
+      alt: [l === "hi" ? en : hi, scholar ? r.iast : ""],
+      story: [sen, shi],
+      eb: `${T("story")} · ${ashramaIn(l, n)}`,
+      ft: ""
+    };
   }
-  function cardExtras(kind) {
+  var texts = (l, en, hi, cls = "") => {
+    const [a, b] = l === "hi" ? [hi, en] : [en, hi];
+    return `<p class="${cls}">${esc(a)}</p>` + (prefs.both && b ? `<p class="${cls} second" lang="${other(l)}">${esc(b)}</p>` : "");
+  };
+  var bi = (l, obj, cls) => obj ? texts(l, obj.en || "", obj.hi || pick(obj, "hi"), cls) : "";
+  var entryName = (id, l) => esc(pick(entryOf(id)?.e.name, l));
+  var entryLink = (id, l, cls = "chip") => `<a class="${cls}${hasMet(id) ? "" : " new"}" href="#codex/${id}" data-entry="${id}">${entryName(id, l)}</a>`;
+  function extras(kind) {
     const rnd = (i) => i * 37 % 100;
     if (kind === "virtue") return `<div class="rays"></div>` + [...Array(7)].map((_, i) => `<span class="sp" style="left:${8 + rnd(i + 1) * 0.84}%;animation-delay:${(i * 0.26).toFixed(2)}s">✦</span>`).join("");
     if (kind === "heaven" || kind === "goal") return `<div class="rays"></div>` + [...Array(6)].map((_, i) => `<span class="pt" style="left:${6 + rnd(i + 2) * 0.86}%;animation-delay:${(i * 0.4).toFixed(2)}s">🌸</span>`).join("");
     return "";
   }
-  async function showCard(n, quick) {
-    const info = squareInfo(n);
-    if (!info) return;
-    const g = G.gen, box = $("sqcard"), card = box.firstElementChild, story = info.kind === "story";
-    card.className = "sq " + info.kind;
-    card.innerHTML = cardExtras(info.kind) + `<span class="eb">${info.eb}</span><span class="big">${info.big}</span><span class="nm">${info.title}</span><span class="dv">${info.alt}</span><p class="tc">${info.story}</p><p class="tc2">${info.story2}</p>` + (info.src ? `<span class="src">${srcText(info.src)}</span>` : "") + (info.ft ? `<span class="ft">${info.ft}</span>` : "");
-    box.hidden = false;
-    const from = labEls[n].getBoundingClientRect(), to = card.getBoundingClientRect();
-    const dx = from.left + from.width / 2 - (to.left + to.width / 2), dy = from.top + from.height / 2 - (to.top + to.height / 2);
-    const shrunk = { transform: `translate(${dx}px, ${dy}px) scale(${from.width / to.width})`, opacity: 0.3 };
-    if (!reduced) card.animate([shrunk, { transform: "none", opacity: 1 }], { duration: story ? 320 : 420, easing: "cubic-bezier(.2,.8,.25,1.15)" });
-    const ms = story ? quick ? 1100 : 2600 : quick ? 1600 : 3400;
-    await new Promise((res) => {
-      G.cardClose = res;
-      setTimeout(res, ms);
-    });
-    G.cardClose = null;
-    if (!reduced && g === G.gen) await card.animate([{ transform: "none", opacity: 1 }, { ...shrunk, opacity: 0 }], { duration: 240, easing: "ease-in" }).finished.catch(() => {
-    });
-    if (g === G.gen) box.hidden = true;
+  function frame(l, { kind, eb, big, sqn, body, foot, prev, next: next2, prevLabel, nextLabel }) {
+    const T = (k, v) => tIn(l, k, v);
+    return `<div class="flourish" aria-hidden="true">${extras(kind)}</div>
+    <header class="leaf-top">
+      <span class="eb">${eb}</span>
+      <div class="leaf-tools">
+        <div class="lang-mini" role="group" aria-label="${T("cardLang")}">
+          <button type="button" data-cl="en" aria-pressed="${l === "en"}">EN</button><button type="button" data-cl="hi" lang="hi" aria-pressed="${l === "hi"}">हिं</button>
+        </div>
+        <button type="button" class="x" data-act="close" aria-label="${T("close")}" autofocus>×</button>
+      </div>
+    </header>
+    <div class="leaf-main">
+      <div class="leaf-margin" aria-hidden="true"><span class="glyph">${big}</span>${sqn ? `<span class="sqn">${sqn}</span>` : ""}<span class="hole"></span></div>
+      <div class="leaf-text" lang="${l}">${body}</div>
+    </div>
+    <footer class="leaf-foot">
+      ${prev != null ? `<button type="button" class="nav" data-act="prev" aria-label="${prevLabel}">‹ <span>${prev}</span></button>` : "<span></span>"}
+      <span class="ft">${foot}</span>
+      ${next2 != null ? `<button type="button" class="nav" data-act="next" aria-label="${nextLabel}"><span>${next2}</span> ›</button>` : "<span></span>"}
+    </footer>`;
   }
-  $("sqcard").addEventListener("click", () => G.cardClose?.());
+  function squareHtml(n, l) {
+    const T = (k, v) => tIn(l, k, v), info = squareInfo(n, l), r = READINGS[n] || {};
+    const src = srcOfSquare(n), sid = sourceOf(src), met = [];
+    let body = `<h2 id="leafTitle">${esc(info.title)}</h2>`;
+    const alt = info.alt.filter(Boolean).join(" · ");
+    if (alt) body += `<p class="alt" lang="${other(l)}">${esc(alt)}</p>`;
+    body += `<div class="story">${texts(l, info.story[0], info.story[1])}${bi(l, r.line2, "line2")}</div>`;
+    if (r.views && (n === GOAL || deep("school"))) {
+      body += `<h3 class="sub">${T(n === GOAL ? "viewsGoal" : "views")}</h3><ul class="views">` + r.views.map((v) => `<li>${entryLink(v.id, l)}${texts(l, v.en, v.hi)}</li>`).join("") + `</ul>`;
+      met.push(...r.views.map((v) => v.id));
+    }
+    if (r.schools && deep("school")) {
+      body += `<h3 class="sub">${T("argued")}</h3><ul class="chips">` + r.schools.map((s) => `<li>${entryLink(s.id, l)}${texts(l, s.en, s.hi)}</li>`).join("") + `</ul>`;
+      met.push(...r.schools.map((s) => s.id));
+    }
+    if (deep("scholar")) {
+      body += bi(l, r.scholar, "note");
+      if (r.figures?.length) {
+        body += `<p class="people"><span>${T("people")}:</span> ${r.figures.map((id) => entryLink(id, l, "plink")).join(" · ")}</p>`;
+        met.push(...r.figures);
+      }
+    }
+    if (src) {
+      const s = sid && CODEX.sources[sid], firstTime = sid && !hasMet(sid);
+      body += `<p class="srcline">` + (sid ? `<a class="src" href="#codex/${sid}" data-entry="${sid}">${esc(srcIn(l, src))}</a>` : `<span class="src">${esc(srcIn(l, src))}</span>`) + (s && (firstTime || deep("scholar")) ? `<span class="gloss">${esc(pick(s.gloss, l))}</span>` : "") + `</p>`;
+      met.push(sid);
+    }
+    return {
+      kind: info.kind,
+      met,
+      html: frame(l, {
+        kind: info.kind,
+        eb: info.eb,
+        big: info.big,
+        sqn: numIn(l, n),
+        body,
+        foot: info.ft,
+        prev: n > 1 ? numIn(l, n - 1) : null,
+        next: n < GOAL ? numIn(l, n + 1) : null,
+        prevLabel: T("prevSq"),
+        nextLabel: T("nextSq")
+      })
+    };
+  }
+  function entryHtml(id, l) {
+    const T = (k, v) => tIn(l, k, v), { kind, e } = entryOf(id), o = other(l), i = ENTRY_IDS.indexOf(id);
+    const alt = [pick(e.name, o), e.iast && e.iast !== e.name.en ? e.iast : ""].filter(Boolean).join(" · ");
+    let body = `<h2 id="leafTitle">${esc(pick(e.name, l))}</h2>` + (alt ? `<p class="alt">${esc(alt)}</p>` : "");
+    if (e.tag || e.dates) body += `<p class="tag">${esc(pick(e.tag || e.dates, l))}</p>`;
+    body += `<div class="story">${bi(l, e.line || e.gloss)}</div>`;
+    if (e.body) body += bi(l, e.body, "note");
+    if (e.moksha) body += `<h3 class="sub">${T("mokshaFor")}</h3>` + bi(l, e.moksha, "moksha");
+    const people = kind === "school" ? Object.keys(CODEX.figures).filter((f) => CODEX.figures[f].school === id) : kind === "figure" && e.school ? [e.school] : [];
+    if (people.length) body += `<p class="people"><span>${T(kind === "school" ? "people" : "school")}:</span> ${people.map((p) => entryLink(p, l, "plink")).join(" · ")}</p>`;
+    const refs = REFS[id] || [];
+    if (refs.length) body += `<p class="onboard"><span>${T("onBoard")}:</span> ${refs.map((n) => `<a href="#sq/${n}" data-sq="${n}">${numIn(l, n)}</a>`).join(" ")}</p>`;
+    if (e.url) body += `<p class="srcline"><a class="src" href="${esc(e.url)}" target="_blank" rel="noopener">${T("readMore")} ↗</a></p>`;
+    const prev = ENTRY_IDS[i - 1], next2 = ENTRY_IDS[i + 1];
+    return {
+      kind: "entry",
+      met: [id, ...people],
+      html: frame(l, {
+        kind: "entry",
+        eb: T(kind === "school" ? "entrySchool" : kind === "source" ? "entrySource" : "entryFigure"),
+        big: kind === "school" ? "🪔" : kind === "source" ? "📜" : "🪷",
+        body,
+        foot: backTo != null ? `<button type="button" class="nav back" data-act="back">${T("back", { n: backTo })}</button>` : "",
+        prev: prev ? entryName(prev, l) : null,
+        next: next2 ? entryName(next2, l) : null,
+        prevLabel: T("prevEntry"),
+        nextLabel: T("nextEntry")
+      })
+    };
+  }
+  function paint({ landing = false } = {}) {
+    const l = cardLang ?? lang;
+    const { kind, html, met } = view.type === "square" ? squareHtml(view.n, l) : entryHtml(view.id, l);
+    leaf.className = "leaf " + kind + (landing ? " landed" : "");
+    leaf.innerHTML = html;
+    meet(met.filter(Boolean));
+    history.replaceState(null, "", location.pathname + location.search + (view.type === "square" ? `#sq/${view.n}` : `#codex/${view.id}`));
+    onChange.forEach((fn) => fn());
+  }
+  var visible = (el) => {
+    const r = el?.getBoundingClientRect();
+    return r && r.width > 0 && r.bottom > 0 && r.top < innerHeight;
+  };
+  async function transition(update, label) {
+    if (reduced) return update();
+    if (document.startViewTransition && visible(label)) {
+      label.style.viewTransitionName = "folio";
+      const vt = document.startViewTransition(() => {
+        label.style.viewTransitionName = "";
+        update();
+      });
+      return vt.finished.catch(() => {
+      });
+    }
+    update();
+    if (visible(label)) {
+      const from = label.getBoundingClientRect(), to = leaf.getBoundingClientRect();
+      const dx = from.left + from.width / 2 - (to.left + to.width / 2), dy = from.top + from.height / 2 - (to.top + to.height / 2);
+      leaf.animate([{ transform: `translate(${dx}px, ${dy}px) scale(${from.width / to.width})`, opacity: 0.3 }, { transform: "none", opacity: 1 }], { duration: 360, easing: "cubic-bezier(.2,.8,.25,1.1)" });
+    }
+  }
+  async function open(next2, { landing = false, auto = false, from = null } = {}) {
+    clearTimeout(autoTimer);
+    const wasOpen = dlg.open;
+    view = next2;
+    if (wasOpen) {
+      paint({ landing });
+      turnPage();
+      return cardIdle();
+    }
+    cardLang = null;
+    const label = from ?? (next2.type === "square" ? labEls[next2.n] : null);
+    sound.open();
+    await transition(() => {
+      paint({ landing });
+      dlg.showModal();
+    }, label);
+    if (auto) {
+      const words = leaf.querySelector(".story")?.textContent.split(/\s+/).length ?? 20;
+      autoTimer = setTimeout(closeCard, Math.min(4200, 1400 + words * 90));
+    }
+    return cardIdle();
+  }
+  var openSquare = (n, opts) => open({ type: "square", n }, opts);
+  var openEntry = (id, opts) => entryOf(id) ? open({ type: "entry", id }, opts) : Promise.resolve();
+  async function closeCard({ instant = false } = {}) {
+    if (!dlg.open || closing) return;
+    closing = true;
+    clearTimeout(autoTimer);
+    const label = view?.type === "square" ? labEls[view.n] : null;
+    if (!instant) sound.close();
+    if (instant || reduced) dlg.close();
+    else if (document.startViewTransition && visible(label)) {
+      await document.startViewTransition(() => {
+        dlg.close();
+        label.style.viewTransitionName = "folio";
+      }).finished.catch(() => {
+      });
+      label.style.viewTransitionName = "";
+    } else {
+      await leaf.animate([{ opacity: 1, transform: "none" }, { opacity: 0, transform: "scale(0.97)" }], { duration: 160, easing: "ease-in" }).finished.catch(() => {
+      });
+      dlg.close();
+    }
+    closing = false;
+    view = null;
+    cardLang = null;
+    backTo = null;
+    if (location.hash) history.replaceState(null, "", location.pathname + location.search);
+    waiters.splice(0).forEach((r) => r());
+    onChange.forEach((fn) => fn());
+  }
+  function turnPage(dir = 0) {
+    if (reduced) return;
+    leaf.querySelector(".leaf-main")?.animate([{ opacity: 0, transform: `translateX(${dir * 18}px)` }, { opacity: 1, transform: "none" }], { duration: 200, easing: "ease-out" });
+  }
+  function go(dir) {
+    if (!view) return;
+    if (view.type === "square") {
+      const n = view.n + dir;
+      if (n < 1 || n > GOAL) return;
+      view = { type: "square", n };
+    } else {
+      const id = ENTRY_IDS[ENTRY_IDS.indexOf(view.id) + dir];
+      if (!id) return;
+      view = { type: "entry", id };
+    }
+    paint();
+    turnPage(dir);
+  }
+  var pin = () => clearTimeout(autoTimer);
+  ["pointerdown", "pointermove", "keydown", "wheel"].forEach((ev) => leaf.addEventListener(ev, pin, { passive: true }));
+  dlg.addEventListener("cancel", (e) => {
+    e.preventDefault();
+    closeCard();
+  });
+  dlg.addEventListener("click", (e) => {
+    if (e.target === dlg) return closeCard();
+    const act = e.target.closest("[data-act]")?.dataset.act;
+    if (act === "close") return closeCard();
+    if (act === "prev" || act === "next") return go(act === "prev" ? -1 : 1);
+    if (act === "back") {
+      const n = backTo;
+      backTo = null;
+      view = { type: "square", n };
+      paint();
+      turnPage(-1);
+      return;
+    }
+    const cl = e.target.closest("[data-cl]")?.dataset.cl;
+    if (cl) {
+      cardLang = cl;
+      paint();
+      return leaf.querySelector(`[data-cl="${cl}"]`)?.focus();
+    }
+    const entry2 = e.target.closest("[data-entry]")?.dataset.entry;
+    if (entry2) {
+      e.preventDefault();
+      if (view?.type === "square") backTo = view.n;
+      view = { type: "entry", id: entry2 };
+      paint();
+      turnPage(1);
+      return;
+    }
+    const sq = e.target.closest("[data-sq]")?.dataset.sq;
+    if (sq) {
+      e.preventDefault();
+      backTo = null;
+      view = { type: "square", n: +sq };
+      paint();
+      turnPage(1);
+    }
+  });
+  dlg.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+      e.preventDefault();
+      go(e.key === "ArrowLeft" ? -1 : 1);
+    }
+  });
+  function refreshCard() {
+    if (dlg.open && view) paint();
+  }
+
+  // src/render/codex.js
+  var showAll = false;
+  try {
+    showAll = localStorage.getItem("mp-codex-all") === "1";
+  } catch {
+  }
+  var GROUP_LABEL = { school: "codexSchools", source: "codexSources", figure: "codexFigures" };
+  function renderCodex() {
+    const met = metCount(ENTRY_IDS);
+    $("codexCount").textContent = `${met}/${ENTRY_IDS.length}`;
+    $("codexPanel").innerHTML = `<p class="hint">${t("codexHint", { met, all: ENTRY_IDS.length })}</p>` + ENTRY_GROUPS.map(([kind, g]) => `<div><h3 class="eyebrow">${t(GROUP_LABEL[kind])}</h3><ul>` + Object.entries(CODEX[g]).map(([id, e]) => hasMet(id) || showAll ? `<li><a class="ent${hasMet(id) ? "" : " unmet"}" href="#codex/${id}" data-entry="${id}" lang="${lang}">${esc(pick(e.name))}</a></li>` : `<li><span class="ent locked" title="${t("codexLocked")}" aria-label="${t("codexLocked")}">· · ·</span></li>`).join("") + `</ul></div>`).join("") + `<label class="check"><input type="checkbox" id="codexAll"${showAll ? " checked" : ""}> <span>${t("codexAll")}</span></label>`;
+  }
+  $("codexPanel").addEventListener("click", (e) => {
+    const a = e.target.closest("[data-entry]");
+    if (!a) return;
+    e.preventDefault();
+    openEntry(a.dataset.entry, { from: a });
+  });
+  $("codexPanel").addEventListener("change", (e) => {
+    if (e.target.id !== "codexAll") return;
+    showAll = e.target.checked;
+    try {
+      localStorage.setItem("mp-codex-all", showAll ? "1" : "0");
+    } catch {
+    }
+    renderCodex();
+  });
+  function showTab(which) {
+    const codex = which === "codex";
+    $("tabMoves").setAttribute("aria-selected", String(!codex));
+    $("tabCodex").setAttribute("aria-selected", String(codex));
+    $("log").hidden = codex;
+    $("codexPanel").hidden = !codex;
+    if (codex) renderCodex();
+  }
+  $("tabMoves").addEventListener("click", () => showTab("moves"));
+  $("tabCodex").addEventListener("click", () => showTab("codex"));
 
   // src/main.js
   var PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
@@ -1431,6 +2551,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     dieEl.classList.remove("rolling");
     void dieEl.offsetWidth;
     dieEl.classList.add("rolling");
+    sound.rattle();
     for (let i = 0; i < TUMBLE; i++) {
       showDie(die(rng));
       await sleep(75);
@@ -1450,6 +2571,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const g = G.gen;
     G.busy = true;
     render();
+    await cardIdle();
+    if (g !== G.gen) return;
     const p = cur(), idx = state.turn, el = tokenEls[idx];
     const v = await rollDie();
     if (g !== G.gen) return;
@@ -1473,13 +2596,17 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       if (g !== G.gen) return;
       el._frame = 0;
       place();
-      const mode = cardsMode(state.rules);
-      if (mode === "all" || mode === "special" && !SQ[p.pos]) {
-        await showCard(p.pos, p.type === "cpu");
+      await cardIdle();
+      if (g !== G.gen) return;
+      if (prefs.landAll || !SQ[p.pos]) {
+        await openSquare(p.pos, { landing: true, auto: p.type === "cpu" });
         if (g !== G.gen) return;
       }
       plan.after.forEach(log);
       if (plan.jump) {
+        await cardIdle();
+        if (g !== G.gen) return;
+        (plan.jump.kind === "snake" ? sound.snake : sound.ladder)();
         await (plan.jump.kind === "snake" ? swallow(idx, p.pos, plan.jump.to) : climb(idx, p.pos, plan.jump.to));
         if (g !== G.gen) return;
       }
@@ -1528,8 +2655,9 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     </div>`).join("");
     $("ruleExact").checked = setup.rules.exact;
     $("ruleSix").checked = setup.rules.six;
-    const mode = cardsMode(setup.rules);
-    $("ruleCards").innerHTML = [["all", "cardsAll"], ["special", "cardsSpecial"], ["off", "cardsOff"]].map(([v, k]) => `<option value="${v}"${v === mode ? " selected" : ""}>${t(k)}</option>`).join("");
+    $("prefDepth").innerHTML = [["story", "depthStory"], ["school", "depthSchool"], ["scholar", "depthScholar"]].map(([v, k]) => `<option value="${v}"${v === prefs.depth ? " selected" : ""}>${t(k)}</option>`).join("");
+    $("prefLand").checked = prefs.landAll;
+    $("prefBoth").checked = prefs.both;
   }
   function readSetup() {
     const setup = G.setup;
@@ -1537,7 +2665,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       r.name = $("pname" + i).value;
       r.type = $("ptype" + i).value;
     });
-    setup.rules = { exact: $("ruleExact").checked, six: $("ruleSix").checked, cards: $("ruleCards").value };
+    setup.rules = { exact: $("ruleExact").checked, six: $("ruleSix").checked };
   }
   function applyStatic() {
     document.documentElement.lang = lang;
@@ -1547,6 +2675,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     });
     $("ruleExactText").textContent = t("ruleExact", { n: GOAL });
     document.querySelectorAll("[data-lang]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.lang === lang)));
+    renderMute();
     $("ashramas").innerHTML = ASHRAMAS.slice(0, 5).map(([, en, hi], i) => `<span style="top:${(ROWS - (2 * i + 1)) / ROWS * 100}%">${L(en, hi)}</span>`).join("");
   }
   function setLang(l) {
@@ -1561,6 +2690,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     buildCells();
     renderSetup();
     render();
+    renderCodex();
+    refreshCard();
   }
   document.querySelectorAll("[data-lang]").forEach((b) => b.addEventListener("click", () => setLang(b.dataset.lang)));
   $("count").addEventListener("click", (e) => {
@@ -1575,8 +2706,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   function startGame() {
     G.gen++;
     clearTimeout(G.cpuTimer);
-    G.cardClose?.();
-    $("sqcard").hidden = true;
+    closeCard({ instant: true });
     $("toastSlot").innerHTML = "";
     if (S) fxClear();
     G.busy = false;
@@ -1594,10 +2724,68 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   $("roll").addEventListener("click", takeTurn);
   document.addEventListener("keydown", (e) => {
     if (e.code !== "Space" || e.target.closest("input, select, button, textarea, summary")) return;
+    if (e.target.closest("[role=button]")) return;
     e.preventDefault();
-    if (G.cardClose) return G.cardClose();
+    if (cardOpen()) return closeCard();
     if (cur().type === "human") takeTurn();
   });
+  $("labels").addEventListener("click", (e) => {
+    const lab = e.target.closest(".lab");
+    if (lab) openSquare(+lab.dataset.n, { from: lab });
+  });
+  var gridIndex = (n) => {
+    const { col, row } = colRow(n);
+    return (ROWS - 1 - row) * 10 + col;
+  };
+  var atIndex = (i) => +$("labels").children[i]?.dataset.n;
+  $("labels").addEventListener("keydown", (e) => {
+    const lab = e.target.closest(".lab");
+    if (!lab) return;
+    const n = +lab.dataset.n;
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      return openSquare(n, { from: lab });
+    }
+    const step = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -10, ArrowDown: 10 }[e.key];
+    if (!step) return;
+    e.preventDefault();
+    const i = gridIndex(n) + step;
+    if (i >= 0 && i < ROWS * 10 && (Math.abs(step) === 10 || Math.floor(i / 10) === Math.floor(gridIndex(n) / 10))) focusSquare(atIndex(i));
+  });
+  $("log").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-sq]");
+    if (b) openSquare(+b.dataset.sq, { from: labEls[+b.dataset.sq] });
+  });
+  $("prefDepth").addEventListener("change", (e) => {
+    setPref("depth", e.target.value);
+    refreshCard();
+  });
+  $("prefLand").addEventListener("change", (e) => setPref("landAll", e.target.checked));
+  $("prefBoth").addEventListener("change", (e) => {
+    setPref("both", e.target.checked);
+    refreshCard();
+  });
+  function renderMute() {
+    const b = $("mute");
+    b.setAttribute("aria-pressed", String(!prefs.mute));
+    b.setAttribute("aria-label", t(prefs.mute ? "soundOff" : "soundOn"));
+    b.title = t(prefs.mute ? "soundOff" : "soundOn");
+    b.classList.toggle("off", prefs.mute);
+  }
+  $("mute").addEventListener("click", () => {
+    setPref("mute", !prefs.mute);
+    unlockAudio();
+    renderMute();
+  });
+  ["pointerdown", "keydown"].forEach((ev) => document.addEventListener(ev, unlockAudio, { passive: true }));
+  onCardChange(renderCodex);
+  function openFromHash() {
+    const m = location.hash.match(/^#(sq|codex)\/([\w-]+)$/);
+    if (!m) return;
+    if (m[1] === "sq" && +m[2] >= 1 && +m[2] <= GOAL) openSquare(+m[2]);
+    else if (m[1] === "codex") openEntry(m[2]);
+  }
+  addEventListener("hashchange", openFromHash);
   new ResizeObserver(draw).observe($("cells"));
   if (new URLSearchParams(location.search).has("debug")) {
     window.mp = {
@@ -1618,6 +2806,9 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       get state() {
         return G.state;
       },
+      open: openSquare,
+      entry: openEntry,
+      close: closeCard,
       sprite: spriteURL,
       data: { LADDERS, SNAKES, SQ, HEAVEN, STR },
       setLang
@@ -1638,9 +2829,16 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       queueCpu();
     } else startGame();
     draw();
+    renderCodex();
+    showTab("moves");
+    openFromHash();
   }
   window.claude?.hot?.snapshot?.(() => ({ setup: { ...G.setup, lang }, state: G.state }));
   window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
+  if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
+    addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {
+    }));
+  }
 })();
 </script>
 </body>

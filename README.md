@@ -42,7 +42,7 @@ The old Indian game of snakes and ladders, played as one life, in English and Hi
 | Snake | Vice | Story |
 |---|---|---|
 | 14→8 | Vachalata · Chatter | The tortoise and the geese |
-| 19→11 | Jhooth · Fibbing | The blue jackal |
+| 19→11 | Asatya · Fibbing | The blue jackal |
 | 29→17 | Alasya · Laziness | Subhashita |
 | 39→22 | Vidya-mada · Pride of learning | The lion-makers |
 | 47→31 | Kama · Craving | Yayati |
@@ -58,24 +58,31 @@ The old Indian game of snakes and ladders, played as one life, in English and Hi
 A 20,000-game simulation (`npm run sim`) puts a single life at about 42 turns from birth to Moksha.
 
 ## Features
-- **English / हिंदी toggle** (remembered). Hindi mode uses Devanagari digits. Story cards always show both languages and the source.
-- **Pixel-art players** who grow from baby to student, householder, forest-dweller, renunciate and divine soul as they climb, and get younger again when a snake catches them.
-- **Animated ladder climbs and snake swallows**, plus a story card when you land on a square. Cards can be shown on every square, on special squares only, or turned off.
+- **Every square is a card you can read.** Tap any square on the board, or any move in the log, to open its card. The cards are drawn as pothi folios, palm-leaf manuscript pages. ‹ › (or the arrow keys) turns the leaves from 1 to 110, so you can read the whole board without rolling once. Cards can be linked: `#sq/36` opens square 36.
+- **Cards wait for you.** Your landing card stays open until you close it, and the computer waits while you read. A computer's own landing card closes itself after a moment, unless you start reading it.
+- **Three reading depths:** *Story*, *Story + school* (what the darśanas would have argued on that square), and *Scholar* (IAST, notes on the sources, and the people involved). Square 36 carries Vedānta's three-way split over *tat tvam asi*, and square 110 sets each school's own idea of mokṣa side by side.
+- **The Codex**, beside the moves: schools, sources and people. It fills in as you meet them and is kept between games. Entries can be linked too: `#codex/nyaya`.
+- **English / हिंदी**, for the whole page (remembered), or per card with its own toggle. There is also an option to show both languages on every card, for Hindi learners. Hindi mode uses Devanagari digits.
+- **Sound:** a die rattle, a page turn, a rising scale for ladders and a hiss for snakes, all synthesised with Web Audio. It has a mute button that is remembered, and it is softer with reduced motion.
+- **Installable and offline:** add it to a phone's home screen, and it plays with no connection after one visit.
+- **Pixel-art players** who grow from baby to student, householder, forest-dweller, renunciate and divine soul as they climb, and get younger again when a snake catches them. Ladder climbs and snake swallows are animated.
 - 2–4 players, each human or computer.
 
-To play locally, open `index.html`. Add `?seed=N` to replay the same dice (the current seed is shown under *Players & rules*). Add `?debug` to get console helpers: `mp.jump(n)`, `mp.roll(v)`, `mp.seed()` / `mp.seed(n)` and `mp.setLang("hi")`.
+To play locally, open `index.html`. Add `?seed=N` to replay the same dice (the current seed is shown under *Players & rules*). `?depth=scholar` sets the reading depth. Add `?debug` to get console helpers: `mp.jump(n)`, `mp.roll(v)`, `mp.seed()` / `mp.seed(n)`, `mp.open(n)`, `mp.entry(id)`, `mp.close()` and `mp.setLang("hi")`.
 
 ## Developing
 `index.html` is built, so don't edit it by hand. The sources are:
 
 - `src/`: the game as ES modules (`engine/` holds the rules, `render/` the drawing, and `rng.js` the only randomness)
-- `content/*.json`: the squares, stories and UI strings
+- `content/*.json`: the squares and stories (`squares.json`), the school lines and scholar notes for each square (`readings.json`), the Codex (`codex.json`) and the UI strings (`strings.json`)
+- `src/sw.js`, `manifest.webmanifest`, `icons/`: the installable app (`node tools/icons.mjs` redraws the icons)
 - `src/styles.css` and `src/index.html`: the page shell
 
 ```
 npm install
 npm run build    # inline src/ and content/ into index.html (refuses any Math.random outside rng.js)
-npm test         # rules and RNG tests
+npm test         # rules, RNG and content tests (the build also refuses content missing Hindi or pointing nowhere)
+npm run smoke    # every Phase 1 behaviour in a real browser, including offline and install
 npm run sim      # 20,000 headless lives; `node tools/sim.mjs 20000 2` for two-player races
 npm run golden   # replays seeds through the pre-split game, the build and the sim, and checks the logs match
 ```

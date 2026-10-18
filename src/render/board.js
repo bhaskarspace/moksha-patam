@@ -1,9 +1,10 @@
 // ---- The board: squares, labels, and the painted snakes and ladders ----
 import { GOAL, ROWS, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN } from "../content.js";
-import { L, t, num } from "../i18n.js";
+import { lang, L, t, num } from "../i18n.js";
 import { $ } from "../ui.js";
 
-export const ashramaOf = n => { const a = ASHRAMAS.find(([max]) => n <= max); return L(a[1], a[2]); };
+export const ashramaIn = (l, n) => { const a = ASHRAMAS.find(([max]) => n <= max); return l === "hi" ? a[2] : a[1]; };
+export const ashramaOf = n => ashramaIn(lang, n);
 
 // [background, light ink?]: the bright printed colours of the traditional board.
 const PALETTE = [["#D2402E", true], ["#F2C232", false], ["#3A78C2", true], ["#EC8A2E", false], ["#3F9A52", true], ["#7CC3E8", false]];
@@ -34,6 +35,13 @@ function labelHtml(n) {
 }
 
 export const labEls = {};
+let focusN = 1;
+export function focusSquare(n) {
+  labEls[focusN].tabIndex = -1;
+  focusN = n;
+  labEls[n].tabIndex = 0;
+  labEls[n].focus();
+}
 export function buildCells() {
   const cells = $("cells"), labels = $("labels");
   cells.innerHTML = ""; labels.innerHTML = "";
@@ -54,6 +62,11 @@ export function buildCells() {
       lab.innerHTML = labelHtml(n);
       const s = SNAKES[n], l = LADDERS[n];
       lab.title = s ? `${squareName(n)} (${s.skt}) → ${num(s.to)}` : l ? `${squareName(n)} (${l.skt}) → ${num(l.to)}` : squareName(n);
+      // every square opens its card; one square at a time takes Tab, and the arrow keys move between them
+      lab.dataset.n = n;
+      lab.setAttribute("role", "button");
+      lab.setAttribute("aria-label", t("sqLabel", { n, name: squareName(n) }));
+      lab.tabIndex = n === focusN ? 0 : -1;
       labels.appendChild(lab);
       labEls[n] = lab;
     }

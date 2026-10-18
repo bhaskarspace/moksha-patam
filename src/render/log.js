@@ -20,7 +20,9 @@ export function renderLog() {
   $("log").innerHTML = G.state.log.map(e => {
     const who = e.who == null ? null : G.state.players[e.who];
     const text = e.k ? t(e.k, { ...e.v, name: who ? pname(who) : "", what: e.v?.sq ? squareName(e.v.sq) : "" }) : e.text;
+    // each move reopens the card of the square it landed on
+    const sq = e.v?.sq ?? (e.k === "lWin" ? GOAL : e.k === "lExact" ? e.v.pos || null : null);
     return `
-    <li class="${e.kind}"><span class="dot" style="background:${who ? COLORS[who.color] : "transparent"};${who ? "" : "border-color:transparent;box-shadow:none"}"></span><span>${esc(text)}</span></li>`;
+    <li class="${e.kind}"><span class="dot" style="background:${who ? COLORS[who.color] : "transparent"};${who ? "" : "border-color:transparent;box-shadow:none"}"></span>${sq ? `<button type="button" class="logbtn" data-sq="${sq}">${esc(text)}</button>` : `<span>${esc(text)}</span>`}</li>`;
   }).join("");
 }

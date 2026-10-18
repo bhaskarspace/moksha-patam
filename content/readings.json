@@ -1,0 +1,415 @@
+{
+  "1": {
+    "schools": [{"id":"nyaya","en":"A newborn startles, smiles and reaches for milk before anyone teaches it to. Nyāya argued that it must be remembering a life before this one.","hi":"नवजात बिना सिखाए चौंकता है, मुस्कुराता है और दूध की ओर बढ़ता है। न्याय का तर्क था कि वह इससे पहले के किसी जीवन को याद कर रहा होगा।"},{"id":"carvaka","en":"The Cārvāka answer: a mind arises from the body's elements, as heady strength arises from fermenting grain. Nothing arrived; something began.","hi":"चार्वाक का उत्तर: मन शरीर के भूतों से उत्पन्न होता है, जैसे सड़ते अन्न से नशे की शक्ति। कुछ आया नहीं; कुछ शुरू हुआ।"}],
+    "scholar": {"en":"The newborn argument is Nyāya Sūtra 3.1.18–21. It is the board's first question, and the oldest one: is there a someone here at all before experience begins?","hi":"नवजात वाला तर्क न्यायसूत्र ३.१.१८–२१ में है। यह बोर्ड का पहला प्रश्न है, और सबसे पुराना भी: अनुभव शुरू होने से पहले क्या यहाँ कोई है भी?"},
+    "figures": ["akshapada"]
+  },
+  "2": {
+    "iast": "Mātṛ devo bhava",
+    "scholar": {"en":"This line and the next come from the teacher's farewell to a graduating student (Taittirīya 1.11). The board puts at the start of life what the Upaniṣad says at the end of schooling.","hi":"यह और अगली पंक्ति स्नातक होते शिष्य को गुरु की विदाई (तैत्तिरीय १.११) से हैं। जो उपनिषद् शिक्षा के अंत में कहता है, बोर्ड उसे जीवन के आरंभ में रखता है।"}
+  },
+  "3": {
+    "iast": "Pitṛ devo bhava",
+    "scholar": {"en":"The full list runs: mother, father, teacher, guest. Each is to be treated as a god. The order is the order in which a person meets them.","hi":"पूरी सूची है: माता, पिता, आचार्य, अतिथि। हर एक को देवता मानना है। क्रम वही है जिसमें मनुष्य उनसे मिलता है।"}
+  },
+  "4": {
+    "iast": "Annaprāśana",
+    "schools": [{"id":"mimamsa","en":"Mīmāṃsā would ask what this rite actually does. Its answer: the injunction is the Veda's real content, and the result arrives later through apūrva, an unseen potency.","hi":"मीमांसा पूछती कि यह संस्कार वास्तव में करता क्या है। उसका उत्तर: विधि ही वेद का असली विषय है, और फल बाद में अपूर्व से, एक अदृश्य शक्ति से, आता है।"}],
+    "scholar": {"en":"The household manuals list about sixteen rites of passage (saṃskāra), and their lists differ. The same word, saṃskāra, later means an impression left on the mind, which the board will come back to.","hi":"गृह्यसूत्र लगभग सोलह संस्कार गिनाते हैं, और उनकी सूचियाँ भिन्न हैं। यही शब्द, संस्कार, आगे चलकर मन पर पड़ी छाप का अर्थ भी देता है, जिस पर बोर्ड लौटेगा।"}
+  },
+  "5": {
+    "schools": [{"id":"yoga","en":"Yoga Sūtra 1.14: practice becomes firm only when kept up for a long time, without a break, and with care. Falling and getting up is the method, not a failure of it.","hi":"योगसूत्र १.१४: अभ्यास तभी दृढ़ होता है जब लंबे समय तक, निरंतर और आदर के साथ किया जाए। गिरना और उठना ही विधि है, उसकी विफलता नहीं।"}]
+  },
+  "6": {
+    "iast": "Maitrī",
+    "schools": [{"id":"yoga","en":"Yoga Sūtra 1.33: meet the happy with friendliness and the suffering with compassion, and the mind grows clear.","hi":"योगसूत्र १.३३: सुखी के प्रति मैत्री और दुःखी के प्रति करुणा रखो, तो चित्त प्रसन्न होता है।"},{"id":"bauddha","en":"For the Buddhists, mettā is the first of four boundless states, to be extended outward until it reaches every being.","hi":"बौद्धों के लिए मैत्री चार अपरिमित भावों में पहली है, जिसे बाहर की ओर फैलाते जाना है जब तक वह हर प्राणी तक न पहुँचे।"}],
+    "scholar": {"en":"From the Panchatantra's second book, 'The winning of friends'. The four animals each save the others once: friendship here is a network, not a pair.","hi":"पंचतंत्र की दूसरी पुस्तक, 'मित्रसंप्राप्ति' से। चारों पशु एक-एक बार दूसरों को बचाते हैं: यहाँ मित्रता एक जाल है, जोड़ा नहीं।"}
+  },
+  "8": {
+    "scholar": {"en":"The geese warned the tortoise not to speak. The story is in the Panchatantra's first book, and also among the Buddhist Jātakas, where the moral is the same.","hi":"हंसों ने कछुए को बोलने से मना किया था। यह कथा पंचतंत्र की पहली पुस्तक में है, और बौद्ध जातकों में भी, जहाँ सीख वही है।"}
+  },
+  "9": {
+    "scholar": {"en":"The frame story: King Amaraśakti despaired of his three sons, and the old Viṣṇuśarman promised to teach them statecraft in six months. Every fable on the board is part of that one lesson.","hi":"कथा का ढाँचा: राजा अमरशक्ति अपने तीन पुत्रों से निराश थे, और वृद्ध विष्णु शर्मा ने छह महीने में उन्हें नीति सिखाने का वचन दिया। बोर्ड की हर कथा उसी एक पाठ का अंश है।"},
+    "figures": ["vishnusharma"]
+  },
+  "10": {
+    "schools": [{"id":"mimamsa","en":"Mīmāṃsā held that words and their meanings are eternal, and the Veda authorless, so its testimony can be trusted with no speaker to vouch for it.","hi":"मीमांसा मानती थी कि शब्द और अर्थ का संबंध नित्य है, और वेद अपौरुषेय, इसलिए उसकी गवाही पर बिना किसी वक्ता के भरोसा किया जा सकता है।"},{"id":"nyaya","en":"Nyāya disagreed: meaning is a convention, and testimony is only as good as its speaker. The Veda is reliable because God, a reliable speaker, composed it.","hi":"न्याय असहमत था: अर्थ एक संकेत (परंपरा) है, और गवाही उतनी ही अच्छी जितना उसका वक्ता। वेद प्रमाण है क्योंकि उसे एक आप्त वक्ता, ईश्वर, ने रचा।"}]
+  },
+  "11": {
+    "schools": [{"id":"nyaya","en":"Nyāya would call the blue fur a false sign: it did not always go with kingship. The howl was a true sign, because a jackal's howl always goes with a jackal.","hi":"न्याय नीले रंग को हेत्वाभास कहता: वह हमेशा राजा होने के साथ नहीं जाता। हुआँ-हुआँ सच्चा हेतु था, क्योंकि सियार की आवाज़ हमेशा सियार के साथ होती है।"}]
+  },
+  "12": {
+    "iast": "Buddhi",
+    "scholar": {"en":"The hare told the lion of a rival lion in the well. In Sāṃkhya, buddhi is the intellect, the first thing to arise from matter, before even the sense of 'I'.","hi":"खरगोश ने शेर को कुएँ में दूसरे शेर की बात बताई। सांख्य में बुद्धि प्रकृति से उत्पन्न होने वाला पहला तत्त्व है, 'मैं' के भाव से भी पहले।"}
+  },
+  "13": {
+    "scholar": {"en":"This is the frame story of the Panchatantra's fourth book, 'Loss of what was gained'. The crocodile had the monkey on its back and talked too soon.","hi":"यह पंचतंत्र की चौथी पुस्तक, 'लब्धप्रणाश', की मुख्य कथा है। मगरमच्छ की पीठ पर बंदर था और वह जल्दी बोल पड़ा।"}
+  },
+  "14": {
+    "iast": "Vācālatā",
+    "schools": [{"id":"jaina","en":"Jain monks keep three guards (gupti): over the mind, the body and speech. Guarding speech means not speaking unless it is needed.","hi":"जैन मुनि तीन गुप्तियाँ रखते हैं: मन, काया और वचन की। वचन-गुप्ति का अर्थ है बिना आवश्यकता के न बोलना।"}]
+  },
+  "16": {
+    "scholar": {"en":"A story inside a story in the Panchatantra's first book, told by a jackal to show that a clever plan beats a stronger enemy.","hi":"पंचतंत्र की पहली पुस्तक में कथा के भीतर कथा, जिसे एक सियार यह दिखाने को कहता है कि चतुर योजना बलवान शत्रु को हरा देती है।"}
+  },
+  "17": {
+    "schools": [{"id":"samkhya","en":"Sāṃkhya has a name for the heaviness that keeps you asleep: tamas, the strand of inertia woven into all matter. It is not a sin. It is weight.","hi":"सांख्य के पास उस भारीपन का नाम है जो आपको सुलाए रखता है: तमस्, जड़ता का गुण जो सारी प्रकृति में बुना है। यह पाप नहीं है। यह भार है।"}]
+  },
+  "18": {
+    "schools": [{"id":"dvaita","en":"For Madhva, Prahlāda shows what bhakti is for: the devotee does not save himself. Viṣṇu does, by grace, when the pillar breaks open.","hi":"मध्व के लिए प्रह्लाद दिखाते हैं कि भक्ति किसलिए है: भक्त स्वयं को नहीं बचाता। खंभा फटने पर विष्णु बचाते हैं, कृपा से।"}],
+    "scholar": {"en":"His father Hiraṇyakaśipu tried poison, elephants, fire and a cliff. Viṣṇu came as Narasiṃha, half man and half lion, at dusk, on a threshold: neither inside nor outside.","hi":"उसके पिता हिरण्यकशिपु ने विष, हाथी, अग्नि और पहाड़ से गिराना, सब आज़माया। विष्णु नरसिंह बनकर आए, आधे मनुष्य आधे सिंह, संध्या के समय, देहरी पर: न भीतर, न बाहर।"}
+  },
+  "19": {
+    "iast": "Asatya",
+    "schools": [{"id":"yoga","en":"Yoga Sūtra 2.36: when someone is established in truthfulness, what they say comes to pass. The jackal had the reverse: his word made nothing true.","hi":"योगसूत्र २.३६: जो सत्य में प्रतिष्ठित हो, उसकी वाणी फलित होती है। सियार के साथ उल्टा था: उसके कहने से कुछ भी सच नहीं हुआ।"}],
+    "scholar": {"en":"The blue jackal is in the Panchatantra's first book. Satya, truthfulness, is the second of Yoga's five restraints and of the Jains' five great vows.","hi":"नीला सियार पंचतंत्र की पहली पुस्तक में है। सत्य योग के पाँच यमों में दूसरा है, और जैनों के पाँच महाव्रतों में भी।"}
+  },
+  "20": {
+    "iast": "Upanayana",
+    "schools": [{"id":"mimamsa","en":"Mīmāṃsā asks who is entitled (adhikārin) to perform a rite. Upanayana is where that entitlement begins, and who it shut out was argued over for centuries.","hi":"मीमांसा पूछती है कि कर्म करने का अधिकारी कौन है। उपनयन से वह अधिकार आरंभ होता है, और इसने किसे बाहर रखा, इस पर सदियों बहस हुई।"}],
+    "scholar": {"en":"Called the second birth: a twice-born (dvija) is one who has received the thread. The Gṛhya Sūtras restricted it by varṇa; reformers from the medieval bhakti poets onward challenged that.","hi":"इसे दूसरा जन्म कहा गया: द्विज वह है जिसने यज्ञोपवीत पाया। गृह्यसूत्रों ने इसे वर्ण से सीमित किया; मध्यकाल के भक्त कवियों से लेकर आगे के सुधारकों ने इसे चुनौती दी।"}
+  },
+  "21": {
+    "iast": "Gurukula"
+  },
+  "22": {
+    "scholar": {"en":"From the Panchatantra's fifth book. The lesson is aimed at the princes who are hearing it: a learned fool is more dangerous than an ignorant one.","hi":"पंचतंत्र की पाँचवीं पुस्तक से। यह सीख उन राजकुमारों के लिए है जो इसे सुन रहे हैं: विद्वान मूर्ख, अनपढ़ मूर्ख से अधिक खतरनाक है।"}
+  },
+  "23": {
+    "iast": "Guru-bhakti",
+    "scholar": {"en":"Āruṇi of Pāñcāla was a student of Āyoda Dhaumya, in the Pauṣya Parva of the Mahābhārata. His teacher renamed him Uddālaka, 'the one who rose up', when he got up out of the breach.","hi":"पांचाल के आरुणि आयोद धौम्य के शिष्य थे, महाभारत के पौष्य पर्व में। जब वे मेड़ से उठकर निकले, तो गुरु ने उनका नाम उद्दालक रखा, 'जो ऊपर उठा'।"}
+  },
+  "24": {
+    "schools": [{"id":"advaita","en":"Advaita has a word for what the lion did: adhyāsa, superimposition, taking one thing for another. Taking the body for the Self, it says, is the same leap at a reflection.","hi":"अद्वैत के पास शेर की गलती का शब्द है: अध्यास, एक को दूसरा मान लेना। शरीर को आत्मा मान लेना, वह कहता है, प्रतिबिंब पर वही छलाँग है।"}]
+  },
+  "25": {
+    "iast": "Gāyatrī",
+    "scholar": {"en":"Ṛg Veda 3.62.10, seen by the sage Viśvāmitra and addressed to Savitṛ, the sun as the one who sets things moving. It is named for its metre, gāyatrī, three lines of eight syllables.","hi":"ऋग्वेद ३.६२.१०, ऋषि विश्वामित्र द्वारा दृष्ट, सविता को संबोधित, वह सूर्य जो सबको गति देता है। इसका नाम इसके छंद, गायत्री, से है: आठ-आठ अक्षरों की तीन पंक्तियाँ।"}
+  },
+  "26": {
+    "iast": "Samit-pāṇi",
+    "schools": [{"id":"advaita","en":"Śaṅkara read this verse strictly: the Self is known from scripture heard from a teacher, not worked out alone. Even the most learned must go with fuel in hand.","hi":"शंकर ने इस मंत्र को कठोरता से पढ़ा: आत्मा गुरु से सुने शास्त्र से जानी जाती है, अकेले सोचकर नहीं। सबसे विद्वान को भी हाथ में समिधा लेकर जाना होता है।"}]
+  },
+  "27": {
+    "scholar": {"en":"The six asked where beings come from, which powers hold up the body, where breath comes from, what sleeps and what wakes, what meditating on Om attains, and who the person of sixteen parts is.","hi":"छहों ने पूछा: प्राणी कहाँ से आते हैं, कौन सी शक्तियाँ शरीर को धारण करती हैं, प्राण कहाँ से आता है, कौन सोता है और कौन जागता है, ॐ के ध्यान से क्या मिलता है, और सोलह कलाओं वाला पुरुष कौन है।"}
+  },
+  "28": {
+    "iast": "Satya",
+    "scholar": {"en":"His mother Jabālā had told him: 'I do not know your lineage. You are Satyakāma, son of Jabālā.' The teacher Gautama accepted him, saying only a true brahmin would speak so plainly.","hi":"उसकी माँ जबाला ने कहा था: 'मैं तुम्हारा गोत्र नहीं जानती। तुम सत्यकाम जाबाल हो।' गुरु गौतम ने उसे यह कहकर स्वीकार किया कि इतना सीधा सच कोई सच्चा ब्राह्मण ही बोलेगा।"}
+  },
+  "29": {
+    "iast": "Ālasya",
+    "schools": [{"id":"yoga","en":"Yoga Sūtra 1.30 lists nine obstacles that scatter the mind. Sloth, ālasya, is the fifth, right after doubt and carelessness.","hi":"योगसूत्र १.३० चित्त को बिखेरने वाले नौ विघ्न गिनाता है। आलस्य पाँचवाँ है, संशय और प्रमाद के ठीक बाद।"}]
+  },
+  "30": {
+    "iast": "Satyaṃ vada, dharmaṃ cara",
+    "schools": [{"id":"mimamsa","en":"Note the grammar: commands. For Mīmāṃsā that is the whole point. Dharma is what the Veda enjoins (Mīmāṃsā Sūtra 1.1.2), not what anyone feels to be right.","hi":"व्याकरण देखिए: आज्ञाएँ। मीमांसा के लिए यही सार है। धर्म वह है जिसकी वेद विधि करता है (मीमांसासूत्र १.१.२), वह नहीं जो किसी को सही लगे।"}]
+  },
+  "31": {
+    "schools": [{"id":"carvaka","en":"The Cārvāka reply, at full strength: would you throw away the rice because it comes in husks? Pleasure always comes mixed with pain, and that is a reason to husk carefully, not to stop eating.","hi":"चार्वाक का उत्तर, पूरी ताकत से: क्या भूसी के कारण चावल फेंक दोगे? सुख हमेशा दुःख के साथ आता है, और यह सावधानी से कूटने का कारण है, खाना छोड़ने का नहीं।"}],
+    "scholar": {"en":"Yayāti's verse, 'na jātu kāmaḥ kāmānām upabhogena śāmyati', is one of the most quoted lines in Sanskrit. Manu repeats it (2.94).","hi":"ययाति का श्लोक, 'न जातु कामः कामानामुपभोगेन शाम्यति', संस्कृत की सबसे अधिक उद्धृत पंक्तियों में से है। मनु इसे दोहराते हैं (२.९४)।"}
+  },
+  "32": {
+    "schools": [{"id":"advaita","en":"Advaita takes the lesson at its word: the Self pervades you as salt pervades water, everywhere and nowhere in particular.","hi":"अद्वैत इस पाठ को शब्दशः लेता है: आत्मा आपमें वैसे ही व्याप्त है जैसे जल में नमक, हर जगह और किसी एक जगह नहीं।"},{"id":"nyaya","en":"Nyāya would add: the Self is not seen either, but it can be inferred from its marks, which are desire, aversion, effort, pleasure, pain and knowing (Nyāya Sūtra 1.1.10).","hi":"न्याय जोड़ता: आत्मा भी दिखती नहीं, पर उसके लक्षणों से उसका अनुमान होता है: इच्छा, द्वेष, प्रयत्न, सुख, दुःख और ज्ञान (न्यायसूत्र १.१.१०)।"}],
+    "figures": ["uddalaka"]
+  },
+  "33": {
+    "schools": [{"id":"samkhya","en":"Sāṃkhya: the tree was already in the seed. An effect pre-exists in its cause (satkāryavāda); otherwise, why does oil come from sesame and never from sand?","hi":"सांख्य: वृक्ष पहले से बीज में था। कार्य कारण में पहले से रहता है (सत्कार्यवाद); नहीं तो तेल तिल से ही क्यों निकलता है, रेत से कभी क्यों नहीं?"},{"id":"vaisheshika","en":"Vaiśeṣika: no, the tree is new. Atoms combine into a whole that did not exist before (asatkāryavāda). If the tree were already there, why plant anything?","hi":"वैशेषिक: नहीं, वृक्ष नया है। परमाणु मिलकर एक ऐसा संपूर्ण बनाते हैं जो पहले नहीं था (असत्कार्यवाद)। यदि वृक्ष पहले से था, तो कुछ बोना ही क्यों?"}],
+    "figures": ["uddalaka","kapila"]
+  },
+  "34": {
+    "iast": "Śraddhā",
+    "scholar": {"en":"It began with a hollow sacrifice: his father Vājaśravas gave away cows too old to give milk. 'To whom will you give me?' the boy asked, three times. 'To Death,' said his father, and the boy went.","hi":"यह एक खोखले यज्ञ से शुरू हुआ: उसके पिता वाजश्रवा ने ऐसी गायें दान कीं जो दूध देने लायक नहीं थीं। 'मुझे किसे दोगे?' बालक ने तीन बार पूछा। 'मृत्यु को,' पिता बोले, और बालक चला गया।"}
+  },
+  "35": {
+    "schools": [{"id":"samkhya","en":"The Katha's ladder goes on: beyond the senses the mind, beyond the mind the intellect, beyond that the unmanifest, then the Person. Sāṃkhya would later count these as its tattvas.","hi":"कठ की सीढ़ी आगे जाती है: इंद्रियों से परे मन, मन से परे बुद्धि, उससे परे अव्यक्त, फिर पुरुष। सांख्य ने आगे चलकर इन्हें अपने तत्त्वों में गिना।"}]
+  },
+  "36": {
+    "iast": "Tat tvam asi",
+    "views": [{"id":"advaita","en":"Śaṅkara: identity. 'You' minus the body and mind is the same as 'That', Brahman. Nothing is joined; an error is removed.","hi":"शंकर: अभेद। शरीर और मन हटाकर 'तुम' वही है जो 'तत्', ब्रह्म। कुछ जुड़ता नहीं; एक भूल मिटती है।"},{"id":"vishishtadvaita","en":"Rāmānuja: 'you' is a mode of Brahman, as a body is of its indweller. One reality, with real differences inside it.","hi":"रामानुज: 'तुम' ब्रह्म का एक प्रकार है, जैसे शरीर अपने अंतर्यामी का। एक सत्य, जिसके भीतर वास्तविक भेद हैं।"},{"id":"dvaita","en":"Madhva splits the sandhi differently: 'sa ātmā atat tvam asi', you are not That. The soul is like God, and forever distinct.","hi":"मध्व संधि को अलग तोड़ते हैं: 'स आत्मा अतत् त्वम् असि', तुम वह नहीं हो। जीव ईश्वर जैसा है, पर सदा भिन्न।"}],
+    "scholar": {"en":"Uddālaka says it nine times, at the end of nine lessons. One sentence of four syllables, and Vedānta splits three ways over it, all reading the same text with the same care.","hi":"उद्दालक इसे नौ बार कहते हैं, नौ पाठों के अंत में। चार अक्षरों का एक वाक्य, और वेदांत इस पर तीन ओर बँट जाता है, सब एक ही पाठ को उतनी ही सावधानी से पढ़ते हुए।"},
+    "figures": ["uddalaka","shankara","ramanuja","madhva"]
+  },
+  "38": {
+    "iast": "Samāvartana",
+    "scholar": {"en":"The returning student is a snātaka, 'one who has bathed'. The bath marks the end of brahmacarya and the start of eligibility to marry.","hi":"लौटता विद्यार्थी स्नातक कहलाता है, 'जिसने स्नान किया'। यह स्नान ब्रह्मचर्य का अंत और विवाह की पात्रता का आरंभ है।"}
+  },
+  "39": {
+    "iast": "Vidyā-mada",
+    "schools": [{"id":"nyaya","en":"Nyāya ranked kinds of debate: honest inquiry (vāda), arguing to win (jalpa), and pure demolition with no thesis of your own (vitaṇḍā). The three brothers had learning without vāda.","hi":"न्याय ने कथा के प्रकार गिनाए: सच्ची जिज्ञासा (वाद), जीतने के लिए तर्क (जल्प), और अपना पक्ष रखे बिना केवल खंडन (वितंडा)। तीन भाइयों के पास विद्या थी, वाद नहीं।"}]
+  },
+  "40": {
+    "iast": "Svādhyāya",
+    "schools": [{"id":"mimamsa","en":"Mīmāṃsā starts here. 'One's own Veda must be studied' (svādhyāyo 'dhyetavyaḥ) is the injunction its commentators take as the ground of the whole inquiry.","hi":"मीमांसा यहीं से शुरू होती है। 'स्वाध्यायोऽध्येतव्यः' (अपने वेद का अध्ययन करना चाहिए) वह विधि है जिसे इसके भाष्यकार पूरी जिज्ञासा का आधार मानते हैं।"}]
+  },
+  "41": {
+    "iast": "Vivāha · saptapadī",
+    "schools": [{"id":"mimamsa","en":"Mīmāṃsā debated who may sacrifice and concluded that the householder does so jointly with his wife. The fire of the wedding is the fire of their rites.","hi":"मीमांसा ने विचार किया कि यज्ञ कौन कर सकता है और निष्कर्ष निकाला कि गृहस्थ अपनी पत्नी के साथ मिलकर करता है। विवाह की अग्नि ही उनके यज्ञों की अग्नि है।"}]
+  },
+  "42": {
+    "iast": "Gṛha",
+    "scholar": {"en":"Manu calls the householder the highest āśrama, because all the others live on what it gives. The same text's rules on caste and on women have been contested from its own time to now.","hi":"मनु गृहस्थ को सबसे श्रेष्ठ आश्रम कहते हैं, क्योंकि बाकी सब उसी के दिए पर जीते हैं। इसी ग्रंथ के जाति और स्त्रियों संबंधी नियम अपने समय से आज तक विवादित रहे हैं।"}
+  },
+  "44": {
+    "iast": "Dāna · datta",
+    "schools": [{"id":"bauddha","en":"In Buddhism, generosity (dāna) is the first of the perfections. Its fruit is less in what is given than in the loosening of the hand that gives.","hi":"बौद्ध धर्म में दान पहली पारमिता है। इसका फल दी गई वस्तु में कम, देने वाले हाथ की पकड़ ढीली होने में अधिक है।"}],
+    "scholar": {"en":"Prajāpati's children came for teaching and he said one syllable, 'da'. The gods heard dāmyata, be restrained; humans heard datta, give; the asuras heard dayadhvam, be compassionate. The thunder still says it: da da da.","hi":"प्रजापति की संतानें उपदेश के लिए आईं और उन्होंने एक अक्षर कहा, 'द'। देवों ने सुना दाम्यत, संयम करो; मनुष्यों ने दत्त, दान करो; असुरों ने दयध्वम्, दया करो। मेघ आज भी यही कहता है: द द द।"}
+  },
+  "45": {
+    "scholar": {"en":"His teacher sent him off with four hundred thin cows and he stayed away until they were a thousand. On the way back a bull, a fire, a swan and a diver-bird each taught him a quarter of Brahman.","hi":"गुरु ने उसे चार सौ दुबली गायों के साथ भेजा और वह तब तक लौटा नहीं जब तक वे हज़ार न हो गईं। लौटते हुए एक बैल, अग्नि, हंस और जलपक्षी ने उसे ब्रह्म का एक-एक पाद सिखाया।"}
+  },
+  "46": {
+    "scholar": {"en":"Kurukṣetra is also where the Bhagavad Gītā is spoken, to a man refusing to fight his own family. The board puts the war on the snake's tail; the Gītā puts it at the start of a teaching.","hi":"कुरुक्षेत्र वही स्थान है जहाँ भगवद्गीता कही गई, उस व्यक्ति से जो अपने ही परिवार से लड़ने से मना कर रहा था। बोर्ड युद्ध को साँप की पूँछ पर रखता है; गीता उसे एक उपदेश के आरंभ में।"}
+  },
+  "47": {
+    "iast": "Kāma",
+    "schools": [{"id":"bauddha","en":"The Buddha's second noble truth names it: suffering arises from craving (taṇhā), and craving is exactly the fire Yayāti kept feeding.","hi":"बुद्ध का दूसरा आर्य सत्य इसका नाम लेता है: दुःख तृष्णा से उत्पन्न होता है, और तृष्णा ठीक वही आग है जिसे ययाति खिलाते रहे।"}],
+    "scholar": {"en":"Kāma is also one of the four aims of life (puruṣārtha), alongside dharma, artha and mokṣa. The snake is craving; the aim is desire kept within dharma.","hi":"काम जीवन के चार पुरुषार्थों में से भी एक है, धर्म, अर्थ और मोक्ष के साथ। साँप तृष्णा है; पुरुषार्थ धर्म की सीमा में रखी गई इच्छा है।"}
+  },
+  "48": {
+    "iast": "Annaṃ brahma",
+    "schools": [{"id":"carvaka","en":"Cārvāka would happily agree that the body is food, then stop there: the self is this body, and the Upaniṣad's further sheaths are a story told on top of it.","hi":"चार्वाक खुशी से मानता कि शरीर अन्न है, फिर वहीं रुक जाता: आत्मा यही शरीर है, और उपनिषद् के आगे के कोश उसके ऊपर कही गई कथा हैं।"}]
+  },
+  "49": {
+    "iast": "Pañca mahāyajña",
+    "schools": [{"id":"mimamsa","en":"For Mīmāṃsā these are nitya karma, obligatory daily rites. You do them because they are enjoined; skipping them is a fault, and doing them earns no special reward.","hi":"मीमांसा के लिए ये नित्य कर्म हैं, अनिवार्य दैनिक कर्तव्य। आप इन्हें इसलिए करते हैं क्योंकि इनकी विधि है; छोड़ना दोष है, और करने से कोई विशेष फल नहीं मिलता।"}]
+  },
+  "51": {
+    "iast": "Dayā · dayadhvam",
+    "schools": [{"id":"jaina","en":"For the Jains compassion reaches every living thing, down to the beings in water and air. Monks sweep the ground before they step so as not to crush what lives there.","hi":"जैनों के लिए दया हर प्राणी तक जाती है, जल और वायु के जीवों तक भी। मुनि कदम रखने से पहले ज़मीन बुहारते हैं ताकि वहाँ रहने वाले जीव न कुचलें।"}]
+  },
+  "52": {
+    "scholar": {"en":"Dice were an old danger. Ṛg Veda 10.34 is a gambler's lament: his wife has left, his mother-in-law hates him, and still the brown dice call him back to the board.","hi":"जुआ पुराना खतरा था। ऋग्वेद १०.३४ एक जुआरी का विलाप है: पत्नी छोड़ गई, सास घृणा करती है, फिर भी भूरे पासे उसे बार-बार बिसात पर बुलाते हैं।"}
+  },
+  "53": {
+    "schools": [{"id":"advaita","en":"Yama's verse, 'it is not born, it does not die' (Katha 1.2.18), returns in the Gītā (2.20). For Advaita it is the plainest statement that the Self was never in danger.","hi":"यम का मंत्र, 'न जायते म्रियते वा' (कठ १.२.१८), गीता (२.२०) में लौटता है। अद्वैत के लिए यह सबसे सीधा कथन है कि आत्मा कभी संकट में थी ही नहीं।"}],
+    "scholar": {"en":"Death offered him every pleasure first: chariots, music, long life. 'Keep them,' said Naciketas. 'They wear out the senses.' Only then did Yama teach.","hi":"मृत्यु ने पहले उसे हर सुख दिया: रथ, संगीत, लंबी आयु। 'इन्हें रखिए,' नचिकेता ने कहा। 'ये इंद्रियों को घिसते हैं।' तभी यम ने उपदेश दिया।"}
+  },
+  "54": {
+    "scholar": {"en":"King Jānaśruti brought cows, a necklace and a chariot. Raikva, scratching his sores under his cart, sent him back with 'keep them, śūdra'. He taught the doctrine of absorption (saṃvarga): wind takes in all things, and breath takes in all the senses.","hi":"राजा जानश्रुति गायें, हार और रथ लेकर आए। अपनी गाड़ी के नीचे खुजली खुजाते रैक्व ने उन्हें 'हे शूद्र, इन्हें रखो' कहकर लौटा दिया। उन्होंने संवर्ग विद्या सिखाई: वायु सब कुछ अपने में समेटता है, और प्राण सब इंद्रियों को।"}
+  },
+  "55": {
+    "iast": "Lobha",
+    "schools": [{"id":"jaina","en":"The fifth Jain vow, aparigraha, non-possession, is the cure the jackal never tried: own as little as you can, and hold even that loosely.","hi":"जैनों का पाँचवाँ व्रत, अपरिग्रह, वह इलाज है जो सियार ने कभी नहीं आज़माया: जितना कम हो सके उतना रखो, और उसे भी ढीले हाथ से।"}]
+  },
+  "56": {
+    "iast": "Atithi devo bhava",
+    "scholar": {"en":"A-tithi means one without a date: the guest who arrives unannounced. Feeding the guest is one of the five daily offerings of square 49.","hi":"अ-तिथि का अर्थ है जिसकी कोई तिथि न हो: बिना बताए आने वाला। अतिथि को खिलाना खाना ४९ के पंच महायज्ञों में से एक है।"}
+  },
+  "57": {
+    "iast": "Dharma",
+    "schools": [{"id":"mimamsa","en":"Mīmāṃsā would hold Janaka up as the model: keep doing your duties, and the duties themselves are the good.","hi":"मीमांसा जनक को आदर्श मानती: अपने कर्तव्य करते रहो, कर्तव्य ही स्वयं श्रेय हैं।"},{"id":"advaita","en":"Śaṅkara would answer that Janaka acted because he was already free, not in order to become free. Action can purify the mind; only knowledge liberates.","hi":"शंकर उत्तर देते कि जनक कर्म इसलिए करते थे क्योंकि वे पहले से मुक्त थे, मुक्त होने के लिए नहीं। कर्म मन को शुद्ध कर सकता है; मुक्ति केवल ज्ञान से है।"}],
+    "scholar": {"en":"The Gītā (3.20) cites Janaka as one who reached perfection through action itself. Whether action and knowledge can be combined was one of the long quarrels of Vedānta.","hi":"गीता (३.२०) जनक का उदाहरण देती है जिन्होंने कर्म से ही सिद्धि पाई। कर्म और ज्ञान मिलाए जा सकते हैं या नहीं, यह वेदांत के लंबे विवादों में से एक था।"},
+    "figures": ["yajnavalkya"]
+  },
+  "58": {
+    "schools": [{"id":"nyaya","en":"Nyāya would read the blade of grass as evidence: a world this ordered needs a maker, and that maker can be inferred the way a pot implies a potter.","hi":"न्याय तिनके को प्रमाण की तरह पढ़ता: इतने व्यवस्थित जगत को एक कर्ता चाहिए, और उसका अनुमान वैसे ही होता है जैसे घड़े से कुम्हार का।"},{"id":"mimamsa","en":"Mīmāṃsā would refuse: no creator is needed at all. The world has always been as it is, and the Veda's rites work on their own.","hi":"मीमांसा इनकार करती: किसी सृष्टिकर्ता की आवश्यकता ही नहीं। जगत सदा से ऐसा ही है, और वेद के कर्म अपने आप फल देते हैं।"}],
+    "scholar": {"en":"The Yakṣa vanished and in its place stood Umā Haimavatī, who told the gods that the victory had been Brahman's. In the Kena she is the first teacher of Brahman.","hi":"यक्ष अंतर्धान हो गया और उसकी जगह उमा हैमवती खड़ी थीं, जिन्होंने देवताओं को बताया कि विजय ब्रह्म की थी। केन में वे ब्रह्म की पहली उपदेशिका हैं।"}
+  },
+  "59": {
+    "iast": "Krodha",
+    "schools": [{"id":"yoga","en":"Yoga Sūtra 2.33 gives the method the brahmin's wife needed: when a harmful thought rises, cultivate its opposite (pratipakṣa-bhāvanā) before you act on it.","hi":"योगसूत्र २.३३ वह विधि देता है जो ब्राह्मणी को चाहिए थी: जब कोई हिंसक विचार उठे, तो उस पर कर्म करने से पहले उसके विपरीत भाव (प्रतिपक्ष-भावना) को साधो।"}]
+  },
+  "61": {
+    "scholar": {"en":"Prajāpati taught Indra in stages: first that the Self is the body, then the dreaming self, then the self in deep sleep, and at last the Self that is none of these. Indra rejected each answer until the last, which took 101 years in all.","hi":"प्रजापति ने इंद्र को क्रम से सिखाया: पहले कि आत्मा शरीर है, फिर स्वप्न का आत्मा, फिर सुषुप्ति का, और अंत में वह आत्मा जो इनमें से कोई नहीं। इंद्र ने अंतिम से पहले हर उत्तर को अस्वीकार किया, जिसमें कुल १०१ वर्ष लगे।"}
+  },
+  "62": {
+    "iast": "Moha",
+    "schools": [{"id":"yoga","en":"Yoga names attachment (rāga) as the affliction that follows pleasure (Yoga Sūtra 2.7). Dhṛtarāṣṭra's love for his son was real; it was the clinging that blinded him twice.","hi":"योग राग को वह क्लेश कहता है जो सुख के पीछे आता है (योगसूत्र २.७)। धृतराष्ट्र का पुत्र-प्रेम सच्चा था; उस पकड़ ने उन्हें दोबारा अंधा कर दिया।"}]
+  },
+  "63": {
+    "iast": "Tena tyaktena bhuñjīthāḥ",
+    "scholar": {"en":"The verse can be read two ways. Śaṅkara takes 'tyaktena' as renunciation: protect the Self by giving everything up. Others read it as 'with what has been left to you': enjoy what the Lord has allotted, and want nothing more.","hi":"इस मंत्र को दो तरह पढ़ा जा सकता है। शंकर 'त्यक्तेन' को त्याग के रूप में लेते हैं: सब छोड़कर आत्मा की रक्षा करो। दूसरे इसे 'जो तुम्हें छोड़ा गया है उससे' पढ़ते हैं: ईश्वर ने जो दिया उसका भोग करो, और अधिक की इच्छा मत करो।"},
+    "figures": ["shankara"]
+  },
+  "64": {
+    "schools": [{"id":"carvaka","en":"The Cārvāka verse: 'once the body is ash, how can it ever return?' There was no Bharata left to become a deer; only a story that needs someone to be reborn.","hi":"चार्वाक का श्लोक: 'भस्मीभूतस्य देहस्य पुनरागमनं कुतः', राख हो चुका शरीर फिर कैसे लौटेगा? हिरण बनने को कोई भरत बचा ही नहीं था; बस एक कथा है जिसे पुनर्जन्म के लिए कोई चाहिए।"}],
+    "scholar": {"en":"Bharata was reborn as a deer and then as a brahmin who pretended to be simple-minded so that no one would attach him to anything again. That is why he is called Jaḍa Bharata, 'Bharata the dull'.","hi":"भरत हिरण बने और फिर एक ब्राह्मण, जो जड़ होने का ढोंग करते थे ताकि कोई उन्हें फिर किसी बंधन में न बाँधे। इसीलिए वे जड़ भरत कहलाते हैं।"}
+  },
+  "65": {
+    "iast": "Vairāgya",
+    "schools": [{"id":"yoga","en":"Yoga Sūtra 1.12 pairs it with practice: the mind is stilled by abhyāsa and vairāgya together. Detachment without practice drifts; practice without detachment grasps.","hi":"योगसूत्र १.१२ इसे अभ्यास के साथ जोड़ता है: चित्त का निरोध अभ्यास और वैराग्य दोनों से होता है। अभ्यास के बिना वैराग्य भटकता है; वैराग्य के बिना अभ्यास पकड़ता है।"}],
+    "figures": ["yajnavalkya"]
+  },
+  "66": {
+    "iast": "Vānaprastha"
+  },
+  "67": {
+    "schools": [{"id":"vishishtadvaita","en":"Rāmānuja gives this verse a body: every being is part of the body of God. To hate any one of them is to wound God's own body.","hi":"रामानुज इस मंत्र को एक शरीर देते हैं: हर प्राणी ईश्वर के शरीर का अंग है। किसी एक से घृणा करना ईश्वर के अपने शरीर को घायल करना है।"}]
+  },
+  "68": {
+    "schools": [{"id":"advaita","en":"Śaṅkara holds that words can liberate, but only the right sentence, heard from a teacher, by a mind ready for it. Nārada had all the words and none of the hearing.","hi":"शंकर मानते हैं कि शब्द मुक्त कर सकते हैं, पर केवल सही वाक्य, गुरु से सुना हुआ, तैयार मन से। नारद के पास सब शब्द थे, सुनना नहीं।"}],
+    "scholar": {"en":"Sanatkumāra led Nārada up a ladder of fifteen things, each 'greater' than the last: name, speech, mind, will, and so on up to breath, and then to bhūman, the boundless, where alone there is joy.","hi":"सनत्कुमार नारद को पंद्रह सीढ़ियों पर ले गए, हर एक पिछली से 'बड़ी': नाम, वाणी, मन, संकल्प, और इसी तरह प्राण तक, फिर भूमा तक, असीम, जहाँ अकेले सुख है।"}
+  },
+  "69": {
+    "iast": "Mātsarya",
+    "schools": [{"id":"bauddha","en":"The Buddhists name the antidote: muditā, sympathetic joy, being glad at someone else's good fortune. It is one of the four boundless states, and the hardest.","hi":"बौद्ध इसकी औषधि बताते हैं: मुदिता, दूसरे के सौभाग्य पर प्रसन्न होना। यह चार अपरिमित भावों में से एक है, और सबसे कठिन।"}],
+    "scholar": {"en":"In the hall built by the asura architect Maya, Duryodhana mistook a crystal floor for water and a pool for a floor, and fell in. The laughter of those who saw it is remembered as the spark.","hi":"असुर शिल्पी मय के बनाए सभाभवन में दुर्योधन ने स्फटिक के फर्श को पानी और तालाब को फर्श समझा, और गिर पड़ा। देखने वालों की हँसी को चिंगारी के रूप में याद किया जाता है।"}
+  },
+  "70": {
+    "iast": "Pañca-kośa",
+    "schools": [{"id":"advaita","en":"Advaita uses the sheaths as a method: look at each one, see that you are its witness, and set it aside. What cannot be set aside is the Self.","hi":"अद्वैत कोशों को एक विधि की तरह बरतता है: हर एक को देखो, जानो कि तुम उसके साक्षी हो, और उसे अलग रखो। जो अलग न किया जा सके, वही आत्मा है।"}]
+  },
+  "71": {
+    "schools": [{"id":"carvaka","en":"The Cārvākas said much religion was a livelihood for those who perform it, and they would have recognised this cat. The charge is old, and it is not always wrong.","hi":"चार्वाकों ने कहा कि बहुत सा धर्म उसे करवाने वालों की आजीविका है, और वे इस बिल्ली को पहचान लेते। यह आरोप पुराना है, और हमेशा गलत भी नहीं।"}]
+  },
+  "72": {
+    "iast": "Tapas",
+    "schools": [{"id":"jaina","en":"For the Jains tapas is central: fasting and austerity burn off karmic matter already stuck to the soul, the way heat burns off impurities from gold.","hi":"जैनों के लिए तप केंद्रीय है: उपवास और तप जीव पर पहले से चिपके कर्म-पुद्गल को जला देते हैं, जैसे आग सोने का मैल।"}],
+    "scholar": {"en":"Varuṇa never gave Bhṛgu an answer. He gave him a method: 'Seek it by tapas.' Bhṛgu came back four times with food, breath, mind and understanding, and was sent away again each time.","hi":"वरुण ने भृगु को कभी उत्तर नहीं दिया। उन्होंने विधि दी: 'तप से जानो।' भृगु चार बार अन्न, प्राण, मन और विज्ञान लेकर लौटे, और हर बार फिर भेजे गए।"}
+  },
+  "73": {
+    "iast": "Prāṇa",
+    "schools": [{"id":"yoga","en":"Yoga makes breath the fourth limb: prāṇāyāma, the regulation of in-breath and out-breath (Yoga Sūtra 2.49), the hinge between body and mind.","hi":"योग प्राण को चौथा अंग बनाता है: प्राणायाम, श्वास और प्रश्वास का नियमन (योगसूत्र २.४९), शरीर और मन के बीच का कब्ज़ा।"}]
+  },
+  "74": {
+    "iast": "Dahara",
+    "scholar": {"en":"This is the dahara-vidyā, the meditation on the small space within. The Brahma Sūtra (1.3.14) argues that the space meant here is Brahman, not the physical ether.","hi":"यह दहर-विद्या है, भीतर के छोटे आकाश का ध्यान। ब्रह्मसूत्र (१.३.१४) तर्क देता है कि यहाँ अभिप्रेत आकाश ब्रह्म है, भौतिक आकाश नहीं।"}
+  },
+  "75": {
+    "schools": [{"id":"samkhya","en":"Sāṃkhya would agree with Janaka's grammar exactly: puruṣa owns nothing and does nothing. Whatever burns was prakṛti all along.","hi":"सांख्य जनक के वाक्य से पूरी तरह सहमत होता: पुरुष का कुछ नहीं और वह कुछ नहीं करता। जो जल रहा है वह सदा से प्रकृति था।"}]
+  },
+  "76": {
+    "iast": "Sandhyā"
+  },
+  "77": {
+    "iast": "Mada",
+    "scholar": {"en":"Agni went first and could not burn the grass, then Vāyu could not move it. When Indra approached, the Yakṣa vanished altogether, which is why Indra is said to have come nearest.","hi":"पहले अग्नि गए और तिनका न जला सके, फिर वायु उसे हिला न सके। जब इंद्र पास गए तो यक्ष पूरी तरह अंतर्धान हो गया, इसीलिए कहा जाता है कि इंद्र सबसे निकट पहुँचे।"}
+  },
+  "78": {
+    "schools": [{"id":"nyaya","en":"Nyāya agrees that it is the self who loves, but insists that selves are many, one to each body. Yājñavalkya's 'Self' would be Maitreyī's own, not one shared by both.","hi":"न्याय सहमत है कि प्रेम करने वाला आत्मा है, पर ज़ोर देता है कि आत्माएँ अनेक हैं, हर शरीर में एक। याज्ञवल्क्य का 'आत्मा' मैत्रेयी का अपना होगा, दोनों में एक नहीं।"}],
+    "figures": ["yajnavalkya"]
+  },
+  "79": {
+    "schools": [{"id":"yoga","en":"Yoga Sūtra 1.27: the word for Īśvara is praṇava, Om. Repeat it with its meaning, and the obstacles fall away.","hi":"योगसूत्र १.२७: ईश्वर का वाचक प्रणव है, ॐ। उसका अर्थ सहित जप करो, और विघ्न हट जाते हैं।"}]
+  },
+  "80": {
+    "iast": "Sannyāsa",
+    "schools": [{"id":"mimamsa","en":"Mīmāṃsā was suspicious of all this. If dharma is ritual action, the man who gives up his fires has given up dharma. The householder's life was the whole of it.","hi":"मीमांसा इस सबको संदेह से देखती थी। यदि धर्म यज्ञ-कर्म है, तो अपनी अग्नि त्यागने वाले ने धर्म त्याग दिया। गृहस्थ का जीवन ही सब कुछ था।"},{"id":"advaita","en":"Advaita answered with monasteries. Śaṅkara's tradition made renunciation the natural life of one who has seen that action cannot free anyone.","hi":"अद्वैत ने मठों से उत्तर दिया। शंकर की परंपरा ने संन्यास को उसका स्वाभाविक जीवन बनाया जिसने देख लिया कि कर्म किसी को मुक्त नहीं कर सकता।"}]
+  },
+  "81": {
+    "iast": "Neti neti",
+    "schools": [{"id":"advaita","en":"Advaita reads 'not this, not this' as the most exact description there is: the Self is reached by subtracting everything it is not.","hi":"अद्वैत 'नेति नेति' को सबसे सटीक वर्णन मानता है: आत्मा तक वह सब घटाकर पहुँचा जाता है जो वह नहीं है।"},{"id":"bauddha","en":"A Buddhist would keep going: apply 'not this' to the Self as well. There is no remainder; that is anattā.","hi":"एक बौद्ध आगे बढ़ता: 'नेति' को आत्मा पर भी लागू करो। कुछ शेष नहीं बचता; यही अनात्म है।"}],
+    "figures": ["yajnavalkya"]
+  },
+  "82": {
+    "iast": "Turīya",
+    "schools": [{"id":"advaita","en":"Gauḍapāda's verses on this Upaniṣad began Advaita. He argued that waking and dreaming are alike, both appearances to a fourth that never comes or goes.","hi":"इस उपनिषद् पर गौड़पाद की कारिका से अद्वैत आरंभ हुआ। उन्होंने तर्क दिया कि जाग्रत और स्वप्न एक जैसे हैं, दोनों एक चौथे के सामने प्रतीतियाँ, जो न आता है न जाता है।"}],
+    "figures": ["gaudapada"]
+  },
+  "83": {
+    "iast": "Amṛtatva",
+    "schools": [{"id":"nyaya","en":"Yājñavalkya told Maitreyī that after death there is no awareness. Nyāya agreed that liberation is without pleasure or awareness; its critics joked that it turns you into a stone.","hi":"याज्ञवल्क्य ने मैत्रेयी से कहा कि मृत्यु के बाद संज्ञा नहीं रहती। न्याय सहमत था कि मुक्ति में न सुख है न चेतना; उसके आलोचक हँसते थे कि यह आपको पत्थर बना देती है।"}],
+    "figures": ["yajnavalkya"]
+  },
+  "84": {
+    "iast": "Bhikṣā",
+    "schools": [{"id":"jaina","en":"Jain monks take alms by strict rules: food not cooked for them, taken from many houses so as to burden none, and, for Digambara monks, eaten once a day, standing.","hi":"जैन मुनि कठोर नियमों से भिक्षा लेते हैं: ऐसा भोजन जो उनके लिए न पकाया गया हो, कई घरों से थोड़ा-थोड़ा ताकि किसी पर भार न पड़े, और दिगंबर मुनियों के लिए, दिन में एक बार, खड़े होकर।"}]
+  },
+  "85": {
+    "iast": "Viveka",
+    "schools": [{"id":"samkhya","en":"Sāṃkhya-Yoga's whole goal is this discernment (viveka-khyāti): seeing that the watcher is not the eater, that puruṣa is not prakṛti.","hi":"सांख्य-योग का पूरा लक्ष्य यही विवेक (विवेकख्याति) है: यह देखना कि देखने वाला खाने वाला नहीं, कि पुरुष प्रकृति नहीं।"},{"id":"dvaita","en":"Madhva cites this verse as proof of difference: two birds, the soul and God, side by side forever and never one.","hi":"मध्व इस मंत्र को भेद के प्रमाण के रूप में उद्धृत करते हैं: दो पक्षी, जीव और ईश्वर, सदा साथ, पर कभी एक नहीं।"}]
+  },
+  "86": {
+    "iast": "Kena",
+    "schools": [{"id":"trika","en":"Kashmir Śaivism would say the one asking 'by whom?' is already the answer: consciousness is not only light but self-aware (vimarśa). It knows itself in the very act of asking.","hi":"काश्मीर शैव कहता कि 'किसके द्वारा?' पूछने वाला ही उत्तर है: चेतना केवल प्रकाश नहीं, विमर्श भी है। पूछने की क्रिया में ही वह स्वयं को जानती है।"}]
+  },
+  "87": {
+    "scholar": {"en":"Verses 15–18 of the Īśa are a prayer recited at death: to Pūṣan to uncover truth's face, then to fire to lead the departing by a good path. They are still recited at Hindu funerals.","hi":"ईश के मंत्र १५–१८ मृत्यु के समय की प्रार्थना हैं: पूषन् से सत्य का मुख खोलने की, फिर अग्नि से जाने वाले को शुभ मार्ग से ले जाने की। ये आज भी हिंदू अंत्येष्टि में पढ़े जाते हैं।"}
+  },
+  "88": {
+    "iast": "Dambha",
+    "scholar": {"en":"From the Panchatantra's third book, 'Crows and owls'. The cat, Dadhikarṇa, quotes scripture on non-violence while it waits for the hare and the partridge to come closer.","hi":"पंचतंत्र की तीसरी पुस्तक, 'काकोलूकीय', से। बिल्ली, दधिकर्ण, अहिंसा पर शास्त्र उद्धृत करती है जबकि वह खरगोश और तीतर के पास आने की प्रतीक्षा करती है।"}
+  },
+  "89": {
+    "iast": "Ānanda",
+    "schools": [{"id":"advaita","en":"Advaita takes bliss into its definition of Brahman: sat, cit, ānanda, being, consciousness and bliss.","hi":"अद्वैत आनंद को ब्रह्म की परिभाषा में लेता है: सत्, चित्, आनंद, अस्तित्व, चेतना और आनंद।"},{"id":"nyaya","en":"Nyāya would object: bliss is still an experience, and every experience binds. Liberation is the end of suffering, and nothing more is promised.","hi":"न्याय आपत्ति करता: आनंद भी एक अनुभव है, और हर अनुभव बाँधता है। मुक्ति दुःख का अंत है, और इससे अधिक कुछ वचन नहीं।"}]
+  },
+  "90": {
+    "iast": "Asato mā sad gamaya",
+    "scholar": {"en":"These are the pavamāna verses, sung by the priest during the Soma rite. The Upaniṣad itself explains them: the unreal is death, the real is immortality.","hi":"ये पवमान मंत्र हैं, जिन्हें सोमयज्ञ में पुरोहित गाता है। उपनिषद् स्वयं इनकी व्याख्या करता है: असत् मृत्यु है, सत् अमृत।"}
+  },
+  "91": {
+    "iast": "Prajñānaṃ brahma",
+    "schools": [{"id":"advaita","en":"The first of the four great sentences (mahāvākya), one from each Veda. This is the Ṛg Veda's: Brahman is consciousness itself.","hi":"चार महावाक्यों में पहला, हर वेद से एक। यह ऋग्वेद का है: ब्रह्म स्वयं चेतना है।"},{"id":"bauddha","en":"Yogācāra Buddhists also said that only consciousness is real. But for them it is a stream of moments, with no Self standing behind it.","hi":"योगाचार बौद्धों ने भी कहा कि केवल विज्ञान (चेतना) सत्य है। पर उनके लिए यह क्षणों की धारा है, जिसके पीछे कोई आत्मा खड़ी नहीं।"}]
+  },
+  "92": {
+    "iast": "Ahaṃ brahmāsmi",
+    "schools": [{"id":"trika","en":"Kashmir Śaivism would put it as recognition: not 'I shall become Śiva' but 'I see now that I am Śiva', the way you recognise a face you already knew.","hi":"काश्मीर शैव इसे प्रत्यभिज्ञा कहता: 'मैं शिव बनूँगा' नहीं, बल्कि 'अब देखता हूँ कि मैं शिव हूँ', जैसे कोई जाना-पहचाना चेहरा पहचान लेते हैं।"},{"id":"dvaita","en":"For Madhva this sentence cannot mean identity. It means that the soul depends on Brahman entirely, as a reflection depends on what it reflects.","hi":"मध्व के लिए इस वाक्य का अर्थ अभेद नहीं हो सकता। इसका अर्थ है कि जीव पूरी तरह ब्रह्म पर निर्भर है, जैसे प्रतिबिंब बिंब पर।"}],
+    "scholar": {"en":"The Yajur Veda's great sentence. Its context is a creation story: in the beginning Brahman knew only itself, as 'I am Brahman', and so became all this.","hi":"यजुर्वेद का महावाक्य। इसका संदर्भ एक सृष्टि-कथा है: आरंभ में ब्रह्म ने केवल स्वयं को जाना, 'अहं ब्रह्मास्मि' के रूप में, और इसी से वह सब कुछ बन गया।"}
+  },
+  "93": {
+    "iast": "Āsakti",
+    "schools": [{"id":"bauddha","en":"In the Buddha's chain of dependent origination, craving gives rise to clinging (upādāna), and clinging to becoming. Bharata's fawn is the whole chain in one small life.","hi":"बुद्ध के प्रतीत्यसमुत्पाद में तृष्णा से उपादान (पकड़) उत्पन्न होता है, और उपादान से भव। भरत का शावक एक छोटे से जीवन में पूरी शृंखला है।"}]
+  },
+  "94": {
+    "iast": "Sākṣin",
+    "schools": [{"id":"samkhya","en":"Sāṃkhya Kārikā 19 gives the watching bird's job description: puruṣa is witness (sākṣitva), isolated, indifferent, a seer and not a doer.","hi":"सांख्यकारिका १९ साक्षी पक्षी का काम बताती है: पुरुष साक्षी है, कैवल्य वाला, उदासीन, द्रष्टा, कर्ता नहीं।"}],
+    "figures": ["kapila"]
+  },
+  "95": {
+    "iast": "Ayam ātmā brahma",
+    "schools": [{"id":"advaita","en":"The Atharva Veda's great sentence. Advaita hears in it the whole teaching in three words: this, here, now, is that.","hi":"अथर्ववेद का महावाक्य। अद्वैत इसमें तीन शब्दों में पूरी शिक्षा सुनता है: यह, यहीं, अभी, वही है।"}],
+    "figures": ["gaudapada"]
+  },
+  "96": {
+    "iast": "Sarvaṃ khalv idaṃ brahma",
+    "schools": [{"id":"advaita","en":"Advaita: all this is Brahman, but 'all this' as you see it is appearance (vivarta), the way the snake is really rope.","hi":"अद्वैत: यह सब ब्रह्म है, पर जैसा आप 'यह सब' देखते हैं वह विवर्त है, प्रतीति, जैसे साँप वास्तव में रस्सी है।"},{"id":"vishishtadvaita","en":"Rāmānuja: all this is Brahman as a body is the person. The world is real, and it is real as God's.","hi":"रामानुज: यह सब ब्रह्म है जैसे शरीर व्यक्ति है। जगत वास्तविक है, और वह ईश्वर का है।"}],
+    "scholar": {"en":"From the meditation of Śāṇḍilya (Chāndogya 3.14). It goes on: 'As a person's resolve is in this world, so they become on departing.' It is one of the oldest statements of the idea of karma.","hi":"शाण्डिल्य-विद्या से (छांदोग्य ३.१४)। आगे कहा है: 'इस लोक में मनुष्य का जैसा संकल्प होता है, जाने पर वह वैसा ही होता है।' यह कर्म के विचार के सबसे पुराने कथनों में से एक है।"}
+  },
+  "97": {
+    "iast": "Pūrṇam adaḥ pūrṇam idam",
+    "scholar": {"en":"The peace invocation (śānti-pāṭha) recited before the Īśa and the Bṛhadāraṇyaka. Its arithmetic, whole minus whole leaves whole, is the arithmetic of the infinite.","hi":"ईश और बृहदारण्यक से पहले पढ़ा जाने वाला शांति पाठ। इसका गणित, पूर्ण से पूर्ण घटाने पर पूर्ण शेष, अनंत का गणित है।"}
+  },
+  "98": {
+    "iast": "Om śāntiḥ śāntiḥ śāntiḥ",
+    "scholar": {"en":"Said three times, one for each kind of trouble: from oneself (ādhyātmika), from other beings (ādhibhautika), and from the powers above (ādhidaivika).","hi":"तीन बार कहा जाता है, हर प्रकार के ताप के लिए एक: अपने से (आध्यात्मिक), अन्य प्राणियों से (आधिभौतिक), और ऊपर की शक्तियों से (आधिदैविक)।"}
+  },
+  "99": {
+    "iast": "Ahaṅkāra",
+    "schools": [{"id":"samkhya","en":"In Sāṃkhya, ahaṅkāra is a tattva, a piece of matter: the 'I-maker' that stamps 'mine' on whatever the intellect lights up. It is not the Self. It is the thing most often taken for it.","hi":"सांख्य में अहंकार एक तत्त्व है, प्रकृति का अंश: 'मैं' बनाने वाला, जो बुद्धि के प्रकाशित किए हर विषय पर 'मेरा' की मुहर लगाता है। यह आत्मा नहीं है। यह वह है जिसे सबसे अधिक आत्मा मान लिया जाता है।"}],
+    "scholar": {"en":"The Upaniṣad calls Virocana's teaching 'the doctrine of the asuras'. Later writers sometimes named it as the ancestor of the Cārvāka view that the body is the self.","hi":"उपनिषद् विरोचन के मत को 'असुरों का उपनिषद्' कहता है। बाद के लेखकों ने कभी-कभी इसे चार्वाक के देहात्मवाद का पूर्वज बताया।"}
+  },
+  "101": {
+    "line2": {"en":"When the merit is spent, the soul returns to earth. Heaven is a holiday, not a home.","hi":"पुण्य समाप्त होते ही जीव पृथ्वी पर लौटता है। स्वर्ग छुट्टी है, घर नहीं।"},
+    "schools": [{"id":"mimamsa","en":"For Mīmāṃsā this square was the goal for centuries: 'one who desires heaven should sacrifice' (svargakāmo yajeta) is its model injunction. Under its law, you would stop here.","hi":"मीमांसा के लिए सदियों तक यही खाना लक्ष्य था: 'स्वर्गकामो यजेत' (स्वर्ग चाहने वाला यज्ञ करे) इसकी आदर्श विधि है। इसके नियम में आप यहीं रुक जाते।"}],
+    "figures": ["kumarila"]
+  },
+  "102": {
+    "line2": {"en":"He is the oldest priest and the youngest flame, born anew each time the fire-sticks are rubbed.","hi":"वे सबसे पुराने पुरोहित और सबसे नई लौ हैं, अरणि मथने पर हर बार नए जन्मते हुए।"},
+    "schools": [{"id":"mimamsa","en":"Some Mīmāṃsakas said a god like Agni exists only as the name in the mantra: what matters is the offering and the word, not a person who receives it.","hi":"कुछ मीमांसकों ने कहा कि अग्नि जैसे देवता केवल मंत्र में नाम के रूप में हैं: महत्त्व आहुति और शब्द का है, उसे ग्रहण करने वाले किसी व्यक्ति का नहीं।"}]
+  },
+  "103": {
+    "line2": {"en":"The Gāyatrī of square 25 is addressed to him as Savitṛ, the one who sets the world in motion each morning.","hi":"खाना २५ की गायत्री उन्हें सविता के रूप में संबोधित है, जो हर सुबह जगत को गति देते हैं।"}
+  },
+  "104": {
+    "line2": {"en":"Every beginning starts with him, so he waits here, near the end, to clear the way for the last one.","hi":"हर आरंभ उन्हीं से होता है, इसलिए वे यहाँ अंत के पास प्रतीक्षा करते हैं, अंतिम आरंभ का मार्ग खोलने के लिए।"}
+  },
+  "105": {
+    "line2": {"en":"She is fortune, and fortune is fickle; she is also Śrī, who never leaves Viṣṇu's side.","hi":"वे भाग्य हैं, और भाग्य चंचल है; वे श्री भी हैं, जो विष्णु का साथ कभी नहीं छोड़तीं।"},
+    "schools": [{"id":"vishishtadvaita","en":"In Rāmānuja's tradition Śrī is the mediator (puruṣakāra): she turns God's face toward the soul that has fallen short.","hi":"रामानुज की परंपरा में श्री पुरुषकार हैं, मध्यस्थ: वे ईश्वर का मुख उस जीव की ओर मोड़ती हैं जो चूक गया है।"}]
+  },
+  "106": {
+    "line2": {"en":"Telling milk from water is called nīra-kṣīra-viveka, the discernment of square 85, given wings.","hi":"दूध और पानी अलग करना नीर-क्षीर-विवेक कहलाता है, खाना ८५ का विवेक, जिसे पंख मिल गए।"},
+    "schools": [{"id":"nyaya","en":"Nyāya's whole project is the swan's: telling valid knowledge (pramā) from error, and showing exactly how you can tell.","hi":"न्याय का पूरा काम हंस का काम है: प्रमा को भ्रम से अलग करना, और ठीक-ठीक दिखाना कि यह कैसे पहचाना जाता है।"}]
+  },
+  "107": {
+    "line2": {"en":"His day lasts a thousand ages. When he sleeps the worlds dissolve, and when he wakes they begin again.","hi":"उनका एक दिन हज़ार युगों का होता है। वे सोते हैं तो लोक विलीन होते हैं, जागते हैं तो फिर आरंभ होते हैं।"},
+    "schools": [{"id":"vaisheshika","en":"Vaiśeṣika pictured creation as atoms combining, pairs into triads into everything, set moving by God at the start of each cycle.","hi":"वैशेषिक ने सृष्टि को परमाणुओं के जुड़ने के रूप में देखा, दो से तीन, तीन से सब कुछ, जिन्हें हर कल्प के आरंभ में ईश्वर गति देते हैं।"},{"id":"mimamsa","en":"Mīmāṃsā and the Jains both denied it: the world was never created and will never wholly end.","hi":"मीमांसा और जैन दोनों ने इसे नकारा: जगत कभी रचा नहीं गया और कभी पूरी तरह समाप्त नहीं होगा।"}],
+    "figures": ["kumarila"]
+  },
+  "108": {
+    "line2": {"en":"He comes down whenever dharma fails: as fish, tortoise, boar, man-lion, dwarf, and the rest.","hi":"जब भी धर्म डगमगाता है वे उतरते हैं: मत्स्य, कूर्म, वराह, नरसिंह, वामन, और आगे के रूपों में।"},
+    "schools": [{"id":"dvaita","en":"For Madhva, Viṣṇu alone is fully independent (svatantra). Every soul and every god on this row depends on him.","hi":"मध्व के लिए केवल विष्णु पूर्णतः स्वतंत्र हैं। इस पंक्ति का हर जीव और हर देवता उन पर निर्भर है।"}]
+  },
+  "109": {
+    "line2": {"en":"He dances the world into being and out of it again; the destroyer is also the one who sets free.","hi":"वे नृत्य से जगत को रचते हैं और फिर उसे समेटते हैं; संहारक ही मुक्त करने वाले भी हैं।"},
+    "schools": [{"id":"trika","en":"For the Kashmir Śaivas, Śiva is not a god up here but consciousness itself, everywhere on the board, freely appearing as all of it.","hi":"काश्मीर शैवों के लिए शिव यहाँ ऊपर बैठे कोई देवता नहीं, स्वयं चेतना हैं, पूरे बोर्ड पर, स्वतंत्रता से सब कुछ बनकर प्रकट।"}],
+    "figures": ["abhinavagupta"]
+  },
+  "110": {
+    "iast": "Mokṣa",
+    "views": [{"id":"nyaya","en":"Nyāya: apavarga, the end of all suffering. Not bliss, and only after death.","hi":"न्याय: अपवर्ग, सब दुःखों का अंत। आनंद नहीं, और केवल मृत्यु के बाद।"},{"id":"samkhya","en":"Sāṃkhya and Yoga: kaivalya, the watcher alone, seeing it was never bound.","hi":"सांख्य और योग: कैवल्य, द्रष्टा अकेला, यह देखता हुआ कि वह कभी बँधा ही नहीं था।"},{"id":"mimamsa","en":"Mīmāṃsā, for centuries: there is no such square. Heaven at 101 was enough.","hi":"मीमांसा, सदियों तक: ऐसा कोई खाना नहीं। १०१ पर स्वर्ग पर्याप्त था।"},{"id":"advaita","en":"Advaita: knowing you were always Brahman. You did not arrive; you recognised.","hi":"अद्वैत: यह जानना कि आप सदा से ब्रह्म थे। आप पहुँचे नहीं; आपने पहचाना।"},{"id":"vishishtadvaita","en":"Viśiṣṭādvaita: eternal service in God's presence, still yourself.","hi":"विशिष्टाद्वैत: ईश्वर के सान्निध्य में नित्य सेवा, स्वयं बने रहते हुए।"},{"id":"dvaita","en":"Dvaita: loving nearness to Viṣṇu, by grace. Two, forever.","hi":"द्वैत: कृपा से विष्णु का प्रेमपूर्ण सान्निध्य। सदा दो।"},{"id":"jaina","en":"Jainism: the soul, free of karmic dust, rising to the top of the universe.","hi":"जैन: कर्म की धूल से मुक्त जीव, लोक के शिखर तक उठता हुआ।"},{"id":"bauddha","en":"Buddhism: nirvāṇa, the flame blown out, with no one left who was bound.","hi":"बौद्ध: निर्वाण, लौ का बुझ जाना, बिना किसी के जो बँधा था।"},{"id":"carvaka","en":"Cārvāka: death is liberation. Live well on the way.","hi":"चार्वाक: मृत्यु ही मोक्ष है। रास्ते में अच्छे से जियो।"}],
+    "scholar": {"en":"They all said you had arrived, and they meant very different things. Each name above opens that school in the Codex.","hi":"सबने कहा कि आप पहुँच गए, और सबका अर्थ बहुत अलग था। ऊपर का हर नाम कोश में उस दर्शन को खोलता है।"}
+  }
+}
