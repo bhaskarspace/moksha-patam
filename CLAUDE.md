@@ -13,12 +13,11 @@ single static `index.html` at https://codebpr.com/moksha-patam/
 ## Plans
 - `REDESIGN.md`: the phase list and what has shipped. Read it first.
 - `docs/CONTENT.md`: the Phase 2 brief (shipped). Its §7 art spec still governs the sprites.
-- `docs/NARRATIVE.md`: the Phase 3 brief: moments, gender agreement, ages, the life account.
+- `docs/NARRATIVE.md`: the Phase 3 brief (shipped): moments, gender agreement, ages, the life account.
 - `docs/REFERENCE.md`: philosophy-to-mechanics mapping and the history of the board.
 - `docs/LANDSCAPE.md`: comparable games.
 
-**State:** Phases 0, 1 and 2 have shipped. Phase 3, The Lived Board (`docs/NARRATIVE.md`), is built on
-branch `phase-3-lived-board`. The Painted Board is now Phase 4 (REDESIGN.md §4).
+**State:** Phases 0 to 3 have shipped. Phase 4, The Painted Board, is next (REDESIGN.md §4).
 
 ## Commands
 - `npm run build`: fails on any `Math.random` outside `src/rng.js` or on any content lint error.

@@ -361,7 +361,7 @@ without a blank square.
 
 ---
 
-### Phase 3 — The lived board
+### Phase 3 — The lived board  ✅ SHIPPED
 *Narrative voice. The full brief is `docs/NARRATIVE.md`; this is the summary.*
 
 Phase 2 fixed what the cards say and left the grammar wrong. Every card's subject is
