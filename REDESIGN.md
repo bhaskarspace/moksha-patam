@@ -470,6 +470,30 @@ bounce-back makes easy to hit. If median game length jumps badly, try 107 → 81
 109 and shorten the fall to 95. Report before and after numbers and decide on the
 evidence.
 
+> **Shipped, and it needs a second pass.** Phase 4 took the gentler option, 109 → 95, and
+> the tail is still heavy: median 49, p95 **128**, 11.1% of games over 100 turns, max 427.
+> The Milton Bradley board runs 3.3% over 100. The cause is structural rather than a bad
+> constant: bounce-back makes 109 easy to land on, the fall lands at 95, and squares
+> 94–110 carry no ladder, so the player climbs fifteen squares on pure dice and can bounce
+> and fall again. It is a loop at the climax with no exit.
+>
+> The fix to try first is **capping the fall at once per life** rather than shortening it
+> further. That bounds the tail, and it is the attested Brahmaloka rule rather than a
+> balance patch: the descent is required once, and once is the whole point. Shortening the
+> fall again or moving the snake to 107 only makes the loop cheaper, not finite.
+>
+> **Second pass: 109 → 101.** A sweep of the tail (20,000 games each, `--snake`) found a cliff
+> between 101 and 95 rather than a slope: no snake gives median 38, p95 78, 1.3% over 100;
+> 109 → 101 gives 41, 82, 1.7%; 109 → 95 gives 49, 128, 11.1%; 109 → 81 gives 58, 177,
+> 21.9%. Landing on 101 keeps the player inside the divine row, nine squares from Moksha;
+> landing on 95 drops them below the line at 100 into the ladderless stretch where the loop
+> lives. So the loop is made short enough that it rarely repeats, at a cost of three turns
+> of median. The fall now goes from Shiva's realm to Indra's, highest heaven to lowest.
+> The Brahmaloka rule (`--rules=brahmaloka`, a required descent before 110 opens) was
+> not the fix: on the 95 snake it makes the tail worse, 16.6% over 100. On 101 it costs
+> less (median 44, p95 86, 2.1%) and stays an optional rule. A once-per-life cap on the
+> fall is still untried.
+
 **3. Say when the remedy is one step away.** The five snake-to-ladder pairings need the
 player to land on the snake head and *then* roll exactly 1, so the board's signature
 idea fires about one time in six. Moving the tail onto the ladder foot does not fix it,
@@ -510,7 +534,9 @@ this phase is everything around it.*
   transitions. Transform on a wrapper.
 - **The ageing board.** Squares behind you desaturate toward sepia; squares ahead stay
   dim until reached. A filter per row. You cannot see the whole board from inside a
-  life, which is both better-looking and the right idea.
+  life, which is both better-looking and the right idea. Phase 3 shipped an authored
+  `age` on every square, so this keys off real ages rather than board position: the
+  sepia should track how old the player is, not how far they have walked.
 - **Adaptive drone.** Tanpura under the game, keyed to ashrama: open in childhood,
   dense through gṛhastha, thinning through vānaprastha to a single sustained note in
   sannyāsa, silent at 110.
@@ -523,9 +549,20 @@ visibly behind the token, and reduced-motion and mute both still work.
 
 ### Phase 6 — Life state
 
-- `āyus`, guṇas, puruṣārthas in state; a meters panel.
+- `āyus`, guṇas, puruṣārthas in state.
+- **Derive āyus from the authored `age` table shipped in Phase 3** rather than inventing
+  a second clock. Every square already states how old the player is there; āyus is that
+  number running out. Two clocks that disagree would be a bug waiting to happen.
 - Ashrama rule phases from §2.4 (action slots gated by stage).
 - The existing pixel-art stage change tracks āyus rather than board position.
+- **No numbers on screen.** Guṇas and puruṣārthas are tracked internally and surfaced as
+  description, never as meters. Ultima IV is the precedent in both directions: it kept
+  virtue hidden and reported it through a seer who tells you in words that you have
+  strayed, and the parts that *were* legible as numbers got farmed, which is why the
+  game needed an anti-grind patch on repeat donations. A visible meter turns a moral
+  state into a score, and players optimise a score instead of weighing a choice.
+  Whatever panel this phase builds should read like a sentence about who the player is
+  becoming, not a dashboard.
 - Still dice-and-move; no allocation and no choices yet.
 
 **Done when:** a life can end by running out of years, and `sim.mjs` reports a lifespan
@@ -546,9 +583,16 @@ distribution.
   decision long before the full allocation loop exists. Prototype it in Phase 4 or 5 and
   see whether the allocation loop is still worth its complexity.
 
+**Test it on the endgame first.** Squares 94–110 are the stretch with no ladders and,
+since Phase 4, a snake at 109 and bounce-back off the gate. That is where the board has
+least agency and most variance, and the sim said it was what drove the p95 to 128 before the fall was shortened to 101. If
+the allocation loop is worth its complexity anywhere, it is there: a player who can
+choose to spend a die on something other than moving has a way out of the loop that
+pure dice does not give them.
+
 **Done when:** a player can spend a whole cycle without moving, the board no longer
-advances on its own, and `sim.mjs` shows a visible spread in how far players get by a
-given age.
+advances on its own, `sim.mjs` shows a visible spread in how far players get by a given
+age, and p95 has not risen.
 
 ---
 
@@ -670,6 +714,12 @@ because you are authoring breadth for replay rather than a script.
 - Do not restyle the board geometry or the snake rendering in Phases 0–1. That art is
   finished work; Phase 2 is where it changes, deliberately.
 - One phase per PR. No phase leaves `main` unplayable.
+- **Balance against p95, not the mean.** Any phase that changes movement or adds a
+  mechanic reports median, p95 and the share of games over 100 turns, before and after.
+  The mean hides the tail and the tail is what players feel. Baseline after Phase 4:
+  median 41, p5 22, p95 82, mean 45.0, max 204, 1.7% over 100 turns. For reference the
+  Milton Bradley board runs 3.3% over 100, so this board's tail is now about half as heavy
+  as that. Treat a rise in p95 or in over-100% as a regression that needs a reason.
 - Graceful degradation everywhere: missing situation falls back to story card, missing
   Hindi shows English and warns, missing sprite shows the old emoji. Never a blank card.
 

@@ -239,7 +239,7 @@ await check("Phase 4: a roll past 110 bounces back, and 109 is Shiva's card with
     gita: !!document.querySelector('#leaf .snake-on a.src[data-entry="gita"]'),
     foot: document.querySelector("#leaf .leaf-foot .ft")?.textContent,
   }));
-  assert(card.title === "Shiva" && card.snake === "Merit spent" && card.gita && /95/.test(card.foot), JSON.stringify(card));
+  assert(card.title === "Shiva" && card.snake === "Merit spent" && card.gita && /101/.test(card.foot), JSON.stringify(card));
 });
 
 await check("keyboard: arrows move across the board, Enter opens, arrows page the card", async page => {

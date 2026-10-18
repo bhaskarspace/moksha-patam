@@ -18,7 +18,7 @@ The old Indian game of snakes and ladders, played as one life, in English and Hi
 - **Nothing on squares 1–5.** A newborn can't climb by virtue or fall by vice.
 - **Childhood vices are small slips** (chatter, fibbing, laziness) **with short falls.** Adult enemies like anger, craving and greed only appear in the householder years. Ahankara (ego) waits at 99 and is the longest fall of all.
 - **Ladders are biggest in the middle of life** (truth, resolve, giving, duty) and short near the end. No ladder reaches heaven, so the divine row is reached on foot.
-- **Heaven can be fallen out of.** A snake at 109, one square below Moksha, drops a player back to 95: *kṣīṇe puṇye martya-lokaṃ viśanti*, when merit is spent you return to the world of mortals (Gītā 9.21). Some historical boards made a player who reached Brahmaloka descend a snake to earth before they could finish. It shares 109 with Shiva, whose card shows the snake after his own.
+- **Heaven runs out.** A snake at 109, one square below Moksha, drops a player to 101, from Shiva's realm to Indra's, the highest heaven to the lowest: *kṣīṇe puṇye martya-lokaṃ viśanti*, when merit is spent you return to the world of mortals (Gītā 9.21). The board stops the fall at svarga, so the player is still in heaven and has nine squares to climb again. Some historical boards made a player who reached Brahmaloka descend a snake to earth before they could finish. It shares 109 with Shiva, whose card shows the snake after his own.
 - **No exact roll.** A roll that would pass 110 walks up to it and back down by the remainder, so a player is never stuck rolling for an exact number.
 - **Fall, then the remedy:** five snakes drop you one square before the ladder of the virtue that heals them:
   - Pride of learning → Guru-bhakti
@@ -59,9 +59,9 @@ The old Indian game of snakes and ladders, played as one life, in English and Hi
 | 88→71 | Dambha · Hypocrisy | The cat who played ascetic |
 | 93→64 | Asakti · Clinging | Jada Bharata and the fawn (Bhagavata 5.8) |
 | 99→61 | Ahankara · Ego | Virochana and the reflection (Chandogya 8.8) |
-| 109→95 | Kshina-punya · Merit spent | When merit is spent, back to the world (Gita 9.21) |
+| 109→101 | Kshina-punya · Merit spent | When merit is spent, back down from heaven (Gita 9.21) |
 
-A 20,000-game simulation (`npm run sim`) puts a single life at a median of 49 turns from birth to Moksha, with one game in twenty taking 128 or more. The distribution has a long tail, so the sim reports the median and the 95th percentile rather than the mean.
+A 20,000-game simulation (`npm run sim`) puts a single life at a median of 41 turns from birth to Moksha, with one game in twenty taking 82 or more and 1.7% taking over 100. The distribution has a long tail, so the sim reports the median and the 95th percentile rather than the mean.
 
 ## Features
 - **Every square is a card you can read.** Tap any square on the board, or any move in the log, to open its card. The log also names every square a move passed over, and each of those opens too. The cards are drawn as pothi folios, palm-leaf manuscript pages. ‹ › (or the arrow keys) turns the leaves from 1 to 110, so you can read the whole board without rolling once. Cards can be linked: `#sq/36` opens square 36.

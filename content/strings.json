@@ -146,7 +146,7 @@
       "lifeWhose": "Whose life",
       "lPassed": "Passed:",
       "lBounce": "{name} rolled {v}: reached 110 and bounced back to {pos}, {what}.",
-      "lRebirth": "{name} rolled {v} to {pos}: merit spent, and born again on {to}.",
+      "lRebirth": "{name} rolled {v} to {pos}: merit spent, and down from the highest heaven to Indra's, on {to}.",
       "lClosed": "Moksha does not open yet: it opens only to someone who has fallen once. {name} walks back to {pos}.",
       "ruleBrahmaloka": "Brahmaloka rule: Moksha opens only after a fall from heaven",
       "meritSnake": "Snake · from this realm"
@@ -270,7 +270,7 @@
       "lifeWhose": "किसका जीवन",
       "lPassed": "रास्ते में:",
       "lBounce": "{name} का {v} आया: ११० तक पहुँचकर वापस {pos} पर, {what}।",
-      "lRebirth": "{name} का {v} आया, {pos} पर: पुण्य क्षीण हुआ, और {to} पर फिर जन्म।",
+      "lRebirth": "{name} का {v} आया, {pos} पर: पुण्य क्षीण हुआ, और सबसे ऊँचे स्वर्ग से {to} पर इंद्र के स्वर्ग तक।",
       "lClosed": "मोक्ष अभी नहीं खुलता: वह उसी के लिए खुलता है जो एक बार गिर चुका हो। {name} वापस {pos} पर।",
       "ruleBrahmaloka": "ब्रह्मलोक नियम: स्वर्ग से एक बार गिरने के बाद ही मोक्ष खुलता है",
       "meritSnake": "साँप · इस लोक से"

@@ -41,17 +41,17 @@ test("a roll past 110 bounces back by the remainder, so no roll is wasted", () =
   assert.deepEqual(back.players[0].life, [108]);
 });
 
-test("merit spent: the snake on 109 drops a player out of the divine row", () => {
+test("merit spent: the snake on 109 drops a player from Shiva's realm to Indra's, the bottom of the divine row", () => {
   const s = game(105);
   const plan = playTurn(s, 4);
   assert.ok(plan.jump?.rebirth);
-  assert.equal(s.players[0].pos, 95);
+  assert.equal(s.players[0].pos, 101);
   assert.equal(s.players[0].hasFallen, true);
   assert.ok(s.log.some(e => e.k === "lRebirth"));
   // a bounce that comes down on 109 falls too
   const b = game(108);
   playTurn(b, 3);                     // 109, 110, 109
-  assert.equal(b.players[0].pos, 95);
+  assert.equal(b.players[0].pos, 101);
 });
 
 test("the log names every square walked over, once, and not the one landed on", () => {
@@ -73,7 +73,7 @@ test("Brahmaloka rule: Moksha opens only after a fall, and is off by default", (
   const s = game(104, { six: true, brahmaloka: true });
   playTurn(s, 6);                     // reaches 110, is turned back to 109, and falls
   assert.equal(s.winner, null);
-  assert.equal(s.players[0].pos, 95);
+  assert.equal(s.players[0].pos, 101);
   assert.ok(s.log.some(e => e.k === "lClosed"));
   s.turn = 0; s.players[0].pos = 104;
   playTurn(s, 6);                     // having fallen once, the door is open
@@ -114,7 +114,7 @@ test("a player's life records every square landed on, a snake or ladder as two",
   playTurn(s, 6);        // born on 6, the friendship ladder to 15
   assert.deepEqual(s.players[0].life, [6, 15]);
   s.turn = 0; s.players[0].pos = 105;
-  playTurn(s, 4);        // 109: merit spent, and down to 95
-  assert.deepEqual(s.players[0].life, [6, 15, 109, 95]);
+  playTurn(s, 4);        // 109: merit spent, and down to 101
+  assert.deepEqual(s.players[0].life, [6, 15, 109, 101]);
   assert.equal(s.players[0].gender, "m");
 });
