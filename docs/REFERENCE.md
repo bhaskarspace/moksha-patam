@@ -171,8 +171,10 @@ the cosmic body.
 - A snake on the final square returning overreachers to the start.
 - Squares that must be passed in a set order; a player who climbed to Brahmaloka had to
   later slide down to *pṛthvī* at least once.
-- Snakes outnumbering ladders roughly two to one, because the good path is harder. The
-  current board is 13 to 11, which is close to even.
+- ~~Snakes outnumbering ladders roughly two to one~~ — **this popular claim is wrong.**
+  Simulation work on the documented boards gives the Jaina 84 board 15 ladders to 9
+  snakes, the Vaiṣṇava 72 board 10 to 10, and the Mughal board 17 to 13. Every
+  pre-modern board on record is balanced or ladder-heavy. See `docs/BOARDCRAFT.md §1`.
 - Thematic linking of the two ends of a snake or a ladder (ego to illusion, devotion to
   paradise). The existing design already does a version of this.
 

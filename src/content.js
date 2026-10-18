@@ -19,7 +19,10 @@ export const READINGS = readings;
 export const CODEX = codex;
 
 // Square n's record, whichever table it lives in.
-export const squareOf = n => (n === GOAL ? MOKSHA : LADDERS[n] || SNAKES[n] || HEAVEN[n] || SQ[n] || null);
+// A god's square stays the god's even when a snake starts on it (109, merit spent): heaven comes first.
+export const squareOf = n => (n === GOAL ? MOKSHA : HEAVEN[n] || LADDERS[n] || SNAKES[n] || SQ[n] || null);
+// The snake that starts on a god's square, which the square's card shows after the god.
+export const snakeOn = n => (HEAVEN[n] && SNAKES[n]) || null;
 // Square n's mirror (the Phase 2 lead) as [en, hi].
 export const leadOf = n => { const m = squareOf(n)?.mirror; return m ? [m.en, m.hi] : null; };
 
@@ -42,7 +45,9 @@ export const REFS = (() => {
   for (let n = 1; n <= GOAL; n++) {
     const r = READINGS[n] || {};
     add(sourceOf(srcOfSquare(n)), n);
-    for (const s of [...(r.schools || []), ...(r.views || []), ...(r.beyond || [])]) add(s.id, n);
+    const sn = snakeOn(n);
+    if (sn) add(sourceOf(sn.src), n);
+    for (const s of [...(r.schools || []), ...(r.views || []), ...(r.beyond || []), ...(sn?.schools || [])]) add(s.id, n);
     (r.figures || []).forEach(id => add(id, n));
   }
   return Object.fromEntries(Object.entries(refs).map(([k, v]) => [k, [...v].sort((a, b) => a - b)]));

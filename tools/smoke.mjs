@@ -48,7 +48,7 @@ const folioOpen = page => page.evaluate(() => document.getElementById("folio").o
 const title = page => page.evaluate(() => document.getElementById("leafTitle")?.textContent.trim());
 const twoCpus = page => page.addInitScript(() => {
   const cpu = { name: "", type: "cpu" };
-  window.claude = { hot: { data: { setup: { count: 2, rows: [cpu, cpu, cpu, cpu], rules: { exact: true, six: true } } } } };
+  window.claude = { hot: { data: { setup: { count: 2, rows: [cpu, cpu, cpu, cpu], rules: { six: true } } } } };
 });
 
 await check("every square 1–110 opens from the board, and closes", async page => {
@@ -209,6 +209,37 @@ await check("each log entry reopens its square", async page => {
   const sq = await page.evaluate(() => { const b = document.querySelector("#log .logbtn"); b.click(); return +b.dataset.sq; });
   await page.waitForFunction(() => document.getElementById("folio").open);
   assert(await page.evaluate(sq => location.hash === `#sq/${sq}`, sq), "log entry opened the wrong square");
+});
+
+await check("Phase 4: the squares a move passed are named in the log, and each opens its card", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=5&debug");
+  await page.evaluate(async () => { mp.jump(20); mp.roll(4); });   // 21, 22, 23, landing on 24
+  // a landing card waits for its reader before the move is logged, so read and close it
+  await page.waitForFunction(() => { if (document.getElementById("folio").open) mp.close({ instant: true }); return document.querySelectorAll("#log li.passed .logbtn").length === 3; }, null, { timeout: 15000, polling: 200 });
+  const names = await page.evaluate(() => [...document.querySelectorAll("#log li.passed .logbtn")].map(b => +b.dataset.sq));
+  assert(names.join() === "21,22,23", `passed ${names}`);
+  await page.evaluate(() => document.querySelector('#log li.passed .logbtn[data-sq="22"]').click());
+  await page.waitForFunction(() => location.hash === "#sq/22" && document.getElementById("folio").open);
+  // 22 is a snake tail one step below Guru-bhakti, and says so
+  assert(await page.evaluate(() => /Guru-bhakti/.test(document.querySelector("#leaf .story p.remedy")?.textContent || "")), "square 22 does not name its remedy");
+});
+
+await check("Phase 4: a roll past 110 bounces back, and 109 is Shiva's card with the merit snake after it", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=5&debug");
+  await page.evaluate(() => { mp.jump(107); mp.roll(5); });       // up to 110, back down to 108
+  await page.waitForFunction(() => { if (document.getElementById("folio").open) mp.close({ instant: true }); return mp.state.log.some(e => e.k === "lBounce"); }, null, { timeout: 15000, polling: 200 });
+  assert(await page.evaluate(() => mp.state.players[0].pos) === 108, "the bounce did not land on 108");
+  await page.evaluate(() => { mp.open(109); });   // the card's promise settles on close, so don't wait on it
+  await page.waitForFunction(() => document.getElementById("leafTitle")?.textContent === "Shiva");
+  const card = await page.evaluate(() => ({
+    title: document.getElementById("leafTitle")?.textContent,
+    snake: document.querySelector("#leaf .snake-on .snake-title")?.textContent,
+    gita: !!document.querySelector('#leaf .snake-on a.src[data-entry="gita"]'),
+    foot: document.querySelector("#leaf .leaf-foot .ft")?.textContent,
+  }));
+  assert(card.title === "Shiva" && card.snake === "Merit spent" && card.gita && /101/.test(card.foot), JSON.stringify(card));
 });
 
 await check("keyboard: arrows move across the board, Enter opens, arrows page the card", async page => {

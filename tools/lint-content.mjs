@@ -98,6 +98,23 @@ export function lintReport() {
     else if (lead[1] && !named.hi) err(where, `the Hindi drops the name (${named.en.join(", ")})`);
   };
 
+  // text about the player: {name} in both languages, known placeholders, Hindi agreement through {m|f}
+  const playerText = (where, o) => {
+    for (const l of ["en", "hi"]) {
+      if (!o[l].includes("{name}")) err(where, `the ${l === "en" ? "English" : "Hindi"} does not name the player with {name}`);
+      for (const x of badSlots(o[l])) err(where, `unknown placeholder {${x}}`);
+    }
+    const agree = hindiAgreement(o.hi);
+    if (agree.errors.length) err(where, `the Hindi agrees with {name} without a {m|f} choice: ${agree.errors.join(", ")}`);
+    if (agree.warnings.length) warn(where, `the Hindi may agree with {name} without a {m|f} choice: ${agree.warnings.join(", ")}`);
+    const he = englishPronouns(o.en);
+    if (he.length) warn(where, `the English uses "${he.join('", "')}"; use the name again, or a {his|her|their} choice`);
+  };
+  const citation = (where, src) => {
+    if (src && !sourceOf(src)) err(where, `citation "${src}" matches no Codex source`);
+    if (src && /[A-Za-z]/.test(SRC_HI.reduce((a, [en, hi]) => a.replace(en, hi), src))) err(where, `citation "${src}" has no Hindi in strings.SRC_HI`);
+  };
+
   // every square has a name and a mirror in both languages, and its citation is in the Codex
   const moments = { written: 0, total: GOAL - 1, bands: ASHRAMAS.map(([max, en]) => ({ en, max, written: 0, total: 0 })) };
   let lastAge = 0;
@@ -125,9 +142,16 @@ export function lintReport() {
 
     const r = READINGS[n] || {}, voices = (r.schools?.length || 0) + (r.views?.length || 0);
     if (voices < 2) err(`square ${n}`, voices ? "one voice: a disagreement needs two schools in readings.json" : "no voice: needs two schools in readings.json");
-    const src = srcOfSquare(n);
-    if (src && !sourceOf(src)) err(`square ${n}`, `citation "${src}" matches no Codex source`);
-    if (src && /[A-Za-z]/.test(SRC_HI.reduce((a, [en, hi]) => a.replace(en, hi), src))) err(`square ${n}`, `citation "${src}" has no Hindi in strings.SRC_HI`);
+    citation(`square ${n}`, srcOfSquare(n));
+
+    // Phase 4: a snake tail paired with its remedy says the ladder is one step above (REDESIGN.md Phase 4,
+    // item 3). Only the five declared pairs carry one; tail 11 sits under Wit, which does not heal fibbing.
+    const remedyOf = Object.values(SNAKES).some(s => s.to === n) && LADDERS[n + 1];
+    if (q.remedy) {
+      if (!remedyOf) err(`square ${n} remedy`, "is not a snake tail one square below a ladder");
+      bilingual(`square ${n} remedy`, q.remedy);
+      if (q.remedy.en && q.remedy.hi) playerText(`square ${n} remedy`, q.remedy);
+    }
 
     // §4, §10: the moment
     const band = moments.bands.find(b => n <= b.max);
@@ -137,20 +161,29 @@ export function lintReport() {
     const where = `square ${n} moment`;
     if (!m.en?.trim() || !m.hi?.trim()) { err(where, `exists in ${m.en?.trim() ? "English" : "Hindi"} only`); continue; }
     moments.written++; band.written++;
-    for (const l of ["en", "hi"]) {
-      if (!m[l].includes("{name}")) err(where, `the ${l === "en" ? "English" : "Hindi"} does not name the player with {name}`);
-      for (const x of badSlots(m[l])) err(where, `unknown placeholder {${x}}`);
-    }
-    const agree = hindiAgreement(m.hi);
-    if (agree.errors.length) err(where, `the Hindi agrees with {name} without a {m|f} choice: ${agree.errors.join(", ")}`);
-    if (agree.warnings.length) warn(where, `the Hindi may agree with {name} without a {m|f} choice: ${agree.warnings.join(", ")}`);
-    const he = englishPronouns(m.en);
-    if (he.length) warn(where, `the English uses "${he.join('", "')}"; use the name again, or a {his|her|their} choice`);
+    playerText(where, m);
     if (m.mirror) { bilingual(`${where} mirror`, m.mirror); if (m.mirror.en) lintLead(`${where} mirror`, [m.mirror.en, m.mirror.hi]); }
     // §2: the mirror attaches to the moment; the Phase 2 opener is the thing being replaced
     const mirrorEn = (m.mirror || q.mirror).en;
     if (/^In (the )?\p{Lu}/u.test(mirrorEn)) err(where, `the mirror opens "${mirrorEn.split(" ").slice(0, 3).join(" ")}…", the Phase 2 voice; open with a connective (docs/NARRATIVE.md §2)`);
   }
+
+  // a snake that starts on a god's square (Phase 4: 109, merit spent) is a snake card of its own: a name,
+  // a moment, a mirror that names someone, two voices and a citation, like every other snake
+  for (const [h, sn] of Object.entries(SNAKES)) {
+    if (!HEAVEN[h]) continue;
+    const where = `snake ${h}`;
+    bilingual(`${where} name`, sn);
+    if (!sn.skt) err(where, "no Sanskrit name");
+    bilingual(`${where} mirror`, sn.mirror);
+    if (sn.mirror?.en) lintLead(`${where} mirror`, [sn.mirror.en, sn.mirror.hi]);
+    if (!sn.moment?.en || !sn.moment?.hi) err(`${where} moment`, "needs a moment in both languages");
+    else playerText(`${where} moment`, sn.moment);
+    if ((sn.schools?.length || 0) < 2) err(where, "a disagreement needs two schools");
+    for (const [i, s] of (sn.schools || []).entries()) { bilingual(`${where}.schools[${i}]`, s); if (!CODEX.schools[s.id]) err(`${where}.schools[${i}]`, `unknown school "${s.id}"`); }
+    citation(where, sn.src);
+  }
+  for (const [h, sn] of Object.entries(SNAKES)) if (!(sn.to >= 1 && sn.to < +h)) err(`snake ${h}`, `falls to ${sn.to}, which is not below it`);
 
   // readings: bilingual, and every school or person they name exists
   for (const [n, r] of Object.entries(READINGS)) {
@@ -213,6 +246,7 @@ export function lintSprites(svg, css) {
   if (widths.some(w => w !== "1.25")) err(`outline weights other than 1.25: ${widths.join(", ")}`);
   if (/<(linearGradient|radialGradient|filter)\b|\b(filter|transform)=/.test(svg)) err("gradients, filters or transforms; the sprites are flat fills");
   for (let n = 1; n < GOAL; n++) if (!svg.includes(`id="sq-${n}"`)) err(`no symbol for square ${n}`);
+  for (const h of Object.keys(SNAKES)) if (HEAVEN[h] && !svg.includes(`id="sn-${h}"`)) err(`no symbol for the snake on square ${h}`);
   for (const id of Object.keys(CODEX.schools)) if (!svg.includes(`id="seal-${id}"`)) err(`no seal for ${id}`);
   return errors;
 }

@@ -1,7 +1,7 @@
 // ---- The card: a pothi folio for one square or one Codex entry ----
 // It stays open until the reader closes it. A computer's landing card closes itself after a
 // reading-length pause, unless the reader touches it, and then it waits like any other.
-import { GOAL, LADDERS, SNAKES, SQ, HEAVEN, READINGS, CODEX, ENTRY_IDS, REFS, entryOf, sourceOf, srcOfSquare, squareOf } from "../content.js";
+import { GOAL, LADDERS, SNAKES, SQ, HEAVEN, READINGS, CODEX, ENTRY_IDS, REFS, entryOf, sourceOf, srcOfSquare, squareOf, snakeOn } from "../content.js";
 import { lang, tIn, numIn, srcIn, pick, fill } from "../i18n.js";
 import { prefs, hasMet, meet } from "../prefs.js";
 import { G, pnameIn } from "../state.js";
@@ -28,7 +28,7 @@ export const onCardChange = fn => onChange.add(fn);
 // ---- What a square's card says, in language l ----
 function squareInfo(n, l) {
   const T = (k, v) => tIn(l, k, v), o = other(l), r = READINGS[n] || {};
-  const sl = LADDERS[n] || SNAKES[n], scholar = deep("scholar");
+  const sl = !HEAVEN[n] && (LADDERS[n] || SNAKES[n]), scholar = deep("scholar");
   const skt = (scholar && r.iast) || sl?.skt || "";
   if (sl) {
     const virtue = !!LADDERS[n];
@@ -41,7 +41,8 @@ function squareInfo(n, l) {
   }
   if (HEAVEN[n]) {
     const h = HEAVEN[n];
-    return { kind: "heaven", big: h.ic, title: h[l], alt: [h[o], scholar ? r.iast : ""], eb: T("realm"), ft: "" };
+    const sn = snakeOn(n);
+    return { kind: "heaven", big: h.ic, title: h[l], alt: [h[o], scholar ? r.iast : ""], eb: T("realm"), ft: sn ? T("snakeTo", { n: sn.to }) : "" };
   }
   const q = SQ[n];
   return { kind: "story", big: q.ic, title: q[l], alt: [q[o], scholar ? r.iast : ""], eb: `${T("story")} · ${ashramaIn(l, n)}`, ft: "" };
@@ -94,9 +95,19 @@ function frame(l, { kind, eb, big, sqn, age, body, foot, prev, next, prevLabel, 
     </footer>`;
 }
 
+// A citation, linked to its Codex source. The source's one-line gloss shows the first time it is met,
+// and always for scholars.
+function srcLine(src, l, met) {
+  if (!src) return "";
+  const sid = sourceOf(src), s = sid && CODEX.sources[sid], firstTime = sid && !hasMet(sid);
+  met.push(sid);
+  return `<p class="srcline">` + (sid ? `<a class="src" href="#codex/${sid}" data-entry="${sid}">${esc(srcIn(l, src))}</a>` : `<span class="src">${esc(srcIn(l, src))}</span>`) +
+    (s && (firstTime || deep("scholar")) ? `<span class="gloss">${esc(pick(s.gloss, l))}</span>` : "") + `</p>`;
+}
+
 function squareHtml(n, l) {
   const T = (k, v) => tIn(l, k, v), info = squareInfo(n, l), r = READINGS[n] || {};
-  const src = srcOfSquare(n), sid = sourceOf(src), met = [];
+  const src = srcOfSquare(n), met = [];
   // the moment, when there is one, is what is happening to the player; the mirror is the text that holds
   // it. With no moment the card is exactly the Phase 2 card: no age, and the Phase 2 lead as the mirror.
   const sq = squareOf(n), m = sq.moment, mirror = m?.mirror || sq.mirror;
@@ -105,7 +116,9 @@ function squareHtml(n, l) {
   const alt = info.alt.filter(Boolean).join(" · ");
   if (alt) body += `<p class="alt" lang="${other(l)}">${esc(alt)}</p>`;
   const moment = m ? texts(l, fill(m.en, person("en")), fill(m.hi, person("hi")), n > 100 ? "moment remnant" : "moment") : "";
-  body += `<div class="story">${moment}${texts(l, mirror.en, mirror.hi, m ? "mirror" : "")}${bi(l, r.line2, "line2")}</div>`;
+  // a snake tail one square below its remedy says so (REDESIGN.md Phase 4, item 3)
+  const remedy = sq.remedy ? texts(l, fill(sq.remedy.en, person("en")), fill(sq.remedy.hi, person("hi")), "remedy") : "";
+  body += `<div class="story">${moment}${remedy}${texts(l, mirror.en, mirror.hi, m ? "mirror" : "")}${bi(l, r.line2, "line2")}</div>`;
   // the views panel is the point of square 110, so it shows at every depth: six definitions side by side
   const viewList = (vs, cls) => `<ul class="${cls}">` + vs.map(v => `<li>${entryLink(v.id, l)}${texts(l, v.en, v.hi)}</li>`).join("") + `</ul>`;
   if (r.views && (n === GOAL || deep("school"))) {
@@ -129,12 +142,19 @@ function squareHtml(n, l) {
       met.push(...r.figures);
     }
   }
-  if (src) {
-    // a source's one-line gloss shows the first time it is met, and always for scholars
-    const s = sid && CODEX.sources[sid], firstTime = sid && !hasMet(sid);
-    body += `<p class="srcline">` + (sid ? `<a class="src" href="#codex/${sid}" data-entry="${sid}">${esc(srcIn(l, src))}</a>` : `<span class="src">${esc(srcIn(l, src))}</span>`) +
-      (s && (firstTime || deep("scholar")) ? `<span class="gloss">${esc(pick(s.gloss, l))}</span>` : "") + `</p>`;
-    met.push(sid);
+  body += srcLine(src, l, met);
+  // a snake that starts on a god's square (109, merit spent) follows the god, in the snakes' own voice
+  const sn = snakeOn(n);
+  if (sn) {
+    const sm = sn.moment;
+    body += `<section class="snake-on"><h3 class="sub">${art(`sn-${n}`, sn.ic, "spr snake-glyph")} ${esc(T("meritSnake"))}</h3>` +
+      `<h2 class="snake-title">${esc(sn[l])}</h2><p class="alt" lang="${other(l)}">${esc([sn[other(l)], sn.skt].join(" · "))}</p>` +
+      `<div class="story">${sm ? texts(l, fill(sm.en, person("en")), fill(sm.hi, person("hi")), "moment") : ""}${texts(l, sn.mirror.en, sn.mirror.hi, sm ? "mirror" : "")}</div>`;
+    if (sn.schools && deep("school")) {
+      body += `<ul class="chips">` + sn.schools.map(s => `<li>${entryLink(s.id, l)}${texts(l, s.en, s.hi)}</li>`).join("") + `</ul>`;
+      met.push(...sn.schools.map(s => s.id));
+    }
+    body += srcLine(sn.src, l, met) + `</section>`;
   }
   return {
     kind: info.kind, met,

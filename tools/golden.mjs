@@ -1,20 +1,16 @@
-// Phase 0 equivalence check: the pre-split game (commit fb0bc2a) with Math.random swapped for
-// mulberry32(seed), the built index.html?seed=seed, and sim.mjs must all produce the same move log.
+// Equivalence check: the built index.html?seed=seed, played in a real browser, and sim.mjs must
+// produce the same move log, so the page and the headless engine never drift apart.
+// Until Phase 4 it also replayed the Phase 0 build (commit fb0bc2a) and required the same log. Phase 4
+// changed the rules on purpose (bounce-back, the merit snake on 109, the log of passed squares), so
+// that leg was retired; `git show fb0bc2a:tools/golden.mjs` has it.
 //   node tools/golden.mjs [seeds=20]
-import fs from "node:fs";
-import os from "node:os";
 import path from "node:path";
-import { execFileSync } from "node:child_process";
 import { pathToFileURL } from "node:url";
 import { chromium } from "playwright";
 import { playGame } from "./sim.mjs";
 
 const root = path.resolve(import.meta.dirname, "..");
-const BASELINE = "fb0bc2a";
 const seeds = +(process.argv[2] ?? 20);
-const dir = fs.mkdtempSync(path.join(os.tmpdir(), "mp-golden-"));
-const oldFile = path.join(dir, "old.html");
-fs.writeFileSync(oldFile, execFileSync("git", ["show", `${BASELINE}:index.html`], { cwd: root }));
 const newUrl = pathToFileURL(path.join(root, "index.html")).href;
 
 // Runs before the page's own script: seeded Math.random, every log entry recorded as it is made,
@@ -40,7 +36,7 @@ function harness({ seed, cards }) {
   const raf = window.requestAnimationFrame;
   window.requestAnimationFrame = cb => raf(() => cb(performance.now()));
   const cpu = { name: "", type: "cpu" };
-  window.claude = { hot: { data: { setup: { count: 2, rows: [cpu, cpu, cpu, cpu], rules: { exact: true, six: true, cards } } } } };
+  window.claude = { hot: { data: { setup: { count: 2, rows: [cpu, cpu, cpu, cpu], rules: { six: true, brahmaloka: false, cards } } } } };
 }
 
 async function run(url, seed, cards) {
@@ -71,16 +67,14 @@ for (let seed = 1; seed <= seeds; seed++) jobs.push({ seed, cards: seed % 4 === 
 async function worker() {
   for (let job; (job = jobs.shift());) {
     const { seed, cards } = job;
-    const before = await run(pathToFileURL(oldFile).href, seed, cards);
     const after = await run(`${newUrl}?seed=${seed}`, seed, cards);
     const sim = playGame(seed).log.slice(1);
-    const same = JSON.stringify(before) === JSON.stringify(after) && JSON.stringify(after) === JSON.stringify(sim);
+    const same = JSON.stringify(after) === JSON.stringify(sim);
     if (!same) failed++;
-    console.log(`seed ${String(seed).padStart(3)}  cards ${cards.padEnd(3)}  ${before.length} entries  ${same ? "identical" : "DIFFERENT"}`);
+    console.log(`seed ${String(seed).padStart(3)}  cards ${cards.padEnd(3)}  ${after.length} entries  ${same ? "identical" : "DIFFERENT"}`);
   }
 }
 await Promise.all([worker(), worker(), worker()]);
 await browser.close();
-fs.rmSync(dir, { recursive: true, force: true });
-console.log(failed ? `${failed} of ${seeds} seeds differ` : `all ${seeds} seeds identical across old, new and sim`);
+console.log(failed ? `${failed} of ${seeds} seeds differ` : `all ${seeds} seeds identical across the page and sim`);
 process.exit(failed ? 1 : 0);

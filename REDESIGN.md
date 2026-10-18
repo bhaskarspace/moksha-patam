@@ -3,6 +3,7 @@
 **For Claude Code.** Implement in phases, in order. Each phase ships to a live site.
 Companions: `docs/CONTENT.md` (card content and art spec, Phase 2),
 `docs/NARRATIVE.md` (narrative voice and the life account, Phase 3),
+`docs/BOARDCRAFT.md` (board design review and the evidence behind Phase 4),
 `docs/REFERENCE.md` (philosophy-to-mechanics mapping, historical board research, game
 precedents), `docs/LANDSCAPE.md` (what else exists). Read this file first and
 pull the reference when a phase points at it.
@@ -17,7 +18,7 @@ English/Hindi, deployed at https://codebpr.com/moksha-patam/
 1. [What we are building and why](#1-what-we-are-building-and-why)
 2. [Core mechanics](#2-core-mechanics)
 3. [Architecture](#3-architecture)
-4. [Phases 0 through 13](#4-phases)
+4. [Phases 0 through 14](#4-phases)
 5. [Guardrails](#5-guardrails)
 6. [Known fixes to fold in](#6-known-fixes)
 
@@ -147,6 +148,10 @@ Reaching 110 is necessary and not sufficient. Arrive with bandha above threshold
 the gate does not open, the end screen says exactly why, and you are reborn. This
 converts the game from accumulation to subtraction. It is the clearest statement the
 game can make about what the word meant, and *Reigns* is evidence the shape works.
+
+Phase 4's bounce-back and the snake at 109 lay the groundwork: a player can already
+touch 110, bounce off it and fall back to 81, so arriving and being let through are two
+different things before the gate exists. The gate only has to supply the reason.
 
 ### 2.4 Ashramas as rule phases
 
@@ -390,7 +395,145 @@ readable life in both languages.
 
 ---
 
-### Phase 4 — The painted board
+### Phase 4 — Board craft  ✅ SHIPPED
+*Rules and reading, not art. Comes from `docs/BOARDCRAFT.md`, which analysed the board
+against the one quantitative study of historical gyan chaupar boards
+(arXiv:2304.14486, 100,000 simulated games per board, every element measured by
+ablation). Small, independent, and it should land before the art work.*
+
+**1. Make passed squares visible.** The real design flaw, and it is not about snakes.
+A ~40-turn game at ~3.5 squares a turn lands on roughly 30 of 110 squares, so about
+70% of the writing is never seen in a given playthrough — and Phases 2 and 3 just added
+a moment, a mirror and two school voices to every one of them. Have the move log name
+what the token passed through ("passed: The chariot · Salt in water · Banyan seed"),
+each name opening its card. A player then meets a hundred squares per game instead of
+thirty. Cheapest change available and it compounds with every word already written.
+
+**2. Replace the exact-roll stall with bounce-back, and put the cycle in the divine
+row.** The win square does **not** move. An earlier draft of this plan proposed moving
+it to 104 with an overshoot zone above; that was written without checking what occupies
+those squares and it collides with content. Squares 101–109 are nine gods, each with
+Phase 2 and 3 writing, a sprite and readings, and 110 is the Mokṣa card carrying the six
+definitions. Nothing coherent sits *above* liberation, so there is no overshoot zone to
+build up there.
+
+Two changes instead, which get the same result with no content moved:
+
+*Bounce-back.* A roll that would pass 110 carries the token to 110 and then back down by
+the remainder. One rule, it removes the exact-roll stall completely, and nothing else on
+the board changes. A player at 107 who rolls 5 lands on 108, not nowhere.
+
+*One snake at 109 → 81.* **A snake falling out of a god-realm is directly attested**,
+and in a stronger form than this:
+
+- Some boards carried a rule that **reaching Brahmaloka early was not enough: the player
+  then had to descend a snake to *pṛthvī*, earth, at least once** before finishing.
+- A **snake's head on the final square returned the player to the start**, described as
+  the punishment for overreaching, and tied to where Vaikuṇṭha sat.
+- On the 72-square Johnson board (Gerald Robert Dampier, *North Indian Notes and Queries* vol. 5, 1895, pp. 25–27, ed. William Crooke), the win is Vaikuṇṭha, reached by the
+  Bhakti ladder at 54. **Square 72 carries a long snake back to earth, triggered when a
+  throw goes beyond the winning square 68**, landing the player on 51, "Darkness".
+  *Correction:* square 72 is labelled **Love of Violence**, a vice, not a heaven — Dampier
+  himself remarks that it is unclear why it should lead to Darkness. So this board
+  supports the *mechanic* (overshoot the win, land above it, take a long fall) but not the
+  theming. The warrant for falling out of a god-realm is the Brahmaloka rule above, which
+  is independent of it.
+
+Worth noting what that last one implies about the architecture. On the historical boards
+the winning square sits a few steps *before* the end, and the squares above it are a trap.
+This board uses the modern arrangement, goal on the last square, with Indian content on
+it. That is a fine choice and not one to unpick now, but it means the divine row is
+currently a processional corridor where the sources made it a hazard.
+
+The doctrine is the same either way: svarga is a reward and rewards are finite.
+*Kṣīṇe puṇye martya-lokaṃ viśanti*, "when their merit is exhausted they enter the world of
+mortals again" (Gītā 9.21). The Indra card at 101 already says heaven is the fruit of good
+deeds and not the final goal; this makes the board say it too. Falling from 109, one
+square below liberation, through Śiva who dissolves what binds, back to the start of
+Sannyāsa, is a better destination than the historical board's "Darkness" and about as
+exact as a snake can be.
+
+*Optional, and worth measuring before adopting:* the Brahmaloka rule can be implemented
+literally. Set a `hasFallen` flag when a player takes the 109 snake, and let 110 open only
+once it is true, so the first arrival at liberation always bounces and falls. This
+guarantees the snake fires rather than leaving it to chance, and it is the attested rule
+rather than an invention. It also forces at least one more circuit, so it is a real cost
+to game length. Ship the plain version first, measure, then try this behind a flag.
+
+It also fixes the dead end-game. Squares 94–110 currently hold one snake between them, so
+the climax is a victory lap. With 109 live the divine row becomes the most dangerous
+stretch on the board, which is correct: the last thing to let go of is the reward for
+having let go.
+
+**Tuning belongs to the sim, not to this document.** 109 → 81 is a long fall from a square
+bounce-back makes easy to hit. If median game length jumps badly, try 107 → 81, or keep
+109 and shorten the fall to 95. Report before and after numbers and decide on the
+evidence.
+
+> **Shipped, then fixed. Settled at 109 → 101.** Phase 4 first shipped 109 → 95 and the
+> tail was bad: median 49, p95 128, 11.1% of games over 100 turns, max 427, against 3.3%
+> on the Milton Bradley board. A sweep with `npm run sim --snake=HEAD:TAIL` found a cliff
+> between 101 and 95, not a bad constant:
+>
+> | snake | median | p95 | over 100 | max |
+> |---|---|---|---|---|
+> | none | 38 | 78 | 1.3% | 204 |
+> | 109 → 105 | 38 | 78 | 1.2% | 202 |
+> | **109 → 101** | **41** | **82** | **1.7%** | **204** |
+> | 109 → 95 | 49 | 128 | 11.1% | 427 |
+> | 107 → 95 | 46 | 112 | 7.4% | 404 |
+> | 109 → 81 | 58 | 177 | 21.9% | 532 |
+>
+> Landing at 101 keeps the player inside the divine row, nine squares to re-climb.
+> Landing at 95 drops them below the threshold at 100, and the re-climb is fifteen squares
+> through a stretch with no ladders where they can be caught again: a loop at the climax.
+> 109 → 101 costs three turns of median and removes the tail, and it reads better — the
+> fall goes from Śiva's realm to Indra's, highest heaven to lowest, landing on the card
+> that already says svarga is the fruit of good deeds and not the final goal.
+>
+> **An earlier draft of this note recommended capping the fall at once per life instead.
+> That was wrong and is superseded.** Shortening the fall solved it; the cap was never
+> needed and remains untested.
+>
+> **The `brahmaloka` rule stays optional and off.** It is the mandatory-descent rule (110
+> shut until the player has fallen once), and with the 101 snake it is cheap — median 44,
+> p95 86, 2.1% over 100. But it is not needed: measured over 20,000 games, **the snake
+> already fires in 66.5% of games, a mean of 1.97 falls per game.** The historical
+> Vaiṣṇava board's equivalent fired in about 83%, so the texture is already right.
+> Forcing it would buy the remaining third of games a toll booth, and the fall reads
+> better as something that happened to you than as a gate everyone must pass.
+
+**3. Say when the remedy is one step away.** The five snake-to-ladder pairings need the
+player to land on the snake head and *then* roll exactly 1, so the board's signature
+idea fires about one time in six. Moving the tail onto the ladder foot does not fix it,
+because ladders trigger on landing and the player would bounce straight back up. Instead
+let the card say it: at square 22, the ladder of Guru-bhakti is one step above you.
+Costs nothing and turns a mechanic that rarely fires into a moment that always lands.
+
+**4. Report median, not mean.** The README quotes "about 42 turns". These distributions
+are heavily right-skewed — the Milton Bradley board is mean 40.1, median 33, max 318,
+with 3.3% of games over 100 turns — and the tail is what players experience as a
+problem. `tools/sim.mjs` should report median, 5th and 95th percentile, and the share of
+games over 100 turns. Balance against the 95th percentile from here on.
+
+**5. Fix the README's snake/ladder claim.** "Snakes outnumbered ladders about two to
+one" is folklore. The documented boards give the Jaina 84 board 15 ladders to 9 snakes,
+the Vaiṣṇava 72 board 10 to 10, and the Mughal board 17 to 13. Every pre-modern board on
+record is balanced or ladder-heavy; this board at 11:13 is more punishing than any of
+them, including the modern commercial one. **Keep the counts** — 13:11 is a defensible
+thesis — but state it as a choice rather than a restoration.
+
+**Deliberately not in this phase:** the ablation harness, and the cowrie-shell
+randomizer. Both are in Phase 13, and the reasoning is in `docs/BOARDCRAFT.md §4, §6`.
+
+**Done when:** a player can open any square the token passed over, no game can stall on
+an exact roll, the divine row can be fallen out of, the five paired snake tails announce
+their ladder, `sim.mjs` reports median and 95th percentile before and after, and the
+README no longer claims the snake-heavy board is the historical one.
+
+---
+
+### Phase 5 — The painted board
 *Purely presentational. No rules change. The sprite sheet itself ships in Phase 2;
 this phase is everything around it.*
 
@@ -400,7 +543,9 @@ this phase is everything around it.*
   transitions. Transform on a wrapper.
 - **The ageing board.** Squares behind you desaturate toward sepia; squares ahead stay
   dim until reached. A filter per row. You cannot see the whole board from inside a
-  life, which is both better-looking and the right idea.
+  life, which is both better-looking and the right idea. Phase 3 shipped an authored
+  `age` on every square, so this keys off real ages rather than board position: the
+  sepia should track how old the player is, not how far they have walked.
 - **Adaptive drone.** Tanpura under the game, keyed to ashrama: open in childhood,
   dense through gṛhastha, thinning through vānaprastha to a single sustained note in
   sannyāsa, silent at 110.
@@ -411,11 +556,22 @@ visibly behind the token, and reduced-motion and mute both still work.
 
 ---
 
-### Phase 5 — Life state
+### Phase 6 — Life state
 
-- `āyus`, guṇas, puruṣārthas in state; a meters panel.
+- `āyus`, guṇas, puruṣārthas in state.
+- **Derive āyus from the authored `age` table shipped in Phase 3** rather than inventing
+  a second clock. Every square already states how old the player is there; āyus is that
+  number running out. Two clocks that disagree would be a bug waiting to happen.
 - Ashrama rule phases from §2.4 (action slots gated by stage).
 - The existing pixel-art stage change tracks āyus rather than board position.
+- **No numbers on screen.** Guṇas and puruṣārthas are tracked internally and surfaced as
+  description, never as meters. Ultima IV is the precedent in both directions: it kept
+  virtue hidden and reported it through a seer who tells you in words that you have
+  strayed, and the parts that *were* legible as numbers got farmed, which is why the
+  game needed an anti-grind patch on repeat donations. A visible meter turns a moral
+  state into a score, and players optimise a score instead of weighing a choice.
+  Whatever panel this phase builds should read like a sentence about who the player is
+  becoming, not a dashboard.
 - Still dice-and-move; no allocation and no choices yet.
 
 **Done when:** a life can end by running out of years, and `sim.mjs` reports a lifespan
@@ -423,21 +579,33 @@ distribution.
 
 ---
 
-### Phase 6 — Dice as currency
+### Phase 7 — Dice as currency
 *The core mechanical change. Read §2.1 carefully.*
 
 - Roll n dice, visible, before any decision.
 - Action slots: MOVE, STUDY, SERVE, GIVE, PRACTICE, gated by ashrama.
 - Dice count falls with age and poor condition.
 - Moving up the board is now one option among several and has an opportunity cost.
+- **Cheaper precursor worth trying first:** "move up to the roll" — let the player move
+  any amount up to the number rolled. It is the standard fix for the exact-roll fault in
+  roll-and-move design, it is one line, and it quietly introduces the game's first real
+  decision long before the full allocation loop exists. Prototype it in Phase 4 or 5 and
+  see whether the allocation loop is still worth its complexity.
+
+**Test it on the endgame first.** Squares 94–110 are the stretch with no ladders and,
+since Phase 4, a snake at 109 and bounce-back off the gate. That is where the board has
+least agency and most variance, and the sim said it was what drove the p95 to 128 before the fall was shortened to 101. If
+the allocation loop is worth its complexity anywhere, it is there: a player who can
+choose to spend a die on something other than moving has a way out of the loop that
+pure dice does not give them.
 
 **Done when:** a player can spend a whole cycle without moving, the board no longer
-advances on its own, and `sim.mjs` shows a visible spread in how far players get by a
-given age.
+advances on its own, `sim.mjs` shows a visible spread in how far players get by a given
+age, and p95 has not risen.
 
 ---
 
-### Phase 7 — Situations
+### Phase 8 — Situations
 
 - `content/situations.json` and `engine/qbn.js`.
 - Gate evaluation, with the gate surfaced in the UI when an option is withheld.
@@ -450,7 +618,7 @@ situation exists (`lint-content.mjs`), and no option is obviously correct.
 
 ---
 
-### Phase 8 — Karma
+### Phase 9 — Karma
 
 - Three buckets, fuses, deferred firing.
 - `bandha` and the gate at 110.
@@ -461,7 +629,7 @@ it came from, and a player can reach 110 and be refused with a legible reason.
 
 ---
 
-### Phase 9 — Death and rebirth
+### Phase 10 — Death and rebirth
 
 - Yama's reckoning screen reading the ledger.
 - āgāmi flows into sañcita; a slice is drawn as next life's prārabdha.
@@ -474,7 +642,7 @@ legible to the player on the birth screen.
 
 ---
 
-### Phase 10 — The laws
+### Phase 11 — The laws
 
 - Mīmāṃsā first (default), then Cārvāka, then the rest.
 - A law-select screen that explains each in the player's own terms before they commit.
@@ -486,7 +654,7 @@ rather than only in mean.
 
 ---
 
-### Phase 11 — Historical boards
+### Phase 12 — Historical boards
 
 Board geometry becomes data. The variants are documented, not invented; see
 `docs/REFERENCE.md §4`.
@@ -496,15 +664,22 @@ Board geometry becomes data. The variants are documented, not invented; see
 - 84-square Jain board.
 - 101-square Sufi board ending at the throne.
 - Historical rules worth restoring: squares that need an exact roll and cannot be
-  passed; a snake on the final square that returns overreachers to the start; squares
-  that must be passed in order; snakes outnumbering ladders roughly two to one.
+  passed; squares that must be passed in order; bounce-back and the merit-exhausted
+  fall from the divine row (already taken in Phase 4).
+- **Element counts, from the documented boards** (`docs/BOARDCRAFT.md §1`): Jaina 84 =
+  15 ladders / 9 snakes; Vaiṣṇava 72 = 10 / 10; Mughal 100–101 = 17 / 13. Do not carry
+  over the "snakes outnumber ladders two to one" claim; it is not supported.
+- Each board's own randomizer: the Vaiṣṇava board used seven cowrie shells (binomial,
+  p = 0.5), the Jaina board a four-outcome stick die (1, 2, 5, 6). The shells took that
+  board from 64.5 turns to 100.5, so the randomizer is a real design lever and belongs
+  with its board.
 
 **Done when:** board choice is a setting, the renderer handles non-10-wide grids, and
 each board's rules load with it.
 
 ---
 
-### Phase 12 — Parallel lives
+### Phase 13 — Parallel lives
 
 - Multiplayer becomes four lives lived side by side rather than a race.
 - End screen: guṇa trajectories plotted over time, choices made at shared squares,
@@ -515,11 +690,21 @@ each board's rules load with it.
 
 ---
 
-### Phase 13 — Content to full
+### Phase 14 — Content to full, and balancing
 
 - All 110 squares with situations where they earn one.
 - Codex complete across schools, sources and figures.
 - Target roughly 35 situations at two or three options each.
+- **The ablation harness.** For each snake and ladder, run N games with that element
+  removed and report the change in median turns. This is the method from
+  arXiv:2304.14486 and it answers the board questions by measurement instead of
+  argument: which elements matter and which are decoration, what the
+  no-ladder-reaches-heaven rule actually costs, and whether the Ahaṅkāra snake at 99→61
+  is too punishing. Deferred to here on purpose — tuning a board while its content is
+  still moving is measuring a moving target.
+- **The randomizer setting** (die / cowries / stick die) belongs here for the same
+  reason: it rebalances everything downstream, so it is a bad thing to introduce
+  mid-content-build.
 
 Note from *80 Days*: most playthroughs there reveal under ten percent of the text. A
 single life should not see most of this content. That dissolves the volume problem,
@@ -538,6 +723,12 @@ because you are authoring breadth for replay rather than a script.
 - Do not restyle the board geometry or the snake rendering in Phases 0–1. That art is
   finished work; Phase 2 is where it changes, deliberately.
 - One phase per PR. No phase leaves `main` unplayable.
+- **Balance against p95, not the mean.** Any phase that changes movement or adds a
+  mechanic reports median, p95 and the share of games over 100 turns, before and after.
+  The mean hides the tail and the tail is what players feel. Baseline after Phase 4:
+  median 41, p5 22, p95 82, mean 45.0, max 204, 1.7% over 100 turns. For reference the
+  Milton Bradley board runs 3.3% over 100, so this board's tail is now about half as heavy
+  as that. Treat a rise in p95 or in over-100% as a regression that needs a reason.
 - Graceful degradation everywhere: missing situation falls back to story card, missing
   Hindi shows English and warns, missing sprite shows the old emoji. Never a blank card.
 

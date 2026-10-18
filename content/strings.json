@@ -1,5 +1,6 @@
 {
   "SRC_HI": [
+    ["Bhagavad Gita","भगवद्गीता"],
     ["Brihadaranyaka","बृहदारण्यक"],
     ["Taittiriya","तैत्तिरीय"],
     ["Chandogya","छांदोग्य"],
@@ -42,7 +43,6 @@
       "nPlayers": "{n} players",
       "human": "Human",
       "cpu": "Computer",
-      "ruleExact": "Need the exact roll to land on Moksha ({n})",
       "ruleSix": "Rolling a 6 gives another turn",
       "newGame": "Start new game",
       "again": "Play again",
@@ -143,7 +143,13 @@
       "lifeCopy": "Copy",
       "lifeCopied": "Copied",
       "lifeSave": "Download",
-      "lifeWhose": "Whose life"
+      "lifeWhose": "Whose life",
+      "lPassed": "Passed:",
+      "lBounce": "{name} rolled {v}: reached 110 and bounced back to {pos}, {what}.",
+      "lRebirth": "{name} rolled {v} to {pos}: merit spent, and down from the highest heaven to Indra's, on {to}.",
+      "lClosed": "Moksha does not open yet: it opens only to someone who has fallen once. {name} walks back to {pos}.",
+      "ruleBrahmaloka": "Brahmaloka rule: Moksha opens only after a fall from heaven",
+      "meritSnake": "Snake · from this realm"
     },
     "hi": {
       "title": "मोक्ष पटम",
@@ -161,7 +167,6 @@
       "nPlayers": "{n} खिलाड़ी",
       "human": "मनुष्य",
       "cpu": "कंप्यूटर",
-      "ruleExact": "मोक्ष ({n}) पर पहुँचने के लिए ठीक उतना ही अंक चाहिए",
       "ruleSix": "6 आने पर एक और बारी",
       "newGame": "नया खेल शुरू करें",
       "again": "फिर से खेलें",
@@ -262,7 +267,13 @@
       "lifeCopy": "कॉपी करें",
       "lifeCopied": "कॉपी हो गया",
       "lifeSave": "डाउनलोड",
-      "lifeWhose": "किसका जीवन"
+      "lifeWhose": "किसका जीवन",
+      "lPassed": "रास्ते में:",
+      "lBounce": "{name} का {v} आया: ११० तक पहुँचकर वापस {pos} पर, {what}।",
+      "lRebirth": "{name} का {v} आया, {pos} पर: पुण्य क्षीण हुआ, और सबसे ऊँचे स्वर्ग से {to} पर इंद्र के स्वर्ग तक।",
+      "lClosed": "मोक्ष अभी नहीं खुलता: वह उसी के लिए खुलता है जो एक बार गिर चुका हो। {name} वापस {pos} पर।",
+      "ruleBrahmaloka": "ब्रह्मलोक नियम: स्वर्ग से एक बार गिरने के बाद ही मोक्ष खुलता है",
+      "meritSnake": "साँप · इस लोक से"
     }
   },
   "JOINS": {

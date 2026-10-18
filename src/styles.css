@@ -310,6 +310,14 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 .life-leaf .leaf-foot .ghost { color: var(--l-ink); border-color: var(--l-line); padding: 6px 14px; font-size: 14px; }
 .win > div button + button { margin-top: -4px; }
 
+/* Phase 4 (REDESIGN.md): the remedy one step above a snake tail, and a snake that starts in a god's realm */
+.leaf .story p.remedy { font-family: var(--f-body); font-size: 15px; font-weight: 600; color: #2E6B45; border-left: 3px solid #2E7D4F; padding-left: 10px; }
+.leaf .story p.remedy.second { font-weight: 400; }
+.leaf .snake-on { margin-top: 20px; padding: 4px 14px 10px; border-radius: 8px; background: rgba(179, 38, 30, 0.08); border: 1px solid rgba(179, 38, 30, 0.35); }
+.leaf .snake-on .sub { display: flex; align-items: center; gap: 8px; color: #9E2A1C; border-top: 0; padding-top: 6px; }
+.leaf .snake-on .snake-glyph { width: 28px; height: 28px; }
+.leaf .snake-on .snake-title { font-family: var(--f-display); font-weight: 400; font-size: 26px; line-height: 1.1; margin: 4px 0 0; }
+
 /* virtue rays, falling petals for the realms */
 .flourish { position: absolute; inset: 0; overflow: hidden; border-radius: inherit; pointer-events: none; z-index: 0; }
 .flourish .rays {
@@ -394,6 +402,9 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 .log li.snake { color: #B03A26; }
 .log li.ladder { color: #2E7D4F; }
 .log li.heaven { color: #A0620A; }
+/* the squares a move walked over: quieter than a landing, each one a link */
+.log li.passed { color: var(--muted); font-size: 12.5px; margin-top: -3px; }
+.log li.passed .logbtn { text-decoration-color: color-mix(in srgb, currentColor 35%, transparent); }
 :root[data-theme="dark"] .log li.snake { color: #FF8C75; }
 :root[data-theme="dark"] .log li.ladder { color: #7FD9A3; }
 :root[data-theme="dark"] .log li.heaven { color: #F2C55C; }
