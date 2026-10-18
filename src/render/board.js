@@ -27,8 +27,8 @@ export function squareName(n) {
 
 function labelHtml(n) {
   const numEl = `<span class="n">${num(n)}</span>`;
-  if (n === GOAL) return numEl + `<span class="om">ॐ</span><span class="dv">मोक्ष</span>`;
-  if (HEAVEN[n]) return numEl + `<span class="ic">${HEAVEN[n].ic}</span><span class="dv">${HEAVEN[n].hi}</span>`;
+  if (n === GOAL) return numEl + `<span class="om">ॐ</span><span class="dv">${t("moksha")}</span>`;
+  if (HEAVEN[n]) return numEl + `<span class="ic">${HEAVEN[n].ic}</span><span class="dv">${L(HEAVEN[n].en, HEAVEN[n].hi)}</span>`;
   const sl = SNAKES[n] || LADDERS[n];
   if (sl) return numEl + `<span class="ic">${sl.ic}</span><span class="nm">${L(sl.en, sl.hi)}</span>`;
   return numEl;
