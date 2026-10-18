@@ -1,7 +1,7 @@
 // ---- The board: squares, labels, and the painted snakes and ladders ----
 import { GOAL, ROWS, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN } from "../content.js";
 import { lang, L, t, num } from "../i18n.js";
-import { $ } from "../ui.js";
+import { $, art } from "../ui.js";
 
 export const ashramaIn = (l, n) => { const a = ASHRAMAS.find(([max]) => n <= max); return l === "hi" ? a[2] : a[1]; };
 export const ashramaOf = n => ashramaIn(lang, n);
@@ -28,9 +28,9 @@ export function squareName(n) {
 function labelHtml(n) {
   const numEl = `<span class="n">${num(n)}</span>`;
   if (n === GOAL) return numEl + `<span class="om">ॐ</span><span class="dv">${t("moksha")}</span>`;
-  if (HEAVEN[n]) return numEl + `<span class="ic">${HEAVEN[n].ic}</span><span class="dv">${L(HEAVEN[n].en, HEAVEN[n].hi)}</span>`;
+  if (HEAVEN[n]) return numEl + `<span class="ic">${art(`sq-${n}`, HEAVEN[n].ic)}</span><span class="dv">${L(HEAVEN[n].en, HEAVEN[n].hi)}</span>`;
   const sl = SNAKES[n] || LADDERS[n];
-  if (sl) return numEl + `<span class="ic">${sl.ic}</span><span class="nm">${L(sl.en, sl.hi)}</span>`;
+  if (sl) return numEl + `<span class="ic">${art(`sq-${n}`, sl.ic)}</span><span class="nm">${L(sl.en, sl.hi)}</span>`;
   return numEl;
 }
 
@@ -53,7 +53,7 @@ export function buildCells() {
       const el = document.createElement("div");
       el.className = "cell" + (heaven ? " heaven" : "") + (n === GOAL ? " goal" : "");
       if (!heaven) el.style.background = bg;
-      if (SQ[n]) el.innerHTML = `<span class="pic">${SQ[n][0]}</span>`;
+      if (SQ[n]) el.innerHTML = `<span class="pic">${art(`sq-${n}`, SQ[n][0])}</span>`;
       cells.appendChild(el);
 
       const lab = document.createElement("div");

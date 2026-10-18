@@ -1,10 +1,10 @@
 // ---- The card: a pothi folio for one square or one Codex entry ----
 // It stays open until the reader closes it. A computer's landing card closes itself after a
 // reading-length pause, unless the reader touches it, and then it waits like any other.
-import { GOAL, LADDERS, SNAKES, SQ, HEAVEN, READINGS, CODEX, ENTRY_IDS, REFS, entryOf, sourceOf, srcOfSquare } from "../content.js";
+import { GOAL, LADDERS, SNAKES, SQ, HEAVEN, MOKSHA, READINGS, CODEX, ENTRY_IDS, REFS, entryOf, sourceOf, srcOfSquare } from "../content.js";
 import { lang, tIn, numIn, srcIn, pick } from "../i18n.js";
 import { prefs, hasMet, meet } from "../prefs.js";
-import { $, esc, reduced } from "../ui.js";
+import { $, esc, reduced, art } from "../ui.js";
 import { sound } from "../audio/engine.js";
 import { ashramaIn, labEls } from "./board.js";
 
@@ -35,7 +35,7 @@ function squareInfo(n, l) {
   }
   if (n === GOAL) {
     return { kind: "goal", big: "ॐ", title: l === "hi" ? "मोक्ष" : "Moksha", alt: [o === "hi" ? "मोक्ष" : "Moksha", scholar ? r.iast : T("liberation")],
-      story: ["Freedom from the cycle of birth and death.", "जन्म और मृत्यु के चक्र से मुक्ति।"], eb: T("end"), ft: "" };
+      story: MOKSHA.story, eb: T("end"), ft: "" };
   }
   if (HEAVEN[n]) {
     const h = HEAVEN[n];
@@ -53,7 +53,7 @@ const texts = (l, en, hi, cls = "") => {
 };
 const bi = (l, obj, cls) => (obj ? texts(l, obj.en || "", obj.hi || pick(obj, "hi"), cls) : "");
 const entryName = (id, l) => esc(pick(entryOf(id)?.e.name, l));
-const entryLink = (id, l, cls = "chip") => `<a class="${cls}${hasMet(id) ? "" : " new"}" href="#codex/${id}" data-entry="${id}">${entryName(id, l)}</a>`;
+const entryLink = (id, l, cls = "chip") => `<a class="${cls}${hasMet(id) ? "" : " new"}" href="#codex/${id}" data-entry="${id}">${cls === "chip" ? art(`seal-${id}`, "", "seal") : ""}${entryName(id, l)}</a>`;
 
 function extras(kind) {
   const rnd = i => (i * 37) % 100;
@@ -92,19 +92,24 @@ function squareHtml(n, l) {
   const alt = info.alt.filter(Boolean).join(" · ");
   if (alt) body += `<p class="alt" lang="${other(l)}">${esc(alt)}</p>`;
   body += `<div class="story">${texts(l, info.story[0], info.story[1])}${bi(l, r.line2, "line2")}</div>`;
-  // the views panel is the point of square 110, so it shows at every depth
+  // the views panel is the point of square 110, so it shows at every depth: six definitions side by side
+  const viewList = (vs, cls) => `<ul class="${cls}">` + vs.map(v => `<li>${entryLink(v.id, l)}${texts(l, v.en, v.hi)}</li>`).join("") + `</ul>`;
   if (r.views && (n === GOAL || deep("school"))) {
-    body += `<h3 class="sub">${T(n === GOAL ? "viewsGoal" : "views")}</h3><ul class="views">` +
-      r.views.map(v => `<li>${entryLink(v.id, l)}${texts(l, v.en, v.hi)}</li>`).join("") + `</ul>`;
+    body += `<h3 class="sub">${T(n === GOAL ? "viewsGoal" : "views")}</h3>` + viewList(r.views, n === GOAL ? "views side" : "views");
     met.push(...r.views.map(v => v.id));
+  }
+  if (r.beyond && (n === GOAL || deep("school"))) {
+    body += `<h3 class="sub">${T("viewsBeyond")}</h3>` + viewList(r.beyond, "views");
+    met.push(...r.beyond.map(v => v.id));
   }
   if (r.schools && deep("school")) {
     body += `<h3 class="sub">${T("argued")}</h3><ul class="chips">` +
       r.schools.map(s => `<li>${entryLink(s.id, l)}${texts(l, s.en, s.hi)}</li>`).join("") + `</ul>`;
     met.push(...r.schools.map(s => s.id));
   }
+  // a square with no voices shows its scholar note at school depth rather than a bare lead
+  if (deep("scholar") || (deep("school") && !r.schools?.length && !r.views?.length)) body += bi(l, r.scholar, "note");
   if (deep("scholar")) {
-    body += bi(l, r.scholar, "note");
     if (r.figures?.length) {
       body += `<p class="people"><span>${T("people")}:</span> ${r.figures.map(id => entryLink(id, l, "plink")).join(" · ")}</p>`;
       met.push(...r.figures);
@@ -119,7 +124,7 @@ function squareHtml(n, l) {
   }
   return {
     kind: info.kind, met,
-    html: frame(l, { kind: info.kind, eb: info.eb, big: info.big, sqn: numIn(l, n), body, foot: info.ft,
+    html: frame(l, { kind: info.kind, eb: info.eb, big: n === GOAL ? info.big : art(`sq-${n}`, info.big), sqn: numIn(l, n), body, foot: info.ft,
       prev: n > 1 ? numIn(l, n - 1) : null, next: n < GOAL ? numIn(l, n + 1) : null, prevLabel: T("prevSq"), nextLabel: T("nextSq") }),
   };
 }

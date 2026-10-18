@@ -4,7 +4,8 @@ A bilingual (English/Hindi) snakes-and-ladders game played as one life. It deplo
 single static `index.html` at https://codebpr.com/moksha-patam/
 
 ## Layout
-- `src/` is the source. `content/*.json` holds the content (squares, readings, codex, strings).
+- `src/` is the source. `content/*.json` holds the content (squares, readings, codex, strings,
+  names). `assets/sprites.svg` is the art, inlined by the build; without it squares show emoji.
 - `index.html` and `sw.js` at the root are **built artifacts. Never hand-edit them.**
   Rebuild with `npm run build` (`tools/build.mjs`): it inlines `src/` into `index.html`
   and stamps the cache version into `sw.js` from `src/sw.js`. Commit both after building.
@@ -20,7 +21,8 @@ single static `index.html` at https://codebpr.com/moksha-patam/
 ## Commands
 - `npm run build`: fails on any `Math.random` outside `src/rng.js` or on any content lint error.
 - `npm test`: `node --test tests/*.test.mjs`
-- `npm run lint`: content lint (`tools/lint-content.mjs`), bilingual completeness and dangling ids.
+- `npm run lint`: content lint (`tools/lint-content.mjs`): Hindi, dangling ids, two voices per
+  square, a name in every lead (`content/names.json`), and the sprite palette.
 - `npm run format`: rewrites `content/*.json` one entry per line. Run it after editing content.
 - `npm run sim [games] [players] [firstSeed]`: headless games (one player averages about 42 turns).
 - `npm run smoke`: Playwright checks of the built page in a real browser (needs Chrome installed).

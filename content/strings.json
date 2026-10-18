@@ -21,7 +21,9 @@
     ["Rig Veda","ऋग्वेद"],
     ["Subhashita","सुभाषित"],
     ["Grihya Sutras","गृह्यसूत्र"],
-    ["invocation","शांति पाठ"]
+    ["invocation","शांति पाठ"],
+    ["Kaushitaki","कौषीतकि"],
+    ["Brahma Sutra","ब्रह्मसूत्र"]
   ],
   "STR": {
     "en": {
@@ -116,7 +118,8 @@
       "sqLabel": "Square {n}: {name}. Open card",
       "school": "School",
       "openCodex": "Open in the Codex",
-      "firstMet": "New in your Codex"
+      "firstMet": "New in your Codex",
+      "viewsBeyond": "Outside the Veda"
     },
     "hi": {
       "title": "मोक्ष पटम",
@@ -210,7 +213,8 @@
       "sqLabel": "खाना {n}: {name}। कार्ड खोलें",
       "school": "दर्शन",
       "openCodex": "कोश में खोलें",
-      "firstMet": "आपके कोश में नया"
+      "firstMet": "आपके कोश में नया",
+      "viewsBeyond": "वेद से बाहर"
     }
   }
 }

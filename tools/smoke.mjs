@@ -1,4 +1,4 @@
-// Phase 1 checks in a real browser, served over HTTP under /moksha-patam/ as on the live site.
+// Phase 1 and 2 checks in a real browser, served over HTTP under /moksha-patam/ as on the live site.
 //   node tools/smoke.mjs
 import fs from "node:fs";
 import http from "node:http";
@@ -80,6 +80,59 @@ await check("every depth, in both languages, has no blank or undefined text", as
     });
     assert(!bad.length, `${lang}/${depth}: ${bad.slice(0, 4).join(", ")}`);
   }
+});
+
+await check("Phase 2: at the default depth every square shows two schools disagreeing, in both languages", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  for (const lang of ["en", "hi"]) {
+    await page.goto(BASE + `?seed=1&debug&lang=${lang}`); // no ?depth: what a new player sees
+    const thin = await page.evaluate(async () => {
+      const out = [];
+      for (let n = 1; n <= 110; n++) {
+        mp.open(n);
+        const voices = document.querySelectorAll("#leaf .chips li, #leaf .views li");
+        if (voices.length < 2 || [...voices].some(v => !v.querySelector(".chip"))) out.push(n);
+      }
+      await mp.close({ instant: true });
+      return out;
+    });
+    assert(!thin.length, `${lang}: squares without two named voices: ${thin.join(", ")}`);
+  }
+});
+
+// Emoji code points, so a check can tell a drawn square from an emoji fallback.
+const EMOJI = /\p{Extended_Pictographic}/u;
+await check("Phase 2: the board draws every square from the sprite sheet, with no emoji", async page => {
+  await page.goto(BASE + "?seed=1");
+  const bad = await page.evaluate(src => {
+    const emoji = new RegExp(src, "u"), out = [];
+    for (const el of document.querySelectorAll("#cells .pic, #labels .ic")) if (!el.querySelector("svg.spr use") || emoji.test(el.textContent)) out.push(el.outerHTML.slice(0, 60));
+    if (document.querySelectorAll("#cells .pic").length + document.querySelectorAll("#labels .ic").length !== 109) out.push("expected a picture on all 109 squares below Moksha");
+    return out;
+  }, EMOJI.source);
+  assert(!bad.length, bad.slice(0, 3).join(" | "));
+  await page.click('#labels .lab[data-n="50"]');
+  await page.waitForFunction(() => document.getElementById("folio").open);
+  assert(await page.evaluate(() => !!document.querySelector("#leaf .glyph svg.spr")), "the card does not draw its square's sprite");
+});
+
+await check("Phase 2: without the sprite sheet every square falls back to its emoji, none blank", async page => {
+  // serve the page with the inlined sheet cut out, as if assets/sprites.svg had been deleted before the build
+  await page.route(/\/moksha-patam\/(\?.*)?$/, async route => {
+    const res = await route.fetch();
+    route.fulfill({ response: res, body: (await res.text()).replace(/<svg class="sprites"[\s\S]*?<\/svg>\n/, "") });
+  });
+  await page.goto(BASE + "?seed=1");
+  const bad = await page.evaluate(src => {
+    const emoji = new RegExp(src, "u"), out = [];
+    if (document.querySelector("svg.sprites")) out.push("the sheet was not removed");
+    for (const el of document.querySelectorAll("#cells .pic, #labels .ic")) if (el.querySelector("svg") || !emoji.test(el.textContent)) out.push(el.outerHTML.slice(0, 60));
+    return out;
+  }, EMOJI.source);
+  assert(!bad.length, bad.slice(0, 3).join(" | "));
+  await page.click('#labels .lab[data-n="79"]');
+  await page.waitForFunction(() => document.getElementById("folio").open);
+  assert(await page.evaluate(() => document.querySelector("#leaf .glyph").textContent.trim() === "🙋‍♀️"), "the card did not fall back to its emoji");
 });
 
 await check("every Codex entry opens, from a link, in both languages", async page => {

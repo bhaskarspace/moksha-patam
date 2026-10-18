@@ -60,6 +60,8 @@ A 20,000-game simulation (`npm run sim`) puts a single life at about 42 turns fr
 ## Features
 - **Every square is a card you can read.** Tap any square on the board, or any move in the log, to open its card. The cards are drawn as pothi folios, palm-leaf manuscript pages. ‹ › (or the arrow keys) turns the leaves from 1 to 110, so you can read the whole board without rolling once. Cards can be linked: `#sq/36` opens square 36.
 - **Cards wait for you.** Your landing card stays open until you close it, and the computer waits while you read. A computer's own landing card closes itself after a moment, unless you start reading it.
+- **Every square is a scene with someone in it, and an argument.** Each lead line names a person, a school or a text, and at the default depth two schools disagree about it.
+- **Painted squares** in the Basohli manner: flat colour, one black outline, figures in profile with one large eye. The old emoji come back for any square without a picture.
 - **Three reading depths:** *Story*, *Story + school* (what the darśanas would have argued on that square), and *Scholar* (IAST, notes on the sources, and the people involved). Square 36 carries Vedānta's three-way split over *tat tvam asi*, and square 110 sets each school's own idea of mokṣa side by side.
 - **The Codex**, beside the moves: schools, sources and people. It fills in as you meet them and is kept between games. Entries can be linked too: `#codex/nyaya`.
 - **English / हिंदी**, for the whole page (remembered), or per card with its own toggle. There is also an option to show both languages on every card, for Hindi learners. Hindi mode uses Devanagari digits.
@@ -74,7 +76,8 @@ To play locally, open `index.html`. Add `?seed=N` to replay the same dice (the c
 `index.html` is built, so don't edit it by hand. The sources are:
 
 - `src/`: the game as ES modules (`engine/` holds the rules, `render/` the drawing, and `rng.js` the only randomness)
-- `content/*.json`: the squares and stories (`squares.json`), the school lines and scholar notes for each square (`readings.json`), the Codex (`codex.json`) and the UI strings (`strings.json`)
+- `content/*.json`: the squares and stories (`squares.json`), the school lines and scholar notes for each square (`readings.json`), the Codex (`codex.json`), the UI strings (`strings.json`), and the names a lead line can carry (`names.json`, for the lint)
+- `assets/sprites.svg`: one Basohli symbol per square and a seal per school, inlined by the build (delete it and the board shows emoji)
 - `src/sw.js`, `manifest.webmanifest`, `icons/`: the installable app (`node tools/icons.mjs` redraws the icons)
 - `src/styles.css` and `src/index.html`: the page shell
 
@@ -82,7 +85,8 @@ To play locally, open `index.html`. Add `?seed=N` to replay the same dice (the c
 npm install
 npm run build    # inline src/ and content/ into index.html (refuses any Math.random outside rng.js)
 npm test         # rules, RNG and content tests (the build also refuses content missing Hindi or pointing nowhere)
-npm run smoke    # every Phase 1 behaviour in a real browser, including offline and install
+npm run lint     # the content lint alone: Hindi, two voices per square, a name in every lead, the sprite palette
+npm run smoke    # every Phase 1 and 2 behaviour in a real browser, including offline, install and the emoji fallback
 npm run sim      # 20,000 headless lives; `node tools/sim.mjs 20000 2` for two-player races
 npm run golden   # replays seeds through the pre-split game, the build and the sim, and checks the logs match
 ```
