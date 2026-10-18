@@ -21,11 +21,13 @@ const BASE = `http://127.0.0.1:${server.address().port}/moksha-patam/`;
 
 const browser = await chromium.launch({ channel: "chrome" });
 let failures = 0;
-async function check(name, fn, { limit = 90, persistent = false } = {}) {
+async function check(name, fn, { limit = 90, persistent = false, named = true } = {}) {
   // install checks need a real profile: Chrome will not report installability in incognito
   const ctx = persistent
     ? await chromium.launchPersistentContext(fs.mkdtempSync(path.join(os.tmpdir(), "mp-smoke-")), { channel: "chrome", viewport: { width: 1200, height: 900 } })
     : await browser.newContext({ viewport: { width: 1200, height: 900 } });
+  // someone who has been named before goes straight to the board (docs/NARRATIVE.md §3)
+  if (named) await ctx.addInitScript(() => { try { localStorage.setItem("mp-self", JSON.stringify({ name: "", gender: "f" })); } catch {} });
   const page = await ctx.newPage();
   const errors = [];
   page.on("pageerror", e => errors.push(e.message));
@@ -230,7 +232,8 @@ await check("card language toggles without changing the page language; both-lang
   await page.evaluate(() => { localStorage.setItem("mp-prefs", JSON.stringify({ both: true })); });
   await page.goto(BASE + "?both#sq/59"); // a new query, so the page really reloads
   await page.waitForFunction(() => document.getElementById("folio").open);
-  assert(await page.evaluate(() => document.querySelectorAll("#leaf .story p.second[lang=hi]").length === 1), "both-languages mode shows one language");
+  // the moment and the mirror, each followed by its Hindi
+  assert(await page.evaluate(() => document.querySelectorAll("#leaf .story p.moment.second[lang=hi], #leaf .story p.mirror.second[lang=hi]").length === 2), "both-languages mode shows one language");
 });
 
 await check("mute persists across reloads", async page => {
@@ -247,6 +250,68 @@ await check("reduced motion: a whole computer game plays through with cards", as
   await page.goto(BASE + "?seed=6");
   await page.waitForFunction(() => !document.getElementById("win").hidden, null, { timeout: 60000 });
 });
+
+await check("Phase 3: the naming comes first, needs a gender, and the cards agree with it", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=1&debug&lang=hi");
+  assert(await page.evaluate(() => document.getElementById("naming").open), "the naming is not open on a first visit");
+  await page.fill("#namingName", "Meera");
+  await page.click("#namingBegin");
+  assert(await page.evaluate(() => document.getElementById("naming").open), "the naming closed without a gender");
+  await page.click('#namingGenders input[value="f"]');
+  await page.click("#namingBegin");
+  await page.waitForFunction(() => !document.getElementById("naming").open);
+  const p = await page.evaluate(() => mp.state.players[0]);
+  assert(p.name === "Meera" && p.gender === "f", `player 0 is ${JSON.stringify(p)}`);
+  assert(await page.evaluate(() => mp.state.players[1].alias?.hi?.length > 0), "the computer was not given a name");
+  await page.reload();
+  assert(!(await page.evaluate(() => document.getElementById("naming").open)), "the naming asked again after a name was given");
+}, { named: false });
+
+await check("Phase 3: every moment agrees with a female player in Hindi, and with no moments the cards are Phase 2's", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.addInitScript(() => { try { localStorage.setItem("mp-self", JSON.stringify({ name: "Meera", gender: "f" })); } catch {} });
+  await page.goto(BASE + "?seed=1&debug&lang=hi");
+  const bad = await page.evaluate(async () => {
+    const out = [];
+    for (let n = 1; n <= 109; n++) {
+      mp.open(n);
+      const m = document.querySelector("#leaf .story p.moment")?.textContent || "";
+      if (!m.includes("Meera")) out.push(`${n}: no moment naming Meera`);
+      // a masculine form straight after her name: "Meera सात बरस का है", "Meera … खड़ा है"
+      if (/Meera (?!ने|की|के|को|से)[^।,]*?(?<![\p{L}\p{M}])(का है|खड़ा है|झुका है|देखता|जागता रहा|निकल गया|हो सकता था|फिरता है|सह लेगा)(?![\p{L}\p{M}])/u.test(m)) out.push(`${n}: ${m}`);
+      if (n <= 100 && !document.querySelector("#leaf .leaf-margin .age")) out.push(`${n}: no age`);
+    }
+    // strip every moment: the card is the Phase 2 card, with no moment and no age
+    for (const t of ["SQ", "LADDERS", "SNAKES", "HEAVEN"]) for (const q of Object.values(mp.data[t])) delete q.moment;
+    for (const n of [3, 59, 102]) {
+      mp.open(n);
+      if (document.querySelector("#leaf .moment, #leaf .age")) out.push(`${n}: still shows a moment or an age without one`);
+    }
+    await mp.close({ instant: true });
+    return out;
+  });
+  assert(!bad.length, bad.slice(0, 4).join(" | "));
+});
+
+await check("Phase 3: a finished game reads as a life, in both languages, and can be copied", async (page, ctx) => {
+  await ctx.grantPermissions(["clipboard-read", "clipboard-write"]);
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await twoCpus(page);
+  await page.addInitScript(() => { const st = window.setTimeout; window.setTimeout = (f, ms, ...r) => st(f, Math.min(ms, 30), ...r); });
+  await page.goto(BASE + "?seed=6&debug");
+  await page.waitForFunction(() => !document.getElementById("win").hidden, null, { timeout: 120000 });
+  await page.click("#readLife");
+  await page.waitForFunction(() => document.getElementById("lifeDlg").open);
+  for (const lang of ["en", "hi"]) {
+    await page.evaluate(l => mp.setLang(l), lang);
+    const text = await page.evaluate(() => document.getElementById("lifeLeaf").textContent);
+    assert(/\S/.test(text) && !/undefined|null|\{name\}|\[object/.test(text), `the ${lang} life reads: ${text.slice(0, 120)}`);
+  }
+  await page.click('#lifeLeaf [data-act="copy"]');
+  const copied = await page.evaluate(() => navigator.clipboard.readText());
+  assert(copied.length > 10, "nothing was copied");
+}, { limit: 150 });
 
 await check("installable: manifest and service worker pass Chrome's check", async page => {
   await page.goto(BASE);

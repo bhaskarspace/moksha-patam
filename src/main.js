@@ -1,7 +1,7 @@
 // Moksha Patam: the page's wiring. Rules live in engine/, drawing in render/, content in content/*.json.
 import { GOAL, ROWS, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, STR } from "./content.js";
 import { lang, urlLang, setLangValue, L, num, t } from "./i18n.js";
-import { G, defaultSetup, pname, cur, newState } from "./state.js";
+import { G, defaultSetup, pname, cur, newState, loadSelf, saveSelf } from "./state.js";
 import { prefs, setPref } from "./prefs.js";
 import { $, COLORS, esc, reduced, sleep } from "./ui.js";
 import { die, makeRng, freshSeed } from "./rng.js";
@@ -12,6 +12,7 @@ import { tokenEls, buildTokens, place, retrigger, climb, swallow } from "./rende
 import { openSquare, openEntry, closeCard, cardIdle, cardOpen, refreshCard, onCardChange } from "./render/card.js";
 import { renderCodex, showTab } from "./render/codex.js";
 import { renderLog } from "./render/log.js";
+import { openLife, refreshLife, closeLife, lifeText } from "./render/life.js";
 import { sound, unlockAudio } from "./audio/engine.js";
 
 const PIPS = { 1:[4], 2:[0,8], 3:[0,4,8], 4:[0,2,6,8], 5:[0,2,4,6,8], 6:[0,2,3,5,6,8] };
@@ -130,6 +131,9 @@ function renderSetup() {
         <option value="human"${r.type === "human" ? " selected" : ""}>${t("human")}</option>
         <option value="cpu"${r.type === "cpu" ? " selected" : ""}>${t("cpu")}</option>
       </select>
+      <select id="pgender${i}" aria-label="${t("namingAs")} · ${t("colour" + i)}">
+        ${[["", "genderAny"], ["f", "genderF"], ["m", "genderM"], ["n", "genderN"]].map(([v, k]) => `<option value="${v}"${(r.gender || "") === v ? " selected" : ""}>${t(k)}</option>`).join("")}
+      </select>
     </div>`).join("");
   $("ruleExact").checked = setup.rules.exact;
   $("ruleSix").checked = setup.rules.six;
@@ -141,7 +145,7 @@ function renderSetup() {
 function readSetup() {
   const setup = G.setup;
   setup.rows.slice(0, setup.count).forEach((r, i) => {
-    r.name = $("pname" + i).value; r.type = $("ptype" + i).value;
+    r.name = $("pname" + i).value; r.type = $("ptype" + i).value; r.gender = $("pgender" + i).value;
   });
   setup.rules = { exact: $("ruleExact").checked, six: $("ruleSix").checked };
 }
@@ -169,6 +173,7 @@ function setLang(l) {
   render();
   renderCodex();
   refreshCard();
+  refreshLife();
 }
 document.querySelectorAll("[data-lang]").forEach(b => b.addEventListener("click", () => setLang(b.dataset.lang)));
 
@@ -185,6 +190,7 @@ function startGame() {
   G.gen++;
   clearTimeout(G.cpuTimer);
   closeCard({ instant: true });
+  closeLife();
   $("toastSlot").innerHTML = "";
   if (S) fxClear();
   G.busy = false;
@@ -196,6 +202,29 @@ function startGame() {
 }
 $("newGame").addEventListener("click", () => { readSetup(); startGame(); });
 $("again").addEventListener("click", startGame);
+$("readLife").addEventListener("click", () => openLife());
+
+// ---- The naming, before the board (docs/NARRATIVE.md §3) ----
+// The first player's name and gender, asked as the first thing that happens. Gender is required: Hindi
+// verbs agree with it. A name left blank is drawn from content/names.json when the game starts.
+function openNaming() {
+  const r = G.setup.rows[0];
+  $("namingName").value = r.name;
+  document.querySelectorAll("#namingGenders input").forEach(i => { i.checked = i.value === r.gender; });
+  $("naming").showModal();
+}
+$("namingForm").addEventListener("submit", () => {
+  readSetup();
+  const r = G.setup.rows[0];
+  r.name = $("namingName").value.trim(); r.type = "human";
+  r.gender = new FormData($("namingForm")).get("gender");
+  saveSelf(r.name, r.gender);
+  renderSetup();
+  // nothing has been rolled yet, so the same seed gives the same game, now with its name
+  nextSeed = G.state.rng.seed;
+  startGame();
+});
+$("naming").addEventListener("cancel", e => e.preventDefault());
 $("roll").addEventListener("click", takeTurn);
 document.addEventListener("keydown", e => {
   if (e.code !== "Space" || e.target.closest("input, select, button, textarea, summary")) return;
@@ -270,6 +299,9 @@ if (new URLSearchParams(location.search).has("debug")) {
     sprite: spriteURL,
     data: { LADDERS, SNAKES, SQ, HEAVEN, STR },
     setLang,
+    life: openLife,
+    lifeText: (i = 0, l) => lifeText(G.state, i, l),
+    naming: openNaming,
   };
 }
 
@@ -284,7 +316,11 @@ function start(data) {
     G.state.rng ||= makeRng(freshSeed()); // saves from before the seeded die
     G.busy = false; buildTokens(); render(); queueCpu();
   }
-  else startGame();
+  else {
+    startGame();
+    // the naming comes first for someone new, unless they arrived on a link to one card
+    if (!data?.setup && !loadSelf() && !location.hash) openNaming();
+  }
   draw();
   renderCodex();
   showTab("moves");

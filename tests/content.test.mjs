@@ -34,17 +34,17 @@ test("square 36 carries the three Vedanta readings, and 110 every school's moksh
 });
 
 test("the card contract: a square needs two voices, and its lead must name someone in both languages", () => {
-  const savedVoices = READINGS[7].schools, savedLead = [SQ[7][3], SQ[7][4]];
+  const savedVoices = READINGS[7].schools, savedLead = { ...SQ[7].mirror };
   READINGS[7].schools = savedVoices.slice(0, 1);
-  SQ[7][3] = "Play teaches sharing and waiting your turn.";
+  SQ[7].mirror.en = "Play teaches sharing and waiting your turn.";
   try {
     const errors = lintContent();
     assert.ok(errors.includes("square 7: one voice: a disagreement needs two schools in readings.json"));
-    assert.ok(errors.includes("square 7 lead: names nobody"));
-    SQ[7][3] = savedLead[0]; SQ[7][4] = "खेल से बाँटना आता है।";
-    assert.ok(lintContent().some(e => e.startsWith("square 7 lead: the Hindi drops the name")));
+    assert.ok(errors.includes("square 7 mirror: names nobody"));
+    SQ[7].mirror = { en: savedLead.en, hi: "खेल से बाँटना आता है।" };
+    assert.ok(lintContent().some(e => e.startsWith("square 7 mirror: the Hindi drops the name")));
   } finally {
-    READINGS[7].schools = savedVoices; [SQ[7][3], SQ[7][4]] = savedLead;
+    READINGS[7].schools = savedVoices; SQ[7].mirror = savedLead;
   }
 });
 
@@ -68,4 +68,27 @@ test("the sprite lint holds the Basohli palette and one outline weight", () => {
   assert.ok(errors.some(e => e.includes("#FF00FF")));
   assert.ok(errors.some(e => e.includes("outline weights other than 1.25")));
   assert.ok(errors.includes("sprites.svg: no symbol for square 50"));
+});
+
+test("Hindi agreement: the player as subject needs a {m|f} choice", async () => {
+  const { hindiAgreement, englishPronouns } = await import("../tools/lint-content.mjs");
+  assert.deepEqual(hindiAgreement("{name} बड़ा हुआ।").errors, ["बड़ा", "हुआ"]);
+  assert.deepEqual(hindiAgreement("{name} {बड़ा हुआ|बड़ी हुई}।").errors, []);
+  assert.deepEqual(hindiAgreement("{name} ने देखा।").errors, []);           // ergative: no agreement
+  assert.deepEqual(hindiAgreement("{name} की माँ थक गई।").errors, []);      // the mother is the subject
+  assert.deepEqual(hindiAgreement("{name} रोज़ खाना बनाता है।").warnings, ["बनाता"]);
+  assert.deepEqual(englishPronouns("{name} is seven and says it was not him."), ["him"]);
+  assert.deepEqual(englishPronouns("{name}'s father is dying. He asks for grass."), []);
+});
+
+test("every moment, once written, names the player in both languages", () => {
+  const q = SQ[7], saved = q.moment;
+  q.moment = { en: "{name} is four.", hi: "चार साल का बच्चा।" };
+  try {
+    assert.ok(lintContent().includes("square 7 moment: the Hindi does not name the player with {name}"));
+    q.moment = { en: "{name} is four." };
+    assert.ok(lintContent().includes("square 7 moment: exists in English only"));
+  } finally {
+    if (saved) q.moment = saved; else delete q.moment;
+  }
 });

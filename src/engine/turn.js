@@ -10,9 +10,11 @@ export function rollValue(rng) {
   return die(rng);
 }
 
+// A player has a gender for Hindi agreement (docs/NARRATIVE.md §4), an alias {en, hi} when the name was
+// drawn rather than typed, and a life: every square landed on, in order, for the life account.
 export function createGame({ players, rules, seed }) {
   return {
-    players: players.map((r, i) => ({ name: r.name.trim(), type: r.type, color: i, pos: 0, face: "r" })),
+    players: players.map((r, i) => ({ name: r.name.trim(), type: r.type, gender: r.gender || "m", alias: r.alias || null, color: i, pos: 0, face: "r", life: [] })),
     rules: { ...rules },
     turn: 0, winner: null, last: null,
     log: [{ k: "lNew", kind: "" }],
@@ -59,7 +61,10 @@ export function planTurn(state, v) {
 }
 
 export function endTurn(state, plan) {
-  state.players[plan.idx].pos = plan.final;
+  const p = state.players[plan.idx];
+  p.pos = plan.final;
+  // a snake or a ladder is two moments: the square that did it, and the one it led to
+  if (plan.target !== plan.from) (p.life ||= []).push(...(plan.jump ? [plan.target, plan.final] : [plan.target]));
   if (plan.win) state.winner = plan.idx;
   else if (!plan.again) state.turn = (state.turn + 1) % state.players.length;
   plan.end.forEach(e => addLog(state, e));

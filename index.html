@@ -297,6 +297,41 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 .leaf.entry { --l-rule: #2B3A8F; --l-gold: #2B3A8F; }
 .leaf.vice.landed { animation: shake 0.5s ease-in-out; }
 
+/* Phase 3 (docs/NARRATIVE.md): the moment above the mirror, and the age by the square number */
+.leaf .age { font-family: var(--f-body); font-size: 12px; font-weight: 600; color: var(--l-ink2); text-align: center; line-height: 1.2; }
+.leaf .story p.moment { font-size: 21px; color: var(--l-ink); }
+.leaf .story p.moment.remnant { font-style: italic; color: var(--l-ink2); }
+.leaf .story p.mirror { font-size: 18px; color: var(--l-ink2); }
+.leaf .story p.moment.second, .leaf .story p.mirror.second { font-size: 0.86em; }
+
+/* the naming, before the board */
+.naming { width: min(460px, calc(100vw - 32px)); }
+.naming .leaf { color: var(--l-ink); }
+.naming-body { display: flex; flex-direction: column; gap: 14px; padding: 6px 24px 22px; font-family: var(--f-body); }
+.naming h2 { font-family: var(--f-display); font-weight: 400; font-size: clamp(30px, 6vw, 40px); margin: 0; line-height: 1.05; }
+.naming-line { margin: 0; font-family: var(--f-card); font-size: 18px; font-style: italic; color: var(--l-ink2); }
+.naming-field { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; border: 0; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--l-gold); }
+.naming-field legend { padding: 0; margin-bottom: 6px; }
+.naming input[type="text"] { font: 400 20px var(--f-card); letter-spacing: 0; text-transform: none; padding: 8px 10px; border: 1px solid var(--l-line); border-radius: 6px; background: rgba(255, 252, 240, 0.7); color: var(--l-ink); }
+.naming-genders { display: flex; flex-wrap: wrap; gap: 8px; }
+.naming-genders label { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border: 1px solid var(--l-line); border-radius: 99px; font-size: 15px; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--l-ink); cursor: pointer; }
+.naming-genders label:has(input:checked) { background: var(--l-rule); border-color: var(--l-rule); color: #FFF6E0; }
+.naming-genders input { accent-color: var(--l-rule); margin: 0; }
+.naming .hint { font-size: 12.5px; font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--l-ink2); }
+.naming button[type="submit"] { align-self: flex-start; background: var(--l-rule); color: #FFF6E0; }
+
+/* the life account */
+.life-who { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px 24px 0; font-family: var(--f-body); }
+.life-who button { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; font-size: 14px; background: transparent; color: var(--l-ink); border: 1px solid var(--l-line); border-radius: 99px; }
+.life-who button[aria-pressed="true"] { background: rgba(255, 252, 240, 0.8); border-color: var(--l-rule); }
+.life-who .dot { width: 10px; height: 10px; border-radius: 50%; }
+.life-main { grid-template-columns: minmax(0, 1fr); }
+.life-main .leaf-text { border-left: 4px double var(--l-rule); }
+.life-leaf .leaf-text p { margin: 6px 0 0; font-size: 18px; line-height: 1.6; max-width: 62ch; text-wrap: pretty; }
+.life-leaf .leaf-text p.life-end { margin-top: 18px; font-style: italic; color: var(--l-ink2); }
+.life-leaf .leaf-foot .ghost { color: var(--l-ink); border-color: var(--l-line); padding: 6px 14px; font-size: 14px; }
+.win > div button + button { margin-top: -4px; }
+
 /* virtue rays, falling petals for the realms */
 .flourish { position: absolute; inset: 0; overflow: hidden; border-radius: inherit; pointer-events: none; z-index: 0; }
 .flourish .rays {
@@ -322,6 +357,9 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
   .leaf-margin { padding: 8px 8px 10px 0; border-right-width: 3px; }
   .leaf .glyph { font-size: 32px; }
   .leaf .sqn { font-size: 16px; }
+  .leaf .age { font-size: 10.5px; }
+  .leaf .story p.moment { font-size: 19px; }
+  .life-who { padding: 6px 12px 0; }
   .leaf-text { padding: 4px 4px 8px 14px; border-right: 0; }
   .leaf .story p { font-size: 18px; }
   .leaf .chips p, .leaf .note { font-size: 16px; }
@@ -582,7 +620,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
             <div>
               <h2 id="winTitle"></h2>
               <p id="winText"></p>
-              <button id="again" type="button" data-t="again">Play again</button>
+              <button id="readLife" type="button" data-t="readLife">Read the lives</button>
+              <button id="again" type="button" class="ghost" data-t="again">Play again</button>
             </div>
           </div>
         </div>
@@ -639,6 +678,40 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   <article class="leaf" id="leaf" aria-live="polite"></article>
 </dialog>
 
+<!-- The naming, before the board (docs/NARRATIVE.md §3) -->
+<dialog class="folio naming" id="naming" aria-labelledby="namingTitle">
+  <form method="dialog" class="leaf naming-leaf" id="namingForm">
+    <header class="leaf-top">
+      <span class="eb" data-t="title">Moksha Patam</span>
+      <div class="lang-mini" role="group" aria-label="Language / भाषा">
+        <button type="button" data-lang="en" aria-pressed="true">EN</button><button type="button" data-lang="hi" lang="hi" aria-pressed="false">हिं</button>
+      </div>
+    </header>
+    <div class="naming-body">
+      <h2 id="namingTitle" data-t="namingTitle">Nāmakaraṇa</h2>
+      <p class="naming-line" data-t="namingLine"></p>
+      <label class="naming-field"><span data-t="namingName">Name</span>
+        <input type="text" id="namingName" maxlength="16" autocomplete="given-name" spellcheck="false">
+      </label>
+      <fieldset class="naming-field">
+        <legend data-t="namingAs">Born</legend>
+        <div class="naming-genders" id="namingGenders">
+          <label><input type="radio" name="gender" value="f" required> <span data-t="genderF"></span></label>
+          <label><input type="radio" name="gender" value="m"> <span data-t="genderM"></span></label>
+          <label><input type="radio" name="gender" value="n"> <span data-t="genderN"></span></label>
+        </div>
+        <span class="hint" data-t="genderWhy"></span>
+      </fieldset>
+      <button type="submit" id="namingBegin" data-t="namingBegin">Begin</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- The life account, at the end of a game (docs/NARRATIVE.md §9) -->
+<dialog class="folio life" id="lifeDlg" aria-labelledby="lifeTitle">
+  <article class="leaf life-leaf" id="lifeLeaf"></article>
+</dialog>
+
 <script>
 (() => {
   // content/squares.json
@@ -654,124 +727,124 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       [110, "Divine realms", "दिव्य लोक"]
     ],
     LADDERS: {
-      "6": { to: 15, ic: "🤝", en: "Friendship", hi: "मित्रता", skt: "Maitri", src: "Panchatantra", story: ["A crow, a mouse, a tortoise and a deer became true friends.", "कौआ, चूहा, कछुआ और हिरण सच्चे मित्र बने।"] },
-      "12": { to: 24, ic: "🐇", en: "Wit", hi: "बुद्धि", skt: "Buddhi", src: "Panchatantra", story: ["A little hare, sent to be the lion's meal, arrived late with a plan.", "शेर का भोजन बनने भेजा गया छोटा खरगोश एक योजना लेकर देर से पहुँचा।"] },
-      "23": { to: 37, ic: "🌾", en: "Devotion", hi: "गुरु-भक्ति", skt: "Guru-bhakti", src: "Mahabharata, Adi Parva", story: ["Told to stop water breaking through the field, Aruni lay down in the breach himself.", "खेत की मेड़ से बहता पानी रोकने के लिए आरुणि स्वयं मेड़ में लेट गए।"] },
-      "28": { to: 45, ic: "🗣️", en: "Truth", hi: "सत्य", skt: "Satya", src: "Chandogya Upanishad 4.4", story: ["Asked his lineage, Satyakama told the plain truth: he did not know who his father was.", "गोत्र पूछे जाने पर सत्यकाम ने सीधा सच कहा: उसे नहीं पता उसके पिता कौन हैं।"] },
-      "34": { to: 53, ic: "🚪", en: "Resolve", hi: "श्रद्धा", skt: "Shraddha", src: "Katha Upanishad 1.1", story: ["Nachiketa waited three days at Death's door without food or water.", "नचिकेता तीन दिन बिना अन्न-जल के यमराज के द्वार पर प्रतीक्षा करता रहा।"] },
-      "44": { to: 63, ic: "🤲", en: "Giving", hi: "दान", skt: "Dana", src: "Brihadaranyaka Upanishad 5.2", story: ["Prajāpati answered his three kinds of children with one syllable, 'da'. The humans heard datta: give.", "प्रजापति ने अपनी तीन प्रकार की संतानों को एक ही अक्षर से उत्तर दिया, 'द'। मनुष्यों ने सुना दत्त: दान करो।"] },
-      "51": { to: 67, ic: "💗", en: "Compassion", hi: "दया", skt: "Daya", src: "Brihadaranyaka Upanishad 5.2", story: ["The asuras heard Prajāpati's same 'da' and understood dayadhvam: be compassionate. The cruel heard the one thing they lacked.", "असुरों ने प्रजापति का वही 'द' सुना और समझा दयध्वम्: दया करो। क्रूरों ने वही सुना जो उनमें नहीं था।"] },
-      "57": { to: 75, ic: "⚖️", en: "Duty", hi: "धर्म", skt: "Dharma", src: "Brihadaranyaka Upanishad 4", story: ["King Janaka ruled justly and was counted among the wisest of sages.", "राजा जनक न्याय से राज करते थे और श्रेष्ठ ज्ञानियों में गिने जाते थे।"] },
-      "65": { to: 83, ic: "🍂", en: "Detachment", hi: "वैराग्य", skt: "Vairagya", src: "Brihadaranyaka Upanishad 2.4", story: ["Offered half her husband's wealth, Maitreyi asked: 'Will it make me immortal?'", "पति की आधी संपत्ति मिलने पर मैत्रेयी ने पूछा: 'क्या इससे मैं अमर हो जाऊँगी?'"] },
-      "72": { to: 89, ic: "🧘", en: "Austerity", hi: "तप", skt: "Tapas", src: "Taittiriya Upanishad 3.1", story: ["Bhrigu asked his father Varuna, 'What is Brahman?' and was told: seek it through tapas.", "भृगु ने पिता वरुण से पूछा, 'ब्रह्म क्या है?' उत्तर मिला: तप से जानो।"] },
-      "85": { to: 94, ic: "🌳", en: "Discernment", hi: "विवेक", skt: "Viveka", src: "Mundaka Upanishad 3.1.1", story: ["The Muṇḍaka's two birds sit on one tree: one eats the fruit, the other only watches. Sāṃkhya, Advaita and Madhva all claim the verse, and each counts the birds differently.", "मुंडक के दो पक्षी एक ही वृक्ष पर बैठे हैं: एक फल खाता है, दूसरा केवल देखता है। सांख्य, अद्वैत और मध्व तीनों इस मंत्र पर दावा करते हैं, और हर एक पक्षियों को अलग गिनता है।"] }
+      "6": { to: 15, ic: "🤝", en: "Friendship", hi: "मित्रता", skt: "Maitri", age: 3, moment: { en: "{name} is three and has found a friend. They share a biscuit by breaking it badly, and both halves get eaten anyway.", hi: "{name} तीन बरस {का|की} है। एक दोस्त मिल गया है। दोनों एक बिस्कुट टेढ़ा-मेढ़ा तोड़कर बाँटते हैं, और दोनों टुकड़े खा लिए जाते हैं।", mirror: { en: "A crow, a mouse, a tortoise and a deer once managed the same thing, and became true friends.", hi: "कौआ, चूहा, कछुआ और हिरण भी ऐसे ही सच्चे मित्र बने थे।" } }, mirror: { en: "A crow, a mouse, a tortoise and a deer became true friends.", hi: "कौआ, चूहा, कछुआ और हिरण सच्चे मित्र बने।" }, src: "Panchatantra" },
+      "12": { to: 24, ic: "🐇", en: "Wit", hi: "बुद्धि", skt: "Buddhi", age: 7, moment: { en: "{name} is seven, cornered by a bigger child who wants the lunch, and says a teacher is coming. No teacher is coming. It works.", hi: "{name} सात बरस {का|की} है। एक बड़ा बच्चा टिफ़िन छीनने को घेरे खड़ा है, और {name} ने कह दिया कि मास्टरजी आ रहे हैं। कोई नहीं आ रहा। फिर भी काम बन गया।", mirror: { en: "A hare sent to be a lion's dinner tried the same move, and arrived late on purpose.", hi: "शेर का भोजन बनने भेजे गए खरगोश ने भी यही चाल चली, और जान-बूझकर देर से पहुँचा।" } }, mirror: { en: "A little hare, sent to be the lion's meal, arrived late with a plan.", hi: "शेर का भोजन बनने भेजा गया छोटा खरगोश एक योजना लेकर देर से पहुँचा।" }, src: "Panchatantra" },
+      "23": { to: 37, ic: "🌾", en: "Devotion", hi: "गुरु-भक्ति", skt: "Guru-bhakti", age: 13, moment: { en: "{name} is thirteen. The teacher said to keep the rain off the books, and an hour later {name} is still bent over them, arms out, soaked. The teacher had forgotten asking.", hi: "{name} तेरह बरस {का|की} है। गुरुजी ने कहा था कि किताबों को बारिश से बचाना, और घंटे भर बाद भी {name} उन पर बाँहें फैलाए {झुका है, पूरा भीगा हुआ|झुकी है, पूरी भीगी हुई}। गुरुजी कहकर भूल चुके थे।", mirror: { en: "Aruni did it with his whole body. Told to stop water breaking through a field, he lay down in the breach himself.", hi: "आरुणि ने यही अपने पूरे शरीर से किया था। खेत की मेड़ से बहता पानी रोकने को कहा गया, तो वे स्वयं मेड़ में लेट गए।" } }, mirror: { en: "Told to stop water breaking through the field, Aruni lay down in the breach himself.", hi: "खेत की मेड़ से बहता पानी रोकने के लिए आरुणि स्वयं मेड़ में लेट गए।" }, src: "Mahabharata, Adi Parva" },
+      "28": { to: 45, ic: "🗣️", en: "Truth", hi: "सत्य", skt: "Satya", age: 16, moment: { en: "{name} is sixteen and is asked, in front of everyone, whether the homework was done. It was not. {name} says so.", hi: "{name} सोलह बरस {का|की} है। सबके सामने पूछा जाता है कि गृहकार्य हुआ या नहीं। नहीं हुआ था। {name} ने वही कह दिया।", mirror: { en: "Satyakama had a harder question to answer the same way. Asked his lineage, he said he did not know who his father was.", hi: "सत्यकाम को इससे कठिन प्रश्न का उत्तर ऐसे ही देना पड़ा था। गोत्र पूछा गया, तो उसने कहा कि उसे नहीं पता उसके पिता कौन हैं।" } }, mirror: { en: "Asked his lineage, Satyakama told the plain truth: he did not know who his father was.", hi: "गोत्र पूछे जाने पर सत्यकाम ने सीधा सच कहा: उसे नहीं पता उसके पिता कौन हैं।" }, src: "Chandogya Upanishad 4.4" },
+      "34": { to: 53, ic: "🚪", en: "Resolve", hi: "श्रद्धा", skt: "Shraddha", age: 19, moment: { en: "{name} is nineteen and waits three days outside an office for an answer, and on the third day is let in.", hi: "{name} उन्नीस बरस {का|की} है। एक जवाब के लिए तीन दिन एक दफ़्तर के बाहर बैठे रहना पड़ता है, और तीसरे दिन भीतर बुलाया जाता है।", mirror: { en: "Nachiketa was about the same age, and waited three days at Death's door without food or water.", hi: "नचिकेता की उम्र भी लगभग यही थी, जब वह तीन दिन बिना अन्न-जल के यमराज के द्वार पर प्रतीक्षा करता रहा।" } }, mirror: { en: "Nachiketa waited three days at Death's door without food or water.", hi: "नचिकेता तीन दिन बिना अन्न-जल के यमराज के द्वार पर प्रतीक्षा करता रहा।" }, src: "Katha Upanishad 1.1" },
+      "44": { to: 63, ic: "🤲", en: "Giving", hi: "दान", skt: "Dana", age: 29, moment: { en: "{name} is twenty-nine, has two blankets for the winter, and gives the better one away.", hi: "{name} उनतीस बरस {का|की} है। सर्दियों के लिए दो कंबल हैं, और {name} ने अच्छा वाला दे दिया।" }, mirror: { en: "Prajāpati answered his three kinds of children with one syllable, 'da'. The humans heard datta: give.", hi: "प्रजापति ने अपनी तीन प्रकार की संतानों को एक ही अक्षर से उत्तर दिया, 'द'। मनुष्यों ने सुना दत्त: दान करो।" }, src: "Brihadaranyaka Upanishad 5.2" },
+      "51": { to: 67, ic: "💗", en: "Compassion", hi: "दया", skt: "Daya", age: 37, moment: { en: "{name} is thirty-seven and sits up all night with a neighbour's sick child, so that the neighbour can sleep.", hi: "{name} सैंतीस बरस {का|की} है। पड़ोसी सो सके, इसलिए {name} रात भर उसके बीमार बच्चे के पास {जागता रहा|जागती रही}।" }, mirror: { en: "The asuras heard Prajāpati's same 'da' and understood dayadhvam: be compassionate. The cruel heard the one thing they lacked.", hi: "असुरों ने प्रजापति का वही 'द' सुना और समझा दयध्वम्: दया करो। क्रूरों ने वही सुना जो उनमें नहीं था।" }, src: "Brihadaranyaka Upanishad 5.2" },
+      "57": { to: 75, ic: "⚖️", en: "Duty", hi: "धर्म", skt: "Dharma", age: 45, moment: { en: "{name} is forty-five and settles a quarrel between two cousins, and rules against the one {name} likes better.", hi: "{name} पैंतालीस बरस {का|की} है। दो चचेरे भाइयों के झगड़े में फ़ैसला करना पड़ा, और {name} ने उसी के ख़िलाफ़ फ़ैसला दिया जो ज़्यादा प्यारा है।", mirror: { en: "Janaka had a whole kingdom to judge like that, and was counted among the sages for it.", hi: "जनक को पूरे राज्य का न्याय ऐसे ही करना था, और इसी से उनकी गिनती ऋषियों में हुई।" } }, mirror: { en: "King Janaka ruled justly and was counted among the wisest of sages.", hi: "राजा जनक न्याय से राज करते थे और श्रेष्ठ ज्ञानियों में गिने जाते थे।" }, src: "Brihadaranyaka Upanishad 4" },
+      "65": { to: 83, ic: "🍂", en: "Detachment", hi: "वैराग्य", skt: "Vairagya", age: 54, moment: { en: "{name} is fifty-four. The one {name} married talks of dividing up everything they have, and {name} asks what any of it is for.", hi: "{name} चौवन बरस {का|की} है। जीवनसाथी जो कुछ है उसके बँटवारे की बात करता है, और {name} ने पूछा कि आख़िर यह सब किसलिए है।", mirror: { en: "Maitreyi asked the same, when she was offered half her husband's wealth: 'Will it make me immortal?'", hi: "मैत्रेयी ने भी यही पूछा था, जब उसे पति की आधी संपत्ति दी जा रही थी: 'क्या इससे मैं अमर हो जाऊँगी?'" } }, mirror: { en: "Offered half her husband's wealth, Maitreyi asked: 'Will it make me immortal?'", hi: "पति की आधी संपत्ति मिलने पर मैत्रेयी ने पूछा: 'क्या इससे मैं अमर हो जाऊँगी?'" }, src: "Brihadaranyaka Upanishad 2.4" },
+      "72": { to: 89, ic: "🧘", en: "Austerity", hi: "तप", skt: "Tapas", age: 60, moment: { en: "{name} is sixty and gives up sugar, then talking after dark, then the second meal, one at a time, to see what is left.", hi: "{name} साठ बरस {का|की} है। पहले चीनी छोड़ी, फिर साँझ के बाद बोलना, फिर दूसरा भोजन, एक-एक करके, यह देखने को कि पीछे क्या बचता है।", mirror: { en: "Bhrigu was sent off the same way. He asked his father Varuna what Brahman is, and was told: find out by tapas.", hi: "भृगु को भी ऐसे ही भेजा गया था। उसने अपने पिता वरुण से पूछा कि ब्रह्म क्या है, और उत्तर मिला: तप से जानो।" } }, mirror: { en: "Bhrigu asked his father Varuna, 'What is Brahman?' and was told: seek it through tapas.", hi: "भृगु ने पिता वरुण से पूछा, 'ब्रह्म क्या है?' उत्तर मिला: तप से जानो।" }, src: "Taittiriya Upanishad 3.1" },
+      "85": { to: 94, ic: "🌳", en: "Discernment", hi: "विवेक", skt: "Viveka", age: 73, moment: { en: "{name} is seventy-three and sits on the step watching {his|her|their} own hands peel an orange, as if they belonged to someone else.", hi: "{name} तिहत्तर बरस {का|की} है। {name} ने सीढ़ी पर बैठकर अपने ही हाथों को संतरा छीलते देखा, जैसे वे किसी और के हों।" }, mirror: { en: "The Muṇḍaka's two birds sit on one tree: one eats the fruit, the other only watches. Sāṃkhya, Advaita and Madhva all claim the verse, and each counts the birds differently.", hi: "मुंडक के दो पक्षी एक ही वृक्ष पर बैठे हैं: एक फल खाता है, दूसरा केवल देखता है। सांख्य, अद्वैत और मध्व तीनों इस मंत्र पर दावा करते हैं, और हर एक पक्षियों को अलग गिनता है।" }, src: "Mundaka Upanishad 3.1.1" }
     },
     SNAKES: {
-      "14": { to: 8, ic: "🐢", en: "Chatter", hi: "बकबक", skt: "Vachalata", src: "Panchatantra", story: ["Geese flew the tortoise across the sky on a stick. It opened its mouth to talk.", "हंस कछुए को डंडी पर आकाश में ले उड़े। उसने बोलने के लिए मुँह खोला।"] },
-      "19": { to: 11, ic: "🐺", en: "Fibbing", hi: "झूठ", skt: "Asatya", src: "Panchatantra", story: ["A jackal fell into a vat of dye, turned blue and claimed to be king of the forest.", "रंग की हौदी में गिरकर नीला हुआ सियार खुद को जंगल का राजा बताने लगा।"] },
-      "29": { to: 17, ic: "💤", en: "Laziness", hi: "आलस्य", skt: "Alasya", src: "Subhashita", story: ["'Idleness is the great enemy living in your own body,' runs the verse every schoolboy copies out. Patañjali files it fifth among nine obstacles, right after doubt, as if it were a symptom rather than a sin.", "'आलस्य शरीर में रहने वाला सबसे बड़ा शत्रु है,' वह श्लोक कहता है जिसे हर विद्यार्थी उतारता है। पतंजलि इसे नौ विघ्नों में पाँचवाँ गिनते हैं, संशय के ठीक बाद, मानो यह पाप नहीं, एक लक्षण हो।"] },
-      "39": { to: 22, ic: "🦴", en: "Pride of learning", hi: "विद्या-मद", skt: "Vidya-mada", src: "Panchatantra", story: ["Three learned brothers rebuilt a lion from its bones. The fourth, who had only common sense, climbed a tree.", "तीन विद्वान भाइयों ने हड्डियों से शेर बना दिया। चौथा, जिसमें बस समझ थी, पेड़ पर चढ़ गया।"] },
-      "47": { to: 31, ic: "💘", en: "Craving", hi: "काम", skt: "Kama", src: "Mahabharata, Adi Parva", story: ["Yayati borrowed his son's youth for a thousand years and found his desire still unquenched.", "ययाति ने पुत्र का यौवन लेकर हज़ार वर्ष भोग किया, फिर भी इच्छा नहीं बुझी।"] },
-      "55": { to: 43, ic: "💰", en: "Greed", hi: "लोभ", skt: "Lobha", src: "Panchatantra", story: ["Finding a hunter and a boar both dead, the jackal planned to make the feast last for days.", "शिकारी और सूअर को मरा देख सियार ने सोचा कि दावत कई दिन चलेगी।"] },
-      "59": { to: 50, ic: "🌋", en: "Anger", hi: "क्रोध", skt: "Krodha", src: "Panchatantra", story: ["Seeing blood on the mongoose's mouth, the brahmin's wife struck it dead in a rage.", "नेवले के मुँह पर खून देख ब्राह्मणी ने क्रोध में उसे मार डाला।"] },
-      "62": { to: 46, ic: "🙈", en: "Attachment", hi: "मोह", skt: "Moha", src: "Mahabharata", story: ["Blind King Dhritarashtra could never say no to his son Duryodhana.", "अंधे राजा धृतराष्ट्र अपने पुत्र दुर्योधन को कभी मना नहीं कर सके।"] },
-      "69": { to: 52, ic: "👁️", en: "Envy", hi: "मत्सर", skt: "Matsarya", src: "Mahabharata, Sabha Parva", story: ["Seeing the Pandavas' wondrous hall at Indraprastha, Duryodhana burned with envy.", "इंद्रप्रस्थ में पांडवों का अद्भुत सभाभवन देखकर दुर्योधन ईर्ष्या से जल उठा।"] },
-      "77": { to: 58, ic: "🦚", en: "Pride", hi: "मद", skt: "Mada", src: "Kena Upanishad 3", story: ["After a victory the gods boasted, 'This greatness is ours.' Then a mysterious Yaksha appeared.", "विजय के बाद देवता बोले, 'यह महिमा हमारी है।' तभी एक रहस्यमय यक्ष प्रकट हुआ।"] },
-      "88": { to: 71, ic: "🎭", en: "Hypocrisy", hi: "दंभ", skt: "Dambha", src: "Panchatantra", story: ["A cat posed as a holy ascetic. When a hare and a partridge came for judgment, it ate them both.", "बिल्ली तपस्वी होने का ढोंग करती रही। न्याय माँगने आए खरगोश और तीतर को खा गई।"] },
-      "93": { to: 64, ic: "🦌", en: "Clinging", hi: "आसक्ति", skt: "Asakti", src: "Bhagavata Purana 5.8", story: ["The sage Bharata had given up a kingdom, yet grew attached to an orphaned fawn.", "राजपाट त्याग चुके भरत मुनि एक अनाथ हिरण-शावक के मोह में बँध गए।"] },
-      "99": { to: 61, ic: "🪞", en: "Ego", hi: "अहंकार", skt: "Ahankara", src: "Chandogya Upanishad 8.8", story: ["Shown his reflection, Virochana took the body for the Self and went home content.", "अपना प्रतिबिंब देखकर विरोचन ने शरीर को ही आत्मा मान लिया और संतुष्ट लौट गया।"] }
+      "14": { to: 8, ic: "🐢", en: "Chatter", hi: "बकबक", skt: "Vachalata", age: 8, moment: { en: "{name} is eight and has been told a secret, and holds it all through lunch, and tells it in the afternoon.", hi: "{name} आठ बरस {का|की} है। किसी ने एक राज़ बताया था। दोपहर के खाने तक उसे सँभाले रखा, और शाम होते-होते बता दिया।", mirror: { en: "The tortoise had a stick in its mouth and the whole sky beneath it, and still opened its mouth to talk.", hi: "कछुए के मुँह में डंडी थी और नीचे पूरा आकाश, फिर भी उसने बोलने को मुँह खोल दिया।" } }, mirror: { en: "Geese flew the tortoise across the sky on a stick. It opened its mouth to talk.", hi: "हंस कछुए को डंडी पर आकाश में ले उड़े। उसने बोलने के लिए मुँह खोला।" }, src: "Panchatantra" },
+      "19": { to: 11, ic: "🐺", en: "Fibbing", hi: "झूठ", skt: "Asatya", age: 10, moment: { en: "{name} is ten and tells the class about a holiday by the sea that never happened, and adds a boat.", hi: "{name} दस बरस {का|की} है। {name} ने पूरी कक्षा को समुद्र किनारे की एक छुट्टी का क़िस्सा सुनाया जो कभी हुई ही नहीं, और उसमें एक नाव भी जोड़ दी।", mirror: { en: "A jackal who fell into a vat of blue dye told the whole forest he was its king.", hi: "रंग की हौदी में गिरकर नीले हुए एक सियार ने पूरे जंगल से कह दिया कि वही उनका राजा है।" } }, mirror: { en: "A jackal fell into a vat of dye, turned blue and claimed to be king of the forest.", hi: "रंग की हौदी में गिरकर नीला हुआ सियार खुद को जंगल का राजा बताने लगा।" }, src: "Panchatantra" },
+      "29": { to: 17, ic: "💤", en: "Laziness", hi: "आलस्य", skt: "Alasya", age: 17, moment: { en: "{name} is seventeen, the exam is in a week, and the books have not moved from where they were put down in March.", hi: "{name} सत्रह बरस {का|की} है। परीक्षा एक हफ़्ते में है, और किताबें मार्च में जहाँ रखी थीं वहीं पड़ी हैं।" }, mirror: { en: "'Idleness is the great enemy living in your own body,' runs the verse every schoolboy copies out. Patañjali files it fifth among nine obstacles, right after doubt, as if it were a symptom rather than a sin.", hi: "'आलस्य शरीर में रहने वाला सबसे बड़ा शत्रु है,' वह श्लोक कहता है जिसे हर विद्यार्थी उतारता है। पतंजलि इसे नौ विघ्नों में पाँचवाँ गिनते हैं, संशय के ठीक बाद, मानो यह पाप नहीं, एक लक्षण हो।" }, src: "Subhashita" },
+      "39": { to: 22, ic: "🦴", en: "Pride of learning", hi: "विद्या-मद", skt: "Vidya-mada", age: 24, moment: { en: "{name} is twenty-four, has read more than anyone at the table, and explains the bridge to the person who built it.", hi: "{name} चौबीस बरस {का|की} है। मेज़ पर किसी ने उतना नहीं पढ़ा जितना {name} ने, और {name} ने पुल बनाने वाले को ही पुल समझा दिया।" }, mirror: { en: "Three learned brothers rebuilt a lion from its bones. The fourth, who had only common sense, climbed a tree.", hi: "तीन विद्वान भाइयों ने हड्डियों से शेर बना दिया। चौथा, जिसमें बस समझ थी, पेड़ पर चढ़ गया।" }, src: "Panchatantra" },
+      "47": { to: 31, ic: "💘", en: "Craving", hi: "काम", skt: "Kama", age: 32, moment: { en: "{name} is thirty-two and buys the thing at last, and within a week is looking at the better one.", hi: "{name} बत्तीस बरस {का|की} है। {name} ने आख़िर वह चीज़ ख़रीद ली, और हफ़्ते भर में नज़र उससे बेहतर वाली पर है।", mirror: { en: "Yayati borrowed his son's youth for a thousand years for the same reason, and at the end of it wanted more.", hi: "ययाति ने इसी कारण अपने बेटे की जवानी हज़ार बरस के लिए उधार ली थी, और अंत में भी और चाहते रहे।" } }, mirror: { en: "Yayati borrowed his son's youth for a thousand years and found his desire still unquenched.", hi: "ययाति ने पुत्र का यौवन लेकर हज़ार वर्ष भोग किया, फिर भी इच्छा नहीं बुझी।" }, src: "Mahabharata, Adi Parva" },
+      "55": { to: 43, ic: "💰", en: "Greed", hi: "लोभ", skt: "Lobha", age: 42, moment: { en: "{name} is forty-two. The shopkeeper gives back too much change by mistake. {name} pockets it quietly, and all the way home works out where else this might happen.", hi: "{name} बयालीस बरस {का|की} है। दुकानदार ने ग़लती से ज़्यादा पैसे लौटा दिए। {name} ने चुपचाप रख लिए, और रास्ते भर हिसाब लगाया कि ऐसा और कहाँ हो सकता है।", mirror: { en: "The jackal who found a hunter and a boar both dead made the same kind of plan: make it last for days.", hi: "शिकारी और सूअर दोनों को मरा पाकर सियार ने भी ऐसी ही योजना बनाई: दावत कई दिन चले।" } }, mirror: { en: "Finding a hunter and a boar both dead, the jackal planned to make the feast last for days.", hi: "शिकारी और सूअर को मरा देख सियार ने सोचा कि दावत कई दिन चलेगी।" }, src: "Panchatantra" },
+      "59": { to: 50, ic: "🌋", en: "Anger", hi: "क्रोध", skt: "Krodha", age: 48, moment: { en: "{name} is forty-eight. {name}'s daughter breaks something precious and {name} hits her before knowing the hand has moved. She does not cry, which is worse.", hi: "{name} अड़तालीस बरस {का|की} है। बेटी ने {name} की कोई प्यारी चीज़ तोड़ दी, और हाथ कब उठा, यह जानने से पहले ही {name} ने उसे मार दिया। वह रोई नहीं। यह और बुरा है।", mirror: { en: "The brahmin's wife saw blood on the mongoose's mouth and struck once, before looking in the cradle.", hi: "ब्राह्मणी ने नेवले के मुँह पर खून देखा और पालने में झाँकने से पहले ही एक वार कर दिया।" } }, mirror: { en: "Seeing blood on the mongoose's mouth, the brahmin's wife struck it dead in a rage.", hi: "नेवले के मुँह पर खून देख ब्राह्मणी ने क्रोध में उसे मार डाला।" }, src: "Panchatantra" },
+      "62": { to: 46, ic: "🙈", en: "Attachment", hi: "मोह", skt: "Moha", age: 52, moment: { en: "{name} is fifty-two and has never once said no to the son, and does not say it now, when it matters most.", hi: "{name} बावन बरस {का|की} है। बेटे को कभी 'ना' नहीं कहा। आज, जब कहना सबसे ज़रूरी है, तब भी {name} से नहीं कहा जाता।", mirror: { en: "Dhritarashtra was blind, and could never say it to Duryodhana either.", hi: "धृतराष्ट्र अंधे थे, और दुर्योधन से वे भी कभी यह नहीं कह पाए।" } }, mirror: { en: "Blind King Dhritarashtra could never say no to his son Duryodhana.", hi: "अंधे राजा धृतराष्ट्र अपने पुत्र दुर्योधन को कभी मना नहीं कर सके।" }, src: "Mahabharata" },
+      "69": { to: 52, ic: "👁️", en: "Envy", hi: "मत्सर", skt: "Matsarya", age: 57, moment: { en: "{name} is fifty-seven and is shown round the rival's new house, praises every room, and lies awake that night counting them.", hi: "{name} सत्तावन बरस {का|की} है। {name} ने प्रतिद्वंद्वी के नए घर के हर कमरे की तारीफ़ की, और उस रात नींद नहीं आई: कमरे गिनते-गिनते सुबह हो गई।", mirror: { en: "Duryodhana walked round the Pandavas' hall at Indraprastha the same way, and burned.", hi: "दुर्योधन भी इंद्रप्रस्थ में पांडवों की सभा ऐसे ही घूमा था, और भीतर जलता रहा।" } }, mirror: { en: "Seeing the Pandavas' wondrous hall at Indraprastha, Duryodhana burned with envy.", hi: "इंद्रप्रस्थ में पांडवों का अद्भुत सभाभवन देखकर दुर्योधन ईर्ष्या से जल उठा।" }, src: "Mahabharata, Sabha Parva" },
+      "77": { to: 58, ic: "🦚", en: "Pride", hi: "मद", skt: "Mada", age: 65, moment: { en: "{name} is sixty-five, and at the wedding tells everyone who will listen that none of this would exist without {name}.", hi: "{name} पैंसठ बरस {का|की} है। {name} ने शादी में हर सुनने वाले को बताया कि {name} के बिना यह सब होता ही नहीं।", mirror: { en: "The gods said the same after a victory: 'This greatness is ours.' Then a Yaksha appeared.", hi: "विजय के बाद देवताओं ने भी यही कहा था: 'यह महिमा हमारी है।' तभी एक यक्ष प्रकट हुआ।" } }, mirror: { en: "After a victory the gods boasted, 'This greatness is ours.' Then a mysterious Yaksha appeared.", hi: "विजय के बाद देवता बोले, 'यह महिमा हमारी है।' तभी एक रहस्यमय यक्ष प्रकट हुआ।" }, src: "Kena Upanishad 3" },
+      "88": { to: 71, ic: "🎭", en: "Hypocrisy", hi: "दंभ", skt: "Dambha", age: 76, moment: { en: "{name} is seventy-six and prays loudly, where the neighbours can hear, and on the way out is short with the man at the gate.", hi: "{name} छिहत्तर बरस {का|की} है। इतनी ज़ोर से प्रार्थना होती है कि पड़ोसी सुन सकें, और बाहर निकलते हुए दरवाज़े पर खड़े आदमी को झिड़क दिया जाता है।", mirror: { en: "A cat once posed as a holy ascetic too. When a hare and a partridge came to it for judgment, it ate them both.", hi: "एक बिल्ली ने भी तपस्वी का ढोंग रचा था। जब खरगोश और तीतर उससे न्याय माँगने आए, तो उसने दोनों को खा लिया।" } }, mirror: { en: "A cat posed as a holy ascetic. When a hare and a partridge came for judgment, it ate them both.", hi: "बिल्ली तपस्वी होने का ढोंग करती रही। न्याय माँगने आए खरगोश और तीतर को खा गई।" }, src: "Panchatantra" },
+      "93": { to: 64, ic: "🦌", en: "Clinging", hi: "आसक्ति", skt: "Asakti", age: 81, moment: { en: "{name} is eighty-one and has given almost everything away, but cannot stop asking whether the son has eaten.", hi: "{name} इक्यासी बरस {का|की} है। लगभग सब कुछ दे दिया है, पर यह पूछना नहीं छूटता कि बेटे ने खाना खाया या नहीं।", mirror: { en: "Bharata had given up a kingdom, and then could not stop looking after an orphaned fawn.", hi: "भरत ने पूरा राज्य छोड़ दिया था, और फिर एक अनाथ हिरण-शावक की देखभाल नहीं छोड़ पाए।" } }, mirror: { en: "The sage Bharata had given up a kingdom, yet grew attached to an orphaned fawn.", hi: "राजपाट त्याग चुके भरत मुनि एक अनाथ हिरण-शावक के मोह में बँध गए।" }, src: "Bhagavata Purana 5.8" },
+      "99": { to: 61, ic: "🪞", en: "Ego", hi: "अहंकार", skt: "Ahankara", age: 89, moment: { en: "{name} is eighty-nine and looks in the mirror and is satisfied: the body is still there, and that seems to settle it.", hi: "{name} नवासी बरस {का|की} है। आईने में देखकर तसल्ली हो जाती है: शरीर अब भी वही है, और इससे जैसे बात तय हो जाती है।", mirror: { en: "Virochana was shown his reflection too, took the body for the Self, and went home content.", hi: "विरोचन को भी उसका प्रतिबिंब दिखाया गया था। उसने शरीर को ही आत्मा मान लिया और संतुष्ट होकर घर लौट गया।" } }, mirror: { en: "Shown his reflection, Virochana took the body for the Self and went home content.", hi: "अपना प्रतिबिंब देखकर विरोचन ने शरीर को ही आत्मा मान लिया और संतुष्ट लौट गया।" }, src: "Chandogya Upanishad 8.8" }
     },
     SQ: {
-      "1": ["👶", "Birth", "जन्म", "The Aitareya counts three births for one self, and being born is only the second of them.", "ऐतरेय एक ही आत्मा के तीन जन्म गिनता है, और पैदा होना उनमें केवल दूसरा है।", "Aitareya Upanishad 2.1"],
-      "2": ["🤱", "Mother", "माँ", "'It becomes one self with the woman, and so does her no harm.' The Aitareya calls carrying a child the self's first birth, and says the father is begetting himself.", "'वह स्त्री के साथ एक आत्मा हो जाता है, इसलिए उसे कोई हानि नहीं पहुँचाता।' ऐतरेय गर्भ धारण को आत्मा का पहला जन्म कहता है, और कहता है कि पिता स्वयं को ही जन्म दे रहा है।", "Aitareya Upanishad 2.1"],
-      "3": ["👨‍👦", "Father", "पिता", "In the Kauṣītaki the dying father sits facing his son and hands over his faculties one at a time. 'Let me place my speech in you.' 'I take your speech in me.' Then breath, eye, ear, mind, and last, understanding.", "कौषीतकि में मरणासन्न पिता पुत्र के सामने बैठता है और अपनी शक्तियाँ एक-एक कर सौंपता है। 'मैं अपनी वाणी तुममें रखूँ।' 'मैं तुम्हारी वाणी अपने में लेता हूँ।' फिर प्राण, आँख, कान, मन, और अंत में समझ।", "Kaushitaki Upanishad 2.15"],
-      "4": ["🍚", "First rice", "अन्नप्राशन", "At the annaprāśana the child eats grain for the first time. The Taittirīya starts its account of the self with the same substance: the outermost sheath is made of food.", "अन्नप्राशन में शिशु पहली बार अन्न खाता है। तैत्तिरीय आत्मा का वर्णन इसी पदार्थ से शुरू करता है: सबसे बाहरी कोश अन्न का बना है।", "Grihya Sutras"],
-      "5": ["🚶", "First steps", "पहले कदम", "Falling and getting up is abhyāsa, repetition laying down a saṃskāra. Patañjali says the same machinery is what later makes a person hard to change.", "गिरना और फिर उठना अभ्यास है, दोहराव जो एक संस्कार बिठा देता है। पतंजलि कहते हैं कि यही यंत्र आगे चलकर मनुष्य को बदलना कठिन बना देता है।", ""],
-      "7": ["🧸", "Play", "खेल", "Līlā means play, and Bādarāyaṇa uses it for why there is a world at all: not need, not duty, but sport.", "लीला का अर्थ है खेल, और बादरायण इसी शब्द से बताते हैं कि संसार है ही क्यों: न ज़रूरत से, न कर्तव्य से, बस क्रीड़ा से।", "Brahma Sutra 2.1.33"],
-      "8": ["🪂", "The fall", "गिरना", "The tortoise opened its mouth to talk and fell from the sky. Silence would have saved it.", "कछुए ने बोलने को मुँह खोला और आकाश से गिर पड़ा। चुप रहता तो बच जाता।", "Panchatantra"],
-      "9": ["📜", "Story time", "कथा का समय", "Vishnu Sharma taught three dull princes wisdom through animal stories: the Panchatantra.", "विष्णु शर्मा ने तीन मंदबुद्धि राजकुमारों को पशु-कथाओं से ज्ञान दिया: यही पंचतंत्र है।", "Panchatantra"],
-      "10": ["💬", "First words", "पहले शब्द", "A child's first word is a convention it never agreed to. Mīmāṃsā denied there was any convention: word and meaning are eternal and nobody invented them.", "बच्चे का पहला शब्द एक ऐसी परिपाटी है जिसके लिए उसने कभी हामी नहीं भरी। मीमांसा ने परिपाटी को ही नकारा: शब्द और अर्थ नित्य हैं, उन्हें किसी ने नहीं गढ़ा।", ""],
-      "11": ["🌧️", "Found out", "पोल खुली", "The blue jackal howled along with the other jackals and was found out. A lie never lasts.", "नीला सियार दूसरे सियारों के साथ हुआँ-हुआँ करने लगा और पकड़ा गया। झूठ टिकता नहीं।", "Panchatantra"],
-      "13": ["🐊", "Monkey and crocodile", "बंदर और मगरमच्छ", "Asked for its heart, the monkey said, 'I left it up in the tree!' and escaped.", "कलेजा माँगे जाने पर बंदर बोला, 'वह तो पेड़ पर छोड़ आया!' और बच निकला।", "Panchatantra"],
-      "15": ["🐭", "Set free", "मुक्ति", "When the deer was caught in a net, the mouse gnawed it through. Friends in need.", "हिरण जाल में फँसा तो चूहे ने जाल कुतर दिया। सच्चे मित्र संकट में काम आते हैं।", "Panchatantra"],
-      "16": ["🐦", "The crows' plan", "कौओं की युक्ति", "The crows dropped a queen's necklace into the cobra's hole; the guards came and killed the snake. Wit beats strength.", "कौओं ने रानी का हार साँप के बिल में डाल दिया; पहरेदारों ने आकर साँप मार दिया। बुद्धि बल से बड़ी है।", "Panchatantra"],
-      "17": ["😴", "Missed lesson", "छूटा पाठ", "Sāṃkhya has a name for the weight that keeps a boy in bed: tamas, one of the three strands every mind is wound from. Not a failing, a proportion.", "जो भार बालक को बिस्तर में रोके रखता है, सांख्य के पास उसका नाम है: तमस्, उन तीन गुणों में से एक जिनसे हर मन बुना है। यह दोष नहीं, एक अनुपात है।", ""],
-      "18": ["🧒", "Prahlada", "प्रह्लाद", "The boy Prahlada kept his faith in Vishnu, whatever his father threatened.", "बालक प्रह्लाद ने पिता की हर धमकी के बाद भी विष्णु में आस्था रखी।", "Bhagavata Purana 7"],
-      "20": ["🧵", "Sacred thread", "उपनयन", "Upanayana means leading near. The Gṛhya Sūtras count the boy born a second time when he is led to a teacher: the first birth was the body's, this one belongs to the Veda.", "उपनयन का अर्थ है पास ले जाना। गृह्यसूत्र कहते हैं कि गुरु के पास ले जाए जाने पर बालक दूसरी बार जन्म लेता है: पहला जन्म शरीर का था, यह वेद का है।", "Grihya Sutras"],
-      "21": ["🛖", "Gurukul", "गुरुकुल", "You do not pay the teacher. Upamanyu herded his teacher Dhaumya's cows and was forbidden, one by one, every way of feeding himself. The fee was obedience, and the Mahābhārata never says whether it was too high.", "गुरु को शुल्क नहीं दिया जाता। उपमन्यु ने गुरु धौम्य की गायें चराईं, और एक-एक कर उसे पेट भरने का हर रास्ता मना कर दिया गया। शुल्क आज्ञापालन था, और महाभारत कभी नहीं कहता कि वह बहुत ऊँचा था या नहीं।", "Mahabharata, Adi Parva"],
-      "22": ["🦁", "The lion wakes", "शेर जागा", "The lion the brothers brought to life ate them. Learning without sense is dangerous.", "भाइयों का जिलाया शेर उन्हीं को खा गया। समझ के बिना विद्या खतरनाक है।", "Panchatantra"],
-      "24": ["💧", "The well", "कुआँ", "Shown 'another lion' in a well, the lion leapt at its own reflection.", "कुएँ में 'दूसरा शेर' देखकर शेर अपने ही प्रतिबिंब पर कूद पड़ा।", "Panchatantra"],
-      "25": ["📿", "Gayatri", "गायत्री", "Viśvāmitra was born a king and fought his way to being a seer, and this is the verse he saw: 'may the sun impel our thoughts.' Every boy given the thread is taught it first.", "विश्वामित्र जन्म से राजा थे और संघर्ष करके ऋषि बने, और यही वह मंत्र है जो उन्होंने देखा: 'वह सविता हमारी बुद्धि को प्रेरित करे।' यज्ञोपवीत पाने वाले हर बालक को सबसे पहले यही सिखाया जाता है।", "Rig Veda 3.62.10"],
-      "26": ["🪵", "Firewood", "समिधा", "The seeker arrives holding firewood, which is both the fee and the signal. Muṇḍaka 1.2.12 adds the condition: he must already have found that nothing built by action lasts.", "जिज्ञासु हाथ में समिधा लेकर आता है, जो शुल्क भी है और संकेत भी। मुंडक १.२.१२ शर्त जोड़ता है: उसे पहले ही जान लेना चाहिए कि कर्म से बनी कोई चीज़ टिकती नहीं।", "Mundaka Upanishad 1.2.12"],
-      "27": ["❓", "Six seekers", "छह जिज्ञासु", "Six seekers came to sage Pippalada. He told them to live a year in discipline before asking.", "छह जिज्ञासु ऋषि पिप्पलाद के पास आए। उन्होंने कहा, पहले एक वर्ष संयम से रहो, फिर पूछो।", "Prashna Upanishad 1.2"],
-      "30": ["📖", "Speak the truth", "सत्यं वद", "Satyaṃ vada, dharmaṃ cara: both are commands, and Mīmāṃsā built a philosophy on that grammar. Dharma is what the Veda enjoins, never what anyone feels to be right.", "सत्यं वद, धर्मं चर: दोनों आदेश हैं, और मीमांसा ने इसी व्याकरण पर पूरा दर्शन खड़ा किया। धर्म वह है जिसका वेद विधान करता है, वह नहीं जो किसी को सही लगे।", "Taittiriya Upanishad 1.11"],
-      "31": ["🔥", "Yayati's fire", "ययाति की अग्नि", "Yayāti, after a thousand years in his son's borrowed youth, said it himself: desire is never quenched by enjoying it; it grows like a fire fed with ghee.", "पुत्र के उधार यौवन में हज़ार वर्ष बिताकर ययाति ने स्वयं कहा: भोग से इच्छा कभी शांत नहीं होती; घी डालने से अग्नि की तरह बढ़ती है।", "Mahabharata, Adi Parva"],
-      "32": ["🧂", "Salt in water", "जल में नमक", "Shvetaketu could not see the salt in the water, yet tasted it in every sip. So is the Self.", "श्वेतकेतु को जल में नमक दिखा नहीं, पर हर घूँट में स्वाद था। आत्मा भी ऐसी ही है।", "Chandogya Upanishad 6.13"],
-      "33": ["🌱", "Banyan seed", "बरगद का बीज", "Uddālaka has Śvetaketu break open a banyan seed and asks what he sees. 'Nothing at all.' From that subtle nothing, says his father, the great tree grows.", "उद्दालक श्वेतकेतु से बरगद का बीज तुड़वाकर पूछते हैं कि क्या दिखता है। 'कुछ भी नहीं।' उसी सूक्ष्म 'कुछ नहीं' से, पिता कहते हैं, विशाल वृक्ष उगता है।", "Chandogya Upanishad 6.12"],
-      "35": ["🐎", "The chariot", "रथ", "Yama gives Naciketas a picture: the self rides, the body is the chariot, the senses the horses, the mind the reins, the intellect the driver. Every school after him argued over who really holds the reins.", "यम नचिकेता को एक चित्र देते हैं: आत्मा रथी है, शरीर रथ, इंद्रियाँ घोड़े, मन लगाम और बुद्धि सारथी। उनके बाद हर दर्शन इसी पर लड़ा कि लगाम असल में किसके हाथ में है।", "Katha Upanishad 1.3.3–4"],
-      "36": ["💎", "You are That", "तत् त्वम् असि", "'You are That, Shvetaketu,' said his father Uddalaka.", "'तुम वही हो, श्वेतकेतु,' पिता उद्दालक ने कहा।", "Chandogya Upanishad 6.8.7"],
-      "37": ["🙌", "Blessing", "आशीर्वाद", "Pleased with Aruni, his teacher blessed him: all the Vedas shone in his mind.", "आरुणि से प्रसन्न होकर गुरु ने आशीर्वाद दिया: सारे वेद उसके मन में प्रकाशित हो उठे।", "Mahabharata, Adi Parva"],
-      "38": ["🎓", "Graduation", "समावर्तन", "On the last day the Taittirīya's teacher says: speak the truth, follow dharma, let your mother, father, teacher and guest be gods to you. Then the sentence that concedes the rules run out: where there is doubt about conduct, behave as the thoughtful do.", "अंतिम दिन तैत्तिरीय के गुरु कहते हैं: सच बोलो, धर्म पर चलो, माता, पिता, आचार्य और अतिथि को देवता मानो। फिर वह वाक्य जो मानता है कि नियम कहीं खत्म हो जाते हैं: जहाँ आचरण में संशय हो, वहाँ विचारशील लोगों जैसा व्यवहार करो।", "Taittiriya Upanishad 1.11"],
-      "40": ["🕯️", "Parting words", "दीक्षांत उपदेश", "The Taittirīya lists the duties and adds 'and study and teaching' after every one. Then three teachers disagree: Satyavacas says truth matters most, Taponitya austerity, and Nāka Maudgalya says study and teaching alone, for that is austerity.", "तैत्तिरीय कर्तव्य गिनाता है और हर एक के बाद जोड़ता है 'और स्वाध्याय तथा प्रवचन'। फिर तीन आचार्य असहमत होते हैं: सत्यवचा कहते हैं सत्य सबसे बड़ा है, तपोनित्य कहते हैं तप, और नाक मौद्गल्य कहते हैं केवल स्वाध्याय और प्रवचन, क्योंकि वही तप है।", "Taittiriya Upanishad 1.9"],
-      "41": ["💍", "Marriage", "विवाह", "Seven steps round the fire, and the Gṛhya Sūtras give the words for the seventh: sakhā saptapadā bhava, be my friend. The vow is to friendship before it is to anything else.", "अग्नि के चारों ओर सात कदम, और गृह्यसूत्र सातवें कदम के शब्द देते हैं: सखा सप्तपदा भव, मेरे मित्र बनो। व्रत किसी और चीज़ से पहले मित्रता का है।", "Grihya Sutras"],
-      "42": ["🏡", "Home", "गृह", "Manu ranks the householder highest of the four stages, not because he is holiest but because the other three eat his food.", "मनु चारों आश्रमों में गृहस्थ को सबसे ऊँचा रखते हैं, इसलिए नहीं कि वह सबसे पवित्र है, बल्कि इसलिए कि बाकी तीनों उसी का अन्न खाते हैं।", "Manusmriti 3.77–78"],
-      "43": ["🏹", "The bowstring", "धनुष की डोरी", "To save the meat for later, the jackal gnawed the bowstring first. The bow sprang and killed him.", "मांस बचाने के लिए सियार ने पहले धनुष की डोरी चबाई। धनुष उछला और वह मर गया।", "Panchatantra"],
-      "45": ["🐄", "A thousand cows", "हज़ार गायें", "Satyakama returned with a thousand cows, his face shining like one who knows Brahman.", "सत्यकाम हज़ार गायें लेकर लौटा, उसका मुख ब्रह्मज्ञानी की तरह चमक रहा था।", "Chandogya Upanishad 4.9"],
-      "46": ["⚔️", "Kurukshetra", "कुरुक्षेत्र", "Dhṛtarāṣṭra's blind love ended in a war that destroyed the family, and he heard all of it told to him by Sañjaya, sitting in the palace.", "धृतराष्ट्र के अंधे मोह का अंत उस युद्ध में हुआ जिसने कुल का नाश कर दिया, और उन्होंने उसे महल में बैठे-बैठे संजय के मुँह से सुना।", "Mahabharata"],
-      "48": ["🫘", "Leftover beans", "जूठे उड़द", "In a famine Uṣasti Cākrāyaṇa eats an elephant-keeper's leftover beans, then refuses his water. The beans he could not live without; the water he could find elsewhere.", "अकाल में उषस्ति चाक्रायण एक महावत के जूठे उड़द खा लेते हैं, फिर उसका जल लेने से मना कर देते हैं। उड़द के बिना वे जी नहीं सकते थे; जल कहीं और मिल सकता था।", "Chandogya Upanishad 1.10"],
-      "49": ["🌾", "Five offerings", "पंच महायज्ञ", "Born owing three debts, to the sages, the gods and the ancestors, the householder pays them daily. Cārvāka's reply: a debt nobody can show you a ledger for is not a debt.", "तीन ऋण लेकर जन्मा गृहस्थ, ऋषियों, देवताओं और पितरों का, उन्हें रोज़ चुकाता है। चार्वाक का उत्तर: जिस ऋण का बहीखाता कोई न दिखा सके, वह ऋण नहीं।", "Manusmriti 3.70"],
-      "50": ["💔", "Too late", "पछतावा", "Then she found the dead cobra: the mongoose had saved her child. Anger acts first and weeps later.", "फिर उसने मरा हुआ साँप देखा: नेवले ने बच्चे को बचाया था। क्रोध पहले करता है, बाद में पछताता है।", "Panchatantra"],
-      "52": ["🎲", "The dice game", "द्यूत क्रीड़ा", "Envy led Duryodhana to the rigged game of dice, and from there to ruin.", "ईर्ष्या दुर्योधन को कपट के जुए तक ले गई, और वहाँ से विनाश तक।", "Mahabharata, Sabha Parva"],
-      "53": ["🔆", "Yama teaches", "यम का उपदेश", "Moved by his resolve, Yama taught Nachiketa the secret of the deathless Self.", "उसके दृढ़ निश्चय से प्रसन्न होकर यम ने नचिकेता को अमर आत्मा का रहस्य बताया।", "Katha Upanishad 1.2"],
-      "54": ["🛞", "Raikva", "रैक्व", "Raikva, the humble man sitting under his cart, knew more than the king.", "अपनी गाड़ी के नीचे बैठे साधारण रैक्व राजा से अधिक जानते थे।", "Chandogya Upanishad 4.1"],
-      "56": ["🍽️", "The guest", "अतिथि", "The Taittirīya's teacher says honour the guest as a god, and the word says why: a-tithi, the one without a date. You feed him before you eat because he is the one visitor you could not have prepared for.", "तैत्तिरीय के गुरु कहते हैं अतिथि को देवता मानो, और शब्द ही कारण बताता है: अ-तिथि, जिसकी कोई तिथि नहीं। उसे अपने से पहले खिलाते हो क्योंकि वही एक आगंतुक है जिसकी तैयारी तुम नहीं कर सकते थे।", "Taittiriya Upanishad 1.11"],
-      "58": ["🌿", "A blade of grass", "तिनका", "Agni could not burn a blade of grass, nor Vayu blow it away. All power is Brahman's.", "अग्नि एक तिनका न जला सके, न वायु उसे उड़ा सके। सारी शक्ति ब्रह्म की है।", "Kena Upanishad 3"],
-      "60": ["🧓", "Grey hair", "श्वेत केश", "Manu fixes the moment by three signs, not by an age: the skin wrinkles, the hair whitens, and you see your son's son.", "मनु यह क्षण उम्र से नहीं, तीन लक्षणों से तय करते हैं: त्वचा पर झुर्रियाँ, बाल सफ़ेद, और जब तुम अपने बेटे का बेटा देखो।", "Manusmriti 6.2"],
-      "61": ["🔁", "Begin again", "फिर से आरंभ", "Indra was not satisfied with that answer. He came back to learn, again and again, for 101 years.", "इंद्र उस उत्तर से संतुष्ट न हुए। वे बार-बार सीखने लौटे, कुल १०१ वर्ष।", "Chandogya Upanishad 8.11"],
-      "63": ["🎁", "Enjoy by letting go", "त्यागपूर्वक भोग", "The Īśa's first verse: all this is pervaded by the Lord; enjoy it by letting go, and covet no one's wealth. It is one sentence, and it can be read as an order to renounce or as permission to enjoy.", "ईश का पहला मंत्र: यह सब ईश्वर से व्याप्त है; त्यागपूर्वक भोगो, किसी के धन का लोभ न करो। वाक्य एक है, और इसे त्याग का आदेश भी पढ़ा जा सकता है और भोग की अनुमति भी।", "Isha Upanishad 1"],
-      "64": ["🐾", "Born a deer", "हिरण का जन्म", "Thinking of the fawn at the moment of death, Bharata was reborn as a deer.", "मृत्यु के समय शावक का ध्यान करते रहने से भरत हिरण बनकर जन्मे।", "Bhagavata Purana 5.8"],
-      "66": ["🌲", "To the forest", "वन की ओर", "He hands over the house, takes the fires with him and goes. Yājñavalkya did this, and Maitreyī stopped him at the door with a question.", "वह घर सौंपता है, अग्नियाँ साथ लेता है और चल पड़ता है। याज्ञवल्क्य ने यही किया, और मैत्रेयी ने उन्हें द्वार पर एक प्रश्न से रोक लिया।", "Brihadaranyaka Upanishad 2.4"],
-      "67": ["🫂", "No hatred", "द्वेष नहीं", "The Īśa's sixth verse: one who sees all beings in the Self, and the Self in all beings, hates no one. It does not say how you would know you had seen it, except that the hatred stops.", "ईश का छठा मंत्र: जो सब प्राणियों को आत्मा में और आत्मा को सब में देखता है, वह किसी से घृणा नहीं करता। यह नहीं बताता कि देख लेने का पता कैसे चले, सिवाय इसके कि घृणा रुक जाती है।", "Isha Upanishad 6"],
-      "68": ["📚", "Only words", "केवल शब्द", "Narada had mastered every scripture, yet came grieving: 'I know only words, not the Self.'", "नारद सब शास्त्र जानते थे, फिर भी दुखी होकर बोले: 'मैं केवल शब्द जानता हूँ, आत्मा नहीं।'", "Chandogya Upanishad 7.1"],
-      "70": ["🪆", "Five sheaths", "पंचकोश", "The Taittirīya opens the self layer by layer: food, breath, mind, understanding, bliss. Each sheath is called a self, and each is said to have another self inside it.", "तैत्तिरीय आत्मा को परत-दर-परत खोलता है: अन्न, प्राण, मन, विज्ञान, आनंद। हर कोश को आत्मा कहा गया है, और हर एक के भीतर एक और आत्मा बताई गई है।", "Taittiriya Upanishad 2"],
-      "71": ["🐈", "Unmasked", "ढोंग उजागर", "The cat's prayers were only a trap. True austerity needs no audience.", "बिल्ली की प्रार्थना केवल एक जाल थी। सच्चे तप को दर्शकों की ज़रूरत नहीं।", "Panchatantra"],
-      "73": ["🌬️", "Breath", "प्राण", "In the Chāndogya the senses quarrel over which is greatest, and each leaves the body for a year to prove it. The body survives every absence but one: when breath begins to go, it drags all the others with it.", "छांदोग्य में इंद्रियाँ झगड़ती हैं कि सबसे बड़ा कौन, और साबित करने के लिए हर एक साल भर शरीर छोड़ देती है। शरीर हर अनुपस्थिति झेल लेता है, एक को छोड़कर: जब प्राण जाने लगे तो बाकी सबको साथ खींच ले जाता है।", "Chandogya Upanishad 5.1"],
-      "74": ["🛕", "Temple of the heart", "हृदय मंदिर", "The Chāndogya says there is a small lotus-house in the city of the body, and inside it a space as vast as the one outside. The pupils ask the obvious thing: what could there be to look for in so small a space?", "छांदोग्य कहता है कि शरीर रूपी नगर में एक छोटा कमल-गृह है, और उसके भीतर बाहर जितना ही विशाल आकाश। शिष्य वही पूछते हैं जो कोई भी पूछेगा: इतनी छोटी जगह में ढूँढने लायक क्या हो सकता है?", "Chandogya Upanishad 8.1"],
-      "75": ["👑", "Nothing of mine burns", "मेरा कुछ नहीं जलता", "When Mithila was on fire, Janaka said: nothing that is truly mine is burning.", "मिथिला जल रही थी, तब जनक बोले: जो सचमुच मेरा है, उसमें से कुछ नहीं जल रहा।", "Mahabharata, Shanti Parva"],
-      "76": ["🌅", "Sandhya", "संध्या", "Three times a day he faces the sun and says the Gāyatrī, a verse that asks the light to impel our thoughts. It asks for a better mind, not a better life.", "दिन में तीन बार वह सूर्य की ओर मुख करके गायत्री कहता है, एक मंत्र जो प्रकाश से हमारी बुद्धि को प्रेरित करने को कहता है। यह बेहतर मन माँगता है, बेहतर जीवन नहीं।", "Rig Veda 3.62.10"],
-      "78": ["💞", "For the Self", "आत्मा के लिए", "Yājñavalkya tells Maitreyī that a husband is dear not for the husband's sake but for the Self's, and the same for a wife, for sons, for wealth, for everything. It is either the most selfish sentence in the Upaniṣads or the least.", "याज्ञवल्क्य मैत्रेयी से कहते हैं कि पति, पति के लिए नहीं, आत्मा के लिए प्रिय होता है, और यही पत्नी, पुत्र, धन, सब के लिए। यह या तो उपनिषदों का सबसे स्वार्थी वाक्य है या सबसे निःस्वार्थ।", "Brihadaranyaka Upanishad 2.4.5"],
-      "79": ["🙋‍♀️", "Gargi", "गार्गी", "At Janaka's court Gārgī asks Yājñavalkya what the world is woven on, and what that is woven on, until he stops her: 'Do not question too far, Gārgī, or your head will fall off.'", "जनक की सभा में गार्गी याज्ञवल्क्य से पूछती हैं कि संसार किस पर बुना है, और वह किस पर, जब तक वे उन्हें रोक नहीं देते: 'गार्गी, अति-प्रश्न मत करो, कहीं तुम्हारा सिर न गिर जाए।'", "Brihadaranyaka Upanishad 3.6"],
-      "80": ["🧡", "Saffron robe", "भगवा वस्त्र", "At the sannyāsa rite he performs his own funeral, takes the sacred fires into himself, as Manu puts it, and takes a new name. From that morning he is dead in law and owes the three debts no longer.", "संन्यास दीक्षा में वह अपना ही श्राद्ध करता है, मनु के शब्दों में यज्ञ की अग्नियों को अपने भीतर रख लेता है, और नया नाम लेता है। उस सुबह से वह विधि की दृष्टि में मृत है और तीनों ऋणों से मुक्त।", "Manusmriti 6.38"],
-      "81": ["🍃", "Neti neti", "नेति नेति", "Yājñavalkya's description of the Self is two words long, and both are refusals: neti, neti, not this, not this.", "याज्ञवल्क्य का आत्मा-वर्णन दो शब्दों का है, और दोनों इनकार हैं: नेति, नेति, यह नहीं, यह नहीं।", "Brihadaranyaka Upanishad 2.3.6"],
-      "82": ["🌙", "Four states", "चार अवस्थाएँ", "The Māṇḍūkya, twelve verses long, counts waking, dreaming and deep sleep, then a fourth state it will describe only by what it is not.", "बारह मंत्रों का माण्डूक्य जाग्रत, स्वप्न और सुषुप्ति गिनता है, फिर एक चौथी अवस्था, जिसका वर्णन वह केवल इससे करता है कि वह क्या नहीं है।", "Mandukya Upanishad 3–7"],
-      "83": ["🌌", "Immortality", "अमृतत्व", "Yajnavalkya taught Maitreyi the way to immortality, then left for the forest.", "याज्ञवल्क्य ने मैत्रेयी को अमृतत्व का मार्ग बताया और वन चले गए।", "Brihadaranyaka Upanishad 4.5"],
-      "84": ["🥣", "Alms", "भिक्षा", "He begs at seven houses, takes what is given and keeps nothing for tomorrow. Mīmāṃsā objected: a man with no fire cannot sacrifice, and a man who cannot sacrifice cannot be doing dharma.", "वह सात घरों से भिक्षा माँगता है, जो मिले ले लेता है और कल के लिए कुछ नहीं रखता। मीमांसा ने आपत्ति की: जिसके पास अग्नि नहीं वह यज्ञ नहीं कर सकता, और जो यज्ञ नहीं कर सकता वह धर्म नहीं कर रहा।", ""],
-      "86": ["❔", "By whom?", "केन?", "The Kena opens with a student's question: by whom is the mind sent forth? By whom does the eye see? The answer turns out to be the one thing the eye cannot see.", "केन एक शिष्य के प्रश्न से खुलता है: किसके द्वारा मन प्रेरित होता है? किससे आँख देखती है? उत्तर निकलता है वही एक चीज़ जिसे आँख नहीं देख सकती।", "Kena Upanishad 1.1"],
-      "87": ["🌞", "The golden lid", "स्वर्ण पात्र", "The face of truth is covered by a golden disc. Uncover it, O Pushan, so I may see.", "सत्य का मुख सोने के पात्र से ढका है। हे पूषन्, उसे हटाओ ताकि मैं देख सकूँ।", "Isha Upanishad 15"],
-      "89": ["🌕", "Bliss", "आनंद", "At last Bhrigu knew: Brahman is bliss. From bliss all beings are born.", "अंत में भृगु ने जाना: ब्रह्म आनंद है। आनंद से ही सब प्राणी जन्मते हैं।", "Taittiriya Upanishad 3.6"],
-      "90": ["🪔", "Lead me to light", "तमसो मा ज्योतिर्गमय", "Lead me from the unreal to the real. The line is older than the schools that use it, and each fills in 'the real' differently: for Sāṃkhya the witness, for Nyāya a self with properties, for Advaita the only thing there is.", "असत् से सत् की ओर ले चलो। यह पंक्ति उसका प्रयोग करने वाले दर्शनों से पुरानी है, और हर एक 'सत्' को अलग भरता है: सांख्य के लिए साक्षी, न्याय के लिए गुणों वाली आत्मा, अद्वैत के लिए वह एकमात्र जो है।", "Brihadaranyaka Upanishad 1.3.28"],
-      "91": ["🧠", "Prajnanam Brahma", "प्रज्ञानं ब्रह्म", "The Aitareya ends its story of creation with three words: prajñānaṃ brahma, consciousness is Brahman. Everything before it, gods, cows, horses, people, is listed as a name for consciousness.", "ऐतरेय सृष्टि की कथा तीन शब्दों पर समाप्त करता है: प्रज्ञानं ब्रह्म, चेतना ही ब्रह्म है। उससे पहले सब कुछ, देवता, गायें, घोड़े, मनुष्य, चेतना के ही नाम गिनाए गए हैं।", "Aitareya Upanishad 3.3"],
-      "92": ["💫", "Aham Brahmasmi", "अहं ब्रह्मास्मि", "In the beginning, says the Bṛhadāraṇyaka, there was only Brahman, and it knew itself as 'I am Brahman', and so became everything. Whoever knows it so becomes all this, and even the gods cannot stop him.", "आरंभ में, बृहदारण्यक कहता है, केवल ब्रह्म था, और उसने स्वयं को 'मैं ब्रह्म हूँ' जाना, और सब कुछ बन गया। जो इसे ऐसे जानता है वह यह सब बन जाता है, और देवता भी उसे रोक नहीं सकते।", "Brihadaranyaka Upanishad 1.4.10"],
-      "94": ["🐦", "The watching bird", "साक्षी पक्षी", "The Muṇḍaka finishes the two birds: when the one that eats sees the watcher as its own glory, its grief ends. Whether 'its own' means identity or kinship is exactly where the schools part.", "मुंडक दो पक्षियों की बात पूरी करता है: जब फल खाने वाला साक्षी को अपनी ही महिमा देखता है, तो उसका शोक मिट जाता है। 'अपनी ही' का अर्थ एकता है या नाता, ठीक यहीं दर्शन अलग होते हैं।", "Mundaka Upanishad 3.1.2"],
-      "95": ["🌀", "Ayam Atma Brahma", "अयमात्मा ब्रह्म", "The Māṇḍūkya's second verse: this Self is Brahman. Then it says at once that this Self has four quarters, and spends the rest of the text on three you already know.", "माण्डूक्य का दूसरा मंत्र: यह आत्मा ब्रह्म है। फिर तुरंत कहता है कि इस आत्मा के चार पाद हैं, और बाकी ग्रंथ उन तीन पर लगाता है जिन्हें तुम पहले से जानते हो।", "Mandukya Upanishad 2"],
-      "96": ["🌍", "All is Brahman", "सर्वं खल्विदं ब्रह्म", "Śāṇḍilya's meditation in the Chāndogya: all this, truly, is Brahman. Then the very next sentence: as a person's resolve is here, so they become on leaving.", "छांदोग्य में शांडिल्य का ध्यान: यह सब निश्चय ही ब्रह्म है। फिर ठीक अगला वाक्य: मनुष्य का संकल्प यहाँ जैसा है, यहाँ से जाकर वह वैसा ही बनता है।", "Chandogya Upanishad 3.14.1"],
-      "97": ["⭕", "Wholeness", "पूर्णता", "The Īśa's invocation: take the whole from the whole and the whole remains. A sentence about infinity, written down long before mathematics had a word for it.", "ईश का शांति पाठ: पूर्ण से पूर्ण निकालो तो पूर्ण ही बचता है। अनंत के बारे में एक वाक्य, जो गणित के पास इसका शब्द आने से बहुत पहले लिखा गया।", "Isha Upanishad, invocation"],
-      "98": ["🕊️", "Shanti", "शांति", "The Taittirīya's chants close with peace said three times, one for each kind of trouble: from yourself, from other beings, and from what nobody controls. The third is the one the verse cannot promise.", "तैत्तिरीय के मंत्र तीन बार शांति कहकर समाप्त होते हैं, हर तरह के कष्ट के लिए एक बार: अपने से, दूसरे प्राणियों से, और उससे जिस पर किसी का बस नहीं। तीसरी का वादा मंत्र नहीं कर सकता।", "Taittiriya Upanishad 1.1"],
-      "100": ["🌄", "The threshold", "देहरी", "The last square of the world. Everything above it is a reward, and Nyāya, Mīmāṃsā and Advaita agree on exactly one thing: rewards run out.", "संसार का अंतिम खाना। इसके ऊपर सब कुछ पुरस्कार है, और न्याय, मीमांसा और अद्वैत ठीक एक बात पर सहमत हैं: पुरस्कार चुक जाते हैं।", ""]
+      "1": { ic: "👶", en: "Birth", hi: "जन्म", age: 0, moment: { en: "{name} is born.", hi: "{name} का जन्म होता है।", mirror: { en: "The Aitareya counts three births, and says this is only the second.", hi: "ऐतरेय तीन जन्म गिनता है, और कहता है कि यह तो केवल दूसरा है।" } }, mirror: { en: "The Aitareya counts three births for one self, and being born is only the second of them.", hi: "ऐतरेय एक ही आत्मा के तीन जन्म गिनता है, और पैदा होना उनमें केवल दूसरा है।" }, src: "Aitareya Upanishad 2.1" },
+      "2": { ic: "🤱", en: "Mother", hi: "माँ", age: 0.25, moment: { en: "{name} is small enough to be carried everywhere, and is carried everywhere.", hi: "{name} {इतना छोटा है|इतनी छोटी है} कि हर जगह गोद में ले जाया जा सके, और हर जगह ले जाया भी जाता है।", mirror: { en: '"It becomes one self with the woman, and so does her no harm," says the Aitareya of the child a mother carries.', hi: '"वह स्त्री के साथ एक आत्मा हो जाता है, इसलिए उसे कोई हानि नहीं पहुँचाता," ऐतरेय माँ के भीतर पलते शिशु के बारे में कहता है।' } }, mirror: { en: "'It becomes one self with the woman, and so does her no harm.' The Aitareya calls carrying a child the self's first birth, and says the father is begetting himself.", hi: "'वह स्त्री के साथ एक आत्मा हो जाता है, इसलिए उसे कोई हानि नहीं पहुँचाता।' ऐतरेय गर्भ धारण को आत्मा का पहला जन्म कहता है, और कहता है कि पिता स्वयं को ही जन्म दे रहा है।" }, src: "Aitareya Upanishad 2.1" },
+      "3": { ic: "👨‍👦", en: "Father", hi: "पिता", age: 0.5, moment: { en: "{name}'s father is dying. He asks for fresh grass to be strewn, sits facing {name}, and begins handing things over one at a time.", hi: "{name} के पिता मरणासन्न हैं। वे ताज़ी कुशा बिछवाते हैं, {name} की ओर मुँह करके बैठते हैं, और एक-एक करके सब कुछ सौंपने लगते हैं।", mirror: { en: "The Kauṣītaki knows this scene and writes down the whole script: 'Let me place my speech in you.' Then breath, eye, ear, mind, and last of all, understanding.", hi: "कौषीतकि इस दृश्य को जानता है और पूरी विधि लिख देता है: 'मैं अपनी वाणी तुममें रखता हूँ।' फिर प्राण, आँख, कान, मन, और सबसे अंत में समझ।" } }, mirror: { en: "In the Kauṣītaki the dying father sits facing his son and hands over his faculties one at a time. 'Let me place my speech in you.' 'I take your speech in me.' Then breath, eye, ear, mind, and last, understanding.", hi: "कौषीतकि में मरणासन्न पिता पुत्र के सामने बैठता है और अपनी शक्तियाँ एक-एक कर सौंपता है। 'मैं अपनी वाणी तुममें रखूँ।' 'मैं तुम्हारी वाणी अपने में लेता हूँ।' फिर प्राण, आँख, कान, मन, और अंत में समझ।" }, src: "Kaushitaki Upanishad 2.15" },
+      "4": { ic: "🍚", en: "First rice", hi: "अन्नप्राशन", age: 0.5, moment: { en: "{name} is six months old and tastes rice for the first time, and most of it ends up on the floor.", hi: "{name} छह महीने {का|की} है। पहली बार चावल चखा, और ज़्यादातर ज़मीन पर गिरा।", mirror: { en: "The Taittirīya starts its account of the self with this same substance: the outermost sheath is made of food.", hi: "तैत्तिरीय भी आत्मा का वर्णन इसी पदार्थ से शुरू करता है: सबसे बाहरी कोश अन्न का बना है।" } }, mirror: { en: "At the annaprāśana the child eats grain for the first time. The Taittirīya starts its account of the self with the same substance: the outermost sheath is made of food.", hi: "अन्नप्राशन में शिशु पहली बार अन्न खाता है। तैत्तिरीय आत्मा का वर्णन इसी पदार्थ से शुरू करता है: सबसे बाहरी कोश अन्न का बना है।" }, src: "Grihya Sutras" },
+      "5": { ic: "🚶", en: "First steps", hi: "पहले कदम", age: 1, moment: { en: "{name} is one. Falls, gets up, falls, gets up, and by evening has crossed the room.", hi: "{name} एक बरस {का|की} है। गिरना, उठना, गिरना, उठना, और शाम तक पूरा कमरा पार।", mirror: { en: "Patanjali has a word for exactly this: abhyāsa, the repetition that lays down a groove. The same groove, he says, is what later makes a person hard to change.", hi: "पतंजलि के पास ठीक इसी के लिए एक शब्द है: अभ्यास, वह दोहराव जो एक लीक बना देता है। वे कहते हैं कि यही लीक आगे चलकर मनुष्य को बदलना कठिन बना देती है।" } }, mirror: { en: "Falling and getting up is abhyāsa, repetition laying down a saṃskāra. Patañjali says the same machinery is what later makes a person hard to change.", hi: "गिरना और फिर उठना अभ्यास है, दोहराव जो एक संस्कार बिठा देता है। पतंजलि कहते हैं कि यही यंत्र आगे चलकर मनुष्य को बदलना कठिन बना देता है।" }, src: "" },
+      "7": { ic: "🧸", en: "Play", hi: "खेल", age: 4, moment: { en: "{name} is four, and spends the whole afternoon moving stones from one pile to another for no reason anyone can see.", hi: "{name} चार बरस {का|की} है। पूरी दोपहर पत्थर एक ढेर से दूसरे ढेर पर रखते बीत जाती है, बिना किसी ऐसे कारण के जो किसी को दिखे।", mirror: { en: "Badarayana says the world was made the same way. Not from need. For play: līlā.", hi: "बादरायण कहते हैं कि संसार भी ऐसे ही बना। किसी ज़रूरत से नहीं। खेल के लिए: लीला।" } }, mirror: { en: "Līlā means play, and Bādarāyaṇa uses it for why there is a world at all: not need, not duty, but sport.", hi: "लीला का अर्थ है खेल, और बादरायण इसी शब्द से बताते हैं कि संसार है ही क्यों: न ज़रूरत से, न कर्तव्य से, बस क्रीड़ा से।" }, src: "Brahma Sutra 2.1.33" },
+      "8": { ic: "🪂", en: "The fall", hi: "गिरना", age: 4, moment: { en: "{name} is four and falls off the wall everyone said not to climb, and lies on the ground deciding whether to cry.", hi: "{name} चार बरस {का|की} है। जिस दीवार पर चढ़ने से सबने मना किया था, उसी से नीचे {आ गिरा|आ गिरी}। अब ज़मीन पर पड़े-पड़े तय करना है कि रोया जाए या नहीं।", mirror: { en: "The tortoise fell the same way, from much higher. Silence would have saved it.", hi: "कछुआ भी ऐसे ही गिरा था, कहीं ऊँचाई से। चुप रहता तो बच जाता।" } }, mirror: { en: "The tortoise opened its mouth to talk and fell from the sky. Silence would have saved it.", hi: "कछुए ने बोलने को मुँह खोला और आकाश से गिर पड़ा। चुप रहता तो बच जाता।" }, src: "Panchatantra" },
+      "9": { ic: "📜", en: "Story time", hi: "कथा का समय", age: 5, moment: { en: "{name} is five and will not sleep until the story about the monkey is told again, exactly the same way.", hi: "{name} पाँच बरस {का|की} है। जब तक बंदर वाली कहानी फिर से, ठीक वैसे ही, न सुनाई जाए, नींद नहीं आती।", mirror: { en: "Vishnu Sharma taught three dull princes the same way, with animal stories, and the stories became the Panchatantra.", hi: "विष्णु शर्मा ने तीन मंदबुद्धि राजकुमारों को ऐसे ही पढ़ाया था, जानवरों की कहानियों से, और वे कहानियाँ पंचतंत्र बन गईं।" } }, mirror: { en: "Vishnu Sharma taught three dull princes wisdom through animal stories: the Panchatantra.", hi: "विष्णु शर्मा ने तीन मंदबुद्धि राजकुमारों को पशु-कथाओं से ज्ञान दिया: यही पंचतंत्र है।" }, src: "Panchatantra" },
+      "10": { ic: "💬", en: "First words", hi: "पहले शब्द", age: 5, moment: { en: "{name} is five and asks why a dog is called a dog, and nobody has an answer that holds up.", hi: "{name} पाँच बरस {का|की} है। {name} ने पूछा कि कुत्ते को कुत्ता क्यों कहते हैं, और किसी के पास टिकने लायक़ जवाब नहीं।", mirror: { en: "Mīmāṃsā had an answer, and it was that nobody named anything: word and meaning are eternal, and nobody invented them.", hi: "मीमांसा के पास उत्तर था: किसी ने किसी चीज़ का नाम नहीं रखा। शब्द और अर्थ नित्य हैं, उन्हें किसी ने नहीं गढ़ा।" } }, mirror: { en: "A child's first word is a convention it never agreed to. Mīmāṃsā denied there was any convention: word and meaning are eternal and nobody invented them.", hi: "बच्चे का पहला शब्द एक ऐसी परिपाटी है जिसके लिए उसने कभी हामी नहीं भरी। मीमांसा ने परिपाटी को ही नकारा: शब्द और अर्थ नित्य हैं, उन्हें किसी ने नहीं गढ़ा।" }, src: "" },
+      "11": { ic: "🌧️", en: "Found out", hi: "पोल खुली", age: 7, moment: { en: "{name} is seven and says it was not {him|her|them}. It was, and everyone in the room knows it.", hi: "{name} सात बरस {का|की} है। {name} ने कहा कि यह उसने नहीं किया। किया उसी ने था, और कमरे में सब यह जानते हैं।", mirror: { en: "A jackal who fell in a dye-vat tried the same thing and held out longer, until he howled with the others.", hi: "रंग की हौदी में गिरे एक सियार ने भी यही किया था, और ज़्यादा देर टिका रहा, जब तक बाक़ी सियारों के साथ हुआँ-हुआँ नहीं करने लगा।" } }, mirror: { en: "The blue jackal howled along with the other jackals and was found out. A lie never lasts.", hi: "नीला सियार दूसरे सियारों के साथ हुआँ-हुआँ करने लगा और पकड़ा गया। झूठ टिकता नहीं।" }, src: "Panchatantra" },
+      "13": { ic: "🐊", en: "Monkey and crocodile", hi: "बंदर और मगरमच्छ", age: 8, moment: { en: "{name} is eight. An older child demands the pocket money, and {name} says it was left at home. It is in {name}'s shoe.", hi: "{name} आठ बरस {का|की} है। एक बड़े बच्चे ने जेबख़र्च माँगा, और {name} ने कह दिया कि घर पर छूट गया। वह जूते में है।", mirror: { en: "The monkey said the same to the crocodile: 'My heart? I left it up in the tree.'", hi: "बंदर ने भी मगरमच्छ से यही कहा था: 'मेरा दिल? वह तो पेड़ पर ही छूट गया।'" } }, mirror: { en: "Asked for its heart, the monkey said, 'I left it up in the tree!' and escaped.", hi: "कलेजा माँगे जाने पर बंदर बोला, 'वह तो पेड़ पर छोड़ आया!' और बच निकला।" }, src: "Panchatantra" },
+      "15": { ic: "🐭", en: "Set free", hi: "मुक्ति", age: 8, moment: { en: "{name} is eight and in trouble at school for something the friend did too. The friend owns up, and they take the scolding together.", hi: "{name} आठ बरस {का|की} है। स्कूल में उस बात पर डाँट पड़ रही है जो दोस्त ने भी की थी। दोस्त आगे आकर मान लेता है, और डाँट दोनों मिलकर खाते हैं।", mirror: { en: "When the deer was caught in a net, the mouse did not ask whose fault it was. It started gnawing.", hi: "जब हिरण जाल में फँसा, तो चूहे ने यह नहीं पूछा कि ग़लती किसकी थी। वह जाल कुतरने लगा।" } }, mirror: { en: "When the deer was caught in a net, the mouse gnawed it through. Friends in need.", hi: "हिरण जाल में फँसा तो चूहे ने जाल कुतर दिया। सच्चे मित्र संकट में काम आते हैं।" }, src: "Panchatantra" },
+      "16": { ic: "🐦", en: "The crows' plan", hi: "कौओं की युक्ति", age: 9, moment: { en: "{name} is nine and, with the friend, works out how to get the ball back from the cross neighbour's yard without asking.", hi: "{name} नौ बरस {का|की} है। दोस्त के साथ मिलकर तरकीब निकाली जा रही है कि खड़ूस पड़ोसी के आँगन से गेंद बिना माँगे कैसे वापस आए।", mirror: { en: "The crows had a worse neighbour, a cobra, and a better plan: drop a queen's necklace in its hole and let the guards do the rest.", hi: "कौओं का पड़ोसी इससे बुरा था, एक नाग, और योजना इससे अच्छी: रानी का हार उसके बिल में गिरा दो, बाक़ी काम पहरेदार कर देंगे।" } }, mirror: { en: "The crows dropped a queen's necklace into the cobra's hole; the guards came and killed the snake. Wit beats strength.", hi: "कौओं ने रानी का हार साँप के बिल में डाल दिया; पहरेदारों ने आकर साँप मार दिया। बुद्धि बल से बड़ी है।" }, src: "Panchatantra" },
+      "17": { ic: "😴", en: "Missed lesson", hi: "छूटा पाठ", age: 9, moment: { en: "{name} is nine and cannot get out of bed, and does not know why, and is called lazy for it.", hi: "{name} नौ बरस {का|की} है। बिस्तर से उठा नहीं जाता, क्यों, यह पता नहीं, और इसके लिए आलसी कहा जाता है।", mirror: { en: "Sāṃkhya has a name for the weight: tamas, one of the three strands every mind is wound from. Not a failing, a proportion.", hi: "सांख्य के पास इस बोझ का एक नाम है: तमस, उन तीन धागों में से एक जिनसे हर मन बुना है। यह कोई दोष नहीं, एक अनुपात है।" } }, mirror: { en: "Sāṃkhya has a name for the weight that keeps a boy in bed: tamas, one of the three strands every mind is wound from. Not a failing, a proportion.", hi: "जो भार बालक को बिस्तर में रोके रखता है, सांख्य के पास उसका नाम है: तमस्, उन तीन गुणों में से एक जिनसे हर मन बुना है। यह दोष नहीं, एक अनुपात है।" }, src: "" },
+      "18": { ic: "🧒", en: "Prahlada", hi: "प्रह्लाद", age: 10, moment: { en: "{name} is ten and will not say sorry for something that was not wrong, though {name}'s mother asks three times.", hi: "{name} दस बरस {का|की} है। जो ग़लत नहीं था, उसके लिए माफ़ी नहीं माँगनी, चाहे माँ तीन बार कहे।", mirror: { en: "Prahlada held out against far worse, whatever his father threatened.", hi: "प्रह्लाद इससे कहीं बड़ी धमकियों के आगे टिके रहे, पिता चाहे जो कहते रहे।" } }, mirror: { en: "The boy Prahlada kept his faith in Vishnu, whatever his father threatened.", hi: "बालक प्रह्लाद ने पिता की हर धमकी के बाद भी विष्णु में आस्था रखी।" }, src: "Bhagavata Purana 7" },
+      "20": { ic: "🧵", en: "Sacred thread", hi: "उपनयन", age: 11, moment: { en: "{name} is eleven, is put into clean clothes, taken to meet the teacher properly, and told to be quiet.", hi: "{name} ग्यारह बरस {का|की} है। साफ़ कपड़े पहनाकर गुरुजी से ठीक से मिलवाने ले जाया जाता है, और चुप रहने को कहा जाता है।" }, mirror: { en: "Upanayana means leading near. The Gṛhya Sūtras count the boy born a second time when he is led to a teacher: the first birth was the body's, this one belongs to the Veda.", hi: "उपनयन का अर्थ है पास ले जाना। गृह्यसूत्र कहते हैं कि गुरु के पास ले जाए जाने पर बालक दूसरी बार जन्म लेता है: पहला जन्म शरीर का था, यह वेद का है।" }, src: "Grihya Sutras" },
+      "21": { ic: "🛖", en: "Gurukul", hi: "गुरुकुल", age: 12, moment: { en: "{name} is twelve. The house gets smaller on the road behind, and {name} does not turn around.", hi: "{name} बारह बरस {का|की} है। पीछे रास्ते पर घर छोटा होता जाता है, और {name} एक बार भी मुड़कर नहीं {देखता|देखती}।" }, mirror: { en: "You do not pay the teacher. Upamanyu herded his teacher Dhaumya's cows and was forbidden, one by one, every way of feeding himself. The fee was obedience, and the Mahābhārata never says whether it was too high.", hi: "गुरु को शुल्क नहीं दिया जाता। उपमन्यु ने गुरु धौम्य की गायें चराईं, और एक-एक कर उसे पेट भरने का हर रास्ता मना कर दिया गया। शुल्क आज्ञापालन था, और महाभारत कभी नहीं कहता कि वह बहुत ऊँचा था या नहीं।" }, src: "Mahabharata, Adi Parva" },
+      "22": { ic: "🦁", en: "The lion wakes", hi: "शेर जागा", age: 13, moment: { en: "{name} is thirteen and takes the clock apart to show how it works, and it does not go back together.", hi: "{name} तेरह बरस {का|की} है। {name} ने घड़ी खोलकर दिखाया कि वह कैसे चलती है, और वह फिर जुड़ी नहीं।", mirror: { en: "The brothers' lion went back together very well, and then it ate them.", hi: "भाइयों का शेर तो बहुत अच्छे से जुड़ गया, और फिर उसने उन्हें खा लिया।" } }, mirror: { en: "The lion the brothers brought to life ate them. Learning without sense is dangerous.", hi: "भाइयों का जिलाया शेर उन्हीं को खा गया। समझ के बिना विद्या खतरनाक है।" }, src: "Panchatantra" },
+      "24": { ic: "💧", en: "The well", hi: "कुआँ", age: 14, moment: { en: "{name} is fourteen and wins an argument without once raising {his|her|their} voice, by letting the other side keep talking.", hi: "{name} चौदह बरस {का|की} है। उसने आवाज़ ऊँची किए बिना एक बहस जीत ली: बस सामने वाले को बोलते रहने दिया।", mirror: { en: "The lion lost the same way. Shown 'another lion' in a well, it leapt at its own reflection.", hi: "शेर भी ऐसे ही हारा था। कुएँ में 'दूसरा शेर' दिखाया गया, तो वह अपनी ही परछाईं पर कूद पड़ा।" } }, mirror: { en: "Shown 'another lion' in a well, the lion leapt at its own reflection.", hi: "कुएँ में 'दूसरा शेर' देखकर शेर अपने ही प्रतिबिंब पर कूद पड़ा।" }, src: "Panchatantra" },
+      "25": { ic: "📿", en: "Gayatri", hi: "गायत्री", age: 14, moment: { en: "{name} is fourteen and is taught a verse to say at sunrise, and says it every morning for a year without knowing what it means.", hi: "{name} चौदह बरस {का|की} है। सूर्योदय पर बोलने के लिए एक मंत्र सिखाया गया, और साल भर हर सुबह बोला गया, बिना यह जाने कि उसका अर्थ क्या है।", mirror: { en: "Vishvamitra saw that verse, the Gāyatrī, and had been born a king and fought his way to being a seer: 'may the sun impel our thoughts.'", hi: "वह मंत्र, गायत्री, विश्वामित्र ने देखा था, जो जन्म से राजा थे और संघर्ष करके ऋषि बने: 'वह सविता हमारी बुद्धि को प्रेरित करे।'" } }, mirror: { en: "Viśvāmitra was born a king and fought his way to being a seer, and this is the verse he saw: 'may the sun impel our thoughts.' Every boy given the thread is taught it first.", hi: "विश्वामित्र जन्म से राजा थे और संघर्ष करके ऋषि बने, और यही वह मंत्र है जो उन्होंने देखा: 'वह सविता हमारी बुद्धि को प्रेरित करे।' यज्ञोपवीत पाने वाले हर बालक को सबसे पहले यही सिखाया जाता है।" }, src: "Rig Veda 3.62.10" },
+      "26": { ic: "🪵", en: "Firewood", hi: "समिधा", age: 15, moment: { en: "{name} is fifteen and turns up at the teacher's door with an armful of sticks for the fire, because that is what one does, and waits.", hi: "{name} पंद्रह बरस {का|की} है। आग के लिए लकड़ियों का गट्ठर लेकर गुरुजी के द्वार पर पहुँचना होता है, क्योंकि यही रीत है, और फिर प्रतीक्षा।" }, mirror: { en: "The seeker arrives holding firewood, which is both the fee and the signal. Muṇḍaka 1.2.12 adds the condition: he must already have found that nothing built by action lasts.", hi: "जिज्ञासु हाथ में समिधा लेकर आता है, जो शुल्क भी है और संकेत भी। मुंडक १.२.१२ शर्त जोड़ता है: उसे पहले ही जान लेना चाहिए कि कर्म से बनी कोई चीज़ टिकती नहीं।" }, src: "Mundaka Upanishad 1.2.12" },
+      "27": { ic: "❓", en: "Six seekers", hi: "छह जिज्ञासु", age: 16, moment: { en: "{name} is sixteen and asks the big question, and is told to come back in a year.", hi: "{name} सोलह बरस {का|की} है। {name} ने बड़ा प्रश्न पूछा, और उत्तर मिला: एक साल बाद आना।", mirror: { en: "Pippalada said the same to six seekers: live a year in discipline first, then ask.", hi: "पिप्पलाद ने छह जिज्ञासुओं से भी यही कहा था: पहले एक साल संयम से रहो, फिर पूछो।" } }, mirror: { en: "Six seekers came to sage Pippalada. He told them to live a year in discipline before asking.", hi: "छह जिज्ञासु ऋषि पिप्पलाद के पास आए। उन्होंने कहा, पहले एक वर्ष संयम से रहो, फिर पूछो।" }, src: "Prashna Upanishad 1.2" },
+      "30": { ic: "📖", en: "Speak the truth", hi: "सत्यं वद", age: 17, moment: { en: "{name} is seventeen and copies out 'speak the truth' a hundred times, as the punishment for a lie.", hi: "{name} सत्रह बरस {का|की} है। एक झूठ की सज़ा में 'सत्य बोलो' सौ बार लिखना पड़ा।", mirror: { en: "Mīmāṃsā would have noticed the grammar. Satyaṃ vada is a command, and dharma, it said, is what the Veda commands, never what anyone feels to be right.", hi: "मीमांसा व्याकरण पर ध्यान देती। सत्यं वद एक आज्ञा है, और उसके अनुसार धर्म वही है जिसका वेद विधान करे, वह नहीं जो किसी को सही लगे।" } }, mirror: { en: "Satyaṃ vada, dharmaṃ cara: both are commands, and Mīmāṃsā built a philosophy on that grammar. Dharma is what the Veda enjoins, never what anyone feels to be right.", hi: "सत्यं वद, धर्मं चर: दोनों आदेश हैं, और मीमांसा ने इसी व्याकरण पर पूरा दर्शन खड़ा किया। धर्म वह है जिसका वेद विधान करता है, वह नहीं जो किसी को सही लगे।" }, src: "Taittiriya Upanishad 1.11" },
+      "31": { ic: "🔥", en: "Yayati's fire", hi: "ययाति की अग्नि", age: 18, moment: { en: "{name} is eighteen and eats a whole box of sweets meant for guests, one at a time, each one to stop thinking about the next.", hi: "{name} अठारह बरस {का|की} है। मेहमानों के लिए रखा मिठाई का पूरा डिब्बा एक-एक करके खा लिया, हर एक इसलिए कि अगले का ख़याल छूटे।" }, mirror: { en: "Yayāti, after a thousand years in his son's borrowed youth, said it himself: desire is never quenched by enjoying it; it grows like a fire fed with ghee.", hi: "पुत्र के उधार यौवन में हज़ार वर्ष बिताकर ययाति ने स्वयं कहा: भोग से इच्छा कभी शांत नहीं होती; घी डालने से अग्नि की तरह बढ़ती है।" }, src: "Mahabharata, Adi Parva" },
+      "32": { ic: "🧂", en: "Salt in water", hi: "जल में नमक", age: 18, moment: { en: "{name} is eighteen and stirs sugar into tea, and cannot see it any more, and tastes it in every sip.", hi: "{name} अठारह बरस {का|की} है। चाय में चीनी घोली, फिर दिखी नहीं, पर हर घूँट में थी।", mirror: { en: "Shvetaketu was shown the same thing with salt in water, and told: so is the Self.", hi: "श्वेतकेतु को यही बात पानी में नमक से दिखाई गई थी, और कहा गया: आत्मा भी ऐसी ही है।" } }, mirror: { en: "Shvetaketu could not see the salt in the water, yet tasted it in every sip. So is the Self.", hi: "श्वेतकेतु को जल में नमक दिखा नहीं, पर हर घूँट में स्वाद था। आत्मा भी ऐसी ही है।" }, src: "Chandogya Upanishad 6.13" },
+      "33": { ic: "🌱", en: "Banyan seed", hi: "बरगद का बीज", age: 19, moment: { en: "{name} is nineteen, splits a seed open with a thumbnail to see what is inside, and finds nothing.", hi: "{name} उन्नीस बरस {का|की} है। {name} ने नाख़ून से एक बीज चीरकर देखा कि भीतर क्या है, और कुछ नहीं मिला।", mirror: { en: "Shvetaketu found nothing in the banyan seed either, and his father said that from that subtle nothing the great tree grows.", hi: "श्वेतकेतु को भी बरगद के बीज में कुछ नहीं मिला था, और पिता ने कहा कि उसी सूक्ष्म 'कुछ नहीं' से विशाल वृक्ष उगता है।" } }, mirror: { en: "Uddālaka has Śvetaketu break open a banyan seed and asks what he sees. 'Nothing at all.' From that subtle nothing, says his father, the great tree grows.", hi: "उद्दालक श्वेतकेतु से बरगद का बीज तुड़वाकर पूछते हैं कि क्या दिखता है। 'कुछ भी नहीं।' उसी सूक्ष्म 'कुछ नहीं' से, पिता कहते हैं, विशाल वृक्ष उगता है।" }, src: "Chandogya Upanishad 6.12" },
+      "35": { ic: "🐎", en: "The chariot", hi: "रथ", age: 20, moment: { en: "{name} is twenty and is learning to drive, and finds the hard part is not the hands or the feet but deciding where to go.", hi: "{name} बीस बरस {का|की} है। गाड़ी चलाना सीखते हुए पता चलता है कि मुश्किल हाथ-पैर नहीं, यह तय करना है कि जाना कहाँ है।" }, mirror: { en: "Yama gives Naciketas a picture: the self rides, the body is the chariot, the senses the horses, the mind the reins, the intellect the driver. Every school after him argued over who really holds the reins.", hi: "यम नचिकेता को एक चित्र देते हैं: आत्मा रथी है, शरीर रथ, इंद्रियाँ घोड़े, मन लगाम और बुद्धि सारथी। उनके बाद हर दर्शन इसी पर लड़ा कि लगाम असल में किसके हाथ में है।" }, src: "Katha Upanishad 1.3.3–4" },
+      "36": { ic: "💎", en: "You are That", hi: "तत् त्वम् असि", age: 21, moment: { en: "{name} is twenty-one and, looking at a stranger across a crowded platform, has the sudden plain thought: that could be me.", hi: "{name} इक्कीस बरस {का|की} है। भीड़ भरे प्लेटफ़ॉर्म पर एक अजनबी को देखते हुए अचानक सीधा-सा ख़याल आता है: {यह मैं भी हो सकता था|यह मैं भी हो सकती थी}।" }, mirror: { en: "'You are That, Shvetaketu,' said his father Uddalaka.", hi: "'तुम वही हो, श्वेतकेतु,' पिता उद्दालक ने कहा।" }, src: "Chandogya Upanishad 6.8.7" },
+      "37": { ic: "🙌", en: "Blessing", hi: "आशीर्वाद", age: 22, moment: { en: "{name} is twenty-two. The teacher hands back the last piece of work without a mark on it and says, 'You don't need me for this any more.'", hi: "{name} बाईस बरस {का|की} है। गुरुजी आख़िरी काम बिना किसी निशान के लौटाते हैं और कहते हैं, 'अब इसके लिए तुम्हें मेरी ज़रूरत नहीं।'", mirror: { en: "Aruni's teacher said much the same, and the story says every Veda lit up in Aruni's mind at once.", hi: "आरुणि के गुरु ने भी लगभग यही कहा था, और कथा कहती है कि उसी क्षण सारे वेद आरुणि के मन में चमक उठे।" } }, mirror: { en: "Pleased with Aruni, his teacher blessed him: all the Vedas shone in his mind.", hi: "आरुणि से प्रसन्न होकर गुरु ने आशीर्वाद दिया: सारे वेद उसके मन में प्रकाशित हो उठे।" }, src: "Mahabharata, Adi Parva" },
+      "38": { ic: "🎓", en: "Graduation", hi: "समावर्तन", age: 23, moment: { en: "{name} is twenty-three and, on the last day, is given a list of rules by the teacher, and at the end of it one rule for when the rules run out.", hi: "{name} तेईस बरस {का|की} है। आख़िरी दिन गुरुजी नियमों की एक सूची देते हैं, और उसके अंत में एक नियम उस समय के लिए जब नियम ख़त्म हो जाएँ।" }, mirror: { en: "On the last day the Taittirīya's teacher says: speak the truth, follow dharma, let your mother, father, teacher and guest be gods to you. Then the sentence that concedes the rules run out: where there is doubt about conduct, behave as the thoughtful do.", hi: "अंतिम दिन तैत्तिरीय के गुरु कहते हैं: सच बोलो, धर्म पर चलो, माता, पिता, आचार्य और अतिथि को देवता मानो। फिर वह वाक्य जो मानता है कि नियम कहीं खत्म हो जाते हैं: जहाँ आचरण में संशय हो, वहाँ विचारशील लोगों जैसा व्यवहार करो।" }, src: "Taittiriya Upanishad 1.11" },
+      "40": { ic: "🕯️", en: "Parting words", hi: "दीक्षांत उपदेश", age: 25, moment: { en: "{name} is twenty-five and asks three teachers what matters most, and gets three answers.", hi: "{name} पच्चीस बरस {का|की} है। {name} ने तीन गुरुओं से पूछा कि सबसे ज़रूरी क्या है, और तीन अलग उत्तर मिले।" }, mirror: { en: "The Taittirīya lists the duties and adds 'and study and teaching' after every one. Then three teachers disagree: Satyavacas says truth matters most, Taponitya austerity, and Nāka Maudgalya says study and teaching alone, for that is austerity.", hi: "तैत्तिरीय कर्तव्य गिनाता है और हर एक के बाद जोड़ता है 'और स्वाध्याय तथा प्रवचन'। फिर तीन आचार्य असहमत होते हैं: सत्यवचा कहते हैं सत्य सबसे बड़ा है, तपोनित्य कहते हैं तप, और नाक मौद्गल्य कहते हैं केवल स्वाध्याय और प्रवचन, क्योंकि वही तप है।" }, src: "Taittiriya Upanishad 1.9" },
+      "41": { ic: "💍", en: "Marriage", hi: "विवाह", age: 26, moment: { en: "{name} is twenty-six and takes seven steps around a fire with someone {name} has met four times.", hi: "{name} छब्बीस बरस {का|की} है। {name} ने किसी के साथ अग्नि के सात फेरे लिए, जिससे अब तक बस चार बार मिलना हुआ है।", mirror: { en: "The Gṛhya Sūtras give the words for after the seventh step: be my friend, before anything else is promised.", hi: "गृह्यसूत्र सातवें पग के बाद के शब्द देते हैं: 'मेरे सखा बनो', किसी और वचन से पहले।" } }, mirror: { en: "Seven steps round the fire, and the Gṛhya Sūtras give the words for the seventh: sakhā saptapadā bhava, be my friend. The vow is to friendship before it is to anything else.", hi: "अग्नि के चारों ओर सात कदम, और गृह्यसूत्र सातवें कदम के शब्द देते हैं: सखा सप्तपदा भव, मेरे मित्र बनो। व्रत किसी और चीज़ से पहले मित्रता का है।" }, src: "Grihya Sutras" },
+      "42": { ic: "🏡", en: "Home", hi: "गृह", age: 27, moment: { en: "{name} is twenty-seven and cooks for more people than live in the house, because people keep turning up.", hi: "{name} सत्ताईस बरस {का|की} है। घर में जितने रहते हैं उससे ज़्यादा लोगों का खाना बनता है, क्योंकि लोग आते ही रहते हैं।" }, mirror: { en: "Manu ranks the householder highest of the four stages, not because he is holiest but because the other three eat his food.", hi: "मनु चारों आश्रमों में गृहस्थ को सबसे ऊँचा रखते हैं, इसलिए नहीं कि वह सबसे पवित्र है, बल्कि इसलिए कि बाकी तीनों उसी का अन्न खाते हैं।" }, src: "Manusmriti 3.77–78" },
+      "43": { ic: "🏹", en: "The bowstring", hi: "धनुष की डोरी", age: 28, moment: { en: "{name} is twenty-eight and saves the last mango for tomorrow, and by tomorrow it has gone soft and brown.", hi: "{name} अट्ठाईस बरस {का|की} है। आख़िरी आम कल के लिए बचाकर रखा, और कल तक वह पिलपिला और भूरा हो चुका था।", mirror: { en: "The jackal saved the meat for later too, and started on the bowstring. The bow sprang and killed him.", hi: "सियार ने भी मांस बाद के लिए बचाया और पहले धनुष की डोरी चबाने लगा। धनुष छिटका और उसे मार गया।" } }, mirror: { en: "To save the meat for later, the jackal gnawed the bowstring first. The bow sprang and killed him.", hi: "मांस बचाने के लिए सियार ने पहले धनुष की डोरी चबाई। धनुष उछला और वह मर गया।" }, src: "Panchatantra" },
+      "45": { ic: "🐄", en: "A thousand cows", hi: "हज़ार गायें", age: 30, moment: { en: "{name} is thirty and comes home after a long time away, and the neighbours say {name} looks different. Nobody can say how.", hi: "{name} तीस बरस {का|की} है। लंबे समय बाद घर लौटने पर पड़ोसी कहते हैं कि चेहरा कुछ बदला-बदला है। कैसे, यह कोई नहीं बता पाता।", mirror: { en: "Satyakama came back from the forest with a thousand cows, and his teacher said his face shone like one who knows Brahman.", hi: "सत्यकाम वन से हज़ार गायें लेकर लौटा, और गुरु ने कहा कि उसका चेहरा ब्रह्म को जानने वाले जैसा चमक रहा है।" } }, mirror: { en: "Satyakama returned with a thousand cows, his face shining like one who knows Brahman.", hi: "सत्यकाम हज़ार गायें लेकर लौटा, उसका मुख ब्रह्मज्ञानी की तरह चमक रहा था।" }, src: "Chandogya Upanishad 4.9" },
+      "46": { ic: "⚔️", en: "Kurukshetra", hi: "कुरुक्षेत्र", age: 31, moment: { en: "{name} is thirty-one and hears from an uncle, after it is all over, how the family quarrel ended: nobody speaks to anybody now.", hi: "{name} इकतीस बरस {का|की} है। एक चाचा से, सब ख़त्म हो जाने के बाद, पता चलता है कि घर का झगड़ा कैसे निपटा: अब कोई किसी से बात नहीं करता।", mirror: { en: "Dhritarashtra heard a whole war that way, told to him by Sanjaya while he sat in the palace.", hi: "धृतराष्ट्र ने पूरा युद्ध ऐसे ही सुना था, महल में बैठे-बैठे, संजय के मुँह से।" } }, mirror: { en: "Dhṛtarāṣṭra's blind love ended in a war that destroyed the family, and he heard all of it told to him by Sañjaya, sitting in the palace.", hi: "धृतराष्ट्र के अंधे मोह का अंत उस युद्ध में हुआ जिसने कुल का नाश कर दिया, और उन्होंने उसे महल में बैठे-बैठे संजय के मुँह से सुना।" }, src: "Mahabharata" },
+      "48": { ic: "🫘", en: "Leftover beans", hi: "जूठे उड़द", age: 33, moment: { en: "{name} is thirty-three and it is a bad year. {name} borrows from a friend for food, but not for the rent, which can wait.", hi: "{name} तैंतीस बरस {का|की} है, और साल बुरा है। {name} ने खाने के लिए एक दोस्त से उधार लिया, पर किराए के लिए नहीं: वह रुक सकता है।", mirror: { en: "Ushasti made the same distinction in a famine. He ate an elephant-keeper's leftover beans, then refused his water: the beans he could not live without, the water he could find elsewhere.", hi: "उषस्ति ने अकाल में यही भेद किया था। महावत की बची हुई उड़द खा ली, पर उसका पानी नहीं पिया: उड़द के बिना जी नहीं सकते थे, पानी कहीं और मिल जाता।" } }, mirror: { en: "In a famine Uṣasti Cākrāyaṇa eats an elephant-keeper's leftover beans, then refuses his water. The beans he could not live without; the water he could find elsewhere.", hi: "अकाल में उषस्ति चाक्रायण एक महावत के जूठे उड़द खा लेते हैं, फिर उसका जल लेने से मना कर देते हैं। उड़द के बिना वे जी नहीं सकते थे; जल कहीं और मिल सकता था।" }, src: "Chandogya Upanishad 1.10" },
+      "49": { ic: "🌾", en: "Five offerings", hi: "पंच महायज्ञ", age: 34, moment: { en: "{name} is thirty-four and feeds four people before eating, every day, and has stopped noticing it.", hi: "{name} चौंतीस बरस {का|की} है। हर दिन अपने खाने से पहले चार लोगों को खिलाना होता है, और अब इस पर ध्यान भी नहीं जाता।" }, mirror: { en: "Born owing three debts, to the sages, the gods and the ancestors, the householder pays them daily. Cārvāka's reply: a debt nobody can show you a ledger for is not a debt.", hi: "तीन ऋण लेकर जन्मा गृहस्थ, ऋषियों, देवताओं और पितरों का, उन्हें रोज़ चुकाता है। चार्वाक का उत्तर: जिस ऋण का बहीखाता कोई न दिखा सके, वह ऋण नहीं।" }, src: "Manusmriti 3.70" },
+      "50": { ic: "💔", en: "Too late", hi: "पछतावा", age: 35, moment: { en: "For a week {name}'s daughter flinches when {name} comes into a room. {name} keeps explaining, to people who did not ask.", hi: "हफ़्ते भर {name} की बेटी, {name} के कमरे में आते ही सहम जाती है। {name} उन लोगों को भी सफ़ाई {देता फिरता है|देती फिरती है} जिन्होंने कुछ पूछा ही नहीं।", mirror: { en: "Then she found the cobra, dead beside the cradle. The mongoose had saved her child.", hi: "फिर ब्राह्मणी को पालने के पास मरा हुआ साँप मिला। नेवले ने उसके बच्चे को बचाया था।" } }, mirror: { en: "Then she found the dead cobra: the mongoose had saved her child. Anger acts first and weeps later.", hi: "फिर उसने मरा हुआ साँप देखा: नेवले ने बच्चे को बचाया था। क्रोध पहले करता है, बाद में पछताता है।" }, callsBack: 59, src: "Panchatantra" },
+      "52": { ic: "🎲", en: "The dice game", hi: "द्यूत क्रीड़ा", age: 38, moment: { en: "{name} is thirty-eight and takes a bet with the rival that cannot be won, because refusing would look like losing.", hi: "{name} अड़तीस बरस {का|की} है। {name} ने प्रतिद्वंद्वी से ऐसी शर्त लगा ली जो जीती ही नहीं जा सकती, क्योंकि मना करना हार जैसा लगता।", mirror: { en: "Envy took Duryodhana to the rigged game of dice the same way, and from there to ruin.", hi: "ईर्ष्या दुर्योधन को भी ऐसे ही कपट के जुए तक ले गई, और वहाँ से विनाश तक।" } }, mirror: { en: "Envy led Duryodhana to the rigged game of dice, and from there to ruin.", hi: "ईर्ष्या दुर्योधन को कपट के जुए तक ले गई, और वहाँ से विनाश तक।" }, src: "Mahabharata, Sabha Parva" },
+      "53": { ic: "🔆", en: "Yama teaches", hi: "यम का उपदेश", age: 39, moment: { en: "{name} is thirty-nine and is finally told the thing that was being kept back, by someone who has decided {name} can bear it.", hi: "{name} उनतालीस बरस {का|की} है। आख़िरकार कोई वह बात बता देता है जो अब तक छिपाई गई थी, यह तय करके कि {name} उसे {सह लेगा|सह लेगी}।", mirror: { en: "Yama tested Nachiketa three times before telling him, and only then taught him the secret of the deathless Self.", hi: "यमराज ने नचिकेता को तीन बार परखा, और तभी उसे अमर आत्मा का रहस्य बताया।" } }, mirror: { en: "Moved by his resolve, Yama taught Nachiketa the secret of the deathless Self.", hi: "उसके दृढ़ निश्चय से प्रसन्न होकर यम ने नचिकेता को अमर आत्मा का रहस्य बताया।" }, src: "Katha Upanishad 1.2" },
+      "54": { ic: "🛞", en: "Raikva", hi: "रैक्व", age: 40, moment: { en: "{name} is forty. A problem that has beaten {name} for a month is solved in ten minutes by the man who mends bicycles outside.", hi: "{name} चालीस बरस {का|की} है। महीने भर से {name} से जो उलझन नहीं सुलझ रही थी, उसे बाहर साइकिल ठीक करने वाले ने दस मिनट में सुलझा दिया।", mirror: { en: "Raikva was sitting under his cart scratching his sores, and knew more than the king.", hi: "रैक्व अपनी गाड़ी के नीचे बैठे खुजली खुजा रहे थे, और राजा से ज़्यादा जानते थे।" } }, mirror: { en: "Raikva, the humble man sitting under his cart, knew more than the king.", hi: "अपनी गाड़ी के नीचे बैठे साधारण रैक्व राजा से अधिक जानते थे।" }, src: "Chandogya Upanishad 4.1" },
+      "56": { ic: "🍽️", en: "The guest", hi: "अतिथि", age: 43, moment: { en: "{name} is forty-three. Someone arrives unannounced at dinner time, and {name}'s plate is the one that goes to the guest.", hi: "{name} तैंतालीस बरस {का|की} है। खाने के समय कोई बिना बताए आ जाता है, और मेहमान के आगे {name} की ही थाली जाती है।" }, mirror: { en: "The Taittirīya's teacher says honour the guest as a god, and the word says why: a-tithi, the one without a date. You feed him before you eat because he is the one visitor you could not have prepared for.", hi: "तैत्तिरीय के गुरु कहते हैं अतिथि को देवता मानो, और शब्द ही कारण बताता है: अ-तिथि, जिसकी कोई तिथि नहीं। उसे अपने से पहले खिलाते हो क्योंकि वही एक आगंतुक है जिसकी तैयारी तुम नहीं कर सकते थे।" }, src: "Taittiriya Upanishad 1.11" },
+      "58": { ic: "🌿", en: "A blade of grass", hi: "तिनका", age: 46, moment: { en: "{name} is forty-six and cannot get the lid off a jar, and has to hand it to a child.", hi: "{name} छियालीस बरस {का|की} है। एक बरनी का ढक्कन नहीं खुलता, और उसे एक बच्चे को थमाना पड़ता है।", mirror: { en: "Agni could not burn a single blade of grass, and Vayu could not move it.", hi: "अग्नि घास का एक तिनका नहीं जला सके, और वायु उसे हिला नहीं सके।" } }, mirror: { en: "Agni could not burn a blade of grass, nor Vayu blow it away. All power is Brahman's.", hi: "अग्नि एक तिनका न जला सके, न वायु उसे उड़ा सके। सारी शक्ति ब्रह्म की है।" }, src: "Kena Upanishad 3" },
+      "60": { ic: "🧓", en: "Grey hair", hi: "श्वेत केश", age: 50, moment: { en: "{name} is fifty. The hair at the temple has gone white, and {name}'s son has a son.", hi: "{name} पचास बरस {का|की} है। कनपटी के बाल सफ़ेद हो गए हैं, और बेटे के घर बेटा हुआ है।", mirror: { en: "Manu does not fix the moment by an age. He fixes it by three signs, and these are two of them.", hi: "मनु इस क्षण को उम्र से तय नहीं करते। तीन लक्षणों से करते हैं, और ये उनमें से दो हैं।" } }, mirror: { en: "Manu fixes the moment by three signs, not by an age: the skin wrinkles, the hair whitens, and you see your son's son.", hi: "मनु यह क्षण उम्र से नहीं, तीन लक्षणों से तय करते हैं: त्वचा पर झुर्रियाँ, बाल सफ़ेद, और जब तुम अपने बेटे का बेटा देखो।" }, src: "Manusmriti 6.2" },
+      "61": { ic: "🔁", en: "Begin again", hi: "फिर से आरंभ", age: 51, moment: { en: "{name} is fifty-one and starts again from the beginning, with the first lesson, as if none of the rest had happened.", hi: "{name} इक्यावन बरस {का|की} है। सब कुछ फिर शुरू से शुरू होता है, पहले पाठ से, जैसे बाक़ी कुछ हुआ ही न हो।", mirror: { en: "Indra was not satisfied with the answer Virochana took home, and came back to learn, again and again, for 101 years.", hi: "विरोचन जिस उत्तर से संतुष्ट होकर लौटा, उससे इंद्र संतुष्ट नहीं हुए। वे बार-बार सीखने लौटे, एक सौ एक बरस तक।" } }, mirror: { en: "Indra was not satisfied with that answer. He came back to learn, again and again, for 101 years.", hi: "इंद्र उस उत्तर से संतुष्ट न हुए। वे बार-बार सीखने लौटे, कुल १०१ वर्ष।" }, callsBack: 99, src: "Chandogya Upanishad 8.11" },
+      "63": { ic: "🎁", en: "Enjoy by letting go", hi: "त्यागपूर्वक भोग", age: 53, moment: { en: "{name} is fifty-three and eats a mango slowly on the step, and does not once think about who it should have been saved for.", hi: "{name} तिरपन बरस {का|की} है। {name} ने सीढ़ी पर बैठकर धीरे-धीरे एक आम खाया, और एक बार भी नहीं सोचा कि इसे किसके लिए बचाना चाहिए था।" }, mirror: { en: "The Īśa's first verse: all this is pervaded by the Lord; enjoy it by letting go, and covet no one's wealth. It is one sentence, and it can be read as an order to renounce or as permission to enjoy.", hi: "ईश का पहला मंत्र: यह सब ईश्वर से व्याप्त है; त्यागपूर्वक भोगो, किसी के धन का लोभ न करो। वाक्य एक है, और इसे त्याग का आदेश भी पढ़ा जा सकता है और भोग की अनुमति भी।" }, src: "Isha Upanishad 1" },
+      "64": { ic: "🐾", en: "Born a deer", hi: "हिरण का जन्म", age: 53, moment: { en: "{name} is fifty-three and dreams the same dream every night: the son small again, and lost in a crowd.", hi: "{name} तिरपन बरस {का|की} है। हर रात एक ही सपना आता है: बेटा फिर छोटा है, और भीड़ में खो गया है।", mirror: { en: "Bharata was thinking of the fawn when he died, and was born a deer.", hi: "मरते समय भरत हिरण-शावक के बारे में सोच रहे थे, और अगले जन्म में हिरण बने।" } }, mirror: { en: "Thinking of the fawn at the moment of death, Bharata was reborn as a deer.", hi: "मृत्यु के समय शावक का ध्यान करते रहने से भरत हिरण बनकर जन्मे।" }, src: "Bhagavata Purana 5.8" },
+      "66": { ic: "🌲", en: "To the forest", hi: "वन की ओर", age: 54, moment: { en: "{name} is fifty-four and hands over the keys, the accounts and the house, and is still standing in the doorway.", hi: "{name} चौवन बरस {का|की} है। चाबियाँ, हिसाब और घर सौंप दिया, और अब भी दरवाज़े पर ही {खड़ा है|खड़ी है}।", mirror: { en: "Yajnavalkya got as far as the door before Maitreyi asked him a question he could not leave.", hi: "याज्ञवल्क्य दरवाज़े तक ही पहुँचे थे कि मैत्रेयी ने ऐसा प्रश्न पूछा जिसे छोड़कर वे जा नहीं सके।" } }, mirror: { en: "He hands over the house, takes the fires with him and goes. Yājñavalkya did this, and Maitreyī stopped him at the door with a question.", hi: "वह घर सौंपता है, अग्नियाँ साथ लेता है और चल पड़ता है। याज्ञवल्क्य ने यही किया, और मैत्रेयी ने उन्हें द्वार पर एक प्रश्न से रोक लिया।" }, src: "Brihadaranyaka Upanishad 2.4" },
+      "67": { ic: "🫂", en: "No hatred", hi: "द्वेष नहीं", age: 55, moment: { en: "{name} is fifty-five and meets the old rival again at a wedding, and finds there is nothing left to feel about it.", hi: "{name} पचपन बरस {का|की} है। एक शादी में पुराने प्रतिद्वंद्वी से फिर मुलाक़ात होती है, और भीतर उसके बारे में कुछ भी बाक़ी नहीं निकलता।" }, mirror: { en: "The Īśa's sixth verse: one who sees all beings in the Self, and the Self in all beings, hates no one. It does not say how you would know you had seen it, except that the hatred stops.", hi: "ईश का छठा मंत्र: जो सब प्राणियों को आत्मा में और आत्मा को सब में देखता है, वह किसी से घृणा नहीं करता। यह नहीं बताता कि देख लेने का पता कैसे चले, सिवाय इसके कि घृणा रुक जाती है।" }, src: "Isha Upanishad 6" },
+      "68": { ic: "📚", en: "Only words", hi: "केवल शब्द", age: 56, moment: { en: "{name} is fifty-six, has read every book on the shelf twice, and one evening says out loud that none of it has helped.", hi: "{name} छप्पन बरस {का|की} है। अलमारी की हर किताब दो बार पढ़ी जा चुकी है, और एक शाम {name} ने ज़ोर से कह दिया कि किसी से कोई मदद नहीं मिली।", mirror: { en: "Narada came to Sanatkumara the same way, every scripture mastered: 'I know only words, not the Self.'", hi: "नारद भी ऐसे ही सनत्कुमार के पास आए थे, सब शास्त्र पढ़कर: 'मैं केवल शब्द जानता हूँ, आत्मा नहीं।'" } }, mirror: { en: "Narada had mastered every scripture, yet came grieving: 'I know only words, not the Self.'", hi: "नारद सब शास्त्र जानते थे, फिर भी दुखी होकर बोले: 'मैं केवल शब्द जानता हूँ, आत्मा नहीं।'" }, src: "Chandogya Upanishad 7.1" },
+      "70": { ic: "🪆", en: "Five sheaths", hi: "पंचकोश", age: 58, moment: { en: "{name} is fifty-eight and at the end of the day takes off the watch, then the glasses, then the shawl, and wonders what is left once all of it is off.", hi: "{name} अट्ठावन बरस {का|की} है। दिन ढलने पर घड़ी उतारी, फिर चश्मा, फिर शॉल, और सोचा कि सब उतर जाने के बाद क्या बचता है।", mirror: { en: "The Taittirīya peels the self the same way, layer by layer: food, breath, mind, understanding, bliss. Each sheath has another self inside it.", hi: "तैत्तिरीय भी आत्मा को ऐसे ही परत-दर-परत खोलता है: अन्न, प्राण, मन, विज्ञान, आनंद। हर कोश के भीतर एक और आत्मा है।" } }, mirror: { en: "The Taittirīya opens the self layer by layer: food, breath, mind, understanding, bliss. Each sheath is called a self, and each is said to have another self inside it.", hi: "तैत्तिरीय आत्मा को परत-दर-परत खोलता है: अन्न, प्राण, मन, विज्ञान, आनंद। हर कोश को आत्मा कहा गया है, और हर एक के भीतर एक और आत्मा बताई गई है।" }, src: "Taittiriya Upanishad 2" },
+      "71": { ic: "🐈", en: "Unmasked", hi: "ढोंग उजागर", age: 59, moment: { en: "{name} is fifty-nine and overhears what the neighbours really say about all that praying.", hi: "{name} उनसठ बरस {का|की} है। अनजाने में सुनाई पड़ जाता है कि पड़ोसी उस सारी पूजा-पाठ के बारे में असल में क्या कहते हैं।" }, mirror: { en: "The cat's prayers were only a trap. True austerity needs no audience.", hi: "बिल्ली की प्रार्थना केवल एक जाल थी। सच्चे तप को दर्शकों की ज़रूरत नहीं।" }, src: "Panchatantra" },
+      "73": { ic: "🌬️", en: "Breath", hi: "प्राण", age: 61, moment: { en: "{name} is sixty-one, has a bad chest all winter, and learns that when the breath runs short everything else goes with it.", hi: "{name} इकसठ बरस {का|की} है। पूरी सर्दी छाती जकड़ी रही, और समझ आया कि साँस छोटी पड़ते ही बाक़ी सब भी साथ छोड़ने लगता है।", mirror: { en: "The Chāndogya's senses found out the same way. Each left the body for a year to prove it was the greatest, and the body lived through every absence but breath's.", hi: "छांदोग्य की इंद्रियों को भी ऐसे ही पता चला था। हर एक साल भर शरीर छोड़कर गई, यह दिखाने कि वही सबसे बड़ी है, और शरीर हर एक के बिना जी गया, बस प्राण के बिना नहीं।" } }, mirror: { en: "In the Chāndogya the senses quarrel over which is greatest, and each leaves the body for a year to prove it. The body survives every absence but one: when breath begins to go, it drags all the others with it.", hi: "छांदोग्य में इंद्रियाँ झगड़ती हैं कि सबसे बड़ा कौन, और साबित करने के लिए हर एक साल भर शरीर छोड़ देती है। शरीर हर अनुपस्थिति झेल लेता है, एक को छोड़कर: जब प्राण जाने लगे तो बाकी सबको साथ खींच ले जाता है।" }, src: "Chandogya Upanishad 5.1" },
+      "74": { ic: "🛕", en: "Temple of the heart", hi: "हृदय मंदिर", age: 62, moment: { en: "{name} is sixty-two and sits still for ten minutes every morning in the smallest room in the house, and finds it is not small.", hi: "{name} बासठ बरस {का|की} है। हर सुबह घर के सबसे छोटे कमरे में दस मिनट चुप बैठना होता है, और वह कमरा छोटा नहीं लगता।" }, mirror: { en: "The Chāndogya says there is a small lotus-house in the city of the body, and inside it a space as vast as the one outside. The pupils ask the obvious thing: what could there be to look for in so small a space?", hi: "छांदोग्य कहता है कि शरीर रूपी नगर में एक छोटा कमल-गृह है, और उसके भीतर बाहर जितना ही विशाल आकाश। शिष्य वही पूछते हैं जो कोई भी पूछेगा: इतनी छोटी जगह में ढूँढने लायक क्या हो सकता है?" }, src: "Chandogya Upanishad 8.1" },
+      "75": { ic: "👑", en: "Nothing of mine burns", hi: "मेरा कुछ नहीं जलता", age: 63, moment: { en: "{name} is sixty-three. The roof leaks onto everything kept in the trunk for forty years. {name} spreads it all out to dry, and some of it is not worth drying.", hi: "{name} तिरसठ बरस {का|की} है। छत टपकी और चालीस बरस से संदूक में रखा सब कुछ भीग गया। {name} ने सब धूप में फैलाया, और उसमें से कुछ सुखाने लायक़ भी नहीं था।" }, mirror: { en: "When Mithila was on fire, Janaka said: nothing that is truly mine is burning.", hi: "मिथिला जल रही थी, तब जनक बोले: जो सचमुच मेरा है, उसमें से कुछ नहीं जल रहा।" }, src: "Mahabharata, Shanti Parva" },
+      "76": { ic: "🌅", en: "Sandhya", hi: "संध्या", age: 64, moment: { en: "{name} is sixty-four and stands facing the sun every morning, asking for a clearer head, and nothing else.", hi: "{name} चौंसठ बरस {का|की} है। हर सुबह सूरज की ओर मुँह करके एक साफ़ मन माँगा जाता है, और कुछ नहीं।", mirror: { en: "Vishvamitra's verse, the Gāyatrī, asks for exactly that: that the light impel our thoughts. A better mind, not a better life.", hi: "विश्वामित्र का मंत्र, गायत्री, ठीक यही माँगता है: प्रकाश हमारी बुद्धि को प्रेरित करे। बेहतर मन, बेहतर जीवन नहीं।" } }, mirror: { en: "Three times a day he faces the sun and says the Gāyatrī, a verse that asks the light to impel our thoughts. It asks for a better mind, not a better life.", hi: "दिन में तीन बार वह सूर्य की ओर मुख करके गायत्री कहता है, एक मंत्र जो प्रकाश से हमारी बुद्धि को प्रेरित करने को कहता है। यह बेहतर मन माँगता है, बेहतर जीवन नहीं।" }, src: "Rig Veda 3.62.10" },
+      "78": { ic: "💞", en: "For the Self", hi: "आत्मा के लिए", age: 66, moment: { en: "{name} is sixty-six, watches the one {name} married asleep, and cannot tell whose sake the love is for.", hi: "{name} छियासठ बरस {का|की} है। सोते हुए जीवनसाथी को देखकर समझ नहीं आता कि यह प्रेम किसके लिए है: उसके लिए, या अपने लिए।" }, mirror: { en: "Yājñavalkya tells Maitreyī that a husband is dear not for the husband's sake but for the Self's, and the same for a wife, for sons, for wealth, for everything. It is either the most selfish sentence in the Upaniṣads or the least.", hi: "याज्ञवल्क्य मैत्रेयी से कहते हैं कि पति, पति के लिए नहीं, आत्मा के लिए प्रिय होता है, और यही पत्नी, पुत्र, धन, सब के लिए। यह या तो उपनिषदों का सबसे स्वार्थी वाक्य है या सबसे निःस्वार्थ।" }, src: "Brihadaranyaka Upanishad 2.4.5" },
+      "79": { ic: "🙋‍♀️", en: "Gargi", hi: "गार्गी", age: 67, moment: { en: "{name} is sixty-seven and keeps asking the doctor 'and then what?', and is finally told not to ask so much.", hi: "{name} सड़सठ बरस {का|की} है। {name} ने डॉक्टर से बार-बार पूछा, 'और फिर?', और आख़िर में कहा गया कि इतना मत पूछो।", mirror: { en: "Gargi pushed Yajnavalkya the same way, asking what the world is woven on, until he said: 'Do not question too far, Gargi, or your head will fall off.'", hi: "गार्गी ने याज्ञवल्क्य को ऐसे ही घेरा था, पूछती रहीं कि संसार किस पर बुना है, जब तक उन्होंने नहीं कहा: 'गार्गी, अति प्रश्न मत करो, वरना तुम्हारा सिर गिर जाएगा।'" } }, mirror: { en: "At Janaka's court Gārgī asks Yājñavalkya what the world is woven on, and what that is woven on, until he stops her: 'Do not question too far, Gārgī, or your head will fall off.'", hi: "जनक की सभा में गार्गी याज्ञवल्क्य से पूछती हैं कि संसार किस पर बुना है, और वह किस पर, जब तक वे उन्हें रोक नहीं देते: 'गार्गी, अति-प्रश्न मत करो, कहीं तुम्हारा सिर न गिर जाए।'" }, src: "Brihadaranyaka Upanishad 3.6" },
+      "80": { ic: "🧡", en: "Saffron robe", hi: "भगवा वस्त्र", age: 68, moment: { en: "{name} is sixty-eight and gives away everything that will not fit in one bag.", hi: "{name} अड़सठ बरस {का|की} है। जो एक झोले में न समाए, वह सब दे दिया।", mirror: { en: "Manu's rite for this goes further: you perform your own funeral, take the sacred fires into yourself, and take a new name.", hi: "मनु की विधि इससे आगे जाती है: अपना ही अंतिम संस्कार करो, पवित्र अग्नियों को अपने भीतर ले लो, और नया नाम धारण करो।" } }, mirror: { en: "At the sannyāsa rite he performs his own funeral, takes the sacred fires into himself, as Manu puts it, and takes a new name. From that morning he is dead in law and owes the three debts no longer.", hi: "संन्यास दीक्षा में वह अपना ही श्राद्ध करता है, मनु के शब्दों में यज्ञ की अग्नियों को अपने भीतर रख लेता है, और नया नाम लेता है। उस सुबह से वह विधि की दृष्टि में मृत है और तीनों ऋणों से मुक्त।" }, src: "Manusmriti 6.38" },
+      "81": { ic: "🍃", en: "Neti neti", hi: "नेति नेति", age: 69, moment: { en: "{name} is sixty-nine. A child asks what {name} is, and {name} says 'not this' of the body, then of the name, then of the job, until the child gets bored.", hi: "{name} उनहत्तर बरस {का|की} है। एक बच्चे ने पूछा कि तुम क्या हो। {name} ने शरीर के लिए कहा 'यह नहीं', फिर नाम के लिए, फिर काम के लिए, जब तक बच्चा ऊब नहीं गया।" }, mirror: { en: "Yājñavalkya's description of the Self is two words long, and both are refusals: neti, neti, not this, not this.", hi: "याज्ञवल्क्य का आत्मा-वर्णन दो शब्दों का है, और दोनों इनकार हैं: नेति, नेति, यह नहीं, यह नहीं।" }, src: "Brihadaranyaka Upanishad 2.3.6" },
+      "82": { ic: "🌙", en: "Four states", hi: "चार अवस्थाएँ", age: 70, moment: { en: "{name} is seventy, wakes from a dream at four in the morning, and for a moment cannot remember any name or face at all, and is not afraid.", hi: "{name} सत्तर बरस {का|की} है। सुबह चार बजे एक सपने से नींद खुलती है, और एक क्षण तक कोई नाम, कोई चेहरा याद नहीं आता, और डर भी नहीं लगता।" }, mirror: { en: "The Māṇḍūkya, twelve verses long, counts waking, dreaming and deep sleep, then a fourth state it will describe only by what it is not.", hi: "बारह मंत्रों का माण्डूक्य जाग्रत, स्वप्न और सुषुप्ति गिनता है, फिर एक चौथी अवस्था, जिसका वर्णन वह केवल इससे करता है कि वह क्या नहीं है।" }, src: "Mandukya Upanishad 3–7" },
+      "83": { ic: "🌌", en: "Immortality", hi: "अमृतत्व", age: 71, moment: { en: "{name} is seventy-one and tells a child who asked the one thing worth knowing, then goes for a walk alone and does not hurry back.", hi: "{name} इकहत्तर बरस {का|की} है। {name} ने पूछने वाले एक बच्चे को वह एक बात बता दी जो जानने लायक़ है, और फिर अकेले टहलने {निकल गया|निकल गई}, लौटने की कोई जल्दी नहीं।" }, mirror: { en: "Yajnavalkya taught Maitreyi the way to immortality, then left for the forest.", hi: "याज्ञवल्क्य ने मैत्रेयी को अमृतत्व का मार्ग बताया और वन चले गए।" }, src: "Brihadaranyaka Upanishad 4.5" },
+      "84": { ic: "🥣", en: "Alms", hi: "भिक्षा", age: 72, moment: { en: "{name} is seventy-two and eats what is given at seven houses, and keeps nothing for tomorrow.", hi: "{name} बहत्तर बरस {का|की} है। सात घरों से जो मिलता है वही खाया जाता है, और कल के लिए कुछ नहीं रखा जाता।", mirror: { en: "Mīmāṃsā objected: a man with no fire cannot sacrifice, and a man who cannot sacrifice cannot be doing dharma.", hi: "मीमांसा ने आपत्ति की: जिसके पास अग्नि नहीं, वह यज्ञ नहीं कर सकता, और जो यज्ञ नहीं कर सकता, वह धर्म नहीं कर रहा।" } }, mirror: { en: "He begs at seven houses, takes what is given and keeps nothing for tomorrow. Mīmāṃsā objected: a man with no fire cannot sacrifice, and a man who cannot sacrifice cannot be doing dharma.", hi: "वह सात घरों से भिक्षा माँगता है, जो मिले ले लेता है और कल के लिए कुछ नहीं रखता। मीमांसा ने आपत्ति की: जिसके पास अग्नि नहीं वह यज्ञ नहीं कर सकता, और जो यज्ञ नहीं कर सकता वह धर्म नहीं कर रहा।" }, src: "" },
+      "86": { ic: "❔", en: "By whom?", hi: "केन?", age: 74, moment: { en: "{name} is seventy-four, looks at {his|her|their} own hand for a long time, and asks who is doing the looking.", hi: "{name} चौहत्तर बरस {का|की} है। {name} ने देर तक अपना ही हाथ देखा, और पूछा कि देख कौन रहा है।" }, mirror: { en: "The Kena opens with a student's question: by whom is the mind sent forth? By whom does the eye see? The answer turns out to be the one thing the eye cannot see.", hi: "केन एक शिष्य के प्रश्न से खुलता है: किसके द्वारा मन प्रेरित होता है? किससे आँख देखती है? उत्तर निकलता है वही एक चीज़ जिसे आँख नहीं देख सकती।" }, src: "Kena Upanishad 1.1" },
+      "87": { ic: "🌞", en: "The golden lid", hi: "स्वर्ण पात्र", age: 75, moment: { en: "{name} is seventy-five. The cataract is taken off one eye, and the world is bluer than it has been for years.", hi: "{name} पचहत्तर बरस {का|की} है। एक आँख से मोतियाबिंद हटाया गया, और दुनिया बरसों बाद इतनी नीली दिखी।" }, mirror: { en: "The face of truth is covered by a golden disc. Uncover it, O Pushan, so I may see.", hi: "सत्य का मुख सोने के पात्र से ढका है। हे पूषन्, उसे हटाओ ताकि मैं देख सकूँ।" }, src: "Isha Upanishad 15" },
+      "89": { ic: "🌕", en: "Bliss", hi: "आनंद", age: 77, moment: { en: "{name} is seventy-seven and laughs out loud, alone, at nothing in particular, and cannot stop for a while.", hi: "{name} सतहत्तर बरस {का|की} है। अकेले बैठे, किसी ख़ास बात के बिना, हँसी छूट जाती है और देर तक नहीं रुकती।", mirror: { en: "Bhrigu got there on the fifth try: Brahman is bliss, and from bliss all beings are born.", hi: "भृगु पाँचवीं बार में वहाँ पहुँचा: ब्रह्म आनंद है, और आनंद से ही सब प्राणी जन्मते हैं।" } }, mirror: { en: "At last Bhrigu knew: Brahman is bliss. From bliss all beings are born.", hi: "अंत में भृगु ने जाना: ब्रह्म आनंद है। आनंद से ही सब प्राणी जन्मते हैं।" }, src: "Taittiriya Upanishad 3.6" },
+      "90": { ic: "🪔", en: "Lead me to light", hi: "तमसो मा ज्योतिर्गमय", age: 78, moment: { en: "{name} is seventy-eight and wakes in the dark not knowing which house this is, and waits, and the window comes back.", hi: "{name} अठहत्तर बरस {का|की} है। अँधेरे में नींद खुलती है, पता नहीं यह कौन-सा घर है। प्रतीक्षा, और फिर खिड़की लौट आती है।" }, mirror: { en: "Lead me from the unreal to the real. The line is older than the schools that use it, and each fills in 'the real' differently: for Sāṃkhya the witness, for Nyāya a self with properties, for Advaita the only thing there is.", hi: "असत् से सत् की ओर ले चलो। यह पंक्ति उसका प्रयोग करने वाले दर्शनों से पुरानी है, और हर एक 'सत्' को अलग भरता है: सांख्य के लिए साक्षी, न्याय के लिए गुणों वाली आत्मा, अद्वैत के लिए वह एकमात्र जो है।" }, src: "Brihadaranyaka Upanishad 1.3.28" },
+      "91": { ic: "🧠", en: "Prajnanam Brahma", hi: "प्रज्ञानं ब्रह्म", age: 79, moment: { en: "{name} is seventy-nine and, half asleep in the sun, can no longer tell where the warmth stops and {name} begins.", hi: "{name} उन्यासी बरस {का|की} है। धूप में अधसोए, अब पता नहीं चलता कि गरमाहट कहाँ ख़त्म होती है और {name} कहाँ शुरू।" }, mirror: { en: "The Aitareya ends its story of creation with three words: prajñānaṃ brahma, consciousness is Brahman. Everything before it, gods, cows, horses, people, is listed as a name for consciousness.", hi: "ऐतरेय सृष्टि की कथा तीन शब्दों पर समाप्त करता है: प्रज्ञानं ब्रह्म, चेतना ही ब्रह्म है। उससे पहले सब कुछ, देवता, गायें, घोड़े, मनुष्य, चेतना के ही नाम गिनाए गए हैं।" }, src: "Aitareya Upanishad 3.3" },
+      "92": { ic: "💫", en: "Aham Brahmasmi", hi: "अहं ब्रह्मास्मि", age: 80, moment: { en: "{name} is eighty, says 'I' one morning, and for the first time cannot find the edge of it.", hi: "{name} अस्सी बरस {का|की} है। एक सुबह {name} ने 'मैं' कहा, और पहली बार उसका किनारा नहीं मिला।" }, mirror: { en: "In the beginning, says the Bṛhadāraṇyaka, there was only Brahman, and it knew itself as 'I am Brahman', and so became everything. Whoever knows it so becomes all this, and even the gods cannot stop him.", hi: "आरंभ में, बृहदारण्यक कहता है, केवल ब्रह्म था, और उसने स्वयं को 'मैं ब्रह्म हूँ' जाना, और सब कुछ बन गया। जो इसे ऐसे जानता है वह यह सब बन जाता है, और देवता भी उसे रोक नहीं सकते।" }, src: "Brihadaranyaka Upanishad 1.4.10" },
+      "94": { ic: "🐦", en: "The watching bird", hi: "साक्षी पक्षी", age: 82, moment: { en: "{name} is eighty-two, and something that has hurt for years stops hurting one morning, without being mended.", hi: "{name} बयासी बरस {का|की} है। बरसों से जो बात दुखती आ रही थी, वह एक सुबह बिना सुधरे ही दुखना बंद कर देती है।" }, mirror: { en: "The Muṇḍaka finishes the two birds: when the one that eats sees the watcher as its own glory, its grief ends. Whether 'its own' means identity or kinship is exactly where the schools part.", hi: "मुंडक दो पक्षियों की बात पूरी करता है: जब फल खाने वाला साक्षी को अपनी ही महिमा देखता है, तो उसका शोक मिट जाता है। 'अपनी ही' का अर्थ एकता है या नाता, ठीक यहीं दर्शन अलग होते हैं।" }, src: "Mundaka Upanishad 3.1.2" },
+      "95": { ic: "🌀", en: "Ayam Atma Brahma", hi: "अयमात्मा ब्रह्म", age: 83, moment: { en: "{name} is eighty-three, is told by the doctor that the body is wearing out, and nods, as if hearing about someone else's house.", hi: "{name} तिरासी बरस {का|की} है। डॉक्टर कहते हैं कि शरीर घिस रहा है, और {name} ने ऐसे सिर हिलाया जैसे किसी और के घर की बात हो।" }, mirror: { en: "The Māṇḍūkya's second verse: this Self is Brahman. Then it says at once that this Self has four quarters, and spends the rest of the text on three you already know.", hi: "माण्डूक्य का दूसरा मंत्र: यह आत्मा ब्रह्म है। फिर तुरंत कहता है कि इस आत्मा के चार पाद हैं, और बाकी ग्रंथ उन तीन पर लगाता है जिन्हें तुम पहले से जानते हो।" }, src: "Mandukya Upanishad 2" },
+      "96": { ic: "🌍", en: "All is Brahman", hi: "सर्वं खल्विदं ब्रह्म", age: 84, moment: { en: "{name} is eighty-four and decides, quite deliberately, what the last thought should be, and practises it every day.", hi: "{name} चौरासी बरस {का|की} है। {name} ने सोच-समझकर तय किया है कि आख़िरी विचार क्या हो, और रोज़ उसका अभ्यास होता है।" }, mirror: { en: "Śāṇḍilya's meditation in the Chāndogya: all this, truly, is Brahman. Then the very next sentence: as a person's resolve is here, so they become on leaving.", hi: "छांदोग्य में शांडिल्य का ध्यान: यह सब निश्चय ही ब्रह्म है। फिर ठीक अगला वाक्य: मनुष्य का संकल्प यहाँ जैसा है, यहाँ से जाकर वह वैसा ही बनता है।" }, src: "Chandogya Upanishad 3.14.1" },
+      "97": { ic: "⭕", en: "Wholeness", hi: "पूर्णता", age: 86, moment: { en: "{name} is eighty-six, shares a sweet among four children, gives away the last piece too, and does not feel any less.", hi: "{name} छियासी बरस {का|की} है। {name} ने मिठाई चार बच्चों में बाँटी, फिर आख़िरी टुकड़ा भी दे दिया, और कुछ भी कम नहीं लगा।" }, mirror: { en: "The Īśa's invocation: take the whole from the whole and the whole remains. A sentence about infinity, written down long before mathematics had a word for it.", hi: "ईश का शांति पाठ: पूर्ण से पूर्ण निकालो तो पूर्ण ही बचता है। अनंत के बारे में एक वाक्य, जो गणित के पास इसका शब्द आने से बहुत पहले लिखा गया।" }, src: "Isha Upanishad, invocation" },
+      "98": { ic: "🕊️", en: "Shanti", hi: "शांति", age: 88, moment: { en: "{name} is eighty-eight, and there is nothing {name} is waiting for.", hi: "{name} अठासी बरस {का|की} है, और अब किसी चीज़ की प्रतीक्षा नहीं।", mirror: { en: "The Taittirīya says śānti three times, for three kinds of trouble. The third is the one the verse cannot promise.", hi: "तैत्तिरीय तीन बार शांति कहता है, तीन तरह के कष्टों के लिए। तीसरा वह है जिसका वचन यह मंत्र नहीं दे सकता।" } }, mirror: { en: "The Taittirīya's chants close with peace said three times, one for each kind of trouble: from yourself, from other beings, and from what nobody controls. The third is the one the verse cannot promise.", hi: "तैत्तिरीय के मंत्र तीन बार शांति कहकर समाप्त होते हैं, हर तरह के कष्ट के लिए एक बार: अपने से, दूसरे प्राणियों से, और उससे जिस पर किसी का बस नहीं। तीसरी का वादा मंत्र नहीं कर सकता।" }, src: "Taittiriya Upanishad 1.1" },
+      "100": { ic: "🌄", en: "The threshold", hi: "देहरी", age: 90, moment: { en: "{name} is ninety. The people who knew {name} young are all gone, and the room is very quiet.", hi: "{name} नब्बे बरस {का|की} है। जो लोग {name} को जवानी में जानते थे, सब जा चुके हैं, और कमरा बहुत शांत है।" }, mirror: { en: "The last square of the world. Everything above it is a reward, and Nyāya, Mīmāṃsā and Advaita agree on exactly one thing: rewards run out.", hi: "संसार का अंतिम खाना। इसके ऊपर सब कुछ पुरस्कार है, और न्याय, मीमांसा और अद्वैत ठीक एक बात पर सहमत हैं: पुरस्कार चुक जाते हैं।" }, src: "" }
     },
     MOKSHA: {
-      story: ["Nyāya, Sāṃkhya, Mīmāṃsā and three schools of Vedānta all say you have arrived here. They do not mean the same thing by it.", "न्याय, सांख्य, मीमांसा और वेदांत के तीन संप्रदाय, सब कहते हैं कि आप यहाँ पहुँच गए। उनका अर्थ एक नहीं है।"]
+      mirror: { en: "Nyāya, Sāṃkhya, Mīmāṃsā and three schools of Vedānta all say you have arrived here. They do not mean the same thing by it.", hi: "न्याय, सांख्य, मीमांसा और वेदांत के तीन संप्रदाय, सब कहते हैं कि आप यहाँ पहुँच गए। उनका अर्थ एक नहीं है।" }
     },
     HEAVEN: {
-      "101": { en: "Indra", hi: "इन्द्र", ic: "⚡", story: ["Svarga, Indra's heaven: the reward of good deeds, yet not the final goal.", "स्वर्ग, इंद्र का लोक: पुण्य का फल, पर अंतिम लक्ष्य नहीं।"] },
-      "102": { en: "Agni", hi: "अग्नि", ic: "🔥", story: ["Agni carries every offering to the gods.", "अग्नि हर आहुति देवताओं तक पहुँचाते हैं।"] },
-      "103": { en: "Surya", hi: "सूर्य", ic: "☀️", story: ["Surya, the visible god, witness of all actions.", "सूर्य, प्रत्यक्ष देवता, सब कर्मों के साक्षी।"] },
-      "104": { en: "Ganesha", hi: "गणेश", ic: "🐘", story: ["Ganesha removes the last obstacles.", "गणेश अंतिम विघ्न दूर करते हैं।"] },
-      "105": { en: "Lakshmi", hi: "लक्ष्मी", ic: "🪷", story: ["Lakṣmī stands on the lotus, the flower that grows out of mud and is never muddied.", "लक्ष्मी कमल पर खड़ी हैं, वह फूल जो कीचड़ से उगता है और कभी मैला नहीं होता।"] },
-      "106": { en: "Saraswati", hi: "सरस्वती", ic: "🦢", story: ["Sarasvatī's swan is said to separate milk from water: true knowledge from false.", "कहते हैं सरस्वती का हंस दूध और पानी को अलग कर देता है: सच्चे ज्ञान को झूठे से।"] },
-      "107": { en: "Brahma", hi: "ब्रह्मा", ic: "📜", story: ["The creator's square carries the hymn that doubts him. The Nāsadīya asks who knows how the world began, and answers: he who watches over it in the highest heaven knows, or maybe even he does not know.", "सृष्टिकर्ता के खाने पर वह सूक्त है जो उन्हीं पर संदेह करता है। नासदीय पूछता है कि कौन जानता है संसार कैसे शुरू हुआ, और उत्तर देता है: जो परम व्योम में उसका अध्यक्ष है, वह जानता है, या शायद वह भी नहीं जानता।"], src: "Rig Veda 10.129" },
-      "108": { en: "Vishnu", hi: "विष्णु", ic: "🐚", story: ["Vishnu, the preserver, who upholds dharma in every age.", "पालनकर्ता विष्णु, जो हर युग में धर्म की रक्षा करते हैं।"] },
-      "109": { en: "Shiva", hi: "शिव", ic: "🔱", story: ["Shiva, the auspicious one, who dissolves all that binds.", "कल्याणकारी शिव, जो हर बंधन को मिटाते हैं।"] }
+      "101": { en: "Indra", hi: "इन्द्र", ic: "⚡", moment: { en: "{name}'s good deeds are still being spent here, and running out.", hi: "{name} के पुण्य यहाँ अब भी ख़र्च हो रहे हैं, और घट रहे हैं।" }, mirror: { en: "Svarga, Indra's heaven: the reward of good deeds, yet not the final goal.", hi: "स्वर्ग, इंद्र का लोक: पुण्य का फल, पर अंतिम लक्ष्य नहीं।" } },
+      "102": { en: "Agni", hi: "अग्नि", ic: "🔥", moment: { en: "Nothing of {name} is left here but the offerings {name} made, still travelling.", hi: "यहाँ {name} का कुछ नहीं बचा, बस वे आहुतियाँ जो {name} ने दी थीं, अब भी रास्ते में।" }, mirror: { en: "Agni carries every offering to the gods.", hi: "अग्नि हर आहुति देवताओं तक पहुँचाते हैं।" } },
+      "103": { en: "Surya", hi: "सूर्य", ic: "☀️", moment: { en: "Everything {name} did was seen. Most of it nobody remembers.", hi: "{name} ने जो कुछ किया, सब देखा गया। उसमें से ज़्यादातर अब किसी को याद नहीं।" }, mirror: { en: "Surya, the visible god, witness of all actions.", hi: "सूर्य, प्रत्यक्ष देवता, सब कर्मों के साक्षी।" } },
+      "104": { en: "Ganesha", hi: "गणेश", ic: "🐘", moment: { en: "{name}'s name is still painted on one door down below, until the door is painted over.", hi: "नीचे एक दरवाज़े पर {name} का नाम अब भी लिखा है, जब तक उस पर नया रंग नहीं चढ़ जाता।" }, mirror: { en: "Ganesha removes the last obstacles.", hi: "गणेश अंतिम विघ्न दूर करते हैं।" } },
+      "105": { en: "Lakshmi", hi: "लक्ष्मी", ic: "🪷", moment: { en: "Whatever {name} owned has been divided, and the division argued over, and the argument forgotten.", hi: "{name} का जो कुछ था, वह बँट चुका है, बँटवारे पर झगड़ा भी हो चुका, और झगड़ा भी भुला दिया गया।" }, mirror: { en: "Lakṣmī stands on the lotus, the flower that grows out of mud and is never muddied.", hi: "लक्ष्मी कमल पर खड़ी हैं, वह फूल जो कीचड़ से उगता है और कभी मैला नहीं होता।" } },
+      "106": { en: "Saraswati", hi: "सरस्वती", ic: "🦢", moment: { en: "Of everything {name} knew, one sentence is still repeated below, by someone who does not know where it came from.", hi: "{name} की सारी जानकारी में से एक वाक्य नीचे अब भी दोहराया जाता है, किसी ऐसे के मुँह से जिसे पता नहीं कि वह आया कहाँ से।" }, mirror: { en: "Sarasvatī's swan is said to separate milk from water: true knowledge from false.", hi: "कहते हैं सरस्वती का हंस दूध और पानी को अलग कर देता है: सच्चे ज्ञान को झूठे से।" } },
+      "107": { en: "Brahma", hi: "ब्रह्मा", ic: "📜", moment: { en: "Somebody below still has {name}'s nose, and does not know it.", hi: "नीचे किसी के पास अब भी {name} की नाक है, और उसे यह पता नहीं।" }, mirror: { en: "The creator's square carries the hymn that doubts him. The Nāsadīya asks who knows how the world began, and answers: he who watches over it in the highest heaven knows, or maybe even he does not know.", hi: "सृष्टिकर्ता के खाने पर वह सूक्त है जो उन्हीं पर संदेह करता है। नासदीय पूछता है कि कौन जानता है संसार कैसे शुरू हुआ, और उत्तर देता है: जो परम व्योम में उसका अध्यक्ष है, वह जानता है, या शायद वह भी नहीं जानता।" }, src: "Rig Veda 10.129" },
+      "108": { en: "Vishnu", hi: "विष्णु", ic: "🐚", moment: { en: "A habit {name} started is still kept in one house, by people who think it was always done that way.", hi: "{name} की शुरू की हुई एक आदत एक घर में अब भी निभाई जाती है, ऐसे लोगों से जो सोचते हैं कि यह हमेशा से होता आया है।" }, mirror: { en: "Vishnu, the preserver, who upholds dharma in every age.", hi: "पालनकर्ता विष्णु, जो हर युग में धर्म की रक्षा करते हैं।" } },
+      "109": { en: "Shiva", hi: "शिव", ic: "🔱", moment: { en: "Here even {name}'s name comes loose.", hi: "यहाँ {name} का नाम भी छूट जाता है।" }, mirror: { en: "Shiva, the auspicious one, who dissolves all that binds.", hi: "कल्याणकारी शिव, जो हर बंधन को मिटाते हैं।" } }
     }
   };
 
@@ -897,7 +970,31 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         school: "School",
         openCodex: "Open in the Codex",
         firstMet: "New in your Codex",
-        viewsBeyond: "Outside the Veda"
+        viewsBeyond: "Outside the Veda",
+        namingTitle: "Nāmakaraṇa",
+        namingLine: "On the twelfth day the child is given a name.",
+        namingName: "Name",
+        namingAs: "Born",
+        genderM: "A son",
+        genderF: "A daughter",
+        genderN: "A child",
+        genderWhy: "Hindi verbs agree with this, so the cards need it.",
+        genderAny: "Drawn with the name",
+        namingBegin: "Begin",
+        age: "age {n}",
+        ageMonths: "{n} months old",
+        ageBirth: "newborn",
+        readLife: "Read the lives",
+        lifeTitle: "The life of {name}",
+        lifeAt: "{stage}, age {a}",
+        lifeSpan: "{stage}, age {a} to {b}",
+        lifeEndWin: "Then, moksha.",
+        lifeEndOpen: "The game ended here, on square {n}.",
+        lifeUnborn: "The game ended before {name} was born.",
+        lifeCopy: "Copy",
+        lifeCopied: "Copied",
+        lifeSave: "Download",
+        lifeWhose: "Whose life"
       },
       hi: {
         title: "मोक्ष पटम",
@@ -992,7 +1089,48 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         school: "दर्शन",
         openCodex: "कोश में खोलें",
         firstMet: "आपके कोश में नया",
-        viewsBeyond: "वेद से बाहर"
+        viewsBeyond: "वेद से बाहर",
+        namingTitle: "नामकरण",
+        namingLine: "बारहवें दिन बच्चे का नाम रखा जाता है।",
+        namingName: "नाम",
+        namingAs: "जन्म",
+        genderM: "बेटा",
+        genderF: "बेटी",
+        genderN: "संतान",
+        genderWhy: "हिंदी की क्रियाएँ इसी से मेल खाती हैं, इसलिए कार्डों को यह चाहिए।",
+        genderAny: "नाम के साथ",
+        namingBegin: "आरंभ",
+        age: "आयु {n}",
+        ageMonths: "{n} महीने",
+        ageBirth: "नवजात",
+        readLife: "जीवन पढ़ें",
+        lifeTitle: "{name} का जीवन",
+        lifeAt: "{stage}, आयु {a}",
+        lifeSpan: "{stage}, आयु {a} से {b}",
+        lifeEndWin: "फिर, मोक्ष।",
+        lifeEndOpen: "खेल यहीं रुका, खाना {n} पर।",
+        lifeUnborn: "{name} के जन्म से पहले ही खेल ख़त्म हो गया।",
+        lifeCopy: "कॉपी करें",
+        lifeCopied: "कॉपी हो गया",
+        lifeSave: "डाउनलोड",
+        lifeWhose: "किसका जीवन"
+      }
+    },
+    JOINS: {
+      about: "Joining phrases for the life account (docs/NARRATIVE.md §9): one goes before each moment after the first in a paragraph. then rotates; snake and ladder go before the square a snake or ladder led to.",
+      then: [
+        { en: "Then ", hi: "फिर " },
+        { en: "Later, ", hi: "बाद में, " },
+        { en: "After a while, ", hi: "कुछ समय बाद, " },
+        { en: "In time, ", hi: "समय के साथ, " }
+      ],
+      snake: {
+        en: "Afterwards, ",
+        hi: "उसके बाद, "
+      },
+      ladder: {
+        en: "And so, ",
+        hi: "और इस तरह, "
       }
     }
   };
@@ -1542,18 +1680,121 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     }
   };
 
+  // content/names.json
+  var names_default = {
+    about: "Who a lead line can name, for the lint's 'every card names someone' check (docs/CONTENT.md §2). Codex schools, figures and sources count automatically; these are the rest, including short forms of school names. Fable animals count because the Panchatantra squares are scenes with characters in them.",
+    people: [
+      { en: ["Aruni", "Āruṇi"], hi: ["आरुणि"] },
+      { en: ["Satyakama", "Satyakāma"], hi: ["सत्यकाम"] },
+      { en: ["Jabala", "Jabālā"], hi: ["जबाला"] },
+      { en: ["Nachiketa", "Naciketas", "Naciketā"], hi: ["नचिकेता"] },
+      { en: ["Janaka"], hi: ["जनक"] },
+      { en: ["Maitreyi", "Maitreyī"], hi: ["मैत्रेयी"] },
+      { en: ["Gargi", "Gārgī"], hi: ["गार्गी"] },
+      { en: ["Bhrigu", "Bhṛgu"], hi: ["भृगु"] },
+      { en: ["Yayati", "Yayāti"], hi: ["ययाति"] },
+      { en: ["Dhritarashtra", "Dhṛtarāṣṭra"], hi: ["धृतराष्ट्र"] },
+      { en: ["Duryodhana"], hi: ["दुर्योधन"] },
+      { en: ["Pandavas", "Pāṇḍavas"], hi: ["पांडवों", "पांडव"] },
+      { en: ["Bharata"], hi: ["भरत"] },
+      { en: ["Virochana", "Virocana"], hi: ["विरोचन"] },
+      { en: ["Prahlada", "Prahlāda"], hi: ["प्रह्लाद"] },
+      { en: ["Shvetaketu", "Śvetaketu"], hi: ["श्वेतकेतु"] },
+      { en: ["Pippalada", "Pippalāda"], hi: ["पिप्पलाद"] },
+      { en: ["Raikva"], hi: ["रैक्व"] },
+      { en: ["Narada", "Nārada"], hi: ["नारद"] },
+      { en: ["Ushasti", "Uṣasti"], hi: ["उषस्ति"] },
+      { en: ["Badarayana", "Bādarāyaṇa"], hi: ["बादरायण"] },
+      { en: ["Manu"], hi: ["मनु"] },
+      { en: ["Buddha"], hi: ["बुद्ध"] },
+      { en: ["Kanada", "Kaṇāda"], hi: ["कणाद"] },
+      { en: ["Vishvamitra", "Viśvāmitra"], hi: ["विश्वामित्र"] },
+      { en: ["Prajapati", "Prajāpati"], hi: ["प्रजापति"] },
+      { en: ["Sanatkumara", "Sanatkumāra"], hi: ["सनत्कुमार"] },
+      { en: ["Shankara", "Śaṅkara"], hi: ["शंकर"] },
+      { en: ["Upamanyu"], hi: ["उपमन्यु"] },
+      { en: ["Dhaumya"], hi: ["धौम्य"] },
+      { en: ["Sanjaya", "Sañjaya"], hi: ["संजय"] },
+      { en: ["Shandilya", "Śāṇḍilya"], hi: ["शांडिल्य"] },
+      { en: ["Satyavacas"], hi: ["सत्यवचा"] }
+    ],
+    gods: [
+      { en: ["Yama"], hi: ["यम", "यमराज"] },
+      { en: ["Indra"], hi: ["इंद्र", "इन्द्र"] },
+      { en: ["Agni"], hi: ["अग्नि"] },
+      { en: ["Vayu", "Vāyu"], hi: ["वायु"] },
+      { en: ["Varuna", "Varuṇa"], hi: ["वरुण"] },
+      { en: ["Surya", "Sūrya", "Savitr", "Savitṛ"], hi: ["सूर्य", "सविता"] },
+      { en: ["Pushan", "Pūṣan"], hi: ["पूषन्", "पूषा"] },
+      { en: ["Ganesha", "Gaṇeśa"], hi: ["गणेश"] },
+      { en: ["Lakshmi", "Lakṣmī", "Shri", "Śrī"], hi: ["लक्ष्मी", "श्री"] },
+      { en: ["Saraswati", "Sarasvatī"], hi: ["सरस्वती"] },
+      { en: ["Brahma", "Brahmā"], hi: ["ब्रह्मा"] },
+      { en: ["Vishnu", "Viṣṇu"], hi: ["विष्णु"] },
+      { en: ["Shiva", "Śiva"], hi: ["शिव"] },
+      { en: ["Yaksha", "Yakṣa"], hi: ["यक्ष"] },
+      { en: ["Uma", "Umā"], hi: ["उमा"] }
+    ],
+    texts: [
+      { en: ["Kaushitaki", "Kauṣītaki"], hi: ["कौषीतकि"] },
+      { en: ["Aitareya"], hi: ["ऐतरेय"] },
+      { en: ["Taittiriya", "Taittirīya"], hi: ["तैत्तिरीय"] },
+      { en: ["Chandogya", "Chāndogya"], hi: ["छांदोग्य"] },
+      { en: ["Brihadaranyaka", "Bṛhadāraṇyaka"], hi: ["बृहदारण्यक"] },
+      { en: ["Mundaka", "Muṇḍaka"], hi: ["मुंडक"] },
+      { en: ["Katha", "Kaṭha"], hi: ["कठ"] },
+      { en: ["Isha", "Īśa"], hi: ["ईश"] },
+      { en: ["Kena"], hi: ["केन"] },
+      { en: ["Mandukya", "Māṇḍūkya"], hi: ["माण्डूक्य"] },
+      { en: ["Gita", "Gītā"], hi: ["गीता"] },
+      { en: ["Rig Veda", "Ṛg Veda"], hi: ["ऋग्वेद"] },
+      { en: ["Nasadiya", "Nāsadīya"], hi: ["नासदीय"] },
+      { en: ["Brahma Sutra", "Brahma Sūtra"], hi: ["ब्रह्मसूत्र"] },
+      { en: ["Gayatri", "Gāyatrī"], hi: ["गायत्री"] },
+      { en: ["Vedanta", "Vedānta"], hi: ["वेदांत"] },
+      { en: ["Gṛhya Sūtras"], hi: ["गृह्यसूत्र"] }
+    ],
+    fable: [
+      { en: ["jackal"], hi: ["सियार"] },
+      { en: ["tortoise"], hi: ["कछुआ", "कछुए"] },
+      { en: ["geese"], hi: ["हंस"] },
+      { en: ["hare"], hi: ["खरगोश"] },
+      { en: ["lion"], hi: ["शेर"] },
+      { en: ["crow", "crows"], hi: ["कौआ", "कौए", "कौओं"] },
+      { en: ["mouse"], hi: ["चूहा", "चूहे"] },
+      { en: ["deer"], hi: ["हिरण"] },
+      { en: ["monkey"], hi: ["बंदर"] },
+      { en: ["crocodile"], hi: ["मगरमच्छ"] },
+      { en: ["mongoose"], hi: ["नेवला", "नेवले"] },
+      { en: ["cat"], hi: ["बिल्ली"] }
+    ],
+    schools: [
+      { en: ["Advaita"], hi: ["अद्वैत"] },
+      { en: ["Dvaita"], hi: ["द्वैत"] },
+      { en: ["Buddhist", "Buddhists"], hi: ["बौद्ध"] },
+      { en: ["Jain", "Jains"], hi: ["जैन"] }
+    ],
+    players: {
+      about: "Names drawn for a computer player, or for anyone left unnamed at the naming (docs/NARRATIVE.md §3), each [en, hi], by the gender the cards agree with. Kept out of the lead lexicon above: these are the players, not people a card can name.",
+      m: [["Aarav", "आरव"], ["Kabir", "कबीर"], ["Rohan", "रोहन"], ["Imran", "इमरान"], ["Vikram", "विक्रम"], ["Arjun", "अर्जुन"], ["Dev", "देव"], ["Sameer", "समीर"], ["Anil", "अनिल"], ["Joseph", "जोसेफ़"]],
+      f: [["Asha", "आशा"], ["Meera", "मीरा"], ["Kavya", "काव्या"], ["Ananya", "अनन्या"], ["Zoya", "ज़ोया"], ["Priya", "प्रिया"], ["Lata", "लता"], ["Nandini", "नंदिनी"], ["Farah", "फ़रह"], ["Rhea", "रिया"]]
+    }
+  };
+
   // src/content.js
   var { GOAL, ROWS, ASHRAMAS, LADDERS, SNAKES, HEAVEN, MOKSHA } = squares_default;
   var { SQ } = squares_default;
-  var { STR, SRC_HI } = strings_default;
+  var { STR, SRC_HI, JOINS } = strings_default;
+  var PLAYER_NAMES = names_default.players;
   var READINGS = readings_default;
   var CODEX = codex_default;
-  var srcOfSquare = (n) => (LADDERS[n] || SNAKES[n] || HEAVEN[n])?.src || SQ[n]?.[5] || "";
+  var squareOf = (n) => n === GOAL ? MOKSHA : LADDERS[n] || SNAKES[n] || HEAVEN[n] || SQ[n] || null;
+  var srcOfSquare = (n) => squareOf(n)?.src || "";
   var sourceOf = (src) => src ? Object.keys(CODEX.sources).find((id) => src.startsWith(CODEX.sources[id].match)) ?? null : null;
   var ENTRY_GROUPS = [["school", "schools"], ["source", "sources"], ["figure", "figures"]];
-  var ENTRY_IDS = ENTRY_GROUPS.flatMap(([, g]) => Object.keys(CODEX[g]));
+  var ENTRY_IDS = ENTRY_GROUPS.flatMap(([, g2]) => Object.keys(CODEX[g2]));
   function entryOf(id) {
-    for (const [kind, g] of ENTRY_GROUPS) if (CODEX[g][id]) return { kind, e: CODEX[g][id] };
+    for (const [kind, g2] of ENTRY_GROUPS) if (CODEX[g2][id]) return { kind, e: CODEX[g2][id] };
     return null;
   }
   var REFS = (() => {
@@ -1598,6 +1839,11 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     }
     return o.en || "";
   }
+  var g = (gender, forms) => forms[gender] ?? forms.m;
+  var fill = (text, { name = "", gender = "m" } = {}) => text.replace(/\{([^{}|]*(?:\|[^{}|]*){1,2})\}/g, (_, alts) => {
+    const [m, f, n] = alts.split("|");
+    return g(gender, { m, f, n });
+  }).replace(/\{name\}/g, () => name);
 
   // src/rng.js
   var makeRng = (seed) => ({ seed: seed >>> 0, s: seed >>> 0 });
@@ -1614,7 +1860,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var TUMBLE = 7;
   function createGame({ players, rules, seed }) {
     return {
-      players: players.map((r, i) => ({ name: r.name.trim(), type: r.type, color: i, pos: 0, face: "r" })),
+      players: players.map((r, i) => ({ name: r.name.trim(), type: r.type, gender: r.gender || "m", alias: r.alias || null, color: i, pos: 0, face: "r", life: [] })),
       rules: { ...rules },
       turn: 0,
       winner: null,
@@ -1630,7 +1876,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   }
   function planTurn(state, v) {
     const idx = state.turn, from = state.players[idx].pos, rules = state.rules;
-    const pre = [], after = [], end = [];
+    const pre = [], after2 = [], end = [];
     let target = from + v;
     if (target > GOAL) {
       if (rules.exact) {
@@ -1644,20 +1890,22 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       if (s || l) {
         jump = { kind: s ? "snake" : "ladder", to: (s || l).to };
         final = jump.to;
-        after.push(entry(s ? "lSnake" : "lLadder", { v, pos: target, to: jump.to, sq: target }, s ? "snake" : "ladder", idx));
+        after2.push(entry(s ? "lSnake" : "lLadder", { v, pos: target, to: jump.to, sq: target }, s ? "snake" : "ladder", idx));
       } else if (HEAVEN[target]) {
-        after.push(entry("lHeaven", { v, pos: target, sq: target }, "heaven", idx));
+        after2.push(entry("lHeaven", { v, pos: target, sq: target }, "heaven", idx));
       } else if (target !== GOAL) {
-        after.push(entry(from === 0 ? "lBorn" : "lMove", { v, pos: target, sq: target }, "", idx));
+        after2.push(entry(from === 0 ? "lBorn" : "lMove", { v, pos: target, sq: target }, "", idx));
       }
     }
     const win = final === GOAL, again = !win && v === 6 && rules.six;
     if (win) end.push(entry("lWin", { pos: GOAL }, "heaven", idx));
     else if (again) end.push(entry("lSix", {}, "", idx));
-    return { idx, v, from, target, final, jump, win, again, pre, after, end };
+    return { idx, v, from, target, final, jump, win, again, pre, after: after2, end };
   }
   function endTurn(state, plan) {
-    state.players[plan.idx].pos = plan.final;
+    const p = state.players[plan.idx];
+    p.pos = plan.final;
+    if (plan.target !== plan.from) (p.life ||= []).push(...plan.jump ? [plan.target, plan.final] : [plan.target]);
     if (plan.win) state.winner = plan.idx;
     else if (!plan.again) state.turn = (state.turn + 1) % state.players.length;
     plan.end.forEach((e) => addLog(state, e));
@@ -1665,15 +1913,47 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
 
   // src/state.js
   var G = { setup: null, state: null, busy: false, cpuTimer: null, gen: 0, forcedRoll: null };
-  var defaultSetup = () => ({
-    count: 2,
-    rows: [{ name: "", type: "human" }, { name: "", type: "cpu" }, { name: "", type: "cpu" }, { name: "", type: "cpu" }],
-    rules: { exact: true, six: true }
-  });
-  var pname = (p) => p.name || t("def" + p.color);
+  var SELF = "mp-self";
+  function loadSelf() {
+    try {
+      const s = JSON.parse(localStorage.getItem(SELF) || "null");
+      if (s && typeof s.name === "string") return s;
+    } catch {
+    }
+    return null;
+  }
+  function saveSelf(name, gender) {
+    try {
+      localStorage.setItem(SELF, JSON.stringify({ name, gender }));
+    } catch {
+    }
+  }
+  var defaultSetup = () => {
+    const self = loadSelf();
+    return {
+      count: 2,
+      rows: [{ name: self?.name || "", type: "human", gender: self?.gender || "" }, { name: "", type: "cpu", gender: "" }, { name: "", type: "cpu", gender: "" }, { name: "", type: "cpu", gender: "" }],
+      rules: { exact: true, six: true }
+    };
+  };
+  function drawName(rng, gender, taken = /* @__PURE__ */ new Set()) {
+    const pool = (gender === "m" || gender === "f" ? [gender] : ["m", "f"]).flatMap((gd) => PLAYER_NAMES[gd].map(([en, hi]) => ({ en, hi, gender: gd }))).filter((nm) => !taken.has(nm.en));
+    return pool[Math.floor(next(rng) * pool.length)];
+  }
+  function cast(rows, seed) {
+    const rng = makeRng((seed ^ 2654435769) >>> 0), taken = new Set(rows.map((r) => r.name.trim()).filter(Boolean));
+    return rows.map((r) => {
+      if (r.name.trim()) return { ...r, gender: r.gender || "n" };
+      const nm = drawName(rng, r.gender, taken);
+      taken.add(nm.en);
+      return { ...r, gender: r.gender || nm.gender, alias: { en: nm.en, hi: nm.hi } };
+    });
+  }
+  var pname = (p) => p.name || (p.alias ? L(p.alias.en, p.alias.hi) : t("def" + p.color));
+  var pnameIn = (p, l) => p.name || p.alias?.[l] || p.alias?.en || tIn(l, "def" + p.color);
   var cur = () => G.state.players[G.state.turn];
   function newState(seed = freshSeed()) {
-    return createGame({ players: G.setup.rows.slice(0, G.setup.count), rules: G.setup.rules, seed });
+    return createGame({ players: cast(G.setup.rows.slice(0, G.setup.count), seed), rules: G.setup.rules, seed });
   }
 
   // src/prefs.js
@@ -1738,7 +2018,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     if (sl) return L(sl.en, sl.hi);
     if (HEAVEN[n]) return L(HEAVEN[n].en, HEAVEN[n].hi);
     if (n === GOAL) return t("moksha");
-    return SQ[n] ? L(SQ[n][1], SQ[n][2]) : "";
+    return SQ[n] ? L(SQ[n].en, SQ[n].hi) : "";
   }
   function labelHtml(n) {
     const numEl = `<span class="n">${num(n)}</span>`;
@@ -1768,7 +2048,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         const el = document.createElement("div");
         el.className = "cell" + (heaven ? " heaven" : "") + (n === GOAL ? " goal" : "");
         if (!heaven) el.style.background = bg;
-        if (SQ[n]) el.innerHTML = `<span class="pic">${art(`sq-${n}`, SQ[n][0])}</span>`;
+        if (SQ[n]) el.innerHTML = `<span class="pic">${art(`sq-${n}`, SQ[n].ic)}</span>`;
         cells.appendChild(el);
         const lab = document.createElement("div");
         const kind = n === GOAL ? " heaven goal" : heaven ? " heaven" : SNAKES[n] ? " vice" : LADDERS[n] ? " virtue" : "";
@@ -2225,9 +2505,9 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     setTimeout(() => el.remove(), 2500);
   }
   var animate = (ms, fn) => new Promise((res) => {
-    const g = G.gen, t0 = performance.now(), d = reduced ? 1 : ms;
+    const g2 = G.gen, t0 = performance.now(), d = reduced ? 1 : ms;
     const tick = (now) => {
-      if (g !== G.gen) return res();
+      if (g2 !== G.gen) return res();
       const u = Math.max(0, Math.min(1, (now - t0) / d));
       fn(u);
       u < 1 ? requestAnimationFrame(tick) : res();
@@ -2236,7 +2516,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   });
   var ease = (f) => f < 0.5 ? 2 * f * f : 1 - (-2 * f + 2) ** 2 / 2;
   async function climb(idx, a, b) {
-    const g = G.gen, el = tokenEls[idx], p = G.state.players[idx];
+    const g2 = G.gen, el = tokenEls[idx], p = G.state.players[idx];
     const P = center(a), Q = center(b), len = Math.hypot(Q.x - P.x, Q.y - P.y);
     const rungs = Math.max(2, Math.floor(len / (S * 0.36)));
     const trail = [];
@@ -2261,14 +2541,14 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       }
     });
     fxClear();
-    if (g !== G.gen) return;
+    if (g2 !== G.gen) return;
     el.classList.remove("free");
     el._frame = 0;
     p.pos = b;
     place();
   }
   async function swallow(idx, h, tail) {
-    const g = G.gen, el = tokenEls[idx], p = G.state.players[idx];
+    const g2 = G.gen, el = tokenEls[idx], p = G.state.players[idx];
     const pts = snakePath(h, tail), N = pts.length - 1, cols = snakeColors(h);
     await animate(450, (u) => {
       fxClear();
@@ -2279,10 +2559,10 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       fx.stroke();
       drawHood(fx, pts[0], pts[4], cols, 1 + 0.35 * Math.sin(u * Math.PI));
     });
-    if (g !== G.gen) return fxClear();
+    if (g2 !== G.gen) return fxClear();
     retrigger(el, "gulp");
     await sleep(340);
-    if (g !== G.gen) return fxClear();
+    if (g2 !== G.gen) return fxClear();
     el.classList.add("hide");
     el.classList.remove("gulp");
     let len = 0;
@@ -2307,7 +2587,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       fx.globalAlpha = 1;
     });
     fxClear();
-    if (g !== G.gen) return;
+    if (g2 !== G.gen) return;
     p.pos = tail;
     el.classList.remove("hide");
     place();
@@ -2341,31 +2621,31 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     if (ctx2.state === "suspended") ctx2.resume();
   }
   var ready = () => ctx2 && !prefs.mute && ctx2.state === "running";
-  function env(g, at, peak, attack, decay) {
-    g.gain.setValueAtTime(1e-4, at);
-    g.gain.exponentialRampToValueAtTime(peak, at + attack);
-    g.gain.exponentialRampToValueAtTime(1e-4, at + attack + decay);
+  function env(g2, at, peak, attack, decay) {
+    g2.gain.setValueAtTime(1e-4, at);
+    g2.gain.exponentialRampToValueAtTime(peak, at + attack);
+    g2.gain.exponentialRampToValueAtTime(1e-4, at + attack + decay);
   }
   function hiss(at, dur, f0, f1, peak, q2 = 1.2, type = "bandpass") {
-    const src = ctx2.createBufferSource(), bp = ctx2.createBiquadFilter(), g = ctx2.createGain();
+    const src = ctx2.createBufferSource(), bp = ctx2.createBiquadFilter(), g2 = ctx2.createGain();
     src.buffer = noise;
     src.playbackRate.value = 1;
     bp.type = type;
     bp.Q.value = q2;
     bp.frequency.setValueAtTime(f0, at);
     bp.frequency.exponentialRampToValueAtTime(f1, at + dur);
-    env(g, at, peak, Math.min(0.03, dur / 4), dur);
-    src.connect(bp).connect(g).connect(master);
+    env(g2, at, peak, Math.min(0.03, dur / 4), dur);
+    src.connect(bp).connect(g2).connect(master);
     src.start(at, at * 7.3 % 0.5);
     src.stop(at + dur + 0.1);
   }
   function tone(at, freq, dur, peak, type = "triangle", glideTo = null) {
-    const o = ctx2.createOscillator(), g = ctx2.createGain();
+    const o = ctx2.createOscillator(), g2 = ctx2.createGain();
     o.type = type;
     o.frequency.setValueAtTime(freq, at);
     if (glideTo) o.frequency.exponentialRampToValueAtTime(glideTo, at + dur);
-    env(g, at, peak, 0.01, dur);
-    o.connect(g).connect(master);
+    env(g2, at, peak, 0.01, dur);
+    o.connect(g2).connect(master);
     o.start(at);
     o.stop(at + dur + 0.1);
   }
@@ -2415,6 +2695,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var view = null;
   var cardLang = null;
   var backTo = null;
+  var subject = null;
   var autoTimer = null;
   var closing = false;
   var waiters = [];
@@ -2433,7 +2714,6 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         big: sl.ic,
         title: sl[l],
         alt: [sl[o], skt],
-        story: [sl.story[0], sl.story[1]],
         eb: `${T(virtue ? "virtue" : "vice")} · ${ashramaIn(l, n)}`,
         ft: T(virtue ? "ladderTo" : "snakeTo", { n: sl.to })
       };
@@ -2444,26 +2724,22 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         big: "ॐ",
         title: l === "hi" ? "मोक्ष" : "Moksha",
         alt: [o === "hi" ? "मोक्ष" : "Moksha", scholar ? r.iast : T("liberation")],
-        story: MOKSHA.story,
         eb: T("end"),
         ft: ""
       };
     }
     if (HEAVEN[n]) {
       const h = HEAVEN[n];
-      return { kind: "heaven", big: h.ic, title: h[l], alt: [h[o], scholar ? r.iast : ""], story: h.story, eb: T("realm"), ft: "" };
+      return { kind: "heaven", big: h.ic, title: h[l], alt: [h[o], scholar ? r.iast : ""], eb: T("realm"), ft: "" };
     }
-    const [ic, en, hi, sen, shi] = SQ[n];
-    return {
-      kind: "story",
-      big: ic,
-      title: l === "hi" ? hi : en,
-      alt: [l === "hi" ? en : hi, scholar ? r.iast : ""],
-      story: [sen, shi],
-      eb: `${T("story")} · ${ashramaIn(l, n)}`,
-      ft: ""
-    };
+    const q2 = SQ[n];
+    return { kind: "story", big: q2.ic, title: q2[l], alt: [q2[o], scholar ? r.iast : ""], eb: `${T("story")} · ${ashramaIn(l, n)}`, ft: "" };
   }
+  function person(l) {
+    const p = G.state?.players[subject ?? G.state.turn];
+    return p ? { name: pnameIn(p, l), gender: p.gender } : { name: "", gender: "m" };
+  }
+  var ageIn = (l, a) => a === 0 ? tIn(l, "ageBirth") : a < 1 ? tIn(l, "ageMonths", { n: Math.round(a * 12) }) : tIn(l, "age", { n: a });
   var texts = (l, en, hi, cls = "") => {
     const [a, b] = l === "hi" ? [hi, en] : [en, hi];
     return `<p class="${cls}">${esc(a)}</p>` + (prefs.both && b ? `<p class="${cls} second" lang="${other(l)}">${esc(b)}</p>` : "");
@@ -2477,7 +2753,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     if (kind === "heaven" || kind === "goal") return `<div class="rays"></div>` + [...Array(6)].map((_, i) => `<span class="pt" style="left:${6 + rnd(i + 2) * 0.86}%;animation-delay:${(i * 0.4).toFixed(2)}s">🌸</span>`).join("");
     return "";
   }
-  function frame(l, { kind, eb, big, sqn, body, foot, prev, next: next2, prevLabel, nextLabel }) {
+  function frame(l, { kind, eb, big, sqn, age, body, foot, prev, next: next2, prevLabel, nextLabel }) {
     const T = (k, v) => tIn(l, k, v);
     return `<div class="flourish" aria-hidden="true">${extras(kind)}</div>
     <header class="leaf-top">
@@ -2490,7 +2766,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       </div>
     </header>
     <div class="leaf-main">
-      <div class="leaf-margin" aria-hidden="true"><span class="glyph">${big}</span>${sqn ? `<span class="sqn">${sqn}</span>` : ""}<span class="hole"></span></div>
+      <div class="leaf-margin" aria-hidden="true"><span class="glyph">${big}</span>${sqn ? `<span class="sqn">${sqn}</span>` : ""}${age ? `<span class="age">${age}</span>` : ""}<span class="hole"></span></div>
       <div class="leaf-text" lang="${l}">${body}</div>
     </div>
     <footer class="leaf-foot">
@@ -2502,10 +2778,13 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   function squareHtml(n, l) {
     const T = (k, v) => tIn(l, k, v), info = squareInfo(n, l), r = READINGS[n] || {};
     const src = srcOfSquare(n), sid = sourceOf(src), met = [];
+    const sq = squareOf(n), m = sq.moment, mirror = m?.mirror || sq.mirror;
+    const age = m && sq.age != null ? ageIn(l, sq.age) : "";
     let body = `<h2 id="leafTitle">${esc(info.title)}</h2>`;
     const alt = info.alt.filter(Boolean).join(" · ");
     if (alt) body += `<p class="alt" lang="${other(l)}">${esc(alt)}</p>`;
-    body += `<div class="story">${texts(l, info.story[0], info.story[1])}${bi(l, r.line2, "line2")}</div>`;
+    const moment = m ? texts(l, fill(m.en, person("en")), fill(m.hi, person("hi")), n > 100 ? "moment remnant" : "moment") : "";
+    body += `<div class="story">${moment}${texts(l, mirror.en, mirror.hi, m ? "mirror" : "")}${bi(l, r.line2, "line2")}</div>`;
     const viewList = (vs, cls) => `<ul class="${cls}">` + vs.map((v) => `<li>${entryLink(v.id, l)}${texts(l, v.en, v.hi)}</li>`).join("") + `</ul>`;
     if (r.views && (n === GOAL || deep("school"))) {
       body += `<h3 class="sub">${T(n === GOAL ? "viewsGoal" : "views")}</h3>` + viewList(r.views, n === GOAL ? "views side" : "views");
@@ -2536,9 +2815,10 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       met,
       html: frame(l, {
         kind: info.kind,
-        eb: info.eb,
+        eb: info.eb + (age ? ` · ${age}` : ""),
         big: n === GOAL ? info.big : art(`sq-${n}`, info.big),
         sqn: numIn(l, n),
+        age,
         body,
         foot: info.ft,
         prev: n > 1 ? numIn(l, n - 1) : null,
@@ -2609,10 +2889,11 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       leaf.animate([{ transform: `translate(${dx}px, ${dy}px) scale(${from.width / to.width})`, opacity: 0.3 }, { transform: "none", opacity: 1 }], { duration: 360, easing: "cubic-bezier(.2,.8,.25,1.1)" });
     }
   }
-  async function open(next2, { landing = false, auto = false, from = null } = {}) {
+  async function open(next2, { landing = false, auto = false, from = null, who = null } = {}) {
     clearTimeout(autoTimer);
     const wasOpen = dlg.open;
     view = next2;
+    subject = who;
     if (wasOpen) {
       paint({ landing });
       turnPage();
@@ -2656,6 +2937,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     view = null;
     cardLang = null;
     backTo = null;
+    subject = null;
     if (location.hash) history.replaceState(null, "", location.pathname + location.search);
     waiters.splice(0).forEach((r) => r());
     onChange.forEach((fn) => fn());
@@ -2741,7 +3023,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   function renderCodex() {
     const met = metCount(ENTRY_IDS);
     $("codexCount").textContent = `${met}/${ENTRY_IDS.length}`;
-    $("codexPanel").innerHTML = `<p class="hint">${t("codexHint", { met, all: ENTRY_IDS.length })}</p>` + ENTRY_GROUPS.map(([kind, g]) => `<div><h3 class="eyebrow">${t(GROUP_LABEL[kind])}</h3><ul>` + Object.entries(CODEX[g]).map(([id, e]) => hasMet(id) || showAll ? `<li><a class="ent${hasMet(id) ? "" : " unmet"}" href="#codex/${id}" data-entry="${id}" lang="${lang}">${esc(pick(e.name))}</a></li>` : `<li><span class="ent locked" title="${t("codexLocked")}" aria-label="${t("codexLocked")}">· · ·</span></li>`).join("") + `</ul></div>`).join("") + `<label class="check"><input type="checkbox" id="codexAll"${showAll ? " checked" : ""}> <span>${t("codexAll")}</span></label>`;
+    $("codexPanel").innerHTML = `<p class="hint">${t("codexHint", { met, all: ENTRY_IDS.length })}</p>` + ENTRY_GROUPS.map(([kind, g2]) => `<div><h3 class="eyebrow">${t(GROUP_LABEL[kind])}</h3><ul>` + Object.entries(CODEX[g2]).map(([id, e]) => hasMet(id) || showAll ? `<li><a class="ent${hasMet(id) ? "" : " unmet"}" href="#codex/${id}" data-entry="${id}" lang="${lang}">${esc(pick(e.name))}</a></li>` : `<li><span class="ent locked" title="${t("codexLocked")}" aria-label="${t("codexLocked")}">· · ·</span></li>`).join("") + `</ul></div>`).join("") + `<label class="check"><input type="checkbox" id="codexAll"${showAll ? " checked" : ""}> <span>${t("codexAll")}</span></label>`;
   }
   $("codexPanel").addEventListener("click", (e) => {
     const a = e.target.closest("[data-entry]");
@@ -2768,6 +3050,108 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   }
   $("tabMoves").addEventListener("click", () => showTab("moves"));
   $("tabCodex").addEventListener("click", () => showTab("codex"));
+
+  // src/render/life.js
+  var dlg2 = $("lifeDlg");
+  var leaf2 = $("lifeLeaf");
+  var whose = 0;
+  var stageOf2 = (n) => ASHRAMAS.findIndex(([max]) => n <= max);
+  var after = (raw, text, l) => l === "en" && !raw.startsWith("{name}") && /^\p{Lu}\p{Ll}/u.test(text) ? text[0].toLowerCase() + text.slice(1) : text;
+  function lifeOf(state, i, l) {
+    const p = state.players[i], who = { name: pnameIn(p, l), gender: p.gender };
+    const paras = [];
+    let prev = null, prevHad = false, k = 0;
+    for (const n of p.life || []) {
+      const q2 = squareOf(n), m = q2?.moment, from = prev, had = prevHad;
+      prev = n;
+      prevHad = !!m;
+      if (!m) continue;
+      const s = stageOf2(n);
+      let para = paras.at(-1);
+      if (!para || para.s !== s) paras.push(para = { s, ages: [], parts: [] });
+      if (q2.age != null) para.ages.push(Math.floor(q2.age));
+      const join = had && SNAKES[from]?.to === n ? JOINS.snake : had && LADDERS[from]?.to === n ? JOINS.ladder : para.parts.length ? JOINS.then[k++ % JOINS.then.length] : null;
+      const text = fill(m[l] || m.en, who);
+      para.parts.push(join ? join[l] + after(m[l] || m.en, text, l) : text);
+    }
+    const T = (key, v) => tIn(l, key, v);
+    const stage = (s) => l === "hi" ? ASHRAMAS[s][2] : ASHRAMAS[s][1];
+    return {
+      title: T("lifeTitle", { name: who.name }),
+      paras: paras.map(({ s, ages, parts }) => {
+        const a = Math.min(...ages), b = Math.max(...ages);
+        const head = !ages.length ? stage(s) : a === b ? T("lifeAt", { stage: stage(s), a }) : T("lifeSpan", { stage: stage(s), a, b });
+        return { head, text: parts.join(" ") };
+      }),
+      end: state.winner === i ? T("lifeEndWin") : !p.life?.length ? T("lifeUnborn", { name: who.name }) : T("lifeEndOpen", { n: p.pos })
+    };
+  }
+  function lifeText(state, i, l = lang) {
+    const { title, paras, end } = lifeOf(state, i, l);
+    return [title, ...paras.map((p) => `${p.head}
+${p.text}`), end].join("\n\n") + "\n";
+  }
+  function paint2() {
+    const state = G.state, l = lang, T = (k, v) => tIn(l, k, v);
+    const { title, paras, end } = lifeOf(state, whose, l);
+    const tabs = state.players.length > 1 ? `<div class="life-who" role="group" aria-label="${T("lifeWhose")}">` + state.players.map((p, i) => `<button type="button" data-who="${i}" aria-pressed="${i === whose}"><span class="dot" style="background:${COLORS[p.color]}"></span>${esc(pnameIn(p, l))}</button>`).join("") + `</div>` : "";
+    leaf2.innerHTML = `
+    <header class="leaf-top">
+      <span class="eb">${T("readLife")}</span>
+      <div class="leaf-tools"><button type="button" class="x" data-act="close" aria-label="${T("close")}" autofocus>×</button></div>
+    </header>
+    ${tabs}
+    <div class="leaf-main life-main">
+      <div class="leaf-text" lang="${l}">
+        <h2 id="lifeTitle">${esc(title)}</h2>
+        ${paras.map((p) => `<h3 class="sub">${esc(p.head)}</h3><p>${esc(p.text)}</p>`).join("")}
+        <p class="life-end">${esc(end)}</p>
+      </div>
+    </div>
+    <footer class="leaf-foot">
+      <button type="button" class="ghost" data-act="copy">${T("lifeCopy")}</button>
+      <span class="ft">${numIn(l, state.rng.seed)}</span>
+      <button type="button" class="ghost" data-act="save">${T("lifeSave")}</button>
+    </footer>`;
+  }
+  function openLife(i = G.state.winner ?? G.state.turn) {
+    whose = i;
+    paint2();
+    if (!dlg2.open) dlg2.showModal();
+  }
+  var refreshLife = () => {
+    if (dlg2.open) paint2();
+  };
+  var closeLife = () => {
+    if (dlg2.open) dlg2.close();
+  };
+  leaf2.addEventListener("click", async (e) => {
+    const b = e.target.closest("button");
+    if (!b) return;
+    if (b.dataset.who) {
+      whose = +b.dataset.who;
+      return paint2();
+    }
+    const act = b.dataset.act;
+    if (act === "close") return dlg2.close();
+    const text = lifeText(G.state, whose);
+    if (act === "copy") {
+      try {
+        await navigator.clipboard.writeText(text);
+        b.textContent = tIn(lang, "lifeCopied");
+      } catch {
+      }
+    } else if (act === "save") {
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([text], { type: "text/plain;charset=utf-8" }));
+      a.download = `${pnameIn(G.state.players[whose], "en").replace(/[^\w-]+/g, "-") || "life"}-${G.state.rng.seed}.txt`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1e3);
+    }
+  });
+  dlg2.addEventListener("click", (e) => {
+    if (e.target === dlg2) dlg2.close();
+  });
 
   // src/main.js
   var PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
@@ -2799,21 +3183,21 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   async function takeTurn() {
     const state = G.state;
     if (G.busy || state.winner != null) return;
-    const g = G.gen;
+    const g2 = G.gen;
     G.busy = true;
     render();
     await cardIdle();
-    if (g !== G.gen) return;
+    if (g2 !== G.gen) return;
     const p = cur(), idx = state.turn, el = tokenEls[idx];
     const v = await rollDie();
-    if (g !== G.gen) return;
+    if (g2 !== G.gen) return;
     state.last = v;
     const plan = planTurn(state, v);
     plan.pre.forEach(log);
     if (plan.target !== p.pos) {
       await sleep(150);
       for (let n = p.pos + 1; n <= plan.target; n++) {
-        if (g !== G.gen) return;
+        if (g2 !== G.gen) return;
         if (n > 1) {
           const dc = colRow(n).col - colRow(n - 1).col;
           if (dc) p.face = dc > 0 ? "r" : "l";
@@ -2824,22 +3208,22 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         place();
         await sleep(200);
       }
-      if (g !== G.gen) return;
+      if (g2 !== G.gen) return;
       el._frame = 0;
       place();
       await cardIdle();
-      if (g !== G.gen) return;
+      if (g2 !== G.gen) return;
       if (prefs.landAll || !SQ[p.pos]) {
         await openSquare(p.pos, { landing: true, auto: p.type === "cpu" });
-        if (g !== G.gen) return;
+        if (g2 !== G.gen) return;
       }
       plan.after.forEach(log);
       if (plan.jump) {
         await cardIdle();
-        if (g !== G.gen) return;
+        if (g2 !== G.gen) return;
         (plan.jump.kind === "snake" ? sound.snake : sound.ladder)();
         await (plan.jump.kind === "snake" ? swallow(idx, p.pos, plan.jump.to) : climb(idx, p.pos, plan.jump.to));
-        if (g !== G.gen) return;
+        if (g2 !== G.gen) return;
       }
     }
     endTurn(state, plan);
@@ -2883,6 +3267,9 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         <option value="human"${r.type === "human" ? " selected" : ""}>${t("human")}</option>
         <option value="cpu"${r.type === "cpu" ? " selected" : ""}>${t("cpu")}</option>
       </select>
+      <select id="pgender${i}" aria-label="${t("namingAs")} · ${t("colour" + i)}">
+        ${[["", "genderAny"], ["f", "genderF"], ["m", "genderM"], ["n", "genderN"]].map(([v, k]) => `<option value="${v}"${(r.gender || "") === v ? " selected" : ""}>${t(k)}</option>`).join("")}
+      </select>
     </div>`).join("");
     $("ruleExact").checked = setup.rules.exact;
     $("ruleSix").checked = setup.rules.six;
@@ -2895,6 +3282,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     setup.rows.slice(0, setup.count).forEach((r, i) => {
       r.name = $("pname" + i).value;
       r.type = $("ptype" + i).value;
+      r.gender = $("pgender" + i).value;
     });
     setup.rules = { exact: $("ruleExact").checked, six: $("ruleSix").checked };
   }
@@ -2923,6 +3311,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     render();
     renderCodex();
     refreshCard();
+    refreshLife();
   }
   document.querySelectorAll("[data-lang]").forEach((b) => b.addEventListener("click", () => setLang(b.dataset.lang)));
   $("count").addEventListener("click", (e) => {
@@ -2938,6 +3327,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     G.gen++;
     clearTimeout(G.cpuTimer);
     closeCard({ instant: true });
+    closeLife();
     $("toastSlot").innerHTML = "";
     if (S) fxClear();
     G.busy = false;
@@ -2952,6 +3342,27 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     startGame();
   });
   $("again").addEventListener("click", startGame);
+  $("readLife").addEventListener("click", () => openLife());
+  function openNaming() {
+    const r = G.setup.rows[0];
+    $("namingName").value = r.name;
+    document.querySelectorAll("#namingGenders input").forEach((i) => {
+      i.checked = i.value === r.gender;
+    });
+    $("naming").showModal();
+  }
+  $("namingForm").addEventListener("submit", () => {
+    readSetup();
+    const r = G.setup.rows[0];
+    r.name = $("namingName").value.trim();
+    r.type = "human";
+    r.gender = new FormData($("namingForm")).get("gender");
+    saveSelf(r.name, r.gender);
+    renderSetup();
+    nextSeed = G.state.rng.seed;
+    startGame();
+  });
+  $("naming").addEventListener("cancel", (e) => e.preventDefault());
   $("roll").addEventListener("click", takeTurn);
   document.addEventListener("keydown", (e) => {
     if (e.code !== "Space" || e.target.closest("input, select, button, textarea, summary")) return;
@@ -3042,7 +3453,10 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       close: closeCard,
       sprite: spriteURL,
       data: { LADDERS, SNAKES, SQ, HEAVEN, STR },
-      setLang
+      setLang,
+      life: openLife,
+      lifeText: (i = 0, l) => lifeText(G.state, i, l),
+      naming: openNaming
     };
   }
   function start(data) {
@@ -3058,7 +3472,10 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       buildTokens();
       render();
       queueCpu();
-    } else startGame();
+    } else {
+      startGame();
+      if (!data?.setup && !loadSelf() && !location.hash) openNaming();
+    }
     draw();
     renderCodex();
     showTab("moves");

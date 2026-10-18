@@ -22,7 +22,7 @@ export function squareName(n) {
   if (sl) return L(sl.en, sl.hi);
   if (HEAVEN[n]) return L(HEAVEN[n].en, HEAVEN[n].hi);
   if (n === GOAL) return t("moksha");
-  return SQ[n] ? L(SQ[n][1], SQ[n][2]) : "";
+  return SQ[n] ? L(SQ[n].en, SQ[n].hi) : "";
 }
 
 function labelHtml(n) {
@@ -53,7 +53,7 @@ export function buildCells() {
       const el = document.createElement("div");
       el.className = "cell" + (heaven ? " heaven" : "") + (n === GOAL ? " goal" : "");
       if (!heaven) el.style.background = bg;
-      if (SQ[n]) el.innerHTML = `<span class="pic">${art(`sq-${n}`, SQ[n][0])}</span>`;
+      if (SQ[n]) el.innerHTML = `<span class="pic">${art(`sq-${n}`, SQ[n].ic)}</span>`;
       cells.appendChild(el);
 
       const lab = document.createElement("div");

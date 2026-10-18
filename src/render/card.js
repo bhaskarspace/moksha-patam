@@ -1,9 +1,10 @@
 // ---- The card: a pothi folio for one square or one Codex entry ----
 // It stays open until the reader closes it. A computer's landing card closes itself after a
 // reading-length pause, unless the reader touches it, and then it waits like any other.
-import { GOAL, LADDERS, SNAKES, SQ, HEAVEN, MOKSHA, READINGS, CODEX, ENTRY_IDS, REFS, entryOf, sourceOf, srcOfSquare } from "../content.js";
-import { lang, tIn, numIn, srcIn, pick } from "../i18n.js";
+import { GOAL, LADDERS, SNAKES, SQ, HEAVEN, READINGS, CODEX, ENTRY_IDS, REFS, entryOf, sourceOf, srcOfSquare, squareOf } from "../content.js";
+import { lang, tIn, numIn, srcIn, pick, fill } from "../i18n.js";
 import { prefs, hasMet, meet } from "../prefs.js";
+import { G, pnameIn } from "../state.js";
 import { $, esc, reduced, art } from "../ui.js";
 import { sound } from "../audio/engine.js";
 import { ashramaIn, labEls } from "./board.js";
@@ -16,6 +17,7 @@ const deep = d => DEPTHS.indexOf(prefs.depth) >= DEPTHS.indexOf(d);
 let view = null;           // { type: "square", n } or { type: "entry", id }
 let cardLang = null;       // the card's own language, when the reader flips it
 let backTo = null;         // the square an entry was opened from
+let subject = null;        // the player a square's moment is about; the player whose turn it is when unset
 let autoTimer = null, closing = false, waiters = [];
 const onChange = new Set(); // called after a card opens or closes, so the Codex panel can refresh
 
@@ -30,21 +32,28 @@ function squareInfo(n, l) {
   const skt = (scholar && r.iast) || sl?.skt || "";
   if (sl) {
     const virtue = !!LADDERS[n];
-    return { kind: virtue ? "virtue" : "vice", big: sl.ic, title: sl[l], alt: [sl[o], skt], story: [sl.story[0], sl.story[1]],
+    return { kind: virtue ? "virtue" : "vice", big: sl.ic, title: sl[l], alt: [sl[o], skt],
       eb: `${T(virtue ? "virtue" : "vice")} · ${ashramaIn(l, n)}`, ft: T(virtue ? "ladderTo" : "snakeTo", { n: sl.to }) };
   }
   if (n === GOAL) {
     return { kind: "goal", big: "ॐ", title: l === "hi" ? "मोक्ष" : "Moksha", alt: [o === "hi" ? "मोक्ष" : "Moksha", scholar ? r.iast : T("liberation")],
-      story: MOKSHA.story, eb: T("end"), ft: "" };
+      eb: T("end"), ft: "" };
   }
   if (HEAVEN[n]) {
     const h = HEAVEN[n];
-    return { kind: "heaven", big: h.ic, title: h[l], alt: [h[o], scholar ? r.iast : ""], story: h.story, eb: T("realm"), ft: "" };
+    return { kind: "heaven", big: h.ic, title: h[l], alt: [h[o], scholar ? r.iast : ""], eb: T("realm"), ft: "" };
   }
-  const [ic, en, hi, sen, shi] = SQ[n];
-  return { kind: "story", big: ic, title: l === "hi" ? hi : en, alt: [l === "hi" ? en : hi, scholar ? r.iast : ""], story: [sen, shi],
-    eb: `${T("story")} · ${ashramaIn(l, n)}`, ft: "" };
+  const q = SQ[n];
+  return { kind: "story", big: q.ic, title: q[l], alt: [q[o], scholar ? r.iast : ""], eb: `${T("story")} · ${ashramaIn(l, n)}`, ft: "" };
 }
+
+// The player a moment is about, as a name in language l and a gender for agreement.
+function person(l) {
+  const p = G.state?.players[subject ?? G.state.turn];
+  return p ? { name: pnameIn(p, l), gender: p.gender } : { name: "", gender: "m" };
+}
+// An authored age as the card furniture says it: a newborn, months for a baby, then years.
+export const ageIn = (l, a) => (a === 0 ? tIn(l, "ageBirth") : a < 1 ? tIn(l, "ageMonths", { n: Math.round(a * 12) }) : tIn(l, "age", { n: a }));
 
 // A bilingual text as paragraphs: the card's language, then the other one when both are wanted.
 const texts = (l, en, hi, cls = "") => {
@@ -62,7 +71,7 @@ function extras(kind) {
   return "";
 }
 
-function frame(l, { kind, eb, big, sqn, body, foot, prev, next, prevLabel, nextLabel }) {
+function frame(l, { kind, eb, big, sqn, age, body, foot, prev, next, prevLabel, nextLabel }) {
   const T = (k, v) => tIn(l, k, v);
   return `<div class="flourish" aria-hidden="true">${extras(kind)}</div>
     <header class="leaf-top">
@@ -75,7 +84,7 @@ function frame(l, { kind, eb, big, sqn, body, foot, prev, next, prevLabel, nextL
       </div>
     </header>
     <div class="leaf-main">
-      <div class="leaf-margin" aria-hidden="true"><span class="glyph">${big}</span>${sqn ? `<span class="sqn">${sqn}</span>` : ""}<span class="hole"></span></div>
+      <div class="leaf-margin" aria-hidden="true"><span class="glyph">${big}</span>${sqn ? `<span class="sqn">${sqn}</span>` : ""}${age ? `<span class="age">${age}</span>` : ""}<span class="hole"></span></div>
       <div class="leaf-text" lang="${l}">${body}</div>
     </div>
     <footer class="leaf-foot">
@@ -88,10 +97,15 @@ function frame(l, { kind, eb, big, sqn, body, foot, prev, next, prevLabel, nextL
 function squareHtml(n, l) {
   const T = (k, v) => tIn(l, k, v), info = squareInfo(n, l), r = READINGS[n] || {};
   const src = srcOfSquare(n), sid = sourceOf(src), met = [];
+  // the moment, when there is one, is what is happening to the player; the mirror is the text that holds
+  // it. With no moment the card is exactly the Phase 2 card: no age, and the Phase 2 lead as the mirror.
+  const sq = squareOf(n), m = sq.moment, mirror = m?.mirror || sq.mirror;
+  const age = m && sq.age != null ? ageIn(l, sq.age) : "";
   let body = `<h2 id="leafTitle">${esc(info.title)}</h2>`;
   const alt = info.alt.filter(Boolean).join(" · ");
   if (alt) body += `<p class="alt" lang="${other(l)}">${esc(alt)}</p>`;
-  body += `<div class="story">${texts(l, info.story[0], info.story[1])}${bi(l, r.line2, "line2")}</div>`;
+  const moment = m ? texts(l, fill(m.en, person("en")), fill(m.hi, person("hi")), n > 100 ? "moment remnant" : "moment") : "";
+  body += `<div class="story">${moment}${texts(l, mirror.en, mirror.hi, m ? "mirror" : "")}${bi(l, r.line2, "line2")}</div>`;
   // the views panel is the point of square 110, so it shows at every depth: six definitions side by side
   const viewList = (vs, cls) => `<ul class="${cls}">` + vs.map(v => `<li>${entryLink(v.id, l)}${texts(l, v.en, v.hi)}</li>`).join("") + `</ul>`;
   if (r.views && (n === GOAL || deep("school"))) {
@@ -124,7 +138,7 @@ function squareHtml(n, l) {
   }
   return {
     kind: info.kind, met,
-    html: frame(l, { kind: info.kind, eb: info.eb, big: n === GOAL ? info.big : art(`sq-${n}`, info.big), sqn: numIn(l, n), body, foot: info.ft,
+    html: frame(l, { kind: info.kind, eb: info.eb + (age ? ` · ${age}` : ""), big: n === GOAL ? info.big : art(`sq-${n}`, info.big), sqn: numIn(l, n), age, body, foot: info.ft,
       prev: n > 1 ? numIn(l, n - 1) : null, next: n < GOAL ? numIn(l, n + 1) : null, prevLabel: T("prevSq"), nextLabel: T("nextSq") }),
   };
 }
@@ -183,10 +197,11 @@ async function transition(update, label) {
   }
 }
 
-async function open(next, { landing = false, auto = false, from = null } = {}) {
+async function open(next, { landing = false, auto = false, from = null, who = null } = {}) {
   clearTimeout(autoTimer);
   const wasOpen = dlg.open;
   view = next;
+  subject = who;
   if (wasOpen) { paint({ landing }); turnPage(); return cardIdle(); }
   cardLang = null;
   const label = from ?? (next.type === "square" ? labEls[next.n] : null);
@@ -215,7 +230,7 @@ export async function closeCard({ instant = false } = {}) {
     await leaf.animate([{ opacity: 1, transform: "none" }, { opacity: 0, transform: "scale(0.97)" }], { duration: 160, easing: "ease-in" }).finished.catch(() => {});
     dlg.close();
   }
-  closing = false; view = null; cardLang = null; backTo = null;
+  closing = false; view = null; cardLang = null; backTo = null; subject = null;
   if (location.hash) history.replaceState(null, "", location.pathname + location.search);
   waiters.splice(0).forEach(r => r());
   onChange.forEach(fn => fn());

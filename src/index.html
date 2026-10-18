@@ -54,7 +54,8 @@
             <div>
               <h2 id="winTitle"></h2>
               <p id="winText"></p>
-              <button id="again" type="button" data-t="again">Play again</button>
+              <button id="readLife" type="button" data-t="readLife">Read the lives</button>
+              <button id="again" type="button" class="ghost" data-t="again">Play again</button>
             </div>
           </div>
         </div>
@@ -109,6 +110,40 @@
 
 <dialog class="folio" id="folio" aria-labelledby="leafTitle">
   <article class="leaf" id="leaf" aria-live="polite"></article>
+</dialog>
+
+<!-- The naming, before the board (docs/NARRATIVE.md §3) -->
+<dialog class="folio naming" id="naming" aria-labelledby="namingTitle">
+  <form method="dialog" class="leaf naming-leaf" id="namingForm">
+    <header class="leaf-top">
+      <span class="eb" data-t="title">Moksha Patam</span>
+      <div class="lang-mini" role="group" aria-label="Language / भाषा">
+        <button type="button" data-lang="en" aria-pressed="true">EN</button><button type="button" data-lang="hi" lang="hi" aria-pressed="false">हिं</button>
+      </div>
+    </header>
+    <div class="naming-body">
+      <h2 id="namingTitle" data-t="namingTitle">Nāmakaraṇa</h2>
+      <p class="naming-line" data-t="namingLine"></p>
+      <label class="naming-field"><span data-t="namingName">Name</span>
+        <input type="text" id="namingName" maxlength="16" autocomplete="given-name" spellcheck="false">
+      </label>
+      <fieldset class="naming-field">
+        <legend data-t="namingAs">Born</legend>
+        <div class="naming-genders" id="namingGenders">
+          <label><input type="radio" name="gender" value="f" required> <span data-t="genderF"></span></label>
+          <label><input type="radio" name="gender" value="m"> <span data-t="genderM"></span></label>
+          <label><input type="radio" name="gender" value="n"> <span data-t="genderN"></span></label>
+        </div>
+        <span class="hint" data-t="genderWhy"></span>
+      </fieldset>
+      <button type="submit" id="namingBegin" data-t="namingBegin">Begin</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- The life account, at the end of a game (docs/NARRATIVE.md §9) -->
+<dialog class="folio life" id="lifeDlg" aria-labelledby="lifeTitle">
+  <article class="leaf life-leaf" id="lifeLeaf"></article>
 </dialog>
 
 <!-- @script -->
