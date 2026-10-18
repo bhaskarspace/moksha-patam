@@ -1,8 +1,9 @@
 # Moksha Patam — redesign plan
 
 **For Claude Code.** Implement in phases, in order. Each phase ships to a live site.
-Companion reference: `docs/REFERENCE.md` (philosophy-to-mechanics mapping, historical
-board research, game precedents, content authoring rules). Read this file first and
+Companions: `docs/CONTENT.md` (card content and art spec, Phase 2),
+`docs/REFERENCE.md` (philosophy-to-mechanics mapping, historical board research, game
+precedents), `docs/LANDSCAPE.md` (what else exists). Read this file first and
 pull the reference when a phase points at it.
 
 Baseline: single-file `index.html`, ~1300 lines, 110 squares, 11 ladders, 13 snakes,
@@ -15,7 +16,7 @@ English/Hindi, deployed at https://codebpr.com/moksha-patam/
 1. [What we are building and why](#1-what-we-are-building-and-why)
 2. [Core mechanics](#2-core-mechanics)
 3. [Architecture](#3-architecture)
-4. [Phases 0 through 11](#4-phases)
+4. [Phases 0 through 12](#4-phases)
 5. [Guardrails](#5-guardrails)
 6. [Known fixes to fold in](#6-known-fixes)
 
@@ -285,7 +286,7 @@ Every phase ships. The site is live; nothing lands on `main` broken. One phase p
 
 ---
 
-### Phase 0 — Foundation
+### Phase 0 — Foundation  ✅ SHIPPED
 *No behaviour change at all.*
 
 - Split `index.html` into the `src/` modules above.
@@ -301,7 +302,7 @@ average recorded in the README.
 
 ---
 
-### Phase 1 — The reading game
+### Phase 1 — The reading game  ✅ SHIPPED
 *Ships as a complete, much better version of the current game. The whole point of this
 phase is that the content stops being a toast and becomes something you read.*
 
@@ -336,12 +337,33 @@ runs offline, and a player who never rolls a die can still read the whole board.
 
 ---
 
-### Phase 2 — The living board
-*Purely presentational. No rules change. Kept separate from Phase 1 so asset work
-never blocks the reading work.*
+### Phase 2 — The told board
+*Content and art. The full brief is `docs/CONTENT.md`; this is the summary.*
 
-- **Replace the emoji with real art.** Inline SVG sprite sheet, miniature-painting
-  register (Basohli / Pahari palette). The emoji read as placeholders because they are.
+Phase 1 made the old content readable and no more. Measured against the shipped
+`content/`, 43 of 110 squares still show a single old sentence at the default depth,
+and about 26 lead lines are proverbs or rite descriptions with nobody in them.
+
+- Rewrite the 26 flat lead lines as scenes with a named person and a turn.
+- Write school voices for the 12 squares that have none and the 31 that have only a
+  hidden `scholar` note.
+- Fix the depth gating so no square can show a bare lead at default depth.
+- Add Gārgī (square 79), the Nāsadīya Sūkta (107) and Ushasti Cākrāyaṇa (48).
+- Make square 110 show six definitions of mokṣa side by side.
+- Build the Basohli SVG sprite sheet, with the old emoji as fallback.
+- Extend `lint-content.mjs`: fail on a square with no voice, a lead that names nobody,
+  or any string missing its Hindi.
+
+**Done when:** every one of the 110 squares names someone and carries a disagreement at
+default depth, the lint passes clean, and deleting the sprite sheet falls back to emoji
+without a blank square.
+
+---
+
+### Phase 3 — The painted board
+*Purely presentational. No rules change. The sprite sheet itself ships in Phase 2;
+this phase is everything around it.*
+
 - **Texture.** Gyan chaupar boards were painted on cloth. Paper or pata grain, aged
   edges, slight warp. CSS plus one SVG turbulence filter.
 - **Camera.** Gentle zoom and pan following the token, pulling back at ashrama
@@ -354,12 +376,12 @@ never blocks the reading work.*
   sannyāsa, silent at 110.
 - Motion polish on the existing climb and swallow animations.
 
-**Done when:** no emoji remain on the board, the drone changes audibly at each ashrama
-boundary, and reduced-motion and mute both still work.
+**Done when:** the drone changes audibly at each ashrama boundary, the board ages
+visibly behind the token, and reduced-motion and mute both still work.
 
 ---
 
-### Phase 3 — Life state
+### Phase 4 — Life state
 
 - `āyus`, guṇas, puruṣārthas in state; a meters panel.
 - Ashrama rule phases from §2.4 (action slots gated by stage).
@@ -371,7 +393,7 @@ distribution.
 
 ---
 
-### Phase 4 — Dice as currency
+### Phase 5 — Dice as currency
 *The core mechanical change. Read §2.1 carefully.*
 
 - Roll n dice, visible, before any decision.
@@ -385,7 +407,7 @@ given age.
 
 ---
 
-### Phase 5 — Situations
+### Phase 6 — Situations
 
 - `content/situations.json` and `engine/qbn.js`.
 - Gate evaluation, with the gate surfaced in the UI when an option is withheld.
@@ -398,7 +420,7 @@ situation exists (`lint-content.mjs`), and no option is obviously correct.
 
 ---
 
-### Phase 6 — Karma
+### Phase 7 — Karma
 
 - Three buckets, fuses, deferred firing.
 - `bandha` and the gate at 110.
@@ -409,7 +431,7 @@ it came from, and a player can reach 110 and be refused with a legible reason.
 
 ---
 
-### Phase 7 — Death and rebirth
+### Phase 8 — Death and rebirth
 
 - Yama's reckoning screen reading the ledger.
 - āgāmi flows into sañcita; a slice is drawn as next life's prārabdha.
@@ -422,7 +444,7 @@ legible to the player on the birth screen.
 
 ---
 
-### Phase 8 — The laws
+### Phase 9 — The laws
 
 - Mīmāṃsā first (default), then Cārvāka, then the rest.
 - A law-select screen that explains each in the player's own terms before they commit.
@@ -434,7 +456,7 @@ rather than only in mean.
 
 ---
 
-### Phase 9 — Historical boards
+### Phase 10 — Historical boards
 
 Board geometry becomes data. The variants are documented, not invented; see
 `docs/REFERENCE.md §4`.
@@ -452,7 +474,7 @@ each board's rules load with it.
 
 ---
 
-### Phase 10 — Parallel lives
+### Phase 11 — Parallel lives
 
 - Multiplayer becomes four lives lived side by side rather than a race.
 - End screen: guṇa trajectories plotted over time, choices made at shared squares,
@@ -463,7 +485,7 @@ each board's rules load with it.
 
 ---
 
-### Phase 11 — Content to full
+### Phase 12 — Content to full
 
 - All 110 squares with situations where they earn one.
 - Codex complete across schools, sources and figures.
