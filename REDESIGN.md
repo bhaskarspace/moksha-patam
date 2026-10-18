@@ -337,7 +337,7 @@ runs offline, and a player who never rolls a die can still read the whole board.
 
 ---
 
-### Phase 2 — The told board
+### Phase 2 — The told board  ✅ SHIPPED
 *Content and art. The full brief is `docs/CONTENT.md`; this is the summary.*
 
 Phase 1 made the old content readable and no more. Measured against the shipped
