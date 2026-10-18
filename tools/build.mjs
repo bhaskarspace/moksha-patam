@@ -1,7 +1,9 @@
 // Bundles src/ into the single deployable index.html: src/index.html with the CSS and JS inlined.
 import fs from "node:fs";
 import path from "node:path";
+import { createHash } from "node:crypto";
 import * as esbuild from "esbuild";
+import { lintContent } from "./lint-content.mjs";
 
 const root = path.resolve(import.meta.dirname, "..");
 const rel = p => path.join(root, p);
@@ -19,6 +21,13 @@ if (stray.length) {
   process.exit(1);
 }
 
+// Every string bilingual, every id resolving: see tools/lint-content.mjs.
+const contentErrors = lintContent();
+if (contentErrors.length) {
+  console.error("Content problems:\n  " + contentErrors.join("\n  "));
+  process.exit(1);
+}
+
 const { outputFiles } = await esbuild.build({
   entryPoints: [rel("src/main.js")],
   bundle: true, write: false, format: "iife", target: "es2022", charset: "utf8", legalComments: "none",
@@ -30,3 +39,8 @@ const html = fs.readFileSync(rel("src/index.html"), "utf8")
   .replace("<!-- @script -->", () => `<script>\n${js}</script>`);
 fs.writeFileSync(rel("index.html"), html);
 console.log(`index.html: ${(html.length / 1024).toFixed(1)} KB`);
+
+// The service worker's cache is named after the page it serves, so each deploy replaces the old one.
+const version = createHash("sha256").update(html).digest("hex").slice(0, 12);
+fs.writeFileSync(rel("sw.js"), fs.readFileSync(rel("src/sw.js"), "utf8").replace("__VERSION__", version));
+console.log(`sw.js: cache ${version}`);

@@ -5,11 +5,20 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Moksha Patam</title>
 <meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="The old Indian game of snakes and ladders, played as one life, with a story from the Panchatantra or the Upanishads on every square. In English and Hindi.">
+<meta name="theme-color" content="#B5261E">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-title" content="Moksha Patam">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rozha+One&family=Hind:wght@400;500;600;700&display=swap">
 <!-- Hind draws Devanagari digits in Western shapes, so the ten digits come from Noto instead -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@500;700&text=%E0%A5%A6%E0%A5%A7%E0%A5%A8%E0%A5%A9%E0%A5%AA%E0%A5%AB%E0%A5%AC%E0%A5%AD%E0%A5%AE%E0%A5%AF&display=swap">
+<!-- Card text: a book face for English and a Devanagari text face for Hindi -->
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;1,400&amp;family=Tiro+Devanagari+Hindi:ital@0;1&amp;display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;1,400&amp;family=Tiro+Devanagari+Hindi:ital@0;1&amp;display=swap">
 <!-- @style -->
 </head>
 <body>
@@ -17,9 +26,14 @@
 <div class="wrap">
   <header>
     <h1 data-t="title">Moksha Patam</h1>
-    <div class="lang" role="group" aria-label="Language / भाषा">
-      <button type="button" data-lang="en" aria-pressed="true">EN</button>
-      <button type="button" data-lang="hi" aria-pressed="false" lang="hi">हिं</button>
+    <div class="tools">
+      <button type="button" class="ghost icon" id="mute" aria-pressed="true">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path class="wave" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path class="cross" d="M16 9l6 6M22 9l-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+      <div class="lang" role="group" aria-label="Language / भाषा">
+        <button type="button" data-lang="en" aria-pressed="true">EN</button>
+        <button type="button" data-lang="hi" aria-pressed="false" lang="hi">हिं</button>
+      </div>
     </div>
     <p data-t="intro"></p>
   </header>
@@ -34,7 +48,6 @@
           <div class="labels" id="labels"></div>
           <canvas id="fx"></canvas>
           <div class="tokens" id="tokens"></div>
-          <div class="sqcard" id="sqcard" hidden><div class="sq" role="dialog" aria-live="polite"></div></div>
           <div id="toastSlot"></div>
           <div class="win" id="win" hidden>
             <div>
@@ -67,8 +80,12 @@
       </section>
 
       <section class="card">
-        <span class="eyebrow" data-t="moves">Moves</span>
-        <ul class="log" id="log"></ul>
+        <div class="tabs" role="tablist">
+          <button type="button" role="tab" id="tabMoves" aria-controls="log" aria-selected="true" data-t="moves">Moves</button>
+          <button type="button" role="tab" id="tabCodex" aria-controls="codexPanel" aria-selected="false"><span data-t="codex">Codex</span> <span class="count" id="codexCount"></span></button>
+        </div>
+        <ul class="log" id="log" role="tabpanel" aria-labelledby="tabMoves"></ul>
+        <div class="codex" id="codexPanel" role="tabpanel" aria-labelledby="tabCodex" hidden></div>
       </section>
 
       <details class="card" id="setup">
@@ -78,7 +95,9 @@
           <div id="prows" class="setup-body"></div>
           <label class="check"><input type="checkbox" id="ruleExact" checked> <span id="ruleExactText"></span></label>
           <label class="check"><input type="checkbox" id="ruleSix" checked> <span data-t="ruleSix"></span></label>
-          <label class="pick"><span data-t="cards"></span><select id="ruleCards"></select></label>
+          <label class="pick"><span data-t="depth"></span><select id="prefDepth"></select></label>
+          <label class="check"><input type="checkbox" id="prefLand"> <span data-t="landAll"></span></label>
+          <label class="check"><input type="checkbox" id="prefBoth"> <span data-t="cardBoth"></span></label>
           <button id="newGame" type="button" data-t="newGame">Start new game</button>
           <span class="hint" id="seed"></span>
         </div>
@@ -86,6 +105,10 @@
     </aside>
   </div>
 </div>
+
+<dialog class="folio" id="folio" aria-labelledby="leafTitle">
+  <article class="leaf" id="leaf" aria-live="polite"></article>
+</dialog>
 
 <!-- @script -->
 </body>

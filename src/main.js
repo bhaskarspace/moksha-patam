@@ -1,15 +1,18 @@
 // Moksha Patam: the page's wiring. Rules live in engine/, drawing in render/, content in content/*.json.
 import { GOAL, ROWS, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, STR } from "./content.js";
 import { lang, urlLang, setLangValue, L, num, t } from "./i18n.js";
-import { G, defaultSetup, cardsMode, pname, cur, newState } from "./state.js";
+import { G, defaultSetup, pname, cur, newState } from "./state.js";
+import { prefs, setPref } from "./prefs.js";
 import { $, COLORS, esc, reduced, sleep } from "./ui.js";
 import { die, makeRng, freshSeed } from "./rng.js";
 import { TUMBLE, planTurn, endTurn, addLog } from "./engine/turn.js";
-import { S, colRow, buildCells, draw, fxClear } from "./render/board.js";
+import { S, colRow, labEls, buildCells, draw, fxClear, focusSquare } from "./render/board.js";
 import { spriteURL } from "./render/sprites.js";
 import { tokenEls, buildTokens, place, retrigger, climb, swallow } from "./render/tokens.js";
-import { showCard } from "./render/card.js";
+import { openSquare, openEntry, closeCard, cardIdle, cardOpen, refreshCard, onCardChange } from "./render/card.js";
+import { renderCodex, showTab } from "./render/codex.js";
 import { renderLog } from "./render/log.js";
+import { sound, unlockAudio } from "./audio/engine.js";
 
 const PIPS = { 1:[4], 2:[0,8], 3:[0,4,8], 4:[0,2,6,8], 5:[0,2,4,6,8], 6:[0,2,3,5,6,8] };
 
@@ -23,6 +26,7 @@ function showDie(v) {
 async function rollDie() {
   const rng = G.state.rng;
   dieEl.classList.remove("rolling"); void dieEl.offsetWidth; dieEl.classList.add("rolling");
+  sound.rattle();
   for (let i = 0; i < TUMBLE; i++) { showDie(die(rng)); await sleep(75); }
   const v = G.forcedRoll ?? die(rng);
   G.forcedRoll = null;
@@ -41,6 +45,9 @@ async function takeTurn() {
   if (G.busy || state.winner != null) return;
   const g = G.gen;
   G.busy = true; render();
+  // nobody moves while someone is reading a card
+  await cardIdle();
+  if (g !== G.gen) return;
   const p = cur(), idx = state.turn, el = tokenEls[idx];
   const v = await rollDie();
   if (g !== G.gen) return;
@@ -59,10 +66,18 @@ async function takeTurn() {
     }
     if (g !== G.gen) return;
     el._frame = 0; place();
-    const mode = cardsMode(state.rules);
-    if (mode === "all" || (mode === "special" && !SQ[p.pos])) { await showCard(p.pos, p.type === "cpu"); if (g !== G.gen) return; }
+    await cardIdle();
+    if (g !== G.gen) return;
+    if (prefs.landAll || !SQ[p.pos]) {
+      // a person's landing card waits for them; a computer's closes itself unless someone starts reading it
+      await openSquare(p.pos, { landing: true, auto: p.type === "cpu" });
+      if (g !== G.gen) return;
+    }
     plan.after.forEach(log);
     if (plan.jump) {
+      await cardIdle();
+      if (g !== G.gen) return;
+      (plan.jump.kind === "snake" ? sound.snake : sound.ladder)();
       await (plan.jump.kind === "snake" ? swallow(idx, p.pos, plan.jump.to) : climb(idx, p.pos, plan.jump.to));
       if (g !== G.gen) return;
     }
@@ -118,16 +133,17 @@ function renderSetup() {
     </div>`).join("");
   $("ruleExact").checked = setup.rules.exact;
   $("ruleSix").checked = setup.rules.six;
-  const mode = cardsMode(setup.rules);
-  $("ruleCards").innerHTML = [["all", "cardsAll"], ["special", "cardsSpecial"], ["off", "cardsOff"]]
-    .map(([v, k]) => `<option value="${v}"${v === mode ? " selected" : ""}>${t(k)}</option>`).join("");
+  $("prefDepth").innerHTML = [["story", "depthStory"], ["school", "depthSchool"], ["scholar", "depthScholar"]]
+    .map(([v, k]) => `<option value="${v}"${v === prefs.depth ? " selected" : ""}>${t(k)}</option>`).join("");
+  $("prefLand").checked = prefs.landAll;
+  $("prefBoth").checked = prefs.both;
 }
 function readSetup() {
   const setup = G.setup;
   setup.rows.slice(0, setup.count).forEach((r, i) => {
     r.name = $("pname" + i).value; r.type = $("ptype" + i).value;
   });
-  setup.rules = { exact: $("ruleExact").checked, six: $("ruleSix").checked, cards: $("ruleCards").value };
+  setup.rules = { exact: $("ruleExact").checked, six: $("ruleSix").checked };
 }
 
 // Static text, the ashrama labels on the frame and the language buttons.
@@ -137,6 +153,7 @@ function applyStatic() {
   document.querySelectorAll("[data-t]").forEach(el => { el.textContent = t(el.dataset.t); });
   $("ruleExactText").textContent = t("ruleExact", { n: GOAL });
   document.querySelectorAll("[data-lang]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.lang === lang)));
+  renderMute();
   // band centres, in rows from the bottom: two rows per stage
   $("ashramas").innerHTML = ASHRAMAS.slice(0, 5).map(([, en, hi], i) => `<span style="top:${((ROWS - (2 * i + 1)) / ROWS) * 100}%">${L(en, hi)}</span>`).join("");
 }
@@ -150,6 +167,8 @@ function setLang(l) {
   buildCells();
   renderSetup();
   render();
+  renderCodex();
+  refreshCard();
 }
 document.querySelectorAll("[data-lang]").forEach(b => b.addEventListener("click", () => setLang(b.dataset.lang)));
 
@@ -165,8 +184,8 @@ let nextSeed = urlSeed != null && /^\d+$/.test(urlSeed) ? +urlSeed >>> 0 : null;
 function startGame() {
   G.gen++;
   clearTimeout(G.cpuTimer);
-  G.cardClose?.();
-  $("sqcard").hidden = true; $("toastSlot").innerHTML = "";
+  closeCard({ instant: true });
+  $("toastSlot").innerHTML = "";
   if (S) fxClear();
   G.busy = false;
   G.state = newState(nextSeed ?? freshSeed());
@@ -180,10 +199,60 @@ $("again").addEventListener("click", startGame);
 $("roll").addEventListener("click", takeTurn);
 document.addEventListener("keydown", e => {
   if (e.code !== "Space" || e.target.closest("input, select, button, textarea, summary")) return;
+  if (e.target.closest("[role=button]")) return;
   e.preventDefault();
-  if (G.cardClose) return G.cardClose();
+  if (cardOpen()) return closeCard();
   if (cur().type === "human") takeTurn();
 });
+
+// ---- Reading the board without playing: any square, any move in the log ----
+$("labels").addEventListener("click", e => {
+  const lab = e.target.closest(".lab");
+  if (lab) openSquare(+lab.dataset.n, { from: lab });
+});
+// The board's squares in visual order, top-left first, for the arrow keys.
+const gridIndex = n => { const { col, row } = colRow(n); return (ROWS - 1 - row) * 10 + col; };
+const atIndex = i => +$("labels").children[i]?.dataset.n;
+$("labels").addEventListener("keydown", e => {
+  const lab = e.target.closest(".lab");
+  if (!lab) return;
+  const n = +lab.dataset.n;
+  if (e.key === "Enter" || e.key === " ") { e.preventDefault(); return openSquare(n, { from: lab }); }
+  const step = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -10, ArrowDown: 10 }[e.key];
+  if (!step) return;
+  e.preventDefault();
+  const i = gridIndex(n) + step;
+  if (i >= 0 && i < ROWS * 10 && (Math.abs(step) === 10 || Math.floor(i / 10) === Math.floor(gridIndex(n) / 10))) focusSquare(atIndex(i));
+});
+$("log").addEventListener("click", e => {
+  const b = e.target.closest("[data-sq]");
+  if (b) openSquare(+b.dataset.sq, { from: labEls[+b.dataset.sq] });
+});
+
+// ---- Preferences, which apply at once ----
+$("prefDepth").addEventListener("change", e => { setPref("depth", e.target.value); refreshCard(); });
+$("prefLand").addEventListener("change", e => setPref("landAll", e.target.checked));
+$("prefBoth").addEventListener("change", e => { setPref("both", e.target.checked); refreshCard(); });
+function renderMute() {
+  const b = $("mute");
+  b.setAttribute("aria-pressed", String(!prefs.mute));
+  b.setAttribute("aria-label", t(prefs.mute ? "soundOff" : "soundOn"));
+  b.title = t(prefs.mute ? "soundOff" : "soundOn");
+  b.classList.toggle("off", prefs.mute);
+}
+$("mute").addEventListener("click", () => { setPref("mute", !prefs.mute); unlockAudio(); renderMute(); });
+// browsers start audio only from a gesture
+["pointerdown", "keydown"].forEach(ev => document.addEventListener(ev, unlockAudio, { passive: true }));
+onCardChange(renderCodex);
+
+// #sq/36 or #codex/nyaya opens that card, so any card can be linked.
+function openFromHash() {
+  const m = location.hash.match(/^#(sq|codex)\/([\w-]+)$/);
+  if (!m) return;
+  if (m[1] === "sq" && +m[2] >= 1 && +m[2] <= GOAL) openSquare(+m[2]);
+  else if (m[1] === "codex") openEntry(m[2]);
+}
+addEventListener("hashchange", openFromHash);
 
 new ResizeObserver(draw).observe($("cells"));
 
@@ -195,6 +264,9 @@ if (new URLSearchParams(location.search).has("debug")) {
     roll(v) { G.forcedRoll = v; return takeTurn(); },
     seed(n) { if (n == null) return G.state.rng.seed; nextSeed = n >>> 0; startGame(); return G.state.rng.seed; },
     get state() { return G.state; },
+    open: openSquare,
+    entry: openEntry,
+    close: closeCard,
     sprite: spriteURL,
     data: { LADDERS, SNAKES, SQ, HEAVEN, STR },
     setLang,
@@ -214,6 +286,14 @@ function start(data) {
   }
   else startGame();
   draw();
+  renderCodex();
+  showTab("moves");
+  openFromHash();
 }
 window.claude?.hot?.snapshot?.(() => ({ setup: { ...G.setup, lang }, state: G.state }));
 window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
+
+// Installable and offline: the service worker caches the page, its icons and its fonts.
+if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
+  addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+}

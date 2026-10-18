@@ -7,7 +7,9 @@
     "test": "node --test tests/*.test.mjs",
     "sim": "node tools/sim.mjs",
     "golden": "node tools/golden.mjs",
-    "format": "node tools/format-content.mjs"
+    "format": "node tools/format-content.mjs",
+    "smoke": "node tools/smoke.mjs",
+    "lint": "node tools/lint-content.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.28.2",
