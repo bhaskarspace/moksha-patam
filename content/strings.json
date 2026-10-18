@@ -119,7 +119,31 @@
       "school": "School",
       "openCodex": "Open in the Codex",
       "firstMet": "New in your Codex",
-      "viewsBeyond": "Outside the Veda"
+      "viewsBeyond": "Outside the Veda",
+      "namingTitle": "Nāmakaraṇa",
+      "namingLine": "On the twelfth day the child is given a name.",
+      "namingName": "Name",
+      "namingAs": "Born",
+      "genderM": "A son",
+      "genderF": "A daughter",
+      "genderN": "A child",
+      "genderWhy": "Hindi verbs agree with this, so the cards need it.",
+      "genderAny": "Drawn with the name",
+      "namingBegin": "Begin",
+      "age": "age {n}",
+      "ageMonths": "{n} months old",
+      "ageBirth": "newborn",
+      "readLife": "Read the lives",
+      "lifeTitle": "The life of {name}",
+      "lifeAt": "{stage}, age {a}",
+      "lifeSpan": "{stage}, age {a} to {b}",
+      "lifeEndWin": "Then, moksha.",
+      "lifeEndOpen": "The game ended here, on square {n}.",
+      "lifeUnborn": "The game ended before {name} was born.",
+      "lifeCopy": "Copy",
+      "lifeCopied": "Copied",
+      "lifeSave": "Download",
+      "lifeWhose": "Whose life"
     },
     "hi": {
       "title": "मोक्ष पटम",
@@ -214,7 +238,48 @@
       "school": "दर्शन",
       "openCodex": "कोश में खोलें",
       "firstMet": "आपके कोश में नया",
-      "viewsBeyond": "वेद से बाहर"
+      "viewsBeyond": "वेद से बाहर",
+      "namingTitle": "नामकरण",
+      "namingLine": "बारहवें दिन बच्चे का नाम रखा जाता है।",
+      "namingName": "नाम",
+      "namingAs": "जन्म",
+      "genderM": "बेटा",
+      "genderF": "बेटी",
+      "genderN": "संतान",
+      "genderWhy": "हिंदी की क्रियाएँ इसी से मेल खाती हैं, इसलिए कार्डों को यह चाहिए।",
+      "genderAny": "नाम के साथ",
+      "namingBegin": "आरंभ",
+      "age": "आयु {n}",
+      "ageMonths": "{n} महीने",
+      "ageBirth": "नवजात",
+      "readLife": "जीवन पढ़ें",
+      "lifeTitle": "{name} का जीवन",
+      "lifeAt": "{stage}, आयु {a}",
+      "lifeSpan": "{stage}, आयु {a} से {b}",
+      "lifeEndWin": "फिर, मोक्ष।",
+      "lifeEndOpen": "खेल यहीं रुका, खाना {n} पर।",
+      "lifeUnborn": "{name} के जन्म से पहले ही खेल ख़त्म हो गया।",
+      "lifeCopy": "कॉपी करें",
+      "lifeCopied": "कॉपी हो गया",
+      "lifeSave": "डाउनलोड",
+      "lifeWhose": "किसका जीवन"
+    }
+  },
+  "JOINS": {
+    "about": "Joining phrases for the life account (docs/NARRATIVE.md §9): one goes before each moment after the first in a paragraph. then rotates; snake and ladder go before the square a snake or ladder led to.",
+    "then": [
+      {"en":"Then ","hi":"फिर "},
+      {"en":"Later, ","hi":"बाद में, "},
+      {"en":"After a while, ","hi":"कुछ समय बाद, "},
+      {"en":"In time, ","hi":"समय के साथ, "}
+    ],
+    "snake": {
+      "en": "Afterwards, ",
+      "hi": "उसके बाद, "
+    },
+    "ladder": {
+      "en": "And so, ",
+      "hi": "और इस तरह, "
     }
   }
 }

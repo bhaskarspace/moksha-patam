@@ -1,11 +1,14 @@
 // Checks content/*.json: every string in both languages, every id pointing somewhere, every
 // citation glossed, no Codex entry that a reader could never meet, and the card contract of
 // docs/CONTENT.md §2: every lead line names someone, and every square has two voices to disagree.
+// Phase 3 (docs/NARRATIVE.md §4, §10, §11) adds the moments: each names the player in both
+// languages, Hindi agreement goes through {m|f} choices, every earthly square has an age, and the
+// lint reports how many moments are written so the content build has a visible burn-down.
 //   node tools/lint-content.mjs
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { GOAL, LADDERS, SNAKES, SQ, HEAVEN, MOKSHA, STR, SRC_HI, READINGS, CODEX, REFS, ENTRY_IDS, srcOfSquare, sourceOf, leadOf } from "../src/content.js";
+import { GOAL, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, STR, SRC_HI, JOINS, READINGS, CODEX, REFS, ENTRY_IDS, srcOfSquare, sourceOf, leadOf, squareOf } from "../src/content.js";
 import NAMES from "../content/names.json" with { type: "json" };
 
 // Names compare without diacritics or case, so "Śaṅkara", "Sankara" and "sankara" are one name.
@@ -25,9 +28,55 @@ export function leadNames([en, hi]) {
   return { en: found.map(e => e.en[0]), hi: found.some(e => e.hi.some(f => has(hi, f))) };
 }
 
-export function lintContent() {
-  const errors = [];
+// ---- Moments (docs/NARRATIVE.md §4) ----
+// Hindi words that agree with their subject's gender. Where the player is the subject they must come
+// from a {m|f} choice: "{name} {बड़ा|बड़ी} हुआ" is still wrong, "{name} {बड़ा हुआ|बड़ी हुई}" is right.
+const AGREES = new Set(("हुआ हुई हुए था थी थे गया गई गयी गए रहा रही रहे लगा लगी लगे सका सकी सके चुका चुकी चुके " +
+  "पाया पाई पाए बड़ा बड़ी छोटा छोटी अकेला अकेली बैठा बैठी खड़ा खड़ी लेटा लेटी थका थकी चला चली गिरा गिरी उठा उठी " +
+  "पहुँचा पहुँची लौटा लौटी आया आई जागा जागी सोया सोई रुका रुकी डरा डरी हँसा हँसी रोया रोई बूढ़ा बूढ़ी").split(" "));
+// Habitual participles (करता / करती) agree too, but a word ending in ता is often a noun (पिता, पता), so
+// these only warn.
+const HABITUAL = /^[\p{L}\p{M}]{2,}(ता|ती)$/u;
+const NOT_HABITUAL = new Set("पिता माता पता देवता कविता रास्ता ममता गीता लता सविता जनता रोती बत्ती मिट्टी धरती रोटी चिट्ठी मोती छाती बस्ती सती ज्योति".split(" "));
+// After {name}, a postposition means the player is not the subject ("{name} की माँ थक गई" is about the mother).
+const NOT_SUBJECT = /^\s*(का|की|के|को|से|ने|में|पर|तक|जैसा|जैसी|जैसे)(?![\p{L}\p{M}])/u;
+// Where a clause ends: punctuation, or a word that brings in a new one.
+const CLAUSE_END = /[।,;:—?!."'‘’“”]|(?<![\p{L}\p{M}])(कि|जब|जो|तो|लेकिन|मगर)(?![\p{L}\p{M}])/u;
+export function hindiAgreement(hi) {
+  const bare = hi.replace(/\{[^{}]*\|[^{}]*\}/g, " ¦ "), errors = [], warnings = [];
+  for (const m of bare.matchAll(/\{name\}/g)) {
+    let rest = bare.slice(m.index + m[0].length);
+    if (NOT_SUBJECT.test(rest)) continue;
+    const end = rest.search(CLAUSE_END);
+    if (end >= 0) rest = rest.slice(0, end);
+    for (const w of rest.split(/\s+/).filter(Boolean)) {
+      if (AGREES.has(w)) errors.push(w);
+      else if (HABITUAL.test(w) && !NOT_HABITUAL.has(w)) warnings.push(w);
+    }
+  }
+  return { errors, warnings };
+}
+// English: a he or she about the player should be the name again, or a {his|her|their} choice. A sentence
+// that names a male or female member of the cast, or follows one that does, may use that pronoun for
+// them ("{name}'s father is dying. He asks…"), so those only warn.
+const HE = /(?<![\w{|])(he|him|his|himself)(?![\w|}])/i, SHE = /(?<![\w{|])(she|her|hers|herself)(?![\w|}])/i;
+const MALE = /\b(father|son|grandson|brother|husband|man|boy|uncle|grandfather|teacher|brahmin|king|jackal|monk)\b/i;
+const FEMALE = /\b(mother|daughter|granddaughter|sister|wife|woman|girl|aunt|grandmother|queen)\b/i;
+export function englishPronouns(en) {
+  const sentences = en.replace(/\{[^{}]*\|[^{}]*\}/g, " ").split(/(?<=[.!?])\s+/);
+  return sentences.flatMap((bare, i) => {
+    const near = (sentences[i - 1] || "") + " " + bare;
+    return [[HE, MALE], [SHE, FEMALE]].filter(([p, cast]) => p.test(bare) && !cast.test(near)).map(([p]) => bare.match(p)[0]);
+  });
+}
+// The moment's placeholders: {name}, or two or three choices for g().
+const badSlots = text => [...text.matchAll(/\{([^{}]*)\}/g)].map(m => m[1]).filter(x => x !== "name" && !/^[^|]+\|[^|]+(\|[^|]+)?$/.test(x));
+
+// The lint in full: errors fail the build, warnings print, and moments counts the burn-down.
+export function lintReport() {
+  const errors = [], warnings = [];
   const err = (where, msg) => errors.push(`${where}: ${msg}`);
+  const warn = (where, msg) => warnings.push(`${where}: ${msg}`);
   const bilingual = (where, o) => {
     if (!o || typeof o !== "object") return err(where, "missing");
     if (!o.en?.trim()) err(where, "no English");
@@ -38,25 +87,69 @@ export function lintContent() {
   for (const k of Object.keys(STR.en)) if (!STR.hi[k]?.trim()) err(`strings.${k}`, "no Hindi");
   for (const k of Object.keys(STR.hi)) if (!STR.en[k]?.trim()) err(`strings.${k}`, "no English");
 
-  // every square has a name and a story in both languages, and its citation is in the Codex
+  // the joining phrases of the life account
+  for (const [i, j] of JOINS.then.entries()) bilingual(`strings.JOINS.then[${i}]`, j);
+  bilingual("strings.JOINS.snake", JOINS.snake); bilingual("strings.JOINS.ladder", JOINS.ladder);
+
+  // a mirror, wherever it is, names someone in both languages
+  const lintLead = (where, lead) => {
+    const named = leadNames(lead);
+    if (!named.en.length) err(where, "names nobody");
+    else if (lead[1] && !named.hi) err(where, `the Hindi drops the name (${named.en.join(", ")})`);
+  };
+
+  // every square has a name and a mirror in both languages, and its citation is in the Codex
+  const moments = { written: 0, total: GOAL - 1, bands: ASHRAMAS.map(([max, en]) => ({ en, max, written: 0, total: 0 })) };
+  let lastAge = 0;
   for (let n = 1; n <= GOAL; n++) {
-    const sl = LADDERS[n] || SNAKES[n], h = HEAVEN[n], q = SQ[n];
-    const lead = leadOf(n);
-    if (lead?.[0]) {
-      const named = leadNames(lead);
-      if (!named.en.length) err(`square ${n} lead`, "names nobody");
-      else if (lead[1] && !named.hi) err(`square ${n} lead`, `the Hindi drops the name (${named.en.join(", ")})`);
+    const q = squareOf(n), lead = leadOf(n);
+    if (!q) { err(`square ${n}`, "has no content"); continue; }
+    if (lead?.[0]) lintLead(`square ${n} mirror`, lead);
+    bilingual(`square ${n} mirror`, q.mirror);
+    if (n === GOAL) {
+      if ((READINGS[n]?.views?.length || 0) < 2) err(`square ${n}`, "needs the schools' definitions of moksha in views");
+      // §8: no moment and no name on the last square; that is the whole statement
+      if (q.moment) err(`square ${n}`, "must have no moment: the player's name does not appear on 110");
+      if (q.age != null) err(`square ${n}`, "has no age");
+      continue;
     }
-    if (n === GOAL) { bilingual(`square ${n} story`, { en: MOKSHA.story[0], hi: MOKSHA.story[1] }); if ((READINGS[n]?.views?.length || 0) < 2) err(`square ${n}`, "needs the schools' definitions of moksha in views"); continue; }
-    if (sl) { bilingual(`square ${n} name`, sl); bilingual(`square ${n} story`, { en: sl.story[0], hi: sl.story[1] }); }
-    else if (h) { bilingual(`square ${n} name`, h); bilingual(`square ${n} story`, { en: h.story[0], hi: h.story[1] }); }
-    else if (q) { bilingual(`square ${n} name`, { en: q[1], hi: q[2] }); bilingual(`square ${n} story`, { en: q[3], hi: q[4] }); }
-    else err(`square ${n}`, "has no content");
+    bilingual(`square ${n} name`, q);
+
+    // §5: an authored age on every earthly square, none above the world
+    if (n <= 100) {
+      if (typeof q.age !== "number" || q.age < 0 || q.age > 120) err(`square ${n}`, "needs an authored age (docs/NARRATIVE.md §5)");
+      else { if (q.age < lastAge) warn(`square ${n}`, `age ${q.age} is younger than the square before (${lastAge})`); lastAge = q.age; }
+    } else if (q.age != null) err(`square ${n}`, "is above the world and has no age (docs/NARRATIVE.md §8)");
+    if (q.callsBack != null && !(Number.isInteger(q.callsBack) && q.callsBack >= 1 && q.callsBack < GOAL && q.callsBack !== n)) err(`square ${n}`, `callsBack ${q.callsBack} is not another square`);
+    else if (q.callsBack != null && !squareOf(q.callsBack)?.moment) warn(`square ${n}`, `calls back to ${q.callsBack}, which has no moment yet`);
+
     const r = READINGS[n] || {}, voices = (r.schools?.length || 0) + (r.views?.length || 0);
     if (voices < 2) err(`square ${n}`, voices ? "one voice: a disagreement needs two schools in readings.json" : "no voice: needs two schools in readings.json");
     const src = srcOfSquare(n);
     if (src && !sourceOf(src)) err(`square ${n}`, `citation "${src}" matches no Codex source`);
     if (src && /[A-Za-z]/.test(SRC_HI.reduce((a, [en, hi]) => a.replace(en, hi), src))) err(`square ${n}`, `citation "${src}" has no Hindi in strings.SRC_HI`);
+
+    // §4, §10: the moment
+    const band = moments.bands.find(b => n <= b.max);
+    band.total++;
+    const m = q.moment;
+    if (!m) continue;
+    const where = `square ${n} moment`;
+    if (!m.en?.trim() || !m.hi?.trim()) { err(where, `exists in ${m.en?.trim() ? "English" : "Hindi"} only`); continue; }
+    moments.written++; band.written++;
+    for (const l of ["en", "hi"]) {
+      if (!m[l].includes("{name}")) err(where, `the ${l === "en" ? "English" : "Hindi"} does not name the player with {name}`);
+      for (const x of badSlots(m[l])) err(where, `unknown placeholder {${x}}`);
+    }
+    const agree = hindiAgreement(m.hi);
+    if (agree.errors.length) err(where, `the Hindi agrees with {name} without a {m|f} choice: ${agree.errors.join(", ")}`);
+    if (agree.warnings.length) warn(where, `the Hindi may agree with {name} without a {m|f} choice: ${agree.warnings.join(", ")}`);
+    const he = englishPronouns(m.en);
+    if (he.length) warn(where, `the English uses "${he.join('", "')}"; use the name again, or a {his|her|their} choice`);
+    if (m.mirror) { bilingual(`${where} mirror`, m.mirror); if (m.mirror.en) lintLead(`${where} mirror`, [m.mirror.en, m.mirror.hi]); }
+    // §2: the mirror attaches to the moment; the Phase 2 opener is the thing being replaced
+    const mirrorEn = (m.mirror || q.mirror).en;
+    if (/^In (the )?\p{Lu}/u.test(mirrorEn)) err(where, `the mirror opens "${mirrorEn.split(" ").slice(0, 3).join(" ")}…", the Phase 2 voice; open with a connective (docs/NARRATIVE.md §2)`);
   }
 
   // readings: bilingual, and every school or person they name exists
@@ -102,8 +195,14 @@ export function lintContent() {
   const all = JSON.stringify([READINGS, CODEX, STR]);
   if (/\bancient\b/i.test(all)) err("content", 'says "ancient"; the board\'s history is medieval');
 
-  return errors;
+  return { errors, warnings, moments };
 }
+
+export const lintContent = () => lintReport().errors;
+
+// "moments: 23/109 written (Childhood 20/20 · Brahmacharya 3/20 · …)"
+export const momentsLine = ({ written, total, bands }) =>
+  `moments: ${written}/${total} written (${bands.filter(b => b.total).map(b => `${b.en} ${b.written}/${b.total}`).join(" · ")})`;
 
 export function lintSprites(svg, css) {
   const errors = [], err = msg => errors.push(`sprites.svg: ${msg}`);
@@ -119,7 +218,9 @@ export function lintSprites(svg, css) {
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  const errors = lintContent();
+  const { errors, warnings, moments } = lintReport();
+  if (warnings.length) console.warn(warnings.map(w => "warning: " + w).join("\n"));
+  console.log(momentsLine(moments));
   if (errors.length) { console.error(errors.join("\n")); process.exit(1); }
   console.log("content: ok");
 }

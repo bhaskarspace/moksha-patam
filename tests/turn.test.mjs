@@ -67,3 +67,13 @@ test("a seeded game replays identically", () => {
   assert.deepEqual(playGame(99), playGame(99));
   assert.notDeepEqual(playGame(99).log, playGame(100).log);
 });
+
+test("a player's life records every square landed on, a snake or ladder as two", () => {
+  const s = game(0, { exact: true, six: false });
+  playTurn(s, 6);        // born on 6, the friendship ladder to 15
+  assert.deepEqual(s.players[0].life, [6, 15]);
+  s.turn = 0; s.players[0].pos = 105;
+  playTurn(s, 6);        // overshoots 110 under the exact rule: no move, nothing lived
+  assert.deepEqual(s.players[0].life, [6, 15]);
+  assert.equal(s.players[0].gender, "m");
+});

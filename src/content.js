@@ -3,22 +3,28 @@ import squares from "../content/squares.json" with { type: "json" };
 import strings from "../content/strings.json" with { type: "json" };
 import readings from "../content/readings.json" with { type: "json" };
 import codex from "../content/codex.json" with { type: "json" };
+import names from "../content/names.json" with { type: "json" };
 
-// Base/head → { to, ic, en, hi, skt, story: [en, hi], src }
+// Every square is { ic, en, hi, age, moment, mirror, callsBack, src } (docs/NARRATIVE.md §11). Snakes and
+// ladders add { to, skt }. The mirror is the Phase 2 lead; the moment, when there is one, sits above it and
+// says what is happening to the player, as { en, hi } with an optional mirror of its own to read after it.
 export const { GOAL, ROWS, ASHRAMAS, LADDERS, SNAKES, HEAVEN, MOKSHA } = squares;
-// Every other earthly square: [symbol, en, hi, story en, story hi, source].
 export const { SQ } = squares;
-export const { STR, SRC_HI } = strings;
+export const { STR, SRC_HI, JOINS } = strings;
+// Names drawn for players who are not given one, each [en, hi], by gender.
+export const PLAYER_NAMES = names.players;
 
 // What each square adds when read more deeply (school lines, scholar notes, IAST, views), and the Codex.
 export const READINGS = readings;
 export const CODEX = codex;
 
-// Square n's lead line as [en, hi], whichever table it lives in.
-export const leadOf = n => n === GOAL ? MOKSHA.story : (LADDERS[n] || SNAKES[n] || HEAVEN[n])?.story || (SQ[n] ? [SQ[n][3], SQ[n][4]] : null);
+// Square n's record, whichever table it lives in.
+export const squareOf = n => (n === GOAL ? MOKSHA : LADDERS[n] || SNAKES[n] || HEAVEN[n] || SQ[n] || null);
+// Square n's mirror (the Phase 2 lead) as [en, hi].
+export const leadOf = n => { const m = squareOf(n)?.mirror; return m ? [m.en, m.hi] : null; };
 
 // The citation on square n, if it has one.
-export const srcOfSquare = n => (LADDERS[n] || SNAKES[n] || HEAVEN[n])?.src || SQ[n]?.[5] || "";
+export const srcOfSquare = n => squareOf(n)?.src || "";
 // The Codex source a citation belongs to: "Chandogya Upanishad 6.13" → "chandogya".
 export const sourceOf = src => (src ? Object.keys(CODEX.sources).find(id => src.startsWith(CODEX.sources[id].match)) ?? null : null);
 

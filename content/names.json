@@ -90,5 +90,10 @@
     {"en":["Dvaita"],"hi":["द्वैत"]},
     {"en":["Buddhist","Buddhists"],"hi":["बौद्ध"]},
     {"en":["Jain","Jains"],"hi":["जैन"]}
-  ]
+  ],
+  "players": {
+    "about": "Names drawn for a computer player, or for anyone left unnamed at the naming (docs/NARRATIVE.md §3), each [en, hi], by the gender the cards agree with. Kept out of the lead lexicon above: these are the players, not people a card can name.",
+    "m": [["Aarav","आरव"],["Kabir","कबीर"],["Rohan","रोहन"],["Imran","इमरान"],["Vikram","विक्रम"],["Arjun","अर्जुन"],["Dev","देव"],["Sameer","समीर"],["Anil","अनिल"],["Joseph","जोसेफ़"]],
+    "f": [["Asha","आशा"],["Meera","मीरा"],["Kavya","काव्या"],["Ananya","अनन्या"],["Zoya","ज़ोया"],["Priya","प्रिया"],["Lata","लता"],["Nandini","नंदिनी"],["Farah","फ़रह"],["Rhea","रिया"]]
+  }
 }

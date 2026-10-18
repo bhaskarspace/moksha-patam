@@ -275,6 +275,41 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 .leaf.entry { --l-rule: #2B3A8F; --l-gold: #2B3A8F; }
 .leaf.vice.landed { animation: shake 0.5s ease-in-out; }
 
+/* Phase 3 (docs/NARRATIVE.md): the moment above the mirror, and the age by the square number */
+.leaf .age { font-family: var(--f-body); font-size: 12px; font-weight: 600; color: var(--l-ink2); text-align: center; line-height: 1.2; }
+.leaf .story p.moment { font-size: 21px; color: var(--l-ink); }
+.leaf .story p.moment.remnant { font-style: italic; color: var(--l-ink2); }
+.leaf .story p.mirror { font-size: 18px; color: var(--l-ink2); }
+.leaf .story p.moment.second, .leaf .story p.mirror.second { font-size: 0.86em; }
+
+/* the naming, before the board */
+.naming { width: min(460px, calc(100vw - 32px)); }
+.naming .leaf { color: var(--l-ink); }
+.naming-body { display: flex; flex-direction: column; gap: 14px; padding: 6px 24px 22px; font-family: var(--f-body); }
+.naming h2 { font-family: var(--f-display); font-weight: 400; font-size: clamp(30px, 6vw, 40px); margin: 0; line-height: 1.05; }
+.naming-line { margin: 0; font-family: var(--f-card); font-size: 18px; font-style: italic; color: var(--l-ink2); }
+.naming-field { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; border: 0; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--l-gold); }
+.naming-field legend { padding: 0; margin-bottom: 6px; }
+.naming input[type="text"] { font: 400 20px var(--f-card); letter-spacing: 0; text-transform: none; padding: 8px 10px; border: 1px solid var(--l-line); border-radius: 6px; background: rgba(255, 252, 240, 0.7); color: var(--l-ink); }
+.naming-genders { display: flex; flex-wrap: wrap; gap: 8px; }
+.naming-genders label { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border: 1px solid var(--l-line); border-radius: 99px; font-size: 15px; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--l-ink); cursor: pointer; }
+.naming-genders label:has(input:checked) { background: var(--l-rule); border-color: var(--l-rule); color: #FFF6E0; }
+.naming-genders input { accent-color: var(--l-rule); margin: 0; }
+.naming .hint { font-size: 12.5px; font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--l-ink2); }
+.naming button[type="submit"] { align-self: flex-start; background: var(--l-rule); color: #FFF6E0; }
+
+/* the life account */
+.life-who { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px 24px 0; font-family: var(--f-body); }
+.life-who button { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; font-size: 14px; background: transparent; color: var(--l-ink); border: 1px solid var(--l-line); border-radius: 99px; }
+.life-who button[aria-pressed="true"] { background: rgba(255, 252, 240, 0.8); border-color: var(--l-rule); }
+.life-who .dot { width: 10px; height: 10px; border-radius: 50%; }
+.life-main { grid-template-columns: minmax(0, 1fr); }
+.life-main .leaf-text { border-left: 4px double var(--l-rule); }
+.life-leaf .leaf-text p { margin: 6px 0 0; font-size: 18px; line-height: 1.6; max-width: 62ch; text-wrap: pretty; }
+.life-leaf .leaf-text p.life-end { margin-top: 18px; font-style: italic; color: var(--l-ink2); }
+.life-leaf .leaf-foot .ghost { color: var(--l-ink); border-color: var(--l-line); padding: 6px 14px; font-size: 14px; }
+.win > div button + button { margin-top: -4px; }
+
 /* virtue rays, falling petals for the realms */
 .flourish { position: absolute; inset: 0; overflow: hidden; border-radius: inherit; pointer-events: none; z-index: 0; }
 .flourish .rays {
@@ -300,6 +335,9 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
   .leaf-margin { padding: 8px 8px 10px 0; border-right-width: 3px; }
   .leaf .glyph { font-size: 32px; }
   .leaf .sqn { font-size: 16px; }
+  .leaf .age { font-size: 10.5px; }
+  .leaf .story p.moment { font-size: 19px; }
+  .life-who { padding: 6px 12px 0; }
   .leaf-text { padding: 4px 4px 8px 14px; border-right: 0; }
   .leaf .story p { font-size: 18px; }
   .leaf .chips p, .leaf .note { font-size: 16px; }

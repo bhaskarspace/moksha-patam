@@ -13,16 +13,20 @@ single static `index.html` at https://codebpr.com/moksha-patam/
 ## Plans
 - `REDESIGN.md`: the phase list and what has shipped. Read it first.
 - `docs/CONTENT.md`: the Phase 2 brief (shipped). Its §7 art spec still governs the sprites.
+- `docs/NARRATIVE.md`: the Phase 3 brief: moments, gender agreement, ages, the life account.
 - `docs/REFERENCE.md`: philosophy-to-mechanics mapping and the history of the board.
 - `docs/LANDSCAPE.md`: comparable games.
 
-**State:** Phases 0, 1 and 2 have shipped. Phase 3, The Painted Board, is next (REDESIGN.md §4).
+**State:** Phases 0, 1 and 2 have shipped. Phase 3, The Lived Board (`docs/NARRATIVE.md`), is built on
+branch `phase-3-lived-board`. The Painted Board is now Phase 4 (REDESIGN.md §4).
 
 ## Commands
 - `npm run build`: fails on any `Math.random` outside `src/rng.js` or on any content lint error.
 - `npm test`: `node --test tests/*.test.mjs`
 - `npm run lint`: content lint (`tools/lint-content.mjs`): Hindi, dangling ids, two voices per
-  square, a name in every lead (`content/names.json`), and the sprite palette.
+  square, a name in every mirror (`content/names.json`), and the sprite palette. Phase 3 adds the
+  moments: `{name}` in both languages, Hindi agreement through `{m|f}` choices, an age on every
+  earthly square, and a `moments: n/109` burn-down line.
 - `npm run format`: rewrites `content/*.json` one entry per line. Run it after editing content.
 - `npm run sim [games] [players] [firstSeed]`: headless games (one player averages about 42 turns).
 - `npm run smoke`: Playwright checks of the built page in a real browser (needs Chrome installed).

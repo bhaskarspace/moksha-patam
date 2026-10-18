@@ -26,3 +26,13 @@ export function pick(o, l = lang) {
   if (l !== "en" && o.en && !warned.has(o.en)) { warned.add(o.en); console.warn("Missing Hindi:", o.en); }
   return o.en || "";
 }
+
+// ---- Gender agreement (docs/NARRATIVE.md §4) ----
+// Hindi verbs and adjectives agree with the subject, so a player carries a gender: "m", "f" or "n".
+// g() returns the agreeing form; neutral falls back to masculine where no neutral form was written.
+export const g = (gender, forms) => forms[gender] ?? forms.m;
+// A card string filled in for one player: {name}, and {m|f} or {m|f|n} for each agreeing form.
+// The choices go first, so a name with a | or a brace in it is never read as one.
+export const fill = (text, { name = "", gender = "m" } = {}) =>
+  text.replace(/\{([^{}|]*(?:\|[^{}|]*){1,2})\}/g, (_, alts) => { const [m, f, n] = alts.split("|"); return g(gender, { m, f, n }); })
+    .replace(/\{name\}/g, () => name);

@@ -2,6 +2,7 @@
 
 **For Claude Code.** Implement in phases, in order. Each phase ships to a live site.
 Companions: `docs/CONTENT.md` (card content and art spec, Phase 2),
+`docs/NARRATIVE.md` (narrative voice and the life account, Phase 3),
 `docs/REFERENCE.md` (philosophy-to-mechanics mapping, historical board research, game
 precedents), `docs/LANDSCAPE.md` (what else exists). Read this file first and
 pull the reference when a phase points at it.
@@ -16,7 +17,7 @@ English/Hindi, deployed at https://codebpr.com/moksha-patam/
 1. [What we are building and why](#1-what-we-are-building-and-why)
 2. [Core mechanics](#2-core-mechanics)
 3. [Architecture](#3-architecture)
-4. [Phases 0 through 12](#4-phases)
+4. [Phases 0 through 13](#4-phases)
 5. [Guardrails](#5-guardrails)
 6. [Known fixes to fold in](#6-known-fixes)
 
@@ -360,7 +361,36 @@ without a blank square.
 
 ---
 
-### Phase 3 — The painted board
+### Phase 3 — The lived board
+*Narrative voice. The full brief is `docs/NARRATIVE.md`; this is the summary.*
+
+Phase 2 fixed what the cards say and left the grammar wrong. Every card's subject is
+still the tradition ("In the Kauṣītaki the dying father sits facing his son"), so the
+player reads *about* a text while a token moves nearby. The move log is already in the
+player's life; the cards are not.
+
+- A naming screen before the board, framed as the *nāmakaraṇa*: the player's name and
+  gender. Gender is required because Hindi verbs agree with it.
+- A `g()` helper in i18n, and Hindi authored to handle agreement.
+- Schema: the Phase 2 lead becomes `mirror`; a new `moment` sits above it, saying what
+  is happening to the named player right now. Additive, so no Phase 2 writing is lost
+  and a square with no moment renders exactly as today.
+- 110 moments, bilingual. Snakes and ladders first: those squares have the drama and
+  are currently the most abstract things on the board.
+- An authored `age` per square, so a life is legible.
+- The voice deliberately breaks at 101–109 (nobody left to have a moment) and at 110.
+- **The life account:** at the end of a game, the moments the player actually landed on,
+  stitched into continuous prose. A short biography of someone who lived forty turns,
+  built from data already in `state.log`. The most shareable thing the project can make.
+
+**Done when:** every square outside the divine row opens with something happening to the
+named player, no card's first sentence has a text or a school as its subject, a
+female-named player's Hindi is correct throughout, and finishing a game produces a
+readable life in both languages.
+
+---
+
+### Phase 4 — The painted board
 *Purely presentational. No rules change. The sprite sheet itself ships in Phase 2;
 this phase is everything around it.*
 
@@ -381,7 +411,7 @@ visibly behind the token, and reduced-motion and mute both still work.
 
 ---
 
-### Phase 4 — Life state
+### Phase 5 — Life state
 
 - `āyus`, guṇas, puruṣārthas in state; a meters panel.
 - Ashrama rule phases from §2.4 (action slots gated by stage).
@@ -393,7 +423,7 @@ distribution.
 
 ---
 
-### Phase 5 — Dice as currency
+### Phase 6 — Dice as currency
 *The core mechanical change. Read §2.1 carefully.*
 
 - Roll n dice, visible, before any decision.
@@ -407,7 +437,7 @@ given age.
 
 ---
 
-### Phase 6 — Situations
+### Phase 7 — Situations
 
 - `content/situations.json` and `engine/qbn.js`.
 - Gate evaluation, with the gate surfaced in the UI when an option is withheld.
@@ -420,7 +450,7 @@ situation exists (`lint-content.mjs`), and no option is obviously correct.
 
 ---
 
-### Phase 7 — Karma
+### Phase 8 — Karma
 
 - Three buckets, fuses, deferred firing.
 - `bandha` and the gate at 110.
@@ -431,7 +461,7 @@ it came from, and a player can reach 110 and be refused with a legible reason.
 
 ---
 
-### Phase 8 — Death and rebirth
+### Phase 9 — Death and rebirth
 
 - Yama's reckoning screen reading the ledger.
 - āgāmi flows into sañcita; a slice is drawn as next life's prārabdha.
@@ -444,7 +474,7 @@ legible to the player on the birth screen.
 
 ---
 
-### Phase 9 — The laws
+### Phase 10 — The laws
 
 - Mīmāṃsā first (default), then Cārvāka, then the rest.
 - A law-select screen that explains each in the player's own terms before they commit.
@@ -456,7 +486,7 @@ rather than only in mean.
 
 ---
 
-### Phase 10 — Historical boards
+### Phase 11 — Historical boards
 
 Board geometry becomes data. The variants are documented, not invented; see
 `docs/REFERENCE.md §4`.
@@ -474,7 +504,7 @@ each board's rules load with it.
 
 ---
 
-### Phase 11 — Parallel lives
+### Phase 12 — Parallel lives
 
 - Multiplayer becomes four lives lived side by side rather than a race.
 - End screen: guṇa trajectories plotted over time, choices made at shared squares,
@@ -485,7 +515,7 @@ each board's rules load with it.
 
 ---
 
-### Phase 12 — Content to full
+### Phase 13 — Content to full
 
 - All 110 squares with situations where they earn one.
 - Codex complete across schools, sources and figures.

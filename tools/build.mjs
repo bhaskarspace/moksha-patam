@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { createHash } from "node:crypto";
 import * as esbuild from "esbuild";
-import { lintContent } from "./lint-content.mjs";
+import { lintReport, momentsLine } from "./lint-content.mjs";
 
 const root = path.resolve(import.meta.dirname, "..");
 const rel = p => path.join(root, p);
@@ -22,7 +22,9 @@ if (stray.length) {
 }
 
 // Every string bilingual, every id resolving: see tools/lint-content.mjs.
-const contentErrors = lintContent();
+const { errors: contentErrors, warnings, moments } = lintReport();
+if (warnings.length) console.warn(`Content warnings:\n  ${warnings.join("\n  ")}`);
+console.log(momentsLine(moments));
 if (contentErrors.length) {
   console.error("Content problems:\n  " + contentErrors.join("\n  "));
   process.exit(1);
