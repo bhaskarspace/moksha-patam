@@ -5,7 +5,7 @@ import readings from "../content/readings.json" with { type: "json" };
 import codex from "../content/codex.json" with { type: "json" };
 
 // Base/head → { to, ic, en, hi, skt, story: [en, hi], src }
-export const { GOAL, ROWS, ASHRAMAS, LADDERS, SNAKES, HEAVEN } = squares;
+export const { GOAL, ROWS, ASHRAMAS, LADDERS, SNAKES, HEAVEN, MOKSHA } = squares;
 // Every other earthly square: [symbol, en, hi, story en, story hi, source].
 export const { SQ } = squares;
 export const { STR, SRC_HI } = strings;
@@ -14,8 +14,11 @@ export const { STR, SRC_HI } = strings;
 export const READINGS = readings;
 export const CODEX = codex;
 
+// Square n's lead line as [en, hi], whichever table it lives in.
+export const leadOf = n => n === GOAL ? MOKSHA.story : (LADDERS[n] || SNAKES[n] || HEAVEN[n])?.story || (SQ[n] ? [SQ[n][3], SQ[n][4]] : null);
+
 // The citation on square n, if it has one.
-export const srcOfSquare = n => (LADDERS[n] || SNAKES[n])?.src || SQ[n]?.[5] || "";
+export const srcOfSquare = n => (LADDERS[n] || SNAKES[n] || HEAVEN[n])?.src || SQ[n]?.[5] || "";
 // The Codex source a citation belongs to: "Chandogya Upanishad 6.13" → "chandogya".
 export const sourceOf = src => (src ? Object.keys(CODEX.sources).find(id => src.startsWith(CODEX.sources[id].match)) ?? null : null);
 
@@ -33,7 +36,7 @@ export const REFS = (() => {
   for (let n = 1; n <= GOAL; n++) {
     const r = READINGS[n] || {};
     add(sourceOf(srcOfSquare(n)), n);
-    for (const s of [...(r.schools || []), ...(r.views || [])]) add(s.id, n);
+    for (const s of [...(r.schools || []), ...(r.views || []), ...(r.beyond || [])]) add(s.id, n);
     (r.figures || []).forEach(id => add(id, n));
   }
   return Object.fromEntries(Object.entries(refs).map(([k, v]) => [k, [...v].sort((a, b) => a - b)]));

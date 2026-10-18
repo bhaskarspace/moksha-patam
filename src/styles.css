@@ -15,6 +15,9 @@
   --f-card-hi: "Tiro Devanagari Hindi", "Noto Serif Devanagari", "Kohinoor Devanagari", "Noto Sans Devanagari", serif;
   --p0: #C0392B; --p1: #2E5BBA; --p2: #2E8B57; --p3: #D98300;
   --frame-red: #B5261E; --frame-dark: #5A1208; --frame-gold: #F6C443;
+  /* the Basohli palette: assets/sprites.svg may use these seven colours and nothing else (lint-content.mjs) */
+  --b-vermilion: #C8352A; --b-ochre: #D9A441; --b-indigo: #2B3A67; --b-malachite: #3F7A4E;
+  --b-black: #1A1410; --b-shell: #F4EDDC; --b-beetle: #1F7A5A;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -117,6 +120,12 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events
 .lab.vice .nm { background: rgba(120, 20, 12, 0.88); }
 .lab.virtue .nm { background: rgba(22, 80, 44, 0.9); }
 .lab.heaven .ic { top: 43%; left: 50%; right: auto; transform: translate(-50%, -50%); width: auto; background: none; border: none; font-size: 4.2cqi; filter: drop-shadow(0 1px 1px rgba(90, 40, 0, 0.45)); }
+/* the sprite sheet: hidden itself, its symbols drawn where the emoji used to be, with no filters on them */
+svg.sprites { position: absolute; width: 0; height: 0; overflow: hidden; }
+svg.spr { display: block; width: 1.2em; height: 1.2em; }
+.cell .pic:has(svg), .lab .ic:has(svg), .leaf .glyph:has(svg) { filter: none; }
+.lab .ic svg.spr { width: 82%; height: 82%; }
+.lab.heaven .ic svg.spr { width: 5.6cqi; height: 5.6cqi; }
 .lab .dv { position: absolute; left: 0; right: 0; bottom: 6%; text-align: center; font-family: var(--f-display); font-size: clamp(7px, 1.75cqi, 13px); line-height: 1; color: #5A1E08; white-space: nowrap; }
 .lab.goal .om { position: absolute; top: 42%; left: 50%; transform: translate(-50%, -50%); font-family: var(--f-display); font-size: 5.6cqi; line-height: 1; color: #FFD86B; text-shadow: 0 0 1.2cqi rgba(255, 210, 90, 0.85); animation: glow 3s ease-in-out infinite; }
 .lab.goal .dv { color: #FFE7A0; }
@@ -231,10 +240,14 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events
 .leaf .views { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; }
 .leaf .views li { padding: 8px 10px; border-radius: 6px; background: rgba(255, 252, 240, 0.5); border: 1px solid var(--l-line); }
 .leaf .views p { font-size: 15.5px; }
+/* square 110: six definitions of moksha side by side, three across and two on a phone */
+.leaf .views.side { grid-template-columns: repeat(3, 1fr); }
+@media (max-width: 640px) { .leaf .views.side { grid-template-columns: repeat(2, 1fr); } }
 .leaf .chip {
   display: inline-block; padding: 1px 10px; border-radius: 99px; text-decoration: none;
   font-family: var(--f-body); font-size: 12.5px; font-weight: 600; background: #7A1F12; color: #FFF3D6;
 }
+.leaf .chip .seal { width: 12px; height: 12px; margin: 0 4px -2px -3px; color: currentColor; }
 .leaf .chip.new::after, .leaf .plink.new::after { content: " ✦"; color: #F6C443; }
 .leaf .chip:hover { background: #9E2A1C; }
 .leaf .note { margin: 16px 0 0; padding-left: 12px; border-left: 2px solid rgba(181, 38, 30, 0.5); font-size: 16.5px; line-height: 1.5; color: var(--l-ink2); }

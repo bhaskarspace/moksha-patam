@@ -34,7 +34,13 @@ const { outputFiles } = await esbuild.build({
 });
 const js = outputFiles[0].text;
 const css = fs.readFileSync(rel("src/styles.css"), "utf8");
+// The Basohli sprite sheet is inlined too, so the deploy stays one file. Without it every square
+// falls back to its emoji (docs/CONTENT.md §7).
+const sprites = fs.existsSync(rel("assets/sprites.svg"))
+  ? fs.readFileSync(rel("assets/sprites.svg"), "utf8").replace("<svg ", '<svg class="sprites" ') : "";
+if (!sprites) console.warn("assets/sprites.svg is missing: the board will show emoji");
 const html = fs.readFileSync(rel("src/index.html"), "utf8")
+  .replace("<!-- @sprites -->", () => sprites)
   .replace("<!-- @style -->", () => `<style>\n${css}</style>`)
   .replace("<!-- @script -->", () => `<script>\n${js}</script>`);
 fs.writeFileSync(rel("index.html"), html);
