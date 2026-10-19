@@ -257,6 +257,15 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 .leaf .story p { margin: 12px 0 0; font-size: 20px; line-height: 1.5; max-width: 58ch; text-wrap: pretty; }
 .leaf .story p.second, .leaf .chips p.second, .leaf .views p.second, .leaf p.note.second { font-size: 0.86em; color: var(--l-ink2); margin-top: 4px; }
 .leaf .story .line2 { font-style: italic; color: var(--l-ink2); font-size: 18px; }
+/* Phase 10: a situation's options, under its prompt. A withheld one stays in place, greyed, and says why. */
+.leaf .options { display: grid; gap: 8px; margin: 14px 0 0; max-width: 58ch; }
+.leaf .opt { display: grid; grid-template-columns: auto 1fr; column-gap: 10px; align-items: baseline; min-height: 44px; padding: 10px 14px; text-align: start; font: inherit; font-size: 17px; color: var(--l-ink); background: rgba(255, 252, 240, 0.7); border: 1px solid var(--l-line); border-radius: 8px; cursor: pointer; }
+.leaf .opt:hover:not([aria-disabled="true"]), .leaf .opt:focus-visible { border-color: var(--l-rule); }
+.leaf .opt-k { grid-row: span 3; font-weight: 600; color: var(--l-gold); }
+.leaf .opt-c, .leaf .opt-why { grid-column: 2; font-size: 14px; color: var(--l-ink2); }
+.leaf .opt-why { font-style: italic; }
+.leaf .opt[aria-disabled="true"] { cursor: not-allowed; background: transparent; border-style: dashed; }
+.leaf .opt[aria-disabled="true"] .opt-l { color: var(--l-ink2); }
 .leaf-text :lang(hi) p, .leaf-text:lang(hi) p { line-height: 1.7; }
 .leaf .sub { margin: 18px 0 0; padding-top: 12px; border-top: 1px solid var(--l-line); font-family: var(--f-body); font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--l-gold); }
 .leaf .chips, .leaf .views { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
@@ -510,6 +519,8 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 .pick { display: flex; flex-wrap: wrap; gap: 6px; }
 .pick[hidden] { display: none; }
 .pick button { flex: 1 1 auto; min-height: 44px; }
+.pick button small { display: block; font-size: 12px; opacity: 0.8; }
+.pick button[aria-disabled="true"] { opacity: 0.55; cursor: not-allowed; }
 .hint { font-size: 12px; color: var(--muted); }
 
 button {

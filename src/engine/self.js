@@ -28,26 +28,28 @@ export const ageStep = (years, n) => { const a = ageOf(n); return a == null ? ye
 // A square of earth landed on twice running is a year sat out (Phase 9): no move on earth lands where it began,
 // since only a bounce off the top of the board can. Its via is "sit".
 // With the record of what each square told (Phase 10, src/engine/turn.js toldOn), each entry carries it as told:
-// null for the square's own moment. A record that does not match the life one for one is not used.
+// null for the square's own moment. A record that does not match the life one for one is not used. A year a
+// situation's choice cost is the square again, told "stay": it passes like a year sat out, but it is not practice,
+// and its via is "stay".
 export function yearsAlong(life, told = []) {
   const out = [], toldAt = told.length === life.length ? i => told[i] ?? null : () => null;
   let years = 0;
   for (const [i, n] of life.entries()) {
     const from = life[i - 1], sn = SNAKES[from], ld = LADDERS[from];
-    const via = sn && sn.to === n ? (sn.rebirth ? "rebirth" : "snake") : ld && ld.to === n ? "ladder" : from === n && n <= EARTH ? "sit" : null;
+    const via = sn && sn.to === n ? (sn.rebirth ? "rebirth" : "snake") : ld && ld.to === n ? "ladder" : from === n && n <= EARTH ? (toldAt(i) === "stay" ? "stay" : "sit") : null;
     if (via === "rebirth") years = 0;
-    else if (via === "sit") years += 1;
+    else if (via === "sit" || via === "stay") years += 1;
     else if (via === "ladder") years = Math.max(years, ageOf(n) ?? years);
     else if (via !== "snake") years = ageStep(years, n);
-    out.push({ n, years, via, from: via && via !== "sit" ? from : null, told: toldAt(i) });
+    out.push({ n, years, via, from: via && via !== "sit" && via !== "stay" ? from : null, told: toldAt(i) });
   }
   return out;
 }
-// What a turn does to the years: the square landed on, then where a snake or ladder led.
+// What a turn does to the years: the square landed on, the years a choice there cost, then where a snake or ladder led.
 export function turnYears(years, plan) {
   if (plan.sit) return years + 1;
   if (plan.jump?.rebirth) return 0;
-  const y = ageStep(years, plan.target);
+  const y = ageStep(years, plan.target) + (plan.cost ?? 0);
   return plan.jump?.kind === "ladder" ? Math.max(y, ageOf(plan.final) ?? y) : y;
 }
 
@@ -128,7 +130,9 @@ export function grow(p, plan) {
   if (plan.jump?.rebirth) { gunas = freshGunas(); aims = freshAims(); practised = 0; }
   else if (plan.final <= EARTH) {
     const stage = stageOfYears(years), sl = LADDERS[plan.target] || (SNAKES[plan.target] && !SNAKES[plan.target].rebirth ? SNAKES[plan.target] : null);
-    if (sl?.guna && plan.jump) { gunas = mixGuna(gunas, sl.guna); aims = applyAims(aims, sl.aims, stage); }
+    // a choice carries its own guna and aims (REDESIGN.md Phase 10); otherwise the vice or virtue taken does
+    const mark = plan.mark ?? (plan.jump && sl?.guna ? sl : null);
+    if (mark?.guna) { gunas = mixGuna(gunas, mark.guna); aims = applyAims(aims, mark.aims, stage); }
     aims = applyAims(aims, STAGE_RULES[stage].drift, stage);
   }
   const sannyasin = plan.final <= EARTH && !plan.jump?.rebirth && stageOfYears(years) === SANNYASA;

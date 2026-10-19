@@ -23,10 +23,13 @@ pass `SPAN` (110), and the life account (`src/engine/account.js`, pure) chooses 
 last. Gunas, aims and the bhumika are in state and never shown as numbers. Phase 9 was Dice as currency: from 94
 (`ENDGAME`) a player rolls two dice and moves by either, a sannyasin on 94–100 may sit the year out, and the spare die
 is practice, which alone reaches turya. The full allocation loop was measured not worth building yet (REDESIGN.md
-Phase 9). Phase 10, Situations, is half shipped: A, the roll-dependent squares. Ten story squares below 94 carry
+Phase 9). Phase 10 was Situations. A: ten story squares below 94 carry
 `roll: { valence, faces, moment }` and tell their other moment by the face of the die moved by (`toldOn` in
-`src/engine/turn.js`), recorded in `p.told` beside `p.life`; nothing is drawn and nothing moves. B, situations proper
-(`content/situations.json`, `src/engine/qbn.js`), is next.
+`src/engine/turn.js`), recorded in `p.told` beside `p.life`; nothing is drawn and nothing moves. B: ten squares offer a
+choice (`content/situations.json`, `src/engine/qbn.js`). `planTurn` stops at one and `resolveChoice` finishes it; an
+option's move and years are shown, its `guna` and `aims` never, and it applies them through `grow()`. The years a choice
+costs are the square again in the life, told "stay". The lint fails an option worth less that goes further or costs
+more. Phase 11, Karma, is next.
 Phase 7 was The Exit (REDESIGN.md §4): Moksha is square 105 (`GOAL`), partway
 along the divine row, while the board still ends at 110 (`TOP`); a roll bounces off `TOP` and can come back down onto the
 exit. The rebirth snake falls from Brahma (108) to 1, only for a player climbing onto it and once per life, and a Shepard tone plays under the divine row
@@ -45,13 +48,15 @@ illuminated frame (`frame.js`) and a bottom sheet below 768px (`sheet.js`).
   earthly square, and a `moments: n/109` burn-down line.
 - `npm run format`: rewrites `content/*.json` one entry per line. Run it after editing content.
 - `npm run sim [games] [players] [firstSeed] [--rules=brahmaloka] [--snake=HEAD:TAIL|none] [--span=N] [--spans=a,b,…]
-  [--practice=off] [--endgame=N] [--pick=plain|bigger|first] [--roll=off]`:
+  [--practice=off] [--endgame=N] [--pick=plain|bigger|first] [--roll=off] [--situations=off]
+  [--policy=mixed|honest|dishonest]`:
   headless games, reporting median, p5, p95 and the share over 100 turns, and since Phase 8 the share of lives that run
   out of years, years lived, and the bhumika distribution. `--spans` sweeps the span of a life. Since Phase 9 also the
   99 → 61 loop, years sat out, and the share through the exit by 90; `--pick` plays the endgame's dice carelessly, to
   show what choosing is worth. Since Phase 10 also the same moment told four times or more; `--roll=off` takes the
-  roll-dependent squares' other moments away, and must leave every other number as it was. Balance against the p95 and
-  the share over 100.
+  roll-dependent squares' other moments away, and must leave every other number as it was. `--policy` is how every
+  computer chooses on a situation, and the report adds the square reached at fifty and seventy and the ledger (gunas,
+  dharma, highest bhumika). Balance against the p95, the share over 100 and the liberation rate.
 - `npm run smoke [-- --only=text]`: Playwright checks of the built page in a real browser (needs Chrome installed).
   `--only` runs just the checks whose names contain the text, e.g. `--only="Phase 6"`.
 - `npm run golden [seeds]`: the built page and `sim.mjs` must produce the same move log.

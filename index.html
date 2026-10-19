@@ -279,6 +279,15 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 .leaf .story p { margin: 12px 0 0; font-size: 20px; line-height: 1.5; max-width: 58ch; text-wrap: pretty; }
 .leaf .story p.second, .leaf .chips p.second, .leaf .views p.second, .leaf p.note.second { font-size: 0.86em; color: var(--l-ink2); margin-top: 4px; }
 .leaf .story .line2 { font-style: italic; color: var(--l-ink2); font-size: 18px; }
+/* Phase 10: a situation's options, under its prompt. A withheld one stays in place, greyed, and says why. */
+.leaf .options { display: grid; gap: 8px; margin: 14px 0 0; max-width: 58ch; }
+.leaf .opt { display: grid; grid-template-columns: auto 1fr; column-gap: 10px; align-items: baseline; min-height: 44px; padding: 10px 14px; text-align: start; font: inherit; font-size: 17px; color: var(--l-ink); background: rgba(255, 252, 240, 0.7); border: 1px solid var(--l-line); border-radius: 8px; cursor: pointer; }
+.leaf .opt:hover:not([aria-disabled="true"]), .leaf .opt:focus-visible { border-color: var(--l-rule); }
+.leaf .opt-k { grid-row: span 3; font-weight: 600; color: var(--l-gold); }
+.leaf .opt-c, .leaf .opt-why { grid-column: 2; font-size: 14px; color: var(--l-ink2); }
+.leaf .opt-why { font-style: italic; }
+.leaf .opt[aria-disabled="true"] { cursor: not-allowed; background: transparent; border-style: dashed; }
+.leaf .opt[aria-disabled="true"] .opt-l { color: var(--l-ink2); }
 .leaf-text :lang(hi) p, .leaf-text:lang(hi) p { line-height: 1.7; }
 .leaf .sub { margin: 18px 0 0; padding-top: 12px; border-top: 1px solid var(--l-line); font-family: var(--f-body); font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--l-gold); }
 .leaf .chips, .leaf .views { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
@@ -532,6 +541,8 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 .pick { display: flex; flex-wrap: wrap; gap: 6px; }
 .pick[hidden] { display: none; }
 .pick button { flex: 1 1 auto; min-height: 44px; }
+.pick button small { display: block; font-size: 12px; opacity: 0.8; }
+.pick button[aria-disabled="true"] { opacity: 0.55; cursor: not-allowed; }
 .hint { font-size: 12px; color: var(--muted); }
 
 button {
@@ -1208,7 +1219,17 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         diceChooseSit: "Rolled {a} and {b}. Move by either, or sit the year out in practice.",
         diceBy: "Move {v}",
         sit: "Sit",
-        sitHint: "Neither: a year in practice, and the year still passes."
+        sitHint: "Neither: a year in practice, and the year still passes.",
+        chooseHint: "Choose what {name} does.",
+        chooseLabel: "Choices",
+        optDown: "down to {n}",
+        optUp: "up to {n}",
+        optHere: "stays on {n}",
+        optYear: "a year",
+        optYears: "{n} years",
+        optWithheld: "Not open:",
+        lStayOne: "{name} spent a year on {pos}, {what}.",
+        lStay: "{name} spent {n} years on {pos}, {what}."
       },
       hi: {
         title: "मोक्ष पटम",
@@ -1384,7 +1405,17 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         diceChooseSit: "{a} और {b} आए। किसी एक से चलें, या बरस अभ्यास में बिताएँ।",
         diceBy: "{v} चलें",
         sit: "बैठें",
-        sitHint: "किसी से नहीं: एक बरस अभ्यास में, और बरस फिर भी बीतता है।"
+        sitHint: "किसी से नहीं: एक बरस अभ्यास में, और बरस फिर भी बीतता है।",
+        chooseHint: "चुनें कि {name} क्या करे।",
+        chooseLabel: "विकल्प",
+        optDown: "नीचे {n} पर",
+        optUp: "ऊपर {n} पर",
+        optHere: "{n} पर ही",
+        optYear: "एक बरस",
+        optYears: "{n} बरस",
+        optWithheld: "अभी नहीं:",
+        lStayOne: "{name} ने खाना {pos}, {what}, पर एक बरस बिताया।",
+        lStay: "{name} ने खाना {pos}, {what}, पर {n} बरस बिताए।"
       }
     },
     JOINS: {
@@ -2114,10 +2145,292 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     }
   };
 
+  // content/situations.json
+  var situations_default = {
+    "12": {
+      prompt: {
+        en: "{name} is {age}, cornered by a bigger child who wants the lunch.",
+        hi: "{name} {age} बरस {का|की} है। एक बड़ा बच्चा टिफ़िन छीनने को घेरे खड़ा है।"
+      },
+      options: [
+        {
+          id: "lie",
+          label: { en: "Say a teacher is coming", hi: "कह दो कि मास्टरजी आ रहे हैं" },
+          move: "ladder",
+          cost: 0,
+          guna: "r",
+          aims: { artha: 5, dharma: -5 }
+        },
+        {
+          id: "laugh",
+          label: { en: "Make the bigger child laugh", hi: "बड़े बच्चे को हँसा दो" },
+          move: "ladder",
+          cost: 1,
+          guna: "s",
+          aims: { dharma: 5 },
+          outcome: { en: "{name} is {age}, cornered by a bigger child who wants the lunch, and does the headmaster's walk so well that the bigger child laughs, and sits down, and they split the lunch. It takes the whole break.", hi: "{name} {age} बरस {का|की} है। टिफ़िन छीनने को घेरे खड़े बड़े बच्चे के सामने {name} ने हेडमास्टर की चाल की ऐसी नक़ल की कि वह हँस पड़ा, बैठ गया, और दोनों ने टिफ़िन बाँट लिया। पूरी छुट्टी इसी में निकल गई।" }
+        },
+        {
+          id: "give",
+          label: { en: "Hand over the lunch", hi: "टिफ़िन दे दो" },
+          move: "here",
+          cost: 0,
+          guna: "t",
+          aims: { kama: -5 },
+          outcome: { en: "{name} is {age} and hands over the lunch without a word, and is hungry all afternoon, and tells nobody.", hi: "{name} {age} बरस {का|की} है। {name} ने चुपचाप टिफ़िन दे दिया, दोपहर भर भूख लगती रही, और किसी से कुछ नहीं कहा।" }
+        }
+      ]
+    },
+    "19": {
+      prompt: {
+        en: "{name} is {age}. The class is telling about the holidays, and {name}'s were at home, and nothing happened.",
+        hi: "{name} {age} बरस {का|की} है। कक्षा में सब छुट्टियों के क़िस्से सुना रहे हैं, और {name} की छुट्टियाँ घर पर बीतीं, कुछ हुआ ही नहीं।"
+      },
+      options: [
+        {
+          id: "sea",
+          label: { en: "Tell them about the sea", hi: "समुद्र का क़िस्सा सुना दो" },
+          move: "snake",
+          cost: 0,
+          guna: "r",
+          aims: { dharma: -10 }
+        },
+        {
+          id: "home",
+          label: { en: "Tell them what really happened", hi: "जो सच में हुआ, वही सुनाओ" },
+          move: "here",
+          cost: 4,
+          guna: "s",
+          aims: { dharma: 5 },
+          outcome: { en: "{name} is {age} and tells the class about a holiday at home where nothing happened, and somebody laughs, and {name} is the child with the boring holiday for years after.", hi: "{name} {age} बरस {का|की} है। {name} ने कक्षा को घर पर बीती उस छुट्टी के बारे में बताया जिसमें कुछ नहीं हुआ, कोई हँस पड़ा, और बरसों तक {name} {वही बच्चा रहा|वही बच्ची रही} जिसकी छुट्टियाँ फीकी थीं।", mirror: { en: "The blue jackal could have stayed a jackal, and been left alone.", hi: "नीला सियार चाहता तो सियार ही बना रह सकता था, और उसे कोई कुछ न कहता।" } }
+        }
+      ]
+    },
+    "28": {
+      prompt: {
+        en: "{name} is {age} and is asked, in front of everyone, whether the homework was done. It was not.",
+        hi: "{name} {age} बरस {का|की} है। सबके सामने पूछा जाता है कि गृहकार्य हुआ या नहीं। नहीं हुआ था।"
+      },
+      options: [
+        {
+          id: "truth",
+          label: { en: "Say so", hi: "सच कह दो" },
+          move: "ladder",
+          cost: 1,
+          guna: "s",
+          aims: { dharma: 10 }
+        },
+        {
+          id: "lie",
+          label: { en: "Say it was left at home", hi: "कह दो कि घर पर छूट गया" },
+          move: "ladder",
+          cost: 0,
+          guna: "r",
+          aims: { dharma: -5 },
+          outcome: { en: "{name} is {age} and says the homework was done and left at home, and is believed, and does it that night in a hurry, badly.", hi: "{name} {age} बरस {का|की} है। {name} ने कह दिया कि गृहकार्य हो गया था, घर पर छूट गया, और बात मान ली गई। उसी रात {name} ने जल्दी-जल्दी, आधा-अधूरा, उसे पूरा किया।", mirror: { en: "Satyakama could have named any father he liked. The teacher would have had no way to check.", hi: "सत्यकाम चाहते तो कोई भी पिता का नाम ले सकते थे। गुरु के पास जाँचने का कोई रास्ता नहीं था।" } }
+        }
+      ]
+    },
+    "47": {
+      prompt: {
+        en: "{name} is {age} and has wanted the thing for a year, and today there is enough money for it.",
+        hi: "{name} {age} बरस {का|की} है। साल भर से वह चीज़ चाहिए थी, और आज उसके लिए पैसे भी हैं।"
+      },
+      options: [
+        {
+          id: "buy",
+          label: { en: "Buy it", hi: "ख़रीद लो" },
+          move: "snake",
+          cost: 0,
+          guna: "r",
+          aims: { kama: 10, artha: -5 }
+        },
+        {
+          id: "wait",
+          label: { en: "Wait another month", hi: "एक महीना और रुको" },
+          move: "here",
+          cost: 8,
+          guna: "s",
+          aims: {},
+          require: { guna: { r: { max: 0.6 } } },
+          why: { en: "Too restless to wait for anything.", hi: "किसी चीज़ का इंतज़ार करने लायक़ धीरज नहीं बचा।" },
+          outcome: { en: "{name} is {age} and decides to wait a month, and then another, and another, and somewhere in those years stops wanting it, and cannot say when.", hi: "{name} {age} बरस {का|की} है। {name} ने एक महीना रुकने का फ़ैसला किया, फिर एक और, फिर एक और, और उन्हीं बरसों में कहीं वह चाह छूट गई। कब, यह {name} {बता नहीं सकता|बता नहीं सकती}।", mirror: { en: "Yayati never once tried waiting.", hi: "ययाति ने एक बार भी रुककर नहीं देखा।" } }
+        }
+      ]
+    },
+    "49": {
+      prompt: {
+        en: "{name} is {age}. There is just enough in the house tonight for the people in it.",
+        hi: "{name} {age} बरस {का|की} है। आज रात घर में बस उतना ही है जितना घर वालों के लिए चाहिए।"
+      },
+      options: [
+        {
+          id: "feed",
+          label: { en: "Feed the others first, as every day", hi: "रोज़ की तरह, पहले औरों को खिलाओ" },
+          move: "here",
+          cost: 1,
+          guna: "s",
+          aims: { dharma: 5, artha: -5 },
+          require: { aims: { artha: { min: 15 } } },
+          why: { en: "There is not enough in the house for it.", hi: "घर में इतना है ही नहीं।" }
+        },
+        {
+          id: "first",
+          label: { en: "Eat first tonight", hi: "आज पहले ख़ुद खा लो" },
+          move: "here",
+          cost: 0,
+          guna: "r",
+          aims: { kama: 5 },
+          outcome: { en: "{name} is {age} and eats first tonight, standing up in the kitchen, and the others eat after, and nobody says anything.", hi: "{name} {age} बरस {का|की} है। आज रात {name} ने रसोई में खड़े-खड़े पहले ख़ुद खा लिया, बाक़ी सबने बाद में खाया, और किसी ने कुछ नहीं कहा।" }
+        }
+      ]
+    },
+    "51": {
+      prompt: {
+        en: "{name} is {age}. The neighbour's child is sick, and the neighbour has not slept for two nights.",
+        hi: "{name} {age} बरस {का|की} है। पड़ोसी का बच्चा बीमार है, और पड़ोसी दो रातों से सोया नहीं है।"
+      },
+      options: [
+        {
+          id: "sit",
+          label: { en: "Sit up with the child", hi: "बच्चे के पास रात भर जागो" },
+          move: "ladder",
+          cost: 1,
+          guna: "s",
+          aims: { dharma: 10 }
+        },
+        {
+          id: "send",
+          label: { en: "Send someone to help", hi: "मदद के लिए किसी को भेज दो" },
+          move: "ladder",
+          cost: 0,
+          guna: "r",
+          aims: { artha: -5 },
+          outcome: { en: "{name} is {age} and pays the woman two streets over to sit up with the neighbour's sick child, and is thanked at the door for days.", hi: "{name} {age} बरस {का|की} है। {name} ने दो गली दूर वाली एक औरत को पैसे देकर पड़ोसी के बीमार बच्चे के पास बिठा दिया, और कई दिन तक दरवाज़े पर धन्यवाद मिलता रहा।" }
+        }
+      ]
+    },
+    "54": {
+      prompt: {
+        en: "{name} is {age}. A problem that has beaten {name} for a month has just been solved, in ten minutes, by the man who mends bicycles outside, and nobody else saw.",
+        hi: "{name} {age} बरस {का|की} है। महीने भर से {name} से जो उलझन नहीं सुलझ रही थी, उसे बाहर साइकिल ठीक करने वाले ने अभी दस मिनट में सुलझा दिया, और किसी और ने देखा नहीं।"
+      },
+      options: [
+        {
+          id: "credit",
+          label: { en: "Say where it came from", hi: "बताओ कि हल कहाँ से आया" },
+          move: "here",
+          cost: 1,
+          guna: "s",
+          aims: { dharma: 5 },
+          outcome: { en: "{name} is {age} and tells everyone the answer came from the man who mends bicycles, and has to explain it twice, and is believed the second time.", hi: "{name} {age} बरस {का|की} है। {name} ने सबको बताया कि हल साइकिल ठीक करने वाले से मिला, दो बार समझाना पड़ा, और दूसरी बार में बात मानी गई।", mirror: { en: "King Janashruti went looking for Raikva under his cart, and asked.", hi: "राजा जानश्रुति रैक्व को उनकी गाड़ी के नीचे ढूँढते हुए पहुँचे, और पूछा।" } }
+        },
+        {
+          id: "claim",
+          label: { en: "Present it as your own", hi: "इसे अपना बताकर पेश करो" },
+          move: "here",
+          cost: 0,
+          guna: "r",
+          aims: { artha: 5, dharma: -5 },
+          outcome: { en: "{name} is {age} and brings the answer in as {name}'s own, and is praised for it, and walks the long way round the bicycle stall for weeks.", hi: "{name} {age} बरस {का|की} है। {name} ने वह हल अपना बताकर पेश किया, तारीफ़ भी मिली, और कई हफ़्ते साइकिल वाले की दुकान से कतराकर, घूमकर निकलना पड़ा।" }
+        }
+      ]
+    },
+    "55": {
+      prompt: {
+        en: "{name} is {age}. The shopkeeper gives back too much change by mistake, and has already turned to the next customer.",
+        hi: "{name} {age} बरस {का|की} है। दुकानदार ने ग़लती से ज़्यादा पैसे लौटा दिए, और वह अगले ग्राहक की ओर मुड़ भी चुका है।"
+      },
+      options: [
+        {
+          id: "keep",
+          label: { en: "Pocket it", hi: "चुपचाप रख लो" },
+          move: "snake",
+          cost: 0,
+          guna: "r",
+          aims: { artha: 10, dharma: -10 }
+        },
+        {
+          id: "return",
+          label: { en: "Go back and give it", hi: "लौटकर दे दो" },
+          move: "here",
+          cost: 7,
+          guna: "s",
+          aims: { dharma: 5 },
+          outcome: { en: "{name} is {age} and goes back to the counter with the extra change, and waits while the shopkeeper counts it twice. For years after, {name} counts the change again at every counter, and is the slowest in every queue.", hi: "{name} {age} बरस {का|की} है। {name} ज़्यादा पैसे लेकर काउंटर पर {लौट आया|लौट आई}, और दुकानदार के दो बार गिनने तक {खड़ा रहा|खड़ी रही}। उसके बाद बरसों तक {name} हर काउंटर पर पैसे दोबारा {गिनता रहा|गिनती रही}, और हर क़तार में {सबसे धीमा रहा|सबसे धीमी रही}।", mirror: { en: "The jackal could have eaten the boar and left the bowstring alone.", hi: "सियार चाहता तो सूअर खाकर धनुष की डोरी को छोड़ सकता था।" } }
+        }
+      ]
+    },
+    "56": {
+      prompt: {
+        en: "{name} is {age}. Someone arrives unannounced at dinner time, and there are only as many plates as people.",
+        hi: "{name} {age} बरस {का|की} है। खाने के समय कोई बिना बताए आ गया है, और थालियाँ उतनी ही हैं जितने लोग।"
+      },
+      options: [
+        {
+          id: "give",
+          label: { en: "Give the guest your plate", hi: "मेहमान को अपनी थाली दे दो" },
+          move: "here",
+          cost: 1,
+          guna: "s",
+          aims: { dharma: 10, kama: -5 },
+          require: { guna: { t: { max: 0.55 } } },
+          why: { en: "Too tired tonight to go without.", hi: "आज भूखे रहने की हिम्मत नहीं बची।" }
+        },
+        {
+          id: "eaten",
+          label: { en: "Say you have all eaten already", hi: "कह दो कि सब खा चुके हैं" },
+          move: "here",
+          cost: 0,
+          guna: "r",
+          aims: { dharma: -5 },
+          outcome: { en: "{name} is {age} and says at the door that everyone has eaten already, and the guest says of course, and goes, and dinner goes on a little quieter than before.", hi: "{name} {age} बरस {का|की} है। {name} ने दरवाज़े पर ही कह दिया कि सब खा चुके हैं; मेहमान ने कहा, ठीक है, और चला गया, और खाना पहले से थोड़ा चुपचाप चलता रहा।" }
+        }
+      ]
+    },
+    "59": {
+      prompt: {
+        en: "{name} is {age}. {name}'s daughter breaks something precious, and {name}'s hand is already rising.",
+        hi: "{name} {age} बरस {का|की} है। बेटी ने {name} की कोई प्यारी चीज़ तोड़ दी है, और {name} का हाथ उठ चुका है।"
+      },
+      options: [
+        {
+          id: "strike",
+          label: { en: "Let it fall", hi: "हाथ चल जाने दो" },
+          move: "snake",
+          cost: 0,
+          guna: "r",
+          aims: { dharma: -10 }
+        },
+        {
+          id: "look",
+          label: { en: "Look at her first", hi: "पहले उसकी ओर देखो" },
+          move: "here",
+          cost: 5,
+          guna: "s",
+          aims: { dharma: 5 },
+          require: { guna: { r: { max: 0.5 } } },
+          why: { en: "Too restless to stop the hand in time.", hi: "इतनी बेचैनी है कि हाथ समय पर नहीं रुकेगा।" },
+          outcome: { en: "{name} is {age}, and with the hand already up looks at the daughter first, and sees that she is more frightened of the broken thing than of {name}. The hand comes down onto her head, and stays there. It takes years before looking first is quicker than the hand.", hi: "{name} {age} बरस {का|की} है। हाथ उठ चुका था, पर {name} ने पहले बेटी की ओर देखा, और दिखा कि वह {name} से ज़्यादा उस टूटी चीज़ से डरी हुई है। हाथ उसके सिर पर आकर रुक गया, और वहीं रहा। पहले देखना हाथ से तेज़ होने में बरसों लगे।", mirror: { en: "The brahmin's wife looked in the cradle only after the mongoose was dead.", hi: "ब्राह्मणी ने पालने में तब झाँका जब नेवला मर चुका था।" } }
+        },
+        {
+          id: "leave",
+          label: { en: "Walk out of the room", hi: "कमरे से बाहर चले जाओ" },
+          move: "here",
+          cost: 4,
+          guna: "t",
+          aims: { kama: -5 },
+          outcome: { en: "{name} is {age}, walks out of the room with the hand still raised, and stands outside until it comes down by itself. Nobody mentions the broken thing again, for years.", hi: "{name} {age} बरस {का|की} है। उठा हुआ हाथ लिए {name} कमरे से बाहर {चला गया|चली गई}, और तब तक बाहर {खड़ा रहा|खड़ी रही} जब तक हाथ अपने-आप नीचे नहीं आ गया। टूटी चीज़ की बात बरसों तक किसी ने नहीं की।" }
+        }
+      ]
+    }
+  };
+
   // src/content.js
   var { GOAL, TOP, ROWS, ASHRAMAS, LADDERS, SNAKES, HEAVEN, MOKSHA } = squares_default;
   var { SQ } = squares_default;
   var { STR, SRC_HI, JOINS, NUM_HI } = strings_default;
+  var SITUATIONS = situations_default;
   var PLAYER_NAMES = names_default.players;
   var READINGS = readings_default;
   var CODEX = codex_default;
@@ -2166,7 +2479,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var tIn = (l, k, v = {}) => (STR[l][k] ?? STR.en[k]).replace(/\{(\w+)\}/g, (_, x) => v[x] ?? "").replace(/\d/g, (d) => numIn(l, d));
   var t = (k, v = {}) => tIn(lang, k, v);
   var warned = /* @__PURE__ */ new Set();
-  function pick(o, l = lang) {
+  function pick2(o, l = lang) {
     if (!o) return "";
     if (o[l]) return o[l];
     if (l !== "en" && o.en && !warned.has(o.en)) {
@@ -2211,19 +2524,19 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     let years = 0;
     for (const [i, n] of life.entries()) {
       const from = life[i - 1], sn = SNAKES[from], ld = LADDERS[from];
-      const via = sn && sn.to === n ? sn.rebirth ? "rebirth" : "snake" : ld && ld.to === n ? "ladder" : from === n && n <= EARTH ? "sit" : null;
+      const via = sn && sn.to === n ? sn.rebirth ? "rebirth" : "snake" : ld && ld.to === n ? "ladder" : from === n && n <= EARTH ? toldAt(i) === "stay" ? "stay" : "sit" : null;
       if (via === "rebirth") years = 0;
-      else if (via === "sit") years += 1;
+      else if (via === "sit" || via === "stay") years += 1;
       else if (via === "ladder") years = Math.max(years, ageOf(n) ?? years);
       else if (via !== "snake") years = ageStep(years, n);
-      out.push({ n, years, via, from: via && via !== "sit" ? from : null, told: toldAt(i) });
+      out.push({ n, years, via, from: via && via !== "sit" && via !== "stay" ? from : null, told: toldAt(i) });
     }
     return out;
   }
   function turnYears(years, plan) {
     if (plan.sit) return years + 1;
     if (plan.jump?.rebirth) return 0;
-    const y = ageStep(years, plan.target);
+    const y = ageStep(years, plan.target) + (plan.cost ?? 0);
     return plan.jump?.kind === "ladder" ? Math.max(y, ageOf(plan.final) ?? y) : y;
   }
   var BOUNDS = ASHRAMAS.slice(0, 5).map(([max]) => ageOf(max));
@@ -2280,9 +2593,10 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       practised = 0;
     } else if (plan.final <= EARTH) {
       const stage = stageOfYears(years), sl = LADDERS[plan.target] || (SNAKES[plan.target] && !SNAKES[plan.target].rebirth ? SNAKES[plan.target] : null);
-      if (sl?.guna && plan.jump) {
-        gunas = mixGuna(gunas, sl.guna);
-        aims = applyAims(aims, sl.aims, stage);
+      const mark = plan.mark ?? (plan.jump && sl?.guna ? sl : null);
+      if (mark?.guna) {
+        gunas = mixGuna(gunas, mark.guna);
+        aims = applyAims(aims, mark.aims, stage);
       }
       aims = applyAims(aims, STAGE_RULES[stage].drift, stage);
     }
@@ -2301,6 +2615,40 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     let best = null;
     for (const { from } of snakes) if (count.get(from) >= (count.get(best) || 0)) best = from;
     return best;
+  }
+
+  // src/engine/qbn.js
+  var situationAt = (n) => n < ENDGAME && SITUATIONS[n]?.options?.length ? SITUATIONS[n] : null;
+  var optionOf = (n, id) => situationAt(n)?.options.find((o) => o.id === id) ?? null;
+  var within = (x, r) => (r.min == null || x >= r.min) && (r.max == null || x <= r.max);
+  function passes(p, require2) {
+    if (!require2) return true;
+    const g3 = p.gunas ?? freshGunas(), a = p.aims ?? freshAims();
+    if (require2.stage && !require2.stage.includes(stageOfPlayer(p))) return false;
+    for (const [k, r] of Object.entries(require2.guna || {})) if (!within(g3[k], r)) return false;
+    for (const [k, r] of Object.entries(require2.aims || {})) if (!within(a[k], r)) return false;
+    return true;
+  }
+  var optionsFor = (p, sit) => sit.options.map((o) => ({ ...o, open: passes(p, o.require) }));
+  var destOf = (n, o) => o.move === "snake" ? SNAKES[n]?.to ?? n : o.move === "ladder" ? LADDERS[n]?.to ?? n : n;
+  var GUNA_WORTH = { s: 5, r: 0, t: -3 };
+  var worthOf = (o) => (o.aims?.dharma ?? 0) + (GUNA_WORTH[o.guna] ?? 0);
+  var POLICY = "mixed";
+  function choiceFor(state, sit) {
+    const p = state.players[state.turn], open2 = optionsFor(p, sit).filter((o) => o.open);
+    if (POLICY === "honest" || POLICY === "dishonest") {
+      const sign = POLICY === "honest" ? -1 : 1;
+      return [...open2].sort((a, b) => sign * (worthOf(a) - worthOf(b)))[0].id;
+    }
+    const rng = makeRng((state.rng.seed ^ 625341585 ^ Math.imul(state.turn + 1, 2654435761) ^ Math.imul((p.life?.length ?? 0) + 1, 2246822507)) >>> 0);
+    return open2[Math.floor(next(rng) * open2.length)].id;
+  }
+  function momentOf(n, told) {
+    const q2 = squareOf(n);
+    if (told === "else" && SQ[n]?.roll) return { moment: SQ[n].roll.moment, own: false, key: `${n}:else` };
+    const o = told && told !== "else" ? optionOf(n, told) : null;
+    if (o?.outcome) return { moment: o.outcome, own: false, key: `${n}:${o.id}` };
+    return { moment: q2?.moment, own: true, key: n };
   }
 
   // src/engine/turn.js
@@ -2372,10 +2720,10 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     if (v) spare.splice(spare.indexOf(v), 1);
     if (dice.length > 1) pre.push(entry(v ? "lDice" : "lDiceSit", { a: dice[0], b: dice[1], v }, "", idx));
     if (!v) {
-      const years2 = turnYears(p.years ?? 0, { sit: true }), died2 = years2 > SPAN;
+      const years = turnYears(p.years ?? 0, { sit: true }), died = years > SPAN;
       after2.push(entry("lSit", { pos: from, sq: from }, "", idx));
-      if (died2) end.push(entry("lDied", { pos: from, age: years2, sq: from }, "death", idx));
-      return { idx, v, dice, spare, sit: true, from, path, target: from, final: from, jump: null, win: false, died: died2, again: false, told: [null], pre, after: after2, end };
+      if (died) end.push(entry("lDied", { pos: from, age: years, sq: from }, "death", idx));
+      return { idx, v, dice, spare, sit: true, from, path, target: from, final: from, jump: null, win: false, died, again: false, told: [null], pre, after: after2, end };
     }
     for (let i = 0, n = from, dir = 1; i < v; i++) {
       if (n === TOP) dir = -1;
@@ -2387,10 +2735,26 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     if (closed) for (let n = GOAL, d = Math.sign(closed - GOAL); n !== closed; ) path.push(target = n += d);
     const passed = [...new Set(path.slice(0, -1))].filter((n) => n !== target);
     if (passed.length) after2.push(entry("lPassed", { passed }, "passed", idx));
-    let jump = null, final = target;
-    const climbing = target > (path.at(-2) ?? from);
-    const s = SNAKES[target] && (!SNAKES[target].rebirth || climbing && !p.hasFallen) ? SNAKES[target] : null, l = LADDERS[target];
     if (closed) after2.push(entry("lClosed", { v, pos: target }, "", idx));
+    const plan = { idx, v, dice, spare, sit: false, from, path, target, bounced, final: target, jump: null, win: false, died: false, again: false, told: [null], cost: 0, pre, after: after2, end };
+    const sit = !closed && !bounced ? situationAt(target) : null;
+    if (sit) return Object.assign(plan, { situation: sit });
+    return finish(state, plan, null);
+  }
+  function resolveChoice(state, plan, id) {
+    const o = optionOf(plan.target, id);
+    if (!plan.situation || !o) throw new Error(`no option ${id} on square ${plan.target}`);
+    delete plan.situation;
+    return finish(state, plan, o);
+  }
+  function finish(state, plan, o) {
+    const { idx, v, dice, from, target, bounced, after: after2, end } = plan, p = state.players[idx], rules = state.rules;
+    let jump = null, final = target;
+    const climbing = target > (plan.path.at(-2) ?? from);
+    const s = o ? o.move === "snake" ? SNAKES[target] : null : SNAKES[target] && (!SNAKES[target].rebirth || climbing && !p.hasFallen) ? SNAKES[target] : null;
+    const l = o ? o.move === "ladder" ? LADDERS[target] : null : LADDERS[target];
+    const cost = o?.cost ?? 0;
+    if (cost) after2.push(entry(cost === 1 ? "lStayOne" : "lStay", { n: cost, pos: target, sq: target }, "", idx));
     if (s || l) {
       jump = { kind: s ? "snake" : "ladder", to: (s || l).to, rebirth: !!s?.rebirth };
       final = jump.to;
@@ -2403,18 +2767,19 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       after2.push(entry(from === 0 ? "lBorn" : "lMove", { v, pos: target, sq: target }, "", idx));
     }
     const win = final === GOAL;
-    const years = turnYears(p.years ?? 0, { target, final, jump }), died = !win && final <= 100 && years > SPAN;
+    const years = turnYears(p.years ?? 0, { target, final, jump, cost }), died = !win && final <= 100 && years > SPAN;
     const again = !win && !died && v === 6 && rules.six;
     if (win) end.push(entry(from > GOAL ? "lWinAbove" : "lWin", { pos: GOAL }, "heaven", idx));
     else if (died) end.push(entry("lDied", { pos: final, age: years, sq: final }, "death", idx));
     else if (again) end.push(entry("lSix", {}, "", idx));
-    const told = (jump ? [target, final] : [target]).map((n) => toldOn(n, v, dice));
-    return { idx, v, dice, spare, sit: false, from, path, target, final, jump, win, died, again, told, pre, after: after2, end };
+    const told = [o ? o.id : toldOn(target, v, dice), ...Array(cost).fill("stay"), ...jump ? [toldOn(final, v, dice)] : []];
+    const mark = o ? { guna: o.guna, aims: o.aims } : null;
+    return Object.assign(plan, { final, jump, win, died, again, told, cost, mark, choice: o?.id ?? null });
   }
   function endTurn(state, plan) {
     const p = state.players[plan.idx];
     p.pos = plan.final;
-    (p.life ||= []).push(...plan.jump ? [plan.target, plan.final] : [plan.target]);
+    (p.life ||= []).push(plan.target, ...Array(plan.cost ?? 0).fill(plan.target), ...plan.jump ? [plan.final] : []);
     const before = p.life.length - plan.told.length, kept = (p.told ?? []).slice(0, before);
     p.told = [...kept, ...Array(before - kept.length).fill(null), ...plan.told];
     if (plan.jump?.rebirth) p.hasFallen = true;
@@ -2437,7 +2802,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   }
 
   // src/state.js
-  var G = { setup: null, state: null, busy: false, cpuTimer: null, gen: 0, forcedRoll: null, choosing: null };
+  var G = { setup: null, state: null, busy: false, cpuTimer: null, gen: 0, forcedRoll: null, choosing: null, deciding: null };
   var SELF = "mp-self";
   function loadSelf() {
     try {
@@ -3912,11 +4277,20 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var cardExpanded = () => dlg2.open && expanded;
   var cardIdle = () => dlg2.open && !carried ? new Promise((r) => waiters.push(r)) : Promise.resolve();
   var onCardChange = (fn) => onChange.add(fn);
-  var setCardRoll = (src, fn, pick2) => {
+  var setCardRoll = (src, fn, pick3) => {
     rollSrc = src;
     rollFn = fn;
-    pickFn = pick2;
+    pickFn = pick3;
   };
+  var decideFn = () => {
+  };
+  var setCardDecide = (fn) => {
+    decideFn = fn;
+  };
+  function optionNote(l, n, o) {
+    const to = destOf(n, o), where = to < n ? tIn(l, "optDown", { n: numIn(l, to) }) : to > n ? tIn(l, "optUp", { n: numIn(l, to) }) : tIn(l, "optHere", { n: numIn(l, n) });
+    return o.cost ? `${where} · ${o.cost === 1 ? tIn(l, "optYear") : tIn(l, "optYears", { n: numIn(l, o.cost) })}` : where;
+  }
   function squareInfo(n, l) {
     const T = (k, v) => tIn(l, k, v), o = other(l), r = READINGS[n] || {};
     const sl = !HEAVEN[n] && (LADDERS[n] || SNAKES[n]), scholar = deep("scholar");
@@ -3963,8 +4337,15 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const p = subjectOf(), plan = G.plan;
     if (!p || p.pos !== n) return null;
     if (plan && G.state.players[plan.idx] === p) return plan.target === n ? plan.told?.[0] ?? null : plan.final === n ? plan.told?.at(-1) ?? null : null;
-    return p.life?.at(-1) === n && p.told?.length === p.life.length ? p.told.at(-1) : null;
+    if (p.told?.length !== p.life?.length) return null;
+    let k = p.life.length - 1;
+    while (k > 0 && p.told[k] === "stay") k--;
+    return p.life[k] === n ? p.told[k] : null;
   }
+  var pendingOn = (n) => {
+    const plan = G.plan;
+    return plan?.situation && plan.target === n && subjectOf() === G.state.players[plan.idx] ? plan.situation : null;
+  };
   function person(l, n) {
     const p = subjectOf(), here = livedOn(n), a = here ? here.years : squareOf(n)?.age;
     const age2 = Number.isInteger(a) ? ageWordsIn(l, a, !!here?.still) : "";
@@ -3981,8 +4362,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const [a, b] = l === "hi" ? [hi, en] : [en, hi];
     return `<p class="${cls}">${esc(a)}</p>` + (prefs.both && b ? `<p class="${cls} second" lang="${other(l)}">${esc(b)}</p>` : "");
   };
-  var bi = (l, obj, cls) => obj ? texts(l, obj.en || "", obj.hi || pick(obj, "hi"), cls) : "";
-  var entryName = (id, l) => esc(pick(entryOf(id)?.e.name, l));
+  var bi = (l, obj, cls) => obj ? texts(l, obj.en || "", obj.hi || pick2(obj, "hi"), cls) : "";
+  var entryName = (id, l) => esc(pick2(entryOf(id)?.e.name, l));
   var entryLink = (id, l, cls = "chip") => `<a class="${cls}${hasMet(id) ? "" : " new"}" href="#codex/${id}" data-entry="${id}">${cls === "chip" ? art(`seal-${id}`, "", "seal") : ""}${entryName(id, l)}</a>`;
   function extras(kind) {
     const rnd = (i) => i * 37 % 100;
@@ -4022,12 +4403,13 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const sid = sourceOf(src), s = sid && CODEX.sources[sid], firstTime = sid && !hasMet(sid);
     met.push(sid);
     const gloss = s && (square ? deep("school") && (firstTime || deep("scholar")) : firstTime || deep("scholar"));
-    return `<p class="srcline">` + (sid ? `<a class="src" href="#codex/${sid}" data-entry="${sid}">${esc(srcIn(l, src))}</a>` : `<span class="src">${esc(srcIn(l, src))}</span>`) + (gloss ? `<span class="gloss${square ? " more-only" : ""}">${esc(pick(s.gloss, l))}</span>` : "") + `</p>`;
+    return `<p class="srcline">` + (sid ? `<a class="src" href="#codex/${sid}" data-entry="${sid}">${esc(srcIn(l, src))}</a>` : `<span class="src">${esc(srcIn(l, src))}</span>`) + (gloss ? `<span class="gloss${square ? " more-only" : ""}">${esc(pick2(s.gloss, l))}</span>` : "") + `</p>`;
   }
   function squareHtml(n, l) {
     const T = (k, v) => tIn(l, k, v), info = squareInfo(n, l), r = READINGS[n] || {};
     const src = srcOfSquare(n), met = [];
-    const sq = squareOf(n), m = toldHere(n) === "else" && sq.roll?.moment || sq.moment, mirror = m?.mirror || sq.mirror;
+    const pending = pendingOn(n);
+    const sq = squareOf(n), m = pending ? pending.prompt : momentOf(n, toldHere(n)).moment ?? sq.moment, mirror = m?.mirror || sq.mirror;
     const age2 = m && sq.age != null ? ageIn(l, livedOn(n)?.years ?? sq.age) : "";
     let body = `<h2 id="leafTitle">${esc(info.title)}</h2>`;
     const alt = info.alt.filter(Boolean).join(" · ");
@@ -4035,7 +4417,9 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const moment = m ? texts(l, fill(m.en, person("en", n)), fill(m.hi, person("hi", n)), n > 100 ? "moment remnant" : "moment") : "";
     const remedy = sq.remedy ? texts(l, fill(sq.remedy.en, person("en", n)), fill(sq.remedy.hi, person("hi", n)), "remedy") : "";
     const above = n > GOAL && HEAVEN[n] ? texts(l, ...["en", "hi"].map((x) => tIn(x, "aboveExit", { n: numIn(x, GOAL), top: numIn(x, TOP) })), "remedy above") : "";
-    body += `<div class="story">${moment}${remedy}${texts(l, mirror.en, mirror.hi, m ? "mirror" : "")}${bi(l, r.line2, "line2")}${above}</div>`;
+    const opts = pending && G.deciding?.sit === pending ? G.deciding.opts : null;
+    const options = opts ? `<div class="options" role="group" aria-label="${esc(T("chooseLabel"))}">` + opts.map((o, i) => `<button type="button" class="opt" data-act="opt" data-id="${esc(o.id)}"${o.open ? "" : ` aria-disabled="true" aria-describedby="why-${esc(o.id)}"`}><span class="opt-k" aria-hidden="true">${numIn(l, i + 1)}</span><span class="opt-l">${esc(o.label[l] || o.label.en)}</span><span class="opt-c">${esc(optionNote(l, n, o))}</span>` + (o.open ? "" : `<span class="opt-why" id="why-${esc(o.id)}">${esc(T("optWithheld"))} ${esc(o.why[l] || o.why.en)}</span>`) + `</button>`).join("") + `</div>` : "";
+    body += `<div class="story">${moment}${options}${remedy}${pending ? "" : texts(l, mirror.en, mirror.hi, m ? "mirror" : "")}${bi(l, r.line2, "line2")}${above}</div>`;
     let more = "";
     const metMore2 = [];
     const viewList = (vs, cls) => `<ul class="${cls}">` + vs.map((v) => `<li>${entryLink(v.id, l)}${texts(l, v.en, v.hi)}</li>`).join("") + `</ul>`;
@@ -4096,9 +4480,9 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   }
   function entryHtml(id, l) {
     const T = (k, v) => tIn(l, k, v), { kind, e } = entryOf(id), o = other(l), i = ENTRY_IDS.indexOf(id);
-    const alt = [pick(e.name, o), e.iast && e.iast !== e.name.en ? e.iast : ""].filter(Boolean).join(" · ");
-    let body = `<h2 id="leafTitle">${esc(pick(e.name, l))}</h2>` + (alt ? `<p class="alt">${esc(alt)}</p>` : "");
-    if (e.tag || e.dates) body += `<p class="tag">${esc(pick(e.tag || e.dates, l))}</p>`;
+    const alt = [pick2(e.name, o), e.iast && e.iast !== e.name.en ? e.iast : ""].filter(Boolean).join(" · ");
+    let body = `<h2 id="leafTitle">${esc(pick2(e.name, l))}</h2>` + (alt ? `<p class="alt">${esc(alt)}</p>` : "");
+    if (e.tag || e.dates) body += `<p class="tag">${esc(pick2(e.tag || e.dates, l))}</p>`;
     body += `<div class="story">${bi(l, e.line || e.gloss)}</div>`;
     if (e.body) body += bi(l, e.body, "note");
     if (e.moksha) body += `<h3 class="sub">${T("mokshaFor")}</h3>` + bi(l, e.moksha, "moksha");
@@ -4133,6 +4517,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     leaf2.className = "leaf " + out.kind + (landing ? " landed" : "") + (expanded ? " open" : "");
     leaf2.innerHTML = out.html;
     metMore = out.metMore || [];
+    if (sheetOn() && leaf2.querySelector(".options")) setDetent("full");
     meet([...out.met, ...expanded ? metMore : []].filter(Boolean));
     refreshRoll();
     if (again) [...leaf2.querySelectorAll(again)].find((el) => el.offsetParent)?.focus({ preventScroll: true });
@@ -4313,6 +4698,11 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     if (act === "close") return closeCard();
     if (act === "roll") return roll();
     if (act === "pick") return pickFn(+e.target.closest("[data-v]").dataset.v);
+    if (act === "opt") {
+      const b = e.target.closest("[data-id]");
+      if (b.getAttribute("aria-disabled") !== "true") decideFn(b.dataset.id);
+      return;
+    }
     if (act === "more") return setExpanded(!expanded);
     if (act === "grip") {
       toggleDetent();
@@ -4372,7 +4762,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   function renderCodex() {
     const met = metCount(ENTRY_IDS);
     $("codexCount").textContent = `${met}/${ENTRY_IDS.length}`;
-    $("codexPanel").innerHTML = `<p class="hint">${t("codexHint", { met, all: ENTRY_IDS.length })}</p>` + ENTRY_GROUPS.map(([kind, g3]) => `<div><h3 class="eyebrow">${t(GROUP_LABEL[kind])}</h3><ul>` + Object.entries(CODEX[g3]).map(([id, e]) => hasMet(id) || showAll ? `<li><a class="ent${hasMet(id) ? "" : " unmet"}" href="#codex/${id}" data-entry="${id}" lang="${lang}">${esc(pick(e.name))}</a></li>` : `<li><span class="ent locked" title="${t("codexLocked")}" aria-label="${t("codexLocked")}">· · ·</span></li>`).join("") + `</ul></div>`).join("") + `<label class="check"><input type="checkbox" id="codexAll"${showAll ? " checked" : ""}> <span>${t("codexAll")}</span></label>`;
+    $("codexPanel").innerHTML = `<p class="hint">${t("codexHint", { met, all: ENTRY_IDS.length })}</p>` + ENTRY_GROUPS.map(([kind, g3]) => `<div><h3 class="eyebrow">${t(GROUP_LABEL[kind])}</h3><ul>` + Object.entries(CODEX[g3]).map(([id, e]) => hasMet(id) || showAll ? `<li><a class="ent${hasMet(id) ? "" : " unmet"}" href="#codex/${id}" data-entry="${id}" lang="${lang}">${esc(pick2(e.name))}</a></li>` : `<li><span class="ent locked" title="${t("codexLocked")}" aria-label="${t("codexLocked")}">· · ·</span></li>`).join("") + `</ul></div>`).join("") + `<label class="check"><input type="checkbox" id="codexAll"${showAll ? " checked" : ""}> <span>${t("codexAll")}</span></label>`;
   }
   $("codexPanel").addEventListener("click", (e) => {
     const a = e.target.closest("[data-entry]");
@@ -4421,12 +4811,12 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       lastThen = k;
       return JOINS.then[k];
     };
-    const along = yearsAlong(p.life || [], p.told || []), paras = [];
+    const along = yearsAlong(p.life || [], p.told || []).filter((e) => e.via !== "stay"), paras = [];
     let para = null, seen2 = /* @__PURE__ */ new Set(), lived = /* @__PURE__ */ new Map(), own = /* @__PURE__ */ new Set(), taken = /* @__PURE__ */ new Map(), lastYears = null, fold = [], sat = [], reborn = false, skip = false;
-    const told = (e) => e.told ? `${e.n}:${e.told}` : e.n;
+    const told = (e) => momentOf(e.n, e.told).key;
     const note = (e) => {
       seen2.add(told(e));
-      if (!e.told) own.add(e.n);
+      if (momentOf(e.n, e.told).own) own.add(e.n);
       if (!lived.has(e.n)) lived.set(e.n, e.years);
     };
     const sq = (n) => {
@@ -4468,7 +4858,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       paras.push(para);
     };
     for (const [k, e] of along.entries()) {
-      const q2 = squareOf(e.n), other2 = e.told === "else" ? q2?.roll : null, m = other2 ? other2.moment : q2?.moment, nextE = along[k + 1];
+      const q2 = squareOf(e.n), said = momentOf(e.n, e.told), m = said.moment, nextE = along[k + 1];
+      const echo = said.own ? q2?.echo : e.told === "else" ? q2?.roll?.echo : null;
       if (e.via === "rebirth") {
         close();
         seen2 = /* @__PURE__ */ new Set();
@@ -4523,10 +4914,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       let join = null;
       const gap = lastYears == null || e.n > EARTH3 ? null : e.years - lastYears;
       if (e.via === "snake") join = J(JOINS.snake, { cost: words(ageOf(e.from) - ageOf(e.n)) });
-      else if ((other2 ? other2.echo : q2.echo) && own.has(q2.callsBack) && !repeat) {
-        const echo = other2 ? other2.echo : q2.echo;
-        join = echo[l] || echo.en;
-      } else if (e.via === "ladder") join = J(JOINS.ladder);
+      else if (echo && own.has(q2.callsBack) && !repeat) join = echo[l] || echo.en;
+      else if (e.via === "ladder") join = J(JOINS.ladder);
       else if (repeat) join = J(JOINS.again);
       else if (para.parts.length && gap != null && gap >= GAP) join = J(JOINS.gap, { gap: words(gap) });
       else if (para.parts.length && gap != null && gap < 1) join = J(lastYears < 1 && e.years < 1 ? JOINS.months : JOINS.sameYear);
@@ -4684,13 +5073,13 @@ ${p.text}`), end].filter(Boolean).join("\n\n") + "\n";
     const moves = movesFor(G.state, dice);
     return new Promise((resolve) => {
       G.choosing = { dice, moves, resolve };
-      const pick2 = $("pick");
-      pick2.innerHTML = moves.map((v) => `<button type="button" data-v="${v}"${v ? "" : ` title="${esc(t("sitHint"))}"`}>${esc(moveLabel(lang, v))}</button>`).join("");
-      pick2.hidden = false;
+      const pick3 = $("pick");
+      pick3.innerHTML = moves.map((v) => `<button type="button" data-v="${v}"${v ? "" : ` title="${esc(t("sitHint"))}"`}>${esc(moveLabel(lang, v))}</button>`).join("");
+      pick3.hidden = false;
       $("roll").hidden = true;
       $("hint").textContent = t(moves.includes(0) ? "diceChooseSit" : "diceChoose", { a: num(dice[0]), b: num(dice[1]) });
       refreshRoll();
-      if (!cardOpen()) pick2.querySelector("button")?.focus({ preventScroll: true });
+      if (!cardOpen()) pick3.querySelector("button")?.focus({ preventScroll: true });
     });
   }
   function pickMove(v) {
@@ -4703,9 +5092,38 @@ ${p.text}`), end].filter(Boolean).join("\n\n") + "\n";
     c.resolve(v);
   }
   $("pick").addEventListener("click", (e) => {
+    const o = e.target.closest("[data-o]");
+    if (o) return pickOption(o.dataset.o);
     const b = e.target.closest("[data-v]");
     if (b) pickMove(+b.dataset.v);
   });
+  function drawDecide() {
+    const d = G.deciding, p = G.state.players[G.plan.idx];
+    $("pick").innerHTML = d.opts.map((o) => `<button type="button" data-o="${esc(o.id)}"${o.open ? "" : ` aria-disabled="true"`}>${esc(L(o.label.en, o.label.hi))}<small>${esc(o.open ? optionNote(lang, G.plan.target, o) : L(o.why.en, o.why.hi))}</small></button>`).join("");
+    $("hint").textContent = t("chooseHint", { name: pname(p) });
+  }
+  function decide(sit, p) {
+    const opts = optionsFor(p, sit);
+    return new Promise((resolve) => {
+      G.deciding = { sit, opts, resolve };
+      drawDecide();
+      $("pick").hidden = false;
+      $("roll").hidden = true;
+      refreshRoll();
+      refreshCard();
+      if (!cardOpen()) pick.querySelector("button:not([aria-disabled])")?.focus({ preventScroll: true });
+    });
+  }
+  function pickOption(id) {
+    const d = G.deciding, o = d?.opts.find((x) => x.id === id);
+    if (!o?.open) return;
+    G.deciding = null;
+    $("pick").hidden = true;
+    $("pick").innerHTML = "";
+    $("roll").hidden = false;
+    d.resolve(id);
+  }
+  setCardDecide(pickOption);
   var watched = 0;
   function watchFrames() {
     if (forcedQuality || quality === "low" || watched >= 2) return () => {
@@ -4753,7 +5171,7 @@ ${p.text}`), end].filter(Boolean).join("\n\n") + "\n";
     state.last = v || dice[0];
     setDrone(lens(state).droneStage);
     const watching = watchFrames();
-    const plan = planTurn(state, v, dice);
+    let plan = planTurn(state, v, dice);
     G.plan = plan;
     plan.pre.forEach(log);
     {
@@ -4780,7 +5198,21 @@ ${p.text}`), end].filter(Boolean).join("\n\n") + "\n";
       await waitCard();
       if (g3 !== G.gen) return;
       const carried2 = cardCarried();
-      if (!plan.sit && (carried2 ? p.type === "human" : prefs.landAll || !SQ[p.pos])) {
+      if (plan.situation) {
+        const shown = carried2 ? p.type === "human" : true;
+        G.waitingCard = shown && !carried2;
+        refreshRoll();
+        const read = shown ? openSquare(p.pos, { landing: true, auto: p.type === "cpu", who: idx }) : Promise.resolve();
+        const id = p.type === "human" ? await decide(plan.situation, p) : choiceFor(state, plan.situation);
+        if (g3 !== G.gen) return;
+        plan = resolveChoice(state, plan, id);
+        G.plan = plan;
+        refreshCard();
+        await read;
+        G.waitingCard = false;
+        refreshRoll();
+        if (g3 !== G.gen) return;
+      } else if (!plan.sit && (carried2 ? p.type === "human" : prefs.landAll || !SQ[p.pos])) {
         G.waitingCard = !carried2;
         refreshRoll();
         await openSquare(p.pos, { landing: true, auto: p.type === "cpu", who: idx });
@@ -4827,6 +5259,7 @@ ${p.text}`), end].filter(Boolean).join("\n\n") + "\n";
     const s = G.state;
     if (!s || s.over || !s.players.some((q2) => q2.type === "human" && !q2.dead)) return null;
     if (G.choosing) return { choose: G.choosing.moves.map((v) => ({ v, label: moveLabel(l, v) })) };
+    if (G.deciding) return null;
     const n = s.players.length, plan = G.plan, humans = s.players.filter((q2) => q2.type === "human").length;
     let i = plan ? plan.again ? plan.idx : (plan.idx + 1) % n : s.turn;
     for (let k = 0; k < n && (s.players[i].type !== "human" || s.players[i].dead); k++) i = (i + 1) % n;
@@ -4888,6 +5321,7 @@ ${p.text}`), end].filter(Boolean).join("\n\n") + "\n";
     $("roll").disabled = G.busy || state.over || !human;
     $("roll").textContent = human ? t("roll") : t("rolling", { name: pname(p) });
     $("hint").textContent = state.over ? t("hintOver") : human ? t("hintHuman") : t("hintCpu");
+    if (G.deciding) drawDecide();
     showDice(state.dice?.length ? state.dice : [state.last || 6]);
     refreshRoll();
     $("seed").textContent = `${t("seed")} ${state.rng.seed}`;
@@ -4981,6 +5415,7 @@ ${p.text}`), end].filter(Boolean).join("\n\n") + "\n";
     G.face = null;
     G.waitingCard = false;
     G.choosing = null;
+    G.deciding = null;
     $("pick").hidden = true;
     $("pick").innerHTML = "";
     $("roll").hidden = false;
@@ -5024,6 +5459,13 @@ ${p.text}`), end].filter(Boolean).join("\n\n") + "\n";
   $("naming").addEventListener("cancel", (e) => e.preventDefault());
   $("roll").addEventListener("click", takeTurn);
   document.addEventListener("keydown", (e) => {
+    if (G.deciding && /^[1-3]$/.test(e.key) && !e.target.closest("input, select, textarea") && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      const o = G.deciding.opts[+e.key - 1];
+      if (o) {
+        e.preventDefault();
+        return pickOption(o.id);
+      }
+    }
     if (G.choosing && !e.target.closest("input, select, textarea") && !e.ctrlKey && !e.metaKey && !e.altKey) {
       const { dice } = G.choosing, v = e.key === "1" ? dice[0] : e.key === "2" ? dice[1] : /^[s0]$/i.test(e.key) ? 0 : null;
       if (v != null) {
@@ -5134,6 +5576,13 @@ ${p.text}`), end].filter(Boolean).join("\n\n") + "\n";
         return G.choosing ? [...G.choosing.moves] : null;
       },
       pick: pickMove,
+      // the options a situation offers, with whether each is open, or null when nothing is waiting on one
+      get deciding() {
+        return G.deciding ? G.deciding.opts.map((o) => ({ id: o.id, open: o.open })) : null;
+      },
+      choose: pickOption,
+      // the situation on square n, or null (REDESIGN.md Phase 10)
+      situation: (n) => situationAt(n),
       // how many dice player i (the current one by default) has spent on practice in this life
       practised: (i = G.state.turn) => G.state.players[i].practised ?? 0,
       seed(n) {

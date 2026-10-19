@@ -2,7 +2,7 @@
 // Objects are expanded down to EXPAND levels; anything deeper, and any flat array, stays on one line.
 import fs from "node:fs";
 
-const EXPAND = { "strings.json": 3 };
+const EXPAND = { "strings.json": 3, "situations.json": 4 };
 const S = JSON.stringify;
 function fmt(v, depth, max) {
   if (depth >= max || v === null || typeof v !== "object" || (Array.isArray(v) && v.every(x => typeof x !== "object"))) return S(v);

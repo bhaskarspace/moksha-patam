@@ -962,9 +962,47 @@ age, and p95 has not risen.
 
 ---
 
-### Phase 10 — Situations
+### Phase 10 — Situations  ✅ SHIPPED
 
-> **A, the roll-dependent squares, shipped, with these decisions.** B, situations proper, is next.
+> **B, situations proper, shipped, with these decisions.**
+> - *Ten squares, none shared with A's:* snakes 55 Greed, 59 Anger, 19 Fibbing, 47 Craving; ladders 12 Wit, 28 Truth,
+>   51 Compassion; story squares 49 Five offerings, 54 Raikva, 56 The guest (`content/situations.json`,
+>   `src/engine/qbn.js`). Each option shows what it visibly does, where it takes you and the years it costs, and never
+>   its guna and aims. Any other square is its story card; a computer chooses the way the sim does, from a sequence of
+>   its own, so the dice and `npm run golden` are untouched.
+> - *The hidden value is the guna and aims already in state.* An option carries the same `guna` and `aims` tags as
+>   the vices and virtues, applied by the same `grow()`. No ledger of its own: the choice is history in `p.told`, and
+>   Phase 11 can read āgāmi from it. Ranked for the sim and the lint by dharma, then guna.
+> - *Cheaper, never further, is a build failure.* The option worth least may not go further, or cost more years,
+>   than the one worth most. On a ladder both climb and the honest one costs a year; on a story square both stay and
+>   the honest one costs a year; on a snake the vice is the fall and restraint costs the years a fall costs. Measured
+>   (mean years until a life stands at the head again): 19 → 4.3, 47 → 10.3, 55 → 8.5, 59 → 6.5. Priced at 4, 8, 7, 5,
+>   and 4 for walking out at 59. Priced at the median first, restraint was the cheaper way and honest led everywhere.
+> - *The years a choice costs pass on its square* (the square again in the life, told "stay"): the clock, the death
+>   at the span and the account all read them; they are not practice and are not told as sitting.
+> - *Gates*: 47's waiting (rajas ≤ 0.6), 49's feeding the others (artha ≥ 15), 56's giving up the plate (tamas ≤ 0.55),
+>   59's looking first (rajas ≤ 0.5). A withheld option stays on the card, greyed, with why; one option is always open.
+> - *Policies* (20,000 single lives; `npm run sim -- --policy=…`):
+>
+>   | | dishonest | mixed (the game's) | honest |
+>   |---|---|---|---|
+>   | median / p95 / over 100 | 34 / 71 / 0.7% | 32 / 65 / 0.3% | 31 / 62 / 0.1% |
+>   | liberated | 97.5% | 96.5% | 95.8% |
+>   | square at 40 / 50 / 70 / 85 (mean) | 50.1 / 51.8 / 73.4 / 88.5 | | 49.9 / 54.3 / 72.4 / 87.9 |
+>   | sattva / tamas at the end | 0.429 / 0.110 | 0.556 / 0.138 | 0.687 / 0.131 |
+>   | dharma at the end | 20.7 | 33.4 | 44.6 |
+>   | highest bhumika (mean) | 1.13 | 2.53 | 4.32 |
+>
+>   **Worse in the ledger on every line, and ahead on the board only partly.** The dishonest life is ahead at 40 and
+>   from 70 on, and is liberated more, but is behind at 50: on a snake the vice is the fall, so the crooked life is
+>   back on the board until the re-walk catches it up. Always-dishonest plays the Phase 9 board exactly, pinned by a
+>   test, since every least-worth option is the old snake, the old ladder or the old square at no cost.
+> - *Guardrails, the game's own computer:* median 34 → 32, p95 71 → 65, over 100 0.7% → 0.3%, two players 28/49/0.1% →
+>   27/47/0.1%. **Liberation 97.5% → 96.5%**, down, not worse; Phase 13 still owns it. A square landed on four times or
+>   more 31.0% → 26.6%, the same moment told four times or more 27.4% → 23.4%: restraint keeps lives off the snake
+>   tails. Turyā 1.5% → 3.3% of sannyasins, from the sattva the honest options mix in; it still needs practice.
+
+> **A, the roll-dependent squares, shipped, with these decisions.**
 > - *Which squares, from the sim, not taste.* The 31% is mostly not below 94: in 16.1 of its 31 points the only
 >   squares landed on four times or more are the divine row (107, 108, 109, 106), bounced around under Phase 9's two
 >   dice, and 19.2% of lives repeat a square at or above 94 at all, a floor nothing below 94 can get under. Below 94
@@ -1282,7 +1320,8 @@ because you are authoring breadth for replay rather than a script.
   The mean hides the tail and the tail is what players feel. Baseline after Phase 4:
   median 41, p5 22, p95 82, mean 45.0, max 204, 1.7% over 100 turns. For reference the
   Milton Bradley board runs 3.3% over 100, which is the guardrail. **Current, after Phase
-  9: median 34, p5 18, p95 71, mean 37.8, max 172, 0.7% over 100.** Treat a rise in p95 or
+  9: median 34, p5 18, p95 71, mean 37.8, max 172, 0.7% over 100.** After Phase 10: median 32, p95 65, 0.3% over 100,
+  liberation 96.5%. Treat a rise in p95 or
   in over-100% as a regression that needs a reason — and note that Phase 9 cleared the
   guardrail partly by making lives shorter and safer, which is why **liberation rate now
   needs watching alongside it** (Phase 13): turn count is no longer the only thing a

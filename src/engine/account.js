@@ -16,12 +16,15 @@
 // A square that can tell two moments (REDESIGN.md Phase 10, src/engine/turn.js toldOn) is told again when it tells
 // the other one: what repeats is a moment, not a square. Where it was first lived is still the square's. A callback
 // is said only when the square it calls back to told its own moment, since the echo names that moment; the other
-// moment has an echo of its own only when one is written.
+// moment has an echo of its own only when one is written. A situation's choice is told the same way: by its
+// outcome, or by the square's own moment when the option has none (src/engine/qbn.js momentOf). The years a choice
+// cost pass silently; the outcome says what they were.
 import { ASHRAMAS, LADDERS, SNAKES, JOINS, squareOf, snakeOn } from "../content.js";
 import { tIn, fill, wordsIn, ageWordsIn } from "../i18n.js";
 import { makeRng, next } from "../rng.js";
 import { pnameIn } from "../state.js";
 import { ageOf, yearsAlong, stageOfYears, titleOf, holdingOf } from "./self.js";
+import { momentOf } from "./qbn.js";
 
 const EARTH = 100, GAP = 8;
 // An English moment that does not open with the name reads on after a joining phrase in lower case:
@@ -41,13 +44,13 @@ export function lifeOf(state, i, l) {
   let lastThen = -1;
   const then = () => { let k = Math.floor(next(rng) * JOINS.then.length); if (k === lastThen) k = (k + 1) % JOINS.then.length; lastThen = k; return JOINS.then[k]; };
 
-  const along = yearsAlong(p.life || [], p.told || []), paras = [];
+  const along = yearsAlong(p.life || [], p.told || []).filter(e => e.via !== "stay"), paras = [];
   // lived: each square of this life, with the years it was first lived at; own: the squares that told their own
   // moment; seen: the moments told, by square and which moment; taken: how often each snake or ladder has been
   // taken in this life
   let para = null, seen = new Set(), lived = new Map(), own = new Set(), taken = new Map(), lastYears = null, fold = [], sat = [], reborn = false, skip = false;
-  const told = e => (e.told ? `${e.n}:${e.told}` : e.n);
-  const note = e => { seen.add(told(e)); if (!e.told) own.add(e.n); if (!lived.has(e.n)) lived.set(e.n, e.years); };
+  const told = e => momentOf(e.n, e.told).key;
+  const note = e => { seen.add(told(e)); if (momentOf(e.n, e.told).own) own.add(e.n); if (!lived.has(e.n)) lived.set(e.n, e.years); };
   const sq = n => { const q = squareOf(n); return q[l] || q.en; };
   // squares lived a second time, told as one line. The ages are the ones that ground was first walked at,
   // which is said so, since the years lived have moved on since.
@@ -83,7 +86,9 @@ export function lifeOf(state, i, l) {
 
   for (const [k, e] of along.entries()) {
     // the moment this landing told: the square's own, or the other one a roll-dependent square has
-    const q = squareOf(e.n), other = e.told === "else" ? q?.roll : null, m = other ? other.moment : q?.moment, nextE = along[k + 1];
+    const q = squareOf(e.n), said = momentOf(e.n, e.told), m = said.moment, nextE = along[k + 1];
+    // a roll-dependent square's other moment may have an echo of its own; a chosen outcome has none
+    const echo = said.own ? q?.echo : e.told === "else" ? q?.roll?.echo : null;
     if (e.via === "rebirth") { close(); seen = new Set(); lived = new Map(); own = new Set(); taken = new Map(); lastYears = null; para = null; reborn = true; }
     // where a snake or ladder told short led: lived, and not told
     if (skip) { skip = false; note(e); lastYears = e.years; continue; }
@@ -113,7 +118,7 @@ export function lifeOf(state, i, l) {
     // above the world there is no more time to measure
     const gap = lastYears == null || e.n > EARTH ? null : e.years - lastYears;
     if (e.via === "snake") join = J(JOINS.snake, { cost: words(ageOf(e.from) - ageOf(e.n)) });
-    else if ((other ? other.echo : q.echo) && own.has(q.callsBack) && !repeat) { const echo = other ? other.echo : q.echo; join = echo[l] || echo.en; }
+    else if (echo && own.has(q.callsBack) && !repeat) join = echo[l] || echo.en;
     else if (e.via === "ladder") join = J(JOINS.ladder);
     else if (repeat) join = J(JOINS.again);
     else if (para.parts.length && gap != null && gap >= GAP) join = J(JOINS.gap, { gap: words(gap) });

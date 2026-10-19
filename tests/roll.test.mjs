@@ -1,7 +1,7 @@
 // Phase 10: roll-dependent squares (src/engine/turn.js toldOn), and what they tell in the life account.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createGame, planTurn, playTurn, endTurn, toldOn, setEndgame, ENDGAME } from "../src/engine/turn.js";
+import { createGame, planTurn, playTurn, endTurn, resolveChoice, toldOn, setEndgame, ENDGAME } from "../src/engine/turn.js";
 import { lifeOf } from "../src/engine/account.js";
 import { SQ, LADDERS, SNAKES, squareOf } from "../src/content.js";
 import { fill } from "../src/i18n.js";
@@ -50,11 +50,12 @@ test("the turn reads the face, never the distance, and the record keeps step wit
   endTurn(s, p1);
   // a snake's tail reads the same turn's face: 52 + 3 is Greed, which falls to 43
   s.turn = 0; s.players[0].pos = 52;
-  const p2 = planTurn(s, 3);
-  assert.deepEqual([p2.target, p2.final, ...p2.told], [55, 43, null, "else"]);
+  // Greed is a situation since Phase 10 B: pocketing the change is the snake
+  const p2 = resolveChoice(s, planTurn(s, 3), "keep");
+  assert.deepEqual([p2.target, p2.final, ...p2.told], [55, 43, "keep", "else"]);
   endTurn(s, p2);
   assert.deepEqual(s.players[0].life, [43, 55, 43]);
-  assert.deepEqual(s.players[0].told, ["else", null, "else"]);
+  assert.deepEqual(s.players[0].told, ["else", "keep", "else"]);
   // a life set by hand, with no record, is padded: its squares told their own moments
   const h = game(40);
   h.players[0].life = [10, 20, 40];

@@ -5,14 +5,15 @@ import { G, defaultSetup, pname, pnameIn, cur, newState, loadSelf, saveSelf } fr
 import { prefs, setPref } from "./prefs.js";
 import { $, COLORS, esc, reduced, sleep, quality, forcedQuality, setQuality } from "./ui.js";
 import { die, makeRng, freshSeed } from "./rng.js";
-import { TUMBLE, planTurn, endTurn, addLog, diceFor, movesFor, moveFor } from "./engine/turn.js";
+import { TUMBLE, planTurn, resolveChoice, endTurn, addLog, diceFor, movesFor, moveFor } from "./engine/turn.js";
+import { optionsFor, choiceFor, situationAt } from "./engine/qbn.js";
 import { S, colRow, labEls, buildCells, draw, drawAge, fxClear, focusSquare } from "./render/board.js";
 import { lens, wash, stageOf } from "./render/age.js";
 import { ageStep } from "./engine/self.js";
 import { frame, pullBack, hold, release } from "./render/camera.js";
 import { spriteURL } from "./render/sprites.js";
 import { tokenEls, buildTokens, place, retrigger, climb, swallow, swallowSecs, animate } from "./render/tokens.js";
-import { openSquare, openEntry, closeCard, cardIdle, cardOpen, cardCarried, cardExpanded, cardNote, setCardRoll, refreshRoll, refreshCard, onCardChange } from "./render/card.js";
+import { openSquare, openEntry, closeCard, cardIdle, cardOpen, cardCarried, cardExpanded, cardNote, setCardRoll, setCardDecide, optionNote, refreshRoll, refreshCard, onCardChange } from "./render/card.js";
 import { sheetState } from "./render/sheet.js";
 import { renderCodex, showTab } from "./render/codex.js";
 import { renderLog } from "./render/log.js";
@@ -74,7 +75,41 @@ function pickMove(v) {
   $("roll").hidden = false;
   c.resolve(v);
 }
-$("pick").addEventListener("click", e => { const b = e.target.closest("[data-v]"); if (b) pickMove(+b.dataset.v); });
+$("pick").addEventListener("click", e => {
+  const o = e.target.closest("[data-o]");
+  if (o) return pickOption(o.dataset.o);
+  const b = e.target.closest("[data-v]"); if (b) pickMove(+b.dataset.v);
+});
+
+// ---- Choosing on a situation's square (REDESIGN.md Phase 10) ----
+// A person chooses on the card, which opens on the situation, or on the panel, or by key (1, 2, 3). An option a
+// gate withholds is shown, greyed, with the reason, and cannot be taken. A computer chooses at once, as the sim does.
+// the panel's buttons, drawn again when the language changes
+function drawDecide() {
+  const d = G.deciding, p = G.state.players[G.plan.idx];
+  $("pick").innerHTML = d.opts.map(o => `<button type="button" data-o="${esc(o.id)}"${o.open ? "" : ` aria-disabled="true"`}>${esc(L(o.label.en, o.label.hi))}<small>${esc(o.open ? optionNote(lang, G.plan.target, o) : L(o.why.en, o.why.hi))}</small></button>`).join("");
+  $("hint").textContent = t("chooseHint", { name: pname(p) });
+}
+function decide(sit, p) {
+  const opts = optionsFor(p, sit);
+  return new Promise(resolve => {
+    G.deciding = { sit, opts, resolve };
+    drawDecide();
+    $("pick").hidden = false;
+    $("roll").hidden = true;
+    refreshRoll(); refreshCard();
+    if (!cardOpen()) pick.querySelector("button:not([aria-disabled])")?.focus({ preventScroll: true });
+  });
+}
+function pickOption(id) {
+  const d = G.deciding, o = d?.opts.find(x => x.id === id);
+  if (!o?.open) return;
+  G.deciding = null;
+  $("pick").hidden = true; $("pick").innerHTML = "";
+  $("roll").hidden = false;
+  d.resolve(id);
+}
+setCardDecide(pickOption);
 
 // ---- Quality ----
 // A device that drops frames during its first two moves draws less from then on (ui.js).
@@ -122,7 +157,7 @@ async function takeTurn() {
   // the drone begins with the first roll
   setDrone(lens(state).droneStage);
   const watching = watchFrames();
-  const plan = planTurn(state, v, dice);
+  let plan = planTurn(state, v, dice);
   G.plan = plan;
   plan.pre.forEach(log);
   // every roll moves now: a bounce can come back to the square it started from, but it still walks
@@ -151,8 +186,21 @@ async function takeTurn() {
     // computer's move is only noted on it. Otherwise a person's landing card waits for them, and a computer's
     // closes itself unless someone starts reading it.
     const carried = cardCarried();
-    // a year sat out lands nowhere new, so no card opens for it
-    if (!plan.sit && (carried ? p.type === "human" : prefs.landAll || !SQ[p.pos])) {
+    if (plan.situation) {
+      // a situation's card always opens, since the choice is on it; rolled from, only for the reader's own landing
+      const shown = carried ? p.type === "human" : true;
+      G.waitingCard = shown && !carried; refreshRoll();
+      const read = shown ? openSquare(p.pos, { landing: true, auto: p.type === "cpu", who: idx }) : Promise.resolve();
+      const id = p.type === "human" ? await decide(plan.situation, p) : choiceFor(state, plan.situation);
+      if (g !== G.gen) return;
+      plan = resolveChoice(state, plan, id);
+      G.plan = plan;
+      refreshCard();
+      await read;
+      G.waitingCard = false; refreshRoll();
+      if (g !== G.gen) return;
+    } else if (!plan.sit && (carried ? p.type === "human" : prefs.landAll || !SQ[p.pos])) {
+      // a year sat out lands nowhere new, so no card opens for it
       // a card rolled from goes on with the game, so the turn is not waiting on it
       G.waitingCard = !carried; refreshRoll();
       await openSquare(p.pos, { landing: true, auto: p.type === "cpu", who: idx });
@@ -204,6 +252,8 @@ function rollInfo(l) {
   const s = G.state;
   if (!s || s.over || !s.players.some(q => q.type === "human" && !q.dead)) return null;
   if (G.choosing) return { choose: G.choosing.moves.map(v => ({ v, label: moveLabel(l, v) })) };
+  // the choice on a situation is in the card's body, not its Roll
+  if (G.deciding) return null;
   const n = s.players.length, plan = G.plan, humans = s.players.filter(q => q.type === "human").length;
   let i = plan ? (plan.again ? plan.idx : (plan.idx + 1) % n) : s.turn;
   for (let k = 0; k < n && (s.players[i].type !== "human" || s.players[i].dead); k++) i = (i + 1) % n;
@@ -257,6 +307,7 @@ function render() {
   $("roll").disabled = G.busy || state.over || !human;
   $("roll").textContent = human ? t("roll") : t("rolling", { name: pname(p) });
   $("hint").textContent = state.over ? t("hintOver") : human ? t("hintHuman") : t("hintCpu");
+  if (G.deciding) drawDecide();
   showDice(state.dice?.length ? state.dice : [state.last || 6]);
   refreshRoll();
   $("seed").textContent = `${t("seed")} ${state.rng.seed}`;
@@ -352,7 +403,7 @@ function startGame() {
   clearTimeout(G.cpuTimer);
   G.rollQueued = false; G.plan = null; G.face = null; G.waitingCard = false;
   // a choice still waiting belongs to the game being left
-  G.choosing = null; $("pick").hidden = true; $("pick").innerHTML = ""; $("roll").hidden = false;
+  G.choosing = null; G.deciding = null; $("pick").hidden = true; $("pick").innerHTML = ""; $("roll").hidden = false;
   closeCard({ instant: true });
   closeLife();
   $("toastSlot").innerHTML = "";
@@ -392,6 +443,11 @@ $("namingForm").addEventListener("submit", () => {
 $("naming").addEventListener("cancel", e => e.preventDefault());
 $("roll").addEventListener("click", takeTurn);
 document.addEventListener("keydown", e => {
+  // choosing on a situation: 1, 2 and 3 are its options in order
+  if (G.deciding && /^[1-3]$/.test(e.key) && !e.target.closest("input, select, textarea") && !e.ctrlKey && !e.metaKey && !e.altKey) {
+    const o = G.deciding.opts[+e.key - 1];
+    if (o) { e.preventDefault(); return pickOption(o.id); }
+  }
   // choosing between the endgame's dice: 1 and 2 are the dice, S or 0 sits the year out
   if (G.choosing && !e.target.closest("input, select, textarea") && !e.ctrlKey && !e.metaKey && !e.altKey) {
     const { dice } = G.choosing, v = e.key === "1" ? dice[0] : e.key === "2" ? dice[1] : /^[s0]$/i.test(e.key) ? 0 : null;
@@ -476,6 +532,11 @@ if (new URLSearchParams(location.search).has("debug")) {
     // the moves the dice now offer, or null when nothing is waiting on a choice
     get choosing() { return G.choosing ? [...G.choosing.moves] : null; },
     pick: pickMove,
+    // the options a situation offers, with whether each is open, or null when nothing is waiting on one
+    get deciding() { return G.deciding ? G.deciding.opts.map(o => ({ id: o.id, open: o.open })) : null; },
+    choose: pickOption,
+    // the situation on square n, or null (REDESIGN.md Phase 10)
+    situation: n => situationAt(n),
     // how many dice player i (the current one by default) has spent on practice in this life
     practised: (i = G.state.turn) => G.state.players[i].practised ?? 0,
     seed(n) { if (n == null) return G.state.rng.seed; nextSeed = n >>> 0; startGame(); return G.state.rng.seed; },

@@ -8,9 +8,11 @@
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { GOAL, TOP, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, STR, SRC_HI, JOINS, NUM_HI, READINGS, CODEX, REFS, ENTRY_IDS, srcOfSquare, sourceOf, leadOf, squareOf } from "../src/content.js";
+import { GOAL, TOP, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, STR, SRC_HI, JOINS, NUM_HI, READINGS, CODEX, REFS, ENTRY_IDS, srcOfSquare, sourceOf, leadOf, squareOf, SITUATIONS } from "../src/content.js";
 import NAMES from "../content/names.json" with { type: "json" };
 import { ENDGAME } from "../src/engine/turn.js";
+import { destOf, worthOf } from "../src/engine/qbn.js";
+import { ageOf, stageOfYears } from "../src/engine/self.js";
 
 // Names compare without diacritics or case, so "Śaṅkara", "Sankara" and "sankara" are one name.
 const fold = s => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
@@ -226,6 +228,57 @@ export function lintReport() {
     if (SNAKES[h]) { bilingual(`${where} holding`, sl.holding); if (sl.holding?.en && !/^still /.test(sl.holding.en)) err(`${where} holding`, 'reads on from the closing line, as "still …"'); }
     // Phase 9: and what a life let go puts down, the same vice, so a win ends with the weight a death does
     if (SNAKES[h]) { bilingual(`${where} letgo`, sl.letgo); if (sl.letgo?.en && /^still /.test(sl.letgo.en)) err(`${where} letgo`, "is put down, not still held"); }
+  }
+
+  // Phase 10: the situations (REDESIGN.md §2.5). Each is two or three options on a square below the endgame, every
+  // one bilingual and agreeing in Hindi, at least one never withheld, and every gate one a life can pass. The
+  // structural rule: the option worth least advances more cheaply, never further, than the one worth most.
+  const GUNAS = ["s", "r", "t"], AIMS = ["dharma", "artha", "kama"];
+  const range = (where, r, lo, hi) => {
+    if (r.min != null && !(r.min >= lo && r.min < hi)) err(where, `min ${r.min} cannot be passed`);
+    if (r.max != null && !(r.max > lo && r.max <= hi)) err(where, `max ${r.max} cannot be passed`);
+    if (r.min != null && r.max != null && r.min >= r.max) err(where, "is an empty range");
+  };
+  for (const [key, sit] of Object.entries(SITUATIONS)) {
+    const n = +key, w = `situations.${key}`, q = squareOf(n);
+    if (!(Number.isInteger(n) && n >= 1 && n < ENDGAME) || !q) { err(w, `is not a square below ${ENDGAME}`); continue; }
+    if (HEAVEN[n]) err(w, "is in the divine row, where you walk");
+    if (SQ[n]?.roll) err(w, "is on a square that already tells two moments by the roll");
+    if (!sit.prompt?.en?.trim() || !sit.prompt?.hi?.trim()) err(`${w} prompt`, "needs a prompt in both languages");
+    else momentText(`${w} prompt`, sit.prompt, q);
+    const opts = sit.options || [];
+    if (opts.length < 2 || opts.length > 3) err(w, `has ${opts.length} options: a situation offers two or three`);
+    if (new Set(opts.map(o => o.id)).size !== opts.length) err(w, "uses an option id twice");
+    if (!opts.some(o => !o.require)) err(w, "can withhold every option: one must always be open");
+    const earliest = stageOfYears(ageOf(n) ?? 0);
+    for (const o of opts) {
+      const ow = `${w}.${o.id}`;
+      bilingual(`${ow} label`, o.label);
+      if (!["snake", "ladder", "here"].includes(o.move)) err(ow, `move "${o.move}" is not snake, ladder or here`);
+      if (o.move === "snake" && (!SNAKES[n] || SNAKES[n].rebirth)) err(ow, "takes a snake on a square that has none");
+      if (o.move === "ladder" && !LADDERS[n]) err(ow, "takes a ladder on a square that has none");
+      if (!(Number.isInteger(o.cost) && o.cost >= 0 && o.cost <= 8)) err(ow, `cost ${o.cost} is not a whole number of years, 0 to 8`);
+      if (!GUNAS.includes(o.guna)) err(ow, `guna "${o.guna}" is not s, r or t`);
+      for (const [k, d] of Object.entries(o.aims || {})) if (!AIMS.includes(k) || typeof d !== "number") err(ow, `aims.${k} is not an aim with a number`);
+      if (o.outcome) { if (!o.outcome.en?.trim() || !o.outcome.hi?.trim()) err(`${ow} outcome`, "needs both languages"); else momentText(`${ow} outcome`, o.outcome, q); }
+      else if (!q.moment) err(ow, "has no outcome, and the square has no moment of its own to tell");
+      if (o.require) {
+        // §2.5: a withheld option says why, or the player loses the thread
+        bilingual(`${ow} why`, o.why);
+        for (const [k, r] of Object.entries(o.require.guna || {})) { if (!GUNAS.includes(k)) err(`${ow} require`, `"${k}" is not a guna`); else range(`${ow} require.guna.${k}`, r, 0, 1); }
+        for (const [k, r] of Object.entries(o.require.aims || {})) { if (!AIMS.includes(k)) err(`${ow} require`, `"${k}" is not an aim`); else range(`${ow} require.aims.${k}`, r, 0, 100); }
+        // years only go forward, so a stage before the square's own can never be in force there
+        if (o.require.stage && !o.require.stage.some(x => Number.isInteger(x) && x >= earliest && x <= 4)) err(`${ow} require.stage`, "names no stage a life can be in on this square");
+      } else if (o.why) err(ow, "has a reason for being withheld, but no gate");
+    }
+    if (opts.length >= 2) {
+      const sorted = [...opts].sort((a, b) => worthOf(a) - worthOf(b)), lo = sorted[0], hi = sorted.at(-1);
+      if (worthOf(lo) === worthOf(hi)) err(w, "has no option worth less than another: a choice needs a temptation");
+      else {
+        if (destOf(n, lo) > destOf(n, hi)) err(w, `the option worth least (${lo.id}) goes further than the one worth most (${hi.id}): it may advance more cheaply, never further`);
+        if (lo.cost > hi.cost) err(w, `the option worth least (${lo.id}) costs more years than the one worth most (${hi.id})`);
+      }
+    }
   }
 
   // readings: bilingual, and every school or person they name exists

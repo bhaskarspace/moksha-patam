@@ -201,7 +201,17 @@
       "diceChooseSit": "Rolled {a} and {b}. Move by either, or sit the year out in practice.",
       "diceBy": "Move {v}",
       "sit": "Sit",
-      "sitHint": "Neither: a year in practice, and the year still passes."
+      "sitHint": "Neither: a year in practice, and the year still passes.",
+      "chooseHint": "Choose what {name} does.",
+      "chooseLabel": "Choices",
+      "optDown": "down to {n}",
+      "optUp": "up to {n}",
+      "optHere": "stays on {n}",
+      "optYear": "a year",
+      "optYears": "{n} years",
+      "optWithheld": "Not open:",
+      "lStayOne": "{name} spent a year on {pos}, {what}.",
+      "lStay": "{name} spent {n} years on {pos}, {what}."
     },
     "hi": {
       "title": "मोक्ष पटम",
@@ -377,7 +387,17 @@
       "diceChooseSit": "{a} और {b} आए। किसी एक से चलें, या बरस अभ्यास में बिताएँ।",
       "diceBy": "{v} चलें",
       "sit": "बैठें",
-      "sitHint": "किसी से नहीं: एक बरस अभ्यास में, और बरस फिर भी बीतता है।"
+      "sitHint": "किसी से नहीं: एक बरस अभ्यास में, और बरस फिर भी बीतता है।",
+      "chooseHint": "चुनें कि {name} क्या करे।",
+      "chooseLabel": "विकल्प",
+      "optDown": "नीचे {n} पर",
+      "optUp": "ऊपर {n} पर",
+      "optHere": "{n} पर ही",
+      "optYear": "एक बरस",
+      "optYears": "{n} बरस",
+      "optWithheld": "अभी नहीं:",
+      "lStayOne": "{name} ने खाना {pos}, {what}, पर एक बरस बिताया।",
+      "lStay": "{name} ने खाना {pos}, {what}, पर {n} बरस बिताए।"
     }
   },
   "JOINS": {

@@ -4,6 +4,7 @@ import strings from "../content/strings.json" with { type: "json" };
 import readings from "../content/readings.json" with { type: "json" };
 import codex from "../content/codex.json" with { type: "json" };
 import names from "../content/names.json" with { type: "json" };
+import situations from "../content/situations.json" with { type: "json" };
 
 // Every square is { ic, en, hi, age, moment, mirror, callsBack, src } (docs/NARRATIVE.md §11). Snakes and
 // ladders add { to, skt }. The mirror is the Phase 2 lead; the moment, when there is one, sits above it and
@@ -12,6 +13,9 @@ import names from "../content/names.json" with { type: "json" };
 export const { GOAL, TOP, ROWS, ASHRAMAS, LADDERS, SNAKES, HEAVEN, MOKSHA } = squares;
 export const { SQ } = squares;
 export const { STR, SRC_HI, JOINS, NUM_HI } = strings;
+// The situations (REDESIGN.md Phase 10, §2.5): a square where the player chooses, by square number. Read through
+// src/engine/qbn.js; a square without one is its story card, as before.
+export const SITUATIONS = situations;
 // Names drawn for players who are not given one, each [en, hi], by gender.
 export const PLAYER_NAMES = names.players;
 
