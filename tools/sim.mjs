@@ -11,9 +11,13 @@
 // Phase 10 adds the roll-dependent squares: a square can tell one of two moments, so besides a square landed on four
 // times or more, the same moment told four times or more. --roll=off takes the second moment away, which must leave
 // every other number exactly as it was.
+// Phase 10 B adds the situations: --policy=honest|dishonest|mixed is how every computer chooses (mixed, any open
+// option, is the game's own), and the report adds where a life is on the board at fifty and seventy and what it
+// became: the guna mix, dharma and the highest bhumika. --situations=off takes them away.
 import { pathToFileURL } from "node:url";
 import { createGame, playTurn, moveFor, rollDice, diceFor, setEndgame, ENDGAME } from "../src/engine/turn.js";
-import { SNAKES, SQ } from "../src/content.js";
+import { SNAKES, SQ, SITUATIONS } from "../src/content.js";
+import { setPolicy, worthOf, optionOf } from "../src/engine/qbn.js";
 import { SPAN, setSpan, yearsAlong, BHUMIKA_AT, TURYA, setPractice } from "../src/engine/self.js";
 
 // how a computer chooses between the endgame's dice: the game's own way, or carelessly
@@ -53,6 +57,8 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   if (flags.practice === "off") setPractice(0);
   if (flags.endgame) setEndgame(+flags.endgame);
   if (flags.roll === "off") for (const q of Object.values(SQ)) delete q.roll;
+  if (flags.situations === "off") for (const k of Object.keys(SITUATIONS)) delete SITUATIONS[k];
+  if (flags.policy) setPolicy(flags.policy);
   const pick = PICKS[flags.pick || "plain"];
   const rules = { ...SIM_RULES, ...(flags.rules === "brahmaloka" ? { brahmaloka: true } : {}) };
   // --snake=none drops the rebirth snake, to measure bounce-back on its own
@@ -87,6 +93,9 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   let died = 0, lives = 0, sannyasins = 0, looped = 0, told4 = 0, said4 = 0, sits = 0;
   // the age a life goes through the exit at, the spread choosing makes (REDESIGN.md Phase 9)
   const AT = 90, freed = [];
+  // Phase 10 B: the board at fifty and seventy, and the ledger at the end of each life
+  const at50 = [], at70 = [], sat = [], tam = [], dharma = [], peaks = [];
+  let met = 0, crooked = 0;
   for (let s = first; s < first + games; s++) {
     const g = playGame(s, { players, rules, pick }), { turns, log, players: ps, seen } = g;
     lengths.push(Math.max(...turns));
@@ -102,20 +111,25 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       // the 99 → 61 loop taken twice or more, a square landed on four times or more, and years sat out
       const life = p.life, count = new Map();
       looped += life.filter((n, k) => n === 61 && life[k - 1] === 99).length >= 2;
-      for (const n of life) count.set(n, (count.get(n) || 0) + 1);
+      life.forEach((n, k) => { if (p.told?.[k] !== "stay") count.set(n, (count.get(n) || 0) + 1); });
       told4 += Math.max(0, ...count.values()) >= 4;
       // the same moment: a square that told its other moment is a different one (REDESIGN.md Phase 10)
       const said = new Map();
-      life.forEach((n, k) => { const key = p.told?.[k] ? `${n}:${p.told[k]}` : n; said.set(key, (said.get(key) || 0) + 1); });
+      life.forEach((n, k) => { if (p.told?.[k] === "stay") return; const key = p.told?.[k] ? `${n}:${p.told[k]}` : n; said.set(key, (said.get(key) || 0) + 1); });
       said4 += Math.max(0, ...said.values()) >= 4;
-      const all = yearsAlong(life);
+      const all = yearsAlong(life, p.told || []);
       sits += all.filter(e => e.via === "sit").length;
       if (g.winner === i) freed.push(p.years);
+      const lived = yearsAlong(life, p.told || []), where = y => lived.filter(e => e.years <= y && e.n <= 100).at(-1)?.n ?? 0;
+      at50.push(where(50)); at70.push(where(70));
+      sat.push(p.gunas.s); tam.push(p.gunas.t); dharma.push(p.aims.dharma); peaks.push(p.peak ?? -1);
+      // a choice is the least worth one of its situation when no option there is worth less
+      life.forEach((n, k) => { const o = optionOf(n, p.told?.[k]); if (!o) return; met++; crooked += SITUATIONS[n].options.every(x => worthOf(x) >= worthOf(o)); });
       if (seen[i].size) { sannyasins++; finals[Math.max(...seen[i])]++; shown[seen[i].size] = (shown[seen[i].size] || 0) + 1; }
     }
   }
   const r = summarise(lengths), y = summarise(spans);
-  console.log(`${games} games, ${players} players, seeds ${first}–${first + games - 1}${flags.rules ? `, rules ${flags.rules}` : ""}${flags.snake ? `, snake ${flags.snake}` : ""}, span ${SPAN}, two dice from ${ENDGAME}${flags.pick ? `, pick ${flags.pick}` : ""}${flags.practice ? `, practice ${flags.practice}` : ""}${flags.roll ? `, roll ${flags.roll}` : ""}`);
+  console.log(`${games} games, ${players} players, seeds ${first}–${first + games - 1}${flags.rules ? `, rules ${flags.rules}` : ""}${flags.snake ? `, snake ${flags.snake}` : ""}, span ${SPAN}, two dice from ${ENDGAME}${flags.pick ? `, pick ${flags.pick}` : ""}${flags.practice ? `, practice ${flags.practice}` : ""}${flags.roll ? `, roll ${flags.roll}` : ""}${flags.policy ? `, policy ${flags.policy}` : ""}${flags.situations ? `, situations ${flags.situations}` : ""}`);
   console.log(`turns per player until the game ends: median ${r.median}, p5 ${r.p5}, p95 ${r.p95}, mean ${r.mean.toFixed(1)}, max ${r.max}, over 100: ${pct(r.over100)}`);
   console.log(`rolls per game: mean ${(rolls / games).toFixed(1)}`);
   console.log(`the rebirth snake fires in ${pct(fell / games)} of games, ${(falls / games).toFixed(2)} falls a game; ${pct(above / games)} are won coming back down onto the exit`);
@@ -124,5 +138,9 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   console.log(`bhumikas a sannyasin is shown: ${Object.entries(shown).map(([k, c]) => `${k}: ${pct(c / sannyasins)}`).join(" · ")}`);
   const b = summarise(freed);
   console.log(`the 99 → 61 snake taken twice or more: ${pct(looped / lives)}; a square landed on four times or more: ${pct(told4 / lives)}; the same moment told four times or more: ${pct(said4 / lives)}; years sat out: ${(sits / lives).toFixed(2)} a life`);
+  const mean = xs => xs.reduce((a, b) => a + b, 0) / xs.length, med = xs => summarise(xs).median;
+  console.log(`liberated: ${pct(freed.length / lives)}; situations met: ${(met / lives).toFixed(2)} a life, the least worth option taken in ${met ? pct(crooked / met) : "—"} of them`);
+  console.log(`on the board: square at fifty median ${med(at50)} (mean ${mean(at50).toFixed(1)}), at seventy median ${med(at70)} (mean ${mean(at70).toFixed(1)})`);
+  console.log(`the ledger at the end: sattva ${mean(sat).toFixed(3)}, tamas ${mean(tam).toFixed(3)}, dharma ${mean(dharma).toFixed(1)}, highest bhumika ${mean(peaks.filter(x => x >= 0)).toFixed(2)}`);
   console.log(`through the exit by ${AT} years: ${pct(freed.filter(y => y <= AT).length / lives)}; age at the exit: p5 ${b.p5}, median ${b.median}, p95 ${b.p95}`);
 }

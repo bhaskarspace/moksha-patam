@@ -4,6 +4,7 @@
 import { GOAL, TOP, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, READINGS, CODEX, ENTRY_IDS, REFS, entryOf, sourceOf, srcOfSquare, squareOf, snakeOn } from "../content.js";
 import { lang, tIn, numIn, srcIn, pick, fill, ageWordsIn } from "../i18n.js";
 import { ageStep, stageOfYears, bhumikaOf, freshGunas, SANNYASA } from "../engine/self.js";
+import { momentOf, destOf } from "../engine/qbn.js";
 import { prefs, hasMet, meet } from "../prefs.js";
 import { G, pnameIn } from "../state.js";
 import { $, esc, reduced, art } from "../ui.js";
@@ -41,6 +42,15 @@ export const onCardChange = fn => onChange.add(fn);
 // While the endgame's dice wait for a choice (REDESIGN.md Phase 9) it says { choose: [{ v, label }] } instead,
 // and `pick(v)` makes the move, so a reader on a phone chooses on the card that covers the panel.
 export const setCardRoll = (src, fn, pick) => { rollSrc = src; rollFn = fn; pickFn = pick; };
+// Taking an option on a situation's card (REDESIGN.md Phase 10): `fn(id)`.
+let decideFn = () => {};
+export const setCardDecide = fn => { decideFn = fn; };
+// What an option visibly does, in language l: where it takes the player from square n, and the years it costs. Its
+// guna and aims are never said.
+export function optionNote(l, n, o) {
+  const to = destOf(n, o), where = to < n ? tIn(l, "optDown", { n: numIn(l, to) }) : to > n ? tIn(l, "optUp", { n: numIn(l, to) }) : tIn(l, "optHere", { n: numIn(l, n) });
+  return o.cost ? `${where} · ${o.cost === 1 ? tIn(l, "optYear") : tIn(l, "optYears", { n: numIn(l, o.cost) })}` : where;
+}
 
 // ---- What a square's card says, in language l ----
 function squareInfo(n, l) {
@@ -80,14 +90,20 @@ function livedOn(n) {
   // never younger than the square: only a token moved by hand (mp.jump) can be
   return { p, years: Math.max(p.years ?? 0, squareOf(n)?.age ?? 0), still: !!head && !head.rebirth && head.to === n && p.life.at(-1) === n };
 }
-// Which of square n's moments its subject's landing there told (REDESIGN.md Phase 10): the other one only on the
-// square they are standing on, during the landing or after it. A square browsed tells its own.
+// Which of square n's moments its subject's landing there told (REDESIGN.md Phase 10): the other one, or a situation's
+// chosen outcome, only on the square they are standing on, during the landing or after it. A square browsed tells
+// its own. The years a choice cost are the square again in the life, told "stay", and are looked past.
 function toldHere(n) {
   const p = subjectOf(), plan = G.plan;
   if (!p || p.pos !== n) return null;
   if (plan && G.state.players[plan.idx] === p) return plan.target === n ? plan.told?.[0] ?? null : plan.final === n ? plan.told?.at(-1) ?? null : null;
-  return p.life?.at(-1) === n && p.told?.length === p.life.length ? p.told.at(-1) : null;
+  if (p.told?.length !== p.life?.length) return null;
+  let k = p.life.length - 1;
+  while (k > 0 && p.told[k] === "stay") k--;
+  return p.life[k] === n ? p.told[k] : null;
 }
+// The situation waiting on square n for its subject's choice, if one is.
+const pendingOn = n => { const plan = G.plan; return plan?.situation && plan.target === n && subjectOf() === G.state.players[plan.idx] ? plan.situation : null; };
 function person(l, n) {
   const p = subjectOf(), here = livedOn(n), a = here ? here.years : squareOf(n)?.age;
   const age = Number.isInteger(a) ? ageWordsIn(l, a, !!here?.still) : "";
@@ -170,7 +186,9 @@ function squareHtml(n, l) {
   const src = srcOfSquare(n), met = [];
   // the moment, when there is one, is what is happening to the player; the mirror is the text that holds
   // it. With no moment the card is exactly the Phase 2 card: no age, and the Phase 2 lead as the mirror.
-  const sq = squareOf(n), m = (toldHere(n) === "else" && sq.roll?.moment) || sq.moment, mirror = m?.mirror || sq.mirror;
+  // a situation waiting on the choice shows its prompt, and the options under it; once chosen, its outcome
+  const pending = pendingOn(n);
+  const sq = squareOf(n), m = pending ? pending.prompt : momentOf(n, toldHere(n)).moment ?? sq.moment, mirror = m?.mirror || sq.mirror;
   const age = m && sq.age != null ? ageIn(l, livedOn(n)?.years ?? sq.age) : "";
   let body = `<h2 id="leafTitle">${esc(info.title)}</h2>`;
   const alt = info.alt.filter(Boolean).join(" · ");
@@ -180,7 +198,14 @@ function squareHtml(n, l) {
   const remedy = sq.remedy ? texts(l, fill(sq.remedy.en, person("en", n)), fill(sq.remedy.hi, person("hi", n)), "remedy") : "";
   // past the exit, the card says the way out is behind and below (REDESIGN.md Phase 7, item 3)
   const above = n > GOAL && HEAVEN[n] ? texts(l, ...["en", "hi"].map(x => tIn(x, "aboveExit", { n: numIn(x, GOAL), top: numIn(x, TOP) })), "remedy above") : "";
-  body += `<div class="story">${moment}${remedy}${texts(l, mirror.en, mirror.hi, m ? "mirror" : "")}${bi(l, r.line2, "line2")}${above}</div>`;
+  // the options, each with what it visibly does; one a gate withholds is greyed, with why (§2.5), and cannot be taken
+  const opts = pending && G.deciding?.sit === pending ? G.deciding.opts : null;
+  const options = opts ? `<div class="options" role="group" aria-label="${esc(T("chooseLabel"))}">` + opts.map((o, i) =>
+    `<button type="button" class="opt" data-act="opt" data-id="${esc(o.id)}"${o.open ? "" : ` aria-disabled="true" aria-describedby="why-${esc(o.id)}"`}>` +
+    `<span class="opt-k" aria-hidden="true">${numIn(l, i + 1)}</span><span class="opt-l">${esc(o.label[l] || o.label.en)}</span>` +
+    `<span class="opt-c">${esc(optionNote(l, n, o))}</span>` +
+    (o.open ? "" : `<span class="opt-why" id="why-${esc(o.id)}">${esc(T("optWithheld"))} ${esc(o.why[l] || o.why.en)}</span>`) + `</button>`).join("") + `</div>` : "";
+  body += `<div class="story">${moment}${options}${remedy}${pending ? "" : texts(l, mirror.en, mirror.hi, m ? "mirror" : "")}${bi(l, r.line2, "line2")}${above}</div>`;
   // what the toggle opens: the voices, and the notes, at the reader's depth
   // Codex entries in it count as met only once the reader opens it
   let more = "";
@@ -269,6 +294,8 @@ function paint({ landing = false } = {}) {
   leaf.className = "leaf " + out.kind + (landing ? " landed" : "") + (expanded ? " open" : "");
   leaf.innerHTML = out.html;
   metMore = out.metMore || [];
+  // a choice waiting on the card is read whole: on a phone the sheet rises, so no option is below the fold
+  if (sheetOn() && leaf.querySelector(".options")) setDetent("full");
   meet([...out.met, ...(expanded ? metMore : [])].filter(Boolean));
   refreshRoll();
   if (again) [...leaf.querySelectorAll(again)].find(el => el.offsetParent)?.focus({ preventScroll: true });
@@ -441,6 +468,7 @@ dlg.addEventListener("click", e => {
   if (act === "close") return closeCard();
   if (act === "roll") return roll();
   if (act === "pick") return pickFn(+e.target.closest("[data-v]").dataset.v);
+  if (act === "opt") { const b = e.target.closest("[data-id]"); if (b.getAttribute("aria-disabled") !== "true") decideFn(b.dataset.id); return; }
   if (act === "more") return setExpanded(!expanded);
   if (act === "grip") {
     toggleDetent();

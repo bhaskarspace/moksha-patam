@@ -479,6 +479,45 @@ await check("Phase 10: a square that tells two moments shows on the card the one
   assert(/saves the last mango/.test(browsed), `browsed: ${browsed}`);
 });
 
+await check("Phase 10: a situation's card asks, takes the choice on the card, and tells what was chosen", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=1&debug");
+  // 52 + 3 is Greed: the card opens on the prompt with its options, and nothing moves until one is taken
+  await page.evaluate(() => { Object.assign(mp.state.players[0], { pos: 52, life: [52], told: [null], years: 40 }); mp.roll(3); });
+  await page.waitForFunction(() => mp.deciding && document.querySelector("#leaf .options"), null, { timeout: 30000 });
+  const asked = await page.evaluate(() => ({ moment: document.querySelector("#leaf .moment").textContent, opts: [...document.querySelectorAll("#leaf .opt")].map(b => b.textContent), mirror: !!document.querySelector("#leaf .mirror") }));
+  assert(/too much change by mistake, and has already turned/.test(asked.moment), `prompt: ${asked.moment}`);
+  assert(asked.opts.length === 2 && /Pocket it/.test(asked.opts[0]) && /down to 43/.test(asked.opts[0]) && /stays on 55 · 7 years/.test(asked.opts[1]), `options: ${asked.opts}`);
+  assert(!asked.mirror, "the mirror waits until the choice is made");
+  await page.click('#leaf .opt[data-id="return"]');
+  await page.waitForFunction(() => !mp.deciding && /goes back to the counter/.test(document.querySelector("#leaf .moment")?.textContent || ""), null, { timeout: 30000 });
+  await page.evaluate(() => mp.close());
+  await page.waitForFunction(() => mp.state.players[0].life.length > 1 && !mp.busy, null, { timeout: 30000 });
+  const p = await page.evaluate(() => ({ pos: mp.state.players[0].pos, years: mp.state.players[0].years }));
+  assert(p.pos === 55 && p.years === 49, `kept to 55 at 49: ${JSON.stringify(p)}`);
+});
+
+await check("Phase 10: an option a gate withholds is shown, says why, and cannot be taken; keys choose", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=1&debug");
+  // restless enough that looking first is withheld at Anger
+  await page.evaluate(() => { Object.assign(mp.state.players[0], { pos: 56, life: [56], told: [null], years: 43, gunas: { s: 0.2, r: 0.6, t: 0.2 } }); mp.roll(3); });
+  await page.waitForFunction(() => mp.deciding && document.querySelector("#leaf .options"), null, { timeout: 30000 });
+  const look = await page.evaluate(() => { const b = document.querySelector('#leaf .opt[data-id="look"]'); return { disabled: b.getAttribute("aria-disabled"), why: b.querySelector(".opt-why")?.textContent }; });
+  assert(look.disabled === "true" && /Too restless to stop the hand in time/.test(look.why), JSON.stringify(look));
+  await page.click('#leaf .opt[data-id="look"]', { force: true });
+  assert(await page.evaluate(() => !!mp.deciding), "a withheld option was taken");
+  await page.keyboard.press("2");
+  assert(await page.evaluate(() => !!mp.deciding), "key 2 took the withheld option");
+  await page.keyboard.press("1");
+  await page.waitForFunction(() => !mp.deciding, null, { timeout: 30000 });
+  await page.evaluate(() => mp.close());
+  await page.waitForFunction(() => !mp.busy && mp.state.players[0].pos === 50, null, { timeout: 30000 });
+  // a square with no situation is its story card, as before: no options
+  const plain = await page.evaluate(() => { mp.open(44, { who: 0 }); const o = !!document.querySelector("#leaf .options"); mp.close({ instant: true }); return o; });
+  assert(!plain, "a square without a situation shows options");
+});
+
 await check("Phase 8: a person whose years run out reads their life at once, while the race plays on", async page => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await twoPeople(page);

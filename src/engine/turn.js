@@ -2,6 +2,7 @@
 import { GOAL, TOP, LADDERS, SNAKES, HEAVEN, SQ } from "../content.js";
 import { makeRng, die } from "../rng.js";
 import { SPAN, turnYears, grow, freshGunas, freshAims, holdingOf, slotsFor, stageOfPlayer, SANNYASA } from "./self.js";
+import { situationAt, optionOf, choiceFor } from "./qbn.js";
 
 // The die shows this many random faces while it tumbles before the real roll. They come from the
 // game's own sequence, so a headless game must draw them too to stay in step with the UI.
@@ -119,10 +120,34 @@ export function planTurn(state, v, dice = [v]) {
   // every square walked over and not landed on, once each, in the order they were passed
   const passed = [...new Set(path.slice(0, -1))].filter(n => n !== target);
   if (passed.length) after.push(entry("lPassed", { passed }, "passed", idx));
-  let jump = null, final = target;
-  const climbing = target > (path.at(-2) ?? from);
-  const s = SNAKES[target] && (!SNAKES[target].rebirth || (climbing && !p.hasFallen)) ? SNAKES[target] : null, l = LADDERS[target];
   if (closed) after.push(entry("lClosed", { v, pos: target }, "", idx));
+  const plan = { idx, v, dice, spare, sit: false, from, path, target, bounced, final: target, jump: null, win: false, died: false, again: false, told: [null], cost: 0, pre, after, end };
+  // a square where the player chooses (REDESIGN.md Phase 10): the plan waits for the choice, and resolveChoice
+  // finishes it. A square with no situation is resolved at once, exactly as before.
+  const sit = !closed && !bounced ? situationAt(target) : null;
+  if (sit) return Object.assign(plan, { situation: sit });
+  return finish(state, plan, null);
+}
+
+// The choice made on a situation's square: the option's move, its cost in years, and its hidden guna and aims.
+export function resolveChoice(state, plan, id) {
+  const o = optionOf(plan.target, id);
+  if (!plan.situation || !o) throw new Error(`no option ${id} on square ${plan.target}`);
+  delete plan.situation;
+  return finish(state, plan, o);
+}
+
+// The rest of a turn, once it is known what the square does: the snake or ladder, the years, the win or the death.
+function finish(state, plan, o) {
+  const { idx, v, dice, from, target, bounced, after, end } = plan, p = state.players[idx], rules = state.rules;
+  let jump = null, final = target;
+  const climbing = target > (plan.path.at(-2) ?? from);
+  // a situation's option decides whether the snake or the ladder is taken; elsewhere the square does
+  const s = o ? (o.move === "snake" ? SNAKES[target] : null) : SNAKES[target] && (!SNAKES[target].rebirth || (climbing && !p.hasFallen)) ? SNAKES[target] : null;
+  const l = o ? (o.move === "ladder" ? LADDERS[target] : null) : LADDERS[target];
+  const cost = o?.cost ?? 0;
+  // the years an option costs pass on its square, before any snake or ladder
+  if (cost) after.push(entry(cost === 1 ? "lStayOne" : "lStay", { n: cost, pos: target, sq: target }, "", idx));
   if (s || l) {
     jump = { kind: s ? "snake" : "ladder", to: (s || l).to, rebirth: !!s?.rebirth };
     final = jump.to;
@@ -137,15 +162,18 @@ export function planTurn(state, v, dice = [v]) {
   const win = final === GOAL;
   // A life ends when its years run out on earth (REDESIGN.md Phase 8). Only a life that walks ground it has
   // already lived can outrun the span, so only the snakes bring this about.
-  const years = turnYears(p.years ?? 0, { target, final, jump }), died = !win && final <= 100 && years > SPAN;
+  const years = turnYears(p.years ?? 0, { target, final, jump, cost }), died = !win && final <= 100 && years > SPAN;
   const again = !win && !died && v === 6 && rules.six;
   // coming back down onto the exit, after overshooting it, is said so: it is the point of the geometry
   if (win) end.push(entry(from > GOAL ? "lWinAbove" : "lWin", { pos: GOAL }, "heaven", idx));
   else if (died) end.push(entry("lDied", { pos: final, age: years, sq: final }, "death", idx));
   else if (again) end.push(entry("lSix", {}, "", idx));
-  // which moment each square of this turn tells, in the order they join the life: one face for the whole turn
-  const told = (jump ? [target, final] : [target]).map(n => toldOn(n, v, dice));
-  return { idx, v, dice, spare, sit: false, from, path, target, final, jump, win, died, again, told, pre, after, end };
+  // which moment each square of this turn tells, in the order they join the life: one face for the whole turn. A
+  // chosen option is what its square told; each year it cost is the square again, told as a stay.
+  const told = [o ? o.id : toldOn(target, v, dice), ...Array(cost).fill("stay"), ...(jump ? [toldOn(final, v, dice)] : [])];
+  // the hidden guna and aims of the choice, applied as a vice's or a virtue's are (src/engine/self.js grow)
+  const mark = o ? { guna: o.guna, aims: o.aims } : null;
+  return Object.assign(plan, { final, jump, win, died, again, told, cost, mark, choice: o?.id ?? null });
 }
 
 export function endTurn(state, plan) {
@@ -153,7 +181,8 @@ export function endTurn(state, plan) {
   p.pos = plan.final;
   // a snake or a ladder is two moments: the square that did it, and the one it led to
   // a year sat out is the same square again: on earth nothing else lands where it stands (src/engine/self.js)
-  (p.life ||= []).push(...(plan.jump ? [plan.target, plan.final] : [plan.target]));
+  // the years a choice cost are the square again, once a year (src/engine/self.js yearsAlong reads them as stays)
+  (p.life ||= []).push(plan.target, ...Array(plan.cost ?? 0).fill(plan.target), ...(plan.jump ? [plan.final] : []));
   // and which of a square's moments each one told, kept beside the life, one for one. A life with none for some of
   // its squares (a game saved before Phase 10, or one set by hand) told their own moments there.
   const before = p.life.length - plan.told.length, kept = (p.told ?? []).slice(0, before);
@@ -176,10 +205,11 @@ export function endTurn(state, plan) {
 
 // One whole turn without animation. A number is one die moved by; an array is the dice rolled, and pick chooses
 // the move from them.
-export function playTurn(state, roll = rollDice(state.rng, diceFor(state.players[state.turn])), pick = moveFor) {
+export function playTurn(state, roll = rollDice(state.rng, diceFor(state.players[state.turn])), pick = moveFor, choose = choiceFor) {
   const dice = typeof roll === "number" ? [roll] : roll, v = dice.length > 1 ? pick(state, dice) : dice[0];
   state.last = v || dice[0];
-  const plan = planTurn(state, v, dice);
+  let plan = planTurn(state, v, dice);
+  if (plan.situation) plan = resolveChoice(state, plan, choose(state, plan.situation));
   [...plan.pre, ...plan.after].forEach(e => addLog(state, e));
   endTurn(state, plan);
   return plan;
