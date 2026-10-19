@@ -3222,8 +3222,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   })();
   var f = (n) => +n.toFixed(2);
   function illumined(pic, fallback = "") {
-    const inner = pic ? `<use href="#${pic}" x="6" y="12.5" width="24" height="24" clip-path="url(#ill-clip)"/>` : `<text class="fb" x="18" y="${fallback === "ॐ" ? 31 : 30}" text-anchor="middle">${fallback}</text>`;
-    return `<svg class="ill" viewBox="0 0 ${W} ${H}" aria-hidden="true"><defs><clipPath id="ill-clip"><path d="${ARCH}"/></clipPath></defs><rect class="band ink" x="0.63" y="0.63" width="${W - 1.25}" height="${H - 1.25}"/>` + PEARLS.map(([x, y]) => `<circle class="pearl" cx="${f(x)}" cy="${f(y)}" r="0.62"/>`).join("") + `<rect class="spandrel ink" x="4.2" y="4.2" width="${W - 8.4}" height="${H - 8.4}"/><path class="field ink" d="${ARCH}"/>` + inner + `<path class="rim ink" d="${ARCH}"/><circle class="jewel ink" cx="18" cy="5.9" r="1.35"/></svg>`;
+    const inner = pic ? `<use href="#${pic}" x="6" y="12.5" width="24" height="24"/>` : `<text class="fb" x="18" y="${fallback === "ॐ" ? 31 : 30}" text-anchor="middle">${fallback}</text>`;
+    return `<svg class="ill" viewBox="0 0 ${W} ${H}" aria-hidden="true"><rect class="band ink" x="0.63" y="0.63" width="${W - 1.25}" height="${H - 1.25}"/>` + PEARLS.map(([x, y]) => `<circle class="pearl" cx="${f(x)}" cy="${f(y)}" r="0.62"/>`).join("") + `<rect class="spandrel ink" x="4.2" y="4.2" width="${W - 8.4}" height="${H - 8.4}"/><path class="field ink" d="${ARCH}"/>` + inner + `<path class="rim ink" d="${ARCH}"/><circle class="jewel ink" cx="18" cy="5.9" r="1.35"/></svg>`;
   }
 
   // src/render/sheet.js

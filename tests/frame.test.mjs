@@ -40,3 +40,7 @@ test("the frame's lines are the sprites' weight, set in CSS, with no colours of 
   assert.doesNotMatch(svg, /(fill|stroke|stroke-width)="/);
   assert.match(rules.find(([sel]) => sel === ".ill .ink")?.[1] || "", /stroke-width:\s*1\.25/);
 });
+
+test("the picture is drawn whole, never clipped to the arch", () => {
+  assert.doesNotMatch(illumined("sq-3", ""), /clip-path|clipPath/);
+});
