@@ -93,7 +93,8 @@ export function lintReport() {
   const join = (where, j) => { bilingual(where, j); for (const l of ["en", "hi"]) if (j?.[l] && !j[l].endsWith(" ")) err(where, `the ${l} join does not read on into the moment: end it with a space`); };
   for (const [i, j] of JOINS.then.entries()) join(`strings.JOINS.then[${i}]`, j);
   for (const k of ["snake", "ladder", "again", "gap", "sameYear", "months"]) join(`strings.JOINS.${k}`, JOINS[k]);
-  for (const k of ["foldRun", "foldOne", "foldHeights"]) bilingual(`strings.JOINS.${k}`, JOINS[k]);
+  // whole sentences, or the part of one a tally counts in (Phase 9: repeats told short, years sat out)
+  for (const k of ["foldRun", "foldOne", "foldHeights", "snakeAgain", "ladderAgain", "tallySnake", "tallyLadder", "times", "sitOne", "sitRun", "backTo"]) bilingual(`strings.JOINS.${k}`, JOINS[k]);
   if (NUM_HI?.length !== 101 || NUM_HI.some(w => !w?.trim())) err("strings.NUM_HI", "needs the Hindi number words from 0 to 100");
 
   // a mirror, wherever it is, names someone in both languages
@@ -203,6 +204,8 @@ export function lintReport() {
     if (!["s", "r", "t"].includes(sl.guna)) err(where, "needs a guna: s, r or t");
     if (LADDERS[h] && sl.guna !== "s") err(where, "a virtue is sattva");
     if (SNAKES[h]) { bilingual(`${where} holding`, sl.holding); if (sl.holding?.en && !/^still /.test(sl.holding.en)) err(`${where} holding`, 'reads on from the closing line, as "still …"'); }
+    // Phase 9: and what a life let go puts down, the same vice, so a win ends with the weight a death does
+    if (SNAKES[h]) { bilingual(`${where} letgo`, sl.letgo); if (sl.letgo?.en && /^still /.test(sl.letgo.en)) err(`${where} letgo`, "is put down, not still held"); }
   }
 
   // readings: bilingual, and every school or person they name exists

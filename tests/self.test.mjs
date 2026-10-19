@@ -3,7 +3,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { createGame, playTurn } from "../src/engine/turn.js";
 import { LADDERS, SNAKES } from "../src/content.js";
-import { SPAN, ageOf, ageStep, yearsAlong, stageOfYears, stageOfPlayer, mixGuna, applyAims, bhumikaOf, titleOf, slotsFor, holdingOf, SANNYASA, BHUMIKA_AT } from "../src/engine/self.js";
+import { SPAN, ageOf, ageStep, yearsAlong, stageOfYears, stageOfPlayer, mixGuna, applyAims, bhumikaOf, titleOf, slotsFor, holdingOf, SANNYASA, BHUMIKA_AT, TURYA, practise, setPractice, PRACTICE_W } from "../src/engine/self.js";
 
 const one = (seed = 1) => createGame({ players: [{ name: "", type: "cpu" }], rules: { six: true }, seed });
 const live = seed => { const s = one(seed); while (!s.over) playTurn(s); return s; };
@@ -54,7 +54,8 @@ test("a life ends when its years run past the span, only on earth, and says what
     assert.ok(SNAKES[p.holding], `seed ${seed} holds ${p.holding}`);
     assert.equal(p.holding, holdingOf(p.life));
   }
-  assert.ok(deaths > 20, `${deaths} deaths in 400 lives`);
+  // since Phase 9's two dice a life rarely dies (2.5% of 20,000), but it still can
+  assert.ok(deaths > 4, `${deaths} deaths in 400 lives`);
 });
 
 test("the vice held at the end is the one taken most, the latest on a tie", () => {
@@ -103,11 +104,14 @@ test("every vice and virtue moves the gunas the way the Gita says, and a virtue 
   assert.equal(SNAKES[29].guna, "t"); // alasya, 14.8
 });
 
-test("the bhumika is set by the gunas, not by the square; six are shipped and the title follows them", () => {
-  assert.equal(BHUMIKA_AT.length, 6);
+test("the bhumika is set by the gunas, not by the square; all seven, and the title follows them", () => {
+  assert.equal(BHUMIKA_AT.length, 7);
   assert.equal(bhumikaOf({ s: 1 / 3, r: 1 / 3, t: 1 / 3 }), 0);
+  // turya asks for practice: the same sattva without it is the sixth
   assert.equal(bhumikaOf({ s: 0.9, r: 0.05, t: 0.05 }), 5);
-  assert.deepEqual([0, 1, 2, 3, 4, 5].map(titleOf), [0, 0, 0, 1, 2, 3]);
+  assert.equal(bhumikaOf({ s: 0.9, r: 0.05, t: 0.05 }, 1), TURYA);
+  assert.equal(bhumikaOf({ s: 0.7, r: 0.15, t: 0.15 }, 3), 4);
+  assert.deepEqual([0, 1, 2, 3, 4, 5, 6].map(titleOf), [0, 0, 0, 1, 2, 3, 4]);
   // a sannyasin's card names the bhumika they are in: two players on the same square can be in different ones
   const s = one(), p = s.players[0];
   p.pos = 90; p.years = 77; p.life = [90];
@@ -124,4 +128,35 @@ test("the action slots of each stage are data for Phase 9: a child only moves, a
   assert.deepEqual(slotsFor({ pos: 5, years: 1 }), ["move"]);
   assert.ok(slotsFor({ pos: 45, years: 30 }).includes("give"));
   assert.ok(!slotsFor({ pos: 25, years: 14 }).includes("give"));
+});
+
+// ---- Phase 9 ----
+test("a year sat out is a year: the engine and the account count it alike", () => {
+  const [a, b, c] = yearsAlong([95, 95, 95]);
+  assert.deepEqual([a.years, b.years, c.years], [83, 84, 85]);
+  assert.deepEqual([b.via, b.from], ["sit", null]);
+  // above the world the same square twice is a bounce, and no time
+  assert.deepEqual(yearsAlong([109, 109]).map(e => e.via), [null, null]);
+});
+
+test("practice is the spare die, only in sannyasa, and it moves the gunas toward sattva by its face", () => {
+  const g = { s: 0.5, r: 0.25, t: 0.25 };
+  assert.ok(practise(g, 6).s > practise(g, 1).s && practise(g, 1).s > g.s);
+  assert.deepEqual(practise(g, 0), g);
+  const s = one(), p = s.players[0];
+  Object.assign(p, { pos: 95, years: 83, life: [95] });
+  playTurn(s, [2, 5], () => 2);     // moves by the 2 to 97; the 5 is practice
+  assert.equal(p.pos, 97);
+  assert.equal(p.practised, 1);
+  assert.ok(p.gunas.s > 1 / 3);
+  // a householder has no practice, whatever is spare
+  const h = one(), q = h.players[0];
+  Object.assign(q, { pos: 45, years: 30, life: [45] });
+  playTurn(h, [2, 5], () => 2);
+  assert.equal(q.practised, 0);
+  // and with practice off, as tools/sim.mjs --practice=off runs it, nothing is spent
+  const w = PRACTICE_W;
+  setPractice(0);
+  try { const o = one(), r = o.players[0]; Object.assign(r, { pos: 95, years: 83, life: [95] }); playTurn(o, [2, 5], () => 2); assert.equal(r.practised, 0); }
+  finally { setPractice(w); }
 });

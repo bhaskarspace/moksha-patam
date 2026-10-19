@@ -143,7 +143,7 @@
       "lifeTitle": "The life of {name}",
       "lifeAt": "{stage}, age {a}",
       "lifeSpan": "{stage}, age {a} to {b}",
-      "lifeEndWin": "Then, moksha.",
+      "lifeEndWin": "Then, at {age}, moksha, and {name} put down {letgo}.",
       "lifeEndOpen": "The game ended here, on square {n}.",
       "lifeUnborn": "The game ended before {name} was born.",
       "lifeCopy": "Copy",
@@ -190,7 +190,18 @@
       "self_t_dharma": "heavy, and holding on to old duties",
       "self_t_artha": "heavy, and holding on to what is owned",
       "self_t_kama": "heavy, and holding on to comforts",
-      "dead": "Years run out"
+      "dead": "Years run out",
+      "bhumika6": "Turyā",
+      "title4": "Brahmavidvariṣṭha · the best of those who know",
+      "lDice": "{name} rolled {a} and {b}, and moved by {v}.",
+      "lDiceSit": "{name} rolled {a} and {b}, and moved by neither.",
+      "lSit": "{name} sat the year out in practice, on {pos}, {what}.",
+      "lifeEndFree": "Then, at {age}, moksha, with nothing to put down.",
+      "diceChoose": "Rolled {a} and {b}. Move by either.",
+      "diceChooseSit": "Rolled {a} and {b}. Move by either, or sit the year out in practice.",
+      "diceBy": "Move {v}",
+      "sit": "Sit",
+      "sitHint": "Neither: a year in practice, and the year still passes."
     },
     "hi": {
       "title": "मोक्ष पटम",
@@ -308,7 +319,7 @@
       "lifeTitle": "{name} का जीवन",
       "lifeAt": "{stage}, आयु {a}",
       "lifeSpan": "{stage}, आयु {a} से {b}",
-      "lifeEndWin": "फिर, मोक्ष।",
+      "lifeEndWin": "फिर, {age} बरस पर, मोक्ष, और {name} ने {letgo} को छोड़ दिया।",
       "lifeEndOpen": "खेल यहीं रुका, खाना {n} पर।",
       "lifeUnborn": "{name} के जन्म से पहले ही खेल ख़त्म हो गया।",
       "lifeCopy": "कॉपी करें",
@@ -355,7 +366,18 @@
       "self_t_dharma": "भारीपन, और पुराने कर्तव्यों से चिपकाव",
       "self_t_artha": "भारीपन, और अपनी चीज़ों से चिपकाव",
       "self_t_kama": "भारीपन, और आराम से चिपकाव",
-      "dead": "बरस पूरे"
+      "dead": "बरस पूरे",
+      "bhumika6": "तुर्या",
+      "title4": "ब्रह्मविद्वरिष्ठ · जानने वालों में श्रेष्ठ",
+      "lDice": "{name} के {a} और {b} आए, और {v} से चले।",
+      "lDiceSit": "{name} के {a} और {b} आए, और किसी से नहीं चले।",
+      "lSit": "{name} ने खाना {pos}, {what}, पर बरस अभ्यास में बिताया।",
+      "lifeEndFree": "फिर, {age} बरस पर, मोक्ष, और छोड़ने को कुछ था ही नहीं।",
+      "diceChoose": "{a} और {b} आए। किसी एक से चलें।",
+      "diceChooseSit": "{a} और {b} आए। किसी एक से चलें, या बरस अभ्यास में बिताएँ।",
+      "diceBy": "{v} चलें",
+      "sit": "बैठें",
+      "sitHint": "किसी से नहीं: एक बरस अभ्यास में, और बरस फिर भी बीतता है।"
     }
   },
   "JOINS": {
@@ -391,16 +413,48 @@
       "hi": "कुछ ही महीनों में, "
     },
     "foldRun": {
-      "en": "{name} walked through {a} to {b} a second time.",
-      "hi": "{name} ने {a} से {b} तक के बरस दोबारा जिए।"
+      "en": "{name} went back over ground first walked at {a} to {b}.",
+      "hi": "{name} फिर उस राह से {गुज़रा|गुज़री} जो {a} से {b} बरस की उम्र में चली थी।"
     },
     "foldOne": {
-      "en": "{name} walked through {a} a second time.",
-      "hi": "{name} ने {a} वाला बरस दोबारा जिया।"
+      "en": "{name} went back over ground first walked at {a}.",
+      "hi": "{name} फिर उस राह से {गुज़रा|गुज़री} जो {a} बरस की उम्र में चली थी।"
     },
     "foldHeights": {
       "en": "And the same heights again.",
       "hi": "और फिर वही ऊँचाइयाँ।"
+    },
+    "snakeAgain": {
+      "en": "At {age}, {vice} again, and {cost} more years came undone.",
+      "hi": "{age} बरस पर फिर {vice}, और {cost} बरस और अनकिए हो गए।"
+    },
+    "ladderAgain": {
+      "en": "At {age}, {virtue} lifted {name} again.",
+      "hi": "{age} बरस पर {virtue} ने {name} को फिर ऊपर उठाया।"
+    },
+    "tallySnake": {
+      "en": "{vice} took {name} back {times} in all, the last time at {age}.",
+      "hi": "{vice} से {name} कुल {times} पीछे {गिरा|गिरी}, आख़िरी बार {age} बरस पर।"
+    },
+    "tallyLadder": {
+      "en": "{virtue} lifted {name} {times} in all, the last time at {age}.",
+      "hi": "{virtue} ने {name} को कुल {times} ऊपर उठाया, आख़िरी बार {age} बरस पर।"
+    },
+    "times": {
+      "en": "{n} times",
+      "hi": "{n} बार"
+    },
+    "sitOne": {
+      "en": "{name} sat the year out in practice, at {a}.",
+      "hi": "{name} {a} बरस की उम्र में बरस भर अभ्यास में {बैठा रहा|बैठी रही}।"
+    },
+    "sitRun": {
+      "en": "{name} sat {n} years out in practice, from {a} to {b}.",
+      "hi": "{name} {a} से {b} बरस तक, {n} बरस, अभ्यास में {बैठा रहा|बैठी रही}।"
+    },
+    "backTo": {
+      "en": "{name} is {age} and back where {name} was at {first}.",
+      "hi": "{name} {age} बरस {का|की} है और फिर वहीं है जहाँ {first} बरस की उम्र में {था|थी}।"
     }
   },
   "NUM_HI": ["शून्य","एक","दो","तीन","चार","पाँच","छह","सात","आठ","नौ","दस","ग्यारह","बारह","तेरह","चौदह","पंद्रह","सोलह","सत्रह","अठारह","उन्नीस","बीस","इक्कीस","बाईस","तेईस","चौबीस","पच्चीस","छब्बीस","सत्ताईस","अट्ठाईस","उनतीस","तीस","इकतीस","बत्तीस","तैंतीस","चौंतीस","पैंतीस","छत्तीस","सैंतीस","अड़तीस","उनतालीस","चालीस","इकतालीस","बयालीस","तैंतालीस","चवालीस","पैंतालीस","छियालीस","सैंतालीस","अड़तालीस","उनचास","पचास","इक्यावन","बावन","तिरपन","चौवन","पचपन","छप्पन","सत्तावन","अट्ठावन","उनसठ","साठ","इकसठ","बासठ","तिरसठ","चौंसठ","पैंसठ","छियासठ","सड़सठ","अड़सठ","उनहत्तर","सत्तर","इकहत्तर","बहत्तर","तिहत्तर","चौहत्तर","पचहत्तर","छिहत्तर","सतहत्तर","अठहत्तर","उन्यासी","अस्सी","इक्यासी","बयासी","तिरासी","चौरासी","पचासी","छियासी","सत्तासी","अट्ठासी","नवासी","नब्बे","इक्यानवे","बानवे","तिरानवे","चौरानवे","पंचानवे","छियानवे","सत्तानवे","अट्ठानवे","निन्यानवे","सौ"]

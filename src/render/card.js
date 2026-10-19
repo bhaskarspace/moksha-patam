@@ -29,7 +29,7 @@ let expanded = false;
 // Rolled from: the reader asked to keep reading while the game goes on, so the card no longer holds the game
 // up, never closes itself, and turns to each of the reader's landings in place (REDESIGN.md Phase 6).
 let carried = false;
-let rollSrc = () => null, rollFn = () => {};
+let rollSrc = () => null, rollFn = () => {}, pickFn = () => {};
 const onChange = new Set(); // called after a card opens or closes, so the Codex panel can refresh
 
 export const cardOpen = () => dlg.open;
@@ -38,7 +38,9 @@ export const cardExpanded = () => dlg.open && expanded;
 export const cardIdle = () => (dlg.open && !carried ? new Promise(r => waiters.push(r)) : Promise.resolve());
 export const onCardChange = fn => onChange.add(fn);
 // The card's Roll: `src(l)` says who would roll and whether they can, as { label, ready, dot } or null; `fn` rolls.
-export const setCardRoll = (src, fn) => { rollSrc = src; rollFn = fn; };
+// While the endgame's dice wait for a choice (REDESIGN.md Phase 9) it says { choose: [{ v, label }] } instead,
+// and `pick(v)` makes the move, so a reader on a phone chooses on the card that covers the panel.
+export const setCardRoll = (src, fn, pick) => { rollSrc = src; rollFn = fn; pickFn = pick; };
 
 // ---- What a square's card says, in language l ----
 function squareInfo(n, l) {
@@ -89,7 +91,7 @@ function stageIn(l, n) {
   const here = livedOn(n);
   if (!here) return ashramaIn(l, n);
   const s = stageOfYears(here.years);
-  return s === SANNYASA ? tIn(l, "bhumika" + bhumikaOf(here.p.gunas ?? freshGunas())) : l === "hi" ? ASHRAMAS[s][2] : ASHRAMAS[s][1];
+  return s === SANNYASA ? tIn(l, "bhumika" + bhumikaOf(here.p.gunas ?? freshGunas(), here.p.practised ?? 0)) : l === "hi" ? ASHRAMAS[s][2] : ASHRAMAS[s][1];
 }
 
 // An authored age as the card furniture says it: a newborn, months for a baby, then years.
@@ -139,7 +141,7 @@ function frame(l, { kind, eb, big, sqn, age, body, more = "", foot, prev, next, 
     <footer class="leaf-foot">
       ${x("x-foot")}
       ${prev != null ? `<button type="button" class="nav" data-act="prev" aria-label="${prevLabel}">‹ <span>${prev}</span></button>` : "<span></span>"}
-      <div class="mid"><span class="ft">${foot}</span><button type="button" class="roll-c" data-act="roll" hidden></button></div>
+      <div class="mid"><span class="ft">${foot}</span><button type="button" class="roll-c" data-act="roll" hidden></button><span class="pick-c" role="group" hidden></span></div>
       ${next != null ? `<button type="button" class="nav" data-act="next" aria-label="${nextLabel}"><span>${next}</span> ›</button>` : "<span></span>"}
     </footer>`;
 }
@@ -278,11 +280,21 @@ addEventListener("resize", () => dlg.open && cue());
 
 // The card's Roll, redrawn in place whenever who can roll changes, so it never steals focus by being replaced.
 export function refreshRoll() {
-  const b = leaf.querySelector(".roll-c");
+  const b = leaf.querySelector(".roll-c"), c = leaf.querySelector(".pick-c");
   if (!b) return;
   const r = dlg.open || view ? rollSrc(cardLang ?? lang) : null;
-  b.hidden = !r;
-  if (!r) return;
+  const choose = r?.choose ?? null, was = c?.dataset.moves ?? "", moves = choose ? choose.map(o => o.v).join() : "";
+  b.hidden = !r || !!choose;
+  if (c) {
+    c.hidden = !choose;
+    // redrawn only when the choice changes, so a focused button keeps its focus
+    if (moves !== was) {
+      c.dataset.moves = moves;
+      c.innerHTML = choose ? choose.map(o => `<button type="button" class="roll-c" data-act="pick" data-v="${o.v}" aria-disabled="false">${esc(o.label)}</button>`).join("") : "";
+      if (choose) c.querySelector("button")?.focus({ preventScroll: true });
+    }
+  }
+  if (!r || choose) return;
   b.innerHTML = (r.dot ? `<span class="dot" style="background:${r.dot}"></span>` : "") + esc(r.label);
   b.setAttribute("aria-disabled", String(!r.ready));
 }
@@ -420,6 +432,7 @@ dlg.addEventListener("click", e => {
   const act = e.target.closest("[data-act]")?.dataset.act;
   if (act === "close") return closeCard();
   if (act === "roll") return roll();
+  if (act === "pick") return pickFn(+e.target.closest("[data-v]").dataset.v);
   if (act === "more") return setExpanded(!expanded);
   if (act === "grip") {
     toggleDetent();

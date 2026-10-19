@@ -390,6 +390,8 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 }
 .leaf.goal .roll-c { color: #1E2A78; }
 .leaf .roll-c[aria-disabled="true"] { opacity: 0.72; cursor: default; font-variant-numeric: tabular-nums; }
+.leaf .pick-c { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+.leaf .pick-c[hidden] { display: none; }
 .leaf .roll-c .dot { width: 10px; height: 10px; border-radius: 50%; box-shadow: 0 0 0 1.5px #FFF6E0; flex: none; }
 .leaf .grip, .leaf .x-foot, .leaf .ft-top { display: none; }
 .leaf .cnote { font-family: var(--f-body); font-size: 12.5px; font-weight: 600; color: var(--l-ink2); }
@@ -429,6 +431,8 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
   #folio .leaf-foot > :last-child { justify-self: end; }
   #folio .leaf .nav { min-height: 44px; padding: 6px 10px; max-width: 9ch; }
   #folio .leaf .roll-c { min-height: 44px; width: 100%; }
+  #folio .leaf .pick-c { width: 100%; flex-wrap: nowrap; }
+  #folio .leaf .pick-c .roll-c { width: auto; flex: 1 1 0; padding: 7px 10px; }
   /* the frame stands at the head of the text like an illuminated initial, and the story runs on round it */
   #folio .leaf-main { display: flow-root; padding: 6px 14px 4px; }
   #folio .leaf-margin { float: left; width: 144px; margin: 4px 14px 6px 0; padding: 0; border-right: 0; }
@@ -499,6 +503,13 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 .die.rolling { animation: tumble 0.56s ease-in-out; }
 @keyframes tumble { 0% { transform: rotate(0); } 40% { transform: rotate(-25deg) translateY(-6px); } 70% { transform: rotate(15deg); } 100% { transform: rotate(0); } }
 .roll-info { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 0; }
+/* Phase 9: two dice from 94, and the choice between them */
+.dice { display: flex; gap: 8px; flex: none; }
+.dice .die[hidden] { display: none; }
+.dice:has(#die2:not([hidden])) .die { width: 60px; height: 60px; padding: 7px; }
+.pick { display: flex; flex-wrap: wrap; gap: 6px; }
+.pick[hidden] { display: none; }
+.pick button { flex: 1 1 auto; min-height: 44px; }
 .hint { font-size: 12px; color: var(--muted); }
 
 button {

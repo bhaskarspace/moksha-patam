@@ -5,7 +5,7 @@ import { G, defaultSetup, pname, pnameIn, cur, newState, loadSelf, saveSelf } fr
 import { prefs, setPref } from "./prefs.js";
 import { $, COLORS, esc, reduced, sleep, quality, forcedQuality, setQuality } from "./ui.js";
 import { die, makeRng, freshSeed } from "./rng.js";
-import { TUMBLE, planTurn, endTurn, addLog } from "./engine/turn.js";
+import { TUMBLE, planTurn, endTurn, addLog, diceFor, movesFor, moveFor } from "./engine/turn.js";
 import { S, colRow, labEls, buildCells, draw, drawAge, fxClear, focusSquare } from "./render/board.js";
 import { lens, wash, stageOf } from "./render/age.js";
 import { ageStep } from "./engine/self.js";
@@ -21,25 +21,60 @@ import { sound, unlockAudio, setDrone, setShepard, setMuted, audioState } from "
 
 const PIPS = { 1:[4], 2:[0,8], 3:[0,4,8], 4:[0,2,6,8], 5:[0,2,4,6,8], 6:[0,2,3,5,6,8] };
 
-// ---- Die ----
-const dieEl = $("die");
-for (let i = 0; i < 9; i++) dieEl.appendChild(document.createElement("span"));
-function showDie(v) {
-  [...dieEl.children].forEach((s, i) => s.classList.toggle("on", PIPS[v].includes(i)));
-  dieEl.setAttribute("aria-label", `🎲 ${num(v)}`);
+// ---- Dice ----
+// One die below the endgame, two from 94 (REDESIGN.md Phase 9).
+const dieEls = [$("die"), $("die2")];
+for (const d of dieEls) for (let i = 0; i < 9; i++) d.appendChild(document.createElement("span"));
+function showDice(dice) {
+  dieEls[1].hidden = dice.length < 2;
+  dice.forEach((v, k) => {
+    [...dieEls[k].children].forEach((s, i) => s.classList.toggle("on", PIPS[v].includes(i)));
+    dieEls[k].setAttribute("aria-label", `🎲 ${num(v)}`);
+  });
 }
-// the die also tumbles in the card's Roll, since on a phone the panel's die is off screen behind the card
-const tumble = v => { showDie(v); G.face = v; refreshRoll(); };
-async function rollDie() {
+// the dice also tumble in the card's Roll, since on a phone the panel's dice are off screen behind the card
+const tumble = dice => { showDice(dice); G.face = dice; refreshRoll(); };
+// Draws exactly what engine/turn.js rollDice does: each frame a face for every die, then each die its value.
+// A forced value (mp.roll) is not drawn; one forced value is every die's.
+async function rollDice(n) {
   const rng = G.state.rng;
-  dieEl.classList.remove("rolling"); void dieEl.offsetWidth; dieEl.classList.add("rolling");
+  dieEls[1].hidden = n < 2;
+  for (const d of dieEls.slice(0, n)) { d.classList.remove("rolling"); void d.offsetWidth; d.classList.add("rolling"); }
   sound.rattle();
-  for (let i = 0; i < TUMBLE; i++) { tumble(die(rng)); await sleep(75); }
-  const v = G.forcedRoll ?? die(rng);
+  for (let i = 0; i < TUMBLE; i++) { tumble(Array.from({ length: n }, () => die(rng))); await sleep(75); }
+  const forced = G.forcedRoll == null ? null : Array.isArray(G.forcedRoll) ? G.forcedRoll : Array(n).fill(G.forcedRoll);
   G.forcedRoll = null;
-  tumble(v);
-  return v;
+  const dice = Array.from({ length: n }, (_, k) => forced?.[k] ?? die(rng));
+  tumble(dice);
+  return dice;
 }
+
+// ---- Choosing between the dice ----
+// A person sees both dice and moves by either, or in 94–100 sits the year out; a computer chooses at once, the
+// same way tools/sim.mjs does. The choice is offered on the panel and, for a reader on a phone, on the card.
+const moveLabel = (l, v) => (v ? tIn(l, "diceBy", { v }) : tIn(l, "sit"));
+function choose(dice) {
+  const moves = movesFor(G.state, dice);
+  return new Promise(resolve => {
+    G.choosing = { dice, moves, resolve };
+    const pick = $("pick");
+    pick.innerHTML = moves.map(v => `<button type="button" data-v="${v}"${v ? "" : ` title="${esc(t("sitHint"))}"`}>${esc(moveLabel(lang, v))}</button>`).join("");
+    pick.hidden = false;
+    $("roll").hidden = true;
+    $("hint").textContent = t(moves.includes(0) ? "diceChooseSit" : "diceChoose", { a: num(dice[0]), b: num(dice[1]) });
+    refreshRoll();
+    if (!cardOpen()) pick.querySelector("button")?.focus({ preventScroll: true });
+  });
+}
+function pickMove(v) {
+  const c = G.choosing;
+  if (!c || !c.moves.includes(v)) return;
+  G.choosing = null;
+  $("pick").hidden = true; $("pick").innerHTML = "";
+  $("roll").hidden = false;
+  c.resolve(v);
+}
+$("pick").addEventListener("click", e => { const b = e.target.closest("[data-v]"); if (b) pickMove(+b.dataset.v); });
 
 // ---- Quality ----
 // A device that drops frames during its first two moves draws less from then on (ui.js).
@@ -76,13 +111,18 @@ async function takeTurn() {
   const p = cur(), idx = state.turn, el = tokenEls[idx];
   if (p.type === "human") cardNote("");
   release();
-  const v = await rollDie();
+  const dice = await rollDice(diceFor(p));
   if (g !== G.gen) return;
-  state.last = v;
+  state.dice = dice;
+  // a choice with only one move in it (a double, where there is no sitting) is not asked
+  const only = dice.length > 1 && movesFor(state, dice).length === 1;
+  const v = dice.length < 2 || only ? dice[0] : p.type === "human" ? await choose(dice) : moveFor(state, dice);
+  if (g !== G.gen) return;
+  state.last = v || dice[0];
   // the drone begins with the first roll
   setDrone(lens(state).droneStage);
   const watching = watchFrames();
-  const plan = planTurn(state, v);
+  const plan = planTurn(state, v, dice);
   G.plan = plan;
   plan.pre.forEach(log);
   // every roll moves now: a bounce can come back to the square it started from, but it still walks
@@ -111,7 +151,8 @@ async function takeTurn() {
     // computer's move is only noted on it. Otherwise a person's landing card waits for them, and a computer's
     // closes itself unless someone starts reading it.
     const carried = cardCarried();
-    if (carried ? p.type === "human" : prefs.landAll || !SQ[p.pos]) {
+    // a year sat out lands nowhere new, so no card opens for it
+    if (!plan.sit && (carried ? p.type === "human" : prefs.landAll || !SQ[p.pos])) {
       // a card rolled from goes on with the game, so the turn is not waiting on it
       G.waitingCard = !carried; refreshRoll();
       await openSquare(p.pos, { landing: true, auto: p.type === "cpu", who: idx });
@@ -162,6 +203,7 @@ const FACES = ["", "⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
 function rollInfo(l) {
   const s = G.state;
   if (!s || s.over || !s.players.some(q => q.type === "human" && !q.dead)) return null;
+  if (G.choosing) return { choose: G.choosing.moves.map(v => ({ v, label: moveLabel(l, v) })) };
   const n = s.players.length, plan = G.plan, humans = s.players.filter(q => q.type === "human").length;
   let i = plan ? (plan.again ? plan.idx : (plan.idx + 1) % n) : s.turn;
   for (let k = 0; k < n && (s.players[i].type !== "human" || s.players[i].dead); k++) i = (i + 1) % n;
@@ -170,7 +212,7 @@ function rollInfo(l) {
   if (G.rollQueued || (G.busy && !G.waitingCard)) {
     const mover = s.players[plan?.idx ?? s.turn];
     const who = mover.type === "cpu" ? tIn(l, "rolling", { name: pnameIn(mover, l) }) : "";
-    return { label: [G.face ? FACES[G.face] : "", who].filter(Boolean).join("  ") || FACES[s.last || 6], ready: false, dot: null };
+    return { label: [G.face ? G.face.map(f => FACES[f]).join(" ") : "", who].filter(Boolean).join("  ") || FACES[s.last || 6], ready: false, dot: null };
   }
   const again = plan ? plan.again : s.turn === i && s.log[0]?.k === "lSix";
   return { label: again ? tIn(l, "rollAgain") : humans > 1 ? tIn(l, "rollFor", { name: pnameIn(p, l) }) : tIn(l, "roll"), ready: true, dot };
@@ -183,7 +225,7 @@ function pump() {
   G.rollQueued = false;
   takeTurn();
 }
-setCardRoll(rollInfo, requestRoll);
+setCardRoll(rollInfo, requestRoll, pickMove);
 // closing the card calls off a roll that hasn't started yet
 onCardChange(() => { if (!cardOpen() && G.rollQueued) { G.rollQueued = false; render(); } });
 
@@ -215,7 +257,7 @@ function render() {
   $("roll").disabled = G.busy || state.over || !human;
   $("roll").textContent = human ? t("roll") : t("rolling", { name: pname(p) });
   $("hint").textContent = state.over ? t("hintOver") : human ? t("hintHuman") : t("hintCpu");
-  showDie(state.last || 6);
+  showDice(state.dice?.length ? state.dice : [state.last || 6]);
   refreshRoll();
   $("seed").textContent = `${t("seed")} ${state.rng.seed}`;
 
@@ -309,6 +351,8 @@ function startGame() {
   G.gen++;
   clearTimeout(G.cpuTimer);
   G.rollQueued = false; G.plan = null; G.face = null; G.waitingCard = false;
+  // a choice still waiting belongs to the game being left
+  G.choosing = null; $("pick").hidden = true; $("pick").innerHTML = ""; $("roll").hidden = false;
   closeCard({ instant: true });
   closeLife();
   $("toastSlot").innerHTML = "";
@@ -348,6 +392,11 @@ $("namingForm").addEventListener("submit", () => {
 $("naming").addEventListener("cancel", e => e.preventDefault());
 $("roll").addEventListener("click", takeTurn);
 document.addEventListener("keydown", e => {
+  // choosing between the endgame's dice: 1 and 2 are the dice, S or 0 sits the year out
+  if (G.choosing && !e.target.closest("input, select, textarea") && !e.ctrlKey && !e.metaKey && !e.altKey) {
+    const { dice } = G.choosing, v = e.key === "1" ? dice[0] : e.key === "2" ? dice[1] : /^[s0]$/i.test(e.key) ? 0 : null;
+    if (v != null) { e.preventDefault(); return pickMove(v); }
+  }
   if (e.code !== "Space" || e.target.closest("input, select, button, textarea, summary")) return;
   if (e.target.closest("[role=button]")) return;
   e.preventDefault();
@@ -409,7 +458,8 @@ addEventListener("hashchange", openFromHash);
 
 new ResizeObserver(draw).observe($("cells"));
 
-// ?debug exposes helpers for testing: mp.jump(n) moves the current player, mp.roll(v) rolls a fixed number,
+// ?debug exposes helpers for testing: mp.jump(n) moves the current player, mp.roll(v) rolls a fixed number
+// (mp.roll(a, b) fixes both endgame dice, and mp.pick(v) moves by one of them, 0 to sit),
 // mp.seed() reads the current game's seed and mp.seed(n) starts a new game with that seed.
 if (new URLSearchParams(location.search).has("debug")) {
   window.mp = {
@@ -422,7 +472,12 @@ if (new URLSearchParams(location.search).has("debug")) {
     audio: audioState,
     // mp.quality("low") draws less: no camera, no motion extras, no paper grain
     quality(q) { if (q) { setQuality(q); pullBack(true); draw(); } return quality; },
-    roll(v) { G.forcedRoll = v; return takeTurn(); },
+    roll(...vs) { G.forcedRoll = vs.length > 1 ? vs : vs[0]; return takeTurn(); },
+    // the moves the dice now offer, or null when nothing is waiting on a choice
+    get choosing() { return G.choosing ? [...G.choosing.moves] : null; },
+    pick: pickMove,
+    // how many dice player i (the current one by default) has spent on practice in this life
+    practised: (i = G.state.turn) => G.state.players[i].practised ?? 0,
     seed(n) { if (n == null) return G.state.rng.seed; nextSeed = n >>> 0; startGame(); return G.state.rng.seed; },
     get state() { return G.state; },
     // true while a turn is being played out

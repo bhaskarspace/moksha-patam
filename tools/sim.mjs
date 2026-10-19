@@ -1,25 +1,32 @@
 // Plays N games headless with the real rules and reports how long they take.
 //   node tools/sim.mjs [games=20000] [players=1] [firstSeed=1] [--span=110] [--spans=100,105,110,115,120]
+//     [--practice=off] [--endgame=94] [--pick=plain|bigger|first]
 // With one player this is the time a single life takes to reach Moksha, or to run out of years.
 // With more it is a race, and the game ends when the first player arrives, or when nobody is left.
 // Phase 8 adds the lives themselves: how many end by running out of years, how long they last, and the
 // bhumika a sannyasin is in. --spans sweeps the span of a life and prints one line per value.
+// Phase 9 adds the endgame's two dice: --pick=bigger moves by the bigger die whatever it lands on and --pick=first
+// by the first, to show what choosing is worth; --practice=off spends no spare die; --endgame=N moves where the
+// two dice begin.
 import { pathToFileURL } from "node:url";
-import { createGame, playTurn } from "../src/engine/turn.js";
+import { createGame, playTurn, moveFor, rollDice, diceFor, setEndgame, ENDGAME } from "../src/engine/turn.js";
 import { SNAKES } from "../src/content.js";
-import { SPAN, setSpan, yearsAlong, BHUMIKA_AT } from "../src/engine/self.js";
+import { SPAN, setSpan, yearsAlong, BHUMIKA_AT, TURYA, setPractice } from "../src/engine/self.js";
+
+// how a computer chooses between the endgame's dice: the game's own way, or carelessly
+const PICKS = { plain: moveFor, bigger: (s, d) => Math.max(...d), first: (s, d) => d[0] };
 
 export const SIM_RULES = { six: true, brahmaloka: false, cards: "off" };
 
 // One game from a seed, every player a computer. Returns the full log, oldest entry first,
 // plus the number of turns each player took.
-export function playGame(seed, { players = 2, rules = SIM_RULES } = {}) {
+export function playGame(seed, { players = 2, rules = SIM_RULES, pick = moveFor } = {}) {
   const state = createGame({ players: Array.from({ length: players }, () => ({ name: "", type: "cpu" })), rules, seed });
   const log = [...state.log], turns = Array(players).fill(0), seen = state.players.map(() => new Set());
   while (!state.over) {
     turns[state.turn]++;
     const before = state.log[0];
-    const plan = playTurn(state), p = state.players[plan.idx];
+    const plan = playTurn(state, rollDice(state.rng, diceFor(state.players[state.turn])), pick), p = state.players[plan.idx];
     if (plan.jump?.rebirth) seen[plan.idx].clear();
     if (p.bhumika != null) seen[plan.idx].add(p.bhumika);
     log.push(...state.log.slice(0, state.log.indexOf(before)).reverse());
@@ -40,6 +47,9 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   const args = process.argv.slice(2), flags = Object.fromEntries(args.filter(a => a.startsWith("--")).map(a => a.slice(2).split("=")));
   const [games = 20000, players = 1, first = 1] = args.filter(a => !a.startsWith("--")).map(Number);
   if (flags.span) setSpan(+flags.span);
+  if (flags.practice === "off") setPractice(0);
+  if (flags.endgame) setEndgame(+flags.endgame);
+  const pick = PICKS[flags.pick || "plain"];
   const rules = { ...SIM_RULES, ...(flags.rules === "brahmaloka" ? { brahmaloka: true } : {}) };
   // --snake=none drops the rebirth snake, to measure bounce-back on its own
   if (flags.snake) {
@@ -58,7 +68,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       const lengths = [];
       let died = 0;
       for (let s = first; s < first + games; s++) {
-        const g = playGame(s, { players, rules });
+        const g = playGame(s, { players, rules, pick });
         lengths.push(Math.max(...g.turns));
         died += g.players.filter(p => p.dead).length;
       }
@@ -70,9 +80,11 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   // how often the rebirth snake fires, and how often the exit is won coming back down onto it (REDESIGN.md Phase 7)
   let rolls = 0, fell = 0, falls = 0, above = 0;
   const lengths = [], spans = [], finals = Array(BHUMIKA_AT.length).fill(0), shown = {};
-  let died = 0, lives = 0, sannyasins = 0;
+  let died = 0, lives = 0, sannyasins = 0, looped = 0, told4 = 0, sits = 0;
+  // the age a life goes through the exit at, the spread choosing makes (REDESIGN.md Phase 9)
+  const AT = 90, freed = [];
   for (let s = first; s < first + games; s++) {
-    const { turns, log, players: ps, seen } = playGame(s, { players, rules });
+    const g = playGame(s, { players, rules, pick }), { turns, log, players: ps, seen } = g;
     lengths.push(Math.max(...turns));
     rolls += turns.reduce((a, b) => a + b, 0);
     const f = log.filter(e => e.k === "lRebirth").length;
@@ -83,15 +95,26 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       lives++; died += p.dead;
       const along = yearsAlong(p.life).filter(e => e.n <= 100);
       if (along.length) spans.push(Math.max(...along.map(e => e.years)));
+      // the 99 → 61 loop taken twice or more, a square landed on four times or more, and years sat out
+      const life = p.life, count = new Map();
+      looped += life.filter((n, k) => n === 61 && life[k - 1] === 99).length >= 2;
+      for (const n of life) count.set(n, (count.get(n) || 0) + 1);
+      told4 += Math.max(0, ...count.values()) >= 4;
+      const all = yearsAlong(life);
+      sits += all.filter(e => e.via === "sit").length;
+      if (g.winner === i) freed.push(p.years);
       if (seen[i].size) { sannyasins++; finals[Math.max(...seen[i])]++; shown[seen[i].size] = (shown[seen[i].size] || 0) + 1; }
     }
   }
   const r = summarise(lengths), y = summarise(spans);
-  console.log(`${games} games, ${players} players, seeds ${first}–${first + games - 1}${flags.rules ? `, rules ${flags.rules}` : ""}${flags.snake ? `, snake ${flags.snake}` : ""}, span ${SPAN}`);
+  console.log(`${games} games, ${players} players, seeds ${first}–${first + games - 1}${flags.rules ? `, rules ${flags.rules}` : ""}${flags.snake ? `, snake ${flags.snake}` : ""}, span ${SPAN}, two dice from ${ENDGAME}${flags.pick ? `, pick ${flags.pick}` : ""}${flags.practice ? `, practice ${flags.practice}` : ""}`);
   console.log(`turns per player until the game ends: median ${r.median}, p5 ${r.p5}, p95 ${r.p95}, mean ${r.mean.toFixed(1)}, max ${r.max}, over 100: ${pct(r.over100)}`);
   console.log(`rolls per game: mean ${(rolls / games).toFixed(1)}`);
   console.log(`the rebirth snake fires in ${pct(fell / games)} of games, ${(falls / games).toFixed(2)} falls a game; ${pct(above / games)} are won coming back down onto the exit`);
   console.log(`lives that run out of years: ${pct(died / lives)}; years lived: median ${y.median}, p5 ${y.p5}, p95 ${y.p95}, max ${y.max}`);
-  console.log(`highest bhumika reached, of ${sannyasins} sannyasins: ${finals.map((c, b) => `${b + 1}: ${pct(c / sannyasins)}`).join(" · ")}`);
+  console.log(`highest bhumika reached, of ${sannyasins} sannyasins: ${finals.map((c, b) => `${b + 1}: ${pct(c / sannyasins)}`).join(" · ")} (turya ${pct(finals[TURYA] / sannyasins)})`);
   console.log(`bhumikas a sannyasin is shown: ${Object.entries(shown).map(([k, c]) => `${k}: ${pct(c / sannyasins)}`).join(" · ")}`);
+  const b = summarise(freed);
+  console.log(`the 99 → 61 snake taken twice or more: ${pct(looped / lives)}; a square landed on four times or more: ${pct(told4 / lives)}; years sat out: ${(sits / lives).toFixed(2)} a life`);
+  console.log(`through the exit by ${AT} years: ${pct(freed.filter(y => y <= AT).length / lives)}; age at the exit: p5 ${b.p5}, median ${b.median}, p95 ${b.p95}`);
 }

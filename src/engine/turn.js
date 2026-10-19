@@ -1,7 +1,7 @@
 // The rules of a turn, with no DOM: the UI animates a plan, and tools/sim.mjs plays plans headless.
 import { GOAL, TOP, LADDERS, SNAKES, HEAVEN } from "../content.js";
 import { makeRng, die } from "../rng.js";
-import { SPAN, turnYears, grow, freshGunas, freshAims, holdingOf } from "./self.js";
+import { SPAN, turnYears, grow, freshGunas, freshAims, holdingOf, slotsFor, stageOfPlayer, SANNYASA } from "./self.js";
 
 // The die shows this many random faces while it tumbles before the real roll. They come from the
 // game's own sequence, so a headless game must draw them too to stay in step with the UI.
@@ -11,6 +11,41 @@ export function rollValue(rng) {
   return die(rng);
 }
 
+// ---- Dice as currency (REDESIGN.md Phase 9) ----
+// From the top of the last ladder the player rolls two dice, sees both, and moves by either. Measured against
+// "move up to the roll", which let a player stop on the exit every time and so never met the rebirth snake.
+// Below 94 a turn is one die, as it always was.
+export let ENDGAME = 94;
+// tools/sim.mjs sweeps it; nothing in the game changes it
+export const setEndgame = n => { ENDGAME = n; };
+export const diceFor = p => (p.pos >= ENDGAME ? 2 : 1);
+// The dice tumble together: each frame draws a face for every die, then each die draws its value. One die
+// draws exactly what rollValue does, so a game below the endgame replays as it did before.
+export function rollDice(rng, n) {
+  for (let i = 0; i < TUMBLE; i++) for (let k = 0; k < n; k++) die(rng);
+  return Array.from({ length: n }, () => die(rng));
+}
+// A sannyasin on the last squares of earth may move by neither die and sit the year out in practice. Only a
+// sannyasin: practice counts for nobody else (src/engine/self.js grow). The divine row has only one slot: there
+// you walk.
+export const canSit = p => p.pos >= ENDGAME && p.pos <= 100 && stageOfPlayer(p) === SANNYASA && slotsFor(p).includes("practice");
+// The moves a roll offers: each die's value once, and 0 for sitting.
+export function movesFor(state, dice) {
+  const p = state.players[state.turn], out = [...new Set(dice)];
+  if (dice.length > 1 && canSit(p)) out.push(0);
+  return out;
+}
+// The computer's choice, the same in the page and in tools/sim.mjs: the exit if a die reaches it, otherwise a
+// die that is not a snake, the bigger one first; sitting only when both dice are snakes.
+export function moveFor(state, dice) {
+  const moves = movesFor(state, dice), plans = moves.filter(Boolean).map(v => planTurn(state, v, dice));
+  const win = plans.find(pl => pl.win);
+  if (win) return win.v;
+  const safe = plans.filter(pl => pl.jump?.kind !== "snake").sort((a, b) => b.v - a.v);
+  if (safe.length) return safe[0].v;
+  return moves.includes(0) ? 0 : Math.max(...dice);
+}
+
 // A player has a gender for Hindi agreement (docs/NARRATIVE.md §4), an alias {en, hi} when the name was
 // drawn rather than typed, and a life: every square landed on, in order, for the life account. Phase 8 adds
 // who they are (src/engine/self.js): years lived, gunas, aims, the bhumika in sannyasa and the highest
@@ -18,7 +53,7 @@ export function rollValue(rng) {
 export function createGame({ players, rules, seed }) {
   return {
     players: players.map((r, i) => ({ name: r.name.trim(), type: r.type, gender: r.gender || "m", alias: r.alias || null, color: i, pos: 0, face: "r", life: [], hasFallen: false,
-      years: 0, gunas: freshGunas(), aims: freshAims(), bhumika: null, peak: null, dead: false, holding: null })),
+      years: 0, gunas: freshGunas(), aims: freshAims(), practised: 0, bhumika: null, peak: null, dead: false, holding: null })),
     rules: { ...rules },
     // over: someone reached the exit, or nobody is left alive to
     turn: 0, winner: null, over: false, last: null,
@@ -44,9 +79,21 @@ export function addLog(state, e) {
 // The rebirth snake takes a player back to birth, so it is rare: it takes only someone climbing onto its head,
 // never one coming back down onto it from above, and only once in a life.
 export const rebirthHead = () => +Object.keys(SNAKES).find(h => SNAKES[h].rebirth);
-export function planTurn(state, v) {
+// v is the move: a die's value, or 0 to sit. dice is everything rolled; the dice not moved by are spare, and in
+// sannyasa they go to practice (src/engine/self.js).
+export function planTurn(state, v, dice = [v]) {
   const idx = state.turn, p = state.players[idx], from = p.pos, rules = state.rules;
   const pre = [], after = [], end = [], path = [];
+  const spare = [...dice];
+  if (v) spare.splice(spare.indexOf(v), 1);
+  if (dice.length > 1) pre.push(entry(v ? "lDice" : "lDiceSit", { a: dice[0], b: dice[1], v }, "", idx));
+  if (!v) {
+    // a year sat out: no walk, no landing, and the year still passes
+    const years = turnYears(p.years ?? 0, { sit: true }), died = years > SPAN;
+    after.push(entry("lSit", { pos: from, sq: from }, "", idx));
+    if (died) end.push(entry("lDied", { pos: from, age: years, sq: from }, "death", idx));
+    return { idx, v, dice, spare, sit: true, from, path, target: from, final: from, jump: null, win: false, died, again: false, pre, after, end };
+  }
   for (let i = 0, n = from, dir = 1; i < v; i++) {
     if (n === TOP) dir = -1;
     path.push((n += dir));
@@ -82,13 +129,14 @@ export function planTurn(state, v) {
   if (win) end.push(entry(from > GOAL ? "lWinAbove" : "lWin", { pos: GOAL }, "heaven", idx));
   else if (died) end.push(entry("lDied", { pos: final, age: years, sq: final }, "death", idx));
   else if (again) end.push(entry("lSix", {}, "", idx));
-  return { idx, v, from, path, target, final, jump, win, died, again, pre, after, end };
+  return { idx, v, dice, spare, sit: false, from, path, target, final, jump, win, died, again, pre, after, end };
 }
 
 export function endTurn(state, plan) {
   const p = state.players[plan.idx];
   p.pos = plan.final;
   // a snake or a ladder is two moments: the square that did it, and the one it led to
+  // a year sat out is the same square again: on earth nothing else lands where it stands (src/engine/self.js)
   (p.life ||= []).push(...(plan.jump ? [plan.target, plan.final] : [plan.target]));
   if (plan.jump?.rebirth) p.hasFallen = true;
   Object.assign(p, grow(p, plan));
@@ -106,10 +154,12 @@ export function endTurn(state, plan) {
   plan.end.forEach(e => addLog(state, e));
 }
 
-// One whole turn without animation.
-export function playTurn(state, v = rollValue(state.rng)) {
-  state.last = v;
-  const plan = planTurn(state, v);
+// One whole turn without animation. A number is one die moved by; an array is the dice rolled, and pick chooses
+// the move from them.
+export function playTurn(state, roll = rollDice(state.rng, diceFor(state.players[state.turn])), pick = moveFor) {
+  const dice = typeof roll === "number" ? [roll] : roll, v = dice.length > 1 ? pick(state, dice) : dice[0];
+  state.last = v || dice[0];
+  const plan = planTurn(state, v, dice);
   [...plan.pre, ...plan.after].forEach(e => addLog(state, e));
   endTurn(state, plan);
   return plan;

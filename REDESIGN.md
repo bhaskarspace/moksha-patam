@@ -890,8 +890,54 @@ the one their square implies.
 
 ---
 
-### Phase 9 — Dice as currency
+### Phase 9 — Dice as currency  ✅ SHIPPED
 *The core mechanical change. Read §2.1 carefully.*
+
+> **Shipped, with these decisions.**
+> - *"Move up to the roll" was prototyped first, as this section asked, and rejected.* 20,000 single lives each:
+>
+>   | rule | median | p95 | over 100 | max | die | rebirth fires | 99→61 twice+ |
+>   |---|---|---|---|---|---|---|---|
+>   | Phase 8 | 49 | 102 | 5.6% | 239 | 16.8% | 37.3% | 9.2% |
+>   | up to the roll, everywhere | 23 | 37 | 0.0% | 74 | 0.7% | 0.0% | 0.8% |
+>   | up to the roll, 94–110 | 29 | 55 | 0.0% | 94 | 4.5% | 0.0% | 0.4% |
+>   | up to the roll, 94–100 only | 48 | 101 | 5.1% | 239 | 6.5% | 41.0% | 0.8% |
+>   | **two dice from 94, move by either (shipped)** | **34** | **71** | **0.7%** | **172** | **2.5%** | **8.2%** | **0.0%** |
+>
+>   **Every life over 100 turns was a rebirth**: in Phase 8, 100% of them took the 108 fall to 1. The 99↔61 loop
+>   drove the deaths and the repeated text, not the tail, so nothing confined to earth could clear the guardrail.
+>   Reaching into the divine row, up to the roll over-corrects: a player can always stop on 105, so the fall never
+>   fires and the endgame stops mattering. The best chooser and a naive one measured the same, so it was a
+>   correction, not a decision. Two dice keep the fall, now rare as Phase 7 meant it.
+> - *The over-100 regression Phase 8 recorded is closed*: 0.7% against the 3.3% guardrail. Two players: median 28,
+>   p95 49, 0.1% over 100. The median falls below Phase 4's 41 (Milton Bradley is 33) because the divine row's waiting
+>   room is gone (Phase 8: 4 turns at the median, 30 at p95), not because content is skipped; ages come from squares.
+> - *Choosing is worth something.* `npm run sim -- --pick=first` (the first die, as before) gives back 49 / 102 /
+>   5.5%; `--pick=bigger`, ignoring what the die lands on, 44 / 94 / 3.3%. Through the exit by 90: 84.9% for the
+>   game's chooser, 58.1% for the first die.
+> - *The allocation loop is not built.* It cannot touch the tail: the tail is the divine row, whose only slot is
+>   MOVE. A plain chooser (the exit, then not a snake) matched a careful one, so the decision that matters is seeing
+>   the snake and the exit. STUDY, SERVE and GIVE would spend dice on meters Phase 8 never shows and nothing yet
+>   uses: buttons with no visible effect, or a farmed number. And the Phase 8 clock makes standing still free, so a
+>   board-wide loop needs "a cycle is a year" everywhere, the two-clock problem Phase 8 closed. Revisit in Phase 10,
+>   when situations give choices consequences that can be seen. Widening two dice to all of sannyasa was measured
+>   too (31 / 63 / 0.2%) and rejected: no life died, which deletes Phase 8's ending.
+> - *What ships of the loop is where it bites* (`src/engine/turn.js`): from 94 (`ENDGAME`) two dice, seen before
+>   choosing (`rollDice`, `movesFor`, `moveFor`, shared by the page and the sim, so `npm run golden` holds). A six goes
+>   again only when it is the die moved by. A sannyasin on 94–100 may **sit** the year out: no walk, a year passes
+>   (it counts toward the span), and in the life it is the same square twice, which nothing else on earth can be.
+>   A person chooses on the panel, on the card (a phone's sheet covers the panel) or by key: 1, 2, S. A choice
+>   with only one move in it is not asked.
+> - *PRACTICE and turyā* (`src/engine/self.js`): a sannyasin's spare die is practice, mixing sattva in by its face
+>   (`PRACTICE_W` 0.02 a pip). Turyā is the seventh bhūmikā and asks that the life has practised, so dice alone never
+>   reach it by construction: turyā in 1.5% of sannyasins, 0.0% with `--practice=off`. Brahmavidvariṣṭha is its title.
+> - *The life account* (NARRATIVE §9): a snake or ladder taken a second time is one line, from the third a tally
+>   that ends the paragraph; a square already told, reached again by a snake or ladder, says only where it was first
+>   lived. Seed 23 as Phase 8 played it is a pinned test: the mirror and "starts again" once each, not three times.
+>   Its Sannyasa paragraph is still about a thousand words, but they are first-time moments now, not repeats. The
+>   fold line printed the square's authored age as if it were now ("walked through fifty-three" at ninety); it now
+>   names the age the ground was first walked at, and says so. `after()` lowers "A habit…". A win names what the
+>   life put down, the vice a death would have named as still held (`letgo` on each vice snake).
 
 - Roll n dice, visible, before any decision.
 - Action slots: MOVE, STUDY, SERVE, GIVE, PRACTICE, gated by ashrama.
