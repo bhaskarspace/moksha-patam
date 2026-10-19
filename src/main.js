@@ -1,7 +1,7 @@
 // Moksha Patam: the page's wiring. Rules live in engine/, drawing in render/, content in content/*.json.
 import { GOAL, ROWS, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, STR } from "./content.js";
-import { lang, urlLang, setLangValue, L, num, t } from "./i18n.js";
-import { G, defaultSetup, pname, cur, newState, loadSelf, saveSelf } from "./state.js";
+import { lang, urlLang, setLangValue, L, num, t, tIn } from "./i18n.js";
+import { G, defaultSetup, pname, pnameIn, cur, newState, loadSelf, saveSelf } from "./state.js";
 import { prefs, setPref } from "./prefs.js";
 import { $, COLORS, esc, reduced, sleep, quality, forcedQuality, setQuality } from "./ui.js";
 import { die, makeRng, freshSeed } from "./rng.js";
@@ -11,7 +11,8 @@ import { lens, wash, stageAt } from "./render/age.js";
 import { frame, pullBack, hold, release } from "./render/camera.js";
 import { spriteURL } from "./render/sprites.js";
 import { tokenEls, buildTokens, place, retrigger, climb, swallow, animate } from "./render/tokens.js";
-import { openSquare, openEntry, closeCard, cardIdle, cardOpen, refreshCard, onCardChange } from "./render/card.js";
+import { openSquare, openEntry, closeCard, cardIdle, cardOpen, cardCarried, cardExpanded, cardNote, setCardRoll, refreshRoll, refreshCard, onCardChange } from "./render/card.js";
+import { sheetState } from "./render/sheet.js";
 import { renderCodex, showTab } from "./render/codex.js";
 import { renderLog } from "./render/log.js";
 import { openLife, refreshLife, closeLife, lifeText } from "./render/life.js";
@@ -26,14 +27,16 @@ function showDie(v) {
   [...dieEl.children].forEach((s, i) => s.classList.toggle("on", PIPS[v].includes(i)));
   dieEl.setAttribute("aria-label", `🎲 ${num(v)}`);
 }
+// the die also tumbles in the card's Roll, since on a phone the panel's die is off screen behind the card
+const tumble = v => { showDie(v); G.face = v; refreshRoll(); };
 async function rollDie() {
   const rng = G.state.rng;
   dieEl.classList.remove("rolling"); void dieEl.offsetWidth; dieEl.classList.add("rolling");
   sound.rattle();
-  for (let i = 0; i < TUMBLE; i++) { showDie(die(rng)); await sleep(75); }
+  for (let i = 0; i < TUMBLE; i++) { tumble(die(rng)); await sleep(75); }
   const v = G.forcedRoll ?? die(rng);
   G.forcedRoll = null;
-  showDie(v);
+  tumble(v);
   return v;
 }
 
@@ -66,10 +69,11 @@ async function takeTurn() {
   if (G.busy || state.winner != null) return;
   const g = G.gen;
   G.busy = true; render();
-  // nobody moves while someone is reading a card
-  await cardIdle();
+  // nobody moves while someone is reading a card, unless they rolled from it
+  await waitCard();
   if (g !== G.gen) return;
   const p = cur(), idx = state.turn, el = tokenEls[idx];
+  if (p.type === "human") cardNote("");
   release();
   const v = await rollDie();
   if (g !== G.gen) return;
@@ -78,6 +82,7 @@ async function takeTurn() {
   setDrone(lens(state).droneStage);
   const watching = watchFrames();
   const plan = planTurn(state, v);
+  G.plan = plan;
   plan.pre.forEach(log);
   // every roll moves now: a bounce can come back to the square it started from, but it still walks
   {
@@ -97,16 +102,25 @@ async function takeTurn() {
     el._frame = 0; place();
     // a new ashrama is seen whole
     if (stageAt(p.pos) !== born) pullBack();
-    await cardIdle();
+    await waitCard();
     if (g !== G.gen) return;
-    if (prefs.landAll || !SQ[p.pos]) {
-      // a person's landing card waits for them; a computer's closes itself unless someone starts reading it
-      await openSquare(p.pos, { landing: true, auto: p.type === "cpu" });
+    // Rolled from the card, it turns to each of the reader's own landings, whatever landAll says, and a
+    // computer's move is only noted on it. Otherwise a person's landing card waits for them, and a computer's
+    // closes itself unless someone starts reading it.
+    const carried = cardCarried();
+    if (carried ? p.type === "human" : prefs.landAll || !SQ[p.pos]) {
+      // a card rolled from goes on with the game, so the turn is not waiting on it
+      G.waitingCard = !carried; refreshRoll();
+      await openSquare(p.pos, { landing: true, auto: p.type === "cpu", who: idx });
+      G.waitingCard = false; refreshRoll();
       if (g !== G.gen) return;
     }
     plan.after.forEach(log);
     if (plan.jump) {
-      await cardIdle();
+      await waitCard();
+      if (g !== G.gen) return;
+      // the card stays open over the jump, so it waits only a reading beat (a pause, not a motion)
+      if (cardCarried() && p.type === "human") await new Promise(r => setTimeout(r, reduced ? 300 : 900));
       if (g !== G.gen) return;
       (plan.jump.kind === "snake" ? sound.snake : sound.ladder)();
       frame(p.pos, plan.jump.to);
@@ -115,13 +129,56 @@ async function takeTurn() {
     }
   }
   endTurn(state, plan);
+  G.plan = null; G.face = null;
+  if (cardCarried() && p.type === "cpu") cardNote(tIn(lang, "cardMoved", { name: pname(p), n: plan.final }));
   watching();
   pullBack();
   G.busy = false;
   render();
   age();
   queueCpu();
+  pump();
 }
+
+// Waits while a card is open and being read. A card rolled from is not waited for.
+async function waitCard() {
+  if (!cardOpen() || cardCarried()) return;
+  G.waitingCard = true; refreshRoll();
+  await cardIdle();
+  G.waitingCard = false; refreshRoll();
+}
+
+// ---- Rolling from the card (REDESIGN.md Phase 6) ----
+// The card's Roll is for the next person to roll, counting on from the turn under way, so pressing it while a
+// computer is still to play lets that turn run on the board and then rolls for the reader.
+const FACES = ["", "⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
+function rollInfo(l) {
+  const s = G.state;
+  if (!s || s.winner != null || !s.players.some(q => q.type === "human")) return null;
+  const n = s.players.length, plan = G.plan, humans = s.players.filter(q => q.type === "human").length;
+  let i = plan ? (plan.again ? plan.idx : (plan.idx + 1) % n) : s.turn;
+  for (let k = 0; k < n && s.players[i].type !== "human"; k++) i = (i + 1) % n;
+  const p = s.players[i], dot = humans > 1 ? COLORS[p.color] : null;
+  // already moving on the reader's behalf: show the die, or who is rolling now
+  if (G.rollQueued || (G.busy && !G.waitingCard)) {
+    const mover = s.players[plan?.idx ?? s.turn];
+    const who = mover.type === "cpu" ? tIn(l, "rolling", { name: pnameIn(mover, l) }) : "";
+    return { label: [G.face ? FACES[G.face] : "", who].filter(Boolean).join("  ") || FACES[s.last || 6], ready: false, dot: null };
+  }
+  const again = plan ? plan.again : s.turn === i && s.log[0]?.k === "lSix";
+  return { label: again ? tIn(l, "rollAgain") : humans > 1 ? tIn(l, "rollFor", { name: pnameIn(p, l) }) : tIn(l, "roll"), ready: true, dot };
+}
+function requestRoll() { G.rollQueued = true; refreshRoll(); pump(); }
+function pump() {
+  if (!G.rollQueued || G.busy) return;
+  if (G.state.winner != null) { G.rollQueued = false; return refreshRoll(); }
+  if (cur().type !== "human") return;
+  G.rollQueued = false;
+  takeTurn();
+}
+setCardRoll(rollInfo, requestRoll);
+// closing the card calls off a roll that hasn't started yet
+onCardChange(() => { if (!cardOpen() && G.rollQueued) { G.rollQueued = false; render(); } });
 
 function queueCpu() {
   clearTimeout(G.cpuTimer);
@@ -151,6 +208,7 @@ function render() {
   $("roll").textContent = human ? t("roll") : t("rolling", { name: pname(p) });
   $("hint").textContent = state.winner != null ? t("hintOver") : human ? t("hintHuman") : t("hintCpu");
   showDie(state.last || 6);
+  refreshRoll();
   $("seed").textContent = `${t("seed")} ${state.rng.seed}`;
 
   place();
@@ -236,6 +294,7 @@ let nextSeed = urlSeed != null && /^\d+$/.test(urlSeed) ? +urlSeed >>> 0 : null;
 function startGame() {
   G.gen++;
   clearTimeout(G.cpuTimer);
+  G.rollQueued = false; G.plan = null; G.face = null; G.waitingCard = false;
   closeCard({ instant: true });
   closeLife();
   $("toastSlot").innerHTML = "";
@@ -351,6 +410,15 @@ if (new URLSearchParams(location.search).has("debug")) {
     seed(n) { if (n == null) return G.state.rng.seed; nextSeed = n >>> 0; startGame(); return G.state.rng.seed; },
     get state() { return G.state; },
     open: openSquare,
+    // the card as it stands: { detent, height, half, full } on a phone (null on a wide screen), opened further, rolled from
+    sheet: () => ({ open: cardOpen(), sheet: sheetState(), expanded: cardExpanded(), carried: cardCarried() }),
+    // presses the card's Roll; mp.rollFromCard(v) fixes the next roll, so call it on the reader's own turn
+    rollFromCard(v) {
+      const b = document.querySelector('#leaf .roll-c[aria-disabled="false"]');
+      if (b && v != null) G.forcedRoll = v;
+      b?.click();
+      return !!b;
+    },
     entry: openEntry,
     close: closeCard,
     sprite: spriteURL,

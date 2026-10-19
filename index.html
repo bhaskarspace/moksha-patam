@@ -362,6 +362,95 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 .leaf .snake-on .snake-glyph { width: 28px; height: 28px; }
 .leaf .snake-on .snake-title { font-family: var(--f-display); font-weight: 400; font-size: 26px; line-height: 1.1; margin: 4px 0 0; }
 
+/* Phase 6 (REDESIGN.md): the card in hand */
+/* the illuminated frame (render/frame.js): its colours are the Basohli tokens only, the field and the corners by kind */
+.leaf:not(.entry) .leaf-main { grid-template-columns: 196px minmax(0, 1fr); }
+.leaf:not(.entry) .glyph { filter: none; line-height: 0; }
+.leaf .glyph svg.ill { display: block; width: 180px; height: auto; }
+.ill { --field: var(--b-ochre); --corner: var(--b-malachite); }
+.ill .ink { stroke: var(--b-black); stroke-width: 1.25; stroke-linejoin: round; }
+.ill .band { fill: var(--b-vermilion); }
+.ill .pearl { fill: var(--b-shell); }
+.ill .spandrel { fill: var(--corner); }
+.ill .field { fill: var(--field); }
+.ill .rim { fill: none; }
+.ill .jewel { fill: var(--b-beetle); }
+.ill .fb { font-family: var(--f-emoji); font-size: 15px; fill: var(--b-black); }
+.leaf.virtue .ill { --field: var(--b-malachite); --corner: var(--b-ochre); }
+.leaf.vice .ill { --field: var(--b-indigo); --corner: var(--b-ochre); }
+.leaf.heaven .ill { --field: var(--b-shell); --corner: var(--b-ochre); }
+.leaf.goal .ill { --field: var(--b-indigo); --corner: var(--b-ochre); }
+.leaf.goal .ill .fb { font-family: var(--f-display); font-size: 17px; fill: var(--b-shell); }
+.leaf .tally { display: flex; flex-direction: column; align-items: center; gap: 4px; margin-top: 6px; }
+
+/* the voices wait behind one tap */
+.leaf .more-btn {
+  display: inline-flex; align-items: center; gap: 6px; margin: 18px 0 2px; padding: 7px 14px; border-radius: 99px;
+  border: 1px solid var(--l-line); background: rgba(255, 252, 240, 0.55); color: var(--l-ink); font: 600 14px/1.3 var(--f-body);
+}
+.leaf .more-btn::after { content: "▾"; font-size: 11px; color: var(--l-gold); }
+.leaf .more-btn[aria-expanded="true"]::after { content: "▴"; }
+.leaf .more-btn:hover { background: rgba(255, 252, 240, 0.85); }
+.leaf.goal .more-btn { color: var(--l-ink); background: rgba(255, 255, 255, 0.08); }
+.leaf:not(.open) .more-only { display: none; }
+
+/* the footer: the nav either side, and in the middle the snake or ladder line and the card's Roll */
+.leaf-foot .mid { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; }
+.leaf .roll-c {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 7px 18px; border: 0; border-radius: 99px;
+  background: var(--l-rule); color: #FFF6E0; font: 600 15px/1.2 var(--f-body); white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis;
+}
+.leaf.goal .roll-c { color: #1E2A78; }
+.leaf .roll-c[aria-disabled="true"] { opacity: 0.72; cursor: default; font-variant-numeric: tabular-nums; }
+.leaf .roll-c .dot { width: 10px; height: 10px; border-radius: 50%; box-shadow: 0 0 0 1.5px #FFF6E0; flex: none; }
+.leaf .grip, .leaf .x-foot, .leaf .ft-top { display: none; }
+.leaf .cnote { font-family: var(--f-body); font-size: 12.5px; font-weight: 600; color: var(--l-ink2); }
+
+/* while the text goes on below, its lower edge fades, so nothing ever looks cut off */
+.leaf-main.more-below {
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 36px), transparent);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 36px), transparent);
+}
+
+/* below 768px the card is a sheet over the bottom of the screen, the board in full view above it (render/sheet.js) */
+@media (max-width: 767px) {
+  #folio {
+    --sh: min(var(--sheet-h, 55dvh), calc(100dvh - max(24px, env(safe-area-inset-top, 0px))));
+    position: fixed; inset: auto 0 0 0; margin: 0; width: 100%; max-width: 100%; max-height: var(--sh);
+  }
+  #folio.snap { transition: transform 0.2s ease, max-height 0.2s ease; }
+  #folio::backdrop { background: rgba(20, 12, 4, 0.3); }
+  #folio .leaf {
+    max-height: var(--sh); border-radius: 18px 18px 0 0; view-transition-name: none;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    box-shadow: inset 0 0 0 1px rgba(110, 70, 20, 0.35), inset 0 0 34px rgba(120, 72, 20, 0.22), 0 -8px 30px rgba(0, 0, 0, 0.35);
+  }
+  #folio.snap .leaf { transition: max-height 0.2s ease; }
+  /* the strip along the top and the footer always drag the sheet; only the text scrolls */
+  #folio .leaf-top, #folio .leaf-foot { touch-action: none; }
+  #folio .leaf-top { position: relative; flex-wrap: wrap; padding: 22px 12px 4px 16px; row-gap: 2px; }
+  #folio .grip { display: block; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 112px; height: 22px; padding: 0; border: 0; border-radius: 0 0 10px 10px; background: transparent; }
+  #folio .grip span { display: block; width: 38px; height: 5px; margin: 8px auto 0; border-radius: 99px; background: rgba(110, 70, 20, 0.45); }
+  #folio .leaf.goal .grip span { background: rgba(255, 216, 107, 0.55); }
+  #folio .ft-top { display: block; margin-top: 3px; font-size: 12px; letter-spacing: 0.04em; text-transform: none; }
+  #folio .ft-top .nav { margin-top: 2px; }
+  #folio .cnote { order: 3; flex-basis: 100%; }
+  #folio .x-top, #folio .leaf-foot .ft { display: none; }
+  #folio .x-foot { display: grid; place-items: center; width: 44px; height: 44px; }
+  #folio .leaf-foot { grid-template-columns: auto auto minmax(0, 1fr) auto; gap: 8px; padding: 8px 10px 12px; }
+  #folio .leaf-foot > :last-child { justify-self: end; }
+  #folio .leaf .nav { min-height: 44px; padding: 6px 10px; max-width: 9ch; }
+  #folio .leaf .roll-c { min-height: 44px; width: 100%; }
+  /* the frame stands at the head of the text like an illuminated initial, and the story runs on round it */
+  #folio .leaf-main { display: flow-root; padding: 6px 14px 4px; }
+  #folio .leaf-margin { float: left; width: 144px; margin: 4px 14px 6px 0; padding: 0; border-right: 0; }
+  #folio .leaf-margin .hole { display: none; }
+  #folio .leaf .glyph svg.ill { width: 144px; }
+  #folio .leaf .tally { flex-direction: row; justify-content: center; gap: 8px; }
+  #folio .leaf-text { padding: 0; border-right: 0; }
+  #folio .leaf.entry .leaf-margin { width: 52px; }
+}
+
 /* virtue rays, falling petals for the realms */
 .flourish { position: absolute; inset: 0; overflow: hidden; border-radius: inherit; pointer-events: none; z-index: 0; }
 .flourish .rays {
@@ -490,6 +579,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
 @media (prefers-reduced-motion: reduce) {
   .token, .token.slide { transition: none; }
   .cam { transition: none; transform: none !important; }
+  #folio.snap, #folio.snap .leaf { transition: none; }
   .token .body, .die.rolling, .lab.goal .om, .leaf, .leaf *, .flourish *, .toast { animation: none !important; }
   ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
 }
@@ -703,6 +793,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           <label class="check"><input type="checkbox" id="ruleSix" checked> <span data-t="ruleSix"></span></label>
           <label class="check"><input type="checkbox" id="ruleBrahmaloka"> <span data-t="ruleBrahmaloka"></span></label>
           <label class="pick"><span data-t="depth"></span><select id="prefDepth"></select></label>
+          <span class="hint depth-hint" data-t="depthHint"></span>
           <label class="check"><input type="checkbox" id="prefLand"> <span data-t="landAll"></span></label>
           <label class="check"><input type="checkbox" id="prefBoth"> <span data-t="cardBoth"></span></label>
           <button id="newGame" type="button" data-t="newGame">Start new game</button>
@@ -986,6 +1077,15 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         nextEntry: "Next entry",
         back: "Back to square {n}",
         cardLang: "Card language",
+        moreSchool: "How the schools argue it",
+        moreScholar: "The schools, the note, the people",
+        less: "Show less",
+        gripMore: "Show more of the card",
+        gripLess: "Show less of the card",
+        rollAgain: "Roll again",
+        rollFor: "Roll for {name}",
+        cardMoved: "{name} moved to {n}",
+        depthHint: "Every card opens with its story. This sets what it shows when you open it further.",
         codex: "Codex",
         codexSchools: "Schools",
         codexSources: "Sources",
@@ -1110,6 +1210,15 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         nextEntry: "अगली प्रविष्टि",
         back: "खाना {n} पर वापस",
         cardLang: "कार्ड की भाषा",
+        moreSchool: "दर्शन इसे कैसे परखते हैं",
+        moreScholar: "दर्शन, टिप्पणी और लोग",
+        less: "कम दिखाएँ",
+        gripMore: "कार्ड और खोलें",
+        gripLess: "कार्ड कम करें",
+        rollAgain: "फिर से फेंकें",
+        rollFor: "{name} के लिए फेंकें",
+        cardMoved: "{name} खाना {n} पर पहुँचे",
+        depthHint: "हर कार्ड अपनी कथा के साथ खुलता है। यह तय करता है कि उसे आगे खोलने पर क्या दिखे।",
         codex: "दर्शन-कोश",
         codexSchools: "दर्शन",
         codexSources: "ग्रंथ",
@@ -1845,9 +1954,9 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var srcOfSquare = (n) => squareOf(n)?.src || "";
   var sourceOf = (src) => src ? Object.keys(CODEX.sources).find((id) => src.startsWith(CODEX.sources[id].match)) ?? null : null;
   var ENTRY_GROUPS = [["school", "schools"], ["source", "sources"], ["figure", "figures"]];
-  var ENTRY_IDS = ENTRY_GROUPS.flatMap(([, g2]) => Object.keys(CODEX[g2]));
+  var ENTRY_IDS = ENTRY_GROUPS.flatMap(([, g3]) => Object.keys(CODEX[g3]));
   function entryOf(id) {
-    for (const [kind, g2] of ENTRY_GROUPS) if (CODEX[g2][id]) return { kind, e: CODEX[g2][id] };
+    for (const [kind, g3] of ENTRY_GROUPS) if (CODEX[g3][id]) return { kind, e: CODEX[g3][id] };
     return null;
   }
   var REFS = (() => {
@@ -1896,8 +2005,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   }
   var g = (gender, forms) => forms[gender] ?? forms.m;
   var fill = (text, { name = "", gender = "m" } = {}) => text.replace(/\{([^{}|]*(?:\|[^{}|]*){1,2})\}/g, (_, alts) => {
-    const [m, f, n] = alts.split("|");
-    return g(gender, { m, f, n });
+    const [m, f2, n] = alts.split("|");
+    return g(gender, { m, f: f2, n });
   }).replace(/\{name\}/g, () => name);
 
   // src/rng.js
@@ -2330,11 +2439,11 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     washes = next2;
     if (!S || !washes) return;
     tokens ||= Object.fromEntries(["--b-ochre", "--b-black", "--b-shell"].map((t2) => [t2, getComputedStyle(document.documentElement).getPropertyValue(t2).trim()]));
-    const W = S * 10, H = S * ROWS;
-    agx.clearRect(0, 0, W, H);
+    const W2 = S * 10, H2 = S * ROWS;
+    agx.clearRect(0, 0, W2, H2);
     if (grain && quality !== "low") {
       agx.fillStyle = grain;
-      agx.fillRect(0, 0, W, H);
+      agx.fillRect(0, 0, W2, H2);
     }
     for (let n = 1; n <= GOAL; n++) {
       const { col, row } = colRow(n), x = col * S, y = (ROWS - 1 - row) * S;
@@ -2345,14 +2454,14 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       }
     }
     agx.save();
-    agx.translate(W / 2, H / 2);
-    agx.scale(W * 0.72, H * 0.7);
+    agx.translate(W2 / 2, H2 / 2);
+    agx.scale(W2 * 0.72, H2 * 0.7);
     const edge = agx.createRadialGradient(0, 0, 0, 0, 0, 1);
     edge.addColorStop(0.62, "transparent");
     edge.addColorStop(1, tokens["--b-black"]);
     agx.globalAlpha = WASH.edge;
     agx.fillStyle = edge;
-    agx.fillRect(-W / (2 * W * 0.72) - 1, -H / (2 * H * 0.7) - 1, 1 / 0.72 + 2, 1 / 0.7 + 2);
+    agx.fillRect(-W2 / (2 * W2 * 0.72) - 1, -H2 / (2 * H2 * 0.7) - 1, 1 / 0.72 + 2, 1 / 0.7 + 2);
     agx.restore();
     agx.globalAlpha = 1;
   }
@@ -2373,16 +2482,16 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   }
   bakeGrain();
   function draw() {
-    const W = $("cells").clientWidth, H = $("cells").clientHeight;
-    if (!W) return;
+    const W2 = $("cells").clientWidth, H2 = $("cells").clientHeight;
+    if (!W2) return;
     const dpr = window.devicePixelRatio || 1;
     for (const [cv, c, k] of [[canvas, ctx, cameraOn() ? 1.3 : 1], [fxCanvas, fx, 1], [ageCanvas, agx, 1]]) {
-      cv.width = W * dpr * k;
-      cv.height = H * dpr * k;
+      cv.width = W2 * dpr * k;
+      cv.height = H2 * dpr * k;
       c.setTransform(dpr * k, 0, 0, dpr * k, 0, 0);
     }
-    ctx.clearRect(0, 0, W, H);
-    S = W / 10;
+    ctx.clearRect(0, 0, W2, H2);
+    S = W2 / 10;
     for (const [a, l] of Object.entries(LADDERS)) drawLadder(+a, l.to);
     for (const [h, s] of Object.entries(SNAKES)) drawSnake(+h, s.to);
     drawAge();
@@ -2575,8 +2684,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var stageOf = (pos) => STAGES.findIndex((s) => Math.max(pos, 1) <= s.max);
   var stageName = (i) => L(STAGES[i].en, STAGES[i].hi);
   var spriteCache = /* @__PURE__ */ new Map();
-  function shade(hex, f) {
-    const n = parseInt(hex.slice(1), 16), ch = [n >> 16, n >> 8 & 255, n & 255].map((v) => Math.round(v * (1 + f)));
+  function shade(hex, f2) {
+    const n = parseInt(hex.slice(1), 16), ch = [n >> 16, n >> 8 & 255, n & 255].map((v) => Math.round(v * (1 + f2)));
     return "#" + ch.map((v) => Math.max(0, Math.min(255, v)).toString(16).padStart(2, "0")).join("");
   }
   function spriteURL(stage, color, frame3) {
@@ -2715,18 +2824,18 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     setTimeout(() => el.remove(), 2500);
   }
   var animate = (ms, fn) => new Promise((res) => {
-    const g2 = G.gen, t0 = performance.now(), d = reduced ? 1 : ms;
+    const g3 = G.gen, t0 = performance.now(), d = reduced ? 1 : ms;
     const tick = (now) => {
-      if (g2 !== G.gen) return res();
+      if (g3 !== G.gen) return res();
       const u = Math.max(0, Math.min(1, (now - t0) / d));
       fn(u);
       u < 1 ? requestAnimationFrame(tick) : res();
     };
     requestAnimationFrame(tick);
   });
-  var ease = (f) => f < 0.5 ? 2 * f * f : 1 - (-2 * f + 2) ** 2 / 2;
+  var ease = (f2) => f2 < 0.5 ? 2 * f2 * f2 : 1 - (-2 * f2 + 2) ** 2 / 2;
   async function climb(idx, a, b) {
-    const g2 = G.gen, el = tokenEls[idx], p = G.state.players[idx];
+    const g3 = G.gen, el = tokenEls[idx], p = G.state.players[idx];
     const P = center(a), Q = center(b), len = Math.hypot(Q.x - P.x, Q.y - P.y);
     const rungs = Math.max(2, Math.floor(len / (S * 0.36)));
     const trail = [], glints = [], extras2 = quality !== "low";
@@ -2734,9 +2843,9 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     el.classList.add("free");
     el.classList.remove("left");
     await animate(Math.min(1700, Math.max(900, len / S * 230)), (u) => {
-      const r = u * rungs, k = Math.min(rungs - 1, Math.floor(r)), f = r - k;
-      const e = (k + ease(f)) / rungs;
-      const x = P.x + (Q.x - P.x) * e, y = P.y + (Q.y - P.y) * e - Math.sin(f * Math.PI) * S * 0.08;
+      const r = u * rungs, k = Math.min(rungs - 1, Math.floor(r)), f2 = r - k;
+      const e = (k + ease(f2)) / rungs;
+      const x = P.x + (Q.x - P.x) * e, y = P.y + (Q.y - P.y) * e - Math.sin(f2 * Math.PI) * S * 0.08;
       el._frame = 2 + k % 2;
       setSprite(el, p, el._stage);
       setXY(el, x, y);
@@ -2765,7 +2874,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       }
     });
     fxClear();
-    if (g2 !== G.gen) return;
+    if (g3 !== G.gen) return;
     el.classList.remove("free");
     el._frame = 0;
     p.pos = b;
@@ -2774,7 +2883,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     setTimeout(() => el.classList.remove("land"), 340);
   }
   async function swallow(idx, h, tail) {
-    const g2 = G.gen, el = tokenEls[idx], p = G.state.players[idx];
+    const g3 = G.gen, el = tokenEls[idx], p = G.state.players[idx];
     const pts = snakePath(h, tail), N = pts.length - 1, cols = snakeColors(h);
     await animate(450, (u) => {
       fxClear();
@@ -2785,17 +2894,17 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       fx.stroke();
       drawHood(fx, pts[0], pts[4], cols, 1 + 0.35 * Math.sin(u * Math.PI));
     });
-    if (g2 !== G.gen) return fxClear();
+    if (g3 !== G.gen) return fxClear();
     retrigger(el, "gulp");
     await sleep(340);
-    if (g2 !== G.gen) return fxClear();
+    if (g3 !== G.gen) return fxClear();
     el.classList.add("hide");
     el.classList.remove("gulp");
     let len = 0;
     for (let i = 0; i < N; i++) len += Math.hypot(pts[i + 1].x - pts[i].x, pts[i + 1].y - pts[i].y);
     await animate(Math.min(2e3, Math.max(1e3, len / S * 170)), (v) => {
-      const u = ease(v), i = u * N, k = Math.min(N - 1, Math.floor(i)), f = i - k, a = pts[k], b = pts[k + 1];
-      const x = a.x + (b.x - a.x) * f, y = a.y + (b.y - a.y) * f, r = Math.max(S * 0.11, a.w * 0.95);
+      const u = ease(v), i = u * N, k = Math.min(N - 1, Math.floor(i)), f2 = i - k, a = pts[k], b = pts[k + 1];
+      const x = a.x + (b.x - a.x) * f2, y = a.y + (b.y - a.y) * f2, r = Math.max(S * 0.11, a.w * 0.95);
       fxClear();
       drawHood(fx, pts[0], pts[4], cols);
       fx.lineWidth = 2;
@@ -2813,7 +2922,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       fx.globalAlpha = 1;
     });
     fxClear();
-    if (g2 !== G.gen) return;
+    if (g3 !== G.gen) return;
     p.pos = tail;
     el.classList.remove("hide");
     place();
@@ -2865,7 +2974,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     };
     let stage = null, timer = null, nextAt = 0, step = 0, held2 = null, voices = 0;
     function pluck(at2, freq, s) {
-      const dur = 3.6 + jitter() * 0.4, g2 = ctx3.createGain(), band = ctx3.createBiquadFilter(), low = ctx3.createBiquadFilter();
+      const dur = 3.6 + jitter() * 0.4, g3 = ctx3.createGain(), band = ctx3.createBiquadFilter(), low = ctx3.createBiquadFilter();
       band.type = "peaking";
       band.Q.value = 3.5;
       band.gain.value = 14;
@@ -2874,10 +2983,10 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       low.type = "lowpass";
       low.frequency.setValueAtTime(5200 * s.bright, at2);
       low.frequency.exponentialRampToValueAtTime(1400, at2 + dur);
-      g2.gain.setValueAtTime(1e-4, at2);
-      g2.gain.exponentialRampToValueAtTime(0.09, at2 + 6e-3);
-      g2.gain.exponentialRampToValueAtTime(0.045, at2 + 0.4);
-      g2.gain.exponentialRampToValueAtTime(1e-4, at2 + dur);
+      g3.gain.setValueAtTime(1e-4, at2);
+      g3.gain.exponentialRampToValueAtTime(0.09, at2 + 6e-3);
+      g3.gain.exponentialRampToValueAtTime(0.045, at2 + 0.4);
+      g3.gain.exponentialRampToValueAtTime(1e-4, at2 + dur);
       for (const cents of lite ? [0] : [-3, 3]) {
         const o = ctx3.createOscillator();
         o.setPeriodicWave(wave);
@@ -2888,10 +2997,10 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         voices++;
         o.onended = () => voices--;
       }
-      band.connect(low).connect(g2).connect(bus);
+      band.connect(low).connect(g3).connect(bus);
     }
     function hold2(s) {
-      const g2 = ctx3.createGain(), band = ctx3.createBiquadFilter(), lfo = ctx3.createOscillator(), depth = ctx3.createGain(), now = ctx3.currentTime;
+      const g3 = ctx3.createGain(), band = ctx3.createBiquadFilter(), lfo = ctx3.createOscillator(), depth = ctx3.createGain(), now = ctx3.currentTime;
       band.type = "peaking";
       band.Q.value = 3;
       band.gain.value = 10;
@@ -2899,8 +3008,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       lfo.frequency.value = 0.09;
       depth.gain.value = 900 * s.bright;
       lfo.connect(depth).connect(band.frequency);
-      g2.gain.setValueAtTime(1e-4, now);
-      g2.gain.exponentialRampToValueAtTime(0.05, now + 3);
+      g3.gain.setValueAtTime(1e-4, now);
+      g3.gain.exponentialRampToValueAtTime(0.05, now + 3);
       const oscs = (lite ? [0] : [-4, 0, 4]).map((c) => {
         const o = ctx3.createOscillator();
         o.setPeriodicWave(wave);
@@ -2909,11 +3018,11 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         o.start();
         return o;
       });
-      band.connect(g2).connect(bus);
+      band.connect(g3).connect(bus);
       lfo.start();
       voices += oscs.length;
       return { stop(at2) {
-        g2.gain.setTargetAtTime(1e-4, at2, 0.8);
+        g3.gain.setTargetAtTime(1e-4, at2, 0.8);
         [...oscs, lfo].forEach((o) => o.stop(at2 + 5));
         voices -= oscs.length;
       } };
@@ -2973,10 +3082,10 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       // drop about 6 dB under a snake or ladder cue, then come back
       duck(secs = 0.8) {
         if (stage == null) return;
-        const now = ctx3.currentTime, g2 = STAGES2[stage].gain;
+        const now = ctx3.currentTime, g3 = STAGES2[stage].gain;
         bus.gain.cancelScheduledValues(now);
-        bus.gain.setTargetAtTime(g2 * 0.5, now, 0.05);
-        bus.gain.setTargetAtTime(g2, now + secs, 0.4);
+        bus.gain.setTargetAtTime(g3 * 0.5, now, 0.05);
+        bus.gain.setTargetAtTime(g3, now + secs, 0.4);
       }
     };
   }
@@ -3034,31 +3143,31 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   });
   var audioState = () => ({ ctx: ctx2?.state ?? null, stage: drone?.stage ?? null, voices: drone?.voices ?? 0, wanted, muted: prefs.mute });
   var ready = () => ctx2 && !prefs.mute && ctx2.state === "running";
-  function env(g2, at2, peak, attack, decay) {
-    g2.gain.setValueAtTime(1e-4, at2);
-    g2.gain.exponentialRampToValueAtTime(peak, at2 + attack);
-    g2.gain.exponentialRampToValueAtTime(1e-4, at2 + attack + decay);
+  function env(g3, at2, peak, attack, decay) {
+    g3.gain.setValueAtTime(1e-4, at2);
+    g3.gain.exponentialRampToValueAtTime(peak, at2 + attack);
+    g3.gain.exponentialRampToValueAtTime(1e-4, at2 + attack + decay);
   }
   function hiss(at2, dur, f0, f1, peak, q2 = 1.2, type = "bandpass") {
-    const src = ctx2.createBufferSource(), bp = ctx2.createBiquadFilter(), g2 = ctx2.createGain();
+    const src = ctx2.createBufferSource(), bp = ctx2.createBiquadFilter(), g3 = ctx2.createGain();
     src.buffer = noise;
     src.playbackRate.value = 1;
     bp.type = type;
     bp.Q.value = q2;
     bp.frequency.setValueAtTime(f0, at2);
     bp.frequency.exponentialRampToValueAtTime(f1, at2 + dur);
-    env(g2, at2, peak, Math.min(0.03, dur / 4), dur);
-    src.connect(bp).connect(g2).connect(master);
+    env(g3, at2, peak, Math.min(0.03, dur / 4), dur);
+    src.connect(bp).connect(g3).connect(master);
     src.start(at2, at2 * 7.3 % 0.5);
     src.stop(at2 + dur + 0.1);
   }
   function tone(at2, freq, dur, peak, type = "triangle", glideTo = null) {
-    const o = ctx2.createOscillator(), g2 = ctx2.createGain();
+    const o = ctx2.createOscillator(), g3 = ctx2.createGain();
     o.type = type;
     o.frequency.setValueAtTime(freq, at2);
     if (glideTo) o.frequency.exponentialRampToValueAtTime(glideTo, at2 + dur);
-    env(g2, at2, peak, 0.01, dur);
-    o.connect(g2).connect(master);
+    env(g3, at2, peak, 0.01, dur);
+    o.connect(g3).connect(master);
     o.start(at2);
     o.stop(at2 + dur + 0.1);
   }
@@ -3101,9 +3210,140 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     }
   };
 
-  // src/render/card.js
+  // src/render/frame.js
+  var W = 36;
+  var H = 42;
+  var ARCH = "M5.5 36.5V19A4.2 4.2 0 0 1 10 13.6A5.6 5.6 0 0 1 18 8.6A5.6 5.6 0 0 1 26 13.6A4.2 4.2 0 0 1 30.5 19V36.5Z";
+  var PEARLS = (() => {
+    const out = [], m = 2.1, step = 3.15;
+    for (let x = m + 1.6; x <= W - m - 1.5; x += step) out.push([x, m], [x, H - m]);
+    for (let y = m + 1.6 + step; y <= H - m - 1.5 - step; y += step) out.push([m, y], [W - m, y]);
+    return out;
+  })();
+  var f = (n) => +n.toFixed(2);
+  function illumined(pic, fallback = "") {
+    const inner = pic ? `<use href="#${pic}" x="6" y="12.5" width="24" height="24" clip-path="url(#ill-clip)"/>` : `<text class="fb" x="18" y="${fallback === "ॐ" ? 31 : 30}" text-anchor="middle">${fallback}</text>`;
+    return `<svg class="ill" viewBox="0 0 ${W} ${H}" aria-hidden="true"><defs><clipPath id="ill-clip"><path d="${ARCH}"/></clipPath></defs><rect class="band ink" x="0.63" y="0.63" width="${W - 1.25}" height="${H - 1.25}"/>` + PEARLS.map(([x, y]) => `<circle class="pearl" cx="${f(x)}" cy="${f(y)}" r="0.62"/>`).join("") + `<rect class="spandrel ink" x="4.2" y="4.2" width="${W - 8.4}" height="${H - 8.4}"/><path class="field ink" d="${ARCH}"/>` + inner + `<path class="rim ink" d="${ARCH}"/><circle class="jewel ink" cx="18" cy="5.9" r="1.35"/></svg>`;
+  }
+
+  // src/render/sheet.js
+  var narrow = matchMedia("(max-width: 767px)");
+  var still = matchMedia("(prefers-reduced-motion: reduce)");
   var dlg = $("folio");
   var leaf = $("leaf");
+  var sheetOn = () => narrow.matches;
+  var detent = "half";
+  var heights = { half: 0, full: 0 };
+  var saved = null;
+  var on = false;
+  var closer = () => {
+  };
+  var onSheetClose = (fn) => closer = fn;
+  var sheetState = () => on && dlg.open ? { detent, height: Math.round(dlg.getBoundingClientRect().height), ...heights } : null;
+  var board = () => document.querySelector(".board-wrap");
+  function measure() {
+    if (!on) return;
+    const vh = innerHeight, b = board()?.getBoundingClientRect().height ?? vh / 2;
+    const full = vh - 24;
+    heights = { half: Math.min(full, Math.round(Math.min(vh * 0.62, Math.max(vh * 0.45, vh - b - 16)))), full };
+    set2(heights[detent]);
+  }
+  var set2 = (h) => dlg.style.setProperty("--sheet-h", h + "px");
+  function setDetent(d) {
+    if (!on) return;
+    detent = d;
+    snap(() => set2(heights[d]));
+    leaf.querySelector(".grip")?.setAttribute("aria-expanded", String(d === "full"));
+  }
+  var toggleDetent = () => setDetent(detent === "full" ? "half" : "full");
+  var sheetDetent = () => detent;
+  function sheetBefore() {
+    on = true;
+    detent = "half";
+    saved = scrollY;
+    const b = board();
+    if (b) scrollTo({ top: Math.max(0, b.getBoundingClientRect().top + scrollY - 8), behavior: "instant" });
+  }
+  function sheetIn() {
+    measure();
+    if (still.matches) return;
+    return dlg.animate([{ transform: "translateY(100%)" }, { transform: "none" }], { duration: 260, easing: "cubic-bezier(.2,.8,.25,1)" }).finished.catch(() => {
+    });
+  }
+  function sheetOut() {
+    if (still.matches) return;
+    const from = dlg.style.transform || "none";
+    return dlg.animate([{ transform: from }, { transform: "translateY(100%)" }], { duration: 200, easing: "ease-in", fill: "forwards" }).finished.catch(() => {
+    });
+  }
+  function sheetAfter() {
+    if (!on) return;
+    on = false;
+    dlg.getAnimations().forEach((a) => a.cancel());
+    dlg.style.transform = "";
+    dlg.style.removeProperty("--sheet-h");
+    if (saved != null) scrollTo({ top: saved, behavior: "instant" });
+    saved = null;
+  }
+  function snap(fn) {
+    if (still.matches) return fn();
+    dlg.classList.add("snap");
+    fn();
+    setTimeout(() => dlg.classList.remove("snap"), 220);
+  }
+  var g2 = null;
+  leaf.addEventListener("touchstart", (e) => {
+    if (!on || !sheetOn() || e.touches.length !== 1) return g2 = null;
+    const t2 = e.touches[0], body = leaf.querySelector(".leaf-main");
+    const inBody = !!body?.contains(e.target);
+    g2 = { x0: t2.clientX, y0: t2.clientY, dy: 0, inBody, atTop: !inBody || body.scrollTop <= 0, mode: null, y: t2.clientY, t: e.timeStamp, v: 0, h: dlg.getBoundingClientRect().height };
+  }, { passive: true });
+  leaf.addEventListener("touchmove", (e) => {
+    if (!g2) return;
+    const t2 = e.touches[0], dx = t2.clientX - g2.x0, dy = t2.clientY - g2.y0;
+    if (!g2.mode) {
+      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+      if (Math.abs(dx) > Math.abs(dy)) return g2 = null;
+      g2.mode = !g2.inBody || dy > 0 && g2.atTop ? "sheet" : "scroll";
+    }
+    if (g2.mode === "scroll") return;
+    e.preventDefault();
+    const dt = e.timeStamp - g2.t;
+    if (dt > 0) g2.v = (t2.clientY - g2.y) / dt;
+    g2.y = t2.clientY;
+    g2.t = e.timeStamp;
+    g2.dy = dy;
+    if (dy >= 0) {
+      set2(heights[detent]);
+      dlg.style.transform = `translateY(${dy}px)`;
+    } else {
+      dlg.style.transform = "";
+      set2(Math.min(heights.full, heights[detent] - dy));
+    }
+  }, { passive: false });
+  function release2() {
+    if (!g2 || g2.mode !== "sheet") return g2 = null;
+    const { dy, v, h } = g2;
+    g2 = null;
+    if (dy > 0 && (dy > h * 0.3 || v > 0.5)) return closer();
+    const next2 = dy < -60 ? "full" : dy > 80 && detent === "full" ? "half" : detent;
+    snap(() => {
+      dlg.style.transform = "";
+    });
+    setDetent(next2);
+  }
+  leaf.addEventListener("touchend", release2);
+  leaf.addEventListener("touchcancel", release2);
+  addEventListener("resize", measure);
+  narrow.addEventListener("change", () => {
+    if (!sheetOn()) {
+      dlg.style.transform = "";
+    } else measure();
+  });
+
+  // src/render/card.js
+  var dlg2 = $("folio");
+  var leaf2 = $("leaf");
   var other = (l) => l === "hi" ? "en" : "hi";
   var DEPTHS = ["story", "school", "scholar"];
   var deep = (d) => DEPTHS.indexOf(prefs.depth) >= DEPTHS.indexOf(d);
@@ -3114,10 +3354,21 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var autoTimer = null;
   var closing = false;
   var waiters = [];
+  var expanded = false;
+  var carried = false;
+  var rollSrc = () => null;
+  var rollFn = () => {
+  };
   var onChange = /* @__PURE__ */ new Set();
-  var cardOpen = () => dlg.open;
-  var cardIdle = () => dlg.open ? new Promise((r) => waiters.push(r)) : Promise.resolve();
+  var cardOpen = () => dlg2.open;
+  var cardCarried = () => dlg2.open && carried;
+  var cardExpanded = () => dlg2.open && expanded;
+  var cardIdle = () => dlg2.open && !carried ? new Promise((r) => waiters.push(r)) : Promise.resolve();
   var onCardChange = (fn) => onChange.add(fn);
+  var setCardRoll = (src, fn) => {
+    rollSrc = src;
+    rollFn = fn;
+  };
   function squareInfo(n, l) {
     const T = (k, v) => tIn(l, k, v), o = other(l), r = READINGS[n] || {};
     const sl = !HEAVEN[n] && (LADDERS[n] || SNAKES[n]), scholar = deep("scholar");
@@ -3169,33 +3420,39 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     if (kind === "heaven" || kind === "goal") return `<div class="rays"></div>` + [...Array(6)].map((_, i) => `<span class="pt" style="left:${6 + rnd(i + 2) * 0.86}%;animation-delay:${(i * 0.4).toFixed(2)}s">🌸</span>`).join("");
     return "";
   }
-  function frame2(l, { kind, eb, big, sqn, age: age2, body, foot, prev, next: next2, prevLabel, nextLabel }) {
+  var moreBtn = (l) => `<button type="button" class="more-btn" data-act="more" aria-controls="leafMore" aria-expanded="${expanded}">${tIn(l, expanded ? "less" : deep("scholar") ? "moreScholar" : "moreSchool")}</button>`;
+  function frame2(l, { kind, eb, big, sqn, age: age2, body, more = "", foot, prev, next: next2, prevLabel, nextLabel }) {
     const T = (k, v) => tIn(l, k, v);
+    const x = (cls) => `<button type="button" class="x ${cls}" data-act="close" aria-label="${T("close")}" autofocus>×</button>`;
     return `<div class="flourish" aria-hidden="true">${extras(kind)}</div>
     <header class="leaf-top">
-      <span class="eb">${eb}</span>
+      <button type="button" class="grip" data-act="grip" aria-label="${T(sheetDetent() === "full" ? "gripLess" : "gripMore")}" aria-expanded="${sheetDetent() === "full"}"><span></span></button>
+      <span class="eb">${eb}${foot ? `<span class="ft-top">${foot}</span>` : ""}</span>
+      <span class="cnote" hidden></span>
       <div class="leaf-tools">
         <div class="lang-mini" role="group" aria-label="${T("cardLang")}">
           <button type="button" data-cl="en" aria-pressed="${l === "en"}">EN</button><button type="button" data-cl="hi" lang="hi" aria-pressed="${l === "hi"}">हिं</button>
         </div>
-        <button type="button" class="x" data-act="close" aria-label="${T("close")}" autofocus>×</button>
+        ${x("x-top")}
       </div>
     </header>
     <div class="leaf-main">
-      <div class="leaf-margin" aria-hidden="true"><span class="glyph">${big}</span>${sqn ? `<span class="sqn">${sqn}</span>` : ""}${age2 ? `<span class="age">${age2}</span>` : ""}<span class="hole"></span></div>
-      <div class="leaf-text" lang="${l}">${body}</div>
+      <div class="leaf-margin" aria-hidden="true"><span class="glyph">${big}</span>${sqn || age2 ? `<span class="tally">${sqn ? `<span class="sqn">${sqn}</span>` : ""}${age2 ? `<span class="age">${age2}</span>` : ""}</span>` : ""}<span class="hole"></span></div>
+      <div class="leaf-text" lang="${l}">${body}${more ? moreBtn(l) + `<div class="more" id="leafMore"${expanded ? "" : " hidden"}>${more}</div>` : ""}</div>
     </div>
     <footer class="leaf-foot">
+      ${x("x-foot")}
       ${prev != null ? `<button type="button" class="nav" data-act="prev" aria-label="${prevLabel}">‹ <span>${prev}</span></button>` : "<span></span>"}
-      <span class="ft">${foot}</span>
+      <div class="mid"><span class="ft">${foot}</span><button type="button" class="roll-c" data-act="roll" hidden></button></div>
       ${next2 != null ? `<button type="button" class="nav" data-act="next" aria-label="${nextLabel}"><span>${next2}</span> ›</button>` : "<span></span>"}
     </footer>`;
   }
-  function srcLine(src, l, met) {
+  function srcLine(src, l, met, { square = false } = {}) {
     if (!src) return "";
     const sid = sourceOf(src), s = sid && CODEX.sources[sid], firstTime = sid && !hasMet(sid);
     met.push(sid);
-    return `<p class="srcline">` + (sid ? `<a class="src" href="#codex/${sid}" data-entry="${sid}">${esc(srcIn(l, src))}</a>` : `<span class="src">${esc(srcIn(l, src))}</span>`) + (s && (firstTime || deep("scholar")) ? `<span class="gloss">${esc(pick(s.gloss, l))}</span>` : "") + `</p>`;
+    const gloss = s && (square ? deep("school") && (firstTime || deep("scholar")) : firstTime || deep("scholar"));
+    return `<p class="srcline">` + (sid ? `<a class="src" href="#codex/${sid}" data-entry="${sid}">${esc(srcIn(l, src))}</a>` : `<span class="src">${esc(srcIn(l, src))}</span>`) + (gloss ? `<span class="gloss${square ? " more-only" : ""}">${esc(pick(s.gloss, l))}</span>` : "") + `</p>`;
   }
   function squareHtml(n, l) {
     const T = (k, v) => tIn(l, k, v), info = squareInfo(n, l), r = READINGS[n] || {};
@@ -3208,47 +3465,56 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const moment = m ? texts(l, fill(m.en, person("en")), fill(m.hi, person("hi")), n > 100 ? "moment remnant" : "moment") : "";
     const remedy = sq.remedy ? texts(l, fill(sq.remedy.en, person("en")), fill(sq.remedy.hi, person("hi")), "remedy") : "";
     body += `<div class="story">${moment}${remedy}${texts(l, mirror.en, mirror.hi, m ? "mirror" : "")}${bi(l, r.line2, "line2")}</div>`;
+    let more = "";
+    const metMore2 = [];
     const viewList = (vs, cls) => `<ul class="${cls}">` + vs.map((v) => `<li>${entryLink(v.id, l)}${texts(l, v.en, v.hi)}</li>`).join("") + `</ul>`;
-    if (r.views && (n === GOAL || deep("school"))) {
-      body += `<h3 class="sub">${T(n === GOAL ? "viewsGoal" : "views")}</h3>` + viewList(r.views, n === GOAL ? "views side" : "views");
+    if (r.views && n === GOAL) {
+      body += `<h3 class="sub">${T("viewsGoal")}</h3>` + viewList(r.views, "views side");
       met.push(...r.views.map((v) => v.id));
+    } else if (r.views && deep("school")) {
+      more += `<h3 class="sub">${T("views")}</h3>` + viewList(r.views, "views");
+      metMore2.push(...r.views.map((v) => v.id));
     }
     if (r.beyond && (n === GOAL || deep("school"))) {
-      body += `<h3 class="sub">${T("viewsBeyond")}</h3>` + viewList(r.beyond, "views");
-      met.push(...r.beyond.map((v) => v.id));
+      const html = `<h3 class="sub">${T("viewsBeyond")}</h3>` + viewList(r.beyond, "views");
+      if (n === GOAL) body += html;
+      else more += html;
+      (n === GOAL ? met : metMore2).push(...r.beyond.map((v) => v.id));
     }
     if (r.schools && deep("school")) {
-      body += `<h3 class="sub">${T("argued")}</h3><ul class="chips">` + r.schools.map((s) => `<li>${entryLink(s.id, l)}${texts(l, s.en, s.hi)}</li>`).join("") + `</ul>`;
-      met.push(...r.schools.map((s) => s.id));
+      more += `<h3 class="sub">${T("argued")}</h3><ul class="chips">` + r.schools.map((s) => `<li>${entryLink(s.id, l)}${texts(l, s.en, s.hi)}</li>`).join("") + `</ul>`;
+      metMore2.push(...r.schools.map((s) => s.id));
     }
-    if (deep("scholar") || deep("school") && !r.schools?.length && !r.views?.length) body += bi(l, r.scholar, "note");
+    if (deep("scholar") || deep("school") && !r.schools?.length && !r.views?.length) more += bi(l, r.scholar, "note");
     if (deep("scholar")) {
       if (r.figures?.length) {
-        body += `<p class="people"><span>${T("people")}:</span> ${r.figures.map((id) => entryLink(id, l, "plink")).join(" · ")}</p>`;
-        met.push(...r.figures);
+        more += `<p class="people"><span>${T("people")}:</span> ${r.figures.map((id) => entryLink(id, l, "plink")).join(" · ")}</p>`;
+        metMore2.push(...r.figures);
       }
     }
-    body += srcLine(src, l, met);
+    body += srcLine(src, l, met, { square: true });
     const sn = snakeOn(n);
     if (sn) {
       const sm = sn.moment;
       body += `<section class="snake-on"><h3 class="sub">${art(`sn-${n}`, sn.ic, "spr snake-glyph")} ${esc(T("meritSnake"))}</h3><h2 class="snake-title">${esc(sn[l])}</h2><p class="alt" lang="${other(l)}">${esc([sn[other(l)], sn.skt].join(" · "))}</p><div class="story">${sm ? texts(l, fill(sm.en, person("en")), fill(sm.hi, person("hi")), "moment") : ""}${texts(l, sn.mirror.en, sn.mirror.hi, sm ? "mirror" : "")}</div>`;
       if (sn.schools && deep("school")) {
-        body += `<ul class="chips">` + sn.schools.map((s) => `<li>${entryLink(s.id, l)}${texts(l, s.en, s.hi)}</li>`).join("") + `</ul>`;
-        met.push(...sn.schools.map((s) => s.id));
+        body += `<ul class="chips more-only">` + sn.schools.map((s) => `<li>${entryLink(s.id, l)}${texts(l, s.en, s.hi)}</li>`).join("") + `</ul>`;
+        metMore2.push(...sn.schools.map((s) => s.id));
       }
-      body += srcLine(sn.src, l, met) + `</section>`;
+      body += srcLine(sn.src, l, met, { square: true }) + `</section>`;
     }
     return {
       kind: info.kind,
       met,
+      metMore: metMore2,
       html: frame2(l, {
         kind: info.kind,
         eb: info.eb + (age2 ? ` · ${age2}` : ""),
-        big: n === GOAL ? info.big : art(`sq-${n}`, info.big),
+        big: n === GOAL ? illumined(null, info.big) : illumined(document.getElementById(`sq-${n}`) ? `sq-${n}` : null, info.big),
         sqn: numIn(l, n),
         age: age2,
         body,
+        more,
         foot: info.ft,
         prev: n > 1 ? numIn(l, n - 1) : null,
         next: n < GOAL ? numIn(l, n + 1) : null,
@@ -3265,7 +3531,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     body += `<div class="story">${bi(l, e.line || e.gloss)}</div>`;
     if (e.body) body += bi(l, e.body, "note");
     if (e.moksha) body += `<h3 class="sub">${T("mokshaFor")}</h3>` + bi(l, e.moksha, "moksha");
-    const people = kind === "school" ? Object.keys(CODEX.figures).filter((f) => CODEX.figures[f].school === id) : kind === "figure" && e.school ? [e.school] : [];
+    const people = kind === "school" ? Object.keys(CODEX.figures).filter((f2) => CODEX.figures[f2].school === id) : kind === "figure" && e.school ? [e.school] : [];
     if (people.length) body += `<p class="people"><span>${T(kind === "school" ? "people" : "school")}:</span> ${people.map((p) => entryLink(p, l, "plink")).join(" · ")}</p>`;
     const refs = REFS[id] || [];
     if (refs.length) body += `<p class="onboard"><span>${T("onBoard")}:</span> ${refs.map((n) => `<a href="#sq/${n}" data-sq="${n}">${numIn(l, n)}</a>`).join(" ")}</p>`;
@@ -3287,20 +3553,66 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       })
     };
   }
+  var metMore = [];
   function paint({ landing = false } = {}) {
     const l = cardLang ?? lang;
-    const { kind, html, met } = view.type === "square" ? squareHtml(view.n, l) : entryHtml(view.id, l);
-    leaf.className = "leaf " + kind + (landing ? " landed" : "");
-    leaf.innerHTML = html;
-    meet(met.filter(Boolean));
+    const fa = leaf2.contains(document.activeElement) ? document.activeElement : null;
+    const again = fa?.dataset.act ? `[data-act="${fa.dataset.act}"]` : fa?.dataset.cl ? `[data-cl="${fa.dataset.cl}"]` : null;
+    const out = view.type === "square" ? squareHtml(view.n, l) : entryHtml(view.id, l);
+    leaf2.className = "leaf " + out.kind + (landing ? " landed" : "") + (expanded ? " open" : "");
+    leaf2.innerHTML = out.html;
+    metMore = out.metMore || [];
+    meet([...out.met, ...expanded ? metMore : []].filter(Boolean));
+    refreshRoll();
+    if (again) [...leaf2.querySelectorAll(again)].find((el) => el.offsetParent)?.focus({ preventScroll: true });
+    cue();
     history.replaceState(null, "", location.pathname + location.search + (view.type === "square" ? `#sq/${view.n}` : `#codex/${view.id}`));
     onChange.forEach((fn) => fn());
+  }
+  function cue() {
+    const m = leaf2.querySelector(".leaf-main");
+    if (m) m.classList.toggle("more-below", m.scrollHeight - m.scrollTop - m.clientHeight > 2);
+  }
+  leaf2.addEventListener("scroll", cue, { capture: true, passive: true });
+  addEventListener("resize", () => dlg2.open && cue());
+  function refreshRoll() {
+    const b = leaf2.querySelector(".roll-c");
+    if (!b) return;
+    const r = dlg2.open || view ? rollSrc(cardLang ?? lang) : null;
+    b.hidden = !r;
+    if (!r) return;
+    b.innerHTML = (r.dot ? `<span class="dot" style="background:${r.dot}"></span>` : "") + esc(r.label);
+    b.setAttribute("aria-disabled", String(!r.ready));
+  }
+  function setExpanded(on2) {
+    expanded = on2;
+    leaf2.classList.toggle("open", on2);
+    const more = $("leafMore"), btn = leaf2.querySelector(".more-btn");
+    if (more) more.hidden = !on2;
+    if (btn) {
+      btn.setAttribute("aria-expanded", String(on2));
+      btn.textContent = tIn(cardLang ?? lang, on2 ? "less" : deep("scholar") ? "moreScholar" : "moreSchool");
+    }
+    if (on2) meet(metMore.filter(Boolean));
+    if (sheetOn()) setDetent(on2 ? "full" : "half");
+    cue();
+  }
+  function cardNote(text) {
+    const el = leaf2.querySelector(".cnote");
+    if (!el) return;
+    el.textContent = text;
+    el.hidden = !text;
   }
   var visible = (el) => {
     const r = el?.getBoundingClientRect();
     return r && r.width > 0 && r.bottom > 0 && r.top < innerHeight;
   };
   async function transition(update, label) {
+    if (sheetOn()) {
+      sheetBefore();
+      update();
+      return sheetIn();
+    }
     if (reduced) return update();
     if (document.startViewTransition && visible(label)) {
       label.style.viewTransitionName = "folio";
@@ -3313,19 +3625,19 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     }
     update();
     if (visible(label)) {
-      const from = label.getBoundingClientRect(), to = leaf.getBoundingClientRect();
+      const from = label.getBoundingClientRect(), to = leaf2.getBoundingClientRect();
       const dx = from.left + from.width / 2 - (to.left + to.width / 2), dy = from.top + from.height / 2 - (to.top + to.height / 2);
-      leaf.animate([{ transform: `translate(${dx}px, ${dy}px) scale(${from.width / to.width})`, opacity: 0.3 }, { transform: "none", opacity: 1 }], { duration: 360, easing: "cubic-bezier(.2,.8,.25,1.1)" });
+      leaf2.animate([{ transform: `translate(${dx}px, ${dy}px) scale(${from.width / to.width})`, opacity: 0.3 }, { transform: "none", opacity: 1 }], { duration: 360, easing: "cubic-bezier(.2,.8,.25,1.1)" });
     }
   }
   async function open(next2, { landing = false, auto = false, from = null, who = null } = {}) {
     clearTimeout(autoTimer);
-    const wasOpen = dlg.open;
+    const wasOpen = dlg2.open, was = view;
     view = next2;
     subject = who;
     if (wasOpen) {
       paint({ landing });
-      turnPage();
+      turnPage(was?.type === "square" && next2.type === "square" ? Math.sign(next2.n - was.n) : 0);
       return cardIdle();
     }
     cardLang = null;
@@ -3334,47 +3646,58 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     sound.open();
     await transition(() => {
       paint({ landing });
-      dlg.showModal();
+      dlg2.showModal();
+      cue();
     }, label);
-    if (auto) {
-      const words = leaf.querySelector(".story")?.textContent.split(/\s+/).length ?? 20;
-      autoTimer = setTimeout(closeCard, Math.min(4200, 1400 + words * 90));
+    cue();
+    if (auto && !carried) {
+      const words = leaf2.querySelector(".story")?.textContent.split(/\s+/).length ?? 20;
+      autoTimer = setTimeout(() => {
+        if (!carried) closeCard();
+      }, Math.min(4200, 1400 + words * 90));
     }
     return cardIdle();
   }
   var openSquare = (n, opts) => open({ type: "square", n }, opts);
   var openEntry = (id, opts) => entryOf(id) ? open({ type: "entry", id }, opts) : Promise.resolve();
   async function closeCard({ instant = false } = {}) {
-    if (!dlg.open || closing) return;
+    if (!dlg2.open || closing) return;
     closing = true;
     clearTimeout(autoTimer);
     const label = view?.type === "square" ? labEls[view.n] : null;
     if (!instant) sound.close();
-    if (instant || reduced) dlg.close();
-    else if (document.startViewTransition && visible(label)) {
+    if (instant || reduced) dlg2.close();
+    else if (sheetOn()) {
+      await sheetOut();
+      dlg2.close();
+    } else if (document.startViewTransition && visible(label)) {
       await document.startViewTransition(() => {
-        dlg.close();
+        dlg2.close();
         label.style.viewTransitionName = "folio";
       }).finished.catch(() => {
       });
       label.style.viewTransitionName = "";
     } else {
-      await leaf.animate([{ opacity: 1, transform: "none" }, { opacity: 0, transform: "scale(0.97)" }], { duration: 160, easing: "ease-in" }).finished.catch(() => {
+      await leaf2.animate([{ opacity: 1, transform: "none" }, { opacity: 0, transform: "scale(0.97)" }], { duration: 160, easing: "ease-in" }).finished.catch(() => {
       });
-      dlg.close();
+      dlg2.close();
     }
+    sheetAfter();
     closing = false;
     view = null;
     cardLang = null;
     backTo = null;
     subject = null;
+    expanded = false;
+    carried = false;
     if (location.hash) history.replaceState(null, "", location.pathname + location.search);
     waiters.splice(0).forEach((r) => r());
     onChange.forEach((fn) => fn());
   }
+  onSheetClose(() => closeCard());
   function turnPage(dir = 0) {
     if (reduced) return;
-    leaf.querySelector(".leaf-main")?.animate([{ opacity: 0, transform: `translateX(${dir * 18}px)` }, { opacity: 1, transform: "none" }], { duration: 200, easing: "ease-out" });
+    leaf2.querySelector(".leaf-main")?.animate([{ opacity: 0, transform: `translateX(${dir * 18}px)` }, { opacity: 1, transform: "none" }], { duration: 200, easing: "ease-out" });
   }
   function go(dir) {
     if (!view) return;
@@ -3390,16 +3713,31 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     paint();
     turnPage(dir);
   }
+  function roll() {
+    const r = rollSrc(cardLang ?? lang);
+    if (!r?.ready) return;
+    carried = true;
+    clearTimeout(autoTimer);
+    waiters.splice(0).forEach((w) => w());
+    rollFn();
+  }
   var pin = () => clearTimeout(autoTimer);
-  ["pointerdown", "pointermove", "keydown", "wheel"].forEach((ev) => leaf.addEventListener(ev, pin, { passive: true }));
-  dlg.addEventListener("cancel", (e) => {
+  ["pointerdown", "pointermove", "keydown", "wheel"].forEach((ev) => leaf2.addEventListener(ev, pin, { passive: true }));
+  dlg2.addEventListener("cancel", (e) => {
     e.preventDefault();
     closeCard();
   });
-  dlg.addEventListener("click", (e) => {
-    if (e.target === dlg) return closeCard();
+  dlg2.addEventListener("click", (e) => {
+    if (e.target === dlg2) return closeCard();
     const act = e.target.closest("[data-act]")?.dataset.act;
     if (act === "close") return closeCard();
+    if (act === "roll") return roll();
+    if (act === "more") return setExpanded(!expanded);
+    if (act === "grip") {
+      toggleDetent();
+      const g3 = leaf2.querySelector(".grip");
+      return g3?.setAttribute("aria-label", tIn(cardLang ?? lang, sheetDetent() === "full" ? "gripLess" : "gripMore"));
+    }
     if (act === "prev" || act === "next") return go(act === "prev" ? -1 : 1);
     if (act === "back") {
       const n = backTo;
@@ -3413,7 +3751,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     if (cl) {
       cardLang = cl;
       paint();
-      return leaf.querySelector(`[data-cl="${cl}"]`)?.focus();
+      return;
     }
     const entry2 = e.target.closest("[data-entry]")?.dataset.entry;
     if (entry2) {
@@ -3433,14 +3771,14 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       turnPage(1);
     }
   });
-  dlg.addEventListener("keydown", (e) => {
+  dlg2.addEventListener("keydown", (e) => {
     if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
       e.preventDefault();
       go(e.key === "ArrowLeft" ? -1 : 1);
     }
   });
   function refreshCard() {
-    if (dlg.open && view) paint();
+    if (dlg2.open && view) paint();
   }
 
   // src/render/codex.js
@@ -3453,7 +3791,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   function renderCodex() {
     const met = metCount(ENTRY_IDS);
     $("codexCount").textContent = `${met}/${ENTRY_IDS.length}`;
-    $("codexPanel").innerHTML = `<p class="hint">${t("codexHint", { met, all: ENTRY_IDS.length })}</p>` + ENTRY_GROUPS.map(([kind, g2]) => `<div><h3 class="eyebrow">${t(GROUP_LABEL[kind])}</h3><ul>` + Object.entries(CODEX[g2]).map(([id, e]) => hasMet(id) || showAll ? `<li><a class="ent${hasMet(id) ? "" : " unmet"}" href="#codex/${id}" data-entry="${id}" lang="${lang}">${esc(pick(e.name))}</a></li>` : `<li><span class="ent locked" title="${t("codexLocked")}" aria-label="${t("codexLocked")}">· · ·</span></li>`).join("") + `</ul></div>`).join("") + `<label class="check"><input type="checkbox" id="codexAll"${showAll ? " checked" : ""}> <span>${t("codexAll")}</span></label>`;
+    $("codexPanel").innerHTML = `<p class="hint">${t("codexHint", { met, all: ENTRY_IDS.length })}</p>` + ENTRY_GROUPS.map(([kind, g3]) => `<div><h3 class="eyebrow">${t(GROUP_LABEL[kind])}</h3><ul>` + Object.entries(CODEX[g3]).map(([id, e]) => hasMet(id) || showAll ? `<li><a class="ent${hasMet(id) ? "" : " unmet"}" href="#codex/${id}" data-entry="${id}" lang="${lang}">${esc(pick(e.name))}</a></li>` : `<li><span class="ent locked" title="${t("codexLocked")}" aria-label="${t("codexLocked")}">· · ·</span></li>`).join("") + `</ul></div>`).join("") + `<label class="check"><input type="checkbox" id="codexAll"${showAll ? " checked" : ""}> <span>${t("codexAll")}</span></label>`;
   }
   $("codexPanel").addEventListener("click", (e) => {
     const a = e.target.closest("[data-entry]");
@@ -3482,8 +3820,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   $("tabCodex").addEventListener("click", () => showTab("codex"));
 
   // src/render/life.js
-  var dlg2 = $("lifeDlg");
-  var leaf2 = $("lifeLeaf");
+  var dlg3 = $("lifeDlg");
+  var leaf3 = $("lifeLeaf");
   var whose = 0;
   var stageOf2 = (n) => ASHRAMAS.findIndex(([max]) => n <= max);
   var after = (raw, text, l) => l === "en" && !raw.startsWith("{name}") && /^\p{Lu}\p{Ll}/u.test(text) ? text[0].toLowerCase() + text.slice(1) : text;
@@ -3528,7 +3866,7 @@ ${p.text}`), end].join("\n\n") + "\n";
     const state = G.state, l = lang, T = (k, v) => tIn(l, k, v);
     const { title, paras, end } = lifeOf(state, whose, l);
     const tabs = state.players.length > 1 ? `<div class="life-who" role="group" aria-label="${T("lifeWhose")}">` + state.players.map((p, i) => `<button type="button" data-who="${i}" aria-pressed="${i === whose}"><span class="dot" style="background:${COLORS[p.color]}"></span>${esc(pnameIn(p, l))}</button>`).join("") + `</div>` : "";
-    leaf2.innerHTML = `
+    leaf3.innerHTML = `
     <header class="leaf-top">
       <span class="eb">${T("readLife")}</span>
       <div class="leaf-tools"><button type="button" class="x" data-act="close" aria-label="${T("close")}" autofocus>×</button></div>
@@ -3550,15 +3888,15 @@ ${p.text}`), end].join("\n\n") + "\n";
   function openLife(i = G.state.winner ?? G.state.turn) {
     whose = i;
     paint2();
-    if (!dlg2.open) dlg2.showModal();
+    if (!dlg3.open) dlg3.showModal();
   }
   var refreshLife = () => {
-    if (dlg2.open) paint2();
+    if (dlg3.open) paint2();
   };
   var closeLife = () => {
-    if (dlg2.open) dlg2.close();
+    if (dlg3.open) dlg3.close();
   };
-  leaf2.addEventListener("click", async (e) => {
+  leaf3.addEventListener("click", async (e) => {
     const b = e.target.closest("button");
     if (!b) return;
     if (b.dataset.who) {
@@ -3566,7 +3904,7 @@ ${p.text}`), end].join("\n\n") + "\n";
       return paint2();
     }
     const act = b.dataset.act;
-    if (act === "close") return dlg2.close();
+    if (act === "close") return dlg3.close();
     const text = lifeText(G.state, whose);
     if (act === "copy") {
       try {
@@ -3582,8 +3920,8 @@ ${p.text}`), end].join("\n\n") + "\n";
       setTimeout(() => URL.revokeObjectURL(a.href), 1e3);
     }
   });
-  dlg2.addEventListener("click", (e) => {
-    if (e.target === dlg2) dlg2.close();
+  dlg3.addEventListener("click", (e) => {
+    if (e.target === dlg3) dlg3.close();
   });
 
   // src/main.js
@@ -3594,6 +3932,11 @@ ${p.text}`), end].join("\n\n") + "\n";
     [...dieEl.children].forEach((s, i) => s.classList.toggle("on", PIPS[v].includes(i)));
     dieEl.setAttribute("aria-label", `🎲 ${num(v)}`);
   }
+  var tumble = (v) => {
+    showDie(v);
+    G.face = v;
+    refreshRoll();
+  };
   async function rollDie() {
     const rng = G.state.rng;
     dieEl.classList.remove("rolling");
@@ -3601,12 +3944,12 @@ ${p.text}`), end].join("\n\n") + "\n";
     dieEl.classList.add("rolling");
     sound.rattle();
     for (let i = 0; i < TUMBLE; i++) {
-      showDie(die(rng));
+      tumble(die(rng));
       await sleep(75);
     }
     const v = G.forcedRoll ?? die(rng);
     G.forcedRoll = null;
-    showDie(v);
+    tumble(v);
     return v;
   }
   var watched = 0;
@@ -3615,17 +3958,17 @@ ${p.text}`), end].join("\n\n") + "\n";
     };
     watched++;
     const ts = [];
-    let on = true, last = performance.now(), until = last + 2e4;
+    let on2 = true, last = performance.now(), until = last + 2e4;
     const tick = (now) => {
       ts.push(now - last);
       last = now;
-      if (on && now < until) requestAnimationFrame(tick);
+      if (on2 && now < until) requestAnimationFrame(tick);
     };
     requestAnimationFrame(tick);
     return () => {
-      on = false;
-      const f = ts.slice(1).sort((a, b) => a - b);
-      if (f.length >= 30 && f[Math.floor(f.length * 0.75)] > 28) {
+      on2 = false;
+      const f2 = ts.slice(1).sort((a, b) => a - b);
+      if (f2.length >= 30 && f2[Math.floor(f2.length * 0.75)] > 28) {
         setQuality("low");
         pullBack(true);
         draw();
@@ -3639,26 +3982,28 @@ ${p.text}`), end].join("\n\n") + "\n";
   async function takeTurn() {
     const state = G.state;
     if (G.busy || state.winner != null) return;
-    const g2 = G.gen;
+    const g3 = G.gen;
     G.busy = true;
     render();
-    await cardIdle();
-    if (g2 !== G.gen) return;
+    await waitCard();
+    if (g3 !== G.gen) return;
     const p = cur(), idx = state.turn, el = tokenEls[idx];
+    if (p.type === "human") cardNote("");
     release();
     const v = await rollDie();
-    if (g2 !== G.gen) return;
+    if (g3 !== G.gen) return;
     state.last = v;
     setDrone(lens(state).droneStage);
     const watching = watchFrames();
     const plan = planTurn(state, v);
+    G.plan = plan;
     plan.pre.forEach(log);
     {
       await sleep(150);
       const born = stageAt(p.pos);
       frame(p.pos || 1, plan.path.at(-1));
       for (const n of plan.path) {
-        if (g2 !== G.gen) return;
+        if (g3 !== G.gen) return;
         if (n > 1 && p.pos > 0) {
           const dc = colRow(n).col - colRow(p.pos).col;
           if (dc) p.face = dc > 0 ? "r" : "l";
@@ -3669,34 +4014,91 @@ ${p.text}`), end].join("\n\n") + "\n";
         place();
         await sleep(200);
       }
-      if (g2 !== G.gen) return;
+      if (g3 !== G.gen) return;
       el._frame = 0;
       place();
       if (stageAt(p.pos) !== born) pullBack();
-      await cardIdle();
-      if (g2 !== G.gen) return;
-      if (prefs.landAll || !SQ[p.pos]) {
-        await openSquare(p.pos, { landing: true, auto: p.type === "cpu" });
-        if (g2 !== G.gen) return;
+      await waitCard();
+      if (g3 !== G.gen) return;
+      const carried2 = cardCarried();
+      if (carried2 ? p.type === "human" : prefs.landAll || !SQ[p.pos]) {
+        G.waitingCard = !carried2;
+        refreshRoll();
+        await openSquare(p.pos, { landing: true, auto: p.type === "cpu", who: idx });
+        G.waitingCard = false;
+        refreshRoll();
+        if (g3 !== G.gen) return;
       }
       plan.after.forEach(log);
       if (plan.jump) {
-        await cardIdle();
-        if (g2 !== G.gen) return;
+        await waitCard();
+        if (g3 !== G.gen) return;
+        if (cardCarried() && p.type === "human") await new Promise((r) => setTimeout(r, reduced ? 300 : 900));
+        if (g3 !== G.gen) return;
         (plan.jump.kind === "snake" ? sound.snake : sound.ladder)();
         frame(p.pos, plan.jump.to);
         await (plan.jump.kind === "snake" ? swallow(idx, p.pos, plan.jump.to) : climb(idx, p.pos, plan.jump.to));
-        if (g2 !== G.gen) return;
+        if (g3 !== G.gen) return;
       }
     }
     endTurn(state, plan);
+    G.plan = null;
+    G.face = null;
+    if (cardCarried() && p.type === "cpu") cardNote(tIn(lang, "cardMoved", { name: pname(p), n: plan.final }));
     watching();
     pullBack();
     G.busy = false;
     render();
     age();
     queueCpu();
+    pump();
   }
+  async function waitCard() {
+    if (!cardOpen() || cardCarried()) return;
+    G.waitingCard = true;
+    refreshRoll();
+    await cardIdle();
+    G.waitingCard = false;
+    refreshRoll();
+  }
+  var FACES = ["", "⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
+  function rollInfo(l) {
+    const s = G.state;
+    if (!s || s.winner != null || !s.players.some((q2) => q2.type === "human")) return null;
+    const n = s.players.length, plan = G.plan, humans = s.players.filter((q2) => q2.type === "human").length;
+    let i = plan ? plan.again ? plan.idx : (plan.idx + 1) % n : s.turn;
+    for (let k = 0; k < n && s.players[i].type !== "human"; k++) i = (i + 1) % n;
+    const p = s.players[i], dot = humans > 1 ? COLORS[p.color] : null;
+    if (G.rollQueued || G.busy && !G.waitingCard) {
+      const mover = s.players[plan?.idx ?? s.turn];
+      const who = mover.type === "cpu" ? tIn(l, "rolling", { name: pnameIn(mover, l) }) : "";
+      return { label: [G.face ? FACES[G.face] : "", who].filter(Boolean).join("  ") || FACES[s.last || 6], ready: false, dot: null };
+    }
+    const again = plan ? plan.again : s.turn === i && s.log[0]?.k === "lSix";
+    return { label: again ? tIn(l, "rollAgain") : humans > 1 ? tIn(l, "rollFor", { name: pnameIn(p, l) }) : tIn(l, "roll"), ready: true, dot };
+  }
+  function requestRoll() {
+    G.rollQueued = true;
+    refreshRoll();
+    pump();
+  }
+  function pump() {
+    if (!G.rollQueued || G.busy) return;
+    if (G.state.winner != null) {
+      G.rollQueued = false;
+      return refreshRoll();
+    }
+    if (cur().type !== "human") return;
+    G.rollQueued = false;
+    takeTurn();
+  }
+  setCardRoll(rollInfo, requestRoll);
+  onCardChange(() => {
+    if (!cardOpen() && G.rollQueued) {
+      G.rollQueued = false;
+      render();
+    }
+  });
   function queueCpu() {
     clearTimeout(G.cpuTimer);
     if (G.state.winner == null && cur().type === "cpu") G.cpuTimer = setTimeout(takeTurn, reduced ? 200 : 700);
@@ -3724,6 +4126,7 @@ ${p.text}`), end].join("\n\n") + "\n";
     $("roll").textContent = human ? t("roll") : t("rolling", { name: pname(p) });
     $("hint").textContent = state.winner != null ? t("hintOver") : human ? t("hintHuman") : t("hintCpu");
     showDie(state.last || 6);
+    refreshRoll();
     $("seed").textContent = `${t("seed")} ${state.rng.seed}`;
     place();
     renderLog();
@@ -3806,6 +4209,10 @@ ${p.text}`), end].join("\n\n") + "\n";
   function startGame() {
     G.gen++;
     clearTimeout(G.cpuTimer);
+    G.rollQueued = false;
+    G.plan = null;
+    G.face = null;
+    G.waitingCard = false;
     closeCard({ instant: true });
     closeLife();
     $("toastSlot").innerHTML = "";
@@ -3945,6 +4352,15 @@ ${p.text}`), end].join("\n\n") + "\n";
         return G.state;
       },
       open: openSquare,
+      // the card as it stands: { detent, height, half, full } on a phone (null on a wide screen), opened further, rolled from
+      sheet: () => ({ open: cardOpen(), sheet: sheetState(), expanded: cardExpanded(), carried: cardCarried() }),
+      // presses the card's Roll; mp.rollFromCard(v) fixes the next roll, so call it on the reader's own turn
+      rollFromCard(v) {
+        const b = document.querySelector('#leaf .roll-c[aria-disabled="false"]');
+        if (b && v != null) G.forcedRoll = v;
+        b?.click();
+        return !!b;
+      },
       entry: openEntry,
       close: closeCard,
       sprite: spriteURL,

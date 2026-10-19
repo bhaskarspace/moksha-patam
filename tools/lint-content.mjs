@@ -257,12 +257,17 @@ export function lintSprites(svg, css) {
 export function lintPaint(root) {
   const errors = [], css = fs.readFileSync(path.join(root, "src/styles.css"), "utf8");
   const palette = new Set([...css.matchAll(/--b-[\w-]+:\s*(#[0-9A-Fa-f]{6})/g)].map(m => m[1].toUpperCase()));
-  for (const f of ["src/render/age.js", "src/render/ground.js", "src/render/camera.js", "src/audio/drone.js"]) {
+  for (const f of ["src/render/age.js", "src/render/ground.js", "src/render/camera.js", "src/audio/drone.js", "src/render/frame.js"]) {
     const src = fs.readFileSync(path.join(root, f), "utf8");
     // ground.js holds the board's shipped printed colours, which predate the palette; anything after them must not
     const body = f.endsWith("ground.js") ? src.replace(/export const PALETTE[^\n]*\n|const HEAVEN_MID[^\n]*\n/g, "") : src;
     const hex = body.match(/#[0-9A-Fa-f]{6}\b/g);
     if (hex) errors.push(`${f}: colours written as hex (${[...new Set(hex)].join(", ")}); name a --b-* token`);
+  }
+  // the card's illuminated frame is painted from the tokens alone (REDESIGN.md Phase 6)
+  for (const [, sel, body] of css.matchAll(/([^{}]*\.ill\b[^{}]*)\{([^}]*)\}/g)) {
+    const hex = body.match(/#[0-9A-Fa-f]{3,8}\b/g);
+    if (hex) errors.push(`styles.css: the frame (${sel.trim()}) is coloured in hex (${hex.join(", ")}); name a --b-* token`);
   }
   for (const [, uri] of css.matchAll(/url\("data:image\/svg\+xml,([^"]+)"\)/g)) {
     const off = [...new Set(decodeURIComponent(uri).match(/#[0-9A-Fa-f]{6}\b/g) || [])].filter(c => !palette.has(c.toUpperCase()));

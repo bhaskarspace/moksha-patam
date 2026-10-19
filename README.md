@@ -66,9 +66,12 @@ A 20,000-game simulation (`npm run sim`) puts a single life at a median of 41 tu
 ## Features
 - **Every square is a card you can read.** Tap any square on the board, or any move in the log, to open its card. The log also names every square a move passed over, and each of those opens too. The cards are drawn as pothi folios, palm-leaf manuscript pages. ‹ › (or the arrow keys) turns the leaves from 1 to 110, so you can read the whole board without rolling once. Cards can be linked: `#sq/36` opens square 36.
 - **Cards wait for you.** Your landing card stays open until you close it, and the computer waits while you read. A computer's own landing card closes itself after a moment, unless you start reading it.
+- **The card opens with its story.** Each card opens on its picture, set in a painted Basohli arch, with the moment and the mirror under it. The schools' voices and the notes wait behind one tap, and stay open while the card does.
+- **Roll from the card.** The card has its own Roll, so you can keep reading and keep playing. It turns to each of your landings in place. On a snake or a ladder it stays on that square while your token falls or climbs. A computer's turn plays on the board and is only noted on the card.
+- **On a phone the card is a sheet** at the bottom of the screen, with the whole board above it. Drag the grip, or tap it, to raise or lower the sheet. Swipe it down, tap the board, press × or press Escape to close it. Scrolling the text never closes it.
 - **Every square is a scene with someone in it, and an argument.** Each lead line names a person, a school or a text, and at the default depth two schools disagree about it.
 - **Painted squares** in the Basohli manner: flat colour, one black outline, figures in profile with one large eye. The old emoji come back for any square without a picture.
-- **Three reading depths:** *Story*, *Story + school* (what the darśanas would have argued on that square), and *Scholar* (IAST, notes on the sources, and the people involved). Square 36 carries Vedānta's three-way split over *tat tvam asi*, and square 110 sets each school's own idea of mokṣa side by side.
+- **Three reading depths** decide what a card shows when you open it further: *Story* (nothing more), *Story + school* (what the darśanas would have argued on that square), and *Scholar* (IAST, notes on the sources, and the people involved). Square 36 carries Vedānta's three-way split over *tat tvam asi*, and square 110 sets each school's own idea of mokṣa side by side.
 - **The Codex**, beside the moves: schools, sources and people. It fills in as you meet them and is kept between games. Entries can be linked too: `#codex/nyaya`.
 - **English / हिंदी**, for the whole page (remembered), or per card with its own toggle. There is also an option to show both languages on every card, for Hindi learners. Hindi mode uses Devanagari digits.
 - **Sound:** a die rattle, a page turn, a rising scale for ladders and a hiss for snakes, all synthesised with Web Audio. It has a mute button that is remembered, and it is softer with reduced motion.
@@ -78,7 +81,7 @@ A 20,000-game simulation (`npm run sim`) puts a single life at a median of 41 tu
 - **Pixel-art players** who grow from baby to student, householder, forest-dweller, renunciate and divine soul as they climb, and get younger again when a snake catches them. Ladder climbs and snake swallows are animated.
 - 2–4 players, each human or computer.
 
-To play locally, open `index.html`. Add `?seed=N` to replay the same dice (the current seed is shown under *Players & rules*). `?depth=scholar` sets the reading depth. Add `?debug` to get console helpers: `mp.jump(n)`, `mp.roll(v)`, `mp.seed()` / `mp.seed(n)`, `mp.open(n)`, `mp.entry(id)`, `mp.close()`, `mp.setLang("hi")`, `mp.age()` (the lens the board is aged through), `mp.audio()` and `mp.quality("low")`.
+To play locally, open `index.html`. Add `?seed=N` to replay the same dice (the current seed is shown under *Players & rules*). `?depth=scholar` sets the reading depth. Add `?debug` to get console helpers: `mp.jump(n)`, `mp.roll(v)`, `mp.seed()` / `mp.seed(n)`, `mp.open(n)`, `mp.entry(id)`, `mp.close()`, `mp.setLang("hi")`, `mp.age()` (the lens the board is aged through), `mp.audio()`, `mp.quality("low")`, `mp.sheet()` (the card's state: its sheet height, whether it is opened further, whether it was rolled from) and `mp.rollFromCard(v)`.
 
 ## Developing
 `index.html` is built, so don't edit it by hand. The sources are:

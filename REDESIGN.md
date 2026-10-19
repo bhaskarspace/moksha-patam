@@ -563,11 +563,18 @@ visibly behind the token, and reduced-motion and mute both still work.
 
 ---
 
-### Phase 6 — The card in hand
+### Phase 6 — The card in hand  ✅ SHIPPED
 *The card is the thing players actually read, and on a phone it is currently broken.
 Measured at 375×812: the card fills the whole screen and clips its own content — the
 scholar paragraph on square 34 is cut off mid-sentence by the footer bar. Fix the reading
 experience before the game gets more complicated.*
+
+> **Shipped, with these decisions.**
+> - *The bug:* the text did scroll, but a phone draws no scrollbar and nothing else showed there was more, so the footer seemed to cut the scholar note mid-line. Now the text fades at its lower edge whenever there is more below. A smoke sweep of all 110 squares, at three screen sizes, both languages, both-languages mode, every depth, collapsed and opened, checks that the last line clears the footer. On `main` it fails.
+> - *Depth:* every card opens collapsed. Depth now decides what opening it further shows. At *Story* there is no toggle. At *School* it shows the voices, and the source's gloss on first meeting. At *Scholar* it adds the note, the people and the gloss every time. Opening is a property of the open card, not of one square: it holds through paging, the Codex and every roll from the card, and resets when the card closes, so a scholar taps once per sitting. 110's six views are part of its story at every depth. A bare citation stays under the mirror. Codex entries behind the toggle count as met only once it is opened.
+> - *Frame:* one frame for every square, drawn in the sprite's own units, so its lamp-black lines have the sprites' 1.25 weight at any size. The frame is a vermilion band strung with shell pearls, corners, a cusped arch and one beetle-green jewel. The arch's field and corners follow the kind of square, and the colours are the `--b-*` tokens only (lint and `tests/frame.test.mjs`). The icon is 5× on a wide screen and 4× on a phone, where it stands at the head of the text like an illuminated initial.
+> - *Sheet:* below 768px the card has two heights. Half is measured so the whole board shows above it, with the page scrolled to put the board at the top. Full is the height of the screen. The grip is a button as well as a handle. The sheet moves only when a touch can't be a scroll, decided when the touch starts: from the top strip or the footer it always drags; from the text, down drags only if the text was at its top, and a scroll never turns into a drag partway through. The × moves to the footer on a phone. Under reduced motion the sheet appears and goes without moving.
+> - *Roll from the card:* the card's Roll is for the next person to roll, counting on from the turn under way. Pressing it means the card stops holding the game up: a computer's turn plays on the board and is only noted on the card, and the reader's own landings turn the leaf in place. On a snake or a ladder the card stays on that square, and the token moves after a short reading beat. The tail's card is not opened, as before.
 
 **1. Progressive disclosure.** The card opens at story depth: frame, moment, mirror, and
 nothing else. The school voices and the scholar note collapse behind one tap.

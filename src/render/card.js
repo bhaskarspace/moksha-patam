@@ -9,6 +9,8 @@ import { $, esc, reduced, art } from "../ui.js";
 import { sound } from "../audio/engine.js";
 import { ashramaIn, labEls } from "./board.js";
 import { pullBack } from "./camera.js";
+import { illumined } from "./frame.js";
+import { sheetOn, sheetBefore, sheetIn, sheetOut, sheetAfter, setDetent, toggleDetent, sheetDetent, onSheetClose } from "./sheet.js";
 
 const dlg = $("folio"), leaf = $("leaf");
 const other = l => (l === "hi" ? "en" : "hi");
@@ -20,11 +22,22 @@ let cardLang = null;       // the card's own language, when the reader flips it
 let backTo = null;         // the square an entry was opened from
 let subject = null;        // the player a square's moment is about; the player whose turn it is when unset
 let autoTimer = null, closing = false, waiters = [];
+// The card opens with its story; the voices wait behind one tap. Opened further, it stays so while the card is open,
+// through paging, the Codex and every roll from it, and is collapsed again when the card closes.
+let expanded = false;
+// Rolled from: the reader asked to keep reading while the game goes on, so the card no longer holds the game
+// up, never closes itself, and turns to each of the reader's landings in place (REDESIGN.md Phase 6).
+let carried = false;
+let rollSrc = () => null, rollFn = () => {};
 const onChange = new Set(); // called after a card opens or closes, so the Codex panel can refresh
 
 export const cardOpen = () => dlg.open;
-export const cardIdle = () => (dlg.open ? new Promise(r => waiters.push(r)) : Promise.resolve());
+export const cardCarried = () => dlg.open && carried;
+export const cardExpanded = () => dlg.open && expanded;
+export const cardIdle = () => (dlg.open && !carried ? new Promise(r => waiters.push(r)) : Promise.resolve());
 export const onCardChange = fn => onChange.add(fn);
+// The card's Roll: `src(l)` says who would roll and whether they can, as { label, ready, dot } or null; `fn` rolls.
+export const setCardRoll = (src, fn) => { rollSrc = src; rollFn = fn; };
 
 // ---- What a square's card says, in language l ----
 function squareInfo(n, l) {
@@ -73,37 +86,48 @@ function extras(kind) {
   return "";
 }
 
-function frame(l, { kind, eb, big, sqn, age, body, foot, prev, next, prevLabel, nextLabel }) {
+// The toggle for what a card says beyond its story, or nothing when there is nothing more at this depth.
+const moreBtn = l => `<button type="button" class="more-btn" data-act="more" aria-controls="leafMore" aria-expanded="${expanded}">${tIn(l, expanded ? "less" : deep("scholar") ? "moreScholar" : "moreSchool")}</button>`;
+
+// On a phone the grip, the × and the Roll sit where a thumb reaches; on a wide screen the × stays top right.
+// Each control that moves is drawn in both places and styles.css hides one, which also takes it out of the
+// accessibility tree, and the dialog's first focus lands on whichever × is showing.
+function frame(l, { kind, eb, big, sqn, age, body, more = "", foot, prev, next, prevLabel, nextLabel }) {
   const T = (k, v) => tIn(l, k, v);
+  const x = cls => `<button type="button" class="x ${cls}" data-act="close" aria-label="${T("close")}" autofocus>×</button>`;
   return `<div class="flourish" aria-hidden="true">${extras(kind)}</div>
     <header class="leaf-top">
-      <span class="eb">${eb}</span>
+      <button type="button" class="grip" data-act="grip" aria-label="${T(sheetDetent() === "full" ? "gripLess" : "gripMore")}" aria-expanded="${sheetDetent() === "full"}"><span></span></button>
+      <span class="eb">${eb}${foot ? `<span class="ft-top">${foot}</span>` : ""}</span>
+      <span class="cnote" hidden></span>
       <div class="leaf-tools">
         <div class="lang-mini" role="group" aria-label="${T("cardLang")}">
           <button type="button" data-cl="en" aria-pressed="${l === "en"}">EN</button><button type="button" data-cl="hi" lang="hi" aria-pressed="${l === "hi"}">हिं</button>
         </div>
-        <button type="button" class="x" data-act="close" aria-label="${T("close")}" autofocus>×</button>
+        ${x("x-top")}
       </div>
     </header>
     <div class="leaf-main">
-      <div class="leaf-margin" aria-hidden="true"><span class="glyph">${big}</span>${sqn ? `<span class="sqn">${sqn}</span>` : ""}${age ? `<span class="age">${age}</span>` : ""}<span class="hole"></span></div>
-      <div class="leaf-text" lang="${l}">${body}</div>
+      <div class="leaf-margin" aria-hidden="true"><span class="glyph">${big}</span>${sqn || age ? `<span class="tally">${sqn ? `<span class="sqn">${sqn}</span>` : ""}${age ? `<span class="age">${age}</span>` : ""}</span>` : ""}<span class="hole"></span></div>
+      <div class="leaf-text" lang="${l}">${body}${more ? moreBtn(l) + `<div class="more" id="leafMore"${expanded ? "" : " hidden"}>${more}</div>` : ""}</div>
     </div>
     <footer class="leaf-foot">
+      ${x("x-foot")}
       ${prev != null ? `<button type="button" class="nav" data-act="prev" aria-label="${prevLabel}">‹ <span>${prev}</span></button>` : "<span></span>"}
-      <span class="ft">${foot}</span>
+      <div class="mid"><span class="ft">${foot}</span><button type="button" class="roll-c" data-act="roll" hidden></button></div>
       ${next != null ? `<button type="button" class="nav" data-act="next" aria-label="${nextLabel}"><span>${next}</span> ›</button>` : "<span></span>"}
     </footer>`;
 }
 
-// A citation, linked to its Codex source. The source's one-line gloss shows the first time it is met,
-// and always for scholars.
-function srcLine(src, l, met) {
+// A citation, linked to its Codex source. On a square it is bare in the story, and the source's one-line gloss
+// is behind the toggle: the first time it is met at school depth, and always for scholars. An entry shows it as before.
+function srcLine(src, l, met, { square = false } = {}) {
   if (!src) return "";
   const sid = sourceOf(src), s = sid && CODEX.sources[sid], firstTime = sid && !hasMet(sid);
   met.push(sid);
+  const gloss = s && (square ? deep("school") && (firstTime || deep("scholar")) : firstTime || deep("scholar"));
   return `<p class="srcline">` + (sid ? `<a class="src" href="#codex/${sid}" data-entry="${sid}">${esc(srcIn(l, src))}</a>` : `<span class="src">${esc(srcIn(l, src))}</span>`) +
-    (s && (firstTime || deep("scholar")) ? `<span class="gloss">${esc(pick(s.gloss, l))}</span>` : "") + `</p>`;
+    (gloss ? `<span class="gloss${square ? " more-only" : ""}">${esc(pick(s.gloss, l))}</span>` : "") + `</p>`;
 }
 
 function squareHtml(n, l) {
@@ -120,30 +144,38 @@ function squareHtml(n, l) {
   // a snake tail one square below its remedy says so (REDESIGN.md Phase 4, item 3)
   const remedy = sq.remedy ? texts(l, fill(sq.remedy.en, person("en")), fill(sq.remedy.hi, person("hi")), "remedy") : "";
   body += `<div class="story">${moment}${remedy}${texts(l, mirror.en, mirror.hi, m ? "mirror" : "")}${bi(l, r.line2, "line2")}</div>`;
-  // the views panel is the point of square 110, so it shows at every depth: six definitions side by side
+  // what the toggle opens: the voices, and the notes, at the reader's depth
+  // Codex entries in it count as met only once the reader opens it
+  let more = "";
+  const metMore = [];
+  // the views panel is the point of square 110, so it is part of its story at every depth: six definitions side by side
   const viewList = (vs, cls) => `<ul class="${cls}">` + vs.map(v => `<li>${entryLink(v.id, l)}${texts(l, v.en, v.hi)}</li>`).join("") + `</ul>`;
-  if (r.views && (n === GOAL || deep("school"))) {
-    body += `<h3 class="sub">${T(n === GOAL ? "viewsGoal" : "views")}</h3>` + viewList(r.views, n === GOAL ? "views side" : "views");
+  if (r.views && n === GOAL) {
+    body += `<h3 class="sub">${T("viewsGoal")}</h3>` + viewList(r.views, "views side");
     met.push(...r.views.map(v => v.id));
+  } else if (r.views && deep("school")) {
+    more += `<h3 class="sub">${T("views")}</h3>` + viewList(r.views, "views");
+    metMore.push(...r.views.map(v => v.id));
   }
   if (r.beyond && (n === GOAL || deep("school"))) {
-    body += `<h3 class="sub">${T("viewsBeyond")}</h3>` + viewList(r.beyond, "views");
-    met.push(...r.beyond.map(v => v.id));
+    const html = `<h3 class="sub">${T("viewsBeyond")}</h3>` + viewList(r.beyond, "views");
+    if (n === GOAL) body += html; else more += html;
+    (n === GOAL ? met : metMore).push(...r.beyond.map(v => v.id));
   }
   if (r.schools && deep("school")) {
-    body += `<h3 class="sub">${T("argued")}</h3><ul class="chips">` +
+    more += `<h3 class="sub">${T("argued")}</h3><ul class="chips">` +
       r.schools.map(s => `<li>${entryLink(s.id, l)}${texts(l, s.en, s.hi)}</li>`).join("") + `</ul>`;
-    met.push(...r.schools.map(s => s.id));
+    metMore.push(...r.schools.map(s => s.id));
   }
   // a square with no voices shows its scholar note at school depth rather than a bare lead
-  if (deep("scholar") || (deep("school") && !r.schools?.length && !r.views?.length)) body += bi(l, r.scholar, "note");
+  if (deep("scholar") || (deep("school") && !r.schools?.length && !r.views?.length)) more += bi(l, r.scholar, "note");
   if (deep("scholar")) {
     if (r.figures?.length) {
-      body += `<p class="people"><span>${T("people")}:</span> ${r.figures.map(id => entryLink(id, l, "plink")).join(" · ")}</p>`;
-      met.push(...r.figures);
+      more += `<p class="people"><span>${T("people")}:</span> ${r.figures.map(id => entryLink(id, l, "plink")).join(" · ")}</p>`;
+      metMore.push(...r.figures);
     }
   }
-  body += srcLine(src, l, met);
+  body += srcLine(src, l, met, { square: true });
   // a snake that starts on a god's square (109, merit spent) follows the god, in the snakes' own voice
   const sn = snakeOn(n);
   if (sn) {
@@ -152,14 +184,14 @@ function squareHtml(n, l) {
       `<h2 class="snake-title">${esc(sn[l])}</h2><p class="alt" lang="${other(l)}">${esc([sn[other(l)], sn.skt].join(" · "))}</p>` +
       `<div class="story">${sm ? texts(l, fill(sm.en, person("en")), fill(sm.hi, person("hi")), "moment") : ""}${texts(l, sn.mirror.en, sn.mirror.hi, sm ? "mirror" : "")}</div>`;
     if (sn.schools && deep("school")) {
-      body += `<ul class="chips">` + sn.schools.map(s => `<li>${entryLink(s.id, l)}${texts(l, s.en, s.hi)}</li>`).join("") + `</ul>`;
-      met.push(...sn.schools.map(s => s.id));
+      body += `<ul class="chips more-only">` + sn.schools.map(s => `<li>${entryLink(s.id, l)}${texts(l, s.en, s.hi)}</li>`).join("") + `</ul>`;
+      metMore.push(...sn.schools.map(s => s.id));
     }
-    body += srcLine(sn.src, l, met) + `</section>`;
+    body += srcLine(sn.src, l, met, { square: true }) + `</section>`;
   }
   return {
-    kind: info.kind, met,
-    html: frame(l, { kind: info.kind, eb: info.eb + (age ? ` · ${age}` : ""), big: n === GOAL ? info.big : art(`sq-${n}`, info.big), sqn: numIn(l, n), age, body, foot: info.ft,
+    kind: info.kind, met, metMore,
+    html: frame(l, { kind: info.kind, eb: info.eb + (age ? ` · ${age}` : ""), big: n === GOAL ? illumined(null, info.big) : illumined(document.getElementById(`sq-${n}`) ? `sq-${n}` : null, info.big), sqn: numIn(l, n), age, body, more, foot: info.ft,
       prev: n > 1 ? numIn(l, n - 1) : null, next: n < GOAL ? numIn(l, n + 1) : null, prevLabel: T("prevSq"), nextLabel: T("nextSq") }),
   };
 }
@@ -187,23 +219,75 @@ function entryHtml(id, l) {
 }
 
 // Draws the current view into the leaf. Entries met here are added to the Codex after the
-// leaf is drawn, so "new" marks show on the card that introduced them.
+// leaf is drawn, so "new" marks show on the card that introduced them. Whatever control had focus has it again
+// afterwards, so a keyboard or screen reader keeps its place when the leaf is redrawn under it.
+let metMore = [];
 function paint({ landing = false } = {}) {
   const l = cardLang ?? lang;
-  const { kind, html, met } = view.type === "square" ? squareHtml(view.n, l) : entryHtml(view.id, l);
-  leaf.className = "leaf " + kind + (landing ? " landed" : "");
-  leaf.innerHTML = html;
-  meet(met.filter(Boolean));
+  const fa = leaf.contains(document.activeElement) ? document.activeElement : null;
+  const again = fa?.dataset.act ? `[data-act="${fa.dataset.act}"]` : fa?.dataset.cl ? `[data-cl="${fa.dataset.cl}"]` : null;
+  const out = view.type === "square" ? squareHtml(view.n, l) : entryHtml(view.id, l);
+  leaf.className = "leaf " + out.kind + (landing ? " landed" : "") + (expanded ? " open" : "");
+  leaf.innerHTML = out.html;
+  metMore = out.metMore || [];
+  meet([...out.met, ...(expanded ? metMore : [])].filter(Boolean));
+  refreshRoll();
+  if (again) [...leaf.querySelectorAll(again)].find(el => el.offsetParent)?.focus({ preventScroll: true });
+  cue();
   // the address bar names what is open, so a card can be linked
   history.replaceState(null, "", location.pathname + location.search + (view.type === "square" ? `#sq/${view.n}` : `#codex/${view.id}`));
   onChange.forEach(fn => fn());
+}
+
+// While the text can scroll further, its lower edge fades, so a card that goes on never looks cut off.
+function cue() {
+  const m = leaf.querySelector(".leaf-main");
+  if (m) m.classList.toggle("more-below", m.scrollHeight - m.scrollTop - m.clientHeight > 2);
+}
+leaf.addEventListener("scroll", cue, { capture: true, passive: true });
+addEventListener("resize", () => dlg.open && cue());
+
+// The card's Roll, redrawn in place whenever who can roll changes, so it never steals focus by being replaced.
+export function refreshRoll() {
+  const b = leaf.querySelector(".roll-c");
+  if (!b) return;
+  const r = dlg.open || view ? rollSrc(cardLang ?? lang) : null;
+  b.hidden = !r;
+  if (!r) return;
+  b.innerHTML = (r.dot ? `<span class="dot" style="background:${r.dot}"></span>` : "") + esc(r.label);
+  b.setAttribute("aria-disabled", String(!r.ready));
+}
+
+// Opens the voices, or closes them. On a phone, opening them also raises the sheet to full height.
+function setExpanded(on) {
+  expanded = on;
+  leaf.classList.toggle("open", on);
+  const more = $("leafMore"), btn = leaf.querySelector(".more-btn");
+  if (more) more.hidden = !on;
+  if (btn) {
+    btn.setAttribute("aria-expanded", String(on));
+    btn.textContent = tIn(cardLang ?? lang, on ? "less" : deep("scholar") ? "moreScholar" : "moreSchool");
+  }
+  if (on) meet(metMore.filter(Boolean));
+  if (sheetOn()) setDetent(on ? "full" : "half");
+  cue();
+}
+
+// A note in the card's top strip, for a computer's move while the reader rolls from the card.
+export function cardNote(text) {
+  const el = leaf.querySelector(".cnote");
+  if (!el) return;
+  el.textContent = text;
+  el.hidden = !text;
 }
 
 // ---- Opening and closing ----
 const visible = el => { const r = el?.getBoundingClientRect(); return r && r.width > 0 && r.bottom > 0 && r.top < innerHeight; };
 
 // Morphs the source square into the card with a view transition, or zooms where that is missing.
+// On a phone the card is a sheet and slides up instead: a square swelling into the width of the screen reads badly.
 async function transition(update, label) {
+  if (sheetOn()) { sheetBefore(); update(); return sheetIn(); }
   if (reduced) return update();
   if (document.startViewTransition && visible(label)) {
     label.style.viewTransitionName = "folio";
@@ -220,19 +304,25 @@ async function transition(update, label) {
 
 async function open(next, { landing = false, auto = false, from = null, who = null } = {}) {
   clearTimeout(autoTimer);
-  const wasOpen = dlg.open;
+  const wasOpen = dlg.open, was = view;
   view = next;
   subject = who;
-  if (wasOpen) { paint({ landing }); turnPage(); return cardIdle(); }
+  // already open: the leaf turns to the new square, forward or back
+  if (wasOpen) {
+    paint({ landing });
+    turnPage(was?.type === "square" && next.type === "square" ? Math.sign(next.n - was.n) : 0);
+    return cardIdle();
+  }
   cardLang = null;
   // a card is read with the whole board behind it, and the morph starts from where the square really is
   pullBack(true);
   const label = from ?? (next.type === "square" ? labEls[next.n] : null);
   sound.open();
-  await transition(() => { paint({ landing }); dlg.showModal(); }, label);
-  if (auto) {
+  await transition(() => { paint({ landing }); dlg.showModal(); cue(); }, label);
+  cue();
+  if (auto && !carried) {
     const words = leaf.querySelector(".story")?.textContent.split(/\s+/).length ?? 20;
-    autoTimer = setTimeout(closeCard, Math.min(4200, 1400 + words * 90));
+    autoTimer = setTimeout(() => { if (!carried) closeCard(); }, Math.min(4200, 1400 + words * 90));
   }
   return cardIdle();
 }
@@ -246,6 +336,7 @@ export async function closeCard({ instant = false } = {}) {
   const label = view?.type === "square" ? labEls[view.n] : null;
   if (!instant) sound.close();
   if (instant || reduced) dlg.close();
+  else if (sheetOn()) { await sheetOut(); dlg.close(); }
   else if (document.startViewTransition && visible(label)) {
     await document.startViewTransition(() => { dlg.close(); label.style.viewTransitionName = "folio"; }).finished.catch(() => {});
     label.style.viewTransitionName = "";
@@ -253,11 +344,13 @@ export async function closeCard({ instant = false } = {}) {
     await leaf.animate([{ opacity: 1, transform: "none" }, { opacity: 0, transform: "scale(0.97)" }], { duration: 160, easing: "ease-in" }).finished.catch(() => {});
     dlg.close();
   }
-  closing = false; view = null; cardLang = null; backTo = null; subject = null;
+  sheetAfter();
+  closing = false; view = null; cardLang = null; backTo = null; subject = null; expanded = false; carried = false;
   if (location.hash) history.replaceState(null, "", location.pathname + location.search);
   waiters.splice(0).forEach(r => r());
   onChange.forEach(fn => fn());
 }
+onSheetClose(() => closeCard());
 
 // Paging within an open card: a quick slide, so it reads as turning a leaf.
 function turnPage(dir = 0) {
@@ -278,6 +371,16 @@ function go(dir) {
   paint(); turnPage(dir);
 }
 
+// Rolling from the card: from here on the card goes with the game instead of holding it up.
+function roll() {
+  const r = rollSrc(cardLang ?? lang);
+  if (!r?.ready) return;
+  carried = true;
+  clearTimeout(autoTimer);
+  waiters.splice(0).forEach(w => w());
+  rollFn();
+}
+
 // A touch, a key or a hover means someone is reading: stop the computer's countdown.
 const pin = () => clearTimeout(autoTimer);
 ["pointerdown", "pointermove", "keydown", "wheel"].forEach(ev => leaf.addEventListener(ev, pin, { passive: true }));
@@ -287,10 +390,17 @@ dlg.addEventListener("click", e => {
   if (e.target === dlg) return closeCard();
   const act = e.target.closest("[data-act]")?.dataset.act;
   if (act === "close") return closeCard();
+  if (act === "roll") return roll();
+  if (act === "more") return setExpanded(!expanded);
+  if (act === "grip") {
+    toggleDetent();
+    const g = leaf.querySelector(".grip");
+    return g?.setAttribute("aria-label", tIn(cardLang ?? lang, sheetDetent() === "full" ? "gripLess" : "gripMore"));
+  }
   if (act === "prev" || act === "next") return go(act === "prev" ? -1 : 1);
   if (act === "back") { const n = backTo; backTo = null; view = { type: "square", n }; paint(); turnPage(-1); return; }
   const cl = e.target.closest("[data-cl]")?.dataset.cl;
-  if (cl) { cardLang = cl; paint(); return leaf.querySelector(`[data-cl="${cl}"]`)?.focus(); }
+  if (cl) { cardLang = cl; paint(); return; }
   const entry = e.target.closest("[data-entry]")?.dataset.entry;
   if (entry) {
     e.preventDefault();
