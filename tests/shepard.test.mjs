@@ -59,7 +59,7 @@ test("walking up the divine row, bouncing, falling and leaving: no cancelling, a
   sh.set(lead, false); run(3);
   for (lead = 102; lead <= 110; lead++) run(1.5);          // up the row and past the exit
   lead = 107; run(2);                                       // a bounce off 110 lands lower
-  sh.fall(2.6); lead = 48; run(4);                          // the Brahma snake, and down into the world
+  sh.fall(2.6); lead = 1; run(4);                           // the Brahma snake, and back to birth
   lead = 103; run(3);                                       // someone else is still up there
   sh.stop();
 
@@ -84,7 +84,7 @@ test("the fall truly falls: the partials end lower than they began, and the tone
   for (let i = 0; i < 80; i++) { ctx.currentTime += 0.1; sh.set(108, false); }
   const before = ctx.oscs.slice(0, -1).map(o => o.frequency.ev.at(-1).v);
   sh.fall(2.6);
-  for (let i = 0; i < 26; i++) { ctx.currentTime += 0.1; sh.set(48, false); }
+  for (let i = 0; i < 26; i++) { ctx.currentTime += 0.1; sh.set(1, false); }
   assert.ok(sh.state.level < 0.01);
   const lowest = ctx.oscs.slice(0, -1).map(o => Math.min(...o.frequency.ev.filter(e => e.t > ctx.currentTime - 1).map(e => e.v)));
   assert.ok(Math.min(...lowest) < Math.min(...before));

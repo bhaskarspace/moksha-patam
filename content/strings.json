@@ -70,8 +70,6 @@
       "lWin": "{name} reached Moksha on square {pos}.",
       "lSix": "{name} rolled a 6 and goes again.",
       "grew": "{name} grew into a {stage}",
-      "reborn": "{name} is reborn as a {stage}",
-      "rebornYou": "You are reborn as a {stage}",
       "virtue": "Virtue",
       "vice": "Vice",
       "story": "Story",
@@ -159,7 +157,12 @@
       "ruleBrahmaloka": "Brahmaloka rule: Moksha opens only after a fall from heaven",
       "meritSnake": "Snake · from this realm",
       "lWinAbove": "{name} came back down to Moksha on square {pos}.",
-      "aboveExit": "Moksha is behind you now, on {n}. Liberation is not up here: a roll that bounces off {top} can still bring you back down to it."
+      "aboveExit": "Moksha is behind you now, on {n}. Liberation is not up here: a roll that bounces off {top} can still bring you back down to it.",
+      "younger": "{name} is back to being a {stage}",
+      "youngerYou": "You are back to being a {stage}",
+      "bornAgain": "{name} is born again",
+      "bornAgainYou": "You are born again",
+      "fallWhen": "The fall takes only someone climbing into Brahma's realm, and only once in a life."
     },
     "hi": {
       "title": "मोक्ष पटम",
@@ -204,8 +207,6 @@
       "lWin": "{name} खाना {pos} पर मोक्ष पहुँचे।",
       "lSix": "{name} का 6 आया, एक और बारी।",
       "grew": "{name} अब {stage}",
-      "reborn": "{name} का पुनर्जन्म: {stage}",
-      "rebornYou": "आपका पुनर्जन्म: {stage}",
       "virtue": "गुण",
       "vice": "दोष",
       "story": "कथा",
@@ -293,7 +294,12 @@
       "ruleBrahmaloka": "ब्रह्मलोक नियम: स्वर्ग से एक बार गिरने के बाद ही मोक्ष खुलता है",
       "meritSnake": "साँप · इस लोक से",
       "lWinAbove": "{name} लौटकर नीचे खाना {pos} पर मोक्ष पहुँचे।",
-      "aboveExit": "मोक्ष अब पीछे छूट गया, {n} पर। मुक्ति यहाँ ऊपर नहीं है: {top} से टकराकर लौटता पासा अब भी आपको नीचे उस तक ला सकता है।"
+      "aboveExit": "मोक्ष अब पीछे छूट गया, {n} पर। मुक्ति यहाँ ऊपर नहीं है: {top} से टकराकर लौटता पासा अब भी आपको नीचे उस तक ला सकता है।",
+      "younger": "{name} फिर से {stage} {बन गया|बन गई}",
+      "youngerYou": "आप फिर से {stage} {बन गए|बन गईं}",
+      "bornAgain": "{name} का फिर से जन्म हुआ",
+      "bornAgainYou": "आपका फिर से जन्म हुआ",
+      "fallWhen": "यह पतन केवल ब्रह्मा के लोक में ऊपर चढ़कर आने वाले को लेता है, और जीवन में एक ही बार।"
     }
   },
   "JOINS": {

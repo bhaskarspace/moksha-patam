@@ -241,6 +241,7 @@ await check("Phase 7: Moksha is 105, Brahma at 108 carries the fall, and 110 is 
       gita: !!document.querySelector('#leaf .snake-on a.src[data-entry="gita"]'),
       foot: document.querySelector("#leaf .leaf-foot .ft")?.textContent,
       above: document.querySelector("#leaf .story p.remedy.above")?.textContent || "",
+      fallWhen: document.querySelector("#leaf .snake-on p.remedy.fall")?.textContent || "",
       art: !!document.querySelector("#leaf .glyph svg.ill"),
     };
     mp.close({ instant: true });
@@ -248,7 +249,7 @@ await check("Phase 7: Moksha is 105, Brahma at 108 carries the fall, and 110 is 
   }, n);
   const goal = await card(105), brahma = await card(108), shiva = await card(110), ganesha = await card(104);
   assert(goal.title === "Moksha" && goal.views === 6, `105: ${JSON.stringify(goal)}`);
-  assert(brahma.title === "Brahma" && brahma.snake === "Merit spent" && brahma.gita && /48/.test(brahma.foot) && brahma.above, `108: ${JSON.stringify(brahma)}`);
+  assert(brahma.title === "Brahma" && brahma.snake === "Merit spent" && brahma.gita && /down to 1$/.test(brahma.foot) && brahma.above && /only once/.test(brahma.fallWhen), `108: ${JSON.stringify(brahma)}`);
   assert(shiva.title === "Shiva" && shiva.art && /105/.test(shiva.above) && !shiva.snake, `110: ${JSON.stringify(shiva)}`);
   assert(!ganesha.above, "104 is below the exit and should not say Moksha is behind");
   // the board: 105 is the goal cell, and Shiva's sprite sits on 110
@@ -259,13 +260,17 @@ await check("Phase 7: Moksha is 105, Brahma at 108 carries the fall, and 110 is 
   await page.evaluate(() => mp.close({ instant: true }));
 });
 
-await check("Phase 7: a roll that bounces off 110 comes back down onto the exit and wins; landing on Brahma falls to 48", async page => {
+await check("Phase 7: a roll that bounces off 110 comes back down onto the exit and wins; climbing onto Brahma falls back to birth, once; coming down onto it does not", async page => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto(BASE + "?seed=5&debug");
   const settle = k => page.waitForFunction(k => { if (document.getElementById("folio").open) mp.close({ instant: true }); return mp.state.log.some(e => e.k === k) && !mp.busy; }, k, { timeout: 15000, polling: 200 });
-  await page.evaluate(() => { mp.jump(106); mp.roll(2); });     // 107, 108: merit spent, and down into the world
+  await page.evaluate(() => { mp.jump(106); mp.roll(2); });     // 107, 108: merit spent, and back to birth
   await settle("lRebirth");
-  await page.waitForFunction(() => mp.state.players[0].pos === 48, null, { timeout: 15000 });
+  await page.waitForFunction(() => mp.state.players[0].pos === 1, null, { timeout: 15000 });
+  await page.goto(BASE + "?seed=5&debug");
+  await page.evaluate(() => { mp.jump(108); mp.roll(4); });     // 109, 110, 109, 108: down onto Brahma, who lets be
+  await settle("lBounce");
+  assert(await page.evaluate(() => mp.state.players[0].pos === 108 && !mp.state.log.some(e => e.k === "lRebirth")), "a bounce down onto 108 fell");
   await page.goto(BASE + "?seed=5&debug");
   await page.evaluate(() => { mp.jump(110); mp.roll(5); });     // 109, 108, 107, 106, 105, passing Brahma's snake
   await settle("lWinAbove");
@@ -389,6 +394,26 @@ await check("Phase 3: a finished game reads as a life, in both languages, and ca
   const copied = await page.evaluate(() => navigator.clipboard.readText());
   assert(copied.length > 10, "nothing was copied");
 }, { limit: 150 });
+
+await check("the life account's text fills the dialog, at 1440, 1024 and 375 wide", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=6&debug");
+  const bad = [];
+  for (const [w, h] of [[1440, 900], [1024, 768], [375, 812]]) {
+    await page.setViewportSize({ width: w, height: h });
+    const r = await page.evaluate(() => {
+      mp.state.players[0].life = [1, 2, 4, 10, 15, 21, 25, 41, 45, 61, 72, 89, 100];
+      mp.life(0);
+      const leaf = document.getElementById("lifeLeaf"), text = leaf.querySelector(".leaf-text"), cs = getComputedStyle(leaf.querySelector(".leaf-main"));
+      const inner = leaf.querySelector(".leaf-main").clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+      const out = { text: Math.round(text.getBoundingClientRect().width), inner: Math.round(inner) };
+      document.getElementById("lifeDlg").close();
+      return out;
+    });
+    if (r.text < 0.85 * r.inner) bad.push(`${w}px: the text is ${r.text}px of ${r.inner}px`);
+  }
+  assert(!bad.length, bad.join(" | "));
+});
 
 // ---- Phase 5: the painted board ----
 const settle = page => page.waitForFunction(() => {

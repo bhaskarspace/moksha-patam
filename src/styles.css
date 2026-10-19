@@ -325,7 +325,8 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 .life-who button { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; font-size: 14px; background: transparent; color: var(--l-ink); border: 1px solid var(--l-line); border-radius: 99px; }
 .life-who button[aria-pressed="true"] { background: rgba(255, 252, 240, 0.8); border-color: var(--l-rule); }
 .life-who .dot { width: 10px; height: 10px; border-radius: 50%; }
-.life-main { grid-template-columns: minmax(0, 1fr); }
+/* the life account has no margin, so its text takes the whole leaf at every width, the phone's included */
+.life-leaf .life-main { grid-template-columns: minmax(0, 1fr); }
 .life-main .leaf-text { border-left: 4px double var(--l-rule); }
 .life-leaf .leaf-text p { margin: 6px 0 0; font-size: 18px; line-height: 1.6; max-width: 62ch; text-wrap: pretty; }
 .life-leaf .leaf-text p.life-end { margin-top: 18px; font-style: italic; color: var(--l-ink2); }
@@ -337,6 +338,8 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 .leaf .story p.remedy.second { font-weight: 400; }
 /* past the exit: the way out is behind and below, in Moksha's indigo */
 .leaf .story p.remedy.above { color: #1E2A78; border-left-color: #1E2A78; }
+/* when the rebirth snake takes someone, in the snakes' red */
+.leaf .story p.remedy.fall { color: #9E2A1C; border-left-color: #B3261E; }
 .leaf .snake-on { margin-top: 20px; padding: 4px 14px 10px; border-radius: 8px; background: rgba(179, 38, 30, 0.08); border: 1px solid rgba(179, 38, 30, 0.35); }
 .leaf .snake-on .sub { display: flex; align-items: center; gap: 8px; color: #9E2A1C; border-top: 0; padding-top: 6px; }
 .leaf .snake-on .snake-glyph { width: 28px; height: 28px; }
@@ -344,7 +347,7 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 
 /* Phase 6 (REDESIGN.md): the card in hand */
 /* the illuminated frame (render/frame.js): its colours are the Basohli tokens only, the field and the corners by kind */
-.leaf:not(.entry) .leaf-main { grid-template-columns: 196px minmax(0, 1fr); }
+.leaf:not(.entry, .life-leaf) .leaf-main { grid-template-columns: 196px minmax(0, 1fr); }
 .leaf:not(.entry) .glyph { filter: none; line-height: 0; }
 .leaf .glyph svg.ill { display: block; width: 180px; height: auto; }
 .ill { --field: var(--b-ochre); --corner: var(--b-malachite); }

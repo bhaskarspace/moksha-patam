@@ -1,6 +1,6 @@
 // ---- Tokens and their animations ----
 import { ROWS } from "../content.js";
-import { t } from "../i18n.js";
+import { t, fill } from "../i18n.js";
 import { G, pname } from "../state.js";
 import { $, COLORS, P_HEX, reduced, sleep, quality } from "../ui.js";
 import { S, colRow, center, fx, fxClear, snakePath, snakeColors, drawHood } from "./board.js";
@@ -49,8 +49,10 @@ export function place(silent = false) {
     if (el._stage !== stage) {
       if (el._stage != null && !silent) {
         retrigger(el, "poof");
-        const v = { name: pname(p), stage: stageName(stage) };
-        toast(stage > el._stage ? t("grew", v) : !p.name && p.color === 0 ? t("rebornYou", v) : t("reborn", v));
+        // growing up, going back to a younger self on a snake, or, on the Brahmā fall alone, being born again
+        const v = { name: pname(p), stage: stageName(stage) }, you = !p.name && p.color === 0;
+        const key = stage > el._stage ? "grew" : G.plan?.jump?.rebirth ? "bornAgain" : "younger";
+        toast(fill(t(key + (you && key !== "grew" ? "You" : ""), v), { name: v.name, gender: p.gender }));
       }
       el._stage = stage;
     }

@@ -134,14 +134,14 @@ test("Phase 7: every god kept its own moment, mirror, readings and sprite when M
   assert.ok(HEAVEN[108].src, "Brahma's citation travels with Brahma");
 });
 
-test("Phase 7: Moksha is 105, the exit, with no sprite; Brahma at 108 carries the fall into the world", () => {
+test("Phase 7: Moksha is 105, the exit, with no sprite; Brahma at 108 carries the fall back to birth", () => {
   assert.equal(GOAL, 105);
   assert.equal(TOP, 110);
   assert.equal(squareOf(105), MOKSHA);
   assert.equal(spriteHash("sq-105"), null);
   assert.equal(squareOf(108), HEAVEN[108]);
   assert.equal(snakeOn(108), SNAKES[108]);
-  assert.ok(SNAKES[108].rebirth && SNAKES[108].to === 48 && SNAKES[108].src.startsWith("Bhagavad Gita"));
+  assert.ok(SNAKES[108].rebirth && SNAKES[108].to === 1 && SNAKES[108].src.startsWith("Bhagavad Gita"));
   assert.equal(SNAKES[109], undefined);
   assert.equal(spriteHash("sn-108"), "409050c182");
   assert.equal(spriteHash("sn-109"), null);

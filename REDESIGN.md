@@ -647,6 +647,15 @@ the sound is this geometry made audible.*
 > | 108 → 20 | 66 | 231 | 30.8% | 934 |
 >
 > No tail from 20 to 60 meets the Phase 4 bar; the cliff is between 100 and 98, as it was between 101 and 95 before. **Item 5's premise measured false:** the fall does not fire on "a minority of approaches" but in 59% of lives, 1.45 times each, because from above the exit can only be reached from 109 (a 6) or 110 (a 5), so the higher heavens hold a player while 108 keeps being hit. 108 → 48 ships anyway, with a quarter of lives over 100 turns, and is accepted until Phase 12, when the fall ends a life instead of lengthening one. A once-per-life fall measured 55 / 116 / 9.7% and was not taken.
+> - *Changed after shipping (2026-10-19, fix pass before Phase 8):* the fall now goes to **1**, birth, so that it really is a rebirth. 108 → 1 on every landing measured unplayable, so the fall was made rarer instead of shorter: it takes only a player climbing onto 108 (a bounce down onto it is just Brahmā's square) and at most once in a life (`p.hasFallen`). Brahmā's card says so (`fallWhen`).
+>
+> | rule | median | p95 | over 100 | fall fires |
+> |---|---|---|---|---|
+> | 108 → 48, every landing (shipped) | 61 | 194 | 25.4% | 59% |
+> | 108 → 1, every landing (rejected) | 71 | 253 | 34.4% | 59% |
+> | **108 → 1, climbing only, once** | **54** | **123** | **12.5%** | **42%** |
+>
+> 59.5% of lives are now won from above; with two players the median is 38, p95 86, 1.8% over 100.
 > - *Sound:* the Shepard tone (`src/audio/shepard.js`) layers over the drone, whose held Sa in the divine row is its pedal; at the exit the climb stops and fades rather than resolving, so the fall is the only resolution. Six sine partials and a sub-bass sine an octave under Sa (four and one on a weak device), built on entering the divine row and dropped once silent. Position never sets an audio parameter: it chooses targets that glide, the phase only moves forward, ramps are written ahead and each begins where the last ended, and no partial is ever cancelled. Each partial jumps its octave exactly where its gain is 0, which `tests/shepard.test.mjs` checks on a recorded schedule, through a bounce and a fall. The fall slides the whole window down two octaves, timed to the swallow, and lands on Sa.
 > - *Not done:* continuous drift with age contradicts Phase 5's stepped drone and its tests, and moves to a later phase. The sub-bass is for headphones; phone speakers will not reproduce it, and it is not made louder to compensate. The Shepard tone's cost has not been measured on a real phone (`npm run perf` never starts audio); `mp.audio().shepard` reports what it is doing.
 

@@ -19,7 +19,7 @@ The old Indian game of snakes and ladders, played as one life, in English and Hi
 - **Childhood vices are small slips** (chatter, fibbing, laziness) **with short falls.** Adult enemies like anger, craving and greed only appear in the householder years. Ahankara (ego) waits at 99 and is the longest fall of all.
 - **Ladders are biggest in the middle of life** (truth, resolve, giving, duty) and short near the end. No ladder reaches heaven, so the divine row is reached on foot.
 - **Moksha is an exit, not a summit.** It sits at 105, partway along the divine row, as Vaikuṇṭha sat a few steps before the end of the old boards. Landing exactly on it is liberation. Passing it carries you into the higher heavens (Lakshmi, Saraswati, Brahma, Vishnu, Shiva), which are still the wheel.
-- **Heaven runs out.** A snake on Brahma's square, 108, drops a player straight down the board to 48, out of heaven and back into the householder years: *kṣīṇe puṇye martya-lokaṃ viśanti*, when merit is spent you return to the world of mortals (Gītā 9.21), and every world up to Brahma's returns (8.16). Some historical boards made a player who reached Brahmaloka descend a snake to earth before they could finish. Brahma's card shows the snake after his own.
+- **Heaven runs out.** A snake on Brahma's square, 108, drops a player who climbs into Brahma's realm straight down the board to 1, out of heaven and back to birth, once in a life: *kṣīṇe puṇye martya-lokaṃ viśanti*, when merit is spent you return to the world of mortals (Gītā 9.21), and every world up to Brahma's returns (8.16). Some historical boards made a player who reached Brahmaloka descend a snake to earth before they could finish. Brahma's card shows the snake after his own.
 - **No exact roll, and a way back down.** A roll that would pass 110 walks up to it and back down by the remainder, so no roll is ever wasted. It is also how you reach the exit again once you have overshot it: from 110 a 5 comes back down onto Moksha, and so does a 6 from 109.
 - **Fall, then the remedy:** five snakes drop you one square before the ladder of the virtue that heals them:
   - Pride of learning → Guru-bhakti
@@ -60,9 +60,9 @@ The old Indian game of snakes and ladders, played as one life, in English and Hi
 | 88→71 | Dambha · Hypocrisy | The cat who played ascetic |
 | 93→64 | Asakti · Clinging | Jada Bharata and the fawn (Bhagavata 5.8) |
 | 99→61 | Ahankara · Ego | Virochana and the reflection (Chandogya 8.8) |
-| 108→48 | Kshina-punya · Merit spent | When merit is spent, back down into the world (Gita 9.21) |
+| 108→1 | Kshina-punya · Merit spent | When merit is spent, back down into the world (Gita 9.21) |
 
-A 20,000-game simulation (`npm run sim`) puts a single life at a median of 61 turns from birth to Moksha, with one game in twenty taking 194 or more and a quarter taking over 100. That tail is the fall from Brahma, which fires in 59% of lives, and it is accepted for now: when death and rebirth arrive (REDESIGN.md Phase 12) the fall ends a life instead of lengthening one. A third of lives are won coming back down onto the exit from above. The distribution has a long tail, so the sim reports the median and the 95th percentile rather than the mean.
+A 20,000-game simulation (`npm run sim`) puts a single life at a median of 54 turns from birth to Moksha, with one game in twenty taking 123 or more and one in eight taking over 100. Most of that tail is the fall from Brahma, which takes only a player climbing onto 108, at most once, and fires in 42% of lives. 59.5% of lives are won coming back down onto the exit from above. The distribution has a long tail, so the sim reports the median and the 95th percentile rather than the mean.
 
 ## Features
 - **Every square is a card you can read.** Tap any square on the board, or any move in the log, to open its card. The log also names every square a move passed over, and each of those opens too. The cards are drawn as pothi folios, palm-leaf manuscript pages. ‹ › (or the arrow keys) turns the leaves from 1 to 110, so you can read the whole board without rolling once. Cards can be linked: `#sq/36` opens square 36.
