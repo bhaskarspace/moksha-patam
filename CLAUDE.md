@@ -19,7 +19,7 @@ single static `index.html` at https://codebpr.com/moksha-patam/
 
 **State:** Phases 0 to 7 have shipped. Phase 7 was The Exit (REDESIGN.md §4): Moksha is square 105 (`GOAL`), partway
 along the divine row, while the board still ends at 110 (`TOP`); a roll bounces off `TOP` and can come back down onto the
-exit. The rebirth snake falls from Brahma (108) to 48, and a Shepard tone plays under the divine row
+exit. The rebirth snake falls from Brahma (108) to 1, only for a player climbing onto it and once per life, and a Shepard tone plays under the divine row
 (`src/audio/shepard.js`). Phase 6 was The Card in Hand: the card opens collapsed (`src/render/card.js`), with an
 illuminated frame (`frame.js`) and a bottom sheet below 768px (`sheet.js`). Phase 8, Life state, is next.
 - `GOAL` means the win and `TOP` means the board's extent. Use the right one; content moves by identity, never by index.

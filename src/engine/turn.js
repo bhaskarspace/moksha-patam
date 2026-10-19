@@ -36,6 +36,8 @@ export function addLog(state, e) {
 // is liberation, passing it carries the player into the higher heavens, and a bounce off the top can bring them
 // back down onto it. Under the Brahmaloka rule the exit stays shut until the player has once fallen by the
 // rebirth snake: the first arrival walks on to its head instead (REDESIGN.md Phase 4).
+// The rebirth snake takes a player back to birth, so it is rare: it takes only someone climbing onto its head,
+// never one coming back down onto it from above, and only once in a life.
 export const rebirthHead = () => +Object.keys(SNAKES).find(h => SNAKES[h].rebirth);
 export function planTurn(state, v) {
   const idx = state.turn, p = state.players[idx], from = p.pos, rules = state.rules;
@@ -52,7 +54,8 @@ export function planTurn(state, v) {
   const passed = [...new Set(path.slice(0, -1))].filter(n => n !== target);
   if (passed.length) after.push(entry("lPassed", { passed }, "passed", idx));
   let jump = null, final = target;
-  const s = SNAKES[target], l = LADDERS[target];
+  const climbing = target > (path.at(-2) ?? from);
+  const s = SNAKES[target] && (!SNAKES[target].rebirth || (climbing && !p.hasFallen)) ? SNAKES[target] : null, l = LADDERS[target];
   if (closed) after.push(entry("lClosed", { v, pos: target }, "", idx));
   if (s || l) {
     jump = { kind: s ? "snake" : "ladder", to: (s || l).to, rebirth: !!s?.rebirth };

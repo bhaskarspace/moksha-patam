@@ -42,17 +42,25 @@ test("a roll past 110 bounces back by the remainder, so no roll is wasted", () =
   assert.deepEqual(back.players[0].life, [109]);
 });
 
-test("merit spent: the snake on Brahma's square, 108, drops a player out of heaven into the world, at 48", () => {
+test("merit spent: climbing onto Brahma's square, 108, sends a player back to birth, once in a life", () => {
   const s = game(106);
   const plan = playTurn(s, 2);
   assert.ok(plan.jump?.rebirth);
-  assert.equal(s.players[0].pos, 48);
+  assert.equal(s.players[0].pos, 1);
   assert.equal(s.players[0].hasFallen, true);
   assert.ok(s.log.some(e => e.k === "lRebirth"));
-  // a bounce that comes down on 108 falls too
+  // once fallen, climbing onto 108 again is only Brahma's realm
+  s.turn = 0; s.players[0].pos = 106;
+  const again = playTurn(s, 2);
+  assert.equal(again.jump, null);
+  assert.equal(s.players[0].pos, 108);
+  assert.equal(s.log.find(e => e.k === "lHeaven")?.v.pos, 108);
+  // coming back down onto 108 from above never falls
   const b = game(108);
-  playTurn(b, 4);                     // 109, 110, 109, 108
-  assert.equal(b.players[0].pos, 48);
+  const down = playTurn(b, 4);        // 109, 110, 109, 108
+  assert.equal(down.jump, null);
+  assert.equal(b.players[0].pos, 108);
+  assert.equal(b.players[0].hasFallen, false);
 });
 
 test("the log names every square walked over, once, and not the one landed on", () => {
@@ -75,7 +83,7 @@ test("Brahmaloka rule: Moksha opens only after a fall, and is off by default", (
   const plan = playTurn(s, 4);        // reaches 105, walks on past the shut exit to Brahma, and falls
   assert.deepEqual(plan.path, [102, 103, 104, 105, 106, 107, 108]);
   assert.equal(s.winner, null);
-  assert.equal(s.players[0].pos, 48);
+  assert.equal(s.players[0].pos, 1);
   assert.ok(s.log.some(e => e.k === "lClosed"));
   s.turn = 0; s.players[0].pos = 101;
   playTurn(s, 4);                     // having fallen once, the door is open
@@ -153,7 +161,7 @@ test("a player's life records every square landed on, a snake or ladder as two",
   playTurn(s, 6);        // born on 6, the friendship ladder to 15
   assert.deepEqual(s.players[0].life, [6, 15]);
   s.turn = 0; s.players[0].pos = 106;
-  playTurn(s, 2);        // 108: merit spent, and down into the world at 48
-  assert.deepEqual(s.players[0].life, [6, 15, 108, 48]);
+  playTurn(s, 2);        // 108: merit spent, and back to birth
+  assert.deepEqual(s.players[0].life, [6, 15, 108, 1]);
   assert.equal(s.players[0].gender, "m");
 });

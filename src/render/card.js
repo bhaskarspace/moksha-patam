@@ -184,7 +184,9 @@ function squareHtml(n, l) {
     const sm = sn.moment;
     body += `<section class="snake-on"><h3 class="sub">${art(`sn-${n}`, sn.ic, "spr snake-glyph")} ${esc(T("meritSnake"))}</h3>` +
       `<h2 class="snake-title">${esc(sn[l])}</h2><p class="alt" lang="${other(l)}">${esc([sn[other(l)], sn.skt].join(" · "))}</p>` +
-      `<div class="story">${sm ? texts(l, fill(sm.en, person("en")), fill(sm.hi, person("hi")), "moment") : ""}${texts(l, sn.mirror.en, sn.mirror.hi, sm ? "mirror" : "")}</div>`;
+      `<div class="story">${sm ? texts(l, fill(sm.en, person("en")), fill(sm.hi, person("hi")), "moment") : ""}${texts(l, sn.mirror.en, sn.mirror.hi, sm ? "mirror" : "")}` +
+      // the rebirth snake says when it takes someone, since most arrivals on its square are let be
+      `${sn.rebirth ? texts(l, tIn("en", "fallWhen"), tIn("hi", "fallWhen"), "remedy fall") : ""}</div>`;
     if (sn.schools && deep("school")) {
       body += `<ul class="chips more-only">` + sn.schools.map(s => `<li>${entryLink(s.id, l)}${texts(l, s.en, s.hi)}</li>`).join("") + `</ul>`;
       metMore.push(...sn.schools.map(s => s.id));
