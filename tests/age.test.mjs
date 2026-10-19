@@ -50,11 +50,14 @@ test("one life through the lens of a single player", () => {
   assert.equal(lens(s, 0).dimAge, ageOf(12));
 });
 
-test("a snake makes you younger, so the years it took are ahead again", () => {
-  const before = lens(at(62)), after = lens(at(46)); // the snake at 62 drops to 46
-  assert.equal(wash(55, before).dim, 0);
-  assert.ok(wash(55, after).dim > 0);
-  assert.ok(wash(30, after).sepia < wash(30, before).sepia);
+test("a snake does not make you younger: the board stays as old as the years lived (Phase 8)", () => {
+  // the snake at 62 drops to 46, and the player is still the 52 they were on 62
+  const before = lens({ players: [{ pos: 62, years: ageOf(62) }] }), after = lens({ players: [{ pos: 46, years: ageOf(62) }] });
+  assert.deepEqual(after, { ...before, lead: 46 });
+  assert.equal(wash(55, after).dim, 0);
+  assert.deepEqual(wash(30, after), wash(30, before));
+  // a position with no life behind it is still read at the square's own age
+  assert.ok(wash(55, lens(at(46))).dim > 0);
 });
 
 test("the divine row is dim until reached, never fades, and only the exit is silence", () => {

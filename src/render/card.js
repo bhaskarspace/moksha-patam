@@ -1,8 +1,9 @@
 // ---- The card: a pothi folio for one square or one Codex entry ----
 // It stays open until the reader closes it. A computer's landing card closes itself after a
 // reading-length pause, unless the reader touches it, and then it waits like any other.
-import { GOAL, TOP, LADDERS, SNAKES, SQ, HEAVEN, READINGS, CODEX, ENTRY_IDS, REFS, entryOf, sourceOf, srcOfSquare, squareOf, snakeOn } from "../content.js";
-import { lang, tIn, numIn, srcIn, pick, fill } from "../i18n.js";
+import { GOAL, TOP, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, READINGS, CODEX, ENTRY_IDS, REFS, entryOf, sourceOf, srcOfSquare, squareOf, snakeOn } from "../content.js";
+import { lang, tIn, numIn, srcIn, pick, fill, ageWordsIn } from "../i18n.js";
+import { ageStep, stageOfYears, bhumikaOf, freshGunas, SANNYASA } from "../engine/self.js";
 import { prefs, hasMet, meet } from "../prefs.js";
 import { G, pnameIn } from "../state.js";
 import { $, esc, reduced, art } from "../ui.js";
@@ -47,7 +48,7 @@ function squareInfo(n, l) {
   if (sl) {
     const virtue = !!LADDERS[n];
     return { kind: virtue ? "virtue" : "vice", big: sl.ic, title: sl[l], alt: [sl[o], skt],
-      eb: `${T(virtue ? "virtue" : "vice")} · ${ashramaIn(l, n)}`, ft: T(virtue ? "ladderTo" : "snakeTo", { n: sl.to }) };
+      eb: `${T(virtue ? "virtue" : "vice")} · ${stageIn(l, n)}`, ft: T(virtue ? "ladderTo" : "snakeTo", { n: sl.to }) };
   }
   if (n === GOAL) {
     return { kind: "goal", big: "ॐ", title: l === "hi" ? "मोक्ष" : "Moksha", alt: [o === "hi" ? "मोक्ष" : "Moksha", scholar ? r.iast : T("liberation")],
@@ -59,14 +60,38 @@ function squareInfo(n, l) {
     return { kind: "heaven", big: h.ic, title: h[l], alt: [h[o], scholar ? r.iast : ""], eb: T("realm"), ft: sn ? T("snakeTo", { n: sn.to }) : "" };
   }
   const q = SQ[n];
-  return { kind: "story", big: q.ic, title: q[l], alt: [q[o], scholar ? r.iast : ""], eb: `${T("story")} · ${ashramaIn(l, n)}`, ft: "" };
+  return { kind: "story", big: q.ic, title: q[l], alt: [q[o], scholar ? r.iast : ""], eb: `${T("story")} · ${stageIn(l, n)}`, ft: "" };
 }
 
-// The player a moment is about, as a name in language l and a gender for agreement.
-function person(l) {
-  const p = G.state?.players[subject ?? G.state.turn];
-  return p ? { name: pnameIn(p, l), gender: p.gender } : { name: "", gender: "m" };
+// The player a moment is about, as a name in language l, a gender for agreement, and the age the moment says.
+// On the square they are standing on that is the years they have lived (REDESIGN.md Phase 8), "still" so when a
+// snake has just put them there; on any other square, the age the square is written for.
+const subjectOf = () => G.state?.players[subject ?? G.state.turn];
+// Who is standing on square n, as { p, years, still }: during a landing the turn has not been ended yet, so
+// the years are the ones this landing brings.
+function livedOn(n) {
+  const p = subjectOf(), plan = G.plan;
+  if (!p || p.pos !== n || p.pos > 100) return null;
+  if (plan && G.state.players[plan.idx] === p && plan.target === n) return { p, years: ageStep(p.years ?? 0, n), still: false };
+  if (!p.life?.length) return null;
+  const head = SNAKES[p.life.at(-2)];
+  // never younger than the square: only a token moved by hand (mp.jump) can be
+  return { p, years: Math.max(p.years ?? 0, squareOf(n)?.age ?? 0), still: !!head && !head.rebirth && head.to === n && p.life.at(-1) === n };
 }
+function person(l, n) {
+  const p = subjectOf(), here = livedOn(n), a = here ? here.years : squareOf(n)?.age;
+  const age = Number.isInteger(a) ? ageWordsIn(l, a, !!here?.still) : "";
+  return p ? { name: pnameIn(p, l), gender: p.gender, age } : { name: "", gender: "m", age };
+}
+// The stage a card's eyebrow names. On the subject's own square it is the stage they are actually in, by years,
+// and in sannyasa the bhumika they have reached rather than the one the square implies; elsewhere the square's.
+function stageIn(l, n) {
+  const here = livedOn(n);
+  if (!here) return ashramaIn(l, n);
+  const s = stageOfYears(here.years);
+  return s === SANNYASA ? tIn(l, "bhumika" + bhumikaOf(here.p.gunas ?? freshGunas())) : l === "hi" ? ASHRAMAS[s][2] : ASHRAMAS[s][1];
+}
+
 // An authored age as the card furniture says it: a newborn, months for a baby, then years.
 export const ageIn = (l, a) => (a === 0 ? tIn(l, "ageBirth") : a < 1 ? tIn(l, "ageMonths", { n: Math.round(a * 12) }) : tIn(l, "age", { n: a }));
 
@@ -136,13 +161,13 @@ function squareHtml(n, l) {
   // the moment, when there is one, is what is happening to the player; the mirror is the text that holds
   // it. With no moment the card is exactly the Phase 2 card: no age, and the Phase 2 lead as the mirror.
   const sq = squareOf(n), m = sq.moment, mirror = m?.mirror || sq.mirror;
-  const age = m && sq.age != null ? ageIn(l, sq.age) : "";
+  const age = m && sq.age != null ? ageIn(l, livedOn(n)?.years ?? sq.age) : "";
   let body = `<h2 id="leafTitle">${esc(info.title)}</h2>`;
   const alt = info.alt.filter(Boolean).join(" · ");
   if (alt) body += `<p class="alt" lang="${other(l)}">${esc(alt)}</p>`;
-  const moment = m ? texts(l, fill(m.en, person("en")), fill(m.hi, person("hi")), n > 100 ? "moment remnant" : "moment") : "";
+  const moment = m ? texts(l, fill(m.en, person("en", n)), fill(m.hi, person("hi", n)), n > 100 ? "moment remnant" : "moment") : "";
   // a snake tail one square below its remedy says so (REDESIGN.md Phase 4, item 3)
-  const remedy = sq.remedy ? texts(l, fill(sq.remedy.en, person("en")), fill(sq.remedy.hi, person("hi")), "remedy") : "";
+  const remedy = sq.remedy ? texts(l, fill(sq.remedy.en, person("en", n)), fill(sq.remedy.hi, person("hi", n)), "remedy") : "";
   // past the exit, the card says the way out is behind and below (REDESIGN.md Phase 7, item 3)
   const above = n > GOAL && HEAVEN[n] ? texts(l, ...["en", "hi"].map(x => tIn(x, "aboveExit", { n: numIn(x, GOAL), top: numIn(x, TOP) })), "remedy above") : "";
   body += `<div class="story">${moment}${remedy}${texts(l, mirror.en, mirror.hi, m ? "mirror" : "")}${bi(l, r.line2, "line2")}${above}</div>`;
@@ -184,7 +209,7 @@ function squareHtml(n, l) {
     const sm = sn.moment;
     body += `<section class="snake-on"><h3 class="sub">${art(`sn-${n}`, sn.ic, "spr snake-glyph")} ${esc(T("meritSnake"))}</h3>` +
       `<h2 class="snake-title">${esc(sn[l])}</h2><p class="alt" lang="${other(l)}">${esc([sn[other(l)], sn.skt].join(" · "))}</p>` +
-      `<div class="story">${sm ? texts(l, fill(sm.en, person("en")), fill(sm.hi, person("hi")), "moment") : ""}${texts(l, sn.mirror.en, sn.mirror.hi, sm ? "mirror" : "")}` +
+      `<div class="story">${sm ? texts(l, fill(sm.en, person("en", n)), fill(sm.hi, person("hi", n)), "moment") : ""}${texts(l, sn.mirror.en, sn.mirror.hi, sm ? "mirror" : "")}` +
       // the rebirth snake says when it takes someone, since most arrivals on its square are let be
       `${sn.rebirth ? texts(l, tIn("en", "fallWhen"), tIn("hi", "fallWhen"), "remedy fall") : ""}</div>`;
     if (sn.schools && deep("school")) {

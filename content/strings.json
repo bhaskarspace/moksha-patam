@@ -29,7 +29,7 @@
   "STR": {
     "en": {
       "title": "Moksha Patam",
-      "intro": "The old Indian game of snakes and ladders, played as one life. Grow from a baby through childhood and the four ashramas, with a story from the Panchatantra or the Upanishads on every square. Virtues lift you up; vices drag you back to a younger self, always just before the virtue that heals them. The first to land exactly on Moksha, at 105, is liberated; the heavens past it are still the wheel. Tap any square to read it.",
+      "intro": "The old Indian game of snakes and ladders, played as one life. Grow from a baby through childhood and the four ashramas, with a story from the Panchatantra or the Upanishads on every square. Virtues lift you up; vices drag you back down the board, always just before the virtue that heals them, and the years they cost are not given back. The first to land exactly on Moksha, at 105, is liberated; the heavens past it are still the wheel. Tap any square to read it.",
       "turn": "Turn",
       "players": "Players",
       "moves": "Moves",
@@ -158,15 +158,43 @@
       "meritSnake": "Snake · from this realm",
       "lWinAbove": "{name} came back down to Moksha on square {pos}.",
       "aboveExit": "Moksha is behind you now, on {n}. Liberation is not up here: a roll that bounces off {top} can still bring you back down to it.",
-      "younger": "{name} is back to being a {stage}",
-      "youngerYou": "You are back to being a {stage}",
       "bornAgain": "{name} is born again",
       "bornAgainYou": "You are born again",
-      "fallWhen": "The fall takes only someone climbing into Brahma's realm, and only once in a life."
+      "fallWhen": "The fall takes only someone climbing into Brahma's realm, and only once in a life.",
+      "lDied": "{name}'s years ran out at {age}, on square {pos}.",
+      "lifeReborn": "Born again",
+      "lifeOpenReborn": "{name} was born twice.",
+      "lifeOpenDied": "{name} ran out of years at {age}.",
+      "lifeOpenFall": "{name} lived to {age}, and at {at} had to begin again.",
+      "lifeOpenSteady": "Nothing in {name}'s life went backwards.",
+      "lifeOpenLived": "{name} lived to {age}.",
+      "lifeEndDied": "{name}'s years ran out at {age}, on ground already walked once, {holding}.",
+      "raceNone": "No one reached Moksha.",
+      "diedText": "The years ran out before the exit. The life is written down.",
+      "bhumika0": "Śubhecchā",
+      "bhumika1": "Vicāraṇā",
+      "bhumika2": "Tanumānasī",
+      "bhumika3": "Sattvāpatti",
+      "bhumika4": "Asaṃsakti",
+      "bhumika5": "Padārthābhāvanā",
+      "title0": "Mumukṣu · longing to be free",
+      "title1": "Brahmavit · knowing brahman",
+      "title2": "Brahmavidvara · knowing it better",
+      "title3": "Brahmavidvarīyān · further still",
+      "self_s_dharma": "clear-sighted, and true to others",
+      "self_s_artha": "clear-sighted, and careful with what there is",
+      "self_s_kama": "clear-sighted, and glad of small things",
+      "self_r_dharma": "restless, and anxious to do right",
+      "self_r_artha": "restless, and always counting",
+      "self_r_kama": "restless, and always wanting the next thing",
+      "self_t_dharma": "heavy, and holding on to old duties",
+      "self_t_artha": "heavy, and holding on to what is owned",
+      "self_t_kama": "heavy, and holding on to comforts",
+      "dead": "Years run out"
     },
     "hi": {
       "title": "मोक्ष पटम",
-      "intro": "साँप-सीढ़ी का पुराना भारतीय खेल, एक जीवन की तरह खेला जाता है। शिशु से बचपन और चारों आश्रमों से होकर बढ़ें, हर खाने पर पंचतंत्र या उपनिषदों की एक कथा है। गुण ऊपर उठाते हैं; दोष आपको छोटी उम्र में लौटा देते हैं, ठीक उस गुण के पास जो उन्हें ठीक करता है। जो सबसे पहले ठीक १०५ पर मोक्ष पहुँचे, वही मुक्त; उसके पार के स्वर्ग भी संसार का ही चक्र हैं। किसी भी खाने को छूकर उसकी कथा पढ़ें।",
+      "intro": "साँप-सीढ़ी का पुराना भारतीय खेल, एक जीवन की तरह खेला जाता है। शिशु से बचपन और चारों आश्रमों से होकर बढ़ें, हर खाने पर पंचतंत्र या उपनिषदों की एक कथा है। गुण ऊपर उठाते हैं; दोष आपको बोर्ड पर नीचे खींच लेते हैं, ठीक उस गुण के पास जो उन्हें ठीक करता है, और उनमें गए बरस लौटते नहीं। जो सबसे पहले ठीक १०५ पर मोक्ष पहुँचे, वही मुक्त; उसके पार के स्वर्ग भी संसार का ही चक्र हैं। किसी भी खाने को छूकर उसकी कथा पढ़ें।",
       "turn": "बारी",
       "players": "खिलाड़ी",
       "moves": "चालें",
@@ -295,15 +323,43 @@
       "meritSnake": "साँप · इस लोक से",
       "lWinAbove": "{name} लौटकर नीचे खाना {pos} पर मोक्ष पहुँचे।",
       "aboveExit": "मोक्ष अब पीछे छूट गया, {n} पर। मुक्ति यहाँ ऊपर नहीं है: {top} से टकराकर लौटता पासा अब भी आपको नीचे उस तक ला सकता है।",
-      "younger": "{name} फिर से {stage} {बन गया|बन गई}",
-      "youngerYou": "आप फिर से {stage} {बन गए|बन गईं}",
       "bornAgain": "{name} का फिर से जन्म हुआ",
       "bornAgainYou": "आपका फिर से जन्म हुआ",
-      "fallWhen": "ब्रह्मा के लोक में चढ़कर आने वाला ही गिरता है, और जीवन में एक ही बार।"
+      "fallWhen": "ब्रह्मा के लोक में चढ़कर आने वाला ही गिरता है, और जीवन में एक ही बार।",
+      "lDied": "{name} के बरस {age} की आयु में, खाना {pos} पर, पूरे हुए।",
+      "lifeReborn": "फिर जन्म",
+      "lifeOpenReborn": "{name} का जन्म दो बार हुआ।",
+      "lifeOpenDied": "{name} के बरस {age} पर पूरे हो गए।",
+      "lifeOpenFall": "{name} {age} बरस {जिया|जी}, और {at} की उम्र में सब फिर से शुरू करना पड़ा।",
+      "lifeOpenSteady": "{name} के जीवन में कुछ भी पीछे नहीं गया।",
+      "lifeOpenLived": "{name} {age} बरस {जिया|जी}।",
+      "lifeEndDied": "{name} के बरस {age} पर पूरे हुए, उस राह पर जो एक बार चली जा चुकी थी, {holding}।",
+      "raceNone": "कोई भी मोक्ष तक नहीं पहुँचा।",
+      "diedText": "मोक्ष से पहले बरस पूरे हो गए। जीवन लिखा जा चुका है।",
+      "bhumika0": "शुभेच्छा",
+      "bhumika1": "विचारणा",
+      "bhumika2": "तनुमानसी",
+      "bhumika3": "सत्त्वापत्ति",
+      "bhumika4": "असंसक्ति",
+      "bhumika5": "पदार्थाभावना",
+      "title0": "मुमुक्षु · मुक्ति की चाह",
+      "title1": "ब्रह्मवित् · ब्रह्म का ज्ञान",
+      "title2": "ब्रह्मविद्वर · और गहरा ज्ञान",
+      "title3": "ब्रह्मविद्वरीयान् · उससे भी आगे",
+      "self_s_dharma": "निर्मल दृष्टि, और दूसरों के प्रति सच्चाई",
+      "self_s_artha": "निर्मल दृष्टि, और जो है उसकी सँभाल",
+      "self_s_kama": "निर्मल दृष्टि, और छोटी चीज़ों में ख़ुशी",
+      "self_r_dharma": "बेचैनी, और सही करने की धुन",
+      "self_r_artha": "बेचैनी, और हर समय हिसाब",
+      "self_r_kama": "बेचैनी, और हमेशा अगली चीज़ की चाह",
+      "self_t_dharma": "भारीपन, और पुराने कर्तव्यों से चिपकाव",
+      "self_t_artha": "भारीपन, और अपनी चीज़ों से चिपकाव",
+      "self_t_kama": "भारीपन, और आराम से चिपकाव",
+      "dead": "बरस पूरे"
     }
   },
   "JOINS": {
-    "about": "Joining phrases for the life account (docs/NARRATIVE.md §9): one goes before each moment after the first in a paragraph. then rotates; snake and ladder go before the square a snake or ladder led to.",
+    "about": "Joining phrases for the life account (docs/NARRATIVE.md §9). Each join goes before a moment and reads on into it, so it ends in a comma or a space. Chosen by how the moment relates to the one before it, first match winning (src/engine/account.js): snake (the years a vice undid; no time passes), a square's own echo, ladder, again (a snake or ladder taken a second time), gap, sameYear or months, then one of then, drawn per life. The fold lines stand in for squares lived a second time.",
     "then": [
       {"en":"Then ","hi":"फिर "},
       {"en":"Later, ","hi":"बाद में, "},
@@ -311,12 +367,41 @@
       {"en":"In time, ","hi":"समय के साथ, "}
     ],
     "snake": {
-      "en": "Afterwards, ",
-      "hi": "उसके बाद, "
+      "en": "With that, {cost} years came undone, and ",
+      "hi": "उसी पल {cost} बरस का किया-धरा अनकिया हो गया, और "
     },
     "ladder": {
       "en": "And so, ",
       "hi": "और इस तरह, "
+    },
+    "again": {
+      "en": "Once again, ",
+      "hi": "एक बार फिर, "
+    },
+    "gap": {
+      "en": "{gap} quiet years later, ",
+      "hi": "{gap} चुपचाप बरस बाद, "
+    },
+    "sameYear": {
+      "en": "That same year, ",
+      "hi": "उसी बरस, "
+    },
+    "months": {
+      "en": "Within months, ",
+      "hi": "कुछ ही महीनों में, "
+    },
+    "foldRun": {
+      "en": "{name} walked through {a} to {b} a second time.",
+      "hi": "{name} ने {a} से {b} तक के बरस दोबारा जिए।"
+    },
+    "foldOne": {
+      "en": "{name} walked through {a} a second time.",
+      "hi": "{name} ने {a} वाला बरस दोबारा जिया।"
+    },
+    "foldHeights": {
+      "en": "And the same heights again.",
+      "hi": "और फिर वही ऊँचाइयाँ।"
     }
-  }
+  },
+  "NUM_HI": ["शून्य","एक","दो","तीन","चार","पाँच","छह","सात","आठ","नौ","दस","ग्यारह","बारह","तेरह","चौदह","पंद्रह","सोलह","सत्रह","अठारह","उन्नीस","बीस","इक्कीस","बाईस","तेईस","चौबीस","पच्चीस","छब्बीस","सत्ताईस","अट्ठाईस","उनतीस","तीस","इकतीस","बत्तीस","तैंतीस","चौंतीस","पैंतीस","छत्तीस","सैंतीस","अड़तीस","उनतालीस","चालीस","इकतालीस","बयालीस","तैंतालीस","चवालीस","पैंतालीस","छियालीस","सैंतालीस","अड़तालीस","उनचास","पचास","इक्यावन","बावन","तिरपन","चौवन","पचपन","छप्पन","सत्तावन","अट्ठावन","उनसठ","साठ","इकसठ","बासठ","तिरसठ","चौंसठ","पैंसठ","छियासठ","सड़सठ","अड़सठ","उनहत्तर","सत्तर","इकहत्तर","बहत्तर","तिहत्तर","चौहत्तर","पचहत्तर","छिहत्तर","सतहत्तर","अठहत्तर","उन्यासी","अस्सी","इक्यासी","बयासी","तिरासी","चौरासी","पचासी","छियासी","सत्तासी","अट्ठासी","नवासी","नब्बे","इक्यानवे","बानवे","तिरानवे","चौरानवे","पंचानवे","छियानवे","सत्तानवे","अट्ठानवे","निन्यानवे","सौ"]
 }

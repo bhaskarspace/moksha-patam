@@ -8,7 +8,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { GOAL, TOP, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, STR, SRC_HI, JOINS, READINGS, CODEX, REFS, ENTRY_IDS, srcOfSquare, sourceOf, leadOf, squareOf } from "../src/content.js";
+import { GOAL, TOP, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, STR, SRC_HI, JOINS, NUM_HI, READINGS, CODEX, REFS, ENTRY_IDS, srcOfSquare, sourceOf, leadOf, squareOf } from "../src/content.js";
 import NAMES from "../content/names.json" with { type: "json" };
 
 // Names compare without diacritics or case, so "Śaṅkara", "Sankara" and "sankara" are one name.
@@ -69,8 +69,10 @@ export function englishPronouns(en) {
     return [[HE, MALE], [SHE, FEMALE]].filter(([p, cast]) => p.test(bare) && !cast.test(near)).map(([p]) => bare.match(p)[0]);
   });
 }
-// The moment's placeholders: {name}, or two or three choices for g().
-const badSlots = text => [...text.matchAll(/\{([^{}]*)\}/g)].map(m => m[1]).filter(x => x !== "name" && !/^[^|]+\|[^|]+(\|[^|]+)?$/.test(x));
+// The moment's placeholders: {name}, {age} (Phase 8: the years lived, as words), or two or three choices for g().
+const badSlots = text => [...text.matchAll(/\{([^{}]*)\}/g)].map(m => m[1]).filter(x => x !== "name" && x !== "age" && !/^[^|]+\|[^|]+(\|[^|]+)?$/.test(x));
+// An age spoken as a number word in English, which since Phase 8 must come from {age} so it can be the years lived.
+const SPOKEN_AGE = /^\{name\} is (one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety)\b(?! months)/;
 
 // The lint in full: errors fail the build, warnings print, and moments counts the burn-down.
 export function lintReport() {
@@ -87,9 +89,12 @@ export function lintReport() {
   for (const k of Object.keys(STR.en)) if (!STR.hi[k]?.trim()) err(`strings.${k}`, "no Hindi");
   for (const k of Object.keys(STR.hi)) if (!STR.en[k]?.trim()) err(`strings.${k}`, "no English");
 
-  // the joining phrases of the life account
-  for (const [i, j] of JOINS.then.entries()) bilingual(`strings.JOINS.then[${i}]`, j);
-  bilingual("strings.JOINS.snake", JOINS.snake); bilingual("strings.JOINS.ladder", JOINS.ladder);
+  // the joining phrases of the life account: each reads on into a moment, so it ends in a space (Phase 8)
+  const join = (where, j) => { bilingual(where, j); for (const l of ["en", "hi"]) if (j?.[l] && !j[l].endsWith(" ")) err(where, `the ${l} join does not read on into the moment: end it with a space`); };
+  for (const [i, j] of JOINS.then.entries()) join(`strings.JOINS.then[${i}]`, j);
+  for (const k of ["snake", "ladder", "again", "gap", "sameYear", "months"]) join(`strings.JOINS.${k}`, JOINS[k]);
+  for (const k of ["foldRun", "foldOne", "foldHeights"]) bilingual(`strings.JOINS.${k}`, JOINS[k]);
+  if (NUM_HI?.length !== 101 || NUM_HI.some(w => !w?.trim())) err("strings.NUM_HI", "needs the Hindi number words from 0 to 100");
 
   // a mirror, wherever it is, names someone in both languages
   const lintLead = (where, lead) => {
@@ -139,6 +144,9 @@ export function lintReport() {
     } else if (q.age != null) err(`square ${n}`, "is above the world and has no age (docs/NARRATIVE.md §8)");
     if (q.callsBack != null && !(Number.isInteger(q.callsBack) && q.callsBack >= 1 && q.callsBack <= TOP && q.callsBack !== GOAL && q.callsBack !== n)) err(`square ${n}`, `callsBack ${q.callsBack} is not another square`);
     else if (q.callsBack != null && !squareOf(q.callsBack)?.moment) warn(`square ${n}`, `calls back to ${q.callsBack}, which has no moment yet`);
+    // Phase 8: a callback is said in the life account by its own echo, a phrase that reads on into the moment
+    if ((q.callsBack != null) !== !!q.echo) err(`square ${n}`, q.echo ? "has an echo but calls back to nothing" : "calls back without an echo for the life account");
+    if (q.echo) join(`square ${n} echo`, q.echo);
 
     const r = READINGS[n] || {}, voices = (r.schools?.length || 0) + (r.views?.length || 0);
     if (voices < 2) err(`square ${n}`, voices ? "one voice: a disagreement needs two schools in readings.json" : "no voice: needs two schools in readings.json");
@@ -162,6 +170,9 @@ export function lintReport() {
     if (!m.en?.trim() || !m.hi?.trim()) { err(where, `exists in ${m.en?.trim() ? "English" : "Hindi"} only`); continue; }
     moments.written++; band.written++;
     playerText(where, m);
+    if (SPOKEN_AGE.test(m.en)) err(where, "says the age in words; say {age}, so the moment tells the years actually lived (REDESIGN.md Phase 8)");
+    if ((m.en.includes("{age}") || m.hi.includes("{age}")) && !(Number.isInteger(q.age) && q.age >= 1)) err(where, "says {age} on a square whose age is not a whole year");
+    if (m.en.includes("{age}") !== m.hi.includes("{age}")) err(where, "says {age} in one language only");
     if (m.mirror) { bilingual(`${where} mirror`, m.mirror); if (m.mirror.en) lintLead(`${where} mirror`, [m.mirror.en, m.mirror.hi]); }
     // §2: the mirror attaches to the moment; the Phase 2 opener is the thing being replaced
     const mirrorEn = (m.mirror || q.mirror).en;
@@ -184,6 +195,15 @@ export function lintReport() {
     citation(where, sn.src);
   }
   for (const [h, sn] of Object.entries(SNAKES)) if (!(sn.to >= 1 && sn.to < +h)) err(`snake ${h}`, `falls to ${sn.to}, which is not below it`);
+
+  // Phase 8: every vice and virtue moves the gunas, and a vice says what a life was still holding when it ended
+  for (const [h, sl] of [...Object.entries(SNAKES), ...Object.entries(LADDERS)]) {
+    if (SNAKES[h]?.rebirth) continue;
+    const where = `${LADDERS[h] ? "ladder" : "snake"} ${h}`;
+    if (!["s", "r", "t"].includes(sl.guna)) err(where, "needs a guna: s, r or t");
+    if (LADDERS[h] && sl.guna !== "s") err(where, "a virtue is sattva");
+    if (SNAKES[h]) { bilingual(`${where} holding`, sl.holding); if (sl.holding?.en && !/^still /.test(sl.holding.en)) err(`${where} holding`, 'reads on from the closing line, as "still …"'); }
+  }
 
   // readings: bilingual, and every school or person they name exists
   for (const [n, r] of Object.entries(READINGS)) {

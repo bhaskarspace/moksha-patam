@@ -7,7 +7,8 @@ import { $, COLORS, esc, reduced, sleep, quality, forcedQuality, setQuality } fr
 import { die, makeRng, freshSeed } from "./rng.js";
 import { TUMBLE, planTurn, endTurn, addLog } from "./engine/turn.js";
 import { S, colRow, labEls, buildCells, draw, drawAge, fxClear, focusSquare } from "./render/board.js";
-import { lens, wash, stageAt } from "./render/age.js";
+import { lens, wash, stageOf } from "./render/age.js";
+import { ageStep } from "./engine/self.js";
 import { frame, pullBack, hold, release } from "./render/camera.js";
 import { spriteURL } from "./render/sprites.js";
 import { tokenEls, buildTokens, place, retrigger, climb, swallow, swallowSecs, animate } from "./render/tokens.js";
@@ -66,7 +67,7 @@ function log(e) {
 
 async function takeTurn() {
   const state = G.state;
-  if (G.busy || state.winner != null) return;
+  if (G.busy || state.over) return;
   const g = G.gen;
   G.busy = true; render();
   // nobody moves while someone is reading a card, unless they rolled from it
@@ -87,7 +88,7 @@ async function takeTurn() {
   // every roll moves now: a bounce can come back to the square it started from, but it still walks
   {
     await sleep(150);
-    const born = stageAt(p.pos);
+    const born = stageOf(p);
     frame(p.pos || 1, plan.path.at(-1));
     // the walk follows the planned path, which turns at the top of the board on a bounce
     for (const n of plan.path) {
@@ -102,8 +103,8 @@ async function takeTurn() {
     }
     if (g !== G.gen) return;
     el._frame = 0; place();
-    // a new ashrama is seen whole
-    if (stageAt(p.pos) !== born) pullBack();
+    // a new ashrama is seen whole: the one this landing's years bring, not the square's
+    if (stageOf({ ...p, years: ageStep(p.years ?? 0, p.pos) }) !== born) pullBack();
     await waitCard();
     if (g !== G.gen) return;
     // Rolled from the card, it turns to each of the reader's own landings, whatever landAll says, and a
@@ -134,6 +135,8 @@ async function takeTurn() {
   }
   endTurn(state, plan);
   G.plan = null; G.face = null;
+  // a person whose years run out reads their life at once, rather than watching the others finish
+  if (plan.died && p.type === "human") openLife(idx);
   if (cardCarried() && p.type === "cpu") cardNote(tIn(lang, "cardMoved", { name: pname(p), n: plan.final }));
   watching();
   pullBack();
@@ -158,10 +161,10 @@ async function waitCard() {
 const FACES = ["", "⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
 function rollInfo(l) {
   const s = G.state;
-  if (!s || s.winner != null || !s.players.some(q => q.type === "human")) return null;
+  if (!s || s.over || !s.players.some(q => q.type === "human" && !q.dead)) return null;
   const n = s.players.length, plan = G.plan, humans = s.players.filter(q => q.type === "human").length;
   let i = plan ? (plan.again ? plan.idx : (plan.idx + 1) % n) : s.turn;
-  for (let k = 0; k < n && s.players[i].type !== "human"; k++) i = (i + 1) % n;
+  for (let k = 0; k < n && (s.players[i].type !== "human" || s.players[i].dead); k++) i = (i + 1) % n;
   const p = s.players[i], dot = humans > 1 ? COLORS[p.color] : null;
   // already moving on the reader's behalf: show the die, or who is rolling now
   if (G.rollQueued || (G.busy && !G.waitingCard)) {
@@ -175,7 +178,7 @@ function rollInfo(l) {
 function requestRoll() { G.rollQueued = true; refreshRoll(); pump(); }
 function pump() {
   if (!G.rollQueued || G.busy) return;
-  if (G.state.winner != null) { G.rollQueued = false; return refreshRoll(); }
+  if (G.state.over) { G.rollQueued = false; return refreshRoll(); }
   if (cur().type !== "human") return;
   G.rollQueued = false;
   takeTurn();
@@ -186,7 +189,7 @@ onCardChange(() => { if (!cardOpen() && G.rollQueued) { G.rollQueued = false; re
 
 function queueCpu() {
   clearTimeout(G.cpuTimer);
-  if (G.state.winner == null && cur().type === "cpu") G.cpuTimer = setTimeout(takeTurn, reduced ? 200 : 700);
+  if (!G.state.over && cur().type === "cpu") G.cpuTimer = setTimeout(takeTurn, reduced ? 200 : 700);
 }
 
 // ---- The ageing board (render/age.js): repainted when a turn ends, fading over 600 ms ----
@@ -209,9 +212,9 @@ function render() {
   $("turnDot").style.background = COLORS[p.color];
   $("turnName").textContent = state.winner != null ? t("wins", { name: pname(state.players[state.winner]) }) : pname(p);
   const human = p.type === "human";
-  $("roll").disabled = G.busy || state.winner != null || !human;
+  $("roll").disabled = G.busy || state.over || !human;
   $("roll").textContent = human ? t("roll") : t("rolling", { name: pname(p) });
-  $("hint").textContent = state.winner != null ? t("hintOver") : human ? t("hintHuman") : t("hintCpu");
+  $("hint").textContent = state.over ? t("hintOver") : human ? t("hintHuman") : t("hintCpu");
   showDie(state.last || 6);
   refreshRoll();
   $("seed").textContent = `${t("seed")} ${state.rng.seed}`;
@@ -219,12 +222,18 @@ function render() {
   place();
   renderLog();
 
-  const w = state.winner;
-  $("win").hidden = w == null;
+  const w = state.winner, humans = state.players.filter(q => q.type === "human");
+  $("win").hidden = !state.over;
   if (w != null) {
     const wp = state.players[w];
     $("winTitle").textContent = t("winTitle", { name: pname(wp) });
     $("winText").textContent = wp.type === "human" ? t("winHuman") : t("winCpu");
+  } else if (state.over) {
+    // A life that ran out of years ends on its own account, not on a race nobody won (REDESIGN.md Phase 8).
+    // Only a game of several people has a race to report.
+    const one = humans.length === 1 ? humans[0] : null;
+    $("winTitle").textContent = one ? t("lifeTitle", { name: pname(one) }) : t("raceNone");
+    $("winText").textContent = one ? t("diedText") : "";
   }
 }
 
@@ -405,6 +414,8 @@ new ResizeObserver(draw).observe($("cells"));
 if (new URLSearchParams(location.search).has("debug")) {
   window.mp = {
     jump(n) { cur().pos = n; render(); age(true); },
+    // mp.years(n) sets how many years the current player has lived, so the end of a life can be reached on demand
+    years(n) { if (n != null) { cur().years = n; render(); age(true); } return cur().years; },
     // the lens the board is aged through: { fadeAge, dimAge, lead, droneStage }
     age: () => lens(G.state),
     // { ctx, stage, voices, wanted, muted }
@@ -448,6 +459,7 @@ function start(data) {
   if (data?.state) {
     G.state = data.state;
     G.state.rng ||= makeRng(freshSeed()); // saves from before the seeded die
+    G.state.over ??= G.state.winner != null; // saves from before a life could end without a winner
     G.busy = false; buildTokens(); render(); age(true); queueCpu();
   }
   else {

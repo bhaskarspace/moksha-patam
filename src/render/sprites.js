@@ -1,5 +1,5 @@
 // ---- Pixel-art characters, one per stage of life (12 x 16, facing right) ----
-import { TOP } from "../content.js";
+import { TOP, squareOf } from "../content.js";
 import { L } from "../i18n.js";
 import { P_HEX } from "../ui.js";
 
@@ -34,7 +34,8 @@ export const ART = {
     "...YYYYYY...", "..YKKKKKKY..", ".Y.KYYYYK.Y.", ".YKHSSSSSKY.", ".YKSSSESEKY.", "..KSSSSSSK..", "...KSSSSK...", "....KSSK....",
     "..KYCCCCYK..", ".KYCCCCCCYK.", ".KSKCCCCKSK.", "...KCCCCK...", "...KwwwwK...", "...KwwwwK...", "..KSK..KSK..", "..KK....KK.."] },
 };
-// Life stages follow board position: ladders age you, snakes send you back to a younger self.
+// Life stages follow the years lived (REDESIGN.md Phase 8), at the ages of the squares that used to bound them:
+// a ladder ages you, a snake does not make you young again, and only the fall from Brahma starts you over.
 export const STAGES = [
   { max: 10,   art: "baby",        en: "Baby",           hi: "शिशु" },
   { max: 20,   art: "toddler",     en: "Child",          hi: "बालक" },
@@ -45,7 +46,14 @@ export const STAGES = [
   { max: 100,  art: "sage",        en: "Renunciate",     hi: "संन्यासी" },
   { max: TOP,  art: "divine",      en: "Divine soul",    hi: "दिव्य आत्मा" },
 ];
-export const stageOf = pos => STAGES.findIndex(s => Math.max(pos, 1) <= s.max);
+// stageOf(player), or stageOf(pos) for a square alone
+export function stageOf(p) {
+  const pos = typeof p === "number" ? p : p.pos;
+  if (pos > 100) return STAGES.length - 1;
+  // never younger than the square: they agree in play, and differ only for a token moved by hand
+  const years = Math.max(typeof p === "number" ? 0 : p.years ?? 0, squareOf(Math.max(pos, 1)).age);
+  return STAGES.findIndex(s => s.max > 100 || years <= squareOf(s.max).age);
+}
 export const stageName = i => L(STAGES[i].en, STAGES[i].hi);
 
 const spriteCache = new Map();

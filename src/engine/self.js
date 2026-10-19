@@ -1,0 +1,134 @@
+// ---- Life state (REDESIGN.md Phase 8) ----
+// Who the player is, as opposed to where the token is: years lived, the guna mix, the three aims, and in
+// sannyasa the bhumika they are actually in. Pure, so tools/sim.mjs and the tests run it in node.
+import { ASHRAMAS, LADDERS, SNAKES, squareOf } from "../content.js";
+
+const EARTH = 100;
+// The years a life has. Measured (REDESIGN.md Phase 8): a life with no snakes reaches square 100 at 90, so
+// only a life the snakes sent back over its own ground can outrun it.
+export let SPAN = 110;
+// tools/sim.mjs sweeps it; nothing in the game changes it
+export const setSpan = n => { SPAN = n; };
+
+// The authored age of square n (docs/NARRATIVE.md §5), or null above the world.
+export const ageOf = n => (n >= 1 && n <= EARTH ? squareOf(n)?.age ?? null : null);
+
+// ---- Years lived ----
+// One clock, and it is the authored table: ahead of your own years, the square says how old you are. Walking
+// ground already lived (after a snake) costs a year a turn, as a cycle is about a year (§2.1). A snake takes
+// no time and refunds none: the moment it lands on happens the same year as the vice. A ladder is one turn,
+// so its foot and its top share that turn's year unless the top is older still. The fall from Brahma is a
+// new birth.
+export const ageStep = (years, n) => { const a = ageOf(n); return a == null ? years : a >= years ? a : years + 1; };
+
+// Each square of a life with the years lived there and how it was reached: "snake" or "ladder" for the
+// square a snake or ladder led to, "rebirth" for the birth after the fall, otherwise null. A landing on a
+// snake's head or a ladder's foot is always followed by where it led, except a rebirth snake that did not
+// fire, and that is never followed by its tail.
+export function yearsAlong(life) {
+  const out = [];
+  let years = 0;
+  for (const [i, n] of life.entries()) {
+    const from = life[i - 1], sn = SNAKES[from], ld = LADDERS[from];
+    const via = sn && sn.to === n ? (sn.rebirth ? "rebirth" : "snake") : ld && ld.to === n ? "ladder" : null;
+    if (via === "rebirth") years = 0;
+    else if (via === "ladder") years = Math.max(years, ageOf(n) ?? years);
+    else if (via !== "snake") years = ageStep(years, n);
+    out.push({ n, years, via, from: via ? from : null });
+  }
+  return out;
+}
+// What a turn does to the years: the square landed on, then where a snake or ladder led.
+export function turnYears(years, plan) {
+  if (plan.jump?.rebirth) return 0;
+  const y = ageStep(years, plan.target);
+  return plan.jump?.kind === "ladder" ? Math.max(y, ageOf(plan.final) ?? y) : y;
+}
+
+// ---- Stage of life, by years rather than by square ----
+// The ashrama bands keep their squares (1–20, 21–40 …); a life is in a band once it is older than the last
+// square of the band before. With no snakes this is exactly the square's band.
+const BOUNDS = ASHRAMAS.slice(0, 5).map(([max]) => ageOf(max));
+// An ASHRAMAS index: 0 childhood … 4 sannyasa, 5 above the world.
+export const stageOfYears = y => { const i = BOUNDS.findIndex(b => y <= b); return i < 0 ? 4 : i; };
+export const stageOfPlayer = p => (p.pos > EARTH ? 5 : stageOfYears(p.years ?? ageOf(Math.max(p.pos, 1))));
+export const SANNYASA = 4;
+
+// ---- The gunas (§2.2) ----
+// Sattva, rajas and tamas sum to 1. They move only on the vices and virtues, each tagged with the guna the
+// Gita gives it (content/squares.json "guna"): a landing mixes a quarter of that guna in.
+export const GUNA_W = 0.25;
+export const freshGunas = () => ({ s: 1 / 3, r: 1 / 3, t: 1 / 3 });
+export function mixGuna(g, k, w = GUNA_W) {
+  const out = {};
+  for (const x of ["s", "r", "t"]) out[x] = (1 - w) * g[x] + (x === k ? w : 0);
+  return out;
+}
+
+// ---- The aims: dharma, artha, kama, 0 to 100 (§2.2). Moksha is deliberately not a meter. ----
+export const freshAims = () => ({ dharma: 30, artha: 30, kama: 30 });
+// What each stage does to the aims every turn, and which way they may move (§2.4): brahmacharya refuses
+// artha, the householder works and supports others, vanaprastha can only give away, sannyasa is still.
+export const STAGE_RULES = [
+  { drift: { kama: 1 }, refuse: [] },
+  { drift: { dharma: 1 }, refuse: ["artha"] },
+  { drift: { artha: 1, kama: 1 }, refuse: [] },
+  { drift: { artha: -2, kama: -2 }, refuse: ["dharma", "artha", "kama"] },
+  { drift: {}, frozen: true },
+  { drift: {}, frozen: true },
+];
+const clamp = x => Math.max(0, Math.min(100, x));
+export function applyAims(aims, deltas, stage) {
+  const rule = STAGE_RULES[stage], out = { ...aims };
+  if (rule.frozen) return out;
+  for (const [k, d] of Object.entries(deltas || {})) if (d && !(d > 0 && rule.refuse.includes(k))) out[k] = clamp(out[k] + d);
+  return out;
+}
+
+// The action slots of each stage (§2.4), for Phase 9. Nothing offers them yet: Phase 8 is still dice and move.
+export const SLOTS = [
+  ["move"],
+  ["move", "study", "serve"],
+  ["move", "study", "serve", "give", "practice"],
+  ["move", "give", "practice"],
+  ["move", "practice"],
+  ["move"],
+];
+export const slotsFor = p => SLOTS[stageOfPlayer(p)];
+
+// ---- The jnana-bhumikas (Varaha Upanishad 4) ----
+// The sannyasin's state, set by the guna mix rather than by square. Six are shipped: the seventh, turya, is not
+// reachable by dice alone (REDESIGN.md Phase 8), and waits for Phase 9's PRACTICE. Thresholds are on the
+// sattva share and are calibrated in tools/sim.mjs.
+export const BHUMIKA_AT = [0, 0.43, 0.52, 0.6, 0.67, 0.74];
+export const bhumikaOf = g => BHUMIKA_AT.findLastIndex(x => g.s >= x);
+// The title the Varaha text gives each stage: mumukshu through the first three, then by name.
+export const titleOf = b => (b == null ? null : b < 3 ? 0 : b - 2);
+
+// What a turn does to who the player is, after it has moved them. Returns the new fields.
+export function grow(p, plan) {
+  // a game saved before Phase 8 has none of this yet, and starts it fresh
+  const years = turnYears(p.years ?? 0, plan);
+  let gunas = p.gunas ?? freshGunas(), aims = p.aims ?? freshAims();
+  if (plan.jump?.rebirth) { gunas = freshGunas(); aims = freshAims(); }
+  else if (plan.final <= EARTH) {
+    const stage = stageOfYears(years), sl = LADDERS[plan.target] || (SNAKES[plan.target] && !SNAKES[plan.target].rebirth ? SNAKES[plan.target] : null);
+    if (sl?.guna && plan.jump) { gunas = mixGuna(gunas, sl.guna); aims = applyAims(aims, sl.aims, stage); }
+    aims = applyAims(aims, STAGE_RULES[stage].drift, stage);
+  }
+  const sannyasin = plan.final <= EARTH && !plan.jump?.rebirth && stageOfYears(years) === SANNYASA;
+  const bhumika = sannyasin ? bhumikaOf(gunas) : null;
+  const peak = plan.jump?.rebirth ? null : bhumika == null ? p.peak ?? null : Math.max(p.peak ?? -1, bhumika);
+  return { years, gunas, aims, bhumika, peak };
+}
+
+// The vice a life was still holding when its years ran out: the snake it took most often, the latest on a tie.
+// Phase 12 makes this what carries over.
+export function holdingOf(life) {
+  const along = yearsAlong(life), born = along.findLastIndex(e => e.via === "rebirth"), snakes = along.slice(born + 1).filter(e => e.via === "snake");
+  const count = new Map();
+  for (const { from } of snakes) count.set(from, (count.get(from) || 0) + 1);
+  let best = null;
+  for (const { from } of snakes) if (count.get(from) >= (count.get(best) || 0)) best = from;
+  return best;
+}

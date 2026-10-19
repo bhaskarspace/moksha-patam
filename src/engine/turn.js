@@ -1,6 +1,7 @@
 // The rules of a turn, with no DOM: the UI animates a plan, and tools/sim.mjs plays plans headless.
 import { GOAL, TOP, LADDERS, SNAKES, HEAVEN } from "../content.js";
 import { makeRng, die } from "../rng.js";
+import { SPAN, turnYears, grow, freshGunas, freshAims, holdingOf } from "./self.js";
 
 // The die shows this many random faces while it tumbles before the real roll. They come from the
 // game's own sequence, so a headless game must draw them too to stay in step with the UI.
@@ -11,12 +12,16 @@ export function rollValue(rng) {
 }
 
 // A player has a gender for Hindi agreement (docs/NARRATIVE.md §4), an alias {en, hi} when the name was
-// drawn rather than typed, and a life: every square landed on, in order, for the life account.
+// drawn rather than typed, and a life: every square landed on, in order, for the life account. Phase 8 adds
+// who they are (src/engine/self.js): years lived, gunas, aims, the bhumika in sannyasa and the highest
+// reached, and once the years run out, dead and the vice they were still holding.
 export function createGame({ players, rules, seed }) {
   return {
-    players: players.map((r, i) => ({ name: r.name.trim(), type: r.type, gender: r.gender || "m", alias: r.alias || null, color: i, pos: 0, face: "r", life: [], hasFallen: false })),
+    players: players.map((r, i) => ({ name: r.name.trim(), type: r.type, gender: r.gender || "m", alias: r.alias || null, color: i, pos: 0, face: "r", life: [], hasFallen: false,
+      years: 0, gunas: freshGunas(), aims: freshAims(), bhumika: null, peak: null, dead: false, holding: null })),
     rules: { ...rules },
-    turn: 0, winner: null, last: null,
+    // over: someone reached the exit, or nobody is left alive to
+    turn: 0, winner: null, over: false, last: null,
     log: [{ k: "lNew", kind: "" }],
     rng: makeRng(seed),
   };
@@ -68,11 +73,16 @@ export function planTurn(state, v) {
   } else if (target !== GOAL) {
     after.push(entry(from === 0 ? "lBorn" : "lMove", { v, pos: target, sq: target }, "", idx));
   }
-  const win = final === GOAL, again = !win && v === 6 && rules.six;
+  const win = final === GOAL;
+  // A life ends when its years run out on earth (REDESIGN.md Phase 8). Only a life that walks ground it has
+  // already lived can outrun the span, so only the snakes bring this about.
+  const years = turnYears(p.years ?? 0, { target, final, jump }), died = !win && final <= 100 && years > SPAN;
+  const again = !win && !died && v === 6 && rules.six;
   // coming back down onto the exit, after overshooting it, is said so: it is the point of the geometry
   if (win) end.push(entry(from > GOAL ? "lWinAbove" : "lWin", { pos: GOAL }, "heaven", idx));
+  else if (died) end.push(entry("lDied", { pos: final, age: years, sq: final }, "death", idx));
   else if (again) end.push(entry("lSix", {}, "", idx));
-  return { idx, v, from, path, target, final, jump, win, again, pre, after, end };
+  return { idx, v, from, path, target, final, jump, win, died, again, pre, after, end };
 }
 
 export function endTurn(state, plan) {
@@ -81,8 +91,18 @@ export function endTurn(state, plan) {
   // a snake or a ladder is two moments: the square that did it, and the one it led to
   (p.life ||= []).push(...(plan.jump ? [plan.target, plan.final] : [plan.target]));
   if (plan.jump?.rebirth) p.hasFallen = true;
+  Object.assign(p, grow(p, plan));
+  if (plan.died) { p.dead = true; p.holding = holdingOf(p.life); }
   if (plan.win) state.winner = plan.idx;
-  else if (!plan.again) state.turn = (state.turn + 1) % state.players.length;
+  // the turn passes to the next player still alive; with nobody left, the game is over
+  else if (!plan.again) for (let k = 1; k <= state.players.length; k++) {
+    const i = (plan.idx + k) % state.players.length;
+    if (!state.players[i].dead) { state.turn = i; break; }
+  }
+  // Over when someone is through, or nobody is left to be: in a game with people in it, once none of them is
+  // alive, since the computers would only be playing on for nobody.
+  const alive = state.players.filter(q => !q.dead), humans = state.players.some(q => q.type === "human");
+  state.over = state.winner != null || !alive.length || (humans && !alive.some(q => q.type === "human"));
   plan.end.forEach(e => addLog(state, e));
 }
 

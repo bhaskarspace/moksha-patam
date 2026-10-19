@@ -142,6 +142,16 @@ The age does not have to appear in every moment's text. It should appear often e
 that the player always roughly knows how old they are, and it belongs in the card
 furniture (near the square number) on every square that has one.
 
+**Since Phase 8 the square's age is the age its moment belongs to, and the age a moment
+*says* is the years the player has lived.** A snake moves the token down the board, not
+the player back in time: a vice spends years rather than rewinding them. So a moment says
+its age through `{age}` ("{name} is {age} and starts again…", "{name} {age} बरस {का|की}
+है"), filled with the years lived as words, and "still eighty-nine" / "अब भी नवासी" on
+the square a snake has just put someone on. On a climb with no snakes the years lived are
+exactly the authored ages, so nothing reads differently; the lint fails a moment that
+spells its age out instead. The month ages (squares 2–4) stay literal: every snake tail is
+above them. The clock is in `src/engine/self.js` and REDESIGN.md Phase 8.
+
 ---
 
 ## 6. Continuity: the cast and the callbacks
@@ -175,6 +185,14 @@ Square 50, after the anger snake at 59, is the obvious case: *the same hand that
 the mongoose.* So is square 61's "begin again" after any fall. Keep these to maybe a
 dozen across the board; they are seasoning, and every one of them needs the earlier
 square to have actually been passed, so the text must work either way.
+
+**Phase 8 wired them.** A callback is said by the life account, not by the moment: the
+square carries an `echo`, a phrase that reads on into its moment ("Long after the hour
+asleep on that chest, "), said only when the square it calls back to is in the same life.
+There are twelve: 30→19, 37→26, 40→27, 50→59, 53→3, 61→99, 63→43, 67→52, 78→41, 81→10,
+93→62, 97→6. 50 and 61 are their own snakes' tails, so the snake's join speaks for them on
+the way down and their echo only on a later walk (61's never can: nothing below 99 leads
+back above it but the fall from Brahma, which begins another life).
 
 ---
 
@@ -234,6 +252,32 @@ Not a list of squares. A short biography of someone who lived about forty turns.
 - Downloadable or copyable, so it leaves the game.
 - Bilingual like everything else.
 
+**The joins (Phase 8, `src/engine/account.js`).** A join is chosen by how a moment
+relates to the one before it, first match winning:
+
+1. the square a snake led to: the years it undid, never "afterwards", since no time passed;
+2. a square whose `callsBack` is already in this life: its `echo`;
+3. the square a ladder led to: "And so, ";
+4. a snake or ladder taken a second time in one life: "Once again, ";
+5. eight or more years since the last moment: "Nine quiet years later, ";
+6. the same year ("That same year, "), or months for a baby;
+7. otherwise one of the plain joins, drawn from a sequence seeded by the game's seed and
+   the player, never from the dice.
+
+Every join ends in a space, so it reads on into the moment (`after()` lower-cases an
+English moment that does not open with the name). A square lived a second time in one life
+is folded into one line ("Meera walked through forty-three to forty-six a second time.")
+instead of being told again; a second visit to the heights is "And the same heights
+again." The fall from Brahma begins another life, headed "Born again".
+
+**The opening.** The account is written once the whole life is known, so its first line
+knows the shape of it, and says only what happened, never what it was worth: born twice,
+ran out of years at a hundred and eleven, lived to ninety-four and at eighty-nine had to
+begin again, nothing went backwards, or lived to an age. **The ending** of a life that ran
+out of years names what it was still holding: the vice it took most often, in that snake's
+`holding` ("…on ground already walked once, still asking whether the son has eaten.").
+Phase 12 makes that what carries over.
+
 Two players who roll differently get genuinely different lives, which is the thing that
 makes somebody play twice. This is the single most shareable artifact the project can
 produce and it should be treated as a headline feature of the phase, not a footnote.
@@ -289,7 +333,13 @@ Enough of these to pin the voice. Write the rest against them.
   moment: { en, hi },        // new; absent is legal and renders as today
   mirror: { en, hi },        // the Phase 2 lead, renamed
   callsBack: n | null,       // new, optional
+  echo: { en, hi },          // Phase 8: how the life account says the callback; with callsBack only
   src }
+
+// LADDERS[n] and SNAKES[n] add, in Phase 8:
+  guna: "s" | "r" | "t",     // the guna the Gita gives the virtue or vice; every virtue is sattva
+  aims: { dharma?, artha?, kama? },   // what it does to the three aims
+  holding: { en, hi },       // snakes only: "still …", what a life was still holding at its end
 ```
 
 - `src/i18n.js` gains `g(gender, forms)` and name interpolation in card strings.

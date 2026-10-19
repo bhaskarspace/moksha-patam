@@ -43,15 +43,16 @@ export function place(silent = false) {
   G.state.players.forEach((p, i) => {
     const el = tokenEls[i];
     el.title = pname(p);
-    el.classList.toggle("active", i === G.state.turn && G.state.winner == null && !G.busy);
+    el.classList.toggle("active", i === G.state.turn && !G.state.over && !G.busy);
+    el.classList.toggle("dead", !!p.dead);
     el.classList.toggle("left", p.face === "l" && el._frame < 2);
-    const stage = stageOf(p.pos);
+    const stage = stageOf(p);
     if (el._stage !== stage) {
       if (el._stage != null && !silent) {
         retrigger(el, "poof");
-        // growing up, going back to a younger self on a snake, or, on the Brahmā fall alone, being born again
+        // growing up, or, on the Brahmā fall alone, being born again: a snake no longer makes anyone younger
         const v = { name: pname(p), stage: stageName(stage) }, you = !p.name && p.color === 0;
-        const key = stage > el._stage ? "grew" : G.plan?.jump?.rebirth ? "bornAgain" : "younger";
+        const key = stage > el._stage ? "grew" : "bornAgain";
         toast(fill(t(key + (you && key !== "grew" ? "You" : ""), v), { name: v.name, gender: p.gender }));
       }
       el._stage = stage;
@@ -162,7 +163,7 @@ export async function swallow(idx, h, tail) {
   });
   fxClear();
   if (g !== G.gen) return;
-  // ...and spits the player out at the tail, younger and dizzy
+  // ...and spits the player out at the tail, dizzy, and no younger
   p.pos = tail; el.classList.remove("hide"); place();
   retrigger(el, "dizzy");
   await sleep(700);
