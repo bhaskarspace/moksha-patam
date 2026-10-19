@@ -80,6 +80,14 @@ function livedOn(n) {
   // never younger than the square: only a token moved by hand (mp.jump) can be
   return { p, years: Math.max(p.years ?? 0, squareOf(n)?.age ?? 0), still: !!head && !head.rebirth && head.to === n && p.life.at(-1) === n };
 }
+// Which of square n's moments its subject's landing there told (REDESIGN.md Phase 10): the other one only on the
+// square they are standing on, during the landing or after it. A square browsed tells its own.
+function toldHere(n) {
+  const p = subjectOf(), plan = G.plan;
+  if (!p || p.pos !== n) return null;
+  if (plan && G.state.players[plan.idx] === p) return plan.target === n ? plan.told?.[0] ?? null : plan.final === n ? plan.told?.at(-1) ?? null : null;
+  return p.life?.at(-1) === n && p.told?.length === p.life.length ? p.told.at(-1) : null;
+}
 function person(l, n) {
   const p = subjectOf(), here = livedOn(n), a = here ? here.years : squareOf(n)?.age;
   const age = Number.isInteger(a) ? ageWordsIn(l, a, !!here?.still) : "";
@@ -162,7 +170,7 @@ function squareHtml(n, l) {
   const src = srcOfSquare(n), met = [];
   // the moment, when there is one, is what is happening to the player; the mirror is the text that holds
   // it. With no moment the card is exactly the Phase 2 card: no age, and the Phase 2 lead as the mirror.
-  const sq = squareOf(n), m = sq.moment, mirror = m?.mirror || sq.mirror;
+  const sq = squareOf(n), m = (toldHere(n) === "else" && sq.roll?.moment) || sq.moment, mirror = m?.mirror || sq.mirror;
   const age = m && sq.age != null ? ageIn(l, livedOn(n)?.years ?? sq.age) : "";
   let body = `<h2 id="leafTitle">${esc(info.title)}</h2>`;
   const alt = info.alt.filter(Boolean).join(" · ");

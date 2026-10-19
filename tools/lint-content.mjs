@@ -10,6 +10,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { GOAL, TOP, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, STR, SRC_HI, JOINS, NUM_HI, READINGS, CODEX, REFS, ENTRY_IDS, srcOfSquare, sourceOf, leadOf, squareOf } from "../src/content.js";
 import NAMES from "../content/names.json" with { type: "json" };
+import { ENDGAME } from "../src/engine/turn.js";
 
 // Names compare without diacritics or case, so "Śaṅkara", "Sankara" and "sankara" are one name.
 const fold = s => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
@@ -124,6 +125,17 @@ export function lintReport() {
   // every square has a name and a mirror in both languages, and its citation is in the Codex
   const moments = { written: 0, total: TOP - 1, bands: ASHRAMAS.map(([max, en]) => ({ en, max, written: 0, total: 0 })) };
   let lastAge = 0;
+  // what every moment must do, a square's own or the other one it can tell
+  const momentText = (where, m, q) => {
+    playerText(where, m);
+    if (SPOKEN_AGE.test(m.en)) err(where, "says the age in words; say {age}, so the moment tells the years actually lived (REDESIGN.md Phase 8)");
+    if ((m.en.includes("{age}") || m.hi.includes("{age}")) && !(Number.isInteger(q.age) && q.age >= 1)) err(where, "says {age} on a square whose age is not a whole year");
+    if (m.en.includes("{age}") !== m.hi.includes("{age}")) err(where, "says {age} in one language only");
+    if (m.mirror) { bilingual(`${where} mirror`, m.mirror); if (m.mirror.en) lintLead(`${where} mirror`, [m.mirror.en, m.mirror.hi]); }
+    // §2: the mirror attaches to the moment; the Phase 2 opener is the thing being replaced
+    const mirrorEn = (m.mirror || q.mirror).en;
+    if (/^In (the )?\p{Lu}/u.test(mirrorEn)) err(where, `the mirror opens "${mirrorEn.split(" ").slice(0, 3).join(" ")}…", the Phase 2 voice; open with a connective (docs/NARRATIVE.md §2)`);
+  };
   for (let n = 1; n <= TOP; n++) {
     const q = squareOf(n), lead = leadOf(n);
     if (!q) { err(`square ${n}`, "has no content"); continue; }
@@ -170,14 +182,22 @@ export function lintReport() {
     const where = `square ${n} moment`;
     if (!m.en?.trim() || !m.hi?.trim()) { err(where, `exists in ${m.en?.trim() ? "English" : "Hindi"} only`); continue; }
     moments.written++; band.written++;
-    playerText(where, m);
-    if (SPOKEN_AGE.test(m.en)) err(where, "says the age in words; say {age}, so the moment tells the years actually lived (REDESIGN.md Phase 8)");
-    if ((m.en.includes("{age}") || m.hi.includes("{age}")) && !(Number.isInteger(q.age) && q.age >= 1)) err(where, "says {age} on a square whose age is not a whole year");
-    if (m.en.includes("{age}") !== m.hi.includes("{age}")) err(where, "says {age} in one language only");
-    if (m.mirror) { bilingual(`${where} mirror`, m.mirror); if (m.mirror.en) lintLead(`${where} mirror`, [m.mirror.en, m.mirror.hi]); }
-    // §2: the mirror attaches to the moment; the Phase 2 opener is the thing being replaced
-    const mirrorEn = (m.mirror || q.mirror).en;
-    if (/^In (the )?\p{Lu}/u.test(mirrorEn)) err(where, `the mirror opens "${mirrorEn.split(" ").slice(0, 3).join(" ")}…", the Phase 2 voice; open with a connective (docs/NARRATIVE.md §2)`);
+    momentText(where, m, q);
+
+    // Phase 10: a square that tells one of two moments by the face it was arrived at. Only a story square below the
+    // endgame: there one die is rolled and the face cannot be chosen. Snakes and ladders fire on every face, since
+    // making them roll-dependent was measured to raise the liberation rate (REDESIGN.md Phase 10).
+    const roll = q.roll;
+    if (!roll) continue;
+    const rw = `square ${n} roll`;
+    if (!SQ[n] || LADDERS[n] || SNAKES[n] || HEAVEN[n]) err(rw, "only a story square can tell two moments: snakes and ladders fire on every face");
+    if (n >= ENDGAME) err(rw, `is at or above ${ENDGAME}, where the player chooses the die and so the moment`);
+    if (roll.valence !== "good" && roll.valence !== "bad") err(rw, `valence "${roll.valence}" is neither good (low faces bring the event) nor bad (high faces do)`);
+    if (!(Number.isInteger(roll.faces) && roll.faces >= 1 && roll.faces <= 5)) err(rw, `faces ${roll.faces} is not 1 to 5: each moment needs a face`);
+    const rm = roll.moment;
+    if (!rm?.en?.trim() || !rm?.hi?.trim()) err(`${rw} moment`, "needs the other moment in both languages");
+    else momentText(`${rw} moment`, rm, q);
+    if (roll.echo) { if (q.callsBack == null) err(`${rw} echo`, "has an echo but the square calls back to nothing"); join(`${rw} echo`, roll.echo); }
   }
 
   // a snake that starts on a god's square (Phase 4: 109, merit spent) is a snake card of its own: a name,

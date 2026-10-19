@@ -964,6 +964,37 @@ age, and p95 has not risen.
 
 ### Phase 10 — Situations
 
+> **A, the roll-dependent squares, shipped, with these decisions.** B, situations proper, is next.
+> - *Which squares, from the sim, not taste.* The 31% is mostly not below 94: in 16.1 of its 31 points the only
+>   squares landed on four times or more are the divine row (107, 108, 109, 106), bounced around under Phase 9's two
+>   dice, and 19.2% of lives repeat a square at or above 94 at all, a floor nothing below 94 can get under. Below 94
+>   the repeats are the snake tails, reached about half the time by the snake. The ten upgraded are the ten story
+>   squares a life lands on four times or more most often: 43 (2.9% of lives), 52 (2.8), 50 (2.5), 58 (2.4), 8 (1.7),
+>   31 (1.6), 46 (1.5), 11 (1.2), 64 (1.1), 71 (0.9). 53 is next.
+> - *What moved, and what could not.* A square that tells two moments does not change where anyone lands, so the
+>   31% is **31.0% after, exactly as before**: it counts landings. What A fixes is the moment told again, and the sim
+>   now counts that too: **the same moment told four times or more, 31.0% → 27.4%**. Median 34, p95 71, over 100
+>   0.7%, liberation 97.5% are unchanged, by construction: nothing is drawn and nothing moves, so `npm run golden`
+>   and every sim number but the new one are identical, and `--roll=off` gives back main exactly.
+> - *Snakes and ladders fire on every face.* Making them roll-dependent was measured (20,000 lives, in memory) and
+>   rejected: the snakes that make the repeats are the snakes that make the deaths. The gṛhastha snakes spared on a 1
+>   take the 31% to 27.6% and liberation to 98.7%; all snakes below 94 spared on 1–2, 23.0% and 99.7%; ladders missed
+>   on a 6 go the other way (96.7%, but 33.2% and p95 75). No mix tried lowered the one and held the other. The lint
+>   keeps `roll` to story squares below 94; a snake's choice belongs to B, where it can be priced in years.
+> - *The field* (`content/squares.json`): `roll: { valence, faces, moment }`. The square's own moment is the event;
+>   `valence` says which faces bring it, a good event the low ones (`face <= faces`), a misfortune the high ones
+>   (`face > 6 - faces`). All ten are aftermath squares, a misfortune on 4–6; on 1–3 the player came slowly and
+>   noticed. Each other moment has a mirror of its own, since the square's fable tells the misfortune.
+> - *The die face, below 94, on one die* (`toldOn` in `src/engine/turn.js`): the face moved by, never the distance;
+>   a snake's tail reads the same turn's face. The lint refuses the field at or above 94 and the engine reads it only
+>   on one die, so it holds under `--endgame=N` too.
+> - *The record and the account.* `p.told` sits beside `p.life`, one for one; a save without it tells every square's
+>   own moment. In the account what repeats is a moment, not a square: the other moment on a square already told is
+>   told in full, the same one still folds. Where a square was first lived stays the square's. A callback needs the
+>   moment it names (63's "the mango that went soft" is not said after 43's other moment), and the other moment
+>   borrows no echo. With the field stripped, every account for seeds 1–2000, both languages and both genders, is
+>   byte-identical to Phase 9.
+
 - `content/situations.json` and `engine/qbn.js`.
 - Gate evaluation, with the gate surfaced in the UI when an option is withheld.
 - Convert ten squares first, including at least three snakes and three ladders.
@@ -983,6 +1014,36 @@ accrues. The settlement is Phase 11's.
 
 **Authoring rule:** no option is obviously correct, and the game never tells a player they
 chose wrongly. It only shows them, later, what they became.
+
+**Roll-dependent squares — the cheap tier below a situation.** Émerson Moreira, 19 Oct.
+A square with two outcomes is a one-bit storylet: one field and a comparison rather than a
+situation file, so it is the lightweight end of this phase and the place to start.
+
+- **The check reads the die face, never the distance moved**, and applies **below square
+  94 only**. From 94 Phase 9 gives the player two dice to choose between and the option to
+  sit out the year, so above that line the player would be choosing their own arrival
+  speed and every event would be free. Below 94 a turn is still one die and the face is
+  genuinely unsteerable. The boundary is not a patch: it means the player gets no say
+  early and a say only in late sannyāsa, which is the right shape.
+- **The roll is how fast the player arrived.** Come slowly and you noticed what was there;
+  come at speed and you went straight past it, or it caught you. Haste as a failing is
+  native to the source material, so the number stops being a number and becomes something
+  the card can say.
+- **The threshold direction follows the event's valence.** Good outcomes fire on low
+  rolls, bad ones on high. Low-always-fires only trades when the event is desirable: a 2
+  means little ground but you get the thing, a 6 means ground but you miss it. When the
+  event is a misfortune, a low roll gives less ground *and* the misfortune, which
+  compounds instead of trading.
+- **It is also the repetition fix.** Phase 9 killed the 99→61 loop (taken twice or more:
+  9.2% → 0.0%), but **a square is still landed on four or more times in 31% of lives**,
+  and a repeat landing prints a short form rather than a different event. A square that
+  can resolve two ways stops repeating itself.
+
+**What already exists.** All 76 written squares already fire their moment on landing, with
+no roll involved. Émerson's "fixed houses with the right events" is that, already built, so
+his proposal is two additions to one existing channel rather than three new systems. The
+open question is only which squares get upgraded, and that is content work, not
+architecture.
 
 **Done when:** ten squares offer choices, the fallback is invisible, no unreachable
 situation exists (`lint-content.mjs`), no option is obviously correct, and a player who
@@ -1032,6 +1093,37 @@ A player carrying almost nothing walks away from the reckoning nearly untouched,
 is what they earned. Fix the presentation, not the number: the omen always produces the
 card and the floor always seems to open. What follows scales.
 
+**Which channel does an event belong to? Ask whether the player can steer away from it.**
+This is what keeps two channels from drifting into five. A Phase 10 square event is
+steerable — below 94 by declining to land there, above 94 outright, which is why Phase 10
+restricts them to below 94. The omen on a 1 is never steerable. Steerable is āgāmi, what
+the player is making by how they move; unsteerable is prārabdha, already released. Assign
+every new event by that test.
+
+**Rate check on the omen.** Phase 9 cut the median life from 49 turns to 34, so a flat
+1-in-6 now fires about six times a life rather than eight — still nearer weather than
+fate. The rising curve toward 105 is meant to shape this; measure the realised
+distribution in `sim.mjs` rather than assuming the curve does the work.
+
+**Superseded — the debt that advances you.** Émerson proposed (19 Oct) that a vice advance
+the player some distance now and collect the same distance later: "you lie or you steal you
+could advance 25 houses meanwhile you carry 25 houses back on debt." Not adopted. Phase 10
+already settles it: the dishonest option advances you *more cheaply, not further*. That is
+a structural guarantee that lying cannot dominate, whereas advance-now-pay-later
+reintroduces the problem and hands it to tuning, which is the exact failure Phase 10 cites.
+Phase 8's year clock does price it — position comes back, years do not — but a balance
+argument should not be swapped in for a structural one.
+
+Keep the word, though. **"Debt" is what to call a carried seed in front of the player.** It
+is far more legible than "seed" or "fuse", which are our words and not theirs.
+
+**The omen and Phase 10's slow arrival share a face.** Since Phase 10 a 1 below 94 is the lucky face on the
+roll-dependent squares (came slowly, and noticed). They can coexist, since those squares are below 94 and the omen
+rises toward 105, but a player taught to dread a 1 is also taught to hope for one. Decide here which one reads.
+
+**Open, from Phase 10: the divine row repeats.** 19.2% of lives land on a square at or above 94 four times or more,
+mostly 106–109 bounced around under Phase 9's two dice. Phase 10 cannot touch it, by its own boundary.
+
 **Done when:** a seed planted at square 20 ripens and then waits for a 1, firing with a
 card that names where it came from; the chance visibly rises toward 105; severity depends
 only on the ledger; and a player can reach 105 and be refused with a legible reason.
@@ -1046,6 +1138,17 @@ only on the ledger; and a player can reach 105 and be refused with a legible rea
   last guṇa mix.
 - The three worlds: add regions below square 1 so a fall has somewhere real to go.
 
+**`p.holding` already exists.** Phase 8 computes the vice a life was still holding when
+its years ran out, and names it in the closing line of the account. That is the concrete
+hand-off into the next life: no new state to design, only a rule for what it does on
+arrival.
+
+**This phase is gated by how rare death now is.** After Phase 9 a life runs out of years in
+2.5% of games (was 16.8%) and the rebirth snake fires in 8.2% (was 37.3%). Yama's reckoning
+screen, the saṃskāra record and the worlds below square 1 would all be built for something
+one player in forty ever sees. Either the exit gets harder first — see Phase 13 — or this
+is content written for an audience that does not arrive.
+
 **Done when:** life two starts measurably different from life one and the difference is
 legible to the player on the birth screen.
 
@@ -1056,6 +1159,23 @@ legible to the player on the birth screen.
 - Mīmāṃsā first (default), then Cārvāka, then the rest.
 - A law-select screen that explains each in the player's own terms before they commit.
 - Different win conditions per §2.7. These are the payoff of the whole design.
+
+**This phase now carries an urgent problem, not only a payoff.** After Phase 9, **97.5% of
+lives reach mokṣa.** That inverts the game's own thesis: the intro text says the heavens
+past the exit are still the wheel, and a board where liberation is the overwhelming default
+says the opposite. It also strands Phases 11 and 12, whose content only fires on lives that
+fall or run out of years.
+
+The cause is not a defect in Phase 9 — the agency it added is right, and the loop repetition
+is genuinely gone — but the exit got much cheaper as a side effect of clearing the over-100
+guardrail, and nobody chose that. The per-school win conditions are where it is fixed,
+because each darśana's bar is a different kind of hard: Mīmāṃsā's is not reachable by board
+position at all, Advaita's is knowledge rather than arrival, Cārvāka has no liberation to
+offer. **Decide whether this phase moves ahead of 11 and 12**, or whether one interim
+condition on the 105 gate restores a believable rate while karma is built.
+
+**Report liberation rate per law as the headline number**, ahead of median lifespan. A law
+under which almost everyone is liberated has not been implemented, only decorated.
 
 **Done when:** `sim.mjs` sweeps all implemented laws and reports liberation rate,
 median lifespan and death-stage distribution per law, and the numbers differ in shape
@@ -1161,8 +1281,12 @@ because you are authoring breadth for replay rather than a script.
   mechanic reports median, p95 and the share of games over 100 turns, before and after.
   The mean hides the tail and the tail is what players feel. Baseline after Phase 4:
   median 41, p5 22, p95 82, mean 45.0, max 204, 1.7% over 100 turns. For reference the
-  Milton Bradley board runs 3.3% over 100, so this board's tail is now about half as heavy
-  as that. Treat a rise in p95 or in over-100% as a regression that needs a reason.
+  Milton Bradley board runs 3.3% over 100, which is the guardrail. **Current, after Phase
+  9: median 34, p5 18, p95 71, mean 37.8, max 172, 0.7% over 100.** Treat a rise in p95 or
+  in over-100% as a regression that needs a reason — and note that Phase 9 cleared the
+  guardrail partly by making lives shorter and safer, which is why **liberation rate now
+  needs watching alongside it** (Phase 13): turn count is no longer the only thing a
+  movement change can break.
 - Graceful degradation everywhere: missing situation falls back to story card, missing
   Hindi shows English and warns, missing sprite shows the old emoji. Never a blank card.
 
@@ -1174,9 +1298,17 @@ because you are authoring breadth for replay rather than a script.
 - Square 36, `tat tvam asi`, is where Vedānta splits three ways: Śaṅkara reads
   identity, Rāmānuja a mode of Brahman, Madhva re-splits the sandhi to *atat tvam asi*.
   One card carrying that disagreement does more than ten new narrative squares.
-- The heavenly row 101–109 is the thinnest content on the board and sits at the climax.
-  Either overlay the darśanas or give each devatā card a second line. It cannot stay a
-  roll-call.
-- Square 110 should show each school's own definition of mokṣa side by side. Ending on
-  "these five all said you had arrived, and they meant five different things" is a
-  better last beat than a trophy.
+  **Still unwritten as of Phase 9** — `readings.json` 36 has an empty `schools` — which
+  makes it the highest-value unwritten card on the board.
+- ~~The heavenly row 101–109 is the thinnest content on the board.~~ **Resolved, and the
+  other way round.** Phases 2 and 3 turned it into a descending arc of erasure: the
+  offerings still travelling, one sentence still repeated below by someone who does not
+  know where it came from, a habit kept in one house by people who think it was always
+  done that way, and at last the name itself coming loose. It reads as some of the best
+  writing on the board. Keep it, and do not overlay the darśanas onto it.
+- The exit moved to 105 in Phase 7, so this item's old square number was stale. `MOKSHA`
+  now carries the premise — "Nyāya, Sāṃkhya, Mīmāṃsā and three schools of Vedānta all say
+  you have arrived here. They do not mean the same thing by it." — but **no school voices
+  are written for it** (`readings.json` 105 has an empty `schools`). Setting the
+  definitions out side by side is still a better last beat than a trophy, and it is now a
+  small job on top of a line that already exists.

@@ -1,5 +1,5 @@
 // The rules of a turn, with no DOM: the UI animates a plan, and tools/sim.mjs plays plans headless.
-import { GOAL, TOP, LADDERS, SNAKES, HEAVEN } from "../content.js";
+import { GOAL, TOP, LADDERS, SNAKES, HEAVEN, SQ } from "../content.js";
 import { makeRng, die } from "../rng.js";
 import { SPAN, turnYears, grow, freshGunas, freshAims, holdingOf, slotsFor, stageOfPlayer, SANNYASA } from "./self.js";
 
@@ -25,6 +25,20 @@ export function rollDice(rng, n) {
   for (let i = 0; i < TUMBLE; i++) for (let k = 0; k < n; k++) die(rng);
   return Array.from({ length: n }, () => die(rng));
 }
+// ---- Roll-dependent squares (REDESIGN.md Phase 10) ----
+// A story square below the endgame may tell one of two moments, by how fast the player arrived: the face of the
+// die moved by, never the distance. A slow arrival noticed what was there; a fast one went straight past it, or it
+// caught them. The square's own moment is the event, and its valence says which faces bring it: a good event the
+// low ones, a misfortune the high ones. Only on one die: from ENDGAME the player chooses the die and could choose
+// the event, so there it would be free. Returns "else" for the other moment, or null for the square's own. Nothing
+// is drawn and nothing moves, so the dice and the board are exactly as they were.
+export function toldOn(n, face, dice = [face]) {
+  const r = SQ[n]?.roll;
+  if (!r || dice.length !== 1 || !face || n >= ENDGAME) return null;
+  const fires = r.valence === "good" ? face <= r.faces : face > 6 - r.faces;
+  return fires ? null : "else";
+}
+
 // A sannyasin on the last squares of earth may move by neither die and sit the year out in practice. Only a
 // sannyasin: practice counts for nobody else (src/engine/self.js grow). The divine row has only one slot: there
 // you walk.
@@ -52,7 +66,7 @@ export function moveFor(state, dice) {
 // reached, and once the years run out, dead and the vice they were still holding.
 export function createGame({ players, rules, seed }) {
   return {
-    players: players.map((r, i) => ({ name: r.name.trim(), type: r.type, gender: r.gender || "m", alias: r.alias || null, color: i, pos: 0, face: "r", life: [], hasFallen: false,
+    players: players.map((r, i) => ({ name: r.name.trim(), type: r.type, gender: r.gender || "m", alias: r.alias || null, color: i, pos: 0, face: "r", life: [], told: [], hasFallen: false,
       years: 0, gunas: freshGunas(), aims: freshAims(), practised: 0, bhumika: null, peak: null, dead: false, holding: null })),
     rules: { ...rules },
     // over: someone reached the exit, or nobody is left alive to
@@ -92,7 +106,7 @@ export function planTurn(state, v, dice = [v]) {
     const years = turnYears(p.years ?? 0, { sit: true }), died = years > SPAN;
     after.push(entry("lSit", { pos: from, sq: from }, "", idx));
     if (died) end.push(entry("lDied", { pos: from, age: years, sq: from }, "death", idx));
-    return { idx, v, dice, spare, sit: true, from, path, target: from, final: from, jump: null, win: false, died, again: false, pre, after, end };
+    return { idx, v, dice, spare, sit: true, from, path, target: from, final: from, jump: null, win: false, died, again: false, told: [null], pre, after, end };
   }
   for (let i = 0, n = from, dir = 1; i < v; i++) {
     if (n === TOP) dir = -1;
@@ -129,7 +143,9 @@ export function planTurn(state, v, dice = [v]) {
   if (win) end.push(entry(from > GOAL ? "lWinAbove" : "lWin", { pos: GOAL }, "heaven", idx));
   else if (died) end.push(entry("lDied", { pos: final, age: years, sq: final }, "death", idx));
   else if (again) end.push(entry("lSix", {}, "", idx));
-  return { idx, v, dice, spare, sit: false, from, path, target, final, jump, win, died, again, pre, after, end };
+  // which moment each square of this turn tells, in the order they join the life: one face for the whole turn
+  const told = (jump ? [target, final] : [target]).map(n => toldOn(n, v, dice));
+  return { idx, v, dice, spare, sit: false, from, path, target, final, jump, win, died, again, told, pre, after, end };
 }
 
 export function endTurn(state, plan) {
@@ -138,6 +154,10 @@ export function endTurn(state, plan) {
   // a snake or a ladder is two moments: the square that did it, and the one it led to
   // a year sat out is the same square again: on earth nothing else lands where it stands (src/engine/self.js)
   (p.life ||= []).push(...(plan.jump ? [plan.target, plan.final] : [plan.target]));
+  // and which of a square's moments each one told, kept beside the life, one for one. A life with none for some of
+  // its squares (a game saved before Phase 10, or one set by hand) told their own moments there.
+  const before = p.life.length - plan.told.length, kept = (p.told ?? []).slice(0, before);
+  p.told = [...kept, ...Array(before - kept.length).fill(null), ...plan.told];
   if (plan.jump?.rebirth) p.hasFallen = true;
   Object.assign(p, grow(p, plan));
   if (plan.died) { p.dead = true; p.holding = holdingOf(p.life); }

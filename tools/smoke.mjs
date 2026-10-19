@@ -460,6 +460,25 @@ await check("Phase 8: after the 99 → 61 snake the account says the years undon
   assert(!/Afterwards|fifty-one/.test(text), "the account still runs the years backwards");
 });
 
+await check("Phase 10: a square that tells two moments shows on the card the one its landing told, by the face", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=1&debug");
+  // 43: a slow arrival (a 3, from 40) eats the mango in time; a fast one (a 5, from 38) finds it gone soft
+  const land = (from, v) => page.evaluate(([from, v]) => { Object.assign(mp.state.players[0], { pos: from, life: [from], told: [null] }); mp.roll(v); }, [from, v]);
+  const read = () => page.evaluate(() => { mp.open(43, { who: 0 }); const t = document.querySelector("#leaf .moment").textContent; mp.close({ instant: true }); return t; });
+  await land(40, 3);
+  await until(page, () => mp.state.players[0].life.at(-1) === 43 && mp.state.turn === 0);
+  const slow = await read();
+  assert(/eats it standing at the window/.test(slow), `slow: ${slow}`);
+  await land(38, 5);
+  await until(page, () => mp.state.players[0].life.at(-1) === 43 && mp.state.players[0].life.length === 2);
+  const fast = await read();
+  assert(/saves the last mango for tomorrow/.test(fast), `fast: ${fast}`);
+  // a square the player is not standing on tells its own moment
+  const browsed = await page.evaluate(() => { mp.state.players[0].pos = 44; mp.open(43, { who: 0 }); const t = document.querySelector("#leaf .moment").textContent; mp.close({ instant: true }); return t; });
+  assert(/saves the last mango/.test(browsed), `browsed: ${browsed}`);
+});
+
 await check("Phase 8: a person whose years run out reads their life at once, while the race plays on", async page => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await twoPeople(page);
