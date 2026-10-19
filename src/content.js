@@ -11,7 +11,7 @@ import names from "../content/names.json" with { type: "json" };
 // GOAL is the exit, where a life is let go; TOP is the last square of the board, where a roll turns back.
 export const { GOAL, TOP, ROWS, ASHRAMAS, LADDERS, SNAKES, HEAVEN, MOKSHA } = squares;
 export const { SQ } = squares;
-export const { STR, SRC_HI, JOINS } = strings;
+export const { STR, SRC_HI, JOINS, NUM_HI } = strings;
 // Names drawn for players who are not given one, each [en, hi], by gender.
 export const PLAYER_NAMES = names.players;
 

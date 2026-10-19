@@ -771,7 +771,73 @@ candidate tail in column 7.
 
 ---
 
-### Phase 8 — Life state
+### Phase 8 — Life state  ✅ SHIPPED
+
+> **Shipped, with these decisions.**
+> - *Years lived, not the square's age, before anything else.* Every snake lowers the authored age (99 → 61 is
+>   89 → 51), and the account joined the tail with "Afterwards, ", so an 89-year-old was afterwards 51. A square's
+>   `age` stays the age its moment belongs to; years lived are a separate clock that never runs backwards. A vice
+>   spends years rather than rewinding them. The clock (`src/engine/self.js`): ahead of your own years, the square's
+>   age is the clock; on ground already lived, a turn is a year (§2.1); a snake takes no time and refunds none; the
+>   fall from Brahmā is a new birth at nought. With no snakes the years equal the authored ages exactly. Adding the
+>   table's deltas again on every re-walk was measured and rejected: snakes undo a median of 62 years a life, so the
+>   median life would have ended near 150.
+> - *The spoken age is a token.* 95 moments said their age in words, so a counter alone still printed "eighty-nine…
+>   fifty-one". They now say `{age}`, filled with the years lived ("still eighty-nine" where a snake has just put
+>   someone); a one-time rewrite proved every moment reads exactly as before at its authored age. Square 98's
+>   अठासी became अट्ठासी, the table's spelling, as with अट्ठाईस and अट्ठावन.
+> - *Āyus.* `SPAN = 110`. The sweep (`npm run sim -- 20000 1 1 --spans=100,105,110,115,120`):
+>
+>   | span | lives that end in death | median | p95 | over 100 |
+>   |---|---|---|---|---|
+>   | none (before) | 0% | 54 | 123 | 12.5% |
+>   | 100 | 30.0% | 43 | 93 | 2.9% |
+>   | 105 | 22.7% | 46 | 98 | 4.2% |
+>   | **110** | **16.8%** | **49** | **102** | **5.6%** |
+>   | 115 | 12.7% | 51 | 106 | 6.9% |
+>   | 120 | 9.6% | 53 | 109 | 8.0% |
+>
+>   **Over-100 is the guardrail (BOARDCRAFT §5) and it is not met.** 5.6% is less than half of 12.5%, but it is still
+>   above Milton Bradley's 3.3% and the Phase 4 baseline of 1.7%. Recorded as an open regression with its reason, not
+>   called fixed: only span 100 gets under 3.3%, at the price of a third of lives. With two players: median 38, p95 88,
+>   over 100 2.1%, against 38 / 86 / 1.8% before. That rise has its own reason: when one life ends, the other finishes
+>   the race alone. YS 2.13 (jāti, āyus, bhoga) is the hook for Phases 11–12, where prārabdha sets the span.
+> - *When the years run out, the life ends.* The reason, on the record: a life's length is almost entirely its snakes.
+>   Across 20,000 single lives, snakes taken by game-length quartile run 2.1 / 5.1 / 8.0 / 14.6, and 22.1 in the
+>   slowest 5%; the lives that die took 16.5 snakes on average against 6.1. Death is where a life the snakes already
+>   wrecked comes to an end. That is the teaching, and it needs no new content. Only re-walking outruns the table,
+>   which tops out at 90, so only snakes bring it about. *Rejected:* rebirth at square 1, which before Phase 11
+>   gives karma anything to carry is a respawn: it would teach that rebirth costs nothing and reopen the tail the
+>   fix pass closed. *Rejected:* the divine row, which works as a ladder for anyone who dies early and is wrong in
+>   the theology: the divine row is earned by merit and spent by merit, which is what the 108 snake is for.
+>   - A person whose years run out reads their life at once instead of watching the others finish. A game of one
+>     person ends on that account ("The life of Asha"), never on a race nobody won. A race result ("No one reached
+>     Moksha.") is kept for games of several people. Once no person is alive the game is over; the computers do
+>     not play on for nobody. A dead token stays where it fell, greyed in the paint only.
+>   - The account's last line names what the life was still holding: the vice taken most, the latest on a tie, in
+>     its snake's `holding` ("…on ground already walked once, still asking whether the son has eaten."). It is kept
+>     as `p.holding` for Phase 12 to carry over.
+> - *The account's joins* (`src/engine/account.js`, now pure and tested in node; NARRATIVE §9 has the rule). First
+>   match wins: snake (the years undone), echo, ladder, again, a gap of eight years or more, same year, then a plain
+>   join drawn from the seed. **Echo goes before ladder, against the order first proposed**: five of the ten new
+>   callbacks are ladder tops, and 44 → 63 is how 63 is usually reached, so ladder-first would have silenced them.
+>   Squares lived twice in one life (94% of lives, about 19 a life) are folded into one line. The fall begins a
+>   section of its own. Twelve callbacks now, each with a bilingual `echo` (NARRATIVE §6). The account opens on a
+>   line that knows the shape of the life and gives no verdict.
+> - *Gunas and aims* are in state and move only on the 24 vices and virtues, tagged with the Gītā's guna (`guna`)
+>   and what they do to dharma, artha and kāma (`aims`). Stage rules gate the aims, by stage of *years*:
+>   brahmacarya refuses artha, vānaprastha only gives away, sannyāsa is still. The action slots of §2.4 are data
+>   (`slotsFor`) that nothing offers until Phase 9; there are no actions to gate yet. Nothing is shown as a number:
+>   the players panel says a sentence ("restless, and always counting").
+> - *The bhūmikā: six, not seven.* State-based, from the sattva share, shown on the sannyāsin's own card ("STORY ·
+>   SATTVĀPATTI · AGE 92"); a browsed square keeps its ashrama. A per-turn counter was tried first: it advanced
+>   every turn and reached turyā in 27% of lives, the noise this section warned about. By state, dice alone never
+>   reach turyā (peak sattva p95 0.74), so it and Brahmavidvariṣṭha are withheld until Phase 9's PRACTICE.
+>   Thresholds are calibrated so the highest stage reached runs 10.0 / 20.2 / 26.6 / 23.9 / 15.2 / 4.1%; a
+>   sannyāsin is shown 1 stage in 37%, 2 in 33%, 3 in 20%. The title (Mumukṣu, Brahmavit, Brahmavidvara,
+>   Brahmavidvarīyān) is the account's subtitle.
+> - The ageing board, the drone and the pixel art follow the years: after a snake the sprite stays old and the board
+>   stays as old as the player. The toast that said a snake made you young again is gone.
 
 - `āyus`, guṇas, puruṣārthas in state.
 - **Derive āyus from the authored `age` table shipped in Phase 3** rather than inventing

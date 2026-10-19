@@ -1,8 +1,10 @@
 // ---- The ageing board (REDESIGN.md §4 Phase 5) ----
 // Squares behind the living fade toward sepia and squares ahead of them stay dim, keyed to the authored
-// age on each square rather than to board position. Only the paint ages: labels, cards and clicks never do.
+// age on each square rather than to board position, and since Phase 8 to the years each player has actually
+// lived, so a snake leaves the board as old as the player. Only the paint ages: labels, cards and clicks never do.
 // Pure, so it runs in node and the same positions always give the same board.
 import { GOAL, ASHRAMAS, squareOf } from "../content.js";
+import { stageOfYears } from "../engine/self.js";
 
 const EARTH = 100;
 // years for a square to fade fully once everyone has lived past it, and for the dimness ahead to deepen
@@ -13,6 +15,12 @@ export const ageOf = n => (n >= 1 && n <= EARTH ? squareOf(n)?.age ?? null : nul
 // How old a player at pos is: newborn in the tray, the oldest earthly age once in the divine row.
 const ageAt = pos => (pos <= 0 ? 0 : pos > EARTH ? ageOf(EARTH) : ageOf(pos));
 export const stageAt = pos => (pos === GOAL ? ASHRAMAS.length : ASHRAMAS.findIndex(([max]) => Math.max(pos, 1) <= max));
+// How old a player is: the years lived, and never younger than the square they stand on. In play the two agree
+// or the years are ahead (after a snake); only a token moved by hand (mp.jump) has a square older than its life.
+// Above the world, at least the oldest earthly age.
+export const yearsOf = p => Math.max(p.years ?? 0, ageAt(p.pos));
+// A player's stage of life, by years: what the drone and the pixel art follow (REDESIGN.md Phase 8).
+export const stageOf = p => (p.pos === GOAL ? ASHRAMAS.length : p.pos > EARTH ? stageAt(p.pos) : stageOfYears(yearsOf(p)));
 
 // Whose age the board shows. With every player: sepia is what all of them have left behind (the youngest),
 // dim is what none of them has reached (the oldest), and the drone follows whoever is furthest on.
@@ -20,12 +28,12 @@ export const stageAt = pos => (pos === GOAL ? ASHRAMAS.length : ASHRAMAS.findInd
 // ASHRAMAS.length for silence once someone reaches the exit.
 export function lens(state, i = null) {
   const ps = i == null ? state.players : [state.players[i]];
-  const pos = ps.map(p => p.pos), lead = Math.max(...pos);
+  const pos = ps.map(p => p.pos), lead = Math.max(...pos), years = ps.map(yearsOf);
   return {
-    fadeAge: Math.min(...pos.map(ageAt)),
-    dimAge: Math.max(...pos.map(ageAt)),
+    fadeAge: Math.min(...years),
+    dimAge: Math.max(...years),
     lead,
-    droneStage: state.winner != null ? ASHRAMAS.length : stageAt(lead),
+    droneStage: state.winner != null ? ASHRAMAS.length : stageOf(ps[pos.indexOf(lead)]),
   };
 }
 

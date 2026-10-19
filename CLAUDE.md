@@ -17,12 +17,18 @@ single static `index.html` at https://codebpr.com/moksha-patam/
 - `docs/REFERENCE.md`: philosophy-to-mechanics mapping and the history of the board.
 - `docs/LANDSCAPE.md`: comparable games.
 
-**State:** Phases 0 to 7 have shipped. Phase 7 was The Exit (REDESIGN.md §4): Moksha is square 105 (`GOAL`), partway
+**State:** Phases 0 to 8 have shipped. Phase 8 was Life State (REDESIGN.md §4): years lived are a clock of their own
+(`src/engine/self.js`) that a snake never turns back, moments say their age through `{age}`, a life ends when its years
+pass `SPAN` (110), and the life account (`src/engine/account.js`, pure) chooses each join by how a moment relates to the
+last. Gunas, aims and the bhumika are in state and never shown as numbers. Phase 9, Dice as currency, is next.
+Phase 7 was The Exit (REDESIGN.md §4): Moksha is square 105 (`GOAL`), partway
 along the divine row, while the board still ends at 110 (`TOP`); a roll bounces off `TOP` and can come back down onto the
 exit. The rebirth snake falls from Brahma (108) to 1, only for a player climbing onto it and once per life, and a Shepard tone plays under the divine row
 (`src/audio/shepard.js`). Phase 6 was The Card in Hand: the card opens collapsed (`src/render/card.js`), with an
-illuminated frame (`frame.js`) and a bottom sheet below 768px (`sheet.js`). Phase 8, Life state, is next.
+illuminated frame (`frame.js`) and a bottom sheet below 768px (`sheet.js`).
 - `GOAL` means the win and `TOP` means the board's extent. Use the right one; content moves by identity, never by index.
+- A player's age is `p.years`, never `squareOf(p.pos).age`; the square's age is only the age its moment belongs to.
+  The game is over when `state.over`, not when `state.winner` is set: a life can end without anyone winning.
 
 ## Commands
 - `npm run build`: fails on any `Math.random` outside `src/rng.js` or on any content lint error.
@@ -32,8 +38,10 @@ illuminated frame (`frame.js`) and a bottom sheet below 768px (`sheet.js`). Phas
   moments: `{name}` in both languages, Hindi agreement through `{m|f}` choices, an age on every
   earthly square, and a `moments: n/109` burn-down line.
 - `npm run format`: rewrites `content/*.json` one entry per line. Run it after editing content.
-- `npm run sim [games] [players] [firstSeed] [--rules=brahmaloka] [--snake=HEAD:TAIL|none]`: headless
-  games, reporting median, p5, p95 and the share over 100 turns. Balance against the p95.
+- `npm run sim [games] [players] [firstSeed] [--rules=brahmaloka] [--snake=HEAD:TAIL|none] [--span=N] [--spans=a,b,…]`:
+  headless games, reporting median, p5, p95 and the share over 100 turns, and since Phase 8 the share of lives that run
+  out of years, years lived, and the bhumika distribution. `--spans` sweeps the span of a life. Balance against the
+  p95 and the share over 100.
 - `npm run smoke [-- --only=text]`: Playwright checks of the built page in a real browser (needs Chrome installed).
   `--only` runs just the checks whose names contain the text, e.g. `--only="Phase 6"`.
 - `npm run golden [seeds]`: the built page and `sim.mjs` must produce the same move log.
@@ -45,7 +53,7 @@ illuminated frame (`frame.js`) and a bottom sheet below 768px (`sheet.js`). Phas
 - Never break the single-file deploy.
 - No `Math.random()` outside `src/rng.js`. All randomness goes through the seeded RNG.
 - Every new string must be bilingual `{en, hi}`, or the content lint fails.
-- Keep the `?debug` helpers working (`mp.jump`, `mp.roll`, `mp.seed`, `mp.setLang`, …
+- Keep the `?debug` helpers working (`mp.jump`, `mp.roll`, `mp.seed`, `mp.setLang`, `mp.years`, …
   in `src/main.js`) and extend them; don't remove any.
 - The ageing paints only the art: labels, cards and clicks never dim (`tests/contrast.test.mjs` holds every
   label's contrast). Phase 5 colours are `--b-*` tokens only (lint). Never touch `G.state.rng` from sound or drawing.

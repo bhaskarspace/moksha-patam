@@ -415,6 +415,80 @@ await check("the life account's text fills the dialog, at 1440, 1024 and 375 wid
   assert(!bad.length, bad.join(" | "));
 });
 
+// ---- Phase 8: life state ----
+// Two people and a computer, so one of them can run out of years while the game goes on.
+const twoPeople = page => page.addInitScript(() => {
+  const rows = [{ name: "Asha", type: "human", gender: "f" }, { name: "Ravi", type: "human", gender: "m" }, { name: "", type: "cpu" }, { name: "", type: "cpu" }];
+  window.claude = { hot: { data: { setup: { count: 3, rows, rules: { six: true } } } } };
+});
+// waits for a condition, closing any landing card that would hold the turn up
+const until = (page, fn) => page.waitForFunction(fn => {
+  if (document.getElementById("folio").open) mp.close({ instant: true });
+  return new Function(`return (${fn})()`)();
+}, fn.toString(), { timeout: 30000, polling: 100 });
+
+await check("Phase 8: a sannyasin's card names the bhumika they are in, at the years they have lived", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=1&debug");
+  const read = (gunas, years) => page.evaluate(([gunas, years]) => {
+    const p = mp.state.players[0];
+    Object.assign(p, { pos: 90, years, life: [90], gunas });
+    mp.open(90, { who: 0 });
+    const leaf = document.getElementById("leaf"), out = { eb: leaf.querySelector(".eb").textContent, moment: leaf.querySelector(".moment")?.textContent };
+    mp.close({ instant: true });
+    return out;
+  }, [gunas, years]);
+  const deep = await read({ s: 0.8, r: 0.1, t: 0.1 }, 95), plain = await read({ s: 0.2, r: 0.5, t: 0.3 }, 78);
+  assert(deep.eb.includes("Padārthābhāvanā") && deep.eb.includes("95"), `eyebrow: ${deep.eb}`);
+  assert(/is ninety-five and wakes in the dark/.test(deep.moment), `moment: ${deep.moment}`);
+  assert(plain.eb.includes("Śubhecchā") && plain.eb.includes("78"), `eyebrow: ${plain.eb}`);
+  // a square the player is not on keeps its own stage and age
+  const other = await page.evaluate(() => { mp.open(85, { who: 0 }); const eb = document.querySelector("#leaf .eb").textContent; mp.close({ instant: true }); return eb; });
+  assert(other.includes("Sannyasa") && other.includes("73"), `square 85: ${other}`);
+});
+
+await check("Phase 8: after the 99 → 61 snake the account says the years undone, and that the player is still the same age", async page => {
+  await page.goto(BASE + "?seed=1&debug");
+  const text = await page.evaluate(() => {
+    Object.assign(mp.state.players[0], { name: "Asha", gender: "f", life: [95, 99, 61], pos: 61, years: 89 });
+    mp.life(0);
+    const t = document.getElementById("lifeLeaf").textContent;
+    document.getElementById("lifeDlg").close();
+    return t;
+  });
+  assert(/thirty-eight years came undone, and Asha is still eighty-nine and starts again/.test(text), text.slice(0, 300));
+  assert(!/Afterwards|fifty-one/.test(text), "the account still runs the years backwards");
+});
+
+await check("Phase 8: a person whose years run out reads their life at once, while the race plays on", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await twoPeople(page);
+  await page.goto(BASE + "?seed=1&debug");
+  // Asha is on 96 having lived the whole span: one more year, to 97, is past it
+  await page.evaluate(() => { const p = mp.state.players[0]; Object.assign(p, { pos: 96, life: [96] }); mp.years(110); mp.roll(1); });
+  await until(page, () => document.getElementById("lifeDlg").open);
+  const r = await page.evaluate(() => ({ title: document.getElementById("lifeTitle").textContent, end: document.querySelector("#lifeLeaf .life-end").textContent,
+    over: mp.state.over, turn: mp.state.turn, dead: mp.state.players[0].dead, win: document.getElementById("win").hidden }));
+  assert(r.dead && r.title.includes("Asha"), JSON.stringify(r));
+  assert(/years ran out at a hundred and eleven, on ground already walked once/.test(r.end), r.end);
+  assert(!r.over && r.turn === 1 && r.win, `the race should go on with Ravi: ${JSON.stringify(r)}`);
+  await page.evaluate(() => document.getElementById("lifeDlg").close());
+  // Ravi's years run out too: with nobody left the game ends, and its result is the race's
+  await page.evaluate(() => { const p = mp.state.players[1]; Object.assign(p, { pos: 96, life: [96] }); mp.years(110); mp.roll(1); });
+  await until(page, () => mp.state.over && !document.getElementById("win").hidden);
+  const end = await page.evaluate(() => ({ title: document.getElementById("winTitle").textContent }));
+  assert(end.title === "No one reached Moksha.", end.title);
+}, { limit: 120 });
+
+await check("Phase 8: a game of one person ends on their own account, not on a race nobody won", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=1&debug");
+  await page.evaluate(() => { const p = mp.state.players[0]; Object.assign(p, { name: "Asha", pos: 96, life: [96] }); mp.years(110); mp.roll(1); });
+  await until(page, () => document.getElementById("lifeDlg").open && !document.getElementById("win").hidden);
+  const r = await page.evaluate(() => ({ title: document.getElementById("winTitle").textContent, text: document.getElementById("winText").textContent, over: mp.state.over }));
+  assert(r.over && r.title === "The life of Asha" && !/no one|nobody/i.test(r.title + r.text), JSON.stringify(r));
+});
+
 // ---- Phase 5: the painted board ----
 const settle = page => page.waitForFunction(() => {
   if (document.getElementById("folio").open) mp.close({ instant: true });
