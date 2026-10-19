@@ -27,8 +27,10 @@ export const ageStep = (years, n) => { const a = ageOf(n); return a == null ? ye
 // fire, and that is never followed by its tail.
 // A square of earth landed on twice running is a year sat out (Phase 9): no move on earth lands where it began,
 // since only a bounce off the top of the board can. Its via is "sit".
-export function yearsAlong(life) {
-  const out = [];
+// With the record of what each square told (Phase 10, src/engine/turn.js toldOn), each entry carries it as told:
+// null for the square's own moment. A record that does not match the life one for one is not used.
+export function yearsAlong(life, told = []) {
+  const out = [], toldAt = told.length === life.length ? i => told[i] ?? null : () => null;
   let years = 0;
   for (const [i, n] of life.entries()) {
     const from = life[i - 1], sn = SNAKES[from], ld = LADDERS[from];
@@ -37,7 +39,7 @@ export function yearsAlong(life) {
     else if (via === "sit") years += 1;
     else if (via === "ladder") years = Math.max(years, ageOf(n) ?? years);
     else if (via !== "snake") years = ageStep(years, n);
-    out.push({ n, years, via, from: via && via !== "sit" ? from : null });
+    out.push({ n, years, via, from: via && via !== "sit" ? from : null, told: toldAt(i) });
   }
   return out;
 }

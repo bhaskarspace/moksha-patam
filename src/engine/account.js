@@ -12,6 +12,11 @@
 // A snake or ladder taken again is not told again either (REDESIGN.md Phase 9): the second time is one line,
 // and from the third it is only counted, in a tally that ends the paragraph. A life stuck in a loop reads as
 // stuck in one line. Years sat out in practice are told as one line too.
+//
+// A square that can tell two moments (REDESIGN.md Phase 10, src/engine/turn.js toldOn) is told again when it tells
+// the other one: what repeats is a moment, not a square. Where it was first lived is still the square's. A callback
+// is said only when the square it calls back to told its own moment, since the echo names that moment; the other
+// moment has an echo of its own only when one is written.
 import { ASHRAMAS, LADDERS, SNAKES, JOINS, squareOf, snakeOn } from "../content.js";
 import { tIn, fill, wordsIn, ageWordsIn } from "../i18n.js";
 import { makeRng, next } from "../rng.js";
@@ -36,11 +41,13 @@ export function lifeOf(state, i, l) {
   let lastThen = -1;
   const then = () => { let k = Math.floor(next(rng) * JOINS.then.length); if (k === lastThen) k = (k + 1) % JOINS.then.length; lastThen = k; return JOINS.then[k]; };
 
-  const along = yearsAlong(p.life || []), paras = [];
-  // lived: each square of this life, with the years it was first lived at; taken: how often each snake or
-  // ladder has been taken in this life
-  let para = null, seen = new Set(), lived = new Map(), taken = new Map(), lastYears = null, fold = [], sat = [], reborn = false, skip = false;
-  const note = e => { seen.add(e.n); if (!lived.has(e.n)) lived.set(e.n, e.years); };
+  const along = yearsAlong(p.life || [], p.told || []), paras = [];
+  // lived: each square of this life, with the years it was first lived at; own: the squares that told their own
+  // moment; seen: the moments told, by square and which moment; taken: how often each snake or ladder has been
+  // taken in this life
+  let para = null, seen = new Set(), lived = new Map(), own = new Set(), taken = new Map(), lastYears = null, fold = [], sat = [], reborn = false, skip = false;
+  const told = e => (e.told ? `${e.n}:${e.told}` : e.n);
+  const note = e => { seen.add(told(e)); if (!e.told) own.add(e.n); if (!lived.has(e.n)) lived.set(e.n, e.years); };
   const sq = n => { const q = squareOf(n); return q[l] || q.en; };
   // squares lived a second time, told as one line. The ages are the ones that ground was first walked at,
   // which is said so, since the years lived have moved on since.
@@ -75,8 +82,9 @@ export function lifeOf(state, i, l) {
   const open = (s, again) => { close(); para = { s, ages: [], parts: [], reborn: again, tally: new Map() }; paras.push(para); };
 
   for (const [k, e] of along.entries()) {
-    const q = squareOf(e.n), m = q?.moment, nextE = along[k + 1];
-    if (e.via === "rebirth") { close(); seen = new Set(); lived = new Map(); taken = new Map(); lastYears = null; para = null; reborn = true; }
+    // the moment this landing told: the square's own, or the other one a roll-dependent square has
+    const q = squareOf(e.n), other = e.told === "else" ? q?.roll : null, m = other ? other.moment : q?.moment, nextE = along[k + 1];
+    if (e.via === "rebirth") { close(); seen = new Set(); lived = new Map(); own = new Set(); taken = new Map(); lastYears = null; para = null; reborn = true; }
     // where a snake or ladder told short led: lived, and not told
     if (skip) { skip = false; note(e); lastYears = e.years; continue; }
     if (!m && e.via !== "sit") { note(e); continue; }
@@ -85,7 +93,7 @@ export function lifeOf(state, i, l) {
     if (e.via === "sit") { flushFold(); sat.push(e); para.ages.push(Math.floor(e.years)); continue; }
     // a snake or ladder taken from here, and whether this square has been told already in this life
     const event = nextE && (nextE.via === "snake" || nextE.via === "ladder" || nextE.via === "rebirth");
-    const repeat = seen.has(e.n);
+    const repeat = seen.has(told(e));
     if (repeat && !e.via && !event) { flushSat(); fold.push(e); para.ages.push(Math.floor(e.years)); note(e); continue; }
     flush();
     para.ages.push(Math.floor(e.years));
@@ -105,7 +113,7 @@ export function lifeOf(state, i, l) {
     // above the world there is no more time to measure
     const gap = lastYears == null || e.n > EARTH ? null : e.years - lastYears;
     if (e.via === "snake") join = J(JOINS.snake, { cost: words(ageOf(e.from) - ageOf(e.n)) });
-    else if (q.echo && lived.has(q.callsBack) && !repeat) join = q.echo[l] || q.echo.en;
+    else if ((other ? other.echo : q.echo) && own.has(q.callsBack) && !repeat) { const echo = other ? other.echo : q.echo; join = echo[l] || echo.en; }
     else if (e.via === "ladder") join = J(JOINS.ladder);
     else if (repeat) join = J(JOINS.again);
     else if (para.parts.length && gap != null && gap >= GAP) join = J(JOINS.gap, { gap: words(gap) });
