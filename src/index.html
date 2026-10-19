@@ -44,11 +44,15 @@
       <div class="board-frame">
         <div class="board-wrap" id="board">
           <div class="ashramas" id="ashramas" aria-hidden="true"></div>
-          <div class="cells" id="cells"></div>
-          <canvas id="art"></canvas>
-          <div class="labels" id="labels"></div>
-          <canvas id="fx"></canvas>
-          <div class="tokens" id="tokens"></div>
+          <!-- the stage clips the camera; cam is what it moves -->
+          <div class="board-stage" id="stage"><div class="cam" id="cam">
+            <div class="cells" id="cells"></div>
+            <canvas id="art"></canvas>
+            <canvas id="age"></canvas>
+            <div class="labels" id="labels"></div>
+            <canvas id="fx"></canvas>
+            <div class="tokens" id="tokens"></div>
+          </div></div>
           <div id="toastSlot"></div>
           <div class="win" id="win" hidden>
             <div>

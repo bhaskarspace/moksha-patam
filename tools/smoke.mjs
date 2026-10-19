@@ -344,6 +344,100 @@ await check("Phase 3: a finished game reads as a life, in both languages, and ca
   assert(copied.length > 10, "nothing was copied");
 }, { limit: 150 });
 
+// ---- Phase 5: the painted board ----
+const settle = page => page.waitForFunction(() => {
+  if (document.getElementById("folio").open) mp.close({ instant: true });
+  return !document.getElementById("roll").disabled;
+}, null, { timeout: 30000, polling: 100 });
+
+await check("Phase 5: no sound before a gesture or while muted; mute survives a reload, and unmuting starts the drone", async page => {
+  const warnings = [];
+  page.on("console", m => m.type() === "warning" && /audio/i.test(m.text()) && warnings.push(m.text()));
+  await page.goto(BASE + "?seed=1&debug");
+  assert((await page.evaluate(() => mp.audio())).ctx === null, "an audio context exists before any gesture");
+  await page.click("#roll");
+  await settle(page);
+  let a = await page.evaluate(() => mp.audio());
+  assert(a.ctx === "running" && a.stage === 0, `after the first roll: ${JSON.stringify(a)}`);
+  await page.click("#mute");
+  await page.waitForTimeout(400);
+  a = await page.evaluate(() => mp.audio());
+  assert(a.muted && a.stage === null && a.ctx === "suspended", `after muting: ${JSON.stringify(a)}`);
+  await page.reload();
+  await page.click("#roll");
+  await settle(page);
+  a = await page.evaluate(() => mp.audio());
+  assert(a.muted && a.ctx === null, `muted after a reload, yet: ${JSON.stringify(a)}`);
+  await page.click("#mute");
+  a = await page.evaluate(() => mp.audio());
+  assert(!a.muted && a.ctx === "running" && a.stage === 0, `after unmuting: ${JSON.stringify(a)}`);
+  assert(!warnings.length, "audio warnings: " + warnings.join("; "));
+});
+
+await check("Phase 5: the drone changes at every ashrama boundary", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=1&debug");
+  await page.click("#roll");
+  await settle(page);
+  // stand on each stage's last square, then step over into the next (21, 41, 61, 81 and 101 are plain squares)
+  for (const [i, b] of [20, 40, 60, 80, 100].entries()) {
+    await page.evaluate(b => mp.jump(b), b);
+    assert((await page.evaluate(() => mp.audio().stage)) === i, `at ${b} the drone is not stage ${i}`);
+    await page.evaluate(() => { mp.roll(1); });
+    await settle(page);
+    assert((await page.evaluate(() => mp.audio().stage)) === i + 1, `past ${b} the drone did not move to stage ${i + 1}`);
+  }
+});
+
+await check("Phase 5: squares ahead are dimmed, yet every one still opens its card", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=1&debug");
+  await page.evaluate(() => { mp.state.players.forEach(p => (p.pos = 40)); mp.jump(40); });
+  const ahead = await page.evaluate(() => [...document.querySelectorAll("#labels .lab.ahead")].map(l => +l.dataset.n));
+  assert(ahead.length && Math.min(...ahead) > 40, `ahead: ${ahead.slice(0, 5)}`);
+  for (const n of [5, 72, 105]) {
+    await page.click(`#labels .lab[data-n="${n}"]`);
+    await page.waitForFunction(n => document.getElementById("folio").open && location.hash === `#sq/${n}`, n);
+    await page.evaluate(() => mp.close({ instant: true }));
+  }
+});
+
+await check("Phase 5: the camera follows a climb, and shows the whole board before the card opens", async page => {
+  await page.goto(BASE + "?seed=1&debug");
+  const seen = await page.evaluate(async () => {
+    const cam = document.getElementById("cam"), out = { zoomed: false, atOpen: null };
+    new MutationObserver(() => { if (document.getElementById("folio").open && out.atOpen == null) out.atOpen = getComputedStyle(cam).transform; })
+      .observe(document.getElementById("folio"), { attributes: true });
+    const iv = setInterval(() => { if (getComputedStyle(cam).transform !== "none") out.zoomed = true; }, 50);
+    mp.jump(5);
+    const done = mp.roll(1);   // the ladder at 6; its landing card opens first
+    await new Promise(r => setTimeout(r, 1500));
+    mp.close({ instant: true });
+    await done;
+    clearInterval(iv);
+    return out;
+  });
+  assert(seen.zoomed, "the camera never moved");
+  assert(seen.atOpen === "none", `the card opened on a zoomed board: ${seen.atOpen}`);
+});
+
+await check("Phase 5: under reduced motion the camera never moves", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=1&debug");
+  await page.evaluate(() => {
+    window.moved = false;
+    setInterval(() => { if (getComputedStyle(document.getElementById("cam")).transform !== "none") window.moved = true; }, 20);
+  });
+  // a walk, a climb and a swallow, each on the human's own turn
+  for (const [from, v] of [[40, 6], [5, 1], [13, 1]]) {
+    await settle(page);
+    await page.evaluate(([from, v]) => { mp.jump(from); mp.roll(v); }, [from, v]);
+    await page.waitForFunction(() => document.getElementById("roll").disabled);
+  }
+  await settle(page);
+  assert(!(await page.evaluate(() => window.moved)), "the camera moved under reduced motion");
+});
+
 await check("installable: manifest and service worker pass Chrome's check", async page => {
   await page.goto(BASE);
   await page.evaluate(() => navigator.serviceWorker.ready);

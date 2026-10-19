@@ -9,7 +9,8 @@
     "golden": "node tools/golden.mjs",
     "format": "node tools/format-content.mjs",
     "smoke": "node tools/smoke.mjs",
-    "lint": "node tools/lint-content.mjs"
+    "lint": "node tools/lint-content.mjs",
+    "perf": "node tools/perf.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.28.2",

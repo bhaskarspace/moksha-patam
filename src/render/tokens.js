@@ -2,7 +2,7 @@
 import { ROWS } from "../content.js";
 import { t } from "../i18n.js";
 import { G, pname } from "../state.js";
-import { $, COLORS, P_HEX, reduced, sleep } from "../ui.js";
+import { $, COLORS, P_HEX, reduced, sleep, quality } from "../ui.js";
 import { S, colRow, center, fx, fxClear, snakePath, snakeColors, drawHood } from "./board.js";
 import { STAGES, stageOf, stageName, spriteURL } from "./sprites.js";
 import { renderPlayers } from "./log.js";
@@ -94,7 +94,8 @@ export async function climb(idx, a, b) {
   const g = G.gen, el = tokenEls[idx], p = G.state.players[idx];
   const P = center(a), Q = center(b), len = Math.hypot(Q.x - P.x, Q.y - P.y);
   const rungs = Math.max(2, Math.floor(len / (S * 0.36)));
-  const trail = [];
+  const trail = [], glints = [], extras = quality !== "low";
+  let lastRung = -1;
   el.classList.add("free"); el.classList.remove("left");
   await animate(Math.min(1700, Math.max(900, (len / S) * 230)), u => {
     const r = u * rungs, k = Math.min(rungs - 1, Math.floor(r)), f = r - k;
@@ -102,7 +103,15 @@ export async function climb(idx, a, b) {
     const x = P.x + (Q.x - P.x) * e, y = P.y + (Q.y - P.y) * e - Math.sin(f * Math.PI) * S * 0.08;
     el._frame = 2 + (k % 2); setSprite(el, p, el._stage); setXY(el, x, y);
     trail.push({ x, y, u });
+    // each rung catches the light as a hand takes it
+    if (extras && k !== lastRung) { lastRung = k; glints.push({ x, y: y + S * 0.15, u }); }
     fxClear();
+    for (const gl of glints) {
+      const a = 1 - (u - gl.u) * 4;
+      if (a <= 0) continue;
+      fx.strokeStyle = `rgba(255, 236, 150, ${a})`; fx.lineWidth = S * 0.03;
+      fx.beginPath(); fx.arc(gl.x, gl.y, S * (0.12 + (1 - a) * 0.22), 0, Math.PI * 2); fx.stroke();
+    }
     for (const pt of trail) {
       const alpha = 1 - (u - pt.u) * 3;
       if (alpha <= 0) continue;
@@ -113,6 +122,8 @@ export async function climb(idx, a, b) {
   fxClear();
   if (g !== G.gen) return;
   el.classList.remove("free"); el._frame = 0; p.pos = b; place();
+  retrigger(el, "land");
+  setTimeout(() => el.classList.remove("land"), 340);
 }
 
 export async function swallow(idx, h, tail) {
@@ -133,8 +144,9 @@ export async function swallow(idx, h, tail) {
   // a bulge in the player's colour travels down the body
   let len = 0;
   for (let i = 0; i < N; i++) len += Math.hypot(pts[i + 1].x - pts[i].x, pts[i + 1].y - pts[i].y);
-  await animate(Math.min(2000, Math.max(1000, (len / S) * 170)), u => {
-    const i = u * N, k = Math.min(N - 1, Math.floor(i)), f = i - k, a = pts[k], b = pts[k + 1];
+  await animate(Math.min(2000, Math.max(1000, (len / S) * 170)), v => {
+    // the bulge is slow to start and slows again before the tail, as a swallowed thing would be
+    const u = ease(v), i = u * N, k = Math.min(N - 1, Math.floor(i)), f = i - k, a = pts[k], b = pts[k + 1];
     const x = a.x + (b.x - a.x) * f, y = a.y + (b.y - a.y) * f, r = Math.max(S * 0.11, a.w * 0.95);
     fxClear();
     drawHood(fx, pts[0], pts[4], cols);

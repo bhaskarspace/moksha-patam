@@ -3,17 +3,19 @@ import { GOAL, ROWS, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, STR } from "./conten
 import { lang, urlLang, setLangValue, L, num, t } from "./i18n.js";
 import { G, defaultSetup, pname, cur, newState, loadSelf, saveSelf } from "./state.js";
 import { prefs, setPref } from "./prefs.js";
-import { $, COLORS, esc, reduced, sleep } from "./ui.js";
+import { $, COLORS, esc, reduced, sleep, quality, forcedQuality, setQuality } from "./ui.js";
 import { die, makeRng, freshSeed } from "./rng.js";
 import { TUMBLE, planTurn, endTurn, addLog } from "./engine/turn.js";
-import { S, colRow, labEls, buildCells, draw, fxClear, focusSquare } from "./render/board.js";
+import { S, colRow, labEls, buildCells, draw, drawAge, fxClear, focusSquare } from "./render/board.js";
+import { lens, wash, stageAt } from "./render/age.js";
+import { frame, pullBack, hold, release } from "./render/camera.js";
 import { spriteURL } from "./render/sprites.js";
-import { tokenEls, buildTokens, place, retrigger, climb, swallow } from "./render/tokens.js";
+import { tokenEls, buildTokens, place, retrigger, climb, swallow, animate } from "./render/tokens.js";
 import { openSquare, openEntry, closeCard, cardIdle, cardOpen, refreshCard, onCardChange } from "./render/card.js";
 import { renderCodex, showTab } from "./render/codex.js";
 import { renderLog } from "./render/log.js";
 import { openLife, refreshLife, closeLife, lifeText } from "./render/life.js";
-import { sound, unlockAudio } from "./audio/engine.js";
+import { sound, unlockAudio, setDrone, setMuted, audioState } from "./audio/engine.js";
 
 const PIPS = { 1:[4], 2:[0,8], 3:[0,4,8], 4:[0,2,6,8], 5:[0,2,4,6,8], 6:[0,2,3,5,6,8] };
 
@@ -35,6 +37,24 @@ async function rollDie() {
   return v;
 }
 
+// ---- Quality ----
+// A device that drops frames during its first two moves draws less from then on (ui.js).
+let watched = 0;
+function watchFrames() {
+  if (forcedQuality || quality === "low" || watched >= 2) return () => {};
+  watched++;
+  const ts = [];
+  // a move abandoned by a new game never calls back, so the watch ends itself
+  let on = true, last = performance.now(), until = last + 20000;
+  const tick = now => { ts.push(now - last); last = now; if (on && now < until) requestAnimationFrame(tick); };
+  requestAnimationFrame(tick);
+  return () => {
+    on = false;
+    const f = ts.slice(1).sort((a, b) => a - b);
+    if (f.length >= 30 && f[Math.floor(f.length * 0.75)] > 28) { setQuality("low"); pullBack(true); draw(); }
+  };
+}
+
 // ---- Game flow ----
 function log(e) {
   addLog(G.state, e);
@@ -50,14 +70,20 @@ async function takeTurn() {
   await cardIdle();
   if (g !== G.gen) return;
   const p = cur(), idx = state.turn, el = tokenEls[idx];
+  release();
   const v = await rollDie();
   if (g !== G.gen) return;
   state.last = v;
+  // the drone begins with the first roll
+  setDrone(lens(state).droneStage);
+  const watching = watchFrames();
   const plan = planTurn(state, v);
   plan.pre.forEach(log);
   // every roll moves now: a bounce can come back to the square it started from, but it still walks
   {
     await sleep(150);
+    const born = stageAt(p.pos);
+    frame(p.pos || 1, plan.path.at(-1));
     // the walk follows the planned path, which turns at 110 on a bounce
     for (const n of plan.path) {
       if (g !== G.gen) return;
@@ -69,6 +95,8 @@ async function takeTurn() {
     }
     if (g !== G.gen) return;
     el._frame = 0; place();
+    // a new ashrama is seen whole
+    if (stageAt(p.pos) !== born) pullBack();
     await cardIdle();
     if (g !== G.gen) return;
     if (prefs.landAll || !SQ[p.pos]) {
@@ -81,19 +109,36 @@ async function takeTurn() {
       await cardIdle();
       if (g !== G.gen) return;
       (plan.jump.kind === "snake" ? sound.snake : sound.ladder)();
+      frame(p.pos, plan.jump.to);
       await (plan.jump.kind === "snake" ? swallow(idx, p.pos, plan.jump.to) : climb(idx, p.pos, plan.jump.to));
       if (g !== G.gen) return;
     }
   }
   endTurn(state, plan);
+  watching();
+  pullBack();
   G.busy = false;
   render();
+  age();
   queueCpu();
 }
 
 function queueCpu() {
   clearTimeout(G.cpuTimer);
   if (G.state.winner == null && cur().type === "cpu") G.cpuTimer = setTimeout(takeTurn, reduced ? 200 : 700);
+}
+
+// ---- The ageing board (render/age.js): repainted when a turn ends, fading over 600 ms ----
+let aged = null, ageSeq = 0;
+const mix = (a, b, u) => ({ sepia: a.sepia + (b.sepia - a.sepia) * u, dim: a.dim + (b.dim - a.dim) * u });
+function age(instant = false) {
+  const L = lens(G.state), to = Array.from({ length: GOAL + 1 }, (_, n) => (n ? wash(n, L) : null));
+  for (let n = 1; n <= GOAL; n++) labEls[n]?.classList.toggle("ahead", to[n].dim > 0);
+  setDrone(G.state.last != null ? L.droneStage : null);
+  const from = aged, seq = ++ageSeq;
+  aged = to;
+  if (instant || !from) return drawAge(to);
+  return animate(600, u => { if (seq === ageSeq) drawAge(to.map((w, n) => (n ? mix(from[n], w, u) : null))); });
 }
 
 // ---- Rendering ----
@@ -170,6 +215,7 @@ function setLang(l) {
   try { localStorage.setItem("mp-lang", l); } catch {}
   applyStatic();
   buildCells();
+  age(true);
   renderSetup();
   render();
   renderCodex();
@@ -199,6 +245,7 @@ function startGame() {
   nextSeed = null;
   buildTokens();
   render();
+  age(true);
   queueCpu();
 }
 $("newGame").addEventListener("click", () => { readSetup(); startGame(); });
@@ -236,6 +283,9 @@ document.addEventListener("keydown", e => {
 });
 
 // ---- Reading the board without playing: any square, any move in the log ----
+// touching the board shows all of it, whatever the camera was doing
+$("board").addEventListener("pointerdown", hold, { passive: true });
+$("labels").addEventListener("focusin", hold);
 $("labels").addEventListener("click", e => {
   const lab = e.target.closest(".lab");
   if (lab) openSquare(+lab.dataset.n, { from: lab });
@@ -270,7 +320,7 @@ function renderMute() {
   b.title = t(prefs.mute ? "soundOff" : "soundOn");
   b.classList.toggle("off", prefs.mute);
 }
-$("mute").addEventListener("click", () => { setPref("mute", !prefs.mute); unlockAudio(); renderMute(); });
+$("mute").addEventListener("click", () => { setMuted(!prefs.mute); renderMute(); });
 // browsers start audio only from a gesture
 ["pointerdown", "keydown"].forEach(ev => document.addEventListener(ev, unlockAudio, { passive: true }));
 onCardChange(renderCodex);
@@ -290,7 +340,13 @@ new ResizeObserver(draw).observe($("cells"));
 // mp.seed() reads the current game's seed and mp.seed(n) starts a new game with that seed.
 if (new URLSearchParams(location.search).has("debug")) {
   window.mp = {
-    jump(n) { cur().pos = n; render(); },
+    jump(n) { cur().pos = n; render(); age(true); },
+    // the lens the board is aged through: { fadeAge, dimAge, lead, droneStage }
+    age: () => lens(G.state),
+    // { ctx, stage, voices, wanted, muted }
+    audio: audioState,
+    // mp.quality("low") draws less: no camera, no motion extras, no paper grain
+    quality(q) { if (q) { setQuality(q); pullBack(true); draw(); } return quality; },
     roll(v) { G.forcedRoll = v; return takeTurn(); },
     seed(n) { if (n == null) return G.state.rng.seed; nextSeed = n >>> 0; startGame(); return G.state.rng.seed; },
     get state() { return G.state; },
@@ -317,7 +373,7 @@ function start(data) {
   if (data?.state) {
     G.state = data.state;
     G.state.rng ||= makeRng(freshSeed()); // saves from before the seeded die
-    G.busy = false; buildTokens(); render(); queueCpu();
+    G.busy = false; buildTokens(); render(); age(true); queueCpu();
   }
   else {
     startGame();

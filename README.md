@@ -72,11 +72,13 @@ A 20,000-game simulation (`npm run sim`) puts a single life at a median of 41 tu
 - **The Codex**, beside the moves: schools, sources and people. It fills in as you meet them and is kept between games. Entries can be linked too: `#codex/nyaya`.
 - **English / हिंदी**, for the whole page (remembered), or per card with its own toggle. There is also an option to show both languages on every card, for Hindi learners. Hindi mode uses Devanagari digits.
 - **Sound:** a die rattle, a page turn, a rising scale for ladders and a hiss for snakes, all synthesised with Web Audio. It has a mute button that is remembered, and it is softer with reduced motion.
+- **A tanpura under the game**, also synthesised, starting with the first roll. It follows the ashrama of whoever is furthest on: open in childhood, dense through gṛhastha, thinning through vānaprastha to one held note in sannyāsa, and silent at 110. Muting stops it, and a muted player never starts any audio at all.
+- **The board ages.** It is painted on cloth, and the squares everyone has lived past fade toward sepia while the years nobody has reached stay dim. Only the paint ages: every square can still be read and clicked. A gentle camera follows each move and shows the whole board again whenever you can act. Reduced motion turns the camera off, and a weak device draws less (`?quality=low` to force it).
 - **Installable and offline:** add it to a phone's home screen, and it plays with no connection after one visit.
 - **Pixel-art players** who grow from baby to student, householder, forest-dweller, renunciate and divine soul as they climb, and get younger again when a snake catches them. Ladder climbs and snake swallows are animated.
 - 2–4 players, each human or computer.
 
-To play locally, open `index.html`. Add `?seed=N` to replay the same dice (the current seed is shown under *Players & rules*). `?depth=scholar` sets the reading depth. Add `?debug` to get console helpers: `mp.jump(n)`, `mp.roll(v)`, `mp.seed()` / `mp.seed(n)`, `mp.open(n)`, `mp.entry(id)`, `mp.close()` and `mp.setLang("hi")`.
+To play locally, open `index.html`. Add `?seed=N` to replay the same dice (the current seed is shown under *Players & rules*). `?depth=scholar` sets the reading depth. Add `?debug` to get console helpers: `mp.jump(n)`, `mp.roll(v)`, `mp.seed()` / `mp.seed(n)`, `mp.open(n)`, `mp.entry(id)`, `mp.close()`, `mp.setLang("hi")`, `mp.age()` (the lens the board is aged through), `mp.audio()` and `mp.quality("low")`.
 
 ## Developing
 `index.html` is built, so don't edit it by hand. The sources are:
@@ -92,7 +94,8 @@ npm install
 npm run build    # inline src/ and content/ into index.html (refuses any Math.random outside rng.js)
 npm test         # rules, RNG and content tests (the build also refuses content missing Hindi or pointing nowhere)
 npm run lint     # the content lint alone: Hindi, two voices per square, a name in every lead, the sprite palette
-npm run smoke    # every Phase 1 and 2 behaviour in a real browser, including offline, install and the emoji fallback
+npm run smoke    # every phase's behaviour in a real browser, including offline, install, the emoji fallback and the drone
+npm run perf     # frame times of a walk, a climb and a swallow on a throttled phone-sized page (reports, never fails)
 npm run sim      # 20,000 headless lives; `node tools/sim.mjs 20000 2` for two-player races
 npm run golden   # replays seeds through the pre-split game, the build and the sim, and checks the logs match
 ```
