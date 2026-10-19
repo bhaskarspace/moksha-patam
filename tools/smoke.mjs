@@ -1,5 +1,5 @@
 // Phase 1 and 2 checks in a real browser, served over HTTP under /moksha-patam/ as on the live site.
-//   node tools/smoke.mjs
+//   node tools/smoke.mjs [--only=text]   (--only runs just the checks whose names contain the text)
 import fs from "node:fs";
 import http from "node:http";
 import os from "node:os";
@@ -21,11 +21,13 @@ const BASE = `http://127.0.0.1:${server.address().port}/moksha-patam/`;
 
 const browser = await chromium.launch({ channel: "chrome" });
 let failures = 0;
-async function check(name, fn, { limit = 90, persistent = false, named = true } = {}) {
+const ONLY = process.argv.find(a => a.startsWith("--only="))?.slice(7);
+async function check(name, fn, { limit = 90, persistent = false, named = true, phone = null } = {}) {
+  if (ONLY && !name.includes(ONLY)) return;
   // install checks need a real profile: Chrome will not report installability in incognito
   const ctx = persistent
     ? await chromium.launchPersistentContext(fs.mkdtempSync(path.join(os.tmpdir(), "mp-smoke-")), { channel: "chrome", viewport: { width: 1200, height: 900 } })
-    : await browser.newContext({ viewport: { width: 1200, height: 900 } });
+    : await browser.newContext(phone ? { viewport: { width: phone[0], height: phone[1] }, deviceScaleFactor: 2, isMobile: true, hasTouch: true } : { viewport: { width: 1200, height: 900 } });
   // someone who has been named before goes straight to the board (docs/NARRATIVE.md §3)
   if (named) await ctx.addInitScript(() => { try { localStorage.setItem("mp-self", JSON.stringify({ name: "", gender: "f" })); } catch {} });
   const page = await ctx.newPage();
@@ -115,7 +117,7 @@ await check("Phase 2: the board draws every square from the sprite sheet, with n
   assert(!bad.length, bad.slice(0, 3).join(" | "));
   await page.click('#labels .lab[data-n="50"]');
   await page.waitForFunction(() => document.getElementById("folio").open);
-  assert(await page.evaluate(() => !!document.querySelector("#leaf .glyph svg.spr")), "the card does not draw its square's sprite");
+  assert(await page.evaluate(() => !!document.querySelector('#leaf .glyph svg.ill use[href="#sq-50"]')), "the card does not draw its square's sprite in its frame");
 });
 
 await check("Phase 2: without the sprite sheet every square falls back to its emoji, none blank", async page => {
@@ -159,9 +161,11 @@ await check("a square's school chip opens the Codex, and Back returns to the squ
   await page.goto(BASE + "?depth=school");
   await page.click('#labels .lab[data-n="33"]');
   await page.waitForFunction(() => document.getElementById("folio").open);
+  await page.waitForTimeout(400); // the view transition, which takes no clicks
+  await page.click("#leaf .more-btn"); // the voices wait behind one tap (Phase 6)
   await page.click('#leaf .chip[data-entry="samkhya"]');
   assert((await title(page)) === "Samkhya", "chip did not open Samkhya");
-  await page.click('#leaf [data-act="back"]');
+  await page.click('#leaf [data-act="back"]:visible'); // drawn in the footer here, in the top strip on a phone
   assert((await title(page)) === "Banyan seed", "Back did not return to 33");
   const met = await page.evaluate(() => JSON.parse(localStorage.getItem("mp-codex")));
   assert(met.includes("samkhya") && met.includes("vaisheshika") && met.includes("chandogya"), "Codex did not record what was met");
@@ -436,6 +440,219 @@ await check("Phase 5: under reduced motion the camera never moves", async page =
   }
   await settle(page);
   assert(!(await page.evaluate(() => window.moved)), "the camera moved under reduced motion");
+});
+
+// ---- Phase 6: the card in hand ----
+// Everything a card says can be read: scrolled to its end, the last line clears the footer; while there is more
+// below, the text fades at its lower edge; nothing runs off to the side. Run on main, square 34 failed this.
+const unclipped = () => {
+  const leaf = document.getElementById("leaf"), dlg = document.getElementById("folio"), out = [];
+  const m = leaf.querySelector(".leaf-main"), foot = leaf.querySelector(".leaf-foot").getBoundingClientRect();
+  const d = dlg.getBoundingClientRect(), L = leaf.getBoundingClientRect();
+  if (d.top < -0.5 || d.bottom > innerHeight + 0.5) out.push(`the card runs off the screen (${Math.round(d.top)}..${Math.round(d.bottom)})`);
+  m.scrollTop = 0; m.dispatchEvent(new Event("scroll"));
+  if (m.classList.contains("more-below") !== m.scrollHeight - m.clientHeight > 2) out.push("the fade does not match whether there is more below");
+  m.scrollTop = 1e6; m.dispatchEvent(new Event("scroll"));
+  const shown = [...leaf.querySelectorAll(".leaf-text h2, .leaf-text p, .leaf-text li, .leaf-text .more-btn")].filter(e => e.getClientRects().length);
+  const last = shown.at(-1)?.getBoundingClientRect(), mb = m.getBoundingClientRect();
+  if (last && last.bottom > mb.bottom + 0.5) out.push(`the last line ends at ${Math.round(last.bottom)}, below the text's edge at ${Math.round(mb.bottom)}`);
+  if (mb.bottom > foot.top + 0.5) out.push("the text runs under the footer");
+  if (m.classList.contains("more-below")) out.push("still fading at the end");
+  for (const e of leaf.querySelectorAll(".leaf-top *, .leaf-main *, .leaf-foot *")) {
+    const r = e.getBoundingClientRect();
+    if (r.width && r.right > L.right + 1 && !e.closest(".nav, .roll-c")) { out.push(`${e.className || e.tagName} runs off the side`); break; }
+  }
+  m.scrollTop = 0;
+  return out;
+};
+const VIEWS = [[375, 812], [375, 667], [812, 375]];
+for (const [w, h] of VIEWS) {
+  await check(`Phase 6: no card clips what it says at ${w}x${h}, collapsed or opened, at any depth, in either language`, async page => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    for (const lang of ["en", "hi"]) for (const both of w === 375 && h === 812 ? [false, true] : [false]) for (const depth of ["story", "school", "scholar"]) {
+      await page.evaluate(([both, depth]) => localStorage.setItem("mp-prefs", JSON.stringify({ mute: true, both, depth })), [both, depth]).catch(() => {});
+      await page.goto(BASE + `?seed=1&debug&lang=${lang}&depth=${depth}&v=${both}`);
+      await page.evaluate(([both, depth]) => localStorage.setItem("mp-prefs", JSON.stringify({ mute: true, both, depth })), [both, depth]);
+      await page.reload();
+      await page.waitForFunction(() => window.mp);
+      const bad = await page.evaluate(src => {
+        const unclipped = eval(src), out = [];
+        for (let n = 1; n <= 110; n++) {
+          mp.close({ instant: true });
+          mp.open(n);
+          out.push(...unclipped().map(x => `${n}: ${x}`));
+          const more = document.querySelector("#leaf .more-btn");
+          if (more) { more.click(); out.push(...unclipped().map(x => `${n} opened: ${x}`)); }
+        }
+        mp.close({ instant: true });
+        return out;
+      }, `(${unclipped})`);
+      assert(!bad.length, `${lang}/${depth}${both ? "/both" : ""}: ${bad.slice(0, 3).join(" | ")}`);
+    }
+  }, { phone: [w, h], limit: 300 });
+}
+
+await check("Phase 6: a card opens with its story, and one tap shows the voices; at story depth there is nothing to open", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=1&debug&depth=school");
+  const r = await page.evaluate(() => {
+    const seen = s => [...document.querySelectorAll(s)].filter(e => e.getClientRects().length).length;
+    mp.open(34);
+    const before = { voices: seen("#leaf .chips li"), story: seen("#leaf .story p"), frame: seen("#leaf .glyph svg.ill") };
+    document.querySelector("#leaf .more-btn").click();
+    const after = seen("#leaf .chips li"), expanded = mp.sheet().expanded;
+    mp.open(35);   // turning the page keeps it opened
+    const kept = seen("#leaf .chips li");
+    mp.close({ instant: true });
+    mp.open(36);   // and closing collapses it again
+    const again = seen("#leaf .chips li");
+    mp.close({ instant: true });
+    mp.open(110);  // the six views are the point of 110, so they show at once
+    const goal = seen("#leaf .views.side li");
+    mp.close({ instant: true });
+    return { before, after, expanded, kept, again, goal };
+  });
+  assert(r.before.voices === 0 && r.before.story >= 2 && r.before.frame === 1, `collapsed: ${JSON.stringify(r.before)}`);
+  assert(r.after >= 2 && r.expanded && r.kept >= 2 && r.again === 0, JSON.stringify(r));
+  assert(r.goal === 6, `110 shows ${r.goal} views`);
+  await page.goto(BASE + "?seed=1&debug&depth=story");
+  assert(await page.evaluate(() => { mp.open(34); return !document.querySelector("#leaf .more-btn"); }), "story depth has a toggle");
+});
+
+// one finger dragged through the page, by CDP touch events
+async function drag(page, x, y0, y1, ms = 200) {
+  const cdp = await page.context().newCDPSession(page), steps = 10;
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x, y: y0 }] });
+  for (let i = 1; i <= steps; i++) {
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x, y: y0 + ((y1 - y0) * i) / steps }] });
+    await page.waitForTimeout(ms / steps);
+  }
+  await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+  await page.waitForTimeout(300);
+}
+const rect = (page, s) => page.evaluate(s => { const r = document.querySelector(s).getBoundingClientRect(); return { top: r.top, bottom: r.bottom, left: r.left, right: r.right, x: r.left + r.width / 2 }; }, s);
+const openOn = async (page, n) => { await page.evaluate(n => { mp.open(n); }, n); await page.waitForFunction(() => document.getElementById("folio").open); await page.waitForTimeout(400); };
+
+await check("Phase 6: on a phone the card is a sheet below the whole board, with a grip, and the × at the bottom", async page => {
+  for (const [w, h] of [[375, 812], [375, 667]]) {
+    await page.setViewportSize({ width: w, height: h });
+    await page.goto(BASE + "?seed=1&debug&depth=scholar");
+    await openOn(page, 34);
+    const board = await rect(page, ".board-wrap"), sheet = await rect(page, "#folio"), x = await rect(page, "#leaf .x-foot");
+    const s = await page.evaluate(() => mp.sheet());
+    if (h === 812) assert(board.top >= 0 && board.bottom <= sheet.top + 1, `the board (${board.top}..${board.bottom}) is not above the sheet at ${sheet.top}`);
+    assert(s.sheet?.detent === "half" && Math.abs(sheet.bottom - h) < 1, `${w}x${h}: ${JSON.stringify(s)}`);
+    assert(x.bottom > h - 70 && x.left < w / 2, `the × is at ${JSON.stringify(x)}`);
+    assert(await page.evaluate(() => !document.querySelector("#leaf .x-top").getClientRects().length), "the top × still shows on a phone");
+    await page.click("#leaf .grip");
+    await page.waitForTimeout(300);
+    assert((await page.evaluate(() => mp.sheet().sheet.detent)) === "full", "the grip did not raise the sheet");
+    await page.click("#leaf .grip");
+    await page.waitForTimeout(300);
+    assert((await page.evaluate(() => mp.sheet().sheet.detent)) === "half", "the grip did not lower the sheet");
+  }
+}, { phone: [375, 812] });
+
+await check("Phase 6: the sheet goes by swipe, backdrop, × and Escape; a scroll never throws it away", async page => {
+  await page.goto(BASE + "?seed=1&debug&depth=scholar");
+  const top = async () => (await rect(page, "#leaf .leaf-top")).top;
+  // a swipe down from the top strip
+  await openOn(page, 34);
+  await drag(page, 120, (await top()) + 30, 760);
+  assert(!(await folioOpen(page)), "a swipe down from the top did not close the card");
+  // a short drag snaps back
+  await openOn(page, 34);
+  await drag(page, 120, (await top()) + 30, (await top()) + 70);
+  assert(await folioOpen(page), "a short drag closed the card");
+  assert(await page.evaluate(() => !document.getElementById("folio").style.transform), "the sheet did not settle back");
+  // scrolled into the voices, a drag down scrolls back up and leaves the card open, even past the top
+  await page.click("#leaf .more-btn");
+  await page.waitForTimeout(300);
+  await page.evaluate(() => { document.querySelector("#leaf .leaf-main").scrollTop = 160; });
+  const mid = await rect(page, "#leaf .leaf-main");
+  await drag(page, 200, mid.top + 40, mid.top + 500, 150);
+  assert(await folioOpen(page), "scrolling back up the text closed the card");
+  assert(await page.evaluate(() => document.querySelector("#leaf .leaf-main").scrollTop) < 160, "the text did not scroll");
+  // at the top of the text, a drag down is the sheet's
+  await page.evaluate(() => { document.querySelector("#leaf .leaf-main").scrollTop = 0; });
+  await drag(page, 200, mid.top + 40, 800);
+  assert(!(await folioOpen(page)), "a drag down from the top of the text did not close the card");
+  // the backdrop, the × and Escape
+  await openOn(page, 34);
+  await page.mouse.click(187, 20);
+  await page.waitForFunction(() => !document.getElementById("folio").open);
+  await openOn(page, 34);
+  await page.click("#leaf .x-foot");
+  await page.waitForFunction(() => !document.getElementById("folio").open);
+  await openOn(page, 34);
+  await page.keyboard.press("Escape");
+  await page.waitForFunction(() => !document.getElementById("folio").open);
+}, { phone: [375, 812] });
+
+await check("Phase 6: under reduced motion the sheet comes and goes without moving", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=1&debug");
+  const moving = await page.evaluate(() => { mp.open(34); const d = document.getElementById("folio"); return d.getAnimations({ subtree: true }).length; });
+  assert(moving === 0, `${moving} animations on the sheet`);
+}, { phone: [375, 812] });
+
+await check("Phase 6: rolling from the card keeps it open, turns it to each of your landings, and leaves the computer's alone", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.addInitScript(() => { const st = window.setTimeout; window.setTimeout = (f, ms, ...r) => st(f, Math.min(ms, 30), ...r); });
+  await page.goto(BASE + "?seed=5&debug");
+  await page.click("#roll");
+  await page.waitForFunction(() => document.getElementById("folio").open, null, { timeout: 15000 });
+  // every square the card shows from here on
+  await page.evaluate(() => { window.shown = []; new MutationObserver(() => shown.push(location.hash)).observe(document.getElementById("leaf"), { childList: true }); });
+  for (let i = 0; i < 4; i++) {
+    const before = await page.evaluate(() => mp.state.log.length);
+    await page.waitForFunction(() => document.querySelector('#leaf .roll-c[aria-disabled="false"]'), null, { timeout: 15000 });
+    await page.click("#leaf .roll-c");
+    await page.waitForFunction(n => !mp.state.winner && mp.state.log.length > n && document.querySelector('#leaf .roll-c[aria-disabled="false"]'), before, { timeout: 20000 });
+    assert(await folioOpen(page), `the card closed on roll ${i + 1}`);
+  }
+  const r = await page.evaluate(() => ({ shown: [...new Set(shown)], mine: mp.state.players[0].life, carried: mp.sheet().carried, cpu: mp.state.log.filter(e => e.who === 1).length }));
+  assert(r.carried && r.cpu > 0, JSON.stringify(r));
+  const strays = r.shown.filter(h => !r.mine.includes(+h.split("/")[1]));
+  assert(!strays.length, `the card showed squares that were not yours: ${strays} (yours: ${r.mine})`);
+}, { phone: [375, 812] });
+
+await check("Phase 6: rolled from the card onto a snake, the card stays on the snake and the token still falls", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=1&debug");
+  await page.evaluate(() => { mp.jump(13); mp.open(13); });
+  await page.waitForFunction(() => document.getElementById("folio").open);
+  // nothing can be rolled while the token is still on its way down
+  await page.evaluate(() => { window.early = false; setInterval(() => { if (mp.state.players[0].pos === 14 && document.querySelector('#leaf .roll-c[aria-disabled="false"]')) early = true; }, 20); });
+  assert(await page.evaluate(() => mp.rollFromCard(1)), "the card had no Roll");
+  await page.waitForFunction(() => mp.state.players[0].pos === 8 && mp.state.log.some(e => e.k === "lSnake"), null, { timeout: 15000 });
+  const r = await page.evaluate(() => ({ open: document.getElementById("folio").open, hash: location.hash, early }));
+  assert(r.open && r.hash === "#sq/14" && !r.early, JSON.stringify(r));
+}, { phone: [375, 812] });
+
+await check("Phase 6: a six rolled from the card offers to roll again", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=1&debug");
+  await page.evaluate(() => { mp.jump(40); mp.open(40); });
+  await page.waitForFunction(() => document.getElementById("folio").open);
+  await page.evaluate(() => mp.rollFromCard(6));
+  await page.waitForFunction(() => mp.state.players[0].pos === 46 && document.querySelector('#leaf .roll-c[aria-disabled="false"]'), null, { timeout: 15000 });
+  const label = await page.evaluate(() => document.querySelector("#leaf .roll-c").textContent);
+  assert(label === "Roll again", `the card's Roll says ${label}`);
+}, { phone: [375, 812] });
+
+await check("Phase 6: on a wide screen the card is the centred folio it was, × top right, no grip, with the morph", async page => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto(BASE + "?seed=1&debug");
+  await page.evaluate(() => { const vt = document.startViewTransition.bind(document); window.morphs = 0; document.startViewTransition = f => { morphs++; return vt(f); }; });
+  await page.click('#labels .lab[data-n="14"]');
+  await page.waitForFunction(() => document.getElementById("folio").open);
+  await page.waitForTimeout(500);
+  const leaf = await rect(page, "#leaf"), x = await rect(page, "#leaf .x-top");
+  const r = await page.evaluate(() => ({ morphs, grip: document.querySelector("#leaf .grip").getClientRects().length, sheet: mp.sheet().sheet }));
+  assert(Math.round(leaf.right - leaf.left) === 780 && Math.abs(leaf.left + leaf.right - 1280) < 2, `the card is at ${JSON.stringify(leaf)}`);
+  assert(x.right > leaf.right - 60 && x.top < leaf.top + 40, `the × is at ${JSON.stringify(x)}`);
+  assert(r.morphs === 1 && r.grip === 0 && r.sheet === null, JSON.stringify(r));
 });
 
 await check("installable: manifest and service worker pass Chrome's check", async page => {

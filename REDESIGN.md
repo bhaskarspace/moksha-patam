@@ -18,7 +18,7 @@ English/Hindi, deployed at https://codebpr.com/moksha-patam/
 1. [What we are building and why](#1-what-we-are-building-and-why)
 2. [Core mechanics](#2-core-mechanics)
 3. [Architecture](#3-architecture)
-4. [Phases 0 through 14](#4-phases)
+4. [Phases 0 through 15](#4-phases)
 5. [Guardrails](#5-guardrails)
 6. [Known fixes to fold in](#6-known-fixes)
 
@@ -524,7 +524,7 @@ them, including the modern commercial one. **Keep the counts** — 13:11 is a de
 thesis — but state it as a choice rather than a restoration.
 
 **Deliberately not in this phase:** the ablation harness, and the cowrie-shell
-randomizer. Both are in Phase 13, and the reasoning is in `docs/BOARDCRAFT.md §4, §6`.
+randomizer. Both are in Phase 15, and the reasoning is in `docs/BOARDCRAFT.md §4, §6`.
 
 **Done when:** a player can open any square the token passed over, no game can stall on
 an exact roll, the divine row can be fallen out of, the five paired snake tails announce
@@ -539,7 +539,7 @@ this phase is everything around it.*
 
 > **Shipped, with these decisions.**
 > - *What ages:* only the paint. One canvas sits between the art and the labels and washes each square in palette colours. Numbers, names, clicks, keyboard focus, cards and the log are never dimmed. The row filter proposed below was not used: CONTENT.md §7 forbids filters on the sprites, and the ages are per square anyway. Each wash pushes a square away from its ink colour, so a label's contrast can only rise or hold (`tests/contrast.test.mjs`).
-> - *Whose age:* all the lives at once. Sepia is what every player has left behind, keyed to the youngest player. Dim is what no player has reached, keyed to the oldest. The squares between stay in full colour. The drone follows whoever is furthest on. `lens(state, i)` in `render/age.js` already takes one player's index, for Phase 13.
+> - *Whose age:* all the lives at once. Sepia is what every player has left behind, keyed to the youngest player. Dim is what no player has reached, keyed to the oldest. The squares between stay in full colour. The drone follows whoever is furthest on. `lens(state, i)` in `render/age.js` already takes one player's index, for Phase 14.
 > - *Ages vs position:* every earthly square's age never decreases along the board, so which squares count as "behind" is the same either way. Age decides only how fast a square fades, measured in years.
 > - *Performance:* the turbulence filter is drawn into a bitmap once. When it was a background inside the zoomed layer, it ran again on every zoom and cost frames of up to 430 ms at 4× throttle. With the bitmap, the branch's longest frames match `main` (`npm run perf`). On a weak device the camera goes first, then the motion extras, then the grain. The ageing is never dropped.
 > - *Sound:* the drone is synthesised, about 6 KB unminified. Audio starts only from a gesture and never while muted. Muting suspends the context. Hiding the tab suspends it, and showing the tab resumes it.
@@ -563,7 +563,61 @@ visibly behind the token, and reduced-motion and mute both still work.
 
 ---
 
-### Phase 6 — Life state
+### Phase 6 — The card in hand  ✅ SHIPPED
+*The card is the thing players actually read, and on a phone it is currently broken.
+Measured at 375×812: the card fills the whole screen and clips its own content — the
+scholar paragraph on square 34 is cut off mid-sentence by the footer bar. Fix the reading
+experience before the game gets more complicated.*
+
+> **Shipped, with these decisions.**
+> - *The bug:* the text did scroll, but a phone draws no scrollbar and nothing else showed there was more, so the footer seemed to cut the scholar note mid-line. Now the text fades at its lower edge whenever there is more below. A smoke sweep of all 110 squares, at three screen sizes, both languages, both-languages mode, every depth, collapsed and opened, checks that the last line clears the footer. On `main` it fails.
+> - *Depth:* every card opens collapsed. Depth now decides what opening it further shows. At *Story* there is no toggle. At *School* it shows the voices, and the source's gloss on first meeting. At *Scholar* it adds the note, the people and the gloss every time. Opening is a property of the open card, not of one square: it holds through paging, the Codex and every roll from the card, and resets when the card closes, so a scholar taps once per sitting. 110's six views are part of its story at every depth. A bare citation stays under the mirror. Codex entries behind the toggle count as met only once it is opened.
+> - *Frame:* one frame for every square, drawn in the sprite's own units, so its lamp-black lines have the sprites' 1.25 weight at any size. The frame is a vermilion band strung with shell pearls, corners, a cusped arch and one beetle-green jewel. The arch's field and corners follow the kind of square, and the colours are the `--b-*` tokens only (lint and `tests/frame.test.mjs`). The icon is 5× on a wide screen and 4× on a phone, where it stands at the head of the text like an illuminated initial.
+> - *Sheet:* below 768px the card has two heights. Half is measured so the whole board shows above it, with the page scrolled to put the board at the top. Full is the height of the screen. The grip is a button as well as a handle. The sheet moves only when a touch can't be a scroll, decided when the touch starts: from the top strip or the footer it always drags; from the text, down drags only if the text was at its top, and a scroll never turns into a drag partway through. The × moves to the footer on a phone. Under reduced motion the sheet appears and goes without moving.
+> - *Roll from the card:* the card's Roll is for the next person to roll, counting on from the turn under way. Pressing it means the card stops holding the game up: a computer's turn plays on the board and is only noted on the card, and the reader's own landings turn the leaf in place. On a snake or a ladder the card stays on that square, and the token moves after a short reading beat. The tail's card is not opened, as before.
+
+**1. Progressive disclosure.** The card opens at story depth: frame, moment, mirror, and
+nothing else. The school voices and the scholar note collapse behind one tap.
+
+The scholarly register is not spread through the card — it is entirely those two blocks.
+The moment ("{name} is nineteen and waits three days outside an office for an answer")
+and the mirror ("Naciketa waited three days at Death's door") are already story. So this
+one change fixes both complaints at once: too much text, and too scholarly. `prefs.depth`
+stays as the global setting for what the *expanded* state shows; this makes the collapsed
+state the opening position regardless of it.
+
+**2. The illuminated frame.** "More image" cannot mean scaling the sprite. It is a 24×24
+icon with no detail to give and it will look crude at 200px. Instead set the icon in a
+roundel or arch at four or five times its current size, on a flat colour ground with the
+Basohli red border (`docs/CONTENT.md` §7 palette). The icon stays simple and the frame
+carries the weight. Pahari figures sit inside architectural arches on flat fields, so this
+is the idiom rather than a workaround for a limitation.
+
+**3. Bottom sheet on mobile.** Below 768px the card anchors to the bottom instead of
+filling the screen, with the board still visible behind it. Content scrolls inside the
+sheet, which is what fixes the clipping. A visible drag handle at the top makes the
+gesture discoverable.
+
+**4. Three ways out.** Swipe down, tap the backdrop, and keep the ×. Gesture-only
+dismissal is an accessibility failure, so the visible control is not optional and the
+swipe is an addition to it. On mobile, move the × out of the top-right corner, which is
+the hardest point on the screen for a right thumb.
+
+**5. Roll from the card.** Put a roll control in the card footer beside the prev/next
+nav. On a phone the loop is currently dismiss, find the button, roll, read, dismiss. This
+halves it.
+
+**Done when:** no card clips its content at 375×812; a card opens showing a framed image,
+a moment and a mirror and nothing more; one tap reveals the voices; the sheet dismisses by
+swipe, by backdrop and by button; and a player can roll without leaving the card.
+
+**Not in this phase:** rewriting the mirrors. The story-to-source matching is mostly good
+— square 34's three days outside an office against Naciketa's three days at Death's door
+is an exact echo. Weak pairings get fixed as they are identified in play, not in a sweep.
+
+---
+
+### Phase 7 — Life state
 
 - `āyus`, guṇas, puruṣārthas in state.
 - **Derive āyus from the authored `age` table shipped in Phase 3** rather than inventing
@@ -586,7 +640,7 @@ distribution.
 
 ---
 
-### Phase 7 — Dice as currency
+### Phase 8 — Dice as currency
 *The core mechanical change. Read §2.1 carefully.*
 
 - Roll n dice, visible, before any decision.
@@ -612,7 +666,7 @@ age, and p95 has not risen.
 
 ---
 
-### Phase 8 — Situations
+### Phase 9 — Situations
 
 - `content/situations.json` and `engine/qbn.js`.
 - Gate evaluation, with the gate surfaced in the UI when an option is withheld.
@@ -625,7 +679,7 @@ situation exists (`lint-content.mjs`), and no option is obviously correct.
 
 ---
 
-### Phase 9 — Karma
+### Phase 10 — Karma
 
 - Three buckets, fuses, deferred firing.
 - `bandha` and the gate at 110.
@@ -636,7 +690,7 @@ it came from, and a player can reach 110 and be refused with a legible reason.
 
 ---
 
-### Phase 10 — Death and rebirth
+### Phase 11 — Death and rebirth
 
 - Yama's reckoning screen reading the ledger.
 - āgāmi flows into sañcita; a slice is drawn as next life's prārabdha.
@@ -649,7 +703,7 @@ legible to the player on the birth screen.
 
 ---
 
-### Phase 11 — The laws
+### Phase 12 — The laws
 
 - Mīmāṃsā first (default), then Cārvāka, then the rest.
 - A law-select screen that explains each in the player's own terms before they commit.
@@ -661,7 +715,7 @@ rather than only in mean.
 
 ---
 
-### Phase 12 — Historical boards
+### Phase 13 — Historical boards
 
 Board geometry becomes data. The variants are documented, not invented; see
 `docs/REFERENCE.md §4`.
@@ -686,7 +740,7 @@ each board's rules load with it.
 
 ---
 
-### Phase 13 — Parallel lives
+### Phase 14 — Parallel lives
 
 - Multiplayer becomes four lives lived side by side rather than a race.
 - End screen: guṇa trajectories plotted over time, choices made at shared squares,
@@ -697,7 +751,7 @@ each board's rules load with it.
 
 ---
 
-### Phase 14 — Content to full, and balancing
+### Phase 15 — Content to full, and balancing
 
 - All 110 squares with situations where they earn one.
 - Codex complete across schools, sources and figures.
@@ -730,6 +784,31 @@ because you are authoring breadth for replay rather than a script.
 - Do not restyle the board geometry or the snake rendering in Phases 0–1. That art is
   finished work; Phase 2 is where it changes, deliberately.
 - One phase per PR. No phase leaves `main` unplayable.
+- **No hierarchy of birth, anywhere, ever.** The game's only ranking is karma. This is a
+  standing decision, not a preference to be reweighed.
+
+  The live risk is Phase 10 and 11 content. The rebirth doctrine comes from Chāndogya
+  5.10, and 5.10.7 ranks the good wombs as brāhmaṇa, kṣatriya and vaiśya against dog,
+  hog and caṇḍāla. **Use the animal births and the third place (5.10.8). Do not use the
+  varṇa ladder, and do not reword it into an equivalent** — "a low birth", "a better
+  family", "born badly" are the same claim in a clean shirt.
+
+  What stays, because it is the board's strongest material and must not be stripped by a
+  literal reading of this rule:
+  - varṇa words as plain description of who a character was ("the brahmin's wife" at 59,
+    "a starving brahmin" for Ushasti);
+  - stories whose point is that conduct outranks birth — Satyakāma at 28, Raikva at 54,
+    the Buddha's line at 20. These undercut hierarchy and are the reason the board can
+    handle the subject at all;
+  - a scholar note naming a text's caste rules as contested, as the Manusmṛti and Gṛhya
+    Sūtra glosses already do.
+
+  What never appears: any card making birth a reward or a punishment, any ranking of
+  human births, any euphemism for one.
+
+  `lint-content.mjs` should **warn, not fail**, on new content containing varṇa terms, so
+  a human reads it. Failing the build would delete Satyakāma.
+
 - **Balance against p95, not the mean.** Any phase that changes movement or adds a
   mechanic reports median, p95 and the share of games over 100 turns, before and after.
   The mean hides the tail and the tail is what players feel. Baseline after Phase 4:

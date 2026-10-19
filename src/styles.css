@@ -340,6 +340,95 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 .leaf .snake-on .snake-glyph { width: 28px; height: 28px; }
 .leaf .snake-on .snake-title { font-family: var(--f-display); font-weight: 400; font-size: 26px; line-height: 1.1; margin: 4px 0 0; }
 
+/* Phase 6 (REDESIGN.md): the card in hand */
+/* the illuminated frame (render/frame.js): its colours are the Basohli tokens only, the field and the corners by kind */
+.leaf:not(.entry) .leaf-main { grid-template-columns: 196px minmax(0, 1fr); }
+.leaf:not(.entry) .glyph { filter: none; line-height: 0; }
+.leaf .glyph svg.ill { display: block; width: 180px; height: auto; }
+.ill { --field: var(--b-ochre); --corner: var(--b-malachite); }
+.ill .ink { stroke: var(--b-black); stroke-width: 1.25; stroke-linejoin: round; }
+.ill .band { fill: var(--b-vermilion); }
+.ill .pearl { fill: var(--b-shell); }
+.ill .spandrel { fill: var(--corner); }
+.ill .field { fill: var(--field); }
+.ill .rim { fill: none; }
+.ill .jewel { fill: var(--b-beetle); }
+.ill .fb { font-family: var(--f-emoji); font-size: 15px; fill: var(--b-black); }
+.leaf.virtue .ill { --field: var(--b-malachite); --corner: var(--b-ochre); }
+.leaf.vice .ill { --field: var(--b-indigo); --corner: var(--b-ochre); }
+.leaf.heaven .ill { --field: var(--b-shell); --corner: var(--b-ochre); }
+.leaf.goal .ill { --field: var(--b-indigo); --corner: var(--b-ochre); }
+.leaf.goal .ill .fb { font-family: var(--f-display); font-size: 17px; fill: var(--b-shell); }
+.leaf .tally { display: flex; flex-direction: column; align-items: center; gap: 4px; margin-top: 6px; }
+
+/* the voices wait behind one tap */
+.leaf .more-btn {
+  display: inline-flex; align-items: center; gap: 6px; margin: 18px 0 2px; padding: 7px 14px; border-radius: 99px;
+  border: 1px solid var(--l-line); background: rgba(255, 252, 240, 0.55); color: var(--l-ink); font: 600 14px/1.3 var(--f-body);
+}
+.leaf .more-btn::after { content: "▾"; font-size: 11px; color: var(--l-gold); }
+.leaf .more-btn[aria-expanded="true"]::after { content: "▴"; }
+.leaf .more-btn:hover { background: rgba(255, 252, 240, 0.85); }
+.leaf.goal .more-btn { color: var(--l-ink); background: rgba(255, 255, 255, 0.08); }
+.leaf:not(.open) .more-only { display: none; }
+
+/* the footer: the nav either side, and in the middle the snake or ladder line and the card's Roll */
+.leaf-foot .mid { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; }
+.leaf .roll-c {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 7px 18px; border: 0; border-radius: 99px;
+  background: var(--l-rule); color: #FFF6E0; font: 600 15px/1.2 var(--f-body); white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis;
+}
+.leaf.goal .roll-c { color: #1E2A78; }
+.leaf .roll-c[aria-disabled="true"] { opacity: 0.72; cursor: default; font-variant-numeric: tabular-nums; }
+.leaf .roll-c .dot { width: 10px; height: 10px; border-radius: 50%; box-shadow: 0 0 0 1.5px #FFF6E0; flex: none; }
+.leaf .grip, .leaf .x-foot, .leaf .ft-top { display: none; }
+.leaf .cnote { font-family: var(--f-body); font-size: 12.5px; font-weight: 600; color: var(--l-ink2); }
+
+/* while the text goes on below, its lower edge fades, so nothing ever looks cut off */
+.leaf-main.more-below {
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 36px), transparent);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 36px), transparent);
+}
+
+/* below 768px the card is a sheet over the bottom of the screen, the board in full view above it (render/sheet.js) */
+@media (max-width: 767px) {
+  #folio {
+    --sh: min(var(--sheet-h, 55dvh), calc(100dvh - max(24px, env(safe-area-inset-top, 0px))));
+    position: fixed; inset: auto 0 0 0; margin: 0; width: 100%; max-width: 100%; max-height: var(--sh);
+  }
+  #folio.snap { transition: transform 0.2s ease, max-height 0.2s ease; }
+  #folio::backdrop { background: rgba(20, 12, 4, 0.3); }
+  #folio .leaf {
+    max-height: var(--sh); border-radius: 18px 18px 0 0; view-transition-name: none;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    box-shadow: inset 0 0 0 1px rgba(110, 70, 20, 0.35), inset 0 0 34px rgba(120, 72, 20, 0.22), 0 -8px 30px rgba(0, 0, 0, 0.35);
+  }
+  #folio.snap .leaf { transition: max-height 0.2s ease; }
+  /* the strip along the top and the footer always drag the sheet; only the text scrolls */
+  #folio .leaf-top, #folio .leaf-foot { touch-action: none; }
+  #folio .leaf-top { position: relative; flex-wrap: wrap; padding: 22px 12px 4px 16px; row-gap: 2px; }
+  #folio .grip { display: block; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 112px; height: 22px; padding: 0; border: 0; border-radius: 0 0 10px 10px; background: transparent; }
+  #folio .grip span { display: block; width: 38px; height: 5px; margin: 8px auto 0; border-radius: 99px; background: rgba(110, 70, 20, 0.45); }
+  #folio .leaf.goal .grip span { background: rgba(255, 216, 107, 0.55); }
+  #folio .ft-top { display: block; margin-top: 3px; font-size: 12px; letter-spacing: 0.04em; text-transform: none; }
+  #folio .ft-top .nav { margin-top: 2px; }
+  #folio .cnote { order: 3; flex-basis: 100%; }
+  #folio .x-top, #folio .leaf-foot .ft { display: none; }
+  #folio .x-foot { display: grid; place-items: center; width: 44px; height: 44px; }
+  #folio .leaf-foot { grid-template-columns: auto auto minmax(0, 1fr) auto; gap: 8px; padding: 8px 10px 12px; }
+  #folio .leaf-foot > :last-child { justify-self: end; }
+  #folio .leaf .nav { min-height: 44px; padding: 6px 10px; max-width: 9ch; }
+  #folio .leaf .roll-c { min-height: 44px; width: 100%; }
+  /* the frame stands at the head of the text like an illuminated initial, and the story runs on round it */
+  #folio .leaf-main { display: flow-root; padding: 6px 14px 4px; }
+  #folio .leaf-margin { float: left; width: 144px; margin: 4px 14px 6px 0; padding: 0; border-right: 0; }
+  #folio .leaf-margin .hole { display: none; }
+  #folio .leaf .glyph svg.ill { width: 144px; }
+  #folio .leaf .tally { flex-direction: row; justify-content: center; gap: 8px; }
+  #folio .leaf-text { padding: 0; border-right: 0; }
+  #folio .leaf.entry .leaf-margin { width: 52px; }
+}
+
 /* virtue rays, falling petals for the realms */
 .flourish { position: absolute; inset: 0; overflow: hidden; border-radius: inherit; pointer-events: none; z-index: 0; }
 .flourish .rays {
@@ -468,6 +557,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
 @media (prefers-reduced-motion: reduce) {
   .token, .token.slide { transition: none; }
   .cam { transition: none; transform: none !important; }
+  #folio.snap, #folio.snap .leaf { transition: none; }
   .token .body, .die.rolling, .lab.goal .om, .leaf, .leaf *, .flourish *, .toast { animation: none !important; }
   ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
 }

@@ -17,8 +17,9 @@ single static `index.html` at https://codebpr.com/moksha-patam/
 - `docs/REFERENCE.md`: philosophy-to-mechanics mapping and the history of the board.
 - `docs/LANDSCAPE.md`: comparable games.
 
-**State:** Phases 0 to 5 have shipped. Phase 5 was The Painted Board (REDESIGN.md §4): the ageing in
-`src/render/age.js` and `ground.js`, the camera in `camera.js`, the drone in `src/audio/drone.js`. Phase 6,
+**State:** Phases 0 to 6 have shipped. Phase 6 was The Card in Hand (REDESIGN.md §4): the card opens collapsed
+(`src/render/card.js`), with an illuminated frame (`frame.js`) and a bottom sheet below 768px (`sheet.js`), and you
+can roll from it. Phase 5 was the painted board (`age.js`, `ground.js`, `camera.js`, `src/audio/drone.js`). Phase 7,
 Life state, is next.
 
 ## Commands
@@ -31,7 +32,8 @@ Life state, is next.
 - `npm run format`: rewrites `content/*.json` one entry per line. Run it after editing content.
 - `npm run sim [games] [players] [firstSeed] [--rules=brahmaloka] [--snake=HEAD:TAIL|none]`: headless
   games, reporting median, p5, p95 and the share over 100 turns. Balance against the p95.
-- `npm run smoke`: Playwright checks of the built page in a real browser (needs Chrome installed).
+- `npm run smoke [-- --only=text]`: Playwright checks of the built page in a real browser (needs Chrome installed).
+  `--only` runs just the checks whose names contain the text, e.g. `--only="Phase 6"`.
 - `npm run golden [seeds]`: the built page and `sim.mjs` must produce the same move log.
 - `npm run perf [--rate=4] [--query=quality=low]`: frame times on a throttled phone-sized page. Reports only;
   compare against a run on `main`.
@@ -45,6 +47,8 @@ Life state, is next.
   in `src/main.js`) and extend them; don't remove any.
 - The ageing paints only the art: labels, cards and clicks never dim (`tests/contrast.test.mjs` holds every
   label's contrast). Phase 5 colours are `--b-*` tokens only (lint). Never touch `G.state.rng` from sound or drawing.
+- The card's × stays in every layout; closing is never gesture-only. Below 768px the card is a sheet whose gesture
+  rule is in `sheet.js`: the sheet moves only when a touch can't be a scroll, decided when the touch starts.
 - Preserve `prefers-reduced-motion`, the aria-live card, the card's dialog role
   (a native `<dialog id="folio">` in `src/index.html`) and the Space-to-roll key.
 - One phase per PR. `main` is live and must never be unplayable.
