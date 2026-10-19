@@ -126,6 +126,10 @@ export async function climb(idx, a, b) {
   setTimeout(() => el.classList.remove("land"), 340);
 }
 
+// How long the bulge takes to travel a snake's body, in ms: longer snakes swallow more slowly, within limits.
+const bulgeMs = pts => { let len = 0; for (let i = 0; i + 1 < pts.length; i++) len += Math.hypot(pts[i + 1].x - pts[i].x, pts[i + 1].y - pts[i].y); return Math.min(2000, Math.max(1000, (len / S) * 170)); };
+// The whole swallow, strike to spit, in seconds, so the sound of a fall can last exactly as long.
+export const swallowSecs = (h, tail) => (reduced ? 0 : (450 + 340 + bulgeMs(snakePath(h, tail)) + 700) / 1000);
 export async function swallow(idx, h, tail) {
   const g = G.gen, el = tokenEls[idx], p = G.state.players[idx];
   const pts = snakePath(h, tail), N = pts.length - 1, cols = snakeColors(h);
@@ -142,9 +146,7 @@ export async function swallow(idx, h, tail) {
   if (g !== G.gen) return fxClear();
   el.classList.add("hide"); el.classList.remove("gulp");
   // a bulge in the player's colour travels down the body
-  let len = 0;
-  for (let i = 0; i < N; i++) len += Math.hypot(pts[i + 1].x - pts[i].x, pts[i + 1].y - pts[i].y);
-  await animate(Math.min(2000, Math.max(1000, (len / S) * 170)), v => {
+  await animate(bulgeMs(pts), v => {
     // the bulge is slow to start and slows again before the tail, as a swallowed thing would be
     const u = ease(v), i = u * N, k = Math.min(N - 1, Math.floor(i)), f = i - k, a = pts[k], b = pts[k + 1];
     const x = a.x + (b.x - a.x) * f, y = a.y + (b.y - a.y) * f, r = Math.max(S * 0.11, a.w * 0.95);

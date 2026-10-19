@@ -30,28 +30,29 @@ test("a ladder climbs and a snake swallows", () => {
 
 test("a roll past 110 bounces back by the remainder, so no roll is wasted", () => {
   const s = game(107);
-  const plan = playTurn(s, 5);        // up to 110, then back down to 108
-  assert.deepEqual(plan.path, [108, 109, 110, 109, 108]);
-  assert.equal(s.players[0].pos, 108);
-  assert.equal(s.log.find(e => e.k === "lBounce").v.pos, 108);
+  const plan = playTurn(s, 6);        // up to 110, then back down to 107, passing Brahma's snake without landing on it
+  assert.deepEqual(plan.path, [108, 109, 110, 109, 108, 107]);
+  assert.equal(plan.jump, null);
+  assert.equal(s.players[0].pos, 107);
+  assert.equal(s.log.find(e => e.k === "lBounce").v.pos, 107);
   // the same square it left is still a move, and still a life lived
-  const back = game(108);
-  playTurn(back, 4);
-  assert.equal(back.players[0].pos, 108);
-  assert.deepEqual(back.players[0].life, [108]);
+  const back = game(109);
+  playTurn(back, 2);
+  assert.equal(back.players[0].pos, 109);
+  assert.deepEqual(back.players[0].life, [109]);
 });
 
-test("merit spent: the snake on 109 drops a player from Shiva's realm to Indra's, the bottom of the divine row", () => {
-  const s = game(105);
-  const plan = playTurn(s, 4);
+test("merit spent: the snake on Brahma's square, 108, drops a player out of heaven into the world, at 48", () => {
+  const s = game(106);
+  const plan = playTurn(s, 2);
   assert.ok(plan.jump?.rebirth);
-  assert.equal(s.players[0].pos, 101);
+  assert.equal(s.players[0].pos, 48);
   assert.equal(s.players[0].hasFallen, true);
   assert.ok(s.log.some(e => e.k === "lRebirth"));
-  // a bounce that comes down on 109 falls too
+  // a bounce that comes down on 108 falls too
   const b = game(108);
-  playTurn(b, 3);                     // 109, 110, 109
-  assert.equal(b.players[0].pos, 101);
+  playTurn(b, 4);                     // 109, 110, 109, 108
+  assert.equal(b.players[0].pos, 48);
 });
 
 test("the log names every square walked over, once, and not the one landed on", () => {
@@ -59,25 +60,63 @@ test("the log names every square walked over, once, and not the one landed on", 
   playTurn(s, 4);
   assert.deepEqual(s.log.find(e => e.k === "lPassed").v.passed, [21, 22, 23]);
   const b = game(107);
-  playTurn(b, 5);
-  assert.deepEqual(b.log.find(e => e.k === "lPassed").v.passed, [109, 110]);
+  playTurn(b, 6);
+  assert.deepEqual(b.log.find(e => e.k === "lPassed").v.passed, [108, 109, 110]);
   const one = game(20);
   playTurn(one, 1);
   assert.ok(!one.log.some(e => e.k === "lPassed"));
 });
 
 test("Brahmaloka rule: Moksha opens only after a fall, and is off by default", () => {
-  const plain = game(104);
-  playTurn(plain, 6);
+  const plain = game(101);
+  playTurn(plain, 4);
   assert.equal(plain.winner, 0);
-  const s = game(104, { six: true, brahmaloka: true });
-  playTurn(s, 6);                     // reaches 110, is turned back to 109, and falls
+  const s = game(101, { six: true, brahmaloka: true });
+  const plan = playTurn(s, 4);        // reaches 105, walks on past the shut exit to Brahma, and falls
+  assert.deepEqual(plan.path, [102, 103, 104, 105, 106, 107, 108]);
   assert.equal(s.winner, null);
-  assert.equal(s.players[0].pos, 101);
+  assert.equal(s.players[0].pos, 48);
   assert.ok(s.log.some(e => e.k === "lClosed"));
-  s.turn = 0; s.players[0].pos = 104;
-  playTurn(s, 6);                     // having fallen once, the door is open
+  s.turn = 0; s.players[0].pos = 101;
+  playTurn(s, 4);                     // having fallen once, the door is open
   assert.equal(s.winner, 0);
+});
+
+// REDESIGN.md Phase 7, item 3: the exit can be reached from above. Having overshot it, a player comes back down
+// onto it by bouncing off the top of the board. This is deliberate; keep it.
+test("Phase 7: Moksha at 105 is won only by landing on it, and can be won coming back down from above", () => {
+  const top = game(110);
+  const down = playTurn(top, 5);      // 109, 108, 107, 106, 105: past Brahma's snake without landing on it
+  assert.deepEqual(down.path, [109, 108, 107, 106, 105]);
+  assert.ok(down.win && !down.jump);
+  assert.equal(top.winner, 0);
+  assert.equal(top.log[0].k, "lWinAbove");
+  const near = game(109);
+  const back = playTurn(near, 6);     // 110, then all the way down to 105
+  assert.deepEqual(back.path, [110, 109, 108, 107, 106, 105]);
+  assert.equal(near.winner, 0);
+  assert.equal(near.log[0].k, "lWinAbove");
+  // passing over the exit going up does not win, and neither does stopping short of it coming down
+  const over = game(103);
+  playTurn(over, 4);
+  assert.equal(over.players[0].pos, 107);
+  assert.equal(over.winner, null);
+  const short = game(110);
+  playTurn(short, 4);
+  assert.equal(short.players[0].pos, 106);
+  assert.equal(short.winner, null);
+});
+
+test("Phase 7: from anywhere near the top, every roll walks a reflection off 110, and wins only on 105", () => {
+  const reflect = (from, v) => Array.from({ length: v }, (_, i) => (from + i + 1 <= 110 ? from + i + 1 : 220 - (from + i + 1)));
+  for (let pos = 95; pos <= 110; pos++) {
+    for (let v = 1; v <= 6; v++) {
+      const plan = planTurn(game(pos), v);
+      assert.deepEqual(plan.path, reflect(pos, v), `from ${pos}, a ${v}`);
+      assert.equal(plan.win, plan.final === 105, `from ${pos}, a ${v}`);
+      assert.equal(plan.win, plan.target === 105, `from ${pos}, a ${v}: the exit has no snake or ladder on it`);
+    }
+  }
 });
 
 test("a six goes again, unless the rule is off", () => {
@@ -90,8 +129,8 @@ test("a six goes again, unless the rule is off", () => {
   assert.equal(off.turn, 1);
 });
 
-test("landing on 110 wins, and a winning six does not go again", () => {
-  const s = game(104);
+test("landing on 105 wins, and a winning six does not go again", () => {
+  const s = game(99);
   const plan = playTurn(s, 6);
   assert.ok(plan.win && !plan.again);
   assert.equal(s.winner, 0);
@@ -113,8 +152,8 @@ test("a player's life records every square landed on, a snake or ladder as two",
   const s = game(0, { six: false });
   playTurn(s, 6);        // born on 6, the friendship ladder to 15
   assert.deepEqual(s.players[0].life, [6, 15]);
-  s.turn = 0; s.players[0].pos = 105;
-  playTurn(s, 4);        // 109: merit spent, and down to 101
-  assert.deepEqual(s.players[0].life, [6, 15, 109, 101]);
+  s.turn = 0; s.players[0].pos = 106;
+  playTurn(s, 2);        // 108: merit spent, and down into the world at 48
+  assert.deepEqual(s.players[0].life, [6, 15, 108, 48]);
   assert.equal(s.players[0].gender, "m");
 });

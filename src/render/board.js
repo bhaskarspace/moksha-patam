@@ -1,5 +1,5 @@
 // ---- The board: squares, labels, and the painted snakes and ladders ----
-import { GOAL, ROWS, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN } from "../content.js";
+import { GOAL, TOP, ROWS, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN } from "../content.js";
 import { lang, L, t, num } from "../i18n.js";
 import { $, art, quality } from "../ui.js";
 import { PALETTE, colRow, fills, WASH } from "./ground.js";
@@ -165,7 +165,7 @@ export function drawAge(next = washes) {
   agx.clearRect(0, 0, W, H);
   // the cloth first, under the washes
   if (grain && quality !== "low") { agx.fillStyle = grain; agx.fillRect(0, 0, W, H); }
-  for (let n = 1; n <= GOAL; n++) {
+  for (let n = 1; n <= TOP; n++) {
     const { col, row } = colRow(n), x = col * S, y = (ROWS - 1 - row) * S;
     for (const [t, a] of fills(n, washes[n])) {
       agx.globalAlpha = a; agx.fillStyle = tokens[t];

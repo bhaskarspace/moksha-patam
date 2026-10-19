@@ -8,7 +8,8 @@ import names from "../content/names.json" with { type: "json" };
 // Every square is { ic, en, hi, age, moment, mirror, callsBack, src } (docs/NARRATIVE.md §11). Snakes and
 // ladders add { to, skt }. The mirror is the Phase 2 lead; the moment, when there is one, sits above it and
 // says what is happening to the player, as { en, hi } with an optional mirror of its own to read after it.
-export const { GOAL, ROWS, ASHRAMAS, LADDERS, SNAKES, HEAVEN, MOKSHA } = squares;
+// GOAL is the exit, where a life is let go; TOP is the last square of the board, where a roll turns back.
+export const { GOAL, TOP, ROWS, ASHRAMAS, LADDERS, SNAKES, HEAVEN, MOKSHA } = squares;
 export const { SQ } = squares;
 export const { STR, SRC_HI, JOINS } = strings;
 // Names drawn for players who are not given one, each [en, hi], by gender.
@@ -19,7 +20,7 @@ export const READINGS = readings;
 export const CODEX = codex;
 
 // Square n's record, whichever table it lives in.
-// A god's square stays the god's even when a snake starts on it (109, merit spent): heaven comes first.
+// A god's square stays the god's even when a snake starts on it (108, merit spent): heaven comes first.
 export const squareOf = n => (n === GOAL ? MOKSHA : HEAVEN[n] || LADDERS[n] || SNAKES[n] || SQ[n] || null);
 // The snake that starts on a god's square, which the square's card shows after the god.
 export const snakeOn = n => (HEAVEN[n] && SNAKES[n]) || null;
@@ -42,7 +43,7 @@ export function entryOf(id) {
 export const REFS = (() => {
   const refs = {};
   const add = (id, n) => { if (id) (refs[id] ||= new Set()).add(n); };
-  for (let n = 1; n <= GOAL; n++) {
+  for (let n = 1; n <= TOP; n++) {
     const r = READINGS[n] || {};
     add(sourceOf(srcOfSquare(n)), n);
     const sn = snakeOn(n);

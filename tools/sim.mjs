@@ -43,15 +43,20 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       SNAKES[head] = { ...(SNAKES[head] || {}), to: tail, rebirth: true };
     }
   }
-  let rolls = 0;
+  // how often the rebirth snake fires, and how often the exit is won coming back down onto it (REDESIGN.md Phase 7)
+  let rolls = 0, fell = 0, falls = 0, above = 0;
   const lengths = [];
   for (let s = first; s < first + games; s++) {
-    const { turns } = playGame(s, { players, rules });
+    const { turns, log } = playGame(s, { players, rules });
     lengths.push(Math.max(...turns));
     rolls += turns.reduce((a, b) => a + b, 0);
+    const f = log.filter(e => e.k === "lRebirth").length;
+    falls += f; fell += f > 0;
+    above += log.some(e => e.k === "lWinAbove");
   }
   const r = summarise(lengths);
   console.log(`${games} games, ${players} players, seeds ${first}–${first + games - 1}${flags.rules ? `, rules ${flags.rules}` : ""}${flags.snake ? `, snake ${flags.snake}` : ""}`);
   console.log(`turns per player until the game ends: median ${r.median}, p5 ${r.p5}, p95 ${r.p95}, mean ${r.mean.toFixed(1)}, max ${r.max}, over 100: ${(r.over100 * 100).toFixed(1)}%`);
   console.log(`rolls per game: mean ${(rolls / games).toFixed(1)}`);
+  console.log(`the rebirth snake fires in ${((fell / games) * 100).toFixed(1)}% of games, ${(falls / games).toFixed(2)} falls a game; ${((above / games) * 100).toFixed(1)}% are won coming back down onto the exit`);
 }

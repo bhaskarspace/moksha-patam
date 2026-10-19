@@ -29,7 +29,7 @@
   "STR": {
     "en": {
       "title": "Moksha Patam",
-      "intro": "The old Indian game of snakes and ladders, played as one life. Grow from a baby through childhood and the four ashramas, with a story from the Panchatantra or the Upanishads on every square. Virtues lift you up; vices drag you back to a younger self, always just before the virtue that heals them. The first to reach Moksha at 110 is liberated. Tap any square to read it.",
+      "intro": "The old Indian game of snakes and ladders, played as one life. Grow from a baby through childhood and the four ashramas, with a story from the Panchatantra or the Upanishads on every square. Virtues lift you up; vices drag you back to a younger self, always just before the virtue that heals them. The first to land exactly on Moksha, at 105, is liberated; the heavens past it are still the wheel. Tap any square to read it.",
       "turn": "Turn",
       "players": "Players",
       "moves": "Moves",
@@ -62,7 +62,6 @@
       "colour2": "Green",
       "colour3": "Saffron",
       "lNew": "New game. Roll to be born onto the board.",
-      "lExact": "{name} rolled {v} but needs exactly {need}. Stays on {pos}.",
       "lSnake": "{name} rolled {v}, landed on {pos} and was swallowed by the snake of {what}. Down to {to}.",
       "lLadder": "{name} rolled {v} to {pos} and climbed the ladder of {what} to {to}.",
       "lHeaven": "{name} rolled {v}: rose to {pos}, the realm of {what}.",
@@ -155,14 +154,16 @@
       "lifeWhose": "Whose life",
       "lPassed": "Passed:",
       "lBounce": "{name} rolled {v}: reached 110 and bounced back to {pos}, {what}.",
-      "lRebirth": "{name} rolled {v} to {pos}: merit spent, and down from the highest heaven to Indra's, on {to}.",
-      "lClosed": "Moksha does not open yet: it opens only to someone who has fallen once. {name} walks back to {pos}.",
+      "lRebirth": "{name} rolled {v} to {pos}: merit spent, and out of Brahma's realm, past Moksha, back into the world on {to}.",
+      "lClosed": "Moksha does not open yet: it opens only to someone who has fallen once. {name} walks on past it, to {pos}.",
       "ruleBrahmaloka": "Brahmaloka rule: Moksha opens only after a fall from heaven",
-      "meritSnake": "Snake · from this realm"
+      "meritSnake": "Snake · from this realm",
+      "lWinAbove": "{name} came back down to Moksha on square {pos}.",
+      "aboveExit": "Moksha is behind you now, on {n}. Liberation is not up here: a roll that bounces off {top} can still bring you back down to it."
     },
     "hi": {
       "title": "मोक्ष पटम",
-      "intro": "साँप-सीढ़ी का पुराना भारतीय खेल, एक जीवन की तरह खेला जाता है। शिशु से बचपन और चारों आश्रमों से होकर बढ़ें, हर खाने पर पंचतंत्र या उपनिषदों की एक कथा है। गुण ऊपर उठाते हैं; दोष आपको छोटी उम्र में लौटा देते हैं, ठीक उस गुण के पास जो उन्हें ठीक करता है। जो सबसे पहले ११० पर मोक्ष पहुँचे, वही मुक्त। किसी भी खाने को छूकर उसकी कथा पढ़ें।",
+      "intro": "साँप-सीढ़ी का पुराना भारतीय खेल, एक जीवन की तरह खेला जाता है। शिशु से बचपन और चारों आश्रमों से होकर बढ़ें, हर खाने पर पंचतंत्र या उपनिषदों की एक कथा है। गुण ऊपर उठाते हैं; दोष आपको छोटी उम्र में लौटा देते हैं, ठीक उस गुण के पास जो उन्हें ठीक करता है। जो सबसे पहले ठीक १०५ पर मोक्ष पहुँचे, वही मुक्त; उसके पार के स्वर्ग भी संसार का ही चक्र हैं। किसी भी खाने को छूकर उसकी कथा पढ़ें।",
       "turn": "बारी",
       "players": "खिलाड़ी",
       "moves": "चालें",
@@ -195,7 +196,6 @@
       "colour2": "हरा",
       "colour3": "केसरिया",
       "lNew": "नया खेल। बोर्ड पर जन्म लेने के लिए पासा फेंकें।",
-      "lExact": "{name} का {v} आया, पर ठीक {need} चाहिए। {pos} पर ही रहे।",
       "lSnake": "{name} का {v} आया, {pos} पर {what} के साँप ने निगल लिया। नीचे {to} पर।",
       "lLadder": "{name} का {v} आया, {pos} से {what} की सीढ़ी चढ़कर {to} पर।",
       "lHeaven": "{name} का {v} आया: {pos}, {what} लोक में पहुँचे।",
@@ -288,10 +288,12 @@
       "lifeWhose": "किसका जीवन",
       "lPassed": "रास्ते में:",
       "lBounce": "{name} का {v} आया: ११० तक पहुँचकर वापस {pos} पर, {what}।",
-      "lRebirth": "{name} का {v} आया, {pos} पर: पुण्य क्षीण हुआ, और सबसे ऊँचे स्वर्ग से {to} पर इंद्र के स्वर्ग तक।",
-      "lClosed": "मोक्ष अभी नहीं खुलता: वह उसी के लिए खुलता है जो एक बार गिर चुका हो। {name} वापस {pos} पर।",
+      "lRebirth": "{name} का {v} आया, {pos} पर: पुण्य क्षीण हुआ, और ब्रह्मा के लोक से, मोक्ष के पार, वापस संसार में {to} पर।",
+      "lClosed": "मोक्ष अभी नहीं खुलता: वह उसी के लिए खुलता है जो एक बार गिर चुका हो। {name} उसके पार {pos} तक चलते गए।",
       "ruleBrahmaloka": "ब्रह्मलोक नियम: स्वर्ग से एक बार गिरने के बाद ही मोक्ष खुलता है",
-      "meritSnake": "साँप · इस लोक से"
+      "meritSnake": "साँप · इस लोक से",
+      "lWinAbove": "{name} लौटकर नीचे खाना {pos} पर मोक्ष पहुँचे।",
+      "aboveExit": "मोक्ष अब पीछे छूट गया, {n} पर। मुक्ति यहाँ ऊपर नहीं है: {top} से टकराकर लौटता पासा अब भी आपको नीचे उस तक ला सकता है।"
     }
   },
   "JOINS": {

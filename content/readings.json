@@ -454,31 +454,31 @@
     "figures": ["patanjali"]
   },
   "105": {
-    "line2": {"en":"She is fortune, and fortune is fickle; she is also Śrī, who never leaves Viṣṇu's side.","hi":"वे भाग्य हैं, और भाग्य चंचल है; वे श्री भी हैं, जो विष्णु का साथ कभी नहीं छोड़तीं।"},
-    "schools": [{"id":"vishishtadvaita","en":"In Rāmānuja's tradition Śrī is the mediator (puruṣakāra): she turns God's face toward the soul that has fallen short.","hi":"रामानुज की परंपरा में श्री पुरुषकार हैं, मध्यस्थ: वे ईश्वर का मुख उस जीव की ओर मोड़ती हैं जो चूक गया है।"},{"id":"dvaita","en":"For Madhva, Lakṣmī is the highest of all dependent beings: eternally free, and still never independent. Only Viṣṇu is.","hi":"मध्व के लिए लक्ष्मी सभी आश्रित जीवों में सर्वोच्च हैं: नित्य मुक्त, फिर भी कभी स्वतंत्र नहीं। स्वतंत्र केवल विष्णु हैं।"}]
-  },
-  "106": {
-    "line2": {"en":"Telling milk from water is called nīra-kṣīra-viveka, the discernment of square 85, given wings.","hi":"दूध और पानी अलग करना नीर-क्षीर-विवेक कहलाता है, खाना ८५ का विवेक, जिसे पंख मिल गए।"},
-    "schools": [{"id":"nyaya","en":"Nyāya's whole project is the swan's: telling valid knowledge (pramā) from error, and showing exactly how you can tell.","hi":"न्याय का पूरा काम हंस का काम है: प्रमा को भ्रम से अलग करना, और ठीक-ठीक दिखाना कि यह कैसे पहचाना जाता है।"},{"id":"mimamsa","en":"Mīmāṃsā turns the swan round: every cognition is valid by itself (svataḥ prāmāṇya), and only error has to be shown. Telling milk from water is the exception, not the rule.","hi":"मीमांसा हंस को उलट देती है: हर ज्ञान स्वतः प्रमाण है, और केवल भ्रम को सिद्ध करना पड़ता है। दूध और पानी को अलग करना अपवाद है, नियम नहीं।"}]
-  },
-  "107": {
-    "line2": {"en":"The gods came after creation, says the hymn, so who can know where it came from?","hi":"सूक्त कहता है, देवता सृष्टि के बाद आए, तो कौन जान सकता है कि यह कहाँ से आई?"},
-    "schools": [{"id":"vaisheshika","en":"Vaiśeṣika pictured creation as atoms combining, pairs into triads into everything, set moving by God at the start of each cycle.","hi":"वैशेषिक ने सृष्टि को परमाणुओं के जुड़ने के रूप में देखा, दो से तीन, तीन से सब कुछ, जिन्हें हर कल्प के आरंभ में ईश्वर गति देते हैं।"},{"id":"mimamsa","en":"Mīmāṃsā and the Jains both denied it: the world was never created and will never wholly end.","hi":"मीमांसा और जैन दोनों ने इसे नकारा: जगत कभी रचा नहीं गया और कभी पूरी तरह समाप्त नहीं होगा।"}],
-    "figures": ["kumarila"]
-  },
-  "108": {
-    "line2": {"en":"He comes down whenever dharma fails: as fish, tortoise, boar, man-lion, dwarf, and the rest.","hi":"जब भी धर्म डगमगाता है वे उतरते हैं: मत्स्य, कूर्म, वराह, नरसिंह, वामन, और आगे के रूपों में।"},
-    "schools": [{"id":"dvaita","en":"For Madhva, Viṣṇu alone is fully independent (svatantra). Every soul and every god on this row depends on him.","hi":"मध्व के लिए केवल विष्णु पूर्णतः स्वतंत्र हैं। इस पंक्ति का हर जीव और हर देवता उन पर निर्भर है।"},{"id":"advaita","en":"Śaṅkara would accept every descent and still call each an appearance of a Brahman that never comes down, because it was never up.","hi":"शंकर हर अवतार को मानते और फिर भी हर एक को उस ब्रह्म का आभास कहते जो कभी उतरता नहीं, क्योंकि वह कभी ऊपर था ही नहीं।"}]
-  },
-  "109": {
-    "line2": {"en":"He dances the world into being and out of it again; the destroyer is also the one who sets free.","hi":"वे नृत्य से जगत को रचते हैं और फिर उसे समेटते हैं; संहारक ही मुक्त करने वाले भी हैं।"},
-    "schools": [{"id":"trika","en":"For the Kashmir Śaivas, Śiva is not a god up here but consciousness itself, everywhere on the board, freely appearing as all of it.","hi":"काश्मीर शैवों के लिए शिव यहाँ ऊपर बैठे कोई देवता नहीं, स्वयं चेतना हैं, पूरे बोर्ड पर, स्वतंत्रता से सब कुछ बनकर प्रकट।"},{"id":"advaita","en":"Advaita agrees Śiva is consciousness and disagrees about the world: for Śaṅkara it is appearance, for the Śaivas it is Śiva's own real play.","hi":"अद्वैत सहमत है कि शिव चेतना हैं, पर संसार पर असहमत: शंकर के लिए वह आभास है, शैवों के लिए शिव की अपनी वास्तविक लीला।"}],
-    "figures": ["abhinavagupta"]
-  },
-  "110": {
     "iast": "Mokṣa",
     "views": [{"id":"nyaya","en":"Nyāya: apavarga, the end of all suffering. Not bliss, and only after death.","hi":"न्याय: अपवर्ग, सब दुःखों का अंत। आनंद नहीं, और केवल मृत्यु के बाद।"},{"id":"samkhya","en":"Sāṃkhya and Yoga: kaivalya, the watcher alone, seeing it was never bound.","hi":"सांख्य और योग: कैवल्य, द्रष्टा अकेला, यह देखता हुआ कि वह कभी बँधा ही नहीं था।"},{"id":"mimamsa","en":"Mīmāṃsā, for centuries: there is no such square. Heaven at 101 was enough.","hi":"मीमांसा, सदियों तक: ऐसा कोई खाना नहीं। १०१ पर स्वर्ग पर्याप्त था।"},{"id":"advaita","en":"Advaita: knowing you were always Brahman. You did not arrive; you recognised.","hi":"अद्वैत: यह जानना कि आप सदा से ब्रह्म थे। आप पहुँचे नहीं; आपने पहचाना।"},{"id":"vishishtadvaita","en":"Viśiṣṭādvaita: union with Brahman in which you stay yourself. Equal to God in bliss, never one with him in number, and serving forever.","hi":"विशिष्टाद्वैत: ब्रह्म से ऐसा मिलन जिसमें आप स्वयं बने रहते हैं। आनंद में ईश्वर के समान, संख्या में कभी एक नहीं, और सदा सेवा में।"},{"id":"dvaita","en":"Dvaita: eternal service of Viṣṇu, by his grace. Even the liberated are ranked, each as blissful as its own nature allows.","hi":"द्वैत: विष्णु की कृपा से उनकी नित्य सेवा। मुक्त जीवों में भी तारतम्य है, हर एक उतना आनंदित जितना उसका स्वभाव अनुमति दे।"}],
     "beyond": [{"id":"jaina","en":"Jainism: the soul, free of karmic dust, rising to the top of the universe.","hi":"जैन: कर्म की धूल से मुक्त जीव, लोक के शिखर तक उठता हुआ।"},{"id":"bauddha","en":"Buddhism: nirvāṇa, the flame blown out, with no one left who was bound.","hi":"बौद्ध: निर्वाण, लौ का बुझ जाना, बिना किसी के जो बँधा था।"},{"id":"carvaka","en":"Cārvāka: death is liberation. Live well on the way.","hi":"चार्वाक: मृत्यु ही मोक्ष है। रास्ते में अच्छे से जियो।"}],
     "scholar": {"en":"They all said you had arrived, and they meant six different things. Each name opens that school in the Codex.","hi":"सबने कहा कि आप पहुँच गए, और उनके छह अलग अर्थ थे। हर नाम कोश में उस दर्शन को खोलता है।"}
+  },
+  "106": {
+    "line2": {"en":"She is fortune, and fortune is fickle; she is also Śrī, who never leaves Viṣṇu's side.","hi":"वे भाग्य हैं, और भाग्य चंचल है; वे श्री भी हैं, जो विष्णु का साथ कभी नहीं छोड़तीं।"},
+    "schools": [{"id":"vishishtadvaita","en":"In Rāmānuja's tradition Śrī is the mediator (puruṣakāra): she turns God's face toward the soul that has fallen short.","hi":"रामानुज की परंपरा में श्री पुरुषकार हैं, मध्यस्थ: वे ईश्वर का मुख उस जीव की ओर मोड़ती हैं जो चूक गया है।"},{"id":"dvaita","en":"For Madhva, Lakṣmī is the highest of all dependent beings: eternally free, and still never independent. Only Viṣṇu is.","hi":"मध्व के लिए लक्ष्मी सभी आश्रित जीवों में सर्वोच्च हैं: नित्य मुक्त, फिर भी कभी स्वतंत्र नहीं। स्वतंत्र केवल विष्णु हैं।"}]
+  },
+  "107": {
+    "line2": {"en":"Telling milk from water is called nīra-kṣīra-viveka, the discernment of square 85, given wings.","hi":"दूध और पानी अलग करना नीर-क्षीर-विवेक कहलाता है, खाना ८५ का विवेक, जिसे पंख मिल गए।"},
+    "schools": [{"id":"nyaya","en":"Nyāya's whole project is the swan's: telling valid knowledge (pramā) from error, and showing exactly how you can tell.","hi":"न्याय का पूरा काम हंस का काम है: प्रमा को भ्रम से अलग करना, और ठीक-ठीक दिखाना कि यह कैसे पहचाना जाता है।"},{"id":"mimamsa","en":"Mīmāṃsā turns the swan round: every cognition is valid by itself (svataḥ prāmāṇya), and only error has to be shown. Telling milk from water is the exception, not the rule.","hi":"मीमांसा हंस को उलट देती है: हर ज्ञान स्वतः प्रमाण है, और केवल भ्रम को सिद्ध करना पड़ता है। दूध और पानी को अलग करना अपवाद है, नियम नहीं।"}]
+  },
+  "108": {
+    "line2": {"en":"The gods came after creation, says the hymn, so who can know where it came from?","hi":"सूक्त कहता है, देवता सृष्टि के बाद आए, तो कौन जान सकता है कि यह कहाँ से आई?"},
+    "schools": [{"id":"vaisheshika","en":"Vaiśeṣika pictured creation as atoms combining, pairs into triads into everything, set moving by God at the start of each cycle.","hi":"वैशेषिक ने सृष्टि को परमाणुओं के जुड़ने के रूप में देखा, दो से तीन, तीन से सब कुछ, जिन्हें हर कल्प के आरंभ में ईश्वर गति देते हैं।"},{"id":"mimamsa","en":"Mīmāṃsā and the Jains both denied it: the world was never created and will never wholly end.","hi":"मीमांसा और जैन दोनों ने इसे नकारा: जगत कभी रचा नहीं गया और कभी पूरी तरह समाप्त नहीं होगा।"}],
+    "figures": ["kumarila"]
+  },
+  "109": {
+    "line2": {"en":"He comes down whenever dharma fails: as fish, tortoise, boar, man-lion, dwarf, and the rest.","hi":"जब भी धर्म डगमगाता है वे उतरते हैं: मत्स्य, कूर्म, वराह, नरसिंह, वामन, और आगे के रूपों में।"},
+    "schools": [{"id":"dvaita","en":"For Madhva, Viṣṇu alone is fully independent (svatantra). Every soul and every god on this row depends on him.","hi":"मध्व के लिए केवल विष्णु पूर्णतः स्वतंत्र हैं। इस पंक्ति का हर जीव और हर देवता उन पर निर्भर है।"},{"id":"advaita","en":"Śaṅkara would accept every descent and still call each an appearance of a Brahman that never comes down, because it was never up.","hi":"शंकर हर अवतार को मानते और फिर भी हर एक को उस ब्रह्म का आभास कहते जो कभी उतरता नहीं, क्योंकि वह कभी ऊपर था ही नहीं।"}]
+  },
+  "110": {
+    "line2": {"en":"He dances the world into being and out of it again; the destroyer is also the one who sets free.","hi":"वे नृत्य से जगत को रचते हैं और फिर उसे समेटते हैं; संहारक ही मुक्त करने वाले भी हैं।"},
+    "schools": [{"id":"trika","en":"For the Kashmir Śaivas, Śiva is not a god up here but consciousness itself, everywhere on the board, freely appearing as all of it.","hi":"काश्मीर शैवों के लिए शिव यहाँ ऊपर बैठे कोई देवता नहीं, स्वयं चेतना हैं, पूरे बोर्ड पर, स्वतंत्रता से सब कुछ बनकर प्रकट।"},{"id":"advaita","en":"Advaita agrees Śiva is consciousness and disagrees about the world: for Śaṅkara it is appearance, for the Śaivas it is Śiva's own real play.","hi":"अद्वैत सहमत है कि शिव चेतना हैं, पर संसार पर असहमत: शंकर के लिए वह आभास है, शैवों के लिए शिव की अपनी वास्तविक लीला।"}],
+    "figures": ["abhinavagupta"]
   }
 }

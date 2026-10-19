@@ -1,5 +1,5 @@
 // ---- Pixel-art characters, one per stage of life (12 x 16, facing right) ----
-import { GOAL } from "../content.js";
+import { TOP } from "../content.js";
 import { L } from "../i18n.js";
 import { P_HEX } from "../ui.js";
 
@@ -43,7 +43,7 @@ export const STAGES = [
   { max: 60,   art: "householder", en: "Householder",    hi: "गृहस्थ" },
   { max: 80,   art: "forest",      en: "Forest-dweller", hi: "वानप्रस्थी" },
   { max: 100,  art: "sage",        en: "Renunciate",     hi: "संन्यासी" },
-  { max: GOAL, art: "divine",      en: "Divine soul",    hi: "दिव्य आत्मा" },
+  { max: TOP,  art: "divine",      en: "Divine soul",    hi: "दिव्य आत्मा" },
 ];
 export const stageOf = pos => STAGES.findIndex(s => Math.max(pos, 1) <= s.max);
 export const stageName = i => L(STAGES[i].en, STAGES[i].hi);

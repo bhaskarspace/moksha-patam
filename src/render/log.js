@@ -24,7 +24,7 @@ export function renderLog() {
     <li class="passed"><span class="dot" style="background:transparent;border-color:transparent;box-shadow:none"></span><span>${esc(t("lPassed"))} ${e.v.passed.map(n => `<button type="button" class="logbtn" data-sq="${n}">${esc(squareName(n) || num(n))}</button>`).join(" · ")}</span></li>`;
     const text = e.k ? t(e.k, { ...e.v, name: who ? pname(who) : "", what: e.v?.sq ? squareName(e.v.sq) : "" }) : e.text;
     // each move reopens the card of the square it landed on
-    const sq = e.v?.sq ?? (e.k === "lWin" ? GOAL : e.k === "lExact" ? e.v.pos || null : null);
+    const sq = e.v?.sq ?? (e.k === "lWin" || e.k === "lWinAbove" ? GOAL : null);
     return `
     <li class="${e.kind}"><span class="dot" style="background:${who ? COLORS[who.color] : "transparent"};${who ? "" : "border-color:transparent;box-shadow:none"}"></span>${sq ? `<button type="button" class="logbtn" data-sq="${sq}">${esc(text)}</button>` : `<span>${esc(text)}</span>`}</li>`;
   }).join("");

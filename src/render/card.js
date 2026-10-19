@@ -1,7 +1,7 @@
 // ---- The card: a pothi folio for one square or one Codex entry ----
 // It stays open until the reader closes it. A computer's landing card closes itself after a
 // reading-length pause, unless the reader touches it, and then it waits like any other.
-import { GOAL, LADDERS, SNAKES, SQ, HEAVEN, READINGS, CODEX, ENTRY_IDS, REFS, entryOf, sourceOf, srcOfSquare, squareOf, snakeOn } from "../content.js";
+import { GOAL, TOP, LADDERS, SNAKES, SQ, HEAVEN, READINGS, CODEX, ENTRY_IDS, REFS, entryOf, sourceOf, srcOfSquare, squareOf, snakeOn } from "../content.js";
 import { lang, tIn, numIn, srcIn, pick, fill } from "../i18n.js";
 import { prefs, hasMet, meet } from "../prefs.js";
 import { G, pnameIn } from "../state.js";
@@ -143,12 +143,14 @@ function squareHtml(n, l) {
   const moment = m ? texts(l, fill(m.en, person("en")), fill(m.hi, person("hi")), n > 100 ? "moment remnant" : "moment") : "";
   // a snake tail one square below its remedy says so (REDESIGN.md Phase 4, item 3)
   const remedy = sq.remedy ? texts(l, fill(sq.remedy.en, person("en")), fill(sq.remedy.hi, person("hi")), "remedy") : "";
-  body += `<div class="story">${moment}${remedy}${texts(l, mirror.en, mirror.hi, m ? "mirror" : "")}${bi(l, r.line2, "line2")}</div>`;
+  // past the exit, the card says the way out is behind and below (REDESIGN.md Phase 7, item 3)
+  const above = n > GOAL && HEAVEN[n] ? texts(l, ...["en", "hi"].map(x => tIn(x, "aboveExit", { n: numIn(x, GOAL), top: numIn(x, TOP) })), "remedy above") : "";
+  body += `<div class="story">${moment}${remedy}${texts(l, mirror.en, mirror.hi, m ? "mirror" : "")}${bi(l, r.line2, "line2")}${above}</div>`;
   // what the toggle opens: the voices, and the notes, at the reader's depth
   // Codex entries in it count as met only once the reader opens it
   let more = "";
   const metMore = [];
-  // the views panel is the point of square 110, so it is part of its story at every depth: six definitions side by side
+  // the views panel is the point of the exit, so it is part of its story at every depth: six definitions side by side
   const viewList = (vs, cls) => `<ul class="${cls}">` + vs.map(v => `<li>${entryLink(v.id, l)}${texts(l, v.en, v.hi)}</li>`).join("") + `</ul>`;
   if (r.views && n === GOAL) {
     body += `<h3 class="sub">${T("viewsGoal")}</h3>` + viewList(r.views, "views side");
@@ -176,7 +178,7 @@ function squareHtml(n, l) {
     }
   }
   body += srcLine(src, l, met, { square: true });
-  // a snake that starts on a god's square (109, merit spent) follows the god, in the snakes' own voice
+  // a snake that starts on a god's square (108, merit spent) follows the god, in the snakes' own voice
   const sn = snakeOn(n);
   if (sn) {
     const sm = sn.moment;
@@ -192,7 +194,7 @@ function squareHtml(n, l) {
   return {
     kind: info.kind, met, metMore,
     html: frame(l, { kind: info.kind, eb: info.eb + (age ? ` · ${age}` : ""), big: n === GOAL ? illumined(null, info.big) : illumined(document.getElementById(`sq-${n}`) ? `sq-${n}` : null, info.big), sqn: numIn(l, n), age, body, more, foot: info.ft,
-      prev: n > 1 ? numIn(l, n - 1) : null, next: n < GOAL ? numIn(l, n + 1) : null, prevLabel: T("prevSq"), nextLabel: T("nextSq") }),
+      prev: n > 1 ? numIn(l, n - 1) : null, next: n < TOP ? numIn(l, n + 1) : null, prevLabel: T("prevSq"), nextLabel: T("nextSq") }),
   };
 }
 
@@ -361,7 +363,7 @@ function go(dir) {
   if (!view) return;
   if (view.type === "square") {
     const n = view.n + dir;
-    if (n < 1 || n > GOAL) return;
+    if (n < 1 || n > TOP) return;
     view = { type: "square", n };
   } else {
     const id = ENTRY_IDS[ENTRY_IDS.indexOf(view.id) + dir];

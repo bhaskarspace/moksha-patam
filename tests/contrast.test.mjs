@@ -3,7 +3,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import { GOAL } from "../src/content.js";
+import { TOP } from "../src/content.js";
 import { groundOf, fills, WASH } from "../src/render/ground.js";
 
 const css = fs.readFileSync(new URL("../src/styles.css", import.meta.url), "utf8");
@@ -16,12 +16,12 @@ const paint = (bg, fs) => fs.reduce((c, [t, a]) => c.map((v, i) => v * (1 - a) +
 const ink = n => rgb(groundOf(n)[1] ? "#FFFFFF" : n > 100 ? "#5A1E08" : "#3A2208");
 
 test("every wash colour is a Basohli palette token", () => {
-  for (let n = 1; n <= GOAL; n++) for (const [t] of fills(n, { sepia: 1, dim: 1 })) assert.ok(token[t], `${t} is not in styles.css`);
+  for (let n = 1; n <= TOP; n++) for (const [t] of fills(n, { sepia: 1, dim: 1 })) assert.ok(token[t], `${t} is not in styles.css`);
 });
 
 for (const [name, w] of [["full sepia", { sepia: 1, dim: 0 }], ["half sepia", { sepia: 0.5, dim: 0 }], ["full dim", { sepia: 0, dim: 1 }], ["half dim", { sepia: 0, dim: 0.5 }]]) {
   test(`every label stays readable at ${name}`, () => {
-    for (let n = 1; n <= GOAL; n++) {
+    for (let n = 1; n <= TOP; n++) {
       // at the worn edge, the darkening is painted over the wash too
       const bg = rgb(groundOf(n)[0]), before = ratio(bg, ink(n)), after = ratio(paint(bg, [...fills(n, w), ["--b-black", WASH.edge]]), ink(n));
       assert.ok(after >= Math.min(4.5, before) - 1e-9, `square ${n}: ${before.toFixed(2)} → ${after.toFixed(2)}`);

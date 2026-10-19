@@ -1,5 +1,5 @@
 // The rules of a turn, with no DOM: the UI animates a plan, and tools/sim.mjs plays plans headless.
-import { GOAL, LADDERS, SNAKES, HEAVEN } from "../content.js";
+import { GOAL, TOP, LADDERS, SNAKES, HEAVEN } from "../content.js";
 import { makeRng, die } from "../rng.js";
 
 // The die shows this many random faces while it tumbles before the real roll. They come from the
@@ -31,21 +31,23 @@ export function addLog(state, e) {
 
 // What a roll of v does for the current player. Log entries come in three groups, by when the UI
 // shows them: pre (before walking), after (on landing) and end (once the turn is over).
-// A roll that would pass 110 walks up to it and back down by the remainder (bounce-back), so no roll is
-// ever wasted. Under the Brahmaloka rule, 110 stays shut until the player has once fallen by the rebirth
-// snake: the first arrival walks back down to its head instead (REDESIGN.md Phase 4).
+// A roll that would pass the top of the board walks up to it and back down by the remainder (bounce-back), so
+// no roll is ever wasted. The exit sits partway along the divine row (REDESIGN.md Phase 7): landing exactly on it
+// is liberation, passing it carries the player into the higher heavens, and a bounce off the top can bring them
+// back down onto it. Under the Brahmaloka rule the exit stays shut until the player has once fallen by the
+// rebirth snake: the first arrival walks on to its head instead (REDESIGN.md Phase 4).
 export const rebirthHead = () => +Object.keys(SNAKES).find(h => SNAKES[h].rebirth);
 export function planTurn(state, v) {
   const idx = state.turn, p = state.players[idx], from = p.pos, rules = state.rules;
   const pre = [], after = [], end = [], path = [];
   for (let i = 0, n = from, dir = 1; i < v; i++) {
-    if (n === GOAL) dir = -1;
+    if (n === TOP) dir = -1;
     path.push((n += dir));
   }
   let target = path.at(-1);
-  const bounced = from + v > GOAL;
+  const bounced = from + v > TOP;
   const closed = rules.brahmaloka && !p.hasFallen && target === GOAL && rebirthHead();
-  if (closed) for (let n = GOAL - 1; n >= closed; n--) path.push((target = n));
+  if (closed) for (let n = GOAL, d = Math.sign(closed - GOAL); n !== closed; ) path.push((target = n += d));
   // every square walked over and not landed on, once each, in the order they were passed
   const passed = [...new Set(path.slice(0, -1))].filter(n => n !== target);
   if (passed.length) after.push(entry("lPassed", { passed }, "passed", idx));
@@ -64,7 +66,8 @@ export function planTurn(state, v) {
     after.push(entry(from === 0 ? "lBorn" : "lMove", { v, pos: target, sq: target }, "", idx));
   }
   const win = final === GOAL, again = !win && v === 6 && rules.six;
-  if (win) end.push(entry("lWin", { pos: GOAL }, "heaven", idx));
+  // coming back down onto the exit, after overshooting it, is said so: it is the point of the geometry
+  if (win) end.push(entry(from > GOAL ? "lWinAbove" : "lWin", { pos: GOAL }, "heaven", idx));
   else if (again) end.push(entry("lSix", {}, "", idx));
   return { idx, v, from, path, target, final, jump, win, again, pre, after, end };
 }

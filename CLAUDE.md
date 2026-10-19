@@ -17,10 +17,12 @@ single static `index.html` at https://codebpr.com/moksha-patam/
 - `docs/REFERENCE.md`: philosophy-to-mechanics mapping and the history of the board.
 - `docs/LANDSCAPE.md`: comparable games.
 
-**State:** Phases 0 to 6 have shipped. Phase 6 was The Card in Hand (REDESIGN.md §4): the card opens collapsed
-(`src/render/card.js`), with an illuminated frame (`frame.js`) and a bottom sheet below 768px (`sheet.js`), and you
-can roll from it. Phase 5 was the painted board (`age.js`, `ground.js`, `camera.js`, `src/audio/drone.js`). Phase 7,
-Life state, is next.
+**State:** Phases 0 to 7 have shipped. Phase 7 was The Exit (REDESIGN.md §4): Moksha is square 105 (`GOAL`), partway
+along the divine row, while the board still ends at 110 (`TOP`); a roll bounces off `TOP` and can come back down onto the
+exit. The rebirth snake falls from Brahma (108) to 48, and a Shepard tone plays under the divine row
+(`src/audio/shepard.js`). Phase 6 was The Card in Hand: the card opens collapsed (`src/render/card.js`), with an
+illuminated frame (`frame.js`) and a bottom sheet below 768px (`sheet.js`). Phase 8, Life state, is next.
+- `GOAL` means the win and `TOP` means the board's extent. Use the right one; content moves by identity, never by index.
 
 ## Commands
 - `npm run build`: fails on any `Math.random` outside `src/rng.js` or on any content lint error.

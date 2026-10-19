@@ -1,5 +1,5 @@
 // Moksha Patam: the page's wiring. Rules live in engine/, drawing in render/, content in content/*.json.
-import { GOAL, ROWS, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, STR } from "./content.js";
+import { GOAL, TOP, ROWS, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, STR } from "./content.js";
 import { lang, urlLang, setLangValue, L, num, t, tIn } from "./i18n.js";
 import { G, defaultSetup, pname, pnameIn, cur, newState, loadSelf, saveSelf } from "./state.js";
 import { prefs, setPref } from "./prefs.js";
@@ -10,13 +10,13 @@ import { S, colRow, labEls, buildCells, draw, drawAge, fxClear, focusSquare } fr
 import { lens, wash, stageAt } from "./render/age.js";
 import { frame, pullBack, hold, release } from "./render/camera.js";
 import { spriteURL } from "./render/sprites.js";
-import { tokenEls, buildTokens, place, retrigger, climb, swallow, animate } from "./render/tokens.js";
+import { tokenEls, buildTokens, place, retrigger, climb, swallow, swallowSecs, animate } from "./render/tokens.js";
 import { openSquare, openEntry, closeCard, cardIdle, cardOpen, cardCarried, cardExpanded, cardNote, setCardRoll, refreshRoll, refreshCard, onCardChange } from "./render/card.js";
 import { sheetState } from "./render/sheet.js";
 import { renderCodex, showTab } from "./render/codex.js";
 import { renderLog } from "./render/log.js";
 import { openLife, refreshLife, closeLife, lifeText } from "./render/life.js";
-import { sound, unlockAudio, setDrone, setMuted, audioState } from "./audio/engine.js";
+import { sound, unlockAudio, setDrone, setShepard, setMuted, audioState } from "./audio/engine.js";
 
 const PIPS = { 1:[4], 2:[0,8], 3:[0,4,8], 4:[0,2,6,8], 5:[0,2,4,6,8], 6:[0,2,3,5,6,8] };
 
@@ -89,13 +89,15 @@ async function takeTurn() {
     await sleep(150);
     const born = stageAt(p.pos);
     frame(p.pos || 1, plan.path.at(-1));
-    // the walk follows the planned path, which turns at 110 on a bounce
+    // the walk follows the planned path, which turns at the top of the board on a bounce
     for (const n of plan.path) {
       if (g !== G.gen) return;
       if (n > 1 && p.pos > 0) { const dc = colRow(n).col - colRow(p.pos).col; if (dc) p.face = dc > 0 ? "r" : "l"; }
       p.pos = n; el._frame = 1 - el._frame;
       retrigger(el, "hop");
       place();
+      // the Shepard tone follows the walk square by square, rising toward the exit
+      setShepard(lens(state).lead);
       await sleep(200);
     }
     if (g !== G.gen) return;
@@ -122,7 +124,9 @@ async function takeTurn() {
       // the card stays open over the jump, so it waits only a reading beat (a pause, not a motion)
       if (cardCarried() && p.type === "human") await new Promise(r => setTimeout(r, reduced ? 300 : 900));
       if (g !== G.gen) return;
-      (plan.jump.kind === "snake" ? sound.snake : sound.ladder)();
+      // the Brahmā snake is the one place the divine row's tone truly falls; under reduced motion it still takes a moment
+      if (plan.jump.rebirth) sound.fall(swallowSecs(p.pos, plan.jump.to) || 1.2);
+      else (plan.jump.kind === "snake" ? sound.snake : sound.ladder)();
       frame(p.pos, plan.jump.to);
       await (plan.jump.kind === "snake" ? swallow(idx, p.pos, plan.jump.to) : climb(idx, p.pos, plan.jump.to));
       if (g !== G.gen) return;
@@ -189,9 +193,10 @@ function queueCpu() {
 let aged = null, ageSeq = 0;
 const mix = (a, b, u) => ({ sepia: a.sepia + (b.sepia - a.sepia) * u, dim: a.dim + (b.dim - a.dim) * u });
 function age(instant = false) {
-  const L = lens(G.state), to = Array.from({ length: GOAL + 1 }, (_, n) => (n ? wash(n, L) : null));
-  for (let n = 1; n <= GOAL; n++) labEls[n]?.classList.toggle("ahead", to[n].dim > 0);
+  const L = lens(G.state), to = Array.from({ length: TOP + 1 }, (_, n) => (n ? wash(n, L) : null));
+  for (let n = 1; n <= TOP; n++) labEls[n]?.classList.toggle("ahead", to[n].dim > 0);
   setDrone(G.state.last != null ? L.droneStage : null);
+  setShepard(G.state.last != null ? L.lead : null, G.state.winner != null);
   const from = aged, seq = ++ageSeq;
   aged = to;
   if (instant || !from) return drawAge(to);
@@ -388,7 +393,7 @@ onCardChange(renderCodex);
 function openFromHash() {
   const m = location.hash.match(/^#(sq|codex)\/([\w-]+)$/);
   if (!m) return;
-  if (m[1] === "sq" && +m[2] >= 1 && +m[2] <= GOAL) openSquare(+m[2]);
+  if (m[1] === "sq" && +m[2] >= 1 && +m[2] <= TOP) openSquare(+m[2]);
   else if (m[1] === "codex") openEntry(m[2]);
 }
 addEventListener("hashchange", openFromHash);
@@ -409,6 +414,8 @@ if (new URLSearchParams(location.search).has("debug")) {
     roll(v) { G.forcedRoll = v; return takeTurn(); },
     seed(n) { if (n == null) return G.state.rng.seed; nextSeed = n >>> 0; startGame(); return G.state.rng.seed; },
     get state() { return G.state; },
+    // true while a turn is being played out
+    get busy() { return G.busy; },
     open: openSquare,
     // the card as it stands: { detent, height, half, full } on a phone (null on a wide screen), opened further, rolled from
     sheet: () => ({ open: cardOpen(), sheet: sheetState(), expanded: cardExpanded(), carried: cardCarried() }),
@@ -422,7 +429,7 @@ if (new URLSearchParams(location.search).has("debug")) {
     entry: openEntry,
     close: closeCard,
     sprite: spriteURL,
-    data: { LADDERS, SNAKES, SQ, HEAVEN, STR },
+    data: { GOAL, TOP, LADDERS, SNAKES, SQ, HEAVEN, STR },
     setLang,
     life: openLife,
     // mp.rules({ brahmaloka: true }) changes the running game's rules

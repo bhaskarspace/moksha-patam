@@ -12,12 +12,12 @@ export const FADE_YEARS = 30, DIM_YEARS = 30;
 export const ageOf = n => (n >= 1 && n <= EARTH ? squareOf(n)?.age ?? null : null);
 // How old a player at pos is: newborn in the tray, the oldest earthly age once in the divine row.
 const ageAt = pos => (pos <= 0 ? 0 : pos > EARTH ? ageOf(EARTH) : ageOf(pos));
-export const stageAt = pos => (pos >= GOAL ? ASHRAMAS.length : ASHRAMAS.findIndex(([max]) => Math.max(pos, 1) <= max));
+export const stageAt = pos => (pos === GOAL ? ASHRAMAS.length : ASHRAMAS.findIndex(([max]) => Math.max(pos, 1) <= max));
 
 // Whose age the board shows. With every player: sepia is what all of them have left behind (the youngest),
 // dim is what none of them has reached (the oldest), and the drone follows whoever is furthest on.
 // lens(state, i) sees through one life only, for Phase 13. droneStage is an ASHRAMAS index, or
-// ASHRAMAS.length for silence once someone reaches 110.
+// ASHRAMAS.length for silence once someone reaches the exit.
 export function lens(state, i = null) {
   const ps = i == null ? state.players : [state.players[i]];
   const pos = ps.map(p => p.pos), lead = Math.max(...pos);

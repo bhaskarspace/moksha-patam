@@ -1,7 +1,7 @@
 // Equivalence check: the built index.html?seed=seed, played in a real browser, and sim.mjs must
 // produce the same move log, so the page and the headless engine never drift apart.
 // Until Phase 4 it also replayed the Phase 0 build (commit fb0bc2a) and required the same log. Phase 4
-// changed the rules on purpose (bounce-back, the merit snake on 109, the log of passed squares), so
+// changed the rules on purpose (bounce-back, the merit snake, the log of passed squares), so
 // that leg was retired; `git show fb0bc2a:tools/golden.mjs` has it.
 //   node tools/golden.mjs [seeds=20]
 import path from "node:path";

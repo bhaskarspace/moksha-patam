@@ -1,15 +1,15 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { ASHRAMAS, GOAL } from "../src/content.js";
+import { ASHRAMAS, GOAL, TOP } from "../src/content.js";
 import { ageOf, lens, wash } from "../src/render/age.js";
 
 const at = (...pos) => ({ players: pos.map(p => ({ pos: p })), winner: null });
-const board = L => Array.from({ length: GOAL }, (_, i) => wash(i + 1, L));
+const board = L => Array.from({ length: TOP }, (_, i) => wash(i + 1, L));
 
 test("every earthly square has an age, never falling, and the divine row has none", () => {
   for (let n = 1; n <= 100; n++) assert.equal(typeof ageOf(n), "number", `square ${n}`);
   for (let n = 2; n <= 100; n++) assert.ok(ageOf(n) >= ageOf(n - 1), `square ${n} is younger than ${n - 1}`);
-  for (let n = 101; n <= GOAL; n++) assert.equal(ageOf(n), null);
+  for (let n = 101; n <= TOP; n++) assert.equal(ageOf(n), null);
 });
 
 test("one player: behind fades, ahead dims, their own year is clear", () => {
@@ -57,12 +57,14 @@ test("a snake makes you younger, so the years it took are ahead again", () => {
   assert.ok(wash(30, after).sepia < wash(30, before).sepia);
 });
 
-test("the divine row is dim until reached, never fades, and 110 is silence", () => {
+test("the divine row is dim until reached, never fades, and only the exit is silence", () => {
   const L = lens(at(104));
   for (let n = 101; n <= 104; n++) assert.deepEqual(wash(n, L), { sepia: 0, dim: 0 });
-  assert.equal(wash(105, L).dim, 1);
+  assert.equal(wash(106, L).dim, 1);
   assert.equal(wash(1, L).sepia, 1);
   assert.equal(lens(at(GOAL)).droneStage, ASHRAMAS.length);
+  // the higher heavens past the exit are still the divine row, not liberation: the drone keeps playing there
+  for (let n = GOAL + 1; n <= TOP; n++) assert.equal(lens(at(n)).droneStage, ASHRAMAS.length - 1, `square ${n}`);
   assert.equal(lens({ ...at(50), winner: 0 }).droneStage, ASHRAMAS.length);
 });
 
