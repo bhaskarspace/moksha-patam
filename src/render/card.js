@@ -8,6 +8,7 @@ import { G, pnameIn } from "../state.js";
 import { $, esc, reduced, art } from "../ui.js";
 import { sound } from "../audio/engine.js";
 import { ashramaIn, labEls } from "./board.js";
+import { pullBack } from "./camera.js";
 
 const dlg = $("folio"), leaf = $("leaf");
 const other = l => (l === "hi" ? "en" : "hi");
@@ -224,6 +225,8 @@ async function open(next, { landing = false, auto = false, from = null, who = nu
   subject = who;
   if (wasOpen) { paint({ landing }); turnPage(); return cardIdle(); }
   cardLang = null;
+  // a card is read with the whole board behind it, and the morph starts from where the square really is
+  pullBack(true);
   const label = from ?? (next.type === "square" ? labEls[next.n] : null);
   sound.open();
   await transition(() => { paint({ landing }); dlg.showModal(); }, label);

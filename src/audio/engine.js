@@ -1,12 +1,19 @@
 // Sound, synthesised with Web Audio so there are no files to load. The context starts on the
-// first tap or key, as browsers require. Under reduced motion every cue is shorter and softer.
+// first tap or key, as browsers require, and never while muted: a muted player has no context at all.
+// Under reduced motion every cue is shorter and softer.
 import { prefs, setPref } from "../prefs.js";
-import { reduced } from "../ui.js";
+import { reduced, quality } from "../ui.js";
+import { makeDrone } from "./drone.js";
 
-let ctx = null, noise = null, master = null;
+let ctx = null, noise = null, master = null, drone = null;
+// the drone stage the game wants (an ASHRAMAS index, or past the end for silence), or null before the first roll
+let wanted = null;
 const SOFT = reduced ? 0.6 : 1;
+// iOS can refuse a resume, or report "interrupted"; the next gesture tries again
+const resume = () => ctx.resume().catch(() => {});
 
 export function unlockAudio() {
+  if (prefs.mute) return;
   if (!ctx) {
     const AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) return;
@@ -18,12 +25,38 @@ export function unlockAudio() {
     noise = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
     const d = noise.getChannelData(0);
     for (let i = 0, x = 2463534242; i < d.length; i++) { x ^= x << 13; x ^= x >>> 17; x ^= x << 5; d[i] = ((x >>> 0) / 4294967296) * 2 - 1; }
+    drone = makeDrone(ctx, master, { lite: quality === "low" });
   }
-  if (ctx.state === "suspended") ctx.resume();
+  if (ctx.state !== "running" && !document.hidden) resume();
+  if (wanted != null) drone.set(wanted);
+}
+
+// Set the drone's stage, or null to stop it. It plays only once a gesture has made a context and sound is on.
+export function setDrone(stage) {
+  wanted = stage;
+  if (!drone || prefs.mute) return;
+  stage == null ? drone.stop() : drone.set(stage);
 }
 
 export const muted = () => prefs.mute;
-export const setMuted = m => setPref("mute", m);
+// Muting fades the drone and then suspends the context, so nothing runs; unmuting is a click, which is
+// the gesture that may create or resume it.
+export function setMuted(m) {
+  setPref("mute", m);
+  if (!m) return unlockAudio();
+  if (!ctx) return;
+  drone.stop();
+  setTimeout(() => { if (prefs.mute) ctx.suspend().catch(() => {}); }, 200);
+}
+
+// Nothing plays in a hidden tab.
+document.addEventListener("visibilitychange", () => {
+  if (!ctx || prefs.mute) return;
+  document.hidden ? ctx.suspend().catch(() => {}) : resume();
+});
+
+// For ?debug: what the sound is doing.
+export const audioState = () => ({ ctx: ctx?.state ?? null, stage: drone?.stage ?? null, voices: drone?.voices ?? 0, wanted, muted: prefs.mute });
 const ready = () => ctx && !prefs.mute && ctx.state === "running";
 
 function env(g, at, peak, attack, decay) {
@@ -82,12 +115,14 @@ export const sound = {
   // rising notes of a pentatonic scale: sa re ga pa dha sa
   ladder() {
     if (!ready()) return;
+    drone.duck();
     const now = ctx.currentTime, base = 293.66;
     [1, 9 / 8, 5 / 4, 3 / 2, 5 / 3, 2].forEach((r, i) => tone(now + i * 0.085, base * r, 0.5 * SOFT, 0.16, "triangle"));
   },
   // a low falling tone under a hiss
   snake() {
     if (!ready()) return;
+    drone.duck(1);
     const now = ctx.currentTime;
     hiss(now, 0.5 * SOFT, 5200, 3000, 0.16, 0.7, "highpass");
     tone(now + 0.05, 196, 0.7 * SOFT, 0.2, "sawtooth", 62);

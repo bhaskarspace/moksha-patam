@@ -1,20 +1,14 @@
 // ---- The board: squares, labels, and the painted snakes and ladders ----
 import { GOAL, ROWS, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN } from "../content.js";
 import { lang, L, t, num } from "../i18n.js";
-import { $, art } from "../ui.js";
+import { $, art, quality } from "../ui.js";
+import { PALETTE, colRow, fills, WASH } from "./ground.js";
+import { cameraOn } from "./camera.js";
+
+export { colRow };
 
 export const ashramaIn = (l, n) => { const a = ASHRAMAS.find(([max]) => n <= max); return l === "hi" ? a[2] : a[1]; };
 export const ashramaOf = n => ashramaIn(lang, n);
-
-// [background, light ink?]: the bright printed colours of the traditional board.
-const PALETTE = [["#D2402E", true], ["#F2C232", false], ["#3A78C2", true], ["#EC8A2E", false], ["#3F9A52", true], ["#7CC3E8", false]];
-
-// ---- Board geometry ----
-export function colRow(n) {
-  const i = n - 1, row = Math.floor(i / 10);
-  const col = row % 2 === 0 ? i % 10 : 9 - (i % 10);
-  return { col, row };
-}
 
 // The board's name for square n in the current language.
 export function squareName(n) {
@@ -159,16 +153,66 @@ function drawSnake(h, t) {
   drawHood(ctx, pts[0], pts[4], cols);
 }
 
+// ---- The ageing (render/age.js): a wash per square in palette colours, painted between the art and the labels ----
+const ageCanvas = $("age"), agx = ageCanvas.getContext("2d");
+let tokens = null, washes = null, grain = null;
+// washes[n] is { sepia, dim } for square n
+export function drawAge(next = washes) {
+  washes = next;
+  if (!S || !washes) return;
+  tokens ||= Object.fromEntries(["--b-ochre", "--b-black", "--b-shell"].map(t => [t, getComputedStyle(document.documentElement).getPropertyValue(t).trim()]));
+  const W = S * 10, H = S * ROWS;
+  agx.clearRect(0, 0, W, H);
+  // the cloth first, under the washes
+  if (grain && quality !== "low") { agx.fillStyle = grain; agx.fillRect(0, 0, W, H); }
+  for (let n = 1; n <= GOAL; n++) {
+    const { col, row } = colRow(n), x = col * S, y = (ROWS - 1 - row) * S;
+    for (const [t, a] of fills(n, washes[n])) {
+      agx.globalAlpha = a; agx.fillStyle = tokens[t];
+      agx.fillRect(x, y, S, S);
+    }
+  }
+  // and the edges worn darker, an ellipse that clears toward the middle
+  agx.save();
+  agx.translate(W / 2, H / 2); agx.scale(W * 0.72, H * 0.7);
+  const edge = agx.createRadialGradient(0, 0, 0, 0, 0, 1);
+  edge.addColorStop(0.62, "transparent"); edge.addColorStop(1, tokens["--b-black"]);
+  agx.globalAlpha = WASH.edge; agx.fillStyle = edge;
+  agx.fillRect(-W / (2 * W * 0.72) - 1, -H / (2 * H * 0.7) - 1, 1 / 0.72 + 2, 1 / 0.7 + 2);
+  agx.restore();
+  agx.globalAlpha = 1;
+}
+
+// Bake the paper grain (an SVG turbulence filter, --grain in styles.css) into a pattern at this screen's density, once.
+const GRAIN = 180;
+function bakeGrain() {
+  const m = getComputedStyle(ageCanvas).getPropertyValue("--grain").match(/url\("?(data:image\/svg\+xml[^")]+)"?\)/);
+  if (!m) return;
+  const img = new Image(), k = Math.min(3, window.devicePixelRatio || 1);
+  img.onload = () => {
+    const c = document.createElement("canvas");
+    c.width = c.height = GRAIN * k;
+    c.getContext("2d").drawImage(img, 0, 0, GRAIN * k, GRAIN * k);
+    grain = agx.createPattern(c, "repeat");
+    grain.setTransform(new DOMMatrix().scale(1 / k));
+    drawAge();
+  };
+  img.src = m[1];
+}
+bakeGrain();
+
 export function draw() {
   const W = $("cells").clientWidth, H = $("cells").clientHeight;
   if (!W) return;
   const dpr = window.devicePixelRatio || 1;
-  for (const [cv, c] of [[canvas, ctx], [fxCanvas, fx]]) {
-    cv.width = W * dpr; cv.height = H * dpr;
-    c.setTransform(dpr, 0, 0, dpr, 0, 0);
+  // the snakes and ladders are drawn finer when the camera may zoom in on them
+  for (const [cv, c, k] of [[canvas, ctx, cameraOn() ? 1.3 : 1], [fxCanvas, fx, 1], [ageCanvas, agx, 1]]) {
+    cv.width = W * dpr * k; cv.height = H * dpr * k;
+    c.setTransform(dpr * k, 0, 0, dpr * k, 0, 0);
   }
   ctx.clearRect(0, 0, W, H);
   S = W / 10;
   for (const [a, l] of Object.entries(LADDERS)) drawLadder(+a, l.to);
   for (const [h, s] of Object.entries(SNAKES)) drawSnake(+h, s.to);
+  drawAge();
 }

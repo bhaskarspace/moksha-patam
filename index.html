@@ -105,6 +105,24 @@ header p { margin: 0; color: var(--muted); max-width: 62ch; grid-column: 1 / -1;
 :root[data-theme="dark"] .cells { filter: brightness(0.9) saturate(0.92); }
 canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 #fx { z-index: 1; }
+/* The camera moves .cam inside .board-stage, which clips it to the board; the frame's ashrama labels stay outside. */
+.board-stage { position: absolute; inset: 0; overflow: hidden; }
+.cam { position: absolute; inset: 0; transform-origin: 0 0; transition: transform 0.7s cubic-bezier(0.3, 0.7, 0.3, 1); }
+/* The cloth the board is painted on: grain from one turbulence filter, in lamp black only. This is only its
+   source: board.js draws it once into a bitmap and paints it, with the worn edges, into the age canvas under the
+   labels, so the camera's zoom scales pixels and never runs the filter again. */
+#age { --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g' x='0' y='0'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75 .9' numOctaves='3' stitchTiles='stitch' result='n'/%3E%3CfeColorMatrix in='n' values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1.6 -.62' result='a'/%3E%3CfeFlood flood-color='%231A1410'/%3E%3CfeComposite in2='a' operator='in'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23g)' opacity='.5'/%3E%3C/svg%3E"); }
+/* A slight warp: the cloth behind the frame is cut a little out of true. */
+.board-frame { position: relative; }
+.board-frame::before {
+  content: ""; position: absolute; inset: -5px -4px -6px -5px; z-index: -1; pointer-events: none;
+  background: var(--b-shell); border: 1px solid color-mix(in srgb, var(--b-black) 35%, transparent);
+  border-radius: 9px 15px 11px 17px / 15px 9px 17px 11px; transform: rotate(-0.35deg);
+  box-shadow: 0 2px 0 color-mix(in srgb, var(--b-ochre) 70%, transparent);
+}
+
+/* Squares ahead of every life: their pictures are dimmed like the paint beneath. Text and clicks never are. */
+.lab.ahead .ic { opacity: 0.65; }
 
 /* The four ashramas, written up the left edge of the frame. */
 .ashramas { position: absolute; top: 0; bottom: 0; right: calc(100% + 3px); width: var(--fp); pointer-events: none; }
@@ -187,9 +205,13 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
   animation: poof 0.65s ease-out forwards;
 }
 @keyframes bob { 50% { transform: translateY(-7%); } }
-@keyframes hop { 50% { transform: translateY(-24%); } }
+@keyframes hop { 0% { transform: none; } 45% { transform: translateY(-26%) scaleY(1.04); } 85% { transform: scale(1.06, 0.94); } 100% { transform: none; } }
+/* settling onto the square at the top of a ladder */
+.token.land .body { transform-origin: 50% 100%; animation: land 0.32s ease-out; }
+@keyframes land { 30% { transform: scale(1.1, 0.88); } 65% { transform: scale(0.97, 1.04); } }
+:root.plain .token.land .body { animation: none; }
 @keyframes gulp { to { transform: translateY(-30%) scale(0); } }
-@keyframes dizzy { 0% { transform: scale(0.2) rotate(0); } 60% { transform: scale(1.15) rotate(540deg); } 100% { transform: scale(1) rotate(720deg); } }
+@keyframes dizzy { 0% { transform: scale(0.2) rotate(0); } 60% { transform: scale(1.15, 0.9) rotate(540deg); } 80% { transform: scale(0.95, 1.06) rotate(680deg); } 100% { transform: scale(1) rotate(720deg); } }
 @keyframes poof { from { transform: scale(0.3); opacity: 1; } to { transform: scale(1.5); opacity: 0; } }
 .tray .token { position: relative; left: auto !important; top: auto !important; transform: none; width: 24px; }
 .tray .token .body { animation: none; }
@@ -467,6 +489,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
 
 @media (prefers-reduced-motion: reduce) {
   .token, .token.slide { transition: none; }
+  .cam { transition: none; transform: none !important; }
   .token .body, .die.rolling, .lab.goal .om, .leaf, .leaf *, .flourish *, .toast { animation: none !important; }
   ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
 }
@@ -622,11 +645,15 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       <div class="board-frame">
         <div class="board-wrap" id="board">
           <div class="ashramas" id="ashramas" aria-hidden="true"></div>
-          <div class="cells" id="cells"></div>
-          <canvas id="art"></canvas>
-          <div class="labels" id="labels"></div>
-          <canvas id="fx"></canvas>
-          <div class="tokens" id="tokens"></div>
+          <!-- the stage clips the camera; cam is what it moves -->
+          <div class="board-stage" id="stage"><div class="cam" id="cam">
+            <div class="cells" id="cells"></div>
+            <canvas id="art"></canvas>
+            <canvas id="age"></canvas>
+            <div class="labels" id="labels"></div>
+            <canvas id="fx"></canvas>
+            <div class="tokens" id="tokens"></div>
+          </div></div>
           <div id="toastSlot"></div>
           <div class="win" id="win" hidden>
             <div>
@@ -2030,10 +2057,84 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var COLORS = ["var(--p0)", "var(--p1)", "var(--p2)", "var(--p3)"];
   var P_HEX = ["#C0392B", "#2E5BBA", "#2E8B57", "#D98300"];
   var reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var qp = new URLSearchParams(location.search).get("quality");
+  var quality = qp === "low" || qp === "high" ? qp : navigator.deviceMemory <= 2 || navigator.hardwareConcurrency <= 2 ? "low" : "high";
+  var forcedQuality = qp === "low" || qp === "high";
+  function setQuality(q2) {
+    quality = q2;
+    document.documentElement.classList.toggle("plain", q2 === "low");
+  }
+  setQuality(quality);
   var sleep = (ms) => new Promise((r) => setTimeout(r, reduced ? Math.min(ms, 60) : ms));
   var $ = (id) => document.getElementById(id);
   var art = (id, fallback, cls = "spr") => document.getElementById(id) ? `<svg class="${cls}" aria-hidden="true"><use href="#${id}"/></svg>` : fallback;
   var esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+
+  // src/render/ground.js
+  var PALETTE = [["#D2402E", true], ["#F2C232", false], ["#3A78C2", true], ["#EC8A2E", false], ["#3F9A52", true], ["#7CC3E8", false]];
+  var HEAVEN_MID = "#F2C14E";
+  var GOAL_MID = "#1E2A78";
+  function colRow(n) {
+    const i = n - 1, row = Math.floor(i / 10);
+    const col = row % 2 === 0 ? i % 10 : 9 - i % 10;
+    return { col, row };
+  }
+  function groundOf(n) {
+    if (n === GOAL) return [GOAL_MID, true];
+    if (n > 100) return [HEAVEN_MID, false];
+    const { col, row } = colRow(n);
+    return PALETTE[(col + 2 * row) % PALETTE.length];
+  }
+  var SQUARES = ROWS * 10;
+  var WASH = { ochre: 0.42, deepen: 0.22, dim: 0.5, edge: 0.14 };
+  function fills(n, { sepia, dim }) {
+    const light = groundOf(n)[1], out = [];
+    if (sepia) {
+      out.push(["--b-ochre", sepia * WASH.ochre]);
+      if (light) out.push(["--b-black", sepia * WASH.deepen]);
+    }
+    if (dim) out.push([light ? "--b-black" : "--b-shell", dim * WASH.dim]);
+    return out;
+  }
+
+  // src/render/camera.js
+  var cam = $("cam");
+  var MAX = 1.3;
+  var motion = matchMedia("(prefers-reduced-motion: reduce)");
+  var scale = 1;
+  var held = false;
+  var cameraOn = () => !motion.matches && quality !== "low";
+  var at = (n) => {
+    const { col, row } = colRow(Math.max(1, n));
+    return { x: (col + 0.5) / 10, y: (ROWS - 1 - row + 0.5) / ROWS };
+  };
+  var clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+  function set(s, cx = 0.5, cy = 0.5, instant = false) {
+    scale = s;
+    const tx = clamp(50 - s * cx * 100, 100 * (1 - s), 0), ty = clamp(50 - s * cy * 100, 100 * (1 - s), 0);
+    const t2 = s === 1 ? "" : `translate(${tx}%, ${ty}%) scale(${s})`;
+    if (!instant) return void (cam.style.transform = t2);
+    cam.style.transition = "none";
+    cam.style.transform = t2;
+    void cam.offsetWidth;
+    cam.style.transition = "";
+  }
+  function frame(a, b = a) {
+    if (!cameraOn() || held) return;
+    const p = at(a), q2 = at(b), w = Math.abs(p.x - q2.x) + 0.3, h = Math.abs(p.y - q2.y) + 0.3;
+    set(clamp(Math.min(1 / w, 1 / h), 1, MAX), (p.x + q2.x) / 2, (p.y + q2.y) / 2);
+  }
+  function pullBack(instant = false) {
+    if (scale !== 1 || instant) set(1, 0.5, 0.5, instant);
+  }
+  function hold() {
+    held = true;
+    pullBack();
+  }
+  function release() {
+    held = false;
+  }
+  motion.addEventListener?.("change", () => pullBack(true));
 
   // src/render/board.js
   var ashramaIn = (l, n) => {
@@ -2041,12 +2142,6 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     return l === "hi" ? a[2] : a[1];
   };
   var ashramaOf = (n) => ashramaIn(lang, n);
-  var PALETTE = [["#D2402E", true], ["#F2C232", false], ["#3A78C2", true], ["#EC8A2E", false], ["#3F9A52", true], ["#7CC3E8", false]];
-  function colRow(n) {
-    const i = n - 1, row = Math.floor(i / 10);
-    const col = row % 2 === 0 ? i % 10 : 9 - i % 10;
-    return { col, row };
-  }
   function squareName(n) {
     if (HEAVEN[n]) return L(HEAVEN[n].en, HEAVEN[n].hi);
     const sl = SNAKES[n] || LADDERS[n];
@@ -2226,19 +2321,98 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     ctx.globalAlpha = 1;
     drawHood(ctx, pts[0], pts[4], cols);
   }
+  var ageCanvas = $("age");
+  var agx = ageCanvas.getContext("2d");
+  var tokens = null;
+  var washes = null;
+  var grain = null;
+  function drawAge(next2 = washes) {
+    washes = next2;
+    if (!S || !washes) return;
+    tokens ||= Object.fromEntries(["--b-ochre", "--b-black", "--b-shell"].map((t2) => [t2, getComputedStyle(document.documentElement).getPropertyValue(t2).trim()]));
+    const W = S * 10, H = S * ROWS;
+    agx.clearRect(0, 0, W, H);
+    if (grain && quality !== "low") {
+      agx.fillStyle = grain;
+      agx.fillRect(0, 0, W, H);
+    }
+    for (let n = 1; n <= GOAL; n++) {
+      const { col, row } = colRow(n), x = col * S, y = (ROWS - 1 - row) * S;
+      for (const [t2, a] of fills(n, washes[n])) {
+        agx.globalAlpha = a;
+        agx.fillStyle = tokens[t2];
+        agx.fillRect(x, y, S, S);
+      }
+    }
+    agx.save();
+    agx.translate(W / 2, H / 2);
+    agx.scale(W * 0.72, H * 0.7);
+    const edge = agx.createRadialGradient(0, 0, 0, 0, 0, 1);
+    edge.addColorStop(0.62, "transparent");
+    edge.addColorStop(1, tokens["--b-black"]);
+    agx.globalAlpha = WASH.edge;
+    agx.fillStyle = edge;
+    agx.fillRect(-W / (2 * W * 0.72) - 1, -H / (2 * H * 0.7) - 1, 1 / 0.72 + 2, 1 / 0.7 + 2);
+    agx.restore();
+    agx.globalAlpha = 1;
+  }
+  var GRAIN = 180;
+  function bakeGrain() {
+    const m = getComputedStyle(ageCanvas).getPropertyValue("--grain").match(/url\("?(data:image\/svg\+xml[^")]+)"?\)/);
+    if (!m) return;
+    const img = new Image(), k = Math.min(3, window.devicePixelRatio || 1);
+    img.onload = () => {
+      const c = document.createElement("canvas");
+      c.width = c.height = GRAIN * k;
+      c.getContext("2d").drawImage(img, 0, 0, GRAIN * k, GRAIN * k);
+      grain = agx.createPattern(c, "repeat");
+      grain.setTransform(new DOMMatrix().scale(1 / k));
+      drawAge();
+    };
+    img.src = m[1];
+  }
+  bakeGrain();
   function draw() {
     const W = $("cells").clientWidth, H = $("cells").clientHeight;
     if (!W) return;
     const dpr = window.devicePixelRatio || 1;
-    for (const [cv, c] of [[canvas, ctx], [fxCanvas, fx]]) {
-      cv.width = W * dpr;
-      cv.height = H * dpr;
-      c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    for (const [cv, c, k] of [[canvas, ctx, cameraOn() ? 1.3 : 1], [fxCanvas, fx, 1], [ageCanvas, agx, 1]]) {
+      cv.width = W * dpr * k;
+      cv.height = H * dpr * k;
+      c.setTransform(dpr * k, 0, 0, dpr * k, 0, 0);
     }
     ctx.clearRect(0, 0, W, H);
     S = W / 10;
     for (const [a, l] of Object.entries(LADDERS)) drawLadder(+a, l.to);
     for (const [h, s] of Object.entries(SNAKES)) drawSnake(+h, s.to);
+    drawAge();
+  }
+
+  // src/render/age.js
+  var EARTH = 100;
+  var FADE_YEARS = 30;
+  var DIM_YEARS = 30;
+  var ageOf = (n) => n >= 1 && n <= EARTH ? squareOf(n)?.age ?? null : null;
+  var ageAt = (pos) => pos <= 0 ? 0 : pos > EARTH ? ageOf(EARTH) : ageOf(pos);
+  var stageAt = (pos) => pos >= GOAL ? ASHRAMAS.length : ASHRAMAS.findIndex(([max]) => Math.max(pos, 1) <= max);
+  function lens(state, i = null) {
+    const ps = i == null ? state.players : [state.players[i]];
+    const pos = ps.map((p) => p.pos), lead = Math.max(...pos);
+    return {
+      fadeAge: Math.min(...pos.map(ageAt)),
+      dimAge: Math.max(...pos.map(ageAt)),
+      lead,
+      droneStage: state.winner != null ? ASHRAMAS.length : stageAt(lead)
+    };
+  }
+  var clamp2 = (x) => Math.max(0, Math.min(1, x));
+  function wash(n, { fadeAge, dimAge, lead }) {
+    const a = ageOf(n);
+    if (a == null) return { sepia: 0, dim: n > lead ? 1 : 0 };
+    return {
+      sepia: a < fadeAge ? clamp2((fadeAge - a) / FADE_YEARS) : 0,
+      dim: a > dimAge ? clamp2(0.2 + 0.8 * (a - dimAge) / DIM_YEARS) : 0
+    };
   }
 
   // src/render/sprites.js
@@ -2405,13 +2579,13 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const n = parseInt(hex.slice(1), 16), ch = [n >> 16, n >> 8 & 255, n & 255].map((v) => Math.round(v * (1 + f)));
     return "#" + ch.map((v) => Math.max(0, Math.min(255, v)).toString(16).padStart(2, "0")).join("");
   }
-  function spriteURL(stage, color, frame2) {
-    const key = `${stage}|${color}|${frame2}`;
+  function spriteURL(stage, color, frame3) {
+    const key = `${stage}|${color}|${frame3}`;
     if (spriteCache.has(key)) return spriteCache.get(key);
     const art2 = ART[STAGES[stage].art];
     let rows = art2.rows.slice();
-    if (frame2 % 2) rows.splice(14, 2, ...art2.legsB);
-    if (frame2 >= 2) {
+    if (frame3 % 2) rows.splice(14, 2, ...art2.legsB);
+    if (frame3 >= 2) {
       const eye = rows.findIndex((r) => r.includes("E"));
       rows = rows.map((r, y) => y <= eye + 1 ? r.replace(art2.back === "S" ? /[SEWY]/g : /[SEW]/g, art2.back) : r);
     }
@@ -2501,8 +2675,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     el.classList.add(cls);
   }
   function place(silent = false) {
-    const at = {};
-    G.state.players.forEach((p, i) => (at[p.pos] ||= []).push(i));
+    const at2 = {};
+    G.state.players.forEach((p, i) => (at2[p.pos] ||= []).push(i));
     G.state.players.forEach((p, i) => {
       const el = tokenEls[i];
       el.title = pname(p);
@@ -2523,7 +2697,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         return;
       }
       if (el.parentNode !== $("tokens")) $("tokens").appendChild(el);
-      const group = at[p.pos], k = group.indexOf(i);
+      const group = at2[p.pos], k = group.indexOf(i);
       const [ox, oy] = group.length === 1 ? OFFS[0] : OFFS[k + 1];
       const { col, row } = colRow(p.pos);
       el.style.left = (col + 0.5) * 10 + ox + "%";
@@ -2555,7 +2729,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const g2 = G.gen, el = tokenEls[idx], p = G.state.players[idx];
     const P = center(a), Q = center(b), len = Math.hypot(Q.x - P.x, Q.y - P.y);
     const rungs = Math.max(2, Math.floor(len / (S * 0.36)));
-    const trail = [];
+    const trail = [], glints = [], extras2 = quality !== "low";
+    let lastRung = -1;
     el.classList.add("free");
     el.classList.remove("left");
     await animate(Math.min(1700, Math.max(900, len / S * 230)), (u) => {
@@ -2566,7 +2741,20 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       setSprite(el, p, el._stage);
       setXY(el, x, y);
       trail.push({ x, y, u });
+      if (extras2 && k !== lastRung) {
+        lastRung = k;
+        glints.push({ x, y: y + S * 0.15, u });
+      }
       fxClear();
+      for (const gl of glints) {
+        const a2 = 1 - (u - gl.u) * 4;
+        if (a2 <= 0) continue;
+        fx.strokeStyle = `rgba(255, 236, 150, ${a2})`;
+        fx.lineWidth = S * 0.03;
+        fx.beginPath();
+        fx.arc(gl.x, gl.y, S * (0.12 + (1 - a2) * 0.22), 0, Math.PI * 2);
+        fx.stroke();
+      }
       for (const pt of trail) {
         const alpha = 1 - (u - pt.u) * 3;
         if (alpha <= 0) continue;
@@ -2582,6 +2770,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     el._frame = 0;
     p.pos = b;
     place();
+    retrigger(el, "land");
+    setTimeout(() => el.classList.remove("land"), 340);
   }
   async function swallow(idx, h, tail) {
     const g2 = G.gen, el = tokenEls[idx], p = G.state.players[idx];
@@ -2603,8 +2793,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     el.classList.remove("gulp");
     let len = 0;
     for (let i = 0; i < N; i++) len += Math.hypot(pts[i + 1].x - pts[i].x, pts[i + 1].y - pts[i].y);
-    await animate(Math.min(2e3, Math.max(1e3, len / S * 170)), (u) => {
-      const i = u * N, k = Math.min(N - 1, Math.floor(i)), f = i - k, a = pts[k], b = pts[k + 1];
+    await animate(Math.min(2e3, Math.max(1e3, len / S * 170)), (v) => {
+      const u = ease(v), i = u * N, k = Math.min(N - 1, Math.floor(i)), f = i - k, a = pts[k], b = pts[k + 1];
       const x = a.x + (b.x - a.x) * f, y = a.y + (b.y - a.y) * f, r = Math.max(S * 0.11, a.w * 0.95);
       fxClear();
       drawHood(fx, pts[0], pts[4], cols);
@@ -2632,12 +2822,176 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     el.classList.remove("dizzy");
   }
 
+  // src/audio/drone.js
+  var SA = 146.83;
+  var PA = 0.75;
+  var SA2 = 2;
+  var SA1 = 1;
+  var STAGES2 = [
+    { strings: [PA, SA2, SA2, SA1], gap: 1.6, gain: 0.55, bright: 1 },
+    { strings: [PA, SA2, SA2, SA1], gap: 1.2, gain: 0.7, bright: 0.9 },
+    { strings: [PA, SA2, SA2, SA1], gap: 1, gain: 0.85, bright: 1.15, double: true },
+    { strings: [SA2, SA2, SA1], gap: 1.6, gain: 0.6, bright: 0.7 },
+    { strings: [], gain: 0.5, bright: 0.6, sustain: true },
+    { strings: [], gain: 0.25, bright: 0.5, sustain: true },
+    { strings: [], gain: 0, silent: true }
+  ];
+  function makeDrone(ctx3, out, { lite = false } = {}) {
+    const bus = ctx3.createGain();
+    bus.gain.value = 1e-4;
+    const wet = ctx3.createGain(), lp = ctx3.createBiquadFilter();
+    wet.gain.value = 0.22;
+    lp.frequency.value = 3200;
+    bus.connect(out);
+    bus.connect(lp);
+    for (const t2 of [0.083, 0.127]) {
+      const d = ctx3.createDelay(), fb = ctx3.createGain();
+      d.delayTime.value = t2;
+      fb.gain.value = 0.45;
+      lp.connect(d);
+      d.connect(fb).connect(d);
+      d.connect(wet);
+    }
+    wet.connect(out);
+    const N = 28, re = new Float32Array(N + 1), im = new Float32Array(N + 1);
+    for (let n = 1; n <= N; n++) im[n] = (n % 2 ? 1.15 : 1) / n;
+    const wave = ctx3.createPeriodicWave(re, im);
+    let x = 88172645;
+    const jitter = () => {
+      x ^= x << 13;
+      x ^= x >>> 17;
+      x ^= x << 5;
+      return (x >>> 0) / 4294967296 * 2 - 1;
+    };
+    let stage = null, timer = null, nextAt = 0, step = 0, held2 = null, voices = 0;
+    function pluck(at2, freq, s) {
+      const dur = 3.6 + jitter() * 0.4, g2 = ctx3.createGain(), band = ctx3.createBiquadFilter(), low = ctx3.createBiquadFilter();
+      band.type = "peaking";
+      band.Q.value = 3.5;
+      band.gain.value = 14;
+      band.frequency.setValueAtTime(700 * s.bright, at2);
+      band.frequency.exponentialRampToValueAtTime(4200 * s.bright, at2 + dur * 0.8);
+      low.type = "lowpass";
+      low.frequency.setValueAtTime(5200 * s.bright, at2);
+      low.frequency.exponentialRampToValueAtTime(1400, at2 + dur);
+      g2.gain.setValueAtTime(1e-4, at2);
+      g2.gain.exponentialRampToValueAtTime(0.09, at2 + 6e-3);
+      g2.gain.exponentialRampToValueAtTime(0.045, at2 + 0.4);
+      g2.gain.exponentialRampToValueAtTime(1e-4, at2 + dur);
+      for (const cents of lite ? [0] : [-3, 3]) {
+        const o = ctx3.createOscillator();
+        o.setPeriodicWave(wave);
+        o.frequency.value = freq * 2 ** ((cents + jitter()) / 1200);
+        o.connect(band);
+        o.start(at2);
+        o.stop(at2 + dur + 0.05);
+        voices++;
+        o.onended = () => voices--;
+      }
+      band.connect(low).connect(g2).connect(bus);
+    }
+    function hold2(s) {
+      const g2 = ctx3.createGain(), band = ctx3.createBiquadFilter(), lfo = ctx3.createOscillator(), depth = ctx3.createGain(), now = ctx3.currentTime;
+      band.type = "peaking";
+      band.Q.value = 3;
+      band.gain.value = 10;
+      band.frequency.value = 1600 * s.bright;
+      lfo.frequency.value = 0.09;
+      depth.gain.value = 900 * s.bright;
+      lfo.connect(depth).connect(band.frequency);
+      g2.gain.setValueAtTime(1e-4, now);
+      g2.gain.exponentialRampToValueAtTime(0.05, now + 3);
+      const oscs = (lite ? [0] : [-4, 0, 4]).map((c) => {
+        const o = ctx3.createOscillator();
+        o.setPeriodicWave(wave);
+        o.frequency.value = SA * 2 ** (c / 1200);
+        o.connect(band);
+        o.start();
+        return o;
+      });
+      band.connect(g2).connect(bus);
+      lfo.start();
+      voices += oscs.length;
+      return { stop(at2) {
+        g2.gain.setTargetAtTime(1e-4, at2, 0.8);
+        [...oscs, lfo].forEach((o) => o.stop(at2 + 5));
+        voices -= oscs.length;
+      } };
+    }
+    function schedule() {
+      const s = STAGES2[stage];
+      if (!s?.strings.length) return;
+      const strings = lite ? s.strings.slice(-2) : s.strings;
+      while (nextAt < ctx3.currentTime + 0.5) {
+        const i = step % strings.length;
+        pluck(nextAt, SA * strings[i], s);
+        if (s.double && !lite) pluck(nextAt + s.gap / 2, SA * strings[(i + 2) % strings.length] * 1.002, s);
+        nextAt += s.gap * (i === 0 ? 1.25 : 1) + jitter() * 0.03;
+        step++;
+      }
+    }
+    return {
+      get stage() {
+        return stage;
+      },
+      get voices() {
+        return voices;
+      },
+      // move to stage i, crossfading over about three seconds
+      set(i) {
+        if (i === stage) return;
+        const s = STAGES2[Math.min(i, STAGES2.length - 1)], now = ctx3.currentTime;
+        stage = i;
+        bus.gain.cancelScheduledValues(now);
+        bus.gain.setTargetAtTime(s.silent ? 1e-4 : s.gain, now, s.silent ? 1.3 : 1);
+        if (held2 && !s.sustain) {
+          held2.stop(now);
+          held2 = null;
+        }
+        if (s.sustain && !held2) held2 = hold2(s);
+        if (!timer) {
+          nextAt = now + 0.05;
+          timer = setInterval(schedule, 200);
+        }
+        nextAt = Math.max(nextAt, now + 0.05);
+        schedule();
+      },
+      // fade out fast and stop scheduling
+      stop() {
+        if (stage == null) return;
+        const now = ctx3.currentTime;
+        clearInterval(timer);
+        timer = null;
+        stage = null;
+        bus.gain.cancelScheduledValues(now);
+        bus.gain.setTargetAtTime(1e-4, now, 0.05);
+        if (held2) {
+          held2.stop(now);
+          held2 = null;
+        }
+      },
+      // drop about 6 dB under a snake or ladder cue, then come back
+      duck(secs = 0.8) {
+        if (stage == null) return;
+        const now = ctx3.currentTime, g2 = STAGES2[stage].gain;
+        bus.gain.cancelScheduledValues(now);
+        bus.gain.setTargetAtTime(g2 * 0.5, now, 0.05);
+        bus.gain.setTargetAtTime(g2, now + secs, 0.4);
+      }
+    };
+  }
+
   // src/audio/engine.js
   var ctx2 = null;
   var noise = null;
   var master = null;
+  var drone = null;
+  var wanted = null;
   var SOFT = reduced ? 0.6 : 1;
+  var resume = () => ctx2.resume().catch(() => {
+  });
   function unlockAudio() {
+    if (prefs.mute) return;
     if (!ctx2) {
       const AC = window.AudioContext || window.webkitAudioContext;
       if (!AC) return;
@@ -2653,37 +3007,60 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         x ^= x << 5;
         d[i] = (x >>> 0) / 4294967296 * 2 - 1;
       }
+      drone = makeDrone(ctx2, master, { lite: quality === "low" });
     }
-    if (ctx2.state === "suspended") ctx2.resume();
+    if (ctx2.state !== "running" && !document.hidden) resume();
+    if (wanted != null) drone.set(wanted);
   }
+  function setDrone(stage) {
+    wanted = stage;
+    if (!drone || prefs.mute) return;
+    stage == null ? drone.stop() : drone.set(stage);
+  }
+  function setMuted(m) {
+    setPref("mute", m);
+    if (!m) return unlockAudio();
+    if (!ctx2) return;
+    drone.stop();
+    setTimeout(() => {
+      if (prefs.mute) ctx2.suspend().catch(() => {
+      });
+    }, 200);
+  }
+  document.addEventListener("visibilitychange", () => {
+    if (!ctx2 || prefs.mute) return;
+    document.hidden ? ctx2.suspend().catch(() => {
+    }) : resume();
+  });
+  var audioState = () => ({ ctx: ctx2?.state ?? null, stage: drone?.stage ?? null, voices: drone?.voices ?? 0, wanted, muted: prefs.mute });
   var ready = () => ctx2 && !prefs.mute && ctx2.state === "running";
-  function env(g2, at, peak, attack, decay) {
-    g2.gain.setValueAtTime(1e-4, at);
-    g2.gain.exponentialRampToValueAtTime(peak, at + attack);
-    g2.gain.exponentialRampToValueAtTime(1e-4, at + attack + decay);
+  function env(g2, at2, peak, attack, decay) {
+    g2.gain.setValueAtTime(1e-4, at2);
+    g2.gain.exponentialRampToValueAtTime(peak, at2 + attack);
+    g2.gain.exponentialRampToValueAtTime(1e-4, at2 + attack + decay);
   }
-  function hiss(at, dur, f0, f1, peak, q2 = 1.2, type = "bandpass") {
+  function hiss(at2, dur, f0, f1, peak, q2 = 1.2, type = "bandpass") {
     const src = ctx2.createBufferSource(), bp = ctx2.createBiquadFilter(), g2 = ctx2.createGain();
     src.buffer = noise;
     src.playbackRate.value = 1;
     bp.type = type;
     bp.Q.value = q2;
-    bp.frequency.setValueAtTime(f0, at);
-    bp.frequency.exponentialRampToValueAtTime(f1, at + dur);
-    env(g2, at, peak, Math.min(0.03, dur / 4), dur);
+    bp.frequency.setValueAtTime(f0, at2);
+    bp.frequency.exponentialRampToValueAtTime(f1, at2 + dur);
+    env(g2, at2, peak, Math.min(0.03, dur / 4), dur);
     src.connect(bp).connect(g2).connect(master);
-    src.start(at, at * 7.3 % 0.5);
-    src.stop(at + dur + 0.1);
+    src.start(at2, at2 * 7.3 % 0.5);
+    src.stop(at2 + dur + 0.1);
   }
-  function tone(at, freq, dur, peak, type = "triangle", glideTo = null) {
+  function tone(at2, freq, dur, peak, type = "triangle", glideTo = null) {
     const o = ctx2.createOscillator(), g2 = ctx2.createGain();
     o.type = type;
-    o.frequency.setValueAtTime(freq, at);
-    if (glideTo) o.frequency.exponentialRampToValueAtTime(glideTo, at + dur);
-    env(g2, at, peak, 0.01, dur);
+    o.frequency.setValueAtTime(freq, at2);
+    if (glideTo) o.frequency.exponentialRampToValueAtTime(glideTo, at2 + dur);
+    env(g2, at2, peak, 0.01, dur);
     o.connect(g2).connect(master);
-    o.start(at);
-    o.stop(at + dur + 0.1);
+    o.start(at2);
+    o.stop(at2 + dur + 0.1);
   }
   var sound = {
     // wooden die knocking about in a cupped hand
@@ -2691,9 +3068,9 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       if (!ready()) return;
       const now = ctx2.currentTime, n = reduced ? 3 : 7;
       for (let i = 0; i < n; i++) {
-        const at = now + i * 0.075 + i * 37 % 11 / 1e3;
-        hiss(at, 0.035, 1800 + i * 53 % 7 * 220, 1200, 0.5, 6);
-        tone(at, 180 + i * 29 % 5 * 30, 0.04, 0.12, "square");
+        const at2 = now + i * 0.075 + i * 37 % 11 / 1e3;
+        hiss(at2, 0.035, 1800 + i * 53 % 7 * 220, 1200, 0.5, 6);
+        tone(at2, 180 + i * 29 % 5 * 30, 0.04, 0.12, "square");
       }
     },
     // a palm-leaf page drawn out of the bundle
@@ -2710,12 +3087,14 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     // rising notes of a pentatonic scale: sa re ga pa dha sa
     ladder() {
       if (!ready()) return;
+      drone.duck();
       const now = ctx2.currentTime, base = 293.66;
       [1, 9 / 8, 5 / 4, 3 / 2, 5 / 3, 2].forEach((r, i) => tone(now + i * 0.085, base * r, 0.5 * SOFT, 0.16, "triangle"));
     },
     // a low falling tone under a hiss
     snake() {
       if (!ready()) return;
+      drone.duck(1);
       const now = ctx2.currentTime;
       hiss(now, 0.5 * SOFT, 5200, 3e3, 0.16, 0.7, "highpass");
       tone(now + 0.05, 196, 0.7 * SOFT, 0.2, "sawtooth", 62);
@@ -2790,7 +3169,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     if (kind === "heaven" || kind === "goal") return `<div class="rays"></div>` + [...Array(6)].map((_, i) => `<span class="pt" style="left:${6 + rnd(i + 2) * 0.86}%;animation-delay:${(i * 0.4).toFixed(2)}s">🌸</span>`).join("");
     return "";
   }
-  function frame(l, { kind, eb, big, sqn, age, body, foot, prev, next: next2, prevLabel, nextLabel }) {
+  function frame2(l, { kind, eb, big, sqn, age: age2, body, foot, prev, next: next2, prevLabel, nextLabel }) {
     const T = (k, v) => tIn(l, k, v);
     return `<div class="flourish" aria-hidden="true">${extras(kind)}</div>
     <header class="leaf-top">
@@ -2803,7 +3182,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       </div>
     </header>
     <div class="leaf-main">
-      <div class="leaf-margin" aria-hidden="true"><span class="glyph">${big}</span>${sqn ? `<span class="sqn">${sqn}</span>` : ""}${age ? `<span class="age">${age}</span>` : ""}<span class="hole"></span></div>
+      <div class="leaf-margin" aria-hidden="true"><span class="glyph">${big}</span>${sqn ? `<span class="sqn">${sqn}</span>` : ""}${age2 ? `<span class="age">${age2}</span>` : ""}<span class="hole"></span></div>
       <div class="leaf-text" lang="${l}">${body}</div>
     </div>
     <footer class="leaf-foot">
@@ -2822,7 +3201,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const T = (k, v) => tIn(l, k, v), info = squareInfo(n, l), r = READINGS[n] || {};
     const src = srcOfSquare(n), met = [];
     const sq = squareOf(n), m = sq.moment, mirror = m?.mirror || sq.mirror;
-    const age = m && sq.age != null ? ageIn(l, sq.age) : "";
+    const age2 = m && sq.age != null ? ageIn(l, sq.age) : "";
     let body = `<h2 id="leafTitle">${esc(info.title)}</h2>`;
     const alt = info.alt.filter(Boolean).join(" · ");
     if (alt) body += `<p class="alt" lang="${other(l)}">${esc(alt)}</p>`;
@@ -2863,12 +3242,12 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     return {
       kind: info.kind,
       met,
-      html: frame(l, {
+      html: frame2(l, {
         kind: info.kind,
-        eb: info.eb + (age ? ` · ${age}` : ""),
+        eb: info.eb + (age2 ? ` · ${age2}` : ""),
         big: n === GOAL ? info.big : art(`sq-${n}`, info.big),
         sqn: numIn(l, n),
-        age,
+        age: age2,
         body,
         foot: info.ft,
         prev: n > 1 ? numIn(l, n - 1) : null,
@@ -2895,7 +3274,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     return {
       kind: "entry",
       met: [id, ...people],
-      html: frame(l, {
+      html: frame2(l, {
         kind: "entry",
         eb: T(kind === "school" ? "entrySchool" : kind === "source" ? "entrySource" : "entryFigure"),
         big: kind === "school" ? "🪔" : kind === "source" ? "📜" : "🪷",
@@ -2950,6 +3329,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       return cardIdle();
     }
     cardLang = null;
+    pullBack(true);
     const label = from ?? (next2.type === "square" ? labEls[next2.n] : null);
     sound.open();
     await transition(() => {
@@ -3229,6 +3609,29 @@ ${p.text}`), end].join("\n\n") + "\n";
     showDie(v);
     return v;
   }
+  var watched = 0;
+  function watchFrames() {
+    if (forcedQuality || quality === "low" || watched >= 2) return () => {
+    };
+    watched++;
+    const ts = [];
+    let on = true, last = performance.now(), until = last + 2e4;
+    const tick = (now) => {
+      ts.push(now - last);
+      last = now;
+      if (on && now < until) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+    return () => {
+      on = false;
+      const f = ts.slice(1).sort((a, b) => a - b);
+      if (f.length >= 30 && f[Math.floor(f.length * 0.75)] > 28) {
+        setQuality("low");
+        pullBack(true);
+        draw();
+      }
+    };
+  }
   function log(e) {
     addLog(G.state, e);
     renderLog();
@@ -3242,13 +3645,18 @@ ${p.text}`), end].join("\n\n") + "\n";
     await cardIdle();
     if (g2 !== G.gen) return;
     const p = cur(), idx = state.turn, el = tokenEls[idx];
+    release();
     const v = await rollDie();
     if (g2 !== G.gen) return;
     state.last = v;
+    setDrone(lens(state).droneStage);
+    const watching = watchFrames();
     const plan = planTurn(state, v);
     plan.pre.forEach(log);
     {
       await sleep(150);
+      const born = stageAt(p.pos);
+      frame(p.pos || 1, plan.path.at(-1));
       for (const n of plan.path) {
         if (g2 !== G.gen) return;
         if (n > 1 && p.pos > 0) {
@@ -3264,6 +3672,7 @@ ${p.text}`), end].join("\n\n") + "\n";
       if (g2 !== G.gen) return;
       el._frame = 0;
       place();
+      if (stageAt(p.pos) !== born) pullBack();
       await cardIdle();
       if (g2 !== G.gen) return;
       if (prefs.landAll || !SQ[p.pos]) {
@@ -3275,18 +3684,36 @@ ${p.text}`), end].join("\n\n") + "\n";
         await cardIdle();
         if (g2 !== G.gen) return;
         (plan.jump.kind === "snake" ? sound.snake : sound.ladder)();
+        frame(p.pos, plan.jump.to);
         await (plan.jump.kind === "snake" ? swallow(idx, p.pos, plan.jump.to) : climb(idx, p.pos, plan.jump.to));
         if (g2 !== G.gen) return;
       }
     }
     endTurn(state, plan);
+    watching();
+    pullBack();
     G.busy = false;
     render();
+    age();
     queueCpu();
   }
   function queueCpu() {
     clearTimeout(G.cpuTimer);
     if (G.state.winner == null && cur().type === "cpu") G.cpuTimer = setTimeout(takeTurn, reduced ? 200 : 700);
+  }
+  var aged = null;
+  var ageSeq = 0;
+  var mix = (a, b, u) => ({ sepia: a.sepia + (b.sepia - a.sepia) * u, dim: a.dim + (b.dim - a.dim) * u });
+  function age(instant = false) {
+    const L2 = lens(G.state), to = Array.from({ length: GOAL + 1 }, (_, n) => n ? wash(n, L2) : null);
+    for (let n = 1; n <= GOAL; n++) labEls[n]?.classList.toggle("ahead", to[n].dim > 0);
+    setDrone(G.state.last != null ? L2.droneStage : null);
+    const from = aged, seq = ++ageSeq;
+    aged = to;
+    if (instant || !from) return drawAge(to);
+    return animate(600, (u) => {
+      if (seq === ageSeq) drawAge(to.map((w, n) => n ? mix(from[n], w, u) : null));
+    });
   }
   function render() {
     const state = G.state, p = cur();
@@ -3359,6 +3786,7 @@ ${p.text}`), end].join("\n\n") + "\n";
     }
     applyStatic();
     buildCells();
+    age(true);
     renderSetup();
     render();
     renderCodex();
@@ -3387,6 +3815,7 @@ ${p.text}`), end].join("\n\n") + "\n";
     nextSeed = null;
     buildTokens();
     render();
+    age(true);
     queueCpu();
   }
   $("newGame").addEventListener("click", () => {
@@ -3423,6 +3852,8 @@ ${p.text}`), end].join("\n\n") + "\n";
     if (cardOpen()) return closeCard();
     if (cur().type === "human") takeTurn();
   });
+  $("board").addEventListener("pointerdown", hold, { passive: true });
+  $("labels").addEventListener("focusin", hold);
   $("labels").addEventListener("click", (e) => {
     const lab = e.target.closest(".lab");
     if (lab) openSquare(+lab.dataset.n, { from: lab });
@@ -3467,8 +3898,7 @@ ${p.text}`), end].join("\n\n") + "\n";
     b.classList.toggle("off", prefs.mute);
   }
   $("mute").addEventListener("click", () => {
-    setPref("mute", !prefs.mute);
-    unlockAudio();
+    setMuted(!prefs.mute);
     renderMute();
   });
   ["pointerdown", "keydown"].forEach((ev) => document.addEventListener(ev, unlockAudio, { passive: true }));
@@ -3486,6 +3916,20 @@ ${p.text}`), end].join("\n\n") + "\n";
       jump(n) {
         cur().pos = n;
         render();
+        age(true);
+      },
+      // the lens the board is aged through: { fadeAge, dimAge, lead, droneStage }
+      age: () => lens(G.state),
+      // { ctx, stage, voices, wanted, muted }
+      audio: audioState,
+      // mp.quality("low") draws less: no camera, no motion extras, no paper grain
+      quality(q2) {
+        if (q2) {
+          setQuality(q2);
+          pullBack(true);
+          draw();
+        }
+        return quality;
       },
       roll(v) {
         G.forcedRoll = v;
@@ -3528,6 +3972,7 @@ ${p.text}`), end].join("\n\n") + "\n";
       G.busy = false;
       buildTokens();
       render();
+      age(true);
       queueCpu();
     } else {
       startGame();

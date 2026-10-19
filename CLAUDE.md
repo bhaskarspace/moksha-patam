@@ -17,8 +17,9 @@ single static `index.html` at https://codebpr.com/moksha-patam/
 - `docs/REFERENCE.md`: philosophy-to-mechanics mapping and the history of the board.
 - `docs/LANDSCAPE.md`: comparable games.
 
-**State:** Phases 0 to 4 have shipped. Phase 4 was Board craft (`docs/BOARDCRAFT.md`). Phase 5, The Painted
-Board, is next (REDESIGN.md §4).
+**State:** Phases 0 to 5 have shipped. Phase 5 was The Painted Board (REDESIGN.md §4): the ageing in
+`src/render/age.js` and `ground.js`, the camera in `camera.js`, the drone in `src/audio/drone.js`. Phase 6,
+Life state, is next.
 
 ## Commands
 - `npm run build`: fails on any `Math.random` outside `src/rng.js` or on any content lint error.
@@ -32,6 +33,8 @@ Board, is next (REDESIGN.md §4).
   games, reporting median, p5, p95 and the share over 100 turns. Balance against the p95.
 - `npm run smoke`: Playwright checks of the built page in a real browser (needs Chrome installed).
 - `npm run golden [seeds]`: the built page and `sim.mjs` must produce the same move log.
+- `npm run perf [--rate=4] [--query=quality=low]`: frame times on a throttled phone-sized page. Reports only;
+  compare against a run on `main`.
 - `node tools/icons.mjs`: regenerates `icons/`. Only needed when the emblem changes.
 
 ## Guardrails (REDESIGN.md §5)
@@ -40,6 +43,8 @@ Board, is next (REDESIGN.md §4).
 - Every new string must be bilingual `{en, hi}`, or the content lint fails.
 - Keep the `?debug` helpers working (`mp.jump`, `mp.roll`, `mp.seed`, `mp.setLang`, …
   in `src/main.js`) and extend them; don't remove any.
+- The ageing paints only the art: labels, cards and clicks never dim (`tests/contrast.test.mjs` holds every
+  label's contrast). Phase 5 colours are `--b-*` tokens only (lint). Never touch `G.state.rng` from sound or drawing.
 - Preserve `prefers-reduced-motion`, the aria-live card, the card's dialog role
   (a native `<dialog id="folio">` in `src/index.html`) and the Space-to-roll key.
 - One phase per PR. `main` is live and must never be unplayable.

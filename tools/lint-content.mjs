@@ -223,6 +223,7 @@ export function lintReport() {
   const root = path.resolve(import.meta.dirname, "..");
   const sheet = path.join(root, "assets/sprites.svg");
   if (fs.existsSync(sheet)) errors.push(...lintSprites(fs.readFileSync(sheet, "utf8"), fs.readFileSync(path.join(root, "src/styles.css"), "utf8")));
+  errors.push(...lintPaint(root));
 
   // REFERENCE.md §6: the board's own history is medieval, not ancient
   const all = JSON.stringify([READINGS, CODEX, STR]);
@@ -248,6 +249,25 @@ export function lintSprites(svg, css) {
   for (let n = 1; n < GOAL; n++) if (!svg.includes(`id="sq-${n}"`)) err(`no symbol for square ${n}`);
   for (const h of Object.keys(SNAKES)) if (HEAVEN[h] && !svg.includes(`id="sn-${h}"`)) err(`no symbol for the snake on square ${h}`);
   for (const id of Object.keys(CODEX.schools)) if (!svg.includes(`id="seal-${id}"`)) err(`no seal for ${id}`);
+  return errors;
+}
+
+// Phase 5 paints the board's age and its cloth in the Basohli palette too: the ageing, camera and drone code
+// names colours only as --b-* tokens, and the paper grain in styles.css floods with palette colours only.
+export function lintPaint(root) {
+  const errors = [], css = fs.readFileSync(path.join(root, "src/styles.css"), "utf8");
+  const palette = new Set([...css.matchAll(/--b-[\w-]+:\s*(#[0-9A-Fa-f]{6})/g)].map(m => m[1].toUpperCase()));
+  for (const f of ["src/render/age.js", "src/render/ground.js", "src/render/camera.js", "src/audio/drone.js"]) {
+    const src = fs.readFileSync(path.join(root, f), "utf8");
+    // ground.js holds the board's shipped printed colours, which predate the palette; anything after them must not
+    const body = f.endsWith("ground.js") ? src.replace(/export const PALETTE[^\n]*\n|const HEAVEN_MID[^\n]*\n/g, "") : src;
+    const hex = body.match(/#[0-9A-Fa-f]{6}\b/g);
+    if (hex) errors.push(`${f}: colours written as hex (${[...new Set(hex)].join(", ")}); name a --b-* token`);
+  }
+  for (const [, uri] of css.matchAll(/url\("data:image\/svg\+xml,([^"]+)"\)/g)) {
+    const off = [...new Set(decodeURIComponent(uri).match(/#[0-9A-Fa-f]{6}\b/g) || [])].filter(c => !palette.has(c.toUpperCase()));
+    if (off.length) errors.push(`styles.css: paper grain uses colours outside the Basohli palette: ${off.join(", ")}`);
+  }
   return errors;
 }
 
