@@ -335,6 +335,8 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 /* Phase 4 (REDESIGN.md): the remedy one step above a snake tail, and a snake that starts in a god's realm */
 .leaf .story p.remedy { font-family: var(--f-body); font-size: 15px; font-weight: 600; color: #2E6B45; border-left: 3px solid #2E7D4F; padding-left: 10px; }
 .leaf .story p.remedy.second { font-weight: 400; }
+/* past the exit: the way out is behind and below, in Moksha's indigo */
+.leaf .story p.remedy.above { color: #1E2A78; border-left-color: #1E2A78; }
 .leaf .snake-on { margin-top: 20px; padding: 4px 14px 10px; border-radius: 8px; background: rgba(179, 38, 30, 0.08); border: 1px solid rgba(179, 38, 30, 0.35); }
 .leaf .snake-on .sub { display: flex; align-items: center; gap: 8px; color: #9E2A1C; border-top: 0; padding-top: 6px; }
 .leaf .snake-on .snake-glyph { width: 28px; height: 28px; }

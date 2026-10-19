@@ -8,7 +8,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { GOAL, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, STR, SRC_HI, JOINS, READINGS, CODEX, REFS, ENTRY_IDS, srcOfSquare, sourceOf, leadOf, squareOf } from "../src/content.js";
+import { GOAL, TOP, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, STR, SRC_HI, JOINS, READINGS, CODEX, REFS, ENTRY_IDS, srcOfSquare, sourceOf, leadOf, squareOf } from "../src/content.js";
 import NAMES from "../content/names.json" with { type: "json" };
 
 // Names compare without diacritics or case, so "Śaṅkara", "Sankara" and "sankara" are one name.
@@ -116,9 +116,9 @@ export function lintReport() {
   };
 
   // every square has a name and a mirror in both languages, and its citation is in the Codex
-  const moments = { written: 0, total: GOAL - 1, bands: ASHRAMAS.map(([max, en]) => ({ en, max, written: 0, total: 0 })) };
+  const moments = { written: 0, total: TOP - 1, bands: ASHRAMAS.map(([max, en]) => ({ en, max, written: 0, total: 0 })) };
   let lastAge = 0;
-  for (let n = 1; n <= GOAL; n++) {
+  for (let n = 1; n <= TOP; n++) {
     const q = squareOf(n), lead = leadOf(n);
     if (!q) { err(`square ${n}`, "has no content"); continue; }
     if (lead?.[0]) lintLead(`square ${n} mirror`, lead);
@@ -126,7 +126,7 @@ export function lintReport() {
     if (n === GOAL) {
       if ((READINGS[n]?.views?.length || 0) < 2) err(`square ${n}`, "needs the schools' definitions of moksha in views");
       // §8: no moment and no name on the last square; that is the whole statement
-      if (q.moment) err(`square ${n}`, "must have no moment: the player's name does not appear on 110");
+      if (q.moment) err(`square ${n}`, "must have no moment: the player's name does not appear on the exit");
       if (q.age != null) err(`square ${n}`, "has no age");
       continue;
     }
@@ -137,7 +137,7 @@ export function lintReport() {
       if (typeof q.age !== "number" || q.age < 0 || q.age > 120) err(`square ${n}`, "needs an authored age (docs/NARRATIVE.md §5)");
       else { if (q.age < lastAge) warn(`square ${n}`, `age ${q.age} is younger than the square before (${lastAge})`); lastAge = q.age; }
     } else if (q.age != null) err(`square ${n}`, "is above the world and has no age (docs/NARRATIVE.md §8)");
-    if (q.callsBack != null && !(Number.isInteger(q.callsBack) && q.callsBack >= 1 && q.callsBack < GOAL && q.callsBack !== n)) err(`square ${n}`, `callsBack ${q.callsBack} is not another square`);
+    if (q.callsBack != null && !(Number.isInteger(q.callsBack) && q.callsBack >= 1 && q.callsBack <= TOP && q.callsBack !== GOAL && q.callsBack !== n)) err(`square ${n}`, `callsBack ${q.callsBack} is not another square`);
     else if (q.callsBack != null && !squareOf(q.callsBack)?.moment) warn(`square ${n}`, `calls back to ${q.callsBack}, which has no moment yet`);
 
     const r = READINGS[n] || {}, voices = (r.schools?.length || 0) + (r.views?.length || 0);
@@ -187,7 +187,7 @@ export function lintReport() {
 
   // readings: bilingual, and every school or person they name exists
   for (const [n, r] of Object.entries(READINGS)) {
-    if (!(+n >= 1 && +n <= GOAL)) err(`readings.${n}`, "not a square");
+    if (!(+n >= 1 && +n <= TOP)) err(`readings.${n}`, "not a square");
     for (const [i, s] of (r.schools || []).entries()) { bilingual(`readings.${n}.schools[${i}]`, s); if (!CODEX.schools[s.id]) err(`readings.${n}.schools[${i}]`, `unknown school "${s.id}"`); }
     for (const k of ["views", "beyond"]) for (const [i, s] of (r[k] || []).entries()) { bilingual(`readings.${n}.${k}[${i}]`, s); if (!CODEX.schools[s.id]) err(`readings.${n}.${k}[${i}]`, `unknown school "${s.id}"`); }
     for (const id of r.figures || []) if (!CODEX.figures[id]) err(`readings.${n}.figures`, `unknown person "${id}"`);
@@ -246,7 +246,7 @@ export function lintSprites(svg, css) {
   const widths = [...new Set([...svg.matchAll(/stroke-width="([^"]+)"/g)].map(m => m[1]))];
   if (widths.some(w => w !== "1.25")) err(`outline weights other than 1.25: ${widths.join(", ")}`);
   if (/<(linearGradient|radialGradient|filter)\b|\b(filter|transform)=/.test(svg)) err("gradients, filters or transforms; the sprites are flat fills");
-  for (let n = 1; n < GOAL; n++) if (!svg.includes(`id="sq-${n}"`)) err(`no symbol for square ${n}`);
+  for (let n = 1; n <= TOP; n++) if (n !== GOAL && !svg.includes(`id="sq-${n}"`)) err(`no symbol for square ${n}`);
   for (const h of Object.keys(SNAKES)) if (HEAVEN[h] && !svg.includes(`id="sn-${h}"`)) err(`no symbol for the snake on square ${h}`);
   for (const id of Object.keys(CODEX.schools)) if (!svg.includes(`id="seal-${id}"`)) err(`no seal for ${id}`);
   return errors;

@@ -1,8 +1,8 @@
 // A tanpura under the game, synthesised: each string is a rich periodic wave through a peaking band that rises
 // as the note decays (the jawari), plucked in the usual Pa·Sa·Sa·Sa cycle. The stage follows the ashrama of
 // whoever is furthest on (render/age.js): open in childhood, dense through gṛhastha, thinning through
-// vānaprastha to one held Sa in sannyāsa, silent at 110.
-const SA = 146.83; // D3, so the ladder's pentatonic on D4 is in key with it
+// vānaprastha to one held Sa in sannyāsa, silent at the exit.
+export const SA = 146.83; // D3, so the ladder's pentatonic on D4 is in key with it
 const PA = 0.75, SA2 = 2, SA1 = 1;
 // one per ASHRAMAS entry, then silence
 const STAGES = [

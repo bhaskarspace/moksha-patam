@@ -229,21 +229,62 @@ await check("Phase 4: the squares a move passed are named in the log, and each o
   assert(await page.evaluate(() => /Guru-bhakti/.test(document.querySelector("#leaf .story p.remedy")?.textContent || "")), "square 22 does not name its remedy");
 });
 
-await check("Phase 4: a roll past 110 bounces back, and 109 is Shiva's card with the merit snake after it", async page => {
+await check("Phase 7: Moksha is 105, Brahma at 108 carries the fall, and 110 is Shiva, past the exit", async page => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto(BASE + "?seed=5&debug");
-  await page.evaluate(() => { mp.jump(107); mp.roll(5); });       // up to 110, back down to 108
-  await page.waitForFunction(() => { if (document.getElementById("folio").open) mp.close({ instant: true }); return mp.state.log.some(e => e.k === "lBounce"); }, null, { timeout: 15000, polling: 200 });
-  assert(await page.evaluate(() => mp.state.players[0].pos) === 108, "the bounce did not land on 108");
-  await page.evaluate(() => { mp.open(109); });   // the card's promise settles on close, so don't wait on it
-  await page.waitForFunction(() => document.getElementById("leafTitle")?.textContent === "Shiva");
-  const card = await page.evaluate(() => ({
-    title: document.getElementById("leafTitle")?.textContent,
-    snake: document.querySelector("#leaf .snake-on .snake-title")?.textContent,
-    gita: !!document.querySelector('#leaf .snake-on a.src[data-entry="gita"]'),
-    foot: document.querySelector("#leaf .leaf-foot .ft")?.textContent,
-  }));
-  assert(card.title === "Shiva" && card.snake === "Merit spent" && card.gita && /101/.test(card.foot), JSON.stringify(card));
+  const card = n => page.evaluate(n => {
+    mp.open(n);   // the card's promise settles on close, so don't wait on it
+    const r = {
+      title: document.getElementById("leafTitle")?.textContent,
+      views: document.querySelectorAll("#leaf .views.side li").length,
+      snake: document.querySelector("#leaf .snake-on .snake-title")?.textContent,
+      gita: !!document.querySelector('#leaf .snake-on a.src[data-entry="gita"]'),
+      foot: document.querySelector("#leaf .leaf-foot .ft")?.textContent,
+      above: document.querySelector("#leaf .story p.remedy.above")?.textContent || "",
+      art: !!document.querySelector("#leaf .glyph svg.ill"),
+    };
+    mp.close({ instant: true });
+    return r;
+  }, n);
+  const goal = await card(105), brahma = await card(108), shiva = await card(110), ganesha = await card(104);
+  assert(goal.title === "Moksha" && goal.views === 6, `105: ${JSON.stringify(goal)}`);
+  assert(brahma.title === "Brahma" && brahma.snake === "Merit spent" && brahma.gita && /48/.test(brahma.foot) && brahma.above, `108: ${JSON.stringify(brahma)}`);
+  assert(shiva.title === "Shiva" && shiva.art && /105/.test(shiva.above) && !shiva.snake, `110: ${JSON.stringify(shiva)}`);
+  assert(!ganesha.above, "104 is below the exit and should not say Moksha is behind");
+  // the board: 105 is the goal cell, and Shiva's sprite sits on 110
+  assert(await page.evaluate(() => document.querySelector('#labels .lab.goal')?.dataset.n === "105" && !!document.querySelector('#labels .lab[data-n="110"] svg.spr use[href="#sq-110"]')), "the board does not show the exit at 105");
+  // #sq/110 is a square like any other
+  await page.evaluate(() => { location.hash = "#sq/110"; });
+  await page.waitForFunction(() => document.getElementById("folio").open && document.getElementById("leafTitle")?.textContent === "Shiva");
+  await page.evaluate(() => mp.close({ instant: true }));
+});
+
+await check("Phase 7: a roll that bounces off 110 comes back down onto the exit and wins; landing on Brahma falls to 48", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=5&debug");
+  const settle = k => page.waitForFunction(k => { if (document.getElementById("folio").open) mp.close({ instant: true }); return mp.state.log.some(e => e.k === k) && !mp.busy; }, k, { timeout: 15000, polling: 200 });
+  await page.evaluate(() => { mp.jump(106); mp.roll(2); });     // 107, 108: merit spent, and down into the world
+  await settle("lRebirth");
+  await page.waitForFunction(() => mp.state.players[0].pos === 48, null, { timeout: 15000 });
+  await page.goto(BASE + "?seed=5&debug");
+  await page.evaluate(() => { mp.jump(110); mp.roll(5); });     // 109, 108, 107, 106, 105, passing Brahma's snake
+  await settle("lWinAbove");
+  assert(await page.evaluate(() => mp.state.winner === 0 && mp.state.players[0].pos === 105), "the bounce did not win on 105");
+  assert(await page.evaluate(() => !document.getElementById("win").hidden), "no win screen");
+});
+
+await check("Phase 7: muted, nothing in the divine row starts audio; unmuted, the Shepard tone follows the walk", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.addInitScript(() => { try { localStorage.setItem("mp-prefs", JSON.stringify({ mute: true })); } catch {} });
+  await page.goto(BASE + "?seed=5&debug");
+  if (!(await page.evaluate(() => mp.audio().muted))) await page.click("#mute");
+  await page.evaluate(() => { mp.jump(102); mp.roll(5); });
+  await page.waitForFunction(() => { if (document.getElementById("folio").open) mp.close({ instant: true }); return mp.state.players[0].pos !== 102 && !mp.busy; }, null, { timeout: 15000, polling: 200 });
+  assert(await page.evaluate(() => mp.audio().ctx === null), `muted, yet audio started: ${JSON.stringify(await page.evaluate(() => mp.audio()))}`);
+  await page.click("#mute");   // unmuting is the gesture that makes the context
+  await page.evaluate(() => { mp.jump(103); });
+  await page.evaluate(() => { mp.roll(1); });
+  await page.waitForFunction(() => { if (document.getElementById("folio").open) mp.close({ instant: true }); return (mp.audio().shepard?.voices || 0) > 0; }, null, { timeout: 15000, polling: 200 });
 });
 
 await check("keyboard: arrows move across the board, Enter opens, arrows page the card", async page => {
@@ -309,7 +350,8 @@ await check("Phase 3: every moment agrees with a female player in Hindi, and wit
   await page.goto(BASE + "?seed=1&debug&lang=hi");
   const bad = await page.evaluate(async () => {
     const out = [];
-    for (let n = 1; n <= 109; n++) {
+    for (let n = 1; n <= mp.data.TOP; n++) {
+      if (n === mp.data.GOAL) continue;
       mp.open(n);
       const m = document.querySelector("#leaf .story p.moment")?.textContent || "";
       if (!m.includes("Meera")) out.push(`${n}: no moment naming Meera`);
@@ -399,7 +441,7 @@ await check("Phase 5: squares ahead are dimmed, yet every one still opens its ca
   await page.evaluate(() => { mp.state.players.forEach(p => (p.pos = 40)); mp.jump(40); });
   const ahead = await page.evaluate(() => [...document.querySelectorAll("#labels .lab.ahead")].map(l => +l.dataset.n));
   assert(ahead.length && Math.min(...ahead) > 40, `ahead: ${ahead.slice(0, 5)}`);
-  for (const n of [5, 72, 105]) {
+  for (const n of [5, 72, 107]) {
     await page.click(`#labels .lab[data-n="${n}"]`);
     await page.waitForFunction(n => document.getElementById("folio").open && location.hash === `#sq/${n}`, n);
     await page.evaluate(() => mp.close({ instant: true }));
@@ -507,14 +549,14 @@ await check("Phase 6: a card opens with its story, and one tap shows the voices;
     mp.open(36);   // and closing collapses it again
     const again = seen("#leaf .chips li");
     mp.close({ instant: true });
-    mp.open(110);  // the six views are the point of 110, so they show at once
+    mp.open(105);  // the six views are the point of the exit, so they show at once
     const goal = seen("#leaf .views.side li");
     mp.close({ instant: true });
     return { before, after, expanded, kept, again, goal };
   });
   assert(r.before.voices === 0 && r.before.story >= 2 && r.before.frame === 1, `collapsed: ${JSON.stringify(r.before)}`);
   assert(r.after >= 2 && r.expanded && r.kept >= 2 && r.again === 0, JSON.stringify(r));
-  assert(r.goal === 6, `110 shows ${r.goal} views`);
+  assert(r.goal === 6, `105 shows ${r.goal} views`);
   await page.goto(BASE + "?seed=1&debug&depth=story");
   assert(await page.evaluate(() => { mp.open(34); return !document.querySelector("#leaf .more-btn"); }), "story depth has a toggle");
 });

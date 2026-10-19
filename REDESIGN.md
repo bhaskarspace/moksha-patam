@@ -18,7 +18,7 @@ English/Hindi, deployed at https://codebpr.com/moksha-patam/
 1. [What we are building and why](#1-what-we-are-building-and-why)
 2. [Core mechanics](#2-core-mechanics)
 3. [Architecture](#3-architecture)
-4. [Phases 0 through 15](#4-phases)
+4. [Phases 0 through 16](#4-phases)
 5. [Guardrails](#5-guardrails)
 6. [Known fixes to fold in](#6-known-fixes)
 
@@ -137,21 +137,23 @@ Visibility is set by the active law, not globally. Mīmāṃsā shows the whole 
 exact numbers. Nyāya shows evidence and makes you infer (which is doctrinally right:
 saṃskāras are inferred, never perceived). Cārvāka has no queue at all.
 
-### 2.3 Bandha and the gate at 110
+### 2.3 Bandha and the gate at the exit
 
 ```
 bandha = w1·attachment(artha) + w2·attachment(kama)
        + w3·identification_with_body + w4·unfired_agami_count
 ```
 
-Reaching 110 is necessary and not sufficient. Arrive with bandha above threshold and
-the gate does not open, the end screen says exactly why, and you are reborn. This
+Reaching the exit is necessary and not sufficient. Arrive with bandha above threshold
+and the gate does not open, the end screen says exactly why, and you are reborn. From
+Phase 7 the exit is square **105**, not the top of the board. This
 converts the game from accumulation to subtraction. It is the clearest statement the
 game can make about what the word meant, and *Reigns* is evidence the shape works.
 
-Phase 4's bounce-back and the snake at 109 lay the groundwork: a player can already
-touch 110, bounce off it and fall back to 81, so arriving and being let through are two
-different things before the gate exists. The gate only has to supply the reason.
+Phases 4 and 7 lay the groundwork. Bounce-back already lets a player touch the top of
+the board and come back down, and once the exit sits at 105 a player can pass straight
+over liberation without taking it. Arriving and being let through are two different things
+before the gate exists; the gate only has to supply the reason.
 
 ### 2.4 Ashramas as rule phases
 
@@ -617,7 +619,150 @@ is an exact echo. Weak pairings get fixed as they are identified in play, not in
 
 ---
 
-### Phase 7 — Life state
+### Phase 7 — The exit  ✅ SHIPPED
+*The divine row stops being a corridor and becomes the thing it is in the sources: still
+saṃsāra, with a way out partway along it. This phase also carries the sound work, because
+the sound is this geometry made audible.*
+
+> **Shipped, with these decisions.**
+> - *The move:* by identity, not index. A one-off script re-keyed every god's square record, readings and sprite through the god's name and checked each arrived whole; `tests/content.test.mjs` now holds each god to its own moment, mirror, readings and sprite (pinned by hash), so a scrambled pairing fails by name. The rebirth snake moved by its own identity, from Śiva's square to Brahmā's. `GOAL` (105, the exit) and `TOP` (110, where a roll turns back) are now separate constants; everything that meant the board's extent uses `TOP`.
+> - *Winning from above* is a contract, not an accident: path tests from 110 and 109, an exhaustive reflection test over 95–110 × every roll, its own log line (`lWinAbove`), a note on the cards of 106–110, a sim metric and a smoke check. 34% of lives are won this way.
+> - *The exact-roll setting* was already gone (Phase 4). With the exit mid-row, exactness is the geometry: only landing on 105 wins, and an overshoot carries you into the higher heavens rather than stalling. The setting that needed rethinking was Brahmaloka: its walk now goes toward the snake's head, so a shut exit walks the player on to Brahmā and the fall.
+> - *The fall: 108 → 48, by decision, against the numbers.* Head and tail share column 7, so it is drawn by the existing `snakePath` as one sinuous drop down the board; this reconciles "straight vertical drop" with "not a straight ruled line". The sweep (`npm run sim --snake=108:T`, 20,000 lives each):
+>
+> | snake | median | p95 | over 100 | max |
+> |---|---|---|---|---|
+> | shipped Phase 6: exit 110, 109 → 101 | 41 | 82 | 1.7% | 204 |
+> | exit 105, none | 42 | 89 | 2.5% | 240 |
+> | 108 → 100 | 39 | 80 | 1.5% | 209 |
+> | 108 → 98 | 43 | 105 | 5.8% | 306 |
+> | 108 → 60 | 57 | 184 | 22.5% | 606 |
+> | 108 → 56 | 59 | 187 | 24.1% | 563 |
+> | 108 → 52 | 60 | 195 | 25.3% | 574 |
+> | **108 → 48** | **61** | **194** | **25.4%** | **557** |
+> | 108 → 44 | 62 | 208 | 27.1% | 803 |
+> | 108 → 40 | 62 | 204 | 26.9% | 651 |
+> | 108 → 32 | 64 | 217 | 29.2% | 605 |
+> | 108 → 24 | 66 | 225 | 30.1% | 703 |
+> | 108 → 20 | 66 | 231 | 30.8% | 934 |
+>
+> No tail from 20 to 60 meets the Phase 4 bar; the cliff is between 100 and 98, as it was between 101 and 95 before. **Item 5's premise measured false:** the fall does not fire on "a minority of approaches" but in 59% of lives, 1.45 times each, because from above the exit can only be reached from 109 (a 6) or 110 (a 5), so the higher heavens hold a player while 108 keeps being hit. 108 → 48 ships anyway, with a quarter of lives over 100 turns, and is accepted until Phase 12, when the fall ends a life instead of lengthening one. A once-per-life fall measured 55 / 116 / 9.7% and was not taken.
+> - *Sound:* the Shepard tone (`src/audio/shepard.js`) layers over the drone, whose held Sa in the divine row is its pedal; at the exit the climb stops and fades rather than resolving, so the fall is the only resolution. Six sine partials and a sub-bass sine an octave under Sa (four and one on a weak device), built on entering the divine row and dropped once silent. Position never sets an audio parameter: it chooses targets that glide, the phase only moves forward, ramps are written ahead and each begins where the last ended, and no partial is ever cancelled. Each partial jumps its octave exactly where its gain is 0, which `tests/shepard.test.mjs` checks on a recorded schedule, through a bounce and a fall. The fall slides the whole window down two octaves, timed to the swallow, and lands on Sa.
+> - *Not done:* continuous drift with age contradicts Phase 5's stepped drone and its tests, and moves to a later phase. The sub-bass is for headphones; phone speakers will not reproduce it, and it is not made louder to compensate. The Shepard tone's cost has not been measured on a real phone (`npm run perf` never starts audio); `mp.audio().shepard` reports what it is doing.
+
+**1. Mokṣa moves to 105, and no content is lost.** The row currently runs Indra, Agni,
+Sūrya, Gaṇeśa, Lakṣmī, Sarasvatī, Brahmā, Viṣṇu, Śiva, Mokṣa. It becomes Indra, Agni,
+Sūrya, Gaṇeśa, **Mokṣa**, Lakṣmī, Sarasvatī, Brahmā, Viṣṇu, Śiva. All nine gods keep
+their Phase 2 and 3 cards, their sprites and their readings; five of them simply sit
+above the exit instead of below it.
+
+**Keep the nine gods. The alternatives were checked and they are worse.**
+
+The row is not the roll-call it was before Phase 2. Its moments are a single descending
+arc — a progressive erasure of what is left of the player: merit running out, offerings
+still travelling, everything seen and mostly forgotten, a name on a door until the door is
+repainted, property divided and the argument forgotten, one sentence still repeated by
+someone who does not know where it came from, somebody below with your nose, a habit kept
+in one house by people who think it was always done that way, and finally the name itself
+coming loose.
+
+The pairings are deliberate and each one earns its god: Indra for merit, Agni for the
+offerings he carries, Sūrya for what was seen, Gaṇeśa for the name at a doorway, Lakṣmī
+for property, Sarasvatī for a remembered sentence, Brahmā for descendants, Viṣṇu for what
+is preserved, Śiva for dissolution.
+
+Two alternatives were researched and rejected:
+
+- **The seven upper lokas** (Bhū, Bhuvar, Svar, Mahar, Jana, Tapa, Satya) are an ordered
+  ascent, but three of the seven have no distinct content even in the reference sources.
+  Four of nine squares would be filler, which is the problem this row already solved.
+- **The seven jñāna-bhūmikās** (Varāha Upaniṣad: śubhecchā, vicāraṇā, tanumānasī,
+  sattvāpatti, asaṃsakti, padārthābhāvanā, turyā) are psychologically the strongest
+  ladder in the tradition, and they are wrongly placed here: they are stages a jīvanmukta
+  reaches **while living**. They are now in **Phase 8**, as the sannyāsin's state rather
+  than as squares.
+
+The clinching argument is direction. Both alternatives *ascend*. This row *descends* —
+what remains of you shrinking step by step — and descent is right, because the player is
+dead, because it sets up the Brahmā fall, and because it is the one stretch where the
+Shepard tone's endless rise plays against a text quietly going the other way. That tension
+is worth more than a tidier taxonomy.
+
+**⚠ Implementation trap.** When mokṣa takes 105 the gods shift up one square. The moments,
+mirrors, readings and sprites must travel **with their god, not with the square number**.
+Move them by identity, not by index, or Lakṣmī inherits "one sentence still repeated" and
+Sarasvatī inherits "property divided", the pairings scramble and the arc breaks. Add a
+test that asserts each god still carries its own moment after the shift.
+
+**Why.** The divine realms are not above liberation in a hierarchy — they are still the
+wheel. Svarga is a reward, rewards are finite, and mokṣa is an exit partway along the
+path rather than its summit. That is also the historical arrangement: Vaikuṇṭha sat a few
+steps before the end of the board, and the 72-square Johnson board wins at 68 with the
+top squares as a hazard (`docs/BOARDCRAFT.md §3`). Square 100 and the Indra card already
+say this; the geometry has never backed them up.
+
+**2. Landing exactly on 105 is liberation. Passing it carries you into the higher
+heavens**, which are still saṃsāra and now carry a real risk.
+
+**3. The exit can be reached from above, and this is the best thing in the design.**
+Bounce-back already sends a roll past 110 back down by the remainder. So from 110 a roll
+of 5 returns the player to 105. Having overshot the gate, you reach it again by coming
+back down, not by climbing higher. Keep this deliberately and say so on the card.
+
+**4. The vertical fall replaces the horizontal snake.** The 109 → 101 snake runs along a
+single row, so it reads as a shuffle sideways rather than a fall. Replace it with a snake
+whose head is **Brahmā (now 108)** dropping straight down the board into the mortal world.
+
+Brahmā is the right head, not an arbitrary one: some boards required that a player who
+reached Brahmaloka then **descend a snake to pṛthvī at least once** before finishing
+(`docs/BOARDCRAFT.md`, the Brahmaloka rule). The most attested fall in the sources is
+from exactly this square.
+
+What matters is that it reads as a **fall from the top of the board to the bottom of it**,
+drawn as a snake in whatever way looks best — a long sinuous descent, not a straight ruled
+line and not a shuffle along one row. The renderer already draws curved snake bodies
+(`drawSnake` / `snakePath`), so this is the same code over a much longer span.
+
+Pick the tail by measurement rather than by geometry. Start at **108 → 48**, which lands
+in the householder years, and sweep `--snake=108:TAIL` across a range (roughly 20 to 60)
+reporting median, p95 and over-100 for each. Choose the longest fall the tail numbers will
+bear, because the drama is in the distance.
+
+**5. Don't over-tune the fall in this phase.** Right now it is a long snake inside one
+game, and a long snake is expensive — 109 → 81 measured 21.9% over 100 turns. But it only
+fires on an overshoot past 105, which is a minority of approaches, and in Phase 12 it
+becomes a true rebirth that *ends a life* rather than lengthening one. At that point the
+arithmetic changes completely. Tune it to something playable now, and expect to retune it
+when rebirth exists.
+
+**6. Sound: the Shepard–Risset glissando under the divine row.** Octave-spaced partials
+crossfading so the pitch climbs forever and never arrives. Nolan used it in *Dunkirk*;
+Mario 64 used it on the endless staircase.
+
+Here it is not decoration, it is the mechanic made audible. The player walks 101 toward
+the exit and the tone rises. If they overshoot into the higher heavens it keeps rising and
+never resolves — the illusion becomes literally true of their position. When the Brahmā
+snake takes them, the tone finally falls, and that drop is the only resolution in the
+piece. A player will feel this long before they can explain it.
+
+Three smaller sound changes with it:
+- **Sub-bass weight.** Awe is physical before it is musical. The tanpura sits mid-range;
+  give it something underneath.
+- **Continuous drift rather than steps.** The drone currently changes at ashrama
+  boundaries. Make it drift with age so a player never catches it changing.
+- **Later, a karma-responsive partial.** Once Phase 11 exists, accumulated karma adds a
+  low beating partial that strengthens. Sound that knows something the player does not is
+  most of what mystery is.
+
+**Done when:** mokṣa sits at 105 with all nine gods keeping their cards; landing exactly
+on 105 wins; a player who overshoots can return to it by bouncing off 110; the Brahmā
+snake is drawn as a straight vertical drop; the Shepard tone rises through the divine row
+and resolves only on the fall; and `sim.mjs` reports median, p95 and over-100 for every
+candidate tail in column 7.
+
+---
+
+### Phase 8 — Life state
 
 - `āyus`, guṇas, puruṣārthas in state.
 - **Derive āyus from the authored `age` table shipped in Phase 3** rather than inventing
@@ -635,12 +780,42 @@ is an exact echo. Weak pairings get fixed as they are identified in play, not in
   becoming, not a dashboard.
 - Still dice-and-move; no allocation and no choices yet.
 
-**Done when:** a life can end by running out of years, and `sim.mjs` reports a lifespan
-distribution.
+**The seven jñāna-bhūmikās as the sannyāsin's state.** The Varāha Upaniṣad's ladder —
+śubhecchā (good desire), vicāraṇā (inquiry), tanumānasī (the thinned mind), sattvāpatti
+(resting in sat), asaṃsakti (non-attachment), padārthābhāvanā (no longer perceiving an
+inner or outer world), turyā (the fourth) — is the strongest psychological progression in
+the tradition and the board currently has nothing marking the last band.
+
+**It is not content and it must not displace any.** Squares 81–100 are already dense, and
+all four mahāvākyas live there. The bhūmikā is a **state the player is in**, shown in the
+card's eyebrow where the ashrama name currently sits: "STORY · SATTVĀPATTI · AGE 72"
+instead of "STORY · SANNYASA · AGE 72". Not one card moves.
+
+**Key decision: the stage is set by state, not by square.** A player who reaches sannyāsa
+still clutching artha is at śubhecchā however far up the board they are. Tie it to bandha
+(§2.3) once Phase 11 exists; before that, approximate from the guṇa mix. This is the
+version worth building, because position-based stages would just be a second name for the
+square number.
+
+**Measure before committing to all seven.** At a median of 41 turns across 110 squares,
+the twenty squares of the sannyāsa band take roughly seven turns, so seven stages would
+advance about once per turn and read as noise. State-based progression solves this, since
+most players will only pass through three or four. Check the distribution in `sim.mjs`
+before deciding how many stages a typical life actually shows.
+
+**The title the player earns.** The Varāha text classes the person by stage: Mumukṣu
+through the first three, then Brahmavit, Brahmavidvara, Brahmavidvarīya, Brahmavidvariṣṭha.
+That is a name you are given for what you have become, which is the thing Émerson was
+reaching for with "character qualities the player can wear", and it is native to the
+tradition rather than borrowed from an RPG.
+
+**Done when:** a life can end by running out of years, `sim.mjs` reports a lifespan
+distribution, and a sannyāsin's card names the bhūmikā they are actually in rather than
+the one their square implies.
 
 ---
 
-### Phase 8 — Dice as currency
+### Phase 9 — Dice as currency
 *The core mechanical change. Read §2.1 carefully.*
 
 - Roll n dice, visible, before any decision.
@@ -666,7 +841,7 @@ age, and p95 has not risen.
 
 ---
 
-### Phase 9 — Situations
+### Phase 10 — Situations
 
 - `content/situations.json` and `engine/qbn.js`.
 - Gate evaluation, with the gate surfaced in the UI when an option is withheld.
@@ -674,23 +849,75 @@ age, and p95 has not risen.
 - **Any square without a situation falls back to its story card.** The game stays
   playable at every point during the content build.
 
+**Émerson Moreira's design, which this phase implements.** A situation offers two or
+three options, and the dishonest one is genuinely tempting: it carries the player further
+for less. Each option also carries a karma value that the player is never shown.
+
+One rule keeps it from collapsing. **The dishonest option advances you more cheaply, not
+further.** If lying simply moved you ahead, lying would be the correct move every time and
+the choice would die; the design literature calls this out as the standard failure of
+morality systems, where players make one decision early and keep it. So honesty costs
+something now — a turn, the longer way round — and dishonesty costs nothing now and
+accrues. The settlement is Phase 11's.
+
+**Authoring rule:** no option is obviously correct, and the game never tells a player they
+chose wrongly. It only shows them, later, what they became.
+
 **Done when:** ten squares offer choices, the fallback is invisible, no unreachable
-situation exists (`lint-content.mjs`), and no option is obviously correct.
+situation exists (`lint-content.mjs`), no option is obviously correct, and a player who
+takes every dishonest option is measurably ahead on the board and measurably worse off in
+the ledger.
 
 ---
 
-### Phase 10 — Karma
+### Phase 11 — Karma
 
 - Three buckets, fuses, deferred firing.
-- `bandha` and the gate at 110.
+- `bandha` and the gate at **105** (the exit, after Phase 7).
 - A karma panel whose visibility is set by the active law.
 
-**Done when:** a seed planted at square 20 fires at square 60 with a card naming where
-it came from, and a player can reach 110 and be refused with a legible reason.
+**The reckoning — Émerson Moreira's mechanic, worked out with him over several
+conversations.**
+
+*The omen.* **A roll of 1 is the sign.** Whether it becomes a reckoning depends on where
+the player is and what they are carrying. Early with a clean ledger a 1 is only a 1; late
+and loaded it is almost certainly the floor opening. One visible marker, no second die, no
+counter to explain, and players learn to dread a face they currently ignore.
+
+This replaces his first proposal of double ones on two dice. Two 1s in a row on one die is
+the same 1 in 36, and moving to 2d6 would double the mean roll, halve the game, and break
+the Phase 4 remedy cards that say a ladder is one square above you — on two dice a 1 is
+unrollable.
+
+*The rising chance.* **The probability climbs as the player nears the exit**, which is his
+idea and a good one. It puts tension where the board was flattest, and it fixes a real
+flaw in a flat rate: a debt from square 30 settled at square 35 costs nothing, whereas a
+rising curve lands it where it hurts. So lying early feels safe and lying late feels
+reckless. After Phase 7 this curve keys to **105**, not the top of the board, which is the
+same shape as the bandha gate at finer resolution.
+
+*The severity.* **Deterministic in karma, growing faster than linearly. No second die.**
+He originally multiplied karma by a fresh roll; that stacks randomness on the one quantity
+the mechanic exists to make legible, so the cost of a player's lying would be mostly a
+coin flip wearing their choices as a coefficient. The dice decide *when*. The player's
+choices decide *how much*.
+
+*Timing.* The fuse and the omen combine rather than compete, and the combination is the
+doctrine. A seed becomes **ripe** when its fuse expires, then waits for a 1 to land. That
+is prārabdha exactly: released from the store, not yet fruited.
+
+*A low ledger is not a weak event.* He worried that a small purge would fizzle. It should.
+A player carrying almost nothing walks away from the reckoning nearly untouched, and that
+is what they earned. Fix the presentation, not the number: the omen always produces the
+card and the floor always seems to open. What follows scales.
+
+**Done when:** a seed planted at square 20 ripens and then waits for a 1, firing with a
+card that names where it came from; the chance visibly rises toward 105; severity depends
+only on the ledger; and a player can reach 105 and be refused with a legible reason.
 
 ---
 
-### Phase 11 — Death and rebirth
+### Phase 12 — Death and rebirth
 
 - Yama's reckoning screen reading the ledger.
 - āgāmi flows into sañcita; a slice is drawn as next life's prārabdha.
@@ -703,7 +930,7 @@ legible to the player on the birth screen.
 
 ---
 
-### Phase 12 — The laws
+### Phase 13 — The laws
 
 - Mīmāṃsā first (default), then Cārvāka, then the rest.
 - A law-select screen that explains each in the player's own terms before they commit.
@@ -715,7 +942,7 @@ rather than only in mean.
 
 ---
 
-### Phase 13 — Historical boards
+### Phase 14 — Historical boards
 
 Board geometry becomes data. The variants are documented, not invented; see
 `docs/REFERENCE.md §4`.
@@ -740,7 +967,7 @@ each board's rules load with it.
 
 ---
 
-### Phase 14 — Parallel lives
+### Phase 15 — Parallel lives
 
 - Multiplayer becomes four lives lived side by side rather than a race.
 - End screen: guṇa trajectories plotted over time, choices made at shared squares,
@@ -751,7 +978,7 @@ each board's rules load with it.
 
 ---
 
-### Phase 15 — Content to full, and balancing
+### Phase 16 — Content to full, and balancing
 
 - All 110 squares with situations where they earn one.
 - Codex complete across schools, sources and figures.

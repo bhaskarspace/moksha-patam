@@ -1,8 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import crypto from "node:crypto";
 import { lintContent, lintSprites, leadNames } from "../tools/lint-content.mjs";
-import { READINGS, CODEX, REFS, SQ, sourceOf, leadOf } from "../src/content.js";
+import { GOAL, TOP, READINGS, CODEX, REFS, SQ, SNAKES, LADDERS, HEAVEN, MOKSHA, sourceOf, leadOf, squareOf, snakeOn } from "../src/content.js";
 
 test("all content passes the lint", () => {
   assert.deepEqual(lintContent(), []);
@@ -26,10 +27,10 @@ test("citations map to Codex sources by prefix", () => {
   assert.equal(sourceOf(""), null);
 });
 
-test("square 36 carries the three Vedanta readings, and 110 every school's moksha", () => {
+test("square 36 carries the three Vedanta readings, and 105 every school's moksha", () => {
   assert.deepEqual(READINGS[36].views.map(v => v.id), ["advaita", "vishishtadvaita", "dvaita"]);
-  assert.ok(READINGS[110].views.length >= 6);
-  assert.ok(REFS.advaita.includes(36) && REFS.advaita.includes(110));
+  assert.ok(READINGS[105].views.length >= 6);
+  assert.ok(REFS.advaita.includes(36) && REFS.advaita.includes(105));
   assert.ok(Object.keys(CODEX.schools).every(id => REFS[id]?.length));
 });
 
@@ -54,9 +55,9 @@ test("a generic Hindi word never passes for a name on its own", () => {
   assert.ok(leadNames(leadOf(79)).en.includes("Gargi") && leadNames(leadOf(79)).hi);
 });
 
-test("square 110 sets six definitions of moksha side by side, and the three outside the Veda after them", () => {
-  assert.deepEqual(READINGS[110].views.map(v => v.id), ["nyaya", "samkhya", "mimamsa", "advaita", "vishishtadvaita", "dvaita"]);
-  assert.deepEqual(READINGS[110].beyond.map(v => v.id).sort(), ["bauddha", "carvaka", "jaina"]);
+test("square 105 sets six definitions of moksha side by side, and the three outside the Veda after them", () => {
+  assert.deepEqual(READINGS[105].views.map(v => v.id), ["nyaya", "samkhya", "mimamsa", "advaita", "vishishtadvaita", "dvaita"]);
+  assert.deepEqual(READINGS[105].beyond.map(v => v.id).sort(), ["bauddha", "carvaka", "jaina"]);
 });
 
 test("the sprite lint holds the Basohli palette and one outline weight", () => {
@@ -93,13 +94,56 @@ test("every moment, once written, names the player in both languages", () => {
   }
 });
 
-test("Phase 4: the five paired snake tails name their remedy, and the merit snake on 109 leaves Shiva's card alone", async () => {
-  const { SNAKES, LADDERS, HEAVEN, squareOf, snakeOn } = await import("../src/content.js");
+test("Phase 4: the five paired snake tails name their remedy", () => {
   const withRemedy = Object.keys(SQ).filter(n => SQ[n].remedy).map(Number);
   assert.deepEqual(withRemedy, [22, 43, 50, 64, 71]);
   for (const n of withRemedy) assert.ok(Object.values(SNAKES).some(s => s.to === n) && LADDERS[n + 1]);
-  assert.equal(squareOf(109), HEAVEN[109]);
-  assert.equal(snakeOn(109), SNAKES[109]);
-  assert.ok(SNAKES[109].rebirth && SNAKES[109].src.startsWith("Bhagavad Gita"));
-  assert.ok(REFS.gita?.includes(109) && REFS.mimamsa.includes(109));
+});
+
+// Phase 7 moved Moksha from 110 to 105 and the five gods above it up one square. Each god's writing, readings
+// and sprite must have travelled with the god, not stayed with the number (REDESIGN.md Phase 7, the trap).
+// Keyed by name: [square, an anchor in the moment, an anchor in the mirror, figures, first school, sprite].
+// The sprite hashes were taken from main before the move; change one only when that sprite is redrawn on purpose.
+const ROW = {
+  Indra: [101, "good deeds", "Svarga", ["kumarila"], "mimamsa", "b985f603ce"],
+  Agni: [102, "offerings", "offering", [], "mimamsa", "fb703c4a21"],
+  Surya: [103, "was seen", "witness", [], "carvaka", "e0d15131f3"],
+  Ganesha: [104, "painted on one door", "obstacles", ["patanjali"], "yoga", "de40541397"],
+  Lakshmi: [106, "divided", "lotus", [], "vishishtadvaita", "57089a1789"],
+  Saraswati: [107, "one sentence", "swan", [], "nyaya", "8781a91468"],
+  Brahma: [108, "nose", "doubts him", ["kumarila"], "vaisheshika", "d67337d12a"],
+  Vishnu: [109, "habit", "preserver", [], "dvaita", "4429643340"],
+  Shiva: [110, "name comes loose", "dissolves", ["abhinavagupta"], "trika", "7f59c602f3"],
+};
+const SVG = fs.readFileSync(new URL("../assets/sprites.svg", import.meta.url), "utf8");
+const spriteHash = id => {
+  const m = SVG.match(new RegExp(`<symbol id="${id}"[^>]*>([\\s\\S]*?)</symbol>`));
+  return m && crypto.createHash("sha1").update(m[1]).digest("hex").slice(0, 10);
+};
+
+test("Phase 7: every god kept its own moment, mirror, readings and sprite when Moksha took 105", () => {
+  assert.deepEqual(Object.keys(HEAVEN).map(Number), Object.values(ROW).map(r => r[0]));
+  for (const [god, [n, moment, mirror, figures, school, sprite]] of Object.entries(ROW)) {
+    assert.equal(HEAVEN[n].en, god, `square ${n} is not ${god}`);
+    assert.ok(HEAVEN[n].moment.en.includes(moment), `${god}'s moment does not contain "${moment}"`);
+    assert.ok(HEAVEN[n].mirror.en.includes(mirror), `${god}'s mirror does not contain "${mirror}"`);
+    assert.deepEqual(READINGS[n].figures || [], figures, `${god}'s people`);
+    assert.equal(READINGS[n].schools[0].id, school, `${god}'s first school`);
+    assert.equal(spriteHash(`sq-${n}`), sprite, `${god}'s sprite is not on sq-${n}`);
+  }
+  assert.ok(HEAVEN[108].src, "Brahma's citation travels with Brahma");
+});
+
+test("Phase 7: Moksha is 105, the exit, with no sprite; Brahma at 108 carries the fall into the world", () => {
+  assert.equal(GOAL, 105);
+  assert.equal(TOP, 110);
+  assert.equal(squareOf(105), MOKSHA);
+  assert.equal(spriteHash("sq-105"), null);
+  assert.equal(squareOf(108), HEAVEN[108]);
+  assert.equal(snakeOn(108), SNAKES[108]);
+  assert.ok(SNAKES[108].rebirth && SNAKES[108].to === 48 && SNAKES[108].src.startsWith("Bhagavad Gita"));
+  assert.equal(SNAKES[109], undefined);
+  assert.equal(spriteHash("sn-108"), "409050c182");
+  assert.equal(spriteHash("sn-109"), null);
+  assert.ok(REFS.gita?.includes(108) && REFS.mimamsa.includes(108));
 });
