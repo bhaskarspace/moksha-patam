@@ -265,10 +265,22 @@ relates to the one before it, first match winning:
    the player, never from the dice.
 
 Every join ends in a space, so it reads on into the moment (`after()` lower-cases an
-English moment that does not open with the name). A square lived a second time in one life
-is folded into one line ("Meera walked through forty-three to forty-six a second time.")
-instead of being told again; a second visit to the heights is "And the same heights
-again." The fall from Brahma begins another life, headed "Born again".
+English moment that does not open with the name, including one that opens on "A", but never
+"I"). A square lived a second time in one life is folded into one line ("Meera went back over
+ground first walked at forty-three to forty-six."); the ages are the ones that ground was first
+lived at, and the line says so, because the years lived have moved on since. A second visit to
+the heights is "And the same heights again." The fall from Brahma begins another life, headed
+"Born again".
+
+**Nothing is told in full twice (Phase 9).** A life stuck in a loop should read as stuck in one
+line. A snake or ladder taken the first time is told whole: the square, the join, the square it
+led to. The second time it is one line ("At ninety-six, Ego again, and thirty-eight more years
+came undone."). From the third time it is only counted, in a tally that ends the paragraph
+("Ego took Rohit back three times in all, the last time at a hundred and four."). A square
+already told and reached again by a snake or ladder says only where it was first lived ("…and
+Rohit is still eighty-two and back where Rohit was at thirty-eight."). Years sat out in
+practice are one line ("Meera sat three years out in practice, from eighty-four to
+eighty-six.").
 
 **The opening.** The account is written once the whole life is known, so its first line
 knows the shape of it, and says only what happened, never what it was worth: born twice,
@@ -276,7 +288,11 @@ ran out of years at a hundred and eleven, lived to ninety-four and at eighty-nin
 begin again, nothing went backwards, or lived to an age. **The ending** of a life that ran
 out of years names what it was still holding: the vice it took most often, in that snake's
 `holding` ("…on ground already walked once, still asking whether the son has eaten.").
-Phase 12 makes that what carries over.
+Phase 12 makes that what carries over. **A life let go** ends with the same weight (Phase 9): it names
+that same vice, the one a death would have named as still held, as the thing put down, in the
+snake's `letgo` ("Then, at eighty-eight, moksha, and Meera put down the body that seemed to
+settle it."). A life that took no snake has "nothing to put down". What the dying hold is what
+the freed let go.
 
 Two players who roll differently get genuinely different lives, which is the thing that
 makes somebody play twice. This is the single most shareable artifact the project can

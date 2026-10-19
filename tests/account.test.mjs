@@ -17,6 +17,15 @@ const lived = (life, extra = {}) => {
   return s;
 };
 const all = (s, l = "en") => lifeOf(s, 0, l).paras.map(p => p.text).join(" ");
+// Seed 83 as Phase 8 played it, before the endgame's two dice: pinned, so the account is tested apart from the rules
+const seed83 = () => {
+  const s = lived([3, 8, 9, 10, 13, 18, 20, 25, 31, 32, 34, 53, 59, 50, 56, 60, 61, 65, 83, 89, 90, 95, 99, 61, 67, 68, 72, 89, 92, 97, 102, 106, 110, 106, 108, 108, 110, 104, 105], { years: 94, peak: 2 });
+  s.winner = 0; s.over = true;
+  return s;
+};
+// Seed 23 as Phase 8 played it: 55 turns, three times round the 99 → 61 loop, dead at a hundred and eleven
+const SEED23 = [6, 15, 18, 20, 25, 29, 17, 20, 24, 25, 27, 31, 32, 37, 42, 43, 48, 49, 52, 56, 57, 75, 81, 83, 89, 91, 93, 64, 69, 52, 54, 55, 43, 46, 51, 67, 72, 89, 92, 98, 99, 61, 63, 64, 66, 72, 89, 92, 97, 99, 61, 64, 70, 73, 76, 81, 85, 94, 96, 99, 61, 63, 68, 74, 80, 82, 88, 71, 77, 58];
+const seed23 = () => lived(SEED23, { years: 111, dead: true, holding: 99 });
 
 test("a snake names the years it undid and never says time moved on; the moment says the same age, still", () => {
   const s = lived([95, 99, 61], { years: 89 });
@@ -45,7 +54,9 @@ test("squares lived a second time are folded, not told again", () => {
   const s = lived([56, 58, 59, 50, 56, 58], { years: 50 });
   const text = all(s);
   assert.equal(text.split("cannot get the lid off a jar").length - 1, 1);
-  assert.match(text, /Meera walked through forty-three to forty-six a second time\./);
+  // the ages are the ones that ground was first walked at, and the line says so
+  assert.match(text, /Meera went back over ground first walked at forty-three to forty-six\./);
+  assert.doesNotMatch(text, /a second time/);
   // above the world, the same heights again
   assert.match(all(lived([102, 106, 110, 106, 102])), /And the same heights again\./);
 });
@@ -61,7 +72,9 @@ test("the plain joins are drawn per life from the seed, not by position in a cyc
 });
 
 test("every join reads on into its moment, and nothing is left unfilled in either language", () => {
-  for (const [k, j] of Object.entries(JOINS)) if (k !== "about" && !k.startsWith("fold")) for (const x of [j].flat()) for (const l of ["en", "hi"]) assert.ok(x[l].endsWith(" "), `${k} ${l}`);
+  // the joins that are whole sentences, or a part of one, stand alone
+  const whole = ["foldRun", "foldOne", "foldHeights", "snakeAgain", "ladderAgain", "tallySnake", "tallyLadder", "times", "sitOne", "sitRun", "backTo"];
+  for (const [k, j] of Object.entries(JOINS)) if (k !== "about" && !whole.includes(k)) for (const x of [j].flat()) for (const l of ["en", "hi"]) assert.ok(x[l].endsWith(" "), `${k} ${l}`);
   for (let seed = 1; seed <= 150; seed++) for (const l of ["en", "hi"]) for (const g of ["m", "f", "n"]) {
     const text = lifeText(meera(seed, g), 0, l);
     assert.doesNotMatch(text, /[{}]|undefined|NaN|null/, `seed ${seed} ${l} ${g}`);
@@ -69,7 +82,7 @@ test("every join reads on into its moment, and nothing is left unfilled in eithe
 });
 
 test("the opening knows the shape of the life and says only what happened", () => {
-  assert.equal(lifeOf(meera(83), 0, "en").open, "Meera lived to ninety-four, and at eighty-nine had to begin again.");
+  assert.equal(lifeOf(seed83(), 0, "en").open, "Meera lived to ninety-four, and at eighty-nine had to begin again.");
   assert.equal(lifeOf(lived([1, 5, 9]), 0, "en").open, "Nothing in Meera's life went backwards.");
   assert.equal(lifeOf(lived([1, 108, 1]), 0, "en").open, "Meera was born twice.");
   assert.equal(lifeOf(lived([1, 108, 1]), 0, "hi").open, "Meera का जन्म दो बार हुआ।");
@@ -97,11 +110,68 @@ test("an unbroken climb reads every age as the square wrote it", () => {
 });
 
 test("the seed-83 life, as a whole", () => {
-  const text = lifeText(meera(83), 0, "en");
+  const text = lifeText(seed83(), 0, "en");
   assert.match(text, /^The life of Meera\nMumukṣu · longing to be free\n\nMeera lived to ninety-four/);
   assert.match(text, /That same year, Meera is eighteen and stirs sugar into tea/);
   assert.match(text, /Long after the hour asleep on that chest, Meera is thirty-nine/);
-  assert.match(text, /With that, thirty-eight years came undone, and Meera is still eighty-nine and starts again/);
+  // 61 was walked at fifty-one before the snake brought her back to it, so it is not told twice
+  assert.match(text, /With that, thirty-eight years came undone, and Meera is still eighty-nine and back where Meera was at fifty-one\./);
+  assert.equal(text.split("starts again from the beginning").length - 1, 1);
   assert.match(text, /And the same heights again\./);
-  assert.match(text, /Then, moksha\.\n$/);
+  // a life let go names what it put down: the vice taken most, the latest on a tie, as a death names it held
+  assert.match(text, /Then, at ninety-four, moksha, and Meera put down the body that seemed to settle it\.\n$/);
+});
+
+// ---- Phase 9 ----
+test("seed 23: a life stuck in the 99 → 61 loop reads as stuck in one line, not three verbatim cycles", () => {
+  const s = seed23(), text = all(s);
+  const count = re => (text.match(re) || []).length;
+  assert.equal(count(/looks in the mirror and is satisfied/g), 1);
+  assert.equal(count(/starts again from the beginning/g), 1);
+  // the second time is one line, and the third only counted
+  assert.match(text, /At ninety-six, Ego again, and thirty-eight more years came undone\./);
+  assert.match(text, /Ego took Meera back three times in all, the last time at a hundred and four\./);
+  // a ladder top already told, climbed to again, says only where it was first lived
+  assert.match(text, /And so, Meera is eighty-seven and back where Meera was at seventy-seven\./);
+  // the fold names the age the ground was first walked at, never the square's own age read as if it were now
+  assert.doesNotMatch(text, /through fifty-three/);
+  assert.match(text, /Meera went back over ground first walked at eighty-one\./);
+  // no moment is told in full more than twice in the whole life
+  for (const n of new Set(SEED23)) { const m = squareOf(n)?.moment?.en; if (m) assert.ok(text.split(m.split("{age}").at(-1).slice(0, 30)).length - 1 <= 2, `square ${n}`); }
+  const hi = all(s, "hi");
+  assert.match(hi, /छियानवे बरस पर फिर अहंकार, और अड़तीस बरस और अनकिए हो गए।/);
+  assert.match(hi, /अहंकार से Meera कुल तीन बार पीछे गिरी, आख़िरी बार एक सौ चार बरस पर।/);
+});
+
+test("a ladder climbed a second time is one line, and from the third a tally", () => {
+  // 72 → 89, three times, walking 89 → 92 → 72 is not possible, so each climb starts from the snake at 88 → 71
+  const s = lived([71, 72, 89, 88, 71, 72, 89, 88, 71, 72, 89], { years: 90 }), text = all(s);
+  assert.match(text, /lifted Meera again\./);
+  assert.match(text, /Austerity lifted Meera three times in all/);
+});
+
+test("years sat out in practice are told as one line, at the years they were sat", () => {
+  // 95 is eighty-three, and each year sat is a year more
+  const one = all(lived([95, 95], { years: 84 }));
+  assert.match(one, /Meera sat the year out in practice, at eighty-four\./);
+  const run = all(lived([95, 95, 95, 95, 96], { years: 86 }));
+  assert.match(run, /Meera sat three years out in practice, from eighty-four to eighty-six\./);
+  assert.match(all(lived([95, 95, 95], { years: 85 }), "hi"), /Meera चौरासी से पचासी बरस तक, दो बरस, अभ्यास में बैठी रही।/);
+});
+
+test("a moment that opens on a one-letter word reads on after a join, and 'I' is left alone", () => {
+  // 109's moment is "A habit {name} started…"
+  assert.match(all(lived([107, 109])), /(Then|Later,|After a while,|In time,) a habit Meera started is still kept/);
+  assert.doesNotMatch(all(lived([107, 109])), / A habit/);
+});
+
+test("a life let go with no vice taken has nothing to put down", () => {
+  const s = lived([1, 5, 9], { years: 88 });
+  s.winner = 0; s.over = true;
+  assert.equal(lifeOf(s, 0, "en").end, "Then, at eighty-eight, moksha, with nothing to put down.");
+  assert.equal(lifeOf(s, 0, "hi").end, "फिर, अट्ठासी बरस पर, मोक्ष, और छोड़ने को कुछ था ही नहीं।");
+  const v = lived([13, 14, 8], { years: 88 });
+  v.winner = 0; v.over = true;
+  assert.equal(lifeOf(v, 0, "en").end, "Then, at eighty-eight, moksha, and Meera put down what was told in confidence.");
+  assert.match(lifeOf(v, 0, "hi").end, /और Meera ने भरोसे में कही बात कह देने की आदत को छोड़ दिया।$/);
 });

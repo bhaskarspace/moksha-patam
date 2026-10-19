@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createGame, planTurn, playTurn } from "../src/engine/turn.js";
+import { createGame, planTurn, playTurn, rollDice, rollValue, diceFor, movesFor, moveFor, canSit, ENDGAME } from "../src/engine/turn.js";
+import { makeRng } from "../src/rng.js";
 import { playGame } from "../tools/sim.mjs";
 
 const game = (pos = 0, rules = { six: true }) => {
@@ -164,4 +165,60 @@ test("a player's life records every square landed on, a snake or ladder as two",
   playTurn(s, 2);        // 108: merit spent, and back to birth
   assert.deepEqual(s.players[0].life, [6, 15, 108, 1]);
   assert.equal(s.players[0].gender, "m");
+});
+
+// ---- Phase 9: dice as currency ----
+const at = (pos, years) => { const s = game(pos); Object.assign(s.players[0], { years, life: [pos] }); return s; };
+
+test("below the endgame a turn is one die, drawn exactly as before", () => {
+  const a = makeRng(42), b = makeRng(42);
+  for (let i = 0; i < 50; i++) assert.deepEqual(rollDice(a, 1), [rollValue(b)]);
+  assert.equal(diceFor({ pos: ENDGAME - 1 }), 1);
+  assert.equal(diceFor({ pos: ENDGAME }), 2);
+  assert.equal(diceFor({ pos: 108 }), 2);
+});
+
+test("from 94 the player sees two dice and moves by either", () => {
+  const s = at(96, 86);
+  const plan = playTurn(s, [3, 5], () => 5);
+  assert.equal(plan.target, 101);
+  assert.deepEqual(plan.dice, [3, 5]);
+  assert.deepEqual(plan.spare, [3]);
+  assert.equal(s.log.find(e => e.k === "lDice").v.v, 5);
+  // a double moves by one of them and the other is spare
+  assert.deepEqual(planTurn(at(96, 86), 4, [4, 4]).spare, [4]);
+});
+
+test("the computer's choice: the exit, then not a snake, the bigger die first", () => {
+  assert.equal(moveFor(at(100, 89), [6, 5]), 5);          // 105, the exit
+  assert.equal(moveFor(at(96, 86), [3, 2]), 2);           // 3 is the snake at 99
+  assert.equal(moveFor(at(96, 86), [1, 2]), 2);
+  assert.equal(moveFor(at(104, 89), [4, 2]), 2);          // 4 climbs onto Brahma's 108; 2 is 106
+});
+
+test("a sannyasin on 94–100 may sit the year out: no move, a year passes, both dice are practice", () => {
+  const s = at(98, 88), p = s.players[0];
+  assert.ok(canSit(p));
+  assert.deepEqual(movesFor(s, [1, 1]), [1, 0]);
+  assert.equal(moveFor(s, [1, 1]), 0, "both dice are the snake at 99, so the computer sits");
+  const plan = playTurn(s, [1, 1], () => 0);
+  assert.ok(plan.sit && !plan.again);
+  assert.equal(p.pos, 98);
+  assert.equal(p.years, 89);
+  assert.equal(p.practised, 2);
+  assert.deepEqual(p.life, [98, 98]);
+  assert.equal(s.log.find(e => e.k === "lSit").v.pos, 98);
+  // sitting past the span ends the life
+  const old = at(98, 110);
+  assert.ok(playTurn(old, [1, 1], () => 0).died && old.players[0].dead);
+  // only a sannyasin sits: someone put on 98 at sixty, still a vanaprastha, moves
+  assert.ok(!canSit({ pos: 98, years: 60 }));
+  // the divine row has only one slot: you walk
+  assert.ok(!canSit({ pos: 103, years: 90 }));
+  assert.ok(!movesFor(at(103, 90), [2, 3]).includes(0));
+});
+
+test("a six goes again only when it is the die moved by", () => {
+  assert.ok(!playTurn(at(95, 84), [6, 2], () => 2).again);
+  assert.ok(playTurn(at(95, 84), [6, 2], () => 6).again);
 });

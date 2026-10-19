@@ -5,7 +5,7 @@ import { PLAYER_NAMES } from "./content.js";
 import { createGame } from "./engine/turn.js";
 import { freshSeed, makeRng, next } from "./rng.js";
 
-export const G = { setup: null, state: null, busy: false, cpuTimer: null, gen: 0, forcedRoll: null };
+export const G = { setup: null, state: null, busy: false, cpuTimer: null, gen: 0, forcedRoll: null, choosing: null };
 
 // The name and gender given at the naming, remembered so the next game can offer them again.
 const SELF = "mp-self";

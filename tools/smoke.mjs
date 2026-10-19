@@ -464,8 +464,8 @@ await check("Phase 8: a person whose years run out reads their life at once, whi
   await page.emulateMedia({ reducedMotion: "reduce" });
   await twoPeople(page);
   await page.goto(BASE + "?seed=1&debug");
-  // Asha is on 96 having lived the whole span: one more year, to 97, is past it
-  await page.evaluate(() => { const p = mp.state.players[0]; Object.assign(p, { pos: 96, life: [96] }); mp.years(110); mp.roll(1); });
+  // Asha is on 91 having lived the whole span: one more year, to 92, is past it (below the endgame's two dice)
+  await page.evaluate(() => { const p = mp.state.players[0]; Object.assign(p, { pos: 91, life: [91] }); mp.years(110); mp.roll(1); });
   await until(page, () => document.getElementById("lifeDlg").open);
   const r = await page.evaluate(() => ({ title: document.getElementById("lifeTitle").textContent, end: document.querySelector("#lifeLeaf .life-end").textContent,
     over: mp.state.over, turn: mp.state.turn, dead: mp.state.players[0].dead, win: document.getElementById("win").hidden }));
@@ -474,7 +474,7 @@ await check("Phase 8: a person whose years run out reads their life at once, whi
   assert(!r.over && r.turn === 1 && r.win, `the race should go on with Ravi: ${JSON.stringify(r)}`);
   await page.evaluate(() => document.getElementById("lifeDlg").close());
   // Ravi's years run out too: with nobody left the game ends, and its result is the race's
-  await page.evaluate(() => { const p = mp.state.players[1]; Object.assign(p, { pos: 96, life: [96] }); mp.years(110); mp.roll(1); });
+  await page.evaluate(() => { const p = mp.state.players[1]; Object.assign(p, { pos: 91, life: [91] }); mp.years(110); mp.roll(1); });
   await until(page, () => mp.state.over && !document.getElementById("win").hidden);
   const end = await page.evaluate(() => ({ title: document.getElementById("winTitle").textContent }));
   assert(end.title === "No one reached Moksha.", end.title);
@@ -483,15 +483,61 @@ await check("Phase 8: a person whose years run out reads their life at once, whi
 await check("Phase 8: a game of one person ends on their own account, not on a race nobody won", async page => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto(BASE + "?seed=1&debug");
-  await page.evaluate(() => { const p = mp.state.players[0]; Object.assign(p, { name: "Asha", pos: 96, life: [96] }); mp.years(110); mp.roll(1); });
+  await page.evaluate(() => { const p = mp.state.players[0]; Object.assign(p, { name: "Asha", pos: 91, life: [91] }); mp.years(110); mp.roll(1); });
   await until(page, () => document.getElementById("lifeDlg").open && !document.getElementById("win").hidden);
   const r = await page.evaluate(() => ({ title: document.getElementById("winTitle").textContent, text: document.getElementById("winText").textContent, over: mp.state.over }));
   assert(r.over && r.title === "The life of Asha" && !/no one|nobody/i.test(r.title + r.text), JSON.stringify(r));
 });
 
+// ---- Phase 9: dice as currency ----
+await check("Phase 9: from 94 a person sees two dice and moves by either; 2 picks the second", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=1&debug");
+  await page.evaluate(() => { Object.assign(mp.state.players[0], { pos: 96, years: 86, life: [96] }); mp.roll(3, 5); });
+  await page.waitForFunction(() => mp.choosing, null, { timeout: 15000 });
+  const r = await page.evaluate(() => ({ moves: mp.choosing, buttons: [...document.querySelectorAll("#pick button")].map(b => b.textContent),
+    two: !document.getElementById("die2").hidden, hint: document.getElementById("hint").textContent, rollHidden: document.getElementById("roll").hidden }));
+  assert(JSON.stringify(r.moves) === "[3,5,0]" && r.buttons.join("|") === "Move 3|Move 5|Sit" && r.two && r.rollHidden, JSON.stringify(r));
+  assert(/Rolled 3 and 5\. Move by either, or sit/.test(r.hint), r.hint);
+  await page.keyboard.press("2");
+  await until(page, () => mp.state.players[0].pos === 101 && !mp.busy);
+  const log = await page.evaluate(() => mp.state.log.find(e => e.k === "lDice")?.v);
+  assert(log?.v === 5 && log.a === 3 && log.b === 5, JSON.stringify(log));
+  assert(await page.evaluate(() => !mp.choosing && document.getElementById("pick").hidden && !document.getElementById("roll").hidden), "the choice did not clear");
+});
+
+await check("Phase 9: rolled from the card on a phone, the choice is on the card, and sitting keeps the square and spends a year", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=1&debug");
+  await page.evaluate(() => { Object.assign(mp.state.players[0], { pos: 96, years: 86, life: [96] }); mp.open(96); });
+  await page.waitForFunction(() => document.getElementById("folio").open);
+  assert(await page.evaluate(() => mp.rollFromCard([1, 3])), "the card had no Roll");
+  await page.waitForFunction(() => document.querySelectorAll("#leaf .pick-c:not([hidden]) button").length === 3, null, { timeout: 15000 });
+  const labels = await page.evaluate(() => [...document.querySelectorAll("#leaf .pick-c button")].map(b => b.textContent));
+  assert(labels.join("|") === "Move 1|Move 3|Sit", labels.join("|"));
+  await page.click('#leaf .pick-c button[data-v="0"]');
+  await page.waitForFunction(() => mp.state.log.some(e => e.k === "lSit") && !mp.busy, null, { timeout: 15000 });
+  const r = await page.evaluate(() => ({ p: mp.state.players[0].pos, y: mp.state.players[0].years, practised: mp.practised(0), open: document.getElementById("folio").open }));
+  assert(r.p === 96 && r.y === 87 && r.practised === 2 && r.open, JSON.stringify(r));
+}, { phone: [375, 812] });
+
+await check("Phase 9: the account tells a year sat out, and a life let go names what it put down", async page => {
+  await page.goto(BASE + "?seed=1&debug");
+  const text = await page.evaluate(() => {
+    Object.assign(mp.state.players[0], { name: "Asha", gender: "f", life: [94, 95, 95, 99, 61], pos: 61, years: 84 });
+    mp.life(0);
+    const t = document.getElementById("lifeLeaf").textContent;
+    document.getElementById("lifeDlg").close();
+    return t;
+  });
+  assert(/Asha sat the year out in practice, at eighty-four\./.test(text), text.slice(0, 400));
+});
+
 // ---- Phase 5: the painted board ----
 const settle = page => page.waitForFunction(() => {
   if (document.getElementById("folio").open) mp.close({ instant: true });
+  // from 94 the dice wait for a choice (Phase 9): these checks move by the first
+  if (mp.choosing) mp.pick(mp.choosing[0]);
   return !document.getElementById("roll").disabled;
 }, null, { timeout: 30000, polling: 100 });
 

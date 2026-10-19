@@ -25,21 +25,25 @@ export const ageStep = (years, n) => { const a = ageOf(n); return a == null ? ye
 // square a snake or ladder led to, "rebirth" for the birth after the fall, otherwise null. A landing on a
 // snake's head or a ladder's foot is always followed by where it led, except a rebirth snake that did not
 // fire, and that is never followed by its tail.
+// A square of earth landed on twice running is a year sat out (Phase 9): no move on earth lands where it began,
+// since only a bounce off the top of the board can. Its via is "sit".
 export function yearsAlong(life) {
   const out = [];
   let years = 0;
   for (const [i, n] of life.entries()) {
     const from = life[i - 1], sn = SNAKES[from], ld = LADDERS[from];
-    const via = sn && sn.to === n ? (sn.rebirth ? "rebirth" : "snake") : ld && ld.to === n ? "ladder" : null;
+    const via = sn && sn.to === n ? (sn.rebirth ? "rebirth" : "snake") : ld && ld.to === n ? "ladder" : from === n && n <= EARTH ? "sit" : null;
     if (via === "rebirth") years = 0;
+    else if (via === "sit") years += 1;
     else if (via === "ladder") years = Math.max(years, ageOf(n) ?? years);
     else if (via !== "snake") years = ageStep(years, n);
-    out.push({ n, years, via, from: via ? from : null });
+    out.push({ n, years, via, from: via && via !== "sit" ? from : null });
   }
   return out;
 }
 // What a turn does to the years: the square landed on, then where a snake or ladder led.
 export function turnYears(years, plan) {
+  if (plan.sit) return years + 1;
   if (plan.jump?.rebirth) return 0;
   const y = ageStep(years, plan.target);
   return plan.jump?.kind === "ladder" ? Math.max(y, ageOf(plan.final) ?? y) : y;
@@ -85,7 +89,8 @@ export function applyAims(aims, deltas, stage) {
   return out;
 }
 
-// The action slots of each stage (§2.4), for Phase 9. Nothing offers them yet: Phase 8 is still dice and move.
+// The action slots of each stage (§2.4). Phase 9 offers one of them beyond moving: a sannyasin's spare die is
+// practice. The rest wait for choices whose consequences can be seen (REDESIGN.md Phase 9).
 export const SLOTS = [
   ["move"],
   ["move", "study", "serve"],
@@ -96,12 +101,20 @@ export const SLOTS = [
 ];
 export const slotsFor = p => SLOTS[stageOfPlayer(p)];
 
+// ---- Practice (REDESIGN.md Phase 9) ----
+// A die a sannyasin does not move by is spent sitting still: it mixes sattva in, by its face. Only in sannyasa,
+// and only on earth. tools/sim.mjs --practice=off sets it to nothing, to show what the dice do alone.
+export let PRACTICE_W = 0.02;
+export const setPractice = w => { PRACTICE_W = w; };
+export const practise = (g, pips) => (pips > 0 ? mixGuna(g, "s", Math.min(1, PRACTICE_W * pips)) : g);
+
 // ---- The jnana-bhumikas (Varaha Upanishad 4) ----
-// The sannyasin's state, set by the guna mix rather than by square. Six are shipped: the seventh, turya, is not
-// reachable by dice alone (REDESIGN.md Phase 8), and waits for Phase 9's PRACTICE. Thresholds are on the
-// sattva share and are calibrated in tools/sim.mjs.
-export const BHUMIKA_AT = [0, 0.43, 0.52, 0.6, 0.67, 0.74];
-export const bhumikaOf = g => BHUMIKA_AT.findLastIndex(x => g.s >= x);
+// The sannyasin's state, set by the guna mix rather than by square. Thresholds are on the sattva share and are
+// calibrated in tools/sim.mjs. The seventh, turya, also asks that the life has practised: dice alone can bring
+// the sattva share that high, rarely, and the stage is not for them (REDESIGN.md Phase 8).
+export const BHUMIKA_AT = [0, 0.43, 0.52, 0.6, 0.67, 0.74, 0.8];
+export const TURYA = 6;
+export const bhumikaOf = (g, practised = 0) => Math.min(BHUMIKA_AT.findLastIndex(x => g.s >= x), practised > 0 ? TURYA : TURYA - 1);
 // The title the Varaha text gives each stage: mumukshu through the first three, then by name.
 export const titleOf = b => (b == null ? null : b < 3 ? 0 : b - 2);
 
@@ -109,17 +122,21 @@ export const titleOf = b => (b == null ? null : b < 3 ? 0 : b - 2);
 export function grow(p, plan) {
   // a game saved before Phase 8 has none of this yet, and starts it fresh
   const years = turnYears(p.years ?? 0, plan);
-  let gunas = p.gunas ?? freshGunas(), aims = p.aims ?? freshAims();
-  if (plan.jump?.rebirth) { gunas = freshGunas(); aims = freshAims(); }
+  let gunas = p.gunas ?? freshGunas(), aims = p.aims ?? freshAims(), practised = p.practised ?? 0;
+  if (plan.jump?.rebirth) { gunas = freshGunas(); aims = freshAims(); practised = 0; }
   else if (plan.final <= EARTH) {
     const stage = stageOfYears(years), sl = LADDERS[plan.target] || (SNAKES[plan.target] && !SNAKES[plan.target].rebirth ? SNAKES[plan.target] : null);
     if (sl?.guna && plan.jump) { gunas = mixGuna(gunas, sl.guna); aims = applyAims(aims, sl.aims, stage); }
     aims = applyAims(aims, STAGE_RULES[stage].drift, stage);
   }
   const sannyasin = plan.final <= EARTH && !plan.jump?.rebirth && stageOfYears(years) === SANNYASA;
-  const bhumika = sannyasin ? bhumikaOf(gunas) : null;
+  // the dice not moved by, spent on practice; a win has left the world, and needs none
+  const spare = sannyasin && !plan.win && PRACTICE_W > 0 ? plan.spare ?? [] : [];
+  for (const d of spare) gunas = practise(gunas, d);
+  practised += spare.length;
+  const bhumika = sannyasin ? bhumikaOf(gunas, practised) : null;
   const peak = plan.jump?.rebirth ? null : bhumika == null ? p.peak ?? null : Math.max(p.peak ?? -1, bhumika);
-  return { years, gunas, aims, bhumika, peak };
+  return { years, gunas, aims, practised, bhumika, peak };
 }
 
 // The vice a life was still holding when its years ran out: the snake it took most often, the latest on a tie.
