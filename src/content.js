@@ -5,6 +5,7 @@ import readings from "../content/readings.json" with { type: "json" };
 import codex from "../content/codex.json" with { type: "json" };
 import names from "../content/names.json" with { type: "json" };
 import situations from "../content/situations.json" with { type: "json" };
+import bridges from "../content/bridges.json" with { type: "json" };
 
 // Every square is { ic, en, hi, age, moment, mirror, callsBack, src } (docs/NARRATIVE.md §11). Snakes and
 // ladders add { to, skt }. The mirror is the Phase 2 lead; the moment, when there is one, sits above it and
@@ -36,6 +37,47 @@ export const squareOf = n => (n === GOAL ? MOKSHA : HEAVEN[n] || LADDERS[n] || S
 export const snakeOn = n => (HEAVEN[n] && SNAKES[n]) || null;
 // Square n's mirror (the Phase 2 lead) as [en, hi].
 export const leadOf = n => { const m = squareOf(n)?.mirror; return m ? [m.en, m.hi] : null; };
+
+// ---- Who a mirror is about (REDESIGN.md Phase 11) ----
+// A cold reader is told, the first time a mirror names someone, that it is a story and who is in it: one bridge per
+// figure in content/bridges.json, keyed by Codex id, or by the first English form in content/names.json. The figure
+// is the mirror's own `who` when it says one, and otherwise whoever it names first; on a tie the longer name wins
+// ("Vishnu Sharma" over "Vishnu"), then the Codex.
+export const BRIDGES = bridges.bridges, BRIDGE_SAME = bridges.same || {};
+const fold = s => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
+// Every name, folded, to who it names. Names are one or two words of letters, so a mirror is read as its runs of
+// letters and each run, alone and with the next, looked up: the same as matching each name between word boundaries,
+// and quick enough to do on every card.
+const WHO_FORMS = new Map();
+for (const [codexed, list] of [
+  [1, ["figures", "schools", "sources"].flatMap(g => Object.entries(codex[g]).map(([id, e]) => ({ id, forms: [e.name.en, ...(e.iast ? e.iast.split(" · ") : [])] })))],
+  [0, Object.values(names).filter(Array.isArray).flat().map(e => ({ id: e.en[0], forms: e.en }))],
+]) for (const { id, forms } of list) for (const f of forms) {
+  const k = fold(f);
+  if (!WHO_FORMS.has(k)) WHO_FORMS.set(k, []);
+  WHO_FORMS.get(k).push({ id, codex: codexed, len: f.length });
+}
+const whoSeen = new WeakMap();
+export function whoOf(mirror) {
+  if (!mirror?.en) return null;
+  if (mirror.who) return mirror.who;
+  if (whoSeen.has(mirror)) return whoSeen.get(mirror);
+  const text = fold(mirror.en), words = [...text.matchAll(/\p{L}+/gu)];
+  let best = null;
+  for (let w = 0; w < words.length && !best; w++) for (const k of [2, 1]) {
+    const last = words[w + k - 1];
+    if (!last || (k === 2 && text.slice(words[w].index + words[w][0].length, last.index) !== " ")) continue;
+    for (const e of WHO_FORMS.get(text.slice(words[w].index, last.index + last[0].length)) || [])
+      if (!best || e.len > best.len || (e.len === best.len && e.codex > best.codex)) best = e;
+  }
+  whoSeen.set(mirror, best?.id ?? null);
+  return best?.id ?? null;
+}
+// The bridge a mirror is told with, as { id, en, hi }, the id being the one first contact is kept by; or null.
+export function bridgeOf(mirror) {
+  const who = whoOf(mirror), id = BRIDGE_SAME[who] ?? who;
+  return id && BRIDGES[id] ? { id, ...BRIDGES[id] } : null;
+}
 
 // The citation on square n, if it has one.
 export const srcOfSquare = n => squareOf(n)?.src || "";

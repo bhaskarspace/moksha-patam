@@ -30,13 +30,19 @@ export function renderPlayers() {
     </li>`).join("");
 }
 
+// A log entry as the log says it, in the page's language.
+export function entryText(e) {
+  const who = e.who == null ? null : G.state.players[e.who];
+  return e.k ? t(e.k, { ...e.v, name: who ? pname(who) : "", what: e.v?.sq ? squareName(e.v.sq) : "" }) : e.text;
+}
+
 export function renderLog() {
   $("log").innerHTML = G.state.log.map(e => {
     const who = e.who == null ? null : G.state.players[e.who];
     // the squares a move walked over, each opening its card, so a game shows far more of the board than it lands on
     if (e.k === "lPassed") return `
     <li class="passed"><span class="dot" style="background:transparent;border-color:transparent;box-shadow:none"></span><span>${esc(t("lPassed"))} ${e.v.passed.map(n => `<button type="button" class="logbtn" data-sq="${n}">${esc(squareName(n) || num(n))}</button>`).join(" · ")}</span></li>`;
-    const text = e.k ? t(e.k, { ...e.v, name: who ? pname(who) : "", what: e.v?.sq ? squareName(e.v.sq) : "" }) : e.text;
+    const text = entryText(e);
     // each move reopens the card of the square it landed on
     const sq = e.v?.sq ?? (e.k === "lWin" || e.k === "lWinAbove" ? GOAL : null);
     return `

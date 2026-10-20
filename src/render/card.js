@@ -1,12 +1,12 @@
 // ---- The card: a pothi folio for one square or one Codex entry ----
-// It stays open until the reader closes it. A computer's landing card closes itself after a
-// reading-length pause, unless the reader touches it, and then it waits like any other.
-import { GOAL, TOP, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, READINGS, CODEX, ENTRY_IDS, REFS, entryOf, sourceOf, srcOfSquare, squareOf, snakeOn } from "../content.js";
+// It no longer holds the game up (REDESIGN.md Phase 11): the dice stay live while it is open, and the next roll takes
+// it away. Only a situation waiting on a choice is modal, until the choice is made.
+import { GOAL, TOP, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, READINGS, CODEX, ENTRY_IDS, REFS, entryOf, sourceOf, srcOfSquare, squareOf, snakeOn, bridgeOf } from "../content.js";
 import { lang, tIn, numIn, srcIn, pick, fill, castFill, ageWordsIn } from "../i18n.js";
 import { ageStep, stageOfYears, bhumikaOf, freshGunas, SANNYASA, yearsAlong } from "../engine/self.js";
 import { castOf, castAlong, peopleOf, introIn } from "../engine/cast.js";
 import { momentOf, destOf } from "../engine/qbn.js";
-import { prefs, hasMet, meet } from "../prefs.js";
+import { prefs, hasMet, meet, firstLife, firstOpened, openFirst, knowsWho, meetWho } from "../prefs.js";
 import { G, pnameIn } from "../state.js";
 import { $, esc, reduced, art } from "../ui.js";
 import { sound } from "../audio/engine.js";
@@ -24,20 +24,24 @@ let view = null;           // { type: "square", n } or { type: "entry", id }
 let cardLang = null;       // the card's own language, when the reader flips it
 let backTo = null;         // the square an entry was opened from
 let subject = null;        // the player a square's moment is about; the player whose turn it is when unset
-let autoTimer = null, closing = false, waiters = [];
+let closing = false, waiters = [];
 // The card opens with its story; the voices wait behind one tap. Opened further, it stays so while the card is open,
 // through paging, the Codex and every roll from it, and is collapsed again when the card closes.
 let expanded = false;
-// Rolled from: the reader asked to keep reading while the game goes on, so the card no longer holds the game
-// up, never closes itself, and turns to each of the reader's landings in place (REDESIGN.md Phase 6).
-let carried = false;
+// Blocking: a situation waits on its card for the choice, so the card is modal and the turn waits on it. Every other
+// card goes with the game (Phase 6 called this being rolled from): the turn never waits for it.
+let blocking = false;
+// The first life (REDESIGN.md Phase 11): the story behind a moment is one tap away, and opened, stays so for the rest
+// of that life. The bridges told on this card are kept, so a redraw still tells them.
+let storyOpen = false, bridged = new Set();
 let rollSrc = () => null, rollFn = () => {}, pickFn = () => {};
 const onChange = new Set(); // called after a card opens or closes, so the Codex panel can refresh
 
 export const cardOpen = () => dlg.open;
-export const cardCarried = () => dlg.open && carried;
+export const cardCarried = () => dlg.open && !blocking;
+export const cardBlocking = () => dlg.open && blocking;
 export const cardExpanded = () => dlg.open && expanded;
-export const cardIdle = () => (dlg.open && !carried ? new Promise(r => waiters.push(r)) : Promise.resolve());
+export const cardIdle = () => (dlg.open && blocking ? new Promise(r => waiters.push(r)) : Promise.resolve());
 export const onCardChange = fn => onChange.add(fn);
 // The card's Roll: `src(l)` says who would roll and whether they can, as { label, ready, dot } or null; `fn` rolls.
 // While the endgame's dice wait for a choice (REDESIGN.md Phase 9) it says { choose: [{ v, label }] } instead,
@@ -152,6 +156,21 @@ function extras(kind) {
   return "";
 }
 
+// The mirror, and the first time it names someone, the bridge that says it is a story and who is in it (REDESIGN.md
+// Phase 11). In the first life a mirror under a moment waits behind one line that reads as the start of the story:
+// the bridge, or once that figure is known, just "The old story".
+const storyHidden = m => !!m && firstLife() && firstOpened() === "moment" && !storyOpen;
+function mirrorHtml(l, mirror, m, hideable = true) {
+  const b = bridgeOf(mirror), tell = b && (!knowsWho(b.id) || bridged.has(b.id));
+  const said = texts(l, mirror.en, mirror.hi, m ? "mirror" : "");
+  if (hideable && storyHidden(m)) {
+    const line = tell ? (l === "hi" ? b.hi : b.en) : tIn(l, "storyMore");
+    return `<button type="button" class="story-more" data-act="story" aria-expanded="false" data-bridge="${tell ? esc(b.id) : ""}">${esc(line)}</button>`;
+  }
+  if (tell) bridged.add(b.id);
+  return (tell ? texts(l, b.en, b.hi, "bridge") : "") + said;
+}
+
 // The toggle for what a card says beyond its story, or nothing when there is nothing more at this depth.
 const moreBtn = l => `<button type="button" class="more-btn" data-act="more" aria-controls="leafMore" aria-expanded="${expanded}">${tIn(l, expanded ? "less" : deep("scholar") ? "moreScholar" : "moreSchool")}</button>`;
 
@@ -220,7 +239,7 @@ function squareHtml(n, l) {
     `<span class="opt-k" aria-hidden="true">${numIn(l, i + 1)}</span><span class="opt-l">${esc(o.label[l] || o.label.en)}</span>` +
     `<span class="opt-c">${esc(optionNote(l, n, o))}</span>` +
     (o.open ? "" : `<span class="opt-why" id="why-${esc(o.id)}">${esc(T("optWithheld"))} ${esc(o.why[l] || o.why.en)}</span>`) + `</button>`).join("") + `</div>` : "";
-  body += `<div class="story">${moment}${options}${remedy}${pending ? "" : texts(l, mirror.en, mirror.hi, m ? "mirror" : "")}${bi(l, r.line2, "line2")}${above}</div>`;
+  body += `<div class="story">${moment}${options}${remedy}${pending ? "" : mirrorHtml(l, mirror, m)}${bi(l, r.line2, "line2")}${above}</div>`;
   // what the toggle opens: the voices, and the notes, at the reader's depth
   // Codex entries in it count as met only once the reader opens it
   let more = "";
@@ -259,7 +278,7 @@ function squareHtml(n, l) {
     const sm = sn.moment;
     body += `<section class="snake-on"><h3 class="sub">${art(`sn-${n}`, sn.ic, "spr snake-glyph")} ${esc(T("meritSnake"))}</h3>` +
       `<h2 class="snake-title">${esc(sn[l])}</h2><p class="alt" lang="${other(l)}">${esc([sn[other(l)], sn.skt].join(" · "))}</p>` +
-      `<div class="story">${sm ? texts(l, fill(sm.en, person("en", n)), fill(sm.hi, person("hi", n)), "moment") : ""}${texts(l, sn.mirror.en, sn.mirror.hi, sm ? "mirror" : "")}` +
+      `<div class="story">${sm ? texts(l, fill(sm.en, person("en", n)), fill(sm.hi, person("hi", n)), "moment") : ""}${mirrorHtml(l, sn.mirror, sm, false)}` +
       // the rebirth snake says when it takes someone, since most arrivals on its square are let be
       `${sn.rebirth ? texts(l, tIn("en", "fallWhen"), tIn("hi", "fallWhen"), "remedy fall") : ""}</div>`;
     if (sn.schools && deep("school")) {
@@ -268,6 +287,8 @@ function squareHtml(n, l) {
     }
     body += srcLine(sn.src, l, met, { square: true }) + `</section>`;
   }
+  // in the first life the voices wait until the story is open: one way on at a time
+  if (!pending && storyHidden(m)) more = "";
   return {
     kind: info.kind, met, metMore,
     html: frame(l, { kind: info.kind, eb: info.eb + (age ? ` · ${age}` : ""), big: n === GOAL ? illumined(null, info.big) : illumined(document.getElementById(`sq-${n}`) ? `sq-${n}` : null, info.big), sqn: numIn(l, n), age, body, more, foot: info.ft,
@@ -312,6 +333,7 @@ function paint({ landing = false } = {}) {
   // a choice waiting on the card is read whole: on a phone the sheet rises, so no option is below the fold
   if (sheetOn() && leaf.querySelector(".options")) setDetent("full");
   meet([...out.met, ...(expanded ? metMore : [])].filter(Boolean));
+  bridged.forEach(meetWho);
   refreshRoll();
   if (again) [...leaf.querySelectorAll(again)].find(el => el.offsetParent)?.focus({ preventScroll: true });
   cue();
@@ -393,13 +415,52 @@ async function transition(update, label) {
   }
 }
 
-async function open(next, { landing = false, auto = false, from = null, who = null } = {}) {
-  clearTimeout(autoTimer);
+// Modal only while a situation waits on the card for its choice; otherwise the board and the dice stay live under it.
+// On a wide screen a card that is not modal sits over the board, clear of the panel with the dice in it.
+function show(block) {
+  blocking = block;
+  if (block) dlg.showModal(); else dlg.show();
+  place();
+}
+function place() {
+  const col = document.querySelector(".board-col")?.getBoundingClientRect();
+  const over = dlg.open && !blocking && !sheetOn() && col && innerWidth > 820;
+  dlg.style.left = over ? `${Math.max(12, col.left)}px` : "";
+  dlg.style.right = over ? `${Math.max(12, innerWidth - col.right)}px` : "";
+  dlg.style.width = over ? `${Math.min(780, Math.round(col.width))}px` : "";
+}
+addEventListener("resize", place);
+// A situation's card is read from its title, not its ×: someone pressing Space to roll lands on a choice, and must not
+// close it by the same key. The options take 1, 2 and 3.
+function holdFocus() {
+  const h = $("leafTitle");
+  if (!h) return;
+  h.tabIndex = -1;
+  h.focus({ preventScroll: true });
+}
+// from modal to not, or back, without the card going anywhere
+function setBlocking(block) {
+  if (block === blocking || !dlg.open) return;
+  dlg.close();
+  show(block);
+  if (block) holdFocus();
+}
+// The choice is made: the card stops holding the game up, and stays open to tell what was chosen.
+export function releaseCard() {
+  setBlocking(false);
+  waiters.splice(0).forEach(r => r());
+}
+
+// focus: false opens the card without taking the focus, so a roll by key or button can be followed by another;
+// a card the reader opened themselves focuses its ×.
+async function open(next, { landing = false, from = null, who = null, focus = true } = {}) {
   const wasOpen = dlg.open, was = view;
   view = next;
   subject = who;
+  const block = next.type === "square" && !!pendingOn(next.n);
   // already open: the leaf turns to the new square, forward or back
   if (wasOpen) {
+    setBlocking(block);
     paint({ landing });
     turnPage(was?.type === "square" && next.type === "square" ? Math.sign(next.n - was.n) : 0);
     return cardIdle();
@@ -408,13 +469,18 @@ async function open(next, { landing = false, auto = false, from = null, who = nu
   // a card is read with the whole board behind it, and the morph starts from where the square really is
   pullBack(true);
   const label = from ?? (next.type === "square" ? labEls[next.n] : null);
+  const before = document.activeElement;
   sound.open();
-  await transition(() => { paint({ landing }); dlg.showModal(); cue(); }, label);
+  await transition(() => {
+    paint({ landing });
+    // a card that is not to take the focus does not ask for it, rather than taking it and giving it back
+    if (!focus && !block) leaf.querySelectorAll("[autofocus]").forEach(b => b.removeAttribute("autofocus"));
+    show(block);
+    if (block) holdFocus();
+    else if (!focus) before && before !== document.body ? before.focus({ preventScroll: true }) : document.activeElement?.blur();
+    cue();
+  }, label);
   cue();
-  if (auto && !carried) {
-    const words = leaf.querySelector(".story")?.textContent.split(/\s+/).length ?? 20;
-    autoTimer = setTimeout(() => { if (!carried) closeCard(); }, Math.min(4200, 1400 + words * 90));
-  }
   return cardIdle();
 }
 export const openSquare = (n, opts) => open({ type: "square", n }, opts);
@@ -423,7 +489,6 @@ export const openEntry = (id, opts) => (entryOf(id) ? open({ type: "entry", id }
 export async function closeCard({ instant = false } = {}) {
   if (!dlg.open || closing) return;
   closing = true;
-  clearTimeout(autoTimer);
   const label = view?.type === "square" ? labEls[view.n] : null;
   if (!instant) sound.close();
   if (instant || reduced) dlg.close();
@@ -436,7 +501,9 @@ export async function closeCard({ instant = false } = {}) {
     dlg.close();
   }
   sheetAfter();
-  closing = false; view = null; cardLang = null; backTo = null; subject = null; expanded = false; carried = false;
+  closing = false; view = null; cardLang = null; backTo = null; subject = null; expanded = false; blocking = false;
+  storyOpen = false; bridged = new Set();
+  place();
   if (location.hash) history.replaceState(null, "", location.pathname + location.search);
   waiters.splice(0).forEach(r => r());
   onChange.forEach(fn => fn());
@@ -462,21 +529,32 @@ function go(dir) {
   paint(); turnPage(dir);
 }
 
-// Rolling from the card: from here on the card goes with the game instead of holding it up.
+// Rolling from the card: the same roll as the panel's, which takes the card away.
 function roll() {
   const r = rollSrc(cardLang ?? lang);
-  if (!r?.ready) return;
-  carried = true;
-  clearTimeout(autoTimer);
-  waiters.splice(0).forEach(w => w());
-  rollFn();
+  if (r?.ready) rollFn();
 }
 
-// A touch, a key or a hover means someone is reading: stop the computer's countdown.
-const pin = () => clearTimeout(autoTimer);
-["pointerdown", "pointermove", "keydown", "wheel"].forEach(ev => leaf.addEventListener(ev, pin, { passive: true }));
+// Opening the story behind a moment, in the first life: it shows in place, and stays open on every card after this
+// one until the life ends (prefs.js).
+function openStory() {
+  storyOpen = true;
+  openFirst("mirror");
+  const id = leaf.querySelector(".story-more")?.dataset.bridge;
+  if (id) bridged.add(id);
+  paint();
+  leaf.querySelector(".story p.mirror, .story p.bridge")?.setAttribute("tabindex", "-1");
+  leaf.querySelector(".story p.bridge, .story p.mirror")?.focus({ preventScroll: true });
+}
 
 dlg.addEventListener("cancel", e => { e.preventDefault(); closeCard(); });
+// A card that is not modal has no backdrop and no cancel of its own: Escape closes it, and so does a click anywhere
+// around it that is not itself a control (a square opens its own card, the Roll rolls, the log and the Codex open theirs).
+document.addEventListener("keydown", e => { if (e.key === "Escape" && dlg.open && !blocking) { e.preventDefault(); closeCard(); } });
+document.addEventListener("click", e => {
+  if (!dlg.open || blocking || closing || leaf.contains(e.target)) return;
+  if (!e.target.closest(".lab, button, a, input, select, label, summary, dialog")) closeCard();
+});
 dlg.addEventListener("click", e => {
   if (e.target === dlg) return closeCard();
   const act = e.target.closest("[data-act]")?.dataset.act;
@@ -485,6 +563,7 @@ dlg.addEventListener("click", e => {
   if (act === "pick") return pickFn(+e.target.closest("[data-v]").dataset.v);
   if (act === "opt") { const b = e.target.closest("[data-id]"); if (b.getAttribute("aria-disabled") !== "true") decideFn(b.dataset.id); return; }
   if (act === "more") return setExpanded(!expanded);
+  if (act === "story") return openStory();
   if (act === "grip") {
     toggleDetent();
     const g = leaf.querySelector(".grip");
@@ -507,6 +586,17 @@ dlg.addEventListener("click", e => {
 dlg.addEventListener("keydown", e => {
   if (e.key === "ArrowLeft" || e.key === "ArrowRight") { e.preventDefault(); go(e.key === "ArrowLeft" ? -1 : 1); }
 });
+
+// What a landing told, as { title, text } in language l, for the line under the board when the card does not open
+// (REDESIGN.md Phase 11): the square's name and the moment, as the card would say it, without the mirror.
+export function momentLine(n, who, l) {
+  const keep = subject;
+  subject = who;
+  try {
+    const m = momentOf(n, toldHere(n)).moment ?? squareOf(n)?.moment;
+    return { title: squareInfo(n, l).title, text: m ? momentIn(m, l, n, false) : "" };
+  } finally { subject = keep; }
+}
 
 // Redraws an open card when a preference or the language changes.
 export function refreshCard() { if (dlg.open && view) paint(); }

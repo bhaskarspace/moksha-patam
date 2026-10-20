@@ -13,7 +13,7 @@ import { CAST, CAST_WORDS, SQ, SITUATIONS, TOP, squareOf } from "../content.js";
 import { castFill, fill, wordsIn } from "../i18n.js";
 import { makeRng, next } from "../rng.js";
 import { momentOf } from "./qbn.js";
-import { ageOf } from "./self.js";
+import { ageOf, yearsAlong } from "./self.js";
 
 // Who a moment can be about. A son and a daughter are both {child} in the text: the moment's `cast` says which.
 export const MEMBERS = ["mother", "father", "teacher", "friend", "spouse", "son", "daughter", "rival"];
@@ -104,6 +104,16 @@ export function introIn(cast, who, l) {
   const c = cast?.[who], t = CAST_WORDS.intro[who];
   if (!c?.en || !t) return "";
   return castFill((t[l] || t.en).replace("{n}", c[l] || c.en), { who: { gender: c.gender } });
+}
+
+// Whether moment m, told on player i's next landing, is where their life meets a member of the cast by name: the card
+// then says "Her name is …" at its end (src/render/card.js momentIn), and is worth opening whole (REDESIGN.md Phase 11).
+// The parents are met but never named, so they are not an introduction.
+export function meetsNamed(state, i, m) {
+  if (!m?.cast || m.introduces === false || !CAST_WORDS.intro[m.cast]) return false;
+  const p = state.players[i], along = yearsAlong(p.life || [], p.told || []).filter(e => e.via !== "stay");
+  const last = castAlong(state, i, along).at(-1);
+  return !(last && (last.before.has(m.cast) || (last.meets && last.about === m.cast)));
 }
 
 // For each entry of a life (yearsAlong, without the years a choice cost): the member its moment is about, whether this
