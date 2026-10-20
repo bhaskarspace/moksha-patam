@@ -20,7 +20,7 @@ await new Promise(r => server.listen(0, "127.0.0.1", r));
 const BASE = `http://127.0.0.1:${server.address().port}/moksha-patam/`;
 
 const browser = await chromium.launch({ channel: "chrome" });
-let failures = 0;
+const failed = [];
 const ONLY = process.argv.find(a => a.startsWith("--only="))?.slice(7);
 async function check(name, fn, { limit = 90, persistent = false, named = true, phone = null } = {}) {
   if (ONLY && !name.includes(ONLY)) return;
@@ -39,7 +39,7 @@ async function check(name, fn, { limit = 90, persistent = false, named = true, p
     if (errors.length) throw new Error("page errors: " + errors.join("; "));
     console.log(`ok    ${name}`);
   } catch (e) {
-    failures++;
+    failed.push(name);
     console.log(`FAIL  ${name}\n      ${e.message.split("\n")[0]}`);
   } finally {
     await ctx.close();
@@ -954,5 +954,5 @@ await check("offline: after one visit the game reloads and plays with no network
 
 await browser.close();
 server.close();
-console.log(failures ? `${failures} check(s) failed` : "all checks passed");
-process.exit(failures ? 1 : 0);
+console.log(failed.length ? `${failed.length} check(s) failed:\n` + failed.map(n => `  ${n}`).join("\n") : "all checks passed");
+process.exit(failed.length ? 1 : 0);
