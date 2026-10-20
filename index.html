@@ -1530,6 +1530,10 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         en: "{who}, whom {name} last saw at {seen}, outlived {name} by {by}.",
         hi: "{name} ने {who} को आख़िरी बार {seen} बरस की उम्र में देखा था। {name} के बाद {who} {by} और {who:जिया|जी}।"
       },
+      outlivedHon: {
+        en: "{who}, whom {name} last saw at {seen}, outlived {name} by {by}.",
+        hi: "{name} ने {who} को आख़िरी बार {seen} बरस की उम्र में देखा था। {name} के बाद {who} {by} और {who:जिए|जीं}।"
+      },
       familyDied: {
         en: "{who} died when {name} was {at}.",
         hi: "{who} का देहांत तब हुआ जब {name} {at} बरस {का|की} {था|थी}।"
@@ -3464,7 +3468,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       if (at2 >= FULL) return a.kind === "outlived" ? say(W2.childOutlived, member, {}) : say(W2.familyDied, member, { at: words(a.death) });
       if (CHILDREN.has(a.who)) return say(W2.childOutlived, member, {});
       if (family) return a.kind === "died" ? say(W2.familyDied, member, { at: words(a.death) }) : say(W2.familyOutlived, member, { by });
-      if (a.kind === "outlived") return say(W2.outlived, member, { seen: words(a.seen), by });
+      if (a.kind === "outlived") return say(a.who === "teacher" ? W2.outlivedHon : W2.outlived, member, { seen: words(a.seen), by });
       const k = Math.floor(a.coda * (W2.codas.length + 2)), coda = k < W2.codas.length && !coded ? " " + fill(pick3(W2.codas[k]), who) : "";
       if (coda) coded = true;
       return say(W2.died, member, { seen: words(a.seen), at: words(a.death + a.older), pos: pick3(a.who === "teacher" ? W2.posHon : W2.pos) }) + coda;

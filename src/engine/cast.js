@@ -174,7 +174,7 @@ export function fatesIn(state, i, l, along, cc, who) {
     if (at >= FULL) return a.kind === "outlived" ? say(W.childOutlived, member, {}) : say(W.familyDied, member, { at: words(a.death) });
     if (CHILDREN.has(a.who)) return say(W.childOutlived, member, {});
     if (family) return a.kind === "died" ? say(W.familyDied, member, { at: words(a.death) }) : say(W.familyOutlived, member, { by });
-    if (a.kind === "outlived") return say(W.outlived, member, { seen: words(a.seen), by });
+    if (a.kind === "outlived") return say(a.who === "teacher" ? W.outlivedHon : W.outlived, member, { seen: words(a.seen), by });
     // at most one closing line gets the short ending after it, so it never becomes a refrain
     const k = Math.floor(a.coda * (W.codas.length + 2)), coda = k < W.codas.length && !coded ? " " + fill(pick(W.codas[k]), who) : "";
     if (coda) coded = true;

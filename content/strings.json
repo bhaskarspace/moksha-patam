@@ -511,6 +511,10 @@
       "en": "{who}, whom {name} last saw at {seen}, outlived {name} by {by}.",
       "hi": "{name} ने {who} को आख़िरी बार {seen} बरस की उम्र में देखा था। {name} के बाद {who} {by} और {who:जिया|जी}।"
     },
+    "outlivedHon": {
+      "en": "{who}, whom {name} last saw at {seen}, outlived {name} by {by}.",
+      "hi": "{name} ने {who} को आख़िरी बार {seen} बरस की उम्र में देखा था। {name} के बाद {who} {by} और {who:जिए|जीं}।"
+    },
     "familyDied": {
       "en": "{who} died when {name} was {at}.",
       "hi": "{who} का देहांत तब हुआ जब {name} {at} बरस {का|की} {था|थी}।"
