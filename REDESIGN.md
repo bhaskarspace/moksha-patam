@@ -1090,6 +1090,41 @@ the ledger.
 
 ---
 
+### Phase 10C — The cast
+
+*`docs/NARRATIVE.md` §13.1–13.4 and §13.10. Its own PR from a clean `main`. The highest-leverage
+piece of work on the table, and the cheapest.*
+
+The generated accounts proved the gap: the prose already has a recurring cast — the rival at
+38, 55, 57, 69, 79; the son at 53, 62, 93; the friend at 6, 9, 16, 33 — and the data does not
+know it, so a return is the same words and not the same person. **This phase reverses
+NARRATIVE §6's "do not name them."** The reason is in §13.2: keep §6's concern (two registers,
+domestic and mythic) and change the instrument (ordinary names in the foreground, mythic names
+stay in the mirror).
+
+- **Roles re-derived from the shipped moments**, not §6's table: a `cast` field on the ~40
+  squares that already name one. Tokens `{mother}` `{father}` `{teacher}` `{friend}` `{spouse}`
+  `{child}` `{rival}`, resolved through `g()` with the cast member's own gender.
+- **`content/names.json`:** first names only (surnames are caste markers; this is how the
+  no-hierarchy guardrail holds inside the cast), bilingual, gendered, ordinary and unmarked,
+  none mythic. Drawn at birth off `state.rng`, one per role, never the player's own name,
+  never repeated in a life. Bhaskar passes the list.
+- **Introduction:** the first square a role appears on carries a per-role introducing clause
+  — "Her name is Mīrā." — and every later square uses the name alone.
+- **The cast ages on the Phase 8 clock** with a per-role offset.
+- **Account:** the *same person returns* join, outranking gap and same-year and beside the
+  echo; and **fates the life did not see** in the closing — one line per cast member met,
+  seeded across every square that mentions them, consistent with every square this life
+  touched. Lint: no cast member dies before the player's age at their last appearance.
+- **No new screen.** Data on squares and rules in the account.
+
+**Done when:** a generated life names a friend on their first square and uses the name on
+every later one; the account joins a return by name; the closing names at least one fate the
+life did not see; stripping `names.json` leaves every account for seeds 1–2000 byte-identical
+to Phase 10; and a native reader passes the Hindi.
+
+---
+
 ### Phase 11 — Karma
 
 - Three buckets, fuses, deferred firing.
@@ -1162,9 +1197,29 @@ rises toward 105, but a player taught to dread a 1 is also taught to hope for on
 **Open, from Phase 10: the divine row repeats.** 19.2% of lives land on a square at or above 94 four times or more,
 mostly 106–109 bounced around under Phase 9's two dice. Phase 10 cannot touch it, by its own boundary.
 
+**The curse — a fuse with a sentence** (`docs/NARRATIVE.md` §13.6). One fuse per life speaks.
+Early, in childhood or brahmacharya, someone says a line the player cannot yet understand — in
+the board's own register, nothing oracular — seeded to a *family* of late squares. Land on one
+and the account closes it: *the woman at the well had said so.* Never land and it closes the
+other way: *she was right, in a way {name} never found out.* Eight curses, one drawn per life.
+
+**The door is an examination** (§13.7). Émerson's gate — arrive carrying debt, be held, work it
+off — in the game's idiom: the Yakṣa Praśna. Each turn at 105 is one question; **the life
+answers, not the player**, Citragupta reading it out of the book; a question the life fails
+costs a year. The player never sees a number and feels the debt as how long they stand there.
+Each turn at the door is still a Phase 9 turn — two dice, and the sannyāsin's option to sit the
+year in practice — and **practice pays the debt down**, so the door is a choice between moving
+and clearing rather than a counter emptying. That is the one place the allocation loop Phase 9
+declined earns its complexity.
+
+**This settles the open item above about the shared face.** At the door a 1 is the question.
+Below 94 it is how you arrived. They never share a square.
+
 **Done when:** a seed planted at square 20 ripens and then waits for a 1, firing with a
 card that names where it came from; the chance visibly rises toward 105; severity depends
-only on the ledger; and a player can reach 105 and be refused with a legible reason.
+only on the ledger; and a player who reaches 105 carrying debt is examined rather than refused —
+the Yakṣa's questions, answered from the life, one a turn, a year for each the life fails, and
+never a number on screen.
 
 ---
 
@@ -1187,6 +1242,17 @@ screen, the saṃskāra record and the worlds below square 1 would all be built 
 one player in forty ever sees. Either the exit gets harder first — see Phase 13 — or this
 is content written for an audience that does not arrive.
 
+**The cast crosses lives** (§13.6, §13.8). `saṃskāra` carries the cast, and the Jātaka rule
+applies — the same souls in different roles, the friend of one life the teacher of the next —
+which is the reason to play again: to find Mīrā. **The forgotten holding:** `p.holding` from the
+last life becomes a line early in the next account that the player cannot explain (*{name} does
+not know why mirrors make {name} uneasy*), solved by reading the last life. Replay as detective
+work.
+
+**Yama's reckoning screen is Citragupta's book read aloud** (§13.5). The account is the
+record; the scribe is the hand and never a character. He appears as the pan-Indian texts have
+him, with no lineage attached.
+
 **Done when:** life two starts measurably different from life one and the difference is
 legible to the player on the birth screen.
 
@@ -1199,7 +1265,7 @@ legible to the player on the birth screen.
 - Different win conditions per §2.7. These are the payoff of the whole design.
 
 **This phase now carries an urgent problem, not only a payoff.** After Phase 9, **97.5% of
-lives reach mokṣa.** That inverts the game's own thesis: the intro text says the heavens
+lives reach mokṣa.** After Phase 10 it is 96.5%. That inverts the game's own thesis: the intro text says the heavens
 past the exit are still the wheel, and a board where liberation is the overwhelming default
 says the opposite. It also strands Phases 11 and 12, whose content only fires on lives that
 fall or run out of years.
@@ -1211,6 +1277,11 @@ because each darśana's bar is a different kind of hard: Mīmāṃsā's is not r
 position at all, Advaita's is knowledge rather than arrival, Cārvāka has no liberation to
 offer. **Decide whether this phase moves ahead of 11 and 12**, or whether one interim
 condition on the 105 gate restores a believable rate while karma is built.
+
+**The door's last question is where the laws bite** (§13.7). *Which is the real path?* — the
+Advaitin door and the Mīmāṃsaka door ask the same eight questions and accept different answers,
+and the per-law answer tables are this phase's content. That is the point at which the schools
+stop being annotation and become structure.
 
 **Report liberation rate per law as the headline number**, ahead of median lifespan. A law
 under which almost everyone is liberated has not been implemented, only decorated.
@@ -1262,6 +1333,11 @@ each board's rules load with it.
 - All 110 squares with situations where they earn one.
 - Codex complete across schools, sources and figures.
 - Target roughly 35 situations at two or three options each.
+- **Schools as cast** (`docs/NARRATIVE.md` §13.8): each darśana assigned per life, seeded, to
+  a cast member — the teacher a Mīmāṃsaka who holds the rite is enough, the friend's uncle a
+  Cārvāka who lives as if there is nothing after, the rival late an Advaitin. Research brief
+  for the content: for each school, a figure who held it and a scene where they held it, so
+  the player learns the schools the way anyone did before textbooks — by knowing who.
 - **The ablation harness.** For each snake and ladder, run N games with that element
   removed and report the change in median turns. This is the method from
   arXiv:2304.14486 and it answers the board questions by measurement instead of
