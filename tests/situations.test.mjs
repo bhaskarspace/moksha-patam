@@ -6,7 +6,7 @@ import { situationAt, optionsFor, choiceFor, setPolicy, worthOf, momentOf, passe
 import { yearsAlong, freshGunas } from "../src/engine/self.js";
 import { lifeOf } from "../src/engine/account.js";
 import { SITUATIONS, SQ, squareOf } from "../src/content.js";
-import { fill } from "../src/i18n.js";
+import { fill, castFill } from "../src/i18n.js";
 import { lintContent } from "../tools/lint-content.mjs";
 import { playGame } from "../tools/sim.mjs";
 
@@ -120,8 +120,9 @@ test("every prompt and outcome agrees in Hindi for a man and a woman, and leaves
   for (const [n, sit] of Object.entries(SITUATIONS)) {
     const texts = [sit.prompt, ...sit.options.flatMap(o => [o.outcome, o.outcome?.mirror].filter(Boolean)), ...sit.options.map(o => o.label), ...sit.options.map(o => o.why).filter(Boolean)];
     for (const m of texts) {
-      for (const gender of ["m", "f", "n"]) for (const l of ["en", "hi"]) assert.doesNotMatch(fill(m[l], { name: "Asha", gender, age: "x" }), /[{}|]/, `situation ${n} ${l} ${gender}`);
-      if (/\{[^{}]*\|/.test(m.hi)) assert.notEqual(fill(m.hi, { name: "A", gender: "m", age: "x" }), fill(m.hi, { name: "A", gender: "f", age: "x" }), `situation ${n}`);
+      for (const gender of ["m", "f", "n"]) for (const l of ["en", "hi"]) assert.doesNotMatch(fill(castFill(m[l]), { name: "Asha", gender, age: "x" }), /[{}|]/, `situation ${n} ${l} ${gender}`);
+      const hi = castFill(m.hi);
+      if (/\{[^{}]*\|/.test(hi)) assert.notEqual(fill(hi, { name: "A", gender: "m", age: "x" }), fill(hi, { name: "A", gender: "f", age: "x" }), `situation ${n}`);
     }
   }
 });

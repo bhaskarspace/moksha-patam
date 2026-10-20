@@ -13,11 +13,17 @@ import situations from "../content/situations.json" with { type: "json" };
 export const { GOAL, TOP, ROWS, ASHRAMAS, LADDERS, SNAKES, HEAVEN, MOKSHA } = squares;
 export const { SQ } = squares;
 export const { STR, SRC_HI, JOINS, NUM_HI } = strings;
+// What the account says about the cast: introductions, the returns join and the fate lines (src/engine/cast.js).
+export const CAST_WORDS = strings.CAST;
 // The situations (REDESIGN.md Phase 10, §2.5): a square where the player chooses, by square number. Read through
 // src/engine/qbn.js; a square without one is its story card, as before.
 export const SITUATIONS = situations;
 // Names drawn for players who are not given one, each [en, hi], by gender.
 export const PLAYER_NAMES = names.players;
+// The cast's names (REDESIGN.md Phase 10C), { m, f, either }, each [en, hi]. Read live through CAST.names so a tool or
+// a test can take them away, as sim --roll=off takes the roll moments: with none, nobody is named and every account
+// reads exactly as Phase 10 wrote it.
+export const CAST = { names: names.cast || null };
 
 // What each square adds when read more deeply (school lines, scholar notes, IAST, views), and the Codex.
 export const READINGS = readings;

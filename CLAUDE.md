@@ -29,7 +29,11 @@ Phase 9). Phase 10 was Situations. A: ten story squares below 94 carry
 choice (`content/situations.json`, `src/engine/qbn.js`). `planTurn` stops at one and `resolveChoice` finishes it; an
 option's move and years are shown, its `guna` and `aims` never, and it applies them through `grow()`. The years a choice
 costs are the square again in the life, told "stay". The lint fails an option worth less that goes further or costs
-more. Phase 11, Karma, is next.
+more. Phase 10C was the cast (`src/engine/cast.js`): a moment says who it is about in `cast` and names them with
+`{friend=the friend}` / `{friend:लेता|लेती}` (`castFill` in `src/i18n.js`, run before `fill`); names come from
+`content/names.json` `cast`, drawn per life off a sequence of their own, and the account meets them, joins their
+returns by name and closes on their fates. With `cast` taken away every account is Phase 10's exactly. Phase 11, Karma,
+is next.
 Phase 7 was The Exit (REDESIGN.md §4): Moksha is square 105 (`GOAL`), partway
 along the divine row, while the board still ends at 110 (`TOP`); a roll bounces off `TOP` and can come back down onto the
 exit. The rebirth snake falls from Brahma (108) to 1, only for a player climbing onto it and once per life, and a Shepard tone plays under the divine row
@@ -60,6 +64,9 @@ illuminated frame (`frame.js`) and a bottom sheet below 768px (`sheet.js`).
 - `npm run smoke [-- --only=text]`: Playwright checks of the built page in a real browser (needs Chrome installed).
   `--only` runs just the checks whose names contain the text, e.g. `--only="Phase 6"`.
 - `npm run golden [seeds]`: the built page and `sim.mjs` must produce the same move log.
+- `node tools/accounts.mjs [seeds] [--root=<checkout>] [--cast=off] [--full]`: a sha256 per life account (both
+  languages, both genders, and two unnamed computers per seed). Compare a run against a worktree of `main` with
+  `--root` to prove a change leaves the prose alone; `--cast=off` takes the cast's names away.
 - `npm run perf [--rate=4] [--query=quality=low]`: frame times on a throttled phone-sized page. Reports only;
   compare against a run on `main`.
 - `node tools/icons.mjs`: regenerates `icons/`. Only needed when the emblem changes.
@@ -68,7 +75,7 @@ illuminated frame (`frame.js`) and a bottom sheet below 768px (`sheet.js`).
 - Never break the single-file deploy.
 - No `Math.random()` outside `src/rng.js`. All randomness goes through the seeded RNG.
 - Every new string must be bilingual `{en, hi}`, or the content lint fails.
-- Keep the `?debug` helpers working (`mp.jump`, `mp.roll`, `mp.seed`, `mp.setLang`, `mp.years`, …
+- Keep the `?debug` helpers working (`mp.jump`, `mp.roll`, `mp.seed`, `mp.setLang`, `mp.years`, `mp.cast`, …
   in `src/main.js`) and extend them; don't remove any.
 - The ageing paints only the art: labels, cards and clicks never dim (`tests/contrast.test.mjs` holds every
   label's contrast). Phase 5 colours are `--b-*` tokens only (lint). Never touch `G.state.rng` from sound or drawing.

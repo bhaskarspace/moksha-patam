@@ -177,6 +177,9 @@ screen, and recur naturally:
 Use "your teacher", "your daughter". Do not name them; the player's name is the only
 proper noun in the foreground, and the named people belong to the mirror.
 
+**Reversed in Phase 10C (§13.2).** The cast is named now, and this table is superseded by the
+one re-derived from the shipped moments in REDESIGN.md Phase 10C.
+
 ### Callbacks
 
 Add an optional `callsBack: n` to a square. The moment may then refer to an earlier one.
@@ -395,3 +398,264 @@ as they are.
 **Suggested order:** do 1–3 and 8 first, then the snakes and ladders, then one ashrama
 band at a time. The lint should report moments-written as a count so the phase has a
 visible burn-down.
+
+---
+
+## 13. The story layer — people, the book, the question, the door
+
+*Written 19 Oct after Phase 9, approved by Bhaskar, appended after Phase 10 shipped. Threaded
+into REDESIGN.md as Phase 10C and into Phases 11–13 and 16. Nothing here is a new mechanic;
+it is the narrative layer the existing phases were built to carry.*
+
+### 13.1 What the accounts proved
+
+Phase 8's account is good glue around good moments and it still reads as a chronicle, and
+the reason is now measurable. Generate any life and ask who is in it. A friend, a teacher, a
+rival, a spouse, a son, a daughter, a father — by role, in the prose. The rival is at 38, 55, 57,
+69, 79. The son at 53, 62, 93. The friend at 6, 9, 16, 33. *(These are ages in one account, not
+squares; Phase 10C found the cast on 24 squares: REDESIGN.md Phase 10C.)* **The prose already has a recurring cast and the data does not know it**, so the rival
+at 57 and the rival at 79 are the same words and not the same person, the account cannot
+thread them, and the reader feels nothing when the rival returns because nothing says it is a
+return.
+
+The lack is not squares or mirrors. It is people.
+
+### 13.2 §6 is reversed, and why
+
+§6 said: *do not name them; the player's name is the only proper noun in the foreground, and
+the named people belong to the mirror.* That was a real literary rule with a real reason —
+keep two registers apart, the domestic foreground of roles and the mythic background of
+names, so that Naciketas and Maitreyī stand out as the ones with names.
+
+It cost the thing the game most needs. A role cannot be missed. "Your friend" at 86 is which
+friend; a reader does not track a role across thirty squares the way they track a name. The
+accounts show it: the rival appears five times and no one notices.
+
+The resolution keeps §6's actual concern and drops its instrument. **Name the cast with
+ordinary names; keep the mythic names in the mirror.** Mīrā and Kabīr in the foreground,
+Naciketas and Gārgī behind the glass. Two registers, still distinct, and now someone to lose.
+
+### 13.3 The cast, named
+
+**Roles.** Re-derive the role of every square from the *shipped* moments, not from §6's
+table, which predates the Phase 3 authoring. The roles are what the prose already uses:
+
+| token | role | gender |
+|---|---|---|
+| `{mother}` | mother | f |
+| `{father}` | father | m |
+| `{teacher}` | the teacher | seeded |
+| `{friend}` | the friend | seeded |
+| `{spouse}` | the one the player married | seeded, opposite the player by default; a setting may change this later, not now |
+| `{child}` | the child | seeded; squares that say "the son" or "the daughter" keep their gender and the token resolves to it |
+| `{rival}` | the rival | seeded |
+
+A seeded teacher, friend or rival of either gender quietly puts Gārgī's world on the board
+without a card saying so.
+
+**Names.** Drawn at birth from `content/names.json`, seeded off `state.rng` the same way
+the player's defaults are, one per role, **first names only**. Surnames in India are caste
+markers; this is how the no-hierarchy guardrail holds inside the cast. The draw excludes the
+player's own name and never repeats within a life. Bilingual, with gender, so the Phase 3
+`{m|f}` machinery applies to the cast exactly as to the player. A starter list for review —
+ordinary, pan-Indian, none of them mythic, none of them marked:
+
+| m | hi | f | hi | either | hi |
+|---|---|---|---|---|---|
+| Arjun | अर्जुन | Mīrā | मीरा | Kiran | किरण |
+| Kabīr | कबीर | Tārā | तारा | Jaya | जया |
+| Ānand | आनंद | Rādhā | राधा | | |
+| Rohan | रोहन | Līlā | लीला | | |
+| Sameer | समीर | Āśā | आशा | | |
+| Vikram | विक्रम | Nīrā | नीरा | | |
+
+Bhaskar reviews the list; it is the one piece of content here that a native ear must pass.
+
+**Introduction.** The first square a role appears on *introduces* the name and the rest use
+it. "{name} is three and has found a friend. Her name is Mīrā." After that, "Mīrā" alone.
+This is the first decision to settle: whether the player meets the friend (the name arrives
+in the moment) or is introduced (the account says it later). Meeting is better; it is how
+the reader learns the name in a novel, and the moment's own text is where the name belongs.
+The introducing clause is a per-role string, not per-square, so it is authored once.
+
+**As built (Phase 10C).** A moment declares its member in `cast` and names them with
+`{friend=the friend}`: the name once this life has met them, and until then the words after the
+`=`. A bare `{friend}` is the name alone. Hindi agreement with the member, not the player, is
+`{friend:लेता|लेती}`. `{child=…}` is the son or the daughter, whichever the moment's `cast` says.
+Authoring rule: the words after `=` are the moment exactly as it read before the cast, and the first
+form of every choice is the one it used, so a game with no names reads as it always did.
+A member's choice can sit inside the player's when the word depends on both: square 6 is
+`{एक दोस्त मिल गया|एक {friend:दोस्त मिल गया|सहेली मिल गई}}`, since a girl's friend who is a girl
+is a सहेली and every other friend is a दोस्त. The list above shipped with Līlā → Rekhā (रेखा),
+Ānand → Vinod (विनोद), both words in the mirrors, and Jaya among the women's names.
+
+**The cast ages on the Phase 8 clock.** The friend is three at 6 and eighty-six at 86, for
+nothing. Where a moment states the cast member's age it should be `{friend.age}`, filled
+from the player's years with the role's offset (the friend is the player's age; the teacher
+is older by a seeded 20–35; the child is younger by the player's age at the marriage
+square plus a seeded 1–4).
+
+### 13.4 Threads in the account
+
+Three things follow from a named cast for almost no cost.
+
+**The strongest join.** The join ladder in `account.js` gets the rung it lacked data for:
+*the same person returns.* It outranks the gap and same-year joins and sits beside the
+echo. "Mīrā, who broke the biscuit, is the one who lends the money at thirty-three." The
+reader now has a reason to have remembered square 6.
+
+**Fates the player did not see.** Every cast member has a seeded arc across *every* square
+that mentions them, landed on or not. The player sees Mīrā at 6, 16 and 33 and never again.
+The account's closing names what the life never found out:
+
+> Mīrā, whom {name} last saw at thirty-three, died at sixty-one. Nobody wrote.
+
+That line is the engine of the whole layer. It is an open loop closed by the book instead of
+by play, and the next life exists so the player can go and find her. The closing says one
+fate per cast member the life met, in the order they were met, after the holding line and
+before the end.
+
+**The consistency constraint.** A cast member's fate must be consistent with every square
+they appeared on in this life. If the friend lent money at 33 the friend was alive at 33. The
+arc is seeded from the squares the life actually touched, then extended; it is never drawn
+independently. Wildermyth's designers name the two ways generated characters lose a player —
+breach of trust and acting out of character — and this constraint is the guard against the
+second.
+
+### 13.5 Citragupta's book
+
+The life account is already the central object of the game, and the design has not said so.
+Say so. Citragupta is Yama's scribe in the Garuḍa Purāṇa, who writes every deed down, and
+what he has written is read back at the reckoning. **The account is that record.** Phase 12's
+reckoning screen is Citragupta reading it aloud to Yama.
+
+What this buys is a narrator with a stake. The account already knows what the player did not
+notice — it says "still eighty-nine", it says "on ground already walked once." Give that
+knowledge a voice that is *bound to record truly* and the account stops being a summary and
+becomes the verdict the player has been writing since square 1. Phase 8's opening line
+becomes the first line of an entry; the title becomes a heading in a ledger.
+
+The scribe appears as what he is in the pan-Indian texts — the one who writes — and never
+with a lineage or community attached; he has a devotional association with one, and it does
+not belong in this game. He is never a character in the life. He is the hand.
+
+### 13.6 The curse: a fuse with a sentence
+
+Bhaskar asked for mystery after Phase 5 and nothing answered it. The tradition's native
+device is the curse — Durvāsā to Śakuntalā, the ṛṣi's son to Parikṣit — which is **a fuse
+with words attached**. Phase 11 has fuses. One of them speaks.
+
+Early in the life, in childhood or brahmacharya, someone says one line the player cannot
+yet understand. Keep the game's register; nothing oracular, nothing in capitals:
+
+> An old woman at the well tells {name}, who is nine, that {name} will give away the thing
+> {name} loves most and not notice.
+
+It is seeded to a late square — 44, the better blanket, or 93, the son. If the player lands
+there the account closes it: *The woman at the well had said so.* If they never do, the
+account closes it the other way: *She was right, in a way {name} never found out.* Either
+closing is an ending; the player has carried a sentence for a whole life and the book tells
+them what it was for.
+
+Authoring rules for a curse: one per life, drawn from a small set of perhaps eight; each is
+tied to a *family* of late squares rather than one, so most lives can close it by landing;
+the early line names a thing and never a square; the Hindi agrees with the player.
+
+**From the second life onward there is a second mystery for free.** The player does not
+remember what they were still holding when the years ran out. Citragupta does. The second
+life's account can say, early:
+
+> {name} does not know why mirrors make {name} uneasy.
+
+The player can solve it by reading their last life — replay as detective work — which is the
+Jātaka structure exactly: every tale ends *and at that time, so-and-so was the X, and I was
+the Bodhisatta.*
+
+### 13.7 The door is an examination
+
+Émerson's gate (19 Oct): arrive at the last houses carrying a debt, be held there, work it
+off roll by roll. Here is what it is in the game's own idiom. The Yakṣa Praśna is the
+tradition's examination at a threshold — Yudhiṣṭhira at the lake, his brothers dead until
+he answers. **Each turn at the door is one question, and the life answers, not the player.**
+Citragupta reads the answer out of the book.
+
+| the Yakṣa asks | the canonical answer | the life answers with |
+|---|---|---|
+| Who is truly happy? | The one without debt | the ledger at the door |
+| Why are friends forsaken? | For greed | 55, and the friend thread |
+| What is the greatest wonder? | That men see others die and believe they will not | 99, the mirror |
+| Which is the invincible enemy? | Anger | 59 |
+| What is poison? | Desire | 47 |
+| What is envy? | Grief of the heart | 69 |
+| What, renounced, makes one liked by all? | Self-pride | 77, 39 |
+| Which is the real path? | Argument settles nothing; scriptures disagree; the path is the one the great have walked | the law in force |
+
+A question the life answers well clears a share of the debt; one it fails, the player sits a
+year. **The player never sees a number. They feel the debt as how long they stand there.**
+That is Émerson's 5×10 kept whole and made into the game's most devastating scene, and it is
+`p.holding` under cross-examination.
+
+The last question is where the laws bite. Under Phase 13 the Advaitin door and the
+Mīmāṃsaka door ask the same questions and accept different answers — and that is where
+"informative" stops being annotation and becomes structure.
+
+This also resolves the tension Phase 10A recorded, that a 1 is both the omen's dread-face
+and the slow arrival's lucky face: at the door, a 1 is the question. Below 94 it is how you
+arrived. They never share a square.
+
+Each turn at the door is still a Phase 9 turn: two dice, and the sannyāsin's option to sit
+the year in practice. If practice pays the debt down — penance, which is what it is — the
+door is a choice between moving and clearing, not a counter emptying. That is the one place
+the allocation loop Phase 9 declined earns its complexity.
+
+### 13.8 The schools as people
+
+A darśana is currently a voice in a footnote. Make them cast. The teacher at 23 is a
+Mīmāṃsaka who holds that the rite is enough. The friend's uncle is a Cārvāka who says there
+is nothing after and lives accordingly. The rival, late, becomes an Advaitin. The player
+learns the schools the way anyone did before there were textbooks — by knowing who held
+them and watching how those lives went. Yājñavalkya won a thousand cows. Maṇḍana Miśra lost
+to Śaṅkara and his wife was the judge. These were people in rooms.
+
+Assignment is per life and seeded, so no school is always the teacher's. At the door the
+cast are the ones who went before, and the question is whose answer the player lived.
+
+### 13.9 What not to build
+
+Branching plot, dialogue trees, cutscenes. They cost everything and kill replay. The 80 Days
+rule — most playthroughs see under a tenth of the text — only pays if the player *wants* the
+other nine tenths, and a named friend whose death they were not told about is the reason
+they will. The whole layer is data on squares and rules in the account; no new screen until
+the door, and the door is Phase 11's gate with words.
+
+### 13.10 Authoring constraints
+
+- **Names:** first names only; none mythic; none community-marked; excluded if the player
+  chose it; the list passes a native ear before it ships.
+- **Consistency:** a cast fate contradicts no square the life touched. Lint it: every cast
+  member's death year is later than the player's age at their last appearance.
+- **Register:** the curse speaks like the rest of the board. If a line could be printed on a
+  poster it is wrong.
+- **Hindi:** the cast carries gender; every token interpolation goes through `g()`;
+  introductions are per role and agree.
+- **Mirror stays mythic:** no cast name ever appears in a mirror; no mirror name is ever on
+  the cast list.
+- **Nothing shown as a number:** the door is felt as years, the fates as sentences.
+
+### 13.11 Phasing
+
+Everything slots into a phase that exists.
+
+1. **Cast as data, seeded names, the introducing clause, the returns join** — Phase 10C,
+   its own PR from a clean main. Tagging ~40 squares, one name list, one join rung. Highest
+   leverage of anything on the table.
+2. **Fates in the closing** — same pass.
+3. **The curse** — Phase 11. It is a fuse.
+4. **The door as praśna** — Phase 11. It is the gate.
+5. **Cast across lives; the forgotten holding** — Phase 12. It is saṃskāra.
+6. **Schools as cast** — Phases 13 and 16, content.
+
+**Done when:** a generated life names a friend on their first square and uses the name on
+every later one; the account joins a return by name; the closing names at least one fate the
+life did not see; stripping `names.json` leaves every account byte-identical to Phase 10;
+and a native reader passes the Hindi.

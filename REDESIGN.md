@@ -1090,6 +1090,81 @@ the ledger.
 
 ---
 
+### Phase 10C — The cast  ✅ SHIPPED
+
+> **Shipped, with these decisions.**
+> - *The roles, re-derived from the shipped moments:* 24 squares, 28 moments, not ~40. Mother 18; father 3, 53; teacher
+>   20, 23, 26, 37, 38; friend 6, 15, 16, 48; spouse 41, 65, 78; daughter 50, 59; son 60, 62, 64, 93; rival 52, 67, 69
+>   (and 59's prompt, and the holding and letgo of 62, 69, 93). The numbers below ("the rival at 38, 55, 57") were
+>   partly ages: 38, 55 and 57 are the ages of squares 52, 67 and 69.
+> - *The field is on each moment, not the square* (`cast`, `recall`; `introduces: false` on 60, whose "His name is"
+>   would name the grandson; `dies` on 53; `gone` on 100), since 59's two outcomes differ. One member per moment.
+> - *Tokens* (`src/i18n.js` `castFill`, before `fill`): `{friend=the friend}` is the name once met and the words until
+>   then; `{friend:लेता|लेती}` agrees with the friend's own gender. With no names every reference is its words and every
+>   choice its first form, which is the shipped text: every cast verb was masculine. Seven Hindi moments needed the
+>   choice (6, 15, 23, 37, 38, 65, 78); no English one did. Joins and fates are written to need none.
+> - *The son and the daughter are two people*, each `{child}` in the text; a life that meets both names both. Children
+>   always outlive the player (104–108 keep heirs below). *Parents are cast but not named*: "Meera's mother".
+> - *Meeting, not introduction*: the name is said once, at the end of the moment where the life meets them ("Her name
+>   is Tārā."; the teacher "उनका नाम आनंद है।" and then आनंदजी). The card says it on the landing too.
+> - *The draw* (`src/engine/cast.js`): per player and per life, off a sequence of its own seeded by the game; nothing in
+>   state, so old saves have a cast. No name anyone at the table has (compared by Devanagari, or Latin without marks:
+>   "Meera" excludes Mīrā). Offsets: friend 0, teacher +20–35, rival ±2, spouse ±4, parents +20–38.
+> - *Returns* rank snake → echo → **returns** → ladder → …: a member met earlier, not told in the moment just before,
+>   joined by the recall of the moment where they were met, in words of their own (`strings.json` `CAST.returns`): the
+>   teacher "was waiting", the rival "was back", the friend "was there again" ("Tārā, who once broke a biscuit badly
+>   with Meera, was there again: "), the spouse "was still there" (present, not met again). The son and the
+>   daughter take the friend's words until Phase 12. An echo
+>   outranks it; a fold, a "back where" line or a tally names nobody and is not a return.
+> - *Fates*: after the end line, one per member the last life met, in order, four at most: the fourth takes the short
+>   form ("Rādhā died when Meera was seventy-two." or "Arjun outlived Meera."; "outlived" only for someone alive when
+>   the player died) and the rest go unsaid. Drawn in the player's years between the
+>   board's last word on them (landed or not) and every landing on their squares, and before 100 if the life told it;
+>   the father's is 53's age. `lintFates` holds it for 500 seeds a gender in the build, 2000 in the tests.
+> - *Measured* (4000 lives): 99.7% name someone, 58.5% join a return by name, 99.6% close on a fate, 3.5 fate lines
+>   a life (66% reach the cap of four). **Nothing moved**: `npm run sim` for one and two players is byte-identical to Phase 10, and with
+>   `names.json` `cast` stripped all 16,000 accounts of `node tools/accounts.mjs 2000` (seeds 1–2000, both languages,
+>   both genders, and two unnamed computers) are byte-identical to Phase 10 with one deliberate change: the Hindi gap
+>   join is now "{gap} ख़ामोश बरसों बाद, " (it was "चुपचाप बरस बाद"), which changes 3,520 of the 8,000 Hindi accounts
+>   and no English one; the comparison is against `main` with that one string changed.
+> - *For Bhaskar*: the list is the §13.3 starter with Bhaskar's changes: Līlā became Rekhā (रेखा) and Ānand became
+>   Vinod (विनोद), since both were words in the mirrors (7; 70, 89), and Jaya moved from "either" to the women's names.
+>   Arjun, Rādhā, Tārā, Kabīr and Mīrā carry mythic or devotional echoes. The Hindi of every recall, intro and fate
+>   line wants a native ear. A girl's friend who is a girl is a सहेली (square 6); every other friend is a दोस्त.
+
+*`docs/NARRATIVE.md` §13.1–13.4 and §13.10. Its own PR from a clean `main`. The highest-leverage
+piece of work on the table, and the cheapest.*
+
+The generated accounts proved the gap: the prose already has a recurring cast — the rival at
+38, 55, 57, 69, 79; the son at 53, 62, 93; the friend at 6, 9, 16, 33 — and the data does not
+know it, so a return is the same words and not the same person. **This phase reverses
+NARRATIVE §6's "do not name them."** The reason is in §13.2: keep §6's concern (two registers,
+domestic and mythic) and change the instrument (ordinary names in the foreground, mythic names
+stay in the mirror).
+
+- **Roles re-derived from the shipped moments**, not §6's table: a `cast` field on the ~40
+  squares that already name one. Tokens `{mother}` `{father}` `{teacher}` `{friend}` `{spouse}`
+  `{child}` `{rival}`, resolved through `g()` with the cast member's own gender.
+- **`content/names.json`:** first names only (surnames are caste markers; this is how the
+  no-hierarchy guardrail holds inside the cast), bilingual, gendered, ordinary and unmarked,
+  none mythic. Drawn at birth off `state.rng`, one per role, never the player's own name,
+  never repeated in a life. Bhaskar passes the list.
+- **Introduction:** the first square a role appears on carries a per-role introducing clause
+  — "Her name is Mīrā." — and every later square uses the name alone.
+- **The cast ages on the Phase 8 clock** with a per-role offset.
+- **Account:** the *same person returns* join, outranking gap and same-year and beside the
+  echo; and **fates the life did not see** in the closing — one line per cast member met,
+  seeded across every square that mentions them, consistent with every square this life
+  touched. Lint: no cast member dies before the player's age at their last appearance.
+- **No new screen.** Data on squares and rules in the account.
+
+**Done when:** a generated life names a friend on their first square and uses the name on
+every later one; the account joins a return by name; the closing names at least one fate the
+life did not see; stripping `names.json` leaves every account for seeds 1–2000 byte-identical
+to Phase 10; and a native reader passes the Hindi.
+
+---
+
 ### Phase 11 — Karma
 
 - Three buckets, fuses, deferred firing.
@@ -1162,9 +1237,29 @@ rises toward 105, but a player taught to dread a 1 is also taught to hope for on
 **Open, from Phase 10: the divine row repeats.** 19.2% of lives land on a square at or above 94 four times or more,
 mostly 106–109 bounced around under Phase 9's two dice. Phase 10 cannot touch it, by its own boundary.
 
+**The curse — a fuse with a sentence** (`docs/NARRATIVE.md` §13.6). One fuse per life speaks.
+Early, in childhood or brahmacharya, someone says a line the player cannot yet understand — in
+the board's own register, nothing oracular — seeded to a *family* of late squares. Land on one
+and the account closes it: *the woman at the well had said so.* Never land and it closes the
+other way: *she was right, in a way {name} never found out.* Eight curses, one drawn per life.
+
+**The door is an examination** (§13.7). Émerson's gate — arrive carrying debt, be held, work it
+off — in the game's idiom: the Yakṣa Praśna. Each turn at 105 is one question; **the life
+answers, not the player**, Citragupta reading it out of the book; a question the life fails
+costs a year. The player never sees a number and feels the debt as how long they stand there.
+Each turn at the door is still a Phase 9 turn — two dice, and the sannyāsin's option to sit the
+year in practice — and **practice pays the debt down**, so the door is a choice between moving
+and clearing rather than a counter emptying. That is the one place the allocation loop Phase 9
+declined earns its complexity.
+
+**This settles the open item above about the shared face.** At the door a 1 is the question.
+Below 94 it is how you arrived. They never share a square.
+
 **Done when:** a seed planted at square 20 ripens and then waits for a 1, firing with a
 card that names where it came from; the chance visibly rises toward 105; severity depends
-only on the ledger; and a player can reach 105 and be refused with a legible reason.
+only on the ledger; and a player who reaches 105 carrying debt is examined rather than refused —
+the Yakṣa's questions, answered from the life, one a turn, a year for each the life fails, and
+never a number on screen.
 
 ---
 
@@ -1187,6 +1282,17 @@ screen, the saṃskāra record and the worlds below square 1 would all be built 
 one player in forty ever sees. Either the exit gets harder first — see Phase 13 — or this
 is content written for an audience that does not arrive.
 
+**The cast crosses lives** (§13.6, §13.8). `saṃskāra` carries the cast, and the Jātaka rule
+applies — the same souls in different roles, the friend of one life the teacher of the next —
+which is the reason to play again: to find Mīrā. **The forgotten holding:** `p.holding` from the
+last life becomes a line early in the next account that the player cannot explain (*{name} does
+not know why mirrors make {name} uneasy*), solved by reading the last life. Replay as detective
+work.
+
+**Yama's reckoning screen is Citragupta's book read aloud** (§13.5). The account is the
+record; the scribe is the hand and never a character. He appears as the pan-Indian texts have
+him, with no lineage attached.
+
 **Done when:** life two starts measurably different from life one and the difference is
 legible to the player on the birth screen.
 
@@ -1199,7 +1305,7 @@ legible to the player on the birth screen.
 - Different win conditions per §2.7. These are the payoff of the whole design.
 
 **This phase now carries an urgent problem, not only a payoff.** After Phase 9, **97.5% of
-lives reach mokṣa.** That inverts the game's own thesis: the intro text says the heavens
+lives reach mokṣa.** After Phase 10 it is 96.5%. That inverts the game's own thesis: the intro text says the heavens
 past the exit are still the wheel, and a board where liberation is the overwhelming default
 says the opposite. It also strands Phases 11 and 12, whose content only fires on lives that
 fall or run out of years.
@@ -1211,6 +1317,11 @@ because each darśana's bar is a different kind of hard: Mīmāṃsā's is not r
 position at all, Advaita's is knowledge rather than arrival, Cārvāka has no liberation to
 offer. **Decide whether this phase moves ahead of 11 and 12**, or whether one interim
 condition on the 105 gate restores a believable rate while karma is built.
+
+**The door's last question is where the laws bite** (§13.7). *Which is the real path?* — the
+Advaitin door and the Mīmāṃsaka door ask the same eight questions and accept different answers,
+and the per-law answer tables are this phase's content. That is the point at which the schools
+stop being annotation and become structure.
 
 **Report liberation rate per law as the headline number**, ahead of median lifespan. A law
 under which almost everyone is liberated has not been implemented, only decorated.
@@ -1262,6 +1373,11 @@ each board's rules load with it.
 - All 110 squares with situations where they earn one.
 - Codex complete across schools, sources and figures.
 - Target roughly 35 situations at two or three options each.
+- **Schools as cast** (`docs/NARRATIVE.md` §13.8): each darśana assigned per life, seeded, to
+  a cast member — the teacher a Mīmāṃsaka who holds the rite is enough, the friend's uncle a
+  Cārvāka who lives as if there is nothing after, the rival late an Advaitin. Research brief
+  for the content: for each school, a figure who held it and a scene where they held it, so
+  the player learns the schools the way anyone did before textbooks — by knowing who.
 - **The ablation harness.** For each snake and ladder, run N games with that element
   removed and report the change in median turns. This is the method from
   arXiv:2304.14486 and it answers the board questions by measurement instead of

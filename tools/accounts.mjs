@@ -1,0 +1,50 @@
+// Every life account for a run of seeds, one sha256 per account, so two builds can be compared byte for byte.
+// Phase 10C's acceptance test: with the cast list stripped, every account must be the account Phase 10 wrote.
+//   node tools/accounts.mjs [seeds=2000] [--root=<checkout>] [--cast=off] [--full]
+// --root reads the engine from another checkout (a worktree of main, say) instead of this one. --cast=off takes the
+// cast's names away (content/names.json `cast`), which must give back every account exactly. --full prints the
+// accounts themselves instead of their hashes. Each seed is played twice: one named player in each gender, read in
+// both languages, and two unnamed computers, so drawn names and the second player are covered too.
+import path from "node:path";
+import crypto from "node:crypto";
+import { pathToFileURL } from "node:url";
+
+const args = process.argv.slice(2), flags = Object.fromEntries(args.filter(a => a.startsWith("--")).map(a => { const [k, v = true] = a.slice(2).split("="); return [k, v]; }));
+const seeds = +(args.find(a => !a.startsWith("--")) ?? 2000);
+const root = path.resolve(flags.root ?? path.join(import.meta.dirname, ".."));
+const load = f => import(pathToFileURL(path.join(root, f)).href);
+const [{ createGame, playTurn }, { lifeOf, lifeText }, content, { cast }] = await Promise.all(["src/engine/turn.js", "src/engine/account.js", "src/content.js", "src/state.js"].map(load));
+if (flags.cast === "off") {
+  if (!content.CAST) throw new Error(`${root} has no cast to take away`);
+  content.CAST.names = null;
+}
+
+const play = (players, seed) => {
+  const s = createGame({ players, rules: { six: true }, seed });
+  while (!s.over) playTurn(s);
+  return s;
+};
+const hash = t => crypto.createHash("sha256").update(t).digest("hex");
+const tally = { intros: 0, returns: 0, fates: 0, lives: 0 };
+const out = [];
+const say = (key, s, i, l) => {
+  const text = lifeText(s, i, l);
+  out.push(flags.full ? `## ${key}\n${text}` : `${key} ${hash(text)}`);
+  const life = lifeOf(s, i, l);
+  if (l === "en" && life.fates) {
+    tally.lives++;
+    tally.fates += life.fates.length;
+    tally.intros += (text.match(/(?:His|Her) name is /g) || []).length;
+    tally.returns += (text.match(/, (?:was there again|was waiting|was back|was still there): /g) || []).length;
+  }
+};
+for (let seed = 1; seed <= seeds; seed++) {
+  for (const gender of ["m", "f"]) {
+    const s = play([{ name: "Meera", type: "cpu", gender }], seed);
+    for (const l of ["en", "hi"]) say(`${seed} one ${gender} ${l}`, s, 0, l);
+  }
+  const s = play(cast([{ name: "", type: "cpu", gender: "" }, { name: "", type: "cpu", gender: "" }], seed), seed);
+  for (const i of [0, 1]) for (const l of ["en", "hi"]) say(`${seed} two p${i} ${l}`, s, i, l);
+}
+process.stdout.write(out.join("\n") + "\n");
+if (tally.lives) console.error(`${tally.lives} lives in English: ${tally.intros} introductions, ${tally.returns} returns, ${tally.fates} fates`);

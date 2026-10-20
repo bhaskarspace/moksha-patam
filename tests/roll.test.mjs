@@ -3,8 +3,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { createGame, planTurn, playTurn, endTurn, resolveChoice, toldOn, setEndgame, ENDGAME } from "../src/engine/turn.js";
 import { lifeOf } from "../src/engine/account.js";
-import { SQ, LADDERS, SNAKES, squareOf } from "../src/content.js";
-import { fill } from "../src/i18n.js";
+import { SQ, LADDERS, SNAKES, CAST, squareOf } from "../src/content.js";
+import { fill, castFill } from "../src/i18n.js";
 import { lintContent } from "../tools/lint-content.mjs";
 import { playGame } from "../tools/sim.mjs";
 
@@ -89,6 +89,8 @@ test("what repeats is a moment: the other moment on a square already told is tol
 });
 
 test("a callback is said only after the moment it names: 63's echo needs the mango that went soft", () => {
+  const names = CAST.names;
+  CAST.names = null;
   assert.match(all(lived([43, 44, 63], [null, null, null])), /Long after the mango that went soft/);
   assert.doesNotMatch(all(lived([43, 44, 63], ["else", null, null])), /Long after the mango/);
   // 50's own echo names the blow, and is not borrowed by its other moment: Anger, then Greed back below 50, and
@@ -96,6 +98,7 @@ test("a callback is said only after the moment it names: 63's echo needs the man
   const back = all(lived([59, 50, 55, 43, 45, 50], [null, null, null, null, null, "else"]));
   assert.match(back, /sits on the floor beside the girl/);
   assert.doesNotMatch(back, /The blow is years old by now/);
+  CAST.names = names;
 });
 
 test("a game saved before Phase 10 has no record and reads exactly as it did", () => {
@@ -107,10 +110,11 @@ test("every other moment agrees in Hindi for a man and a woman, and leaves no ch
   for (const n of ROLLS) {
     const m = SQ[n].roll.moment;
     for (const gender of ["m", "f", "n"]) for (const l of ["en", "hi"]) {
-      const text = fill(m[l], { name: "Asha", gender, age: "x" });
+      const text = fill(castFill(m[l]), { name: "Asha", gender, age: "x" });
       assert.doesNotMatch(text, /[{}|]/, `square ${n} ${l} ${gender}`);
     }
-    if (/\{[^{}]*\|/.test(m.hi)) assert.notEqual(fill(m.hi, { name: "Asha", gender: "m", age: "x" }), fill(m.hi, { name: "Asha", gender: "f", age: "x" }), `square ${n}`);
+    const hi = castFill(m.hi);
+    if (/\{[^{}]*\|/.test(hi)) assert.notEqual(fill(hi, { name: "Asha", gender: "m", age: "x" }), fill(hi, { name: "Asha", gender: "f", age: "x" }), `square ${n}`);
   }
 });
 

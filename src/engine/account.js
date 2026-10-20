@@ -19,17 +19,20 @@
 // moment has an echo of its own only when one is written. A situation's choice is told the same way: by its
 // outcome, or by the square's own moment when the option has none (src/engine/qbn.js momentOf). The years a choice
 // cost pass silently; the outcome says what they were.
-import { ASHRAMAS, LADDERS, SNAKES, JOINS, squareOf, snakeOn } from "../content.js";
-import { tIn, fill, wordsIn, ageWordsIn } from "../i18n.js";
+import { ASHRAMAS, LADDERS, SNAKES, JOINS, CAST_WORDS, squareOf, snakeOn } from "../content.js";
+import { tIn, fill, castFill, wordsIn, ageWordsIn, CAST_ROLES } from "../i18n.js";
 import { makeRng, next } from "../rng.js";
 import { pnameIn } from "../state.js";
 import { ageOf, yearsAlong, stageOfYears, titleOf, holdingOf } from "./self.js";
 import { momentOf } from "./qbn.js";
+import { castAlong, peopleOf, introIn, calledIn, fatesIn } from "./cast.js";
 
 const EARTH = 100, GAP = 8;
 // An English moment that does not open with the name reads on after a joining phrase in lower case:
-// "Then for a week…", "Later, a habit…". "I" and a capital followed by another capital (an acronym) are left alone.
-const after = (raw, text, l) => (l === "en" && !raw.startsWith("{name}") && /^(?:\p{Lu}\p{Ll}|(?!I\s)\p{Lu}\s)/u.test(text) ? text[0].toLowerCase() + text.slice(1) : text);
+// "Then for a week…", "Later, a habit…". "I" and a capital followed by another capital (an acronym) are left alone,
+// and so is a moment that opens on a member of the cast, who may be called by name (Phase 10C).
+const NAMED = new RegExp(`^\\{(?:name|${CAST_ROLES.join("|")})[}=]`);
+const after = (raw, text, l) => (l === "en" && !NAMED.test(raw) && /^(?:\p{Lu}\p{Ll}|(?!I\s)\p{Lu}\s)/u.test(text) ? text[0].toLowerCase() + text.slice(1) : text);
 const stageAt = e => (e.n > EARTH ? 5 : stageOfYears(e.years));
 
 // Player i's life in language l: { title, sub, open, paras: [{ head, text }], end }.
@@ -45,6 +48,10 @@ export function lifeOf(state, i, l) {
   const then = () => { let k = Math.floor(next(rng) * JOINS.then.length); if (k === lastThen) k = (k + 1) % JOINS.then.length; lastThen = k; return JOINS.then[k]; };
 
   const along = yearsAlong(p.life || [], p.told || []).filter(e => e.via !== "stay"), paras = [];
+  // the cast (Phase 10C): who each moment is about and who this life has met by then. toldN counts the moments told
+  // in full in this life; lastTold is where each member was last told, metAt the moment where the life met them
+  const cc = castAlong(state, i, along);
+  let toldN = 0, lastTold = {}, metAt = {};
   // lived: each square of this life, with the years it was first lived at; own: the squares that told their own
   // moment; seen: the moments told, by square and which moment; taken: how often each snake or ladder has been
   // taken in this life
@@ -89,7 +96,7 @@ export function lifeOf(state, i, l) {
     const q = squareOf(e.n), said = momentOf(e.n, e.told), m = said.moment, nextE = along[k + 1];
     // a roll-dependent square's other moment may have an echo of its own; a chosen outcome has none
     const echo = said.own ? q?.echo : e.told === "else" ? q?.roll?.echo : null;
-    if (e.via === "rebirth") { close(); seen = new Set(); lived = new Map(); own = new Set(); taken = new Map(); lastYears = null; para = null; reborn = true; }
+    if (e.via === "rebirth") { close(); seen = new Set(); lived = new Map(); own = new Set(); taken = new Map(); lastYears = null; para = null; reborn = true; toldN = 0; lastTold = {}; metAt = {}; }
     // where a snake or ladder told short led: lived, and not told
     if (skip) { skip = false; note(e); lastYears = e.years; continue; }
     if (!m && e.via !== "sit") { note(e); continue; }
@@ -114,11 +121,17 @@ export function lifeOf(state, i, l) {
       continue;
     }
 
+    // the same person returns (Phase 10C): a member met earlier in this life, not told in the moment just before
+    const c = cc[k], back = c.cast && c.about && !repeat && calledIn(c.cast, c.about, l) && metAt[c.about]?.recall && lastTold[c.about] != null && lastTold[c.about] < toldN - 1 ? c.about : null;
     let join = null;
     // above the world there is no more time to measure
     const gap = lastYears == null || e.n > EARTH ? null : e.years - lastYears;
     if (e.via === "snake") join = J(JOINS.snake, { cost: words(ageOf(e.from) - ageOf(e.n)) });
     else if (echo && own.has(q.callsBack) && !repeat) join = echo[l] || echo.en;
+    else if (back) {
+      const t = CAST_WORDS.returns[back] || CAST_WORDS.returns.friend, rec = metAt[back].recall;
+      join = fill(castFill((t[l] || t.en).replace("{recall}", rec[l] || rec.en), { who: { name: calledIn(c.cast, back, l), gender: c.cast[back].gender } }), who);
+    }
     else if (e.via === "ladder") join = J(JOINS.ladder);
     else if (repeat) join = J(JOINS.again);
     else if (para.parts.length && gap != null && gap >= GAP) join = J(JOINS.gap, { gap: words(gap) });
@@ -128,8 +141,14 @@ export function lifeOf(state, i, l) {
     // a square already told, reached again by a snake or ladder, is not told again: only where it was first lived
     const age = Number.isInteger(e.years) ? ageWordsIn(l, e.years, e.via === "snake") : "";
     const raw = repeat && e.via ? (JOINS.backTo[l] || JOINS.backTo.en).replace("{first}", words(lived.get(e.n))) : m[l] || m.en;
-    const text = fill(raw, { ...who, age });
+    // the moment that meets a member of the cast says their name at its end
+    const intro = c.meets && !repeat ? introIn(c.cast, c.about, l) : "";
+    const text = fill(castFill(raw, peopleOf(c.cast, c.before, l, c.about)), { ...who, age }) + (intro ? " " + intro : "");
     para.parts.push(join ? join + after(raw, text, l) : text);
+    if (!(repeat && e.via)) {
+      toldN++;
+      if (c.about) { lastTold[c.about] = toldN - 1; if (c.meets) metAt[c.about] = m; }
+    }
     note(e);
     lastYears = e.years;
     // a snake that starts on a god's square was taken: its own moment follows the god's
@@ -139,6 +158,9 @@ export function lifeOf(state, i, l) {
   close();
 
   const stage = s => (l === "hi" ? ASHRAMAS[s][2] : ASHRAMAS[s][1]);
+  // what the closing holds or puts down may name someone this life met: the son, the rival
+  const last = cc.at(-1), people = last ? peopleOf(last.cast, new Set([...last.before, ...(last.meets ? [last.about] : [])]), l) : {};
+  const held = t => fill(castFill(t ? t[l] || t.en : "", people), who);
   return {
     title: T("lifeTitle"),
     sub: p.peak != null ? tIn(l, "title" + titleOf(p.peak)) : "",
@@ -148,17 +170,19 @@ export function lifeOf(state, i, l) {
       const head = s === 5 || !ages.length ? stage(s) : a === b ? T("lifeAt", { stage: stage(s), a }) : T("lifeSpan", { stage: stage(s), a, b });
       return { head: reborn ? `${T("lifeReborn")} · ${head}` : head, text: parts.join(" ") };
     }),
-    end: state.winner === i ? winEnd(p, T, words, l, who)
+    end: state.winner === i ? winEnd(p, T, words, held)
       : !p.life?.length ? T("lifeUnborn")
-      : p.dead ? T("lifeEndDied", { age: words(p.years), holding: fill(SNAKES[p.holding]?.holding?.[l] || SNAKES[p.holding]?.holding?.en || "", who) }).replace(/, ([.।])$/, "$1")
+      : p.dead ? T("lifeEndDied", { age: words(p.years), holding: held(SNAKES[p.holding]?.holding) }).replace(/, ([.।])$/, "$1")
       : T("lifeEndOpen", { n: p.pos }),
+    // what the life never found out about the people in it (Phase 10C): empty with no cast
+    fates: fatesIn(state, i, l, along, cc, who),
   };
 }
 
 // A life let go names what it put down: the vice it took most, the one a death would have named as still held.
-function winEnd(p, T, words, l, who) {
+function winEnd(p, T, words, held) {
   const letgo = SNAKES[holdingOf(p.life || [])]?.letgo, age = words(p.years ?? 0);
-  return letgo ? T("lifeEndWin", { age, letgo: fill(letgo[l] || letgo.en, who) }) : T("lifeEndFree", { age });
+  return letgo ? T("lifeEndWin", { age, letgo: held(letgo) }) : T("lifeEndFree", { age });
 }
 
 // The first line knows the shape of the whole life, and says only what happened, never what it was worth.
@@ -176,6 +200,6 @@ function opening(p, along, T, words) {
 
 // The same life as plain text, to copy or save.
 export function lifeText(state, i, l) {
-  const { title, sub, open, paras, end } = lifeOf(state, i, l);
-  return [[title, sub].filter(Boolean).join("\n"), open, ...paras.map(p => `${p.head}\n${p.text}`), end].filter(Boolean).join("\n\n") + "\n";
+  const { title, sub, open, paras, end, fates } = lifeOf(state, i, l);
+  return [[title, sub].filter(Boolean).join("\n"), open, ...paras.map(p => `${p.head}\n${p.text}`), end, fates.join(" ")].filter(Boolean).join("\n\n") + "\n";
 }

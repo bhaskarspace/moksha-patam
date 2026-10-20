@@ -38,6 +38,19 @@ export const fill = (text, { name = "", gender = "m", age = "" } = {}) =>
   text.replace(/\{([^{}|]*(?:\|[^{}|]*){1,2})\}/g, (_, alts) => { const [m, f, n] = alts.split("|"); return g(gender, { m, f, n }); })
     .replace(/\{age\}/g, () => age).replace(/\{name\}/g, () => name);
 
+// ---- The cast (docs/NARRATIVE.md §13.3, REDESIGN.md Phase 10C) ----
+// A moment names a member of the cast in two ways. {friend=the friend} is the friend by name once this life has met
+// them, and until then the words after the "=" (which may hold {name}); a bare {friend} is the name alone.
+// {friend:लेता|लेती} agrees with the friend's own gender, not the player's. people maps a role to { name, gender }:
+// with no name the words stand, and with no gender the first form does, so a cast with nobody in it reads exactly as
+// the moment was first written. "who" is whichever member a join or a closing line is about. This runs before fill():
+// fill() would read {friend:लेता|लेती} as the player's choice.
+export const CAST_ROLES = ["mother", "father", "teacher", "friend", "spouse", "child", "rival", "who"];
+const CAST_AGREE = new RegExp(`\\{(${CAST_ROLES.join("|")}):([^{}|]*)\\|([^{}|]*)\\}`, "g");
+const CAST_REF = new RegExp(`\\{(${CAST_ROLES.join("|")})(?:=((?:[^{}]|\\{name\\})*))?\\}`, "g");
+export const castFill = (text, people = {}) =>
+  text.replace(CAST_AGREE, (_, r, m, f) => (people[r]?.gender === "f" ? f : m)).replace(CAST_REF, (_, r, words = "") => people[r]?.name ?? words);
+
 // ---- Numbers as words, for ages and years in prose ----
 // English is composed; Hindi numbers to a hundred are irregular, so they come from strings.NUM_HI.
 const ONES = "zero one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen".split(" ");

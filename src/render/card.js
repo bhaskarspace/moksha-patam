@@ -2,8 +2,9 @@
 // It stays open until the reader closes it. A computer's landing card closes itself after a
 // reading-length pause, unless the reader touches it, and then it waits like any other.
 import { GOAL, TOP, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, READINGS, CODEX, ENTRY_IDS, REFS, entryOf, sourceOf, srcOfSquare, squareOf, snakeOn } from "../content.js";
-import { lang, tIn, numIn, srcIn, pick, fill, ageWordsIn } from "../i18n.js";
-import { ageStep, stageOfYears, bhumikaOf, freshGunas, SANNYASA } from "../engine/self.js";
+import { lang, tIn, numIn, srcIn, pick, fill, castFill, ageWordsIn } from "../i18n.js";
+import { ageStep, stageOfYears, bhumikaOf, freshGunas, SANNYASA, yearsAlong } from "../engine/self.js";
+import { castOf, castAlong, peopleOf, introIn } from "../engine/cast.js";
 import { momentOf, destOf } from "../engine/qbn.js";
 import { prefs, hasMet, meet } from "../prefs.js";
 import { G, pnameIn } from "../state.js";
@@ -109,6 +110,20 @@ function person(l, n) {
   const age = Number.isInteger(a) ? ageWordsIn(l, a, !!here?.still) : "";
   return p ? { name: pnameIn(p, l), gender: p.gender, age } : { name: "", gender: "m", age };
 }
+// A moment in language l as the card's subject lives it (REDESIGN.md Phase 10C): the cast by name once this life has
+// met them, and on the square they are standing on, the name said at the end of the moment where the life meets
+// someone. On their own square that is everyone met before this landing; on a square browsed, everyone met so far.
+function momentIn(m, l, n, meeting = true) {
+  const p = subjectOf(), text = s => fill(s, person(l, n));
+  if (!p) return text(castFill(m[l] || m.en));
+  const i = G.state.players.indexOf(p), here = livedOn(n), planning = G.plan && G.state.players[G.plan.idx] === p;
+  // after a landing the life ends with it; during one it has not been added yet
+  const along = yearsAlong(p.life || [], p.told || []).filter(e => e.via !== "stay"), upto = here && !planning ? along.length - 1 : along.length;
+  const cc = castAlong(G.state, i, along.slice(0, Math.max(upto, 0))), last = cc.at(-1);
+  const cast = last ? last.cast : castOf(G.state, i, 0), met = new Set(last ? [...last.before, ...(last.meets ? [last.about] : [])] : []);
+  const intro = meeting && here && m.cast && !met.has(m.cast) && m.introduces !== false ? introIn(cast, m.cast, l) : "";
+  return text(castFill(m[l] || m.en, peopleOf(cast, met, l, m.cast))) + (intro ? " " + intro : "");
+}
 // The stage a card's eyebrow names. On the subject's own square it is the stage they are actually in, by years,
 // and in sannyasa the bhumika they have reached rather than the one the square implies; elsewhere the square's.
 function stageIn(l, n) {
@@ -193,7 +208,7 @@ function squareHtml(n, l) {
   let body = `<h2 id="leafTitle">${esc(info.title)}</h2>`;
   const alt = info.alt.filter(Boolean).join(" · ");
   if (alt) body += `<p class="alt" lang="${other(l)}">${esc(alt)}</p>`;
-  const moment = m ? texts(l, fill(m.en, person("en", n)), fill(m.hi, person("hi", n)), n > 100 ? "moment remnant" : "moment") : "";
+  const moment = m ? texts(l, momentIn(m, "en", n, !pending), momentIn(m, "hi", n, !pending), n > 100 ? "moment remnant" : "moment") : "";
   // a snake tail one square below its remedy says so (REDESIGN.md Phase 4, item 3)
   const remedy = sq.remedy ? texts(l, fill(sq.remedy.en, person("en", n)), fill(sq.remedy.hi, person("hi", n)), "remedy") : "";
   // past the exit, the card says the way out is behind and below (REDESIGN.md Phase 7, item 3)
