@@ -156,23 +156,28 @@ export function castArcs(state, i, along, cc = castAlong(state, i, along)) {
   });
 }
 
-// The closing's fate lines in language l, one per member the last life met, in the order met. who is the player.
+// The closing's fate lines in language l, one per member the last life met, in the order met, and never more than
+// FATES: the lines after the third take the short form, which says only when ("…died when Meera was sixty."), and the
+// rest are left unsaid. who is the player.
+const FATES = 4, FULL = 3;
 export function fatesIn(state, i, l, along, cc, who) {
   const cast = cc.at(-1)?.cast, W = CAST_WORDS, words = n => wordsIn(l, Math.floor(n)), pick = t => t[l] || t.en;
   let coded = false;
   const say = (t, member, v) => fill(castFill(pick(t), { who: member }).replace(/\{(seen|at|by|pos)\}/g, (_, k) => v[k] ?? ""), who);
-  return castArcs(state, i, along, cc).filter(a => a.kind !== "seen").flatMap(a => {
+  const arcs = castArcs(state, i, along, cc).filter(a => a.kind !== "seen" && (PARENTS.has(a.who) || calledIn(cast, a.who, l)));
+  return arcs.slice(0, FATES).map((a, at) => {
     const c = cast[a.who], family = PARENTS.has(a.who) || a.who === "spouse" || CHILDREN.has(a.who);
     const name = PARENTS.has(a.who) ? fill(pick(W.family[a.who]), who) : calledIn(cast, a.who, l);
-    if (!name) return [];
     const member = { name, gender: c.gender }, n = a.death - a.end;
     const by = n === 1 ? pick(W.year) : pick(W.years).replace("{n}", words(n));
-    if (CHILDREN.has(a.who)) return [say(W.childOutlived, member, {})];
-    if (family) return [a.kind === "died" ? say(W.familyDied, member, { at: words(a.death) }) : say(W.familyOutlived, member, { by })];
-    if (a.kind === "outlived") return [say(W.outlived, member, { seen: words(a.seen), by })];
+    // the short form: "outlived" only for someone still alive when the player died, and no coda
+    if (at >= FULL) return a.kind === "outlived" ? say(W.childOutlived, member, {}) : say(W.familyDied, member, { at: words(a.death) });
+    if (CHILDREN.has(a.who)) return say(W.childOutlived, member, {});
+    if (family) return a.kind === "died" ? say(W.familyDied, member, { at: words(a.death) }) : say(W.familyOutlived, member, { by });
+    if (a.kind === "outlived") return say(W.outlived, member, { seen: words(a.seen), by });
     // at most one closing line gets the short ending after it, so it never becomes a refrain
     const k = Math.floor(a.coda * (W.codas.length + 2)), coda = k < W.codas.length && !coded ? " " + fill(pick(W.codas[k]), who) : "";
     if (coda) coded = true;
-    return [say(W.died, member, { seen: words(a.seen), at: words(a.death + a.older), pos: pick(a.who === "teacher" ? W.posHon : W.pos) }) + coda];
+    return say(W.died, member, { seen: words(a.seen), at: words(a.death + a.older), pos: pick(a.who === "teacher" ? W.posHon : W.pos) }) + coda;
   });
 }

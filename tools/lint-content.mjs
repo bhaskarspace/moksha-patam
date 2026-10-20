@@ -333,7 +333,7 @@ export function lintReport() {
       bilingual(`strings.CAST.intro.${who}`, CAST_WORDS.intro[who]);
       for (const l of ["en", "hi"]) if (CAST_WORDS.intro[who]?.[l] && !CAST_WORDS.intro[who][l].includes("{n}")) err(`strings.CAST.intro.${who}`, `the ${l} does not say the name with {n}`);
     }
-    join("strings.CAST.returns", CAST_WORDS.returns);
+    for (const who of ["teacher", "friend", "spouse", "rival", "son", "daughter"]) join(`strings.CAST.returns.${who}`, CAST_WORDS.returns[who]);
     for (const k of ["died", "outlived", "familyDied", "familyOutlived", "childOutlived", "years", "year"]) bilingual(`strings.CAST.${k}`, CAST_WORDS[k]);
     for (const [i, c] of CAST_WORDS.codas.entries()) bilingual(`strings.CAST.codas[${i}]`, c);
     for (const who of ["mother", "father"]) bilingual(`strings.CAST.family.${who}`, CAST_WORDS.family[who]);

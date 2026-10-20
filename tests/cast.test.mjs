@@ -60,13 +60,15 @@ test("with the cast's names taken away, every moment and closing phrase that nam
   const now = {};
   for (const { n, which, m } of MOMENTS) if (m.cast) for (const l of ["en", "hi"]) now[`${n} ${which} ${l}`] = castFill(m[l]);
   for (const [n, sn] of Object.entries(SNAKES)) for (const f of ["holding", "letgo"]) if (sn[f] && /\{(child|rival)=/.test(sn[f].en)) for (const l of ["en", "hi"]) now[`${n} ${f} ${l}`] = castFill(sn[f][l]);
-  assert.deepEqual(now, PHASE10.text);
+  // compared as each player reads it: square 6's Hindi now chooses by the player too (a girl's girl friend is a सहेली)
+  const read = (t, gender) => Object.fromEntries(Object.entries(t).map(([k, v]) => [k, fill(v, { name: "{name}", age: "{age}", gender })]));
+  for (const gender of ["m", "f", "n"]) assert.deepEqual(read(now, gender), read(PHASE10.text, gender), gender);
   // and the whole account, seed by seed (tools/accounts.mjs runs 2000 against main)
   for (let seed = 1; seed <= 50; seed++) {
     const s = game("Meera", "f", seed);
     while (!s.over) playTurn(s);
     const text = uncast(() => lifeText(s, 0, "en"));
-    assert.doesNotMatch(text, /(His|Her) name is |was there again|whom Meera last saw/);
+    assert.doesNotMatch(text, /(His|Her) name is |was there again|was waiting|was back|whom Meera last saw/);
   }
 });
 
@@ -90,13 +92,16 @@ test("the same person returning is joined by name, recalling where they were met
   assert.match(en, new RegExp(`${friend}, who once broke a biscuit badly with Meera, was there again: Meera is thirty-three and it is a bad year\\. Meera borrows from ${friend} for food`));
   // 6 → 15 is the very next moment: the ladder's own join, no reminder
   assert.match(en, /And so, Meera is eight/);
-  assert.equal(en.split("was there again").length - 1, 2, "the friend at 48, and the teacher at 26 after 20");
+  assert.equal(en.split("was there again").length - 1, 1, "the friend at 48");
+  // each member returns in their own words: the teacher at 26, after 20, was waiting
+  const teacher = castOf(s, 0, 0).teacher.en;
+  assert.match(en, new RegExp(`${teacher}, whom Meera was taken to meet in clean clothes, was waiting: Meera is fifteen`));
   const hi = all(s, "hi"), hiName = castOf(s, 0, 0).friend.hi;
   assert.match(hi, new RegExp(`${hiName} से, जिसके साथ Meera ने कभी एक बिस्कुट टेढ़ा-मेढ़ा तोड़कर बाँटा था, फिर मुलाक़ात हुई: Meera तैंतीस बरस की है`));
   // the echo outranks it: 37 calls back to 26, the teacher's own square
   const e = lived([20, 26, 30, 37]);
   assert.match(all(e), new RegExp(SQ[37].echo.en.trim().slice(0, 12)));
-  assert.doesNotMatch(all(e).split("Meera is twenty-two")[0].slice(-60), /was there again/);
+  assert.doesNotMatch(all(e).split("Meera is twenty-two")[0].slice(-60), /was there again|was waiting/);
 });
 
 test("a moment that opens on a member of the cast keeps the capital of their name after a join", () => {
@@ -165,6 +170,21 @@ test("fates: one line per member the life met, in the order met, after the end, 
   assert.match(lifeOf(f, 0, "hi").fates[0], /^Meera की माँ /);
   // a son always outlives
   assert.match(lifeOf(lived([62], { years: 90, dead: true }), 0, "en").fates[0], new RegExp(`^${castOf(s, 0, 0).son.en} outlived Meera\\.$`));
+});
+
+test("the closing says four fates at most, the fourth in the short form", () => {
+  // friend, mother, teacher, spouse, rival, daughter, son: seven met, four said
+  const s = lived([6, 18, 20, 41, 52, 59, 62], { years: 90, dead: true }), c = castOf(s, 0, 0);
+  const arcs = castArcs(s, 0, yearsAlong(s.players[0].life)), fates = lifeOf(s, 0, "en").fates;
+  assert.equal(arcs.length, 7);
+  assert.equal(fates.length, 4);
+  assert.ok(fates[0].startsWith(`${c.friend.en}, whom Meera last saw at three, `), fates[0]);
+  assert.ok(fates[1].startsWith("Meera's mother "), fates[1]);
+  assert.ok(fates[2].startsWith(`${c.teacher.en}, whom Meera last saw at eleven, `), fates[2]);
+  const spouse = arcs[3];
+  assert.equal(fates[3], spouse.kind === "outlived" ? `${c.spouse.en} outlived Meera.` : `${c.spouse.en} died when Meera was ${lifeOf(s, 0, "en").fates[3].match(/was (.*)\.$/)[1]}.`);
+  assert.doesNotMatch(fates[3], /whom|by .* years?|Nobody wrote|was not told/);
+  assert.equal(lifeOf(s, 0, "hi").fates.length, 4);
 });
 
 test("the fate lint holds for 2000 seeded lives in each gender: nobody dies before the life last saw them", () => {

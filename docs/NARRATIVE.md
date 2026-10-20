@@ -484,6 +484,10 @@ The introducing clause is a per-role string, not per-square, so it is authored o
 `{friend:लेता|लेती}`. `{child=…}` is the son or the daughter, whichever the moment's `cast` says.
 Authoring rule: the words after `=` are the moment exactly as it read before the cast, and the first
 form of every choice is the one it used, so a game with no names reads as it always did.
+A member's choice can sit inside the player's when the word depends on both: square 6 is
+`{एक दोस्त मिल गया|एक {friend:दोस्त मिल गया|सहेली मिल गई}}`, since a girl's friend who is a girl
+is a सहेली and every other friend is a दोस्त. The list above shipped with Līlā → Rekhā (रेखा),
+Ānand → Vinod (विनोद), both words in the mirrors, and Jaya among the women's names.
 
 **The cast ages on the Phase 8 clock.** The friend is three at 6 and eighty-six at 86, for
 nothing. Where a moment states the cast member's age it should be `{friend.age}`, filled

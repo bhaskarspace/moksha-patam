@@ -422,7 +422,7 @@
     },
     "gap": {
       "en": "{gap} quiet years later, ",
-      "hi": "{gap} चुपचाप बरस बाद, "
+      "hi": "{gap} ख़ामोश बरसों बाद, "
     },
     "sameYear": {
       "en": "That same year, ",
@@ -479,7 +479,7 @@
   },
   "NUM_HI": ["शून्य","एक","दो","तीन","चार","पाँच","छह","सात","आठ","नौ","दस","ग्यारह","बारह","तेरह","चौदह","पंद्रह","सोलह","सत्रह","अठारह","उन्नीस","बीस","इक्कीस","बाईस","तेईस","चौबीस","पच्चीस","छब्बीस","सत्ताईस","अट्ठाईस","उनतीस","तीस","इकतीस","बत्तीस","तैंतीस","चौंतीस","पैंतीस","छत्तीस","सैंतीस","अड़तीस","उनतालीस","चालीस","इकतालीस","बयालीस","तैंतालीस","चवालीस","पैंतालीस","छियालीस","सैंतालीस","अड़तालीस","उनचास","पचास","इक्यावन","बावन","तिरपन","चौवन","पचपन","छप्पन","सत्तावन","अट्ठावन","उनसठ","साठ","इकसठ","बासठ","तिरसठ","चौंसठ","पैंसठ","छियासठ","सड़सठ","अड़सठ","उनहत्तर","सत्तर","इकहत्तर","बहत्तर","तिहत्तर","चौहत्तर","पचहत्तर","छिहत्तर","सतहत्तर","अठहत्तर","उन्यासी","अस्सी","इक्यासी","बयासी","तिरासी","चौरासी","पचासी","छियासी","सत्तासी","अट्ठासी","नवासी","नब्बे","इक्यानवे","बानवे","तिरानवे","चौरानवे","पंचानवे","छियानवे","सत्तानवे","अट्ठानवे","निन्यानवे","सौ"],
   "CAST": {
-    "about": "The cast in the account (docs/NARRATIVE.md §13.3–13.4; src/engine/cast.js). intro is said once, at the end of the moment where a life first meets a member of the cast; call is how a moment calls them by name (the teacher is आनंदजी); family names the parents, who are not given names. returns is the join for the same person returning (src/engine/account.js), with the recall of the moment where they were met. The fate lines close the account, one per member met, in the order met: who they were, when they were last seen, and what the life never found out. {who} is the member a line is about, {n} the bare name.",
+    "about": "The cast in the account (docs/NARRATIVE.md §13.3–13.4; src/engine/cast.js). intro is said once, at the end of the moment where a life first meets a member of the cast; call is how a moment calls them by name (the teacher is आनंदजी); family names the parents, who are not given names. returns is the join for the same person returning, one scaffold per member (src/engine/account.js), with the recall of the moment where they were met. The fate lines close the account, one per member met, in the order met: who they were, when they were last seen, and what the life never found out. {who} is the member a line is about, {n} the bare name.",
     "intro": {
       "teacher": {"en":"{who:His|Her} name is {n}.","hi":"उनका नाम {n} है।"},
       "friend": {"en":"{who:His|Her} name is {n}.","hi":"उसका नाम {n} है।"},
@@ -496,8 +496,12 @@
       "father": {"en":"{name}'s father","hi":"{name} के पिता"}
     },
     "returns": {
-      "en": "{who}, {recall}, was there again: ",
-      "hi": "{who} से, {recall}, फिर मुलाक़ात हुई: "
+      "teacher": {"en":"{who}, {recall}, was waiting: ","hi":"{who}, {recall}, {who:प्रतीक्षा कर रहे थे|प्रतीक्षा कर रही थीं}: "},
+      "rival": {"en":"{who}, {recall}, was back: ","hi":"{who}, {recall}, फिर {who:लौट आया था|लौट आई थी}: "},
+      "friend": {"en":"{who}, {recall}, was there again: ","hi":"{who} से, {recall}, फिर मुलाक़ात हुई: "},
+      "spouse": {"en":"{who}, {recall}, was there again: ","hi":"{who} से, {recall}, फिर मुलाक़ात हुई: "},
+      "son": {"en":"{who}, {recall}, was there again: ","hi":"{who} से, {recall}, फिर मुलाक़ात हुई: "},
+      "daughter": {"en":"{who}, {recall}, was there again: ","hi":"{who} से, {recall}, फिर मुलाक़ात हुई: "}
     },
     "died": {
       "en": "{who}, whom {name} last saw at {seen}, died at {at}.",

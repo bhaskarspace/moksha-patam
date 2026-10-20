@@ -129,7 +129,7 @@ export function lifeOf(state, i, l) {
     if (e.via === "snake") join = J(JOINS.snake, { cost: words(ageOf(e.from) - ageOf(e.n)) });
     else if (echo && own.has(q.callsBack) && !repeat) join = echo[l] || echo.en;
     else if (back) {
-      const t = CAST_WORDS.returns, rec = metAt[back].recall;
+      const t = CAST_WORDS.returns[back] || CAST_WORDS.returns.friend, rec = metAt[back].recall;
       join = fill(castFill((t[l] || t.en).replace("{recall}", rec[l] || rec.en), { who: { name: calledIn(c.cast, back, l), gender: c.cast[back].gender } }), who);
     }
     else if (e.via === "ladder") join = J(JOINS.ladder);

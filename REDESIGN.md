@@ -1111,18 +1111,25 @@ the ledger.
 >   state, so old saves have a cast. No name anyone at the table has (compared by Devanagari, or Latin without marks:
 >   "Meera" excludes Mīrā). Offsets: friend 0, teacher +20–35, rival ±2, spouse ±4, parents +20–38.
 > - *Returns* rank snake → echo → **returns** → ladder → …: a member met earlier, not told in the moment just before,
->   joined by the recall of the moment where they were met ("Tārā, who once broke a biscuit badly with Meera, was there
->   again: "). An echo outranks it; a fold, a "back where" line or a tally names nobody and is not a return.
-> - *Fates*: after the end line, one per member the last life met, in order. Drawn in the player's years between the
+>   joined by the recall of the moment where they were met, in words of their own (`strings.json` `CAST.returns`): the
+>   teacher "was waiting", the rival "was back", the friend "was there again" ("Tārā, who once broke a biscuit badly
+>   with Meera, was there again: "). The spouse, the son and the daughter take the friend's words for now. An echo
+>   outranks it; a fold, a "back where" line or a tally names nobody and is not a return.
+> - *Fates*: after the end line, one per member the last life met, in order, four at most: the fourth takes the short
+>   form ("Rādhā died when Meera was seventy-two." or "Arjun outlived Meera."; "outlived" only for someone alive when
+>   the player died) and the rest go unsaid. Drawn in the player's years between the
 >   board's last word on them (landed or not) and every landing on their squares, and before 100 if the life told it;
 >   the father's is 53's age. `lintFates` holds it for 500 seeds a gender in the build, 2000 in the tests.
-> - *Measured* (4000 lives): 99.7% name someone, 58.5% join a return by name, 99.6% close on a fate, 4.1 fate lines
->   a life. **Nothing moved**: `npm run sim` for one and two players is byte-identical to Phase 10, and with
+> - *Measured* (4000 lives): 99.7% name someone, 58.5% join a return by name, 99.6% close on a fate, 3.5 fate lines
+>   a life (66% reach the cap of four). **Nothing moved**: `npm run sim` for one and two players is byte-identical to Phase 10, and with
 >   `names.json` `cast` stripped all 16,000 accounts of `node tools/accounts.mjs 2000` (seeds 1–2000, both languages,
->   both genders, and two unnamed computers) are byte-identical to Phase 10.
-> - *For Bhaskar*: the list is the §13.3 starter, unchanged. The lint warns that Līlā (7) and आनंद (70, 89) are also
->   words in the mirrors; Arjun, Rādhā, Tārā, Kabīr and Mīrā carry mythic or devotional echoes; Jaya is rarely a man's
->   name. The Hindi of every recall, intro and fate line wants a native ear.
+>   both genders, and two unnamed computers) are byte-identical to Phase 10 with one deliberate change: the Hindi gap
+>   join is now "{gap} ख़ामोश बरसों बाद, " (it was "चुपचाप बरस बाद"), which changes 3,520 of the 8,000 Hindi accounts
+>   and no English one; the comparison is against `main` with that one string changed.
+> - *For Bhaskar*: the list is the §13.3 starter with Bhaskar's changes: Līlā became Rekhā (रेखा) and Ānand became
+>   Vinod (विनोद), since both were words in the mirrors (7; 70, 89), and Jaya moved from "either" to the women's names.
+>   Arjun, Rādhā, Tārā, Kabīr and Mīrā carry mythic or devotional echoes. The Hindi of every recall, intro and fate
+>   line wants a native ear. A girl's friend who is a girl is a सहेली (square 6); every other friend is a दोस्त.
 
 *`docs/NARRATIVE.md` §13.1–13.4 and §13.10. Its own PR from a clean `main`. The highest-leverage
 piece of work on the table, and the cheapest.*

@@ -9,7 +9,7 @@ import path from "node:path";
 import crypto from "node:crypto";
 import { pathToFileURL } from "node:url";
 
-const args = process.argv.slice(2), flags = Object.fromEntries(args.filter(a => a.startsWith("--")).map(a => a.slice(2).split("=")));
+const args = process.argv.slice(2), flags = Object.fromEntries(args.filter(a => a.startsWith("--")).map(a => { const [k, v = true] = a.slice(2).split("="); return [k, v]; }));
 const seeds = +(args.find(a => !a.startsWith("--")) ?? 2000);
 const root = path.resolve(flags.root ?? path.join(import.meta.dirname, ".."));
 const load = f => import(pathToFileURL(path.join(root, f)).href);
@@ -35,7 +35,7 @@ const say = (key, s, i, l) => {
     tally.lives++;
     tally.fates += life.fates.length;
     tally.intros += (text.match(/(?:His|Her) name is /g) || []).length;
-    tally.returns += (text.match(/, was there again: /g) || []).length;
+    tally.returns += (text.match(/, (?:was there again|was waiting|was back): /g) || []).length;
   }
 };
 for (let seed = 1; seed <= seeds; seed++) {
