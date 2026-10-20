@@ -1113,7 +1113,8 @@ the ledger.
 > - *Returns* rank snake → echo → **returns** → ladder → …: a member met earlier, not told in the moment just before,
 >   joined by the recall of the moment where they were met, in words of their own (`strings.json` `CAST.returns`): the
 >   teacher "was waiting", the rival "was back", the friend "was there again" ("Tārā, who once broke a biscuit badly
->   with Meera, was there again: "). The spouse, the son and the daughter take the friend's words for now. An echo
+>   with Meera, was there again: "), the spouse "was still there" (present, not met again). The son and the
+>   daughter take the friend's words until Phase 12. An echo
 >   outranks it; a fold, a "back where" line or a tally names nobody and is not a return.
 > - *Fates*: after the end line, one per member the last life met, in order, four at most: the fourth takes the short
 >   form ("Rādhā died when Meera was seventy-two." or "Arjun outlived Meera."; "outlived" only for someone alive when

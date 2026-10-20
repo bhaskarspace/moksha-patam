@@ -35,7 +35,7 @@ const say = (key, s, i, l) => {
     tally.lives++;
     tally.fates += life.fates.length;
     tally.intros += (text.match(/(?:His|Her) name is /g) || []).length;
-    tally.returns += (text.match(/, (?:was there again|was waiting|was back): /g) || []).length;
+    tally.returns += (text.match(/, (?:was there again|was waiting|was back|was still there): /g) || []).length;
   }
 };
 for (let seed = 1; seed <= seeds; seed++) {

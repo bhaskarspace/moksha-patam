@@ -68,7 +68,7 @@ test("with the cast's names taken away, every moment and closing phrase that nam
     const s = game("Meera", "f", seed);
     while (!s.over) playTurn(s);
     const text = uncast(() => lifeText(s, 0, "en"));
-    assert.doesNotMatch(text, /(His|Her) name is |was there again|was waiting|was back|whom Meera last saw/);
+    assert.doesNotMatch(text, /(His|Her) name is |was there again|was waiting|was back|was still there|whom Meera last saw/);
   }
 });
 

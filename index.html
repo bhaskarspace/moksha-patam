@@ -1515,10 +1515,10 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         father: { en: "{name}'s father", hi: "{name} के पिता" }
       },
       returns: {
-        teacher: { en: "{who}, {recall}, was waiting: ", hi: "{who}, {recall}, {who:प्रतीक्षा कर रहे थे|प्रतीक्षा कर रही थीं}: " },
+        teacher: { en: "{who}, {recall}, was waiting: ", hi: "{who}, {recall}, {who:इंतज़ार कर रहे थे|इंतज़ार कर रही थीं}: " },
         rival: { en: "{who}, {recall}, was back: ", hi: "{who}, {recall}, फिर {who:लौट आया था|लौट आई थी}: " },
         friend: { en: "{who}, {recall}, was there again: ", hi: "{who} से, {recall}, फिर मुलाक़ात हुई: " },
-        spouse: { en: "{who}, {recall}, was there again: ", hi: "{who} से, {recall}, फिर मुलाक़ात हुई: " },
+        spouse: { en: "{who}, {recall}, was still there: ", hi: "{who}, {recall}, अब भी साथ {who:था|थी}: " },
         son: { en: "{who}, {recall}, was there again: ", hi: "{who} से, {recall}, फिर मुलाक़ात हुई: " },
         daughter: { en: "{who}, {recall}, was there again: ", hi: "{who} से, {recall}, फिर मुलाक़ात हुई: " }
       },
@@ -1528,7 +1528,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       },
       outlived: {
         en: "{who}, whom {name} last saw at {seen}, outlived {name} by {by}.",
-        hi: "{name} ने {who} को आख़िरी बार {seen} बरस की उम्र में देखा था। {name} के जाने के बाद भी {who} के {by} बाक़ी थे।"
+        hi: "{name} ने {who} को आख़िरी बार {seen} बरस की उम्र में देखा था। {name} के बाद {who} {by} और {who:जिया|जी}।"
       },
       familyDied: {
         en: "{who} died when {name} was {at}.",
@@ -1536,7 +1536,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       },
       familyOutlived: {
         en: "{who} outlived {name} by {by}.",
-        hi: "{name} के जाने के बाद भी {who} के {by} बाक़ी थे।"
+        hi: "{name} के बाद {who} {by} और {who:जिया|जी}।"
       },
       childOutlived: {
         en: "{who} outlived {name}.",
