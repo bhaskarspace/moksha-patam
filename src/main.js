@@ -1,20 +1,21 @@
 // Moksha Patam: the page's wiring. Rules live in engine/, drawing in render/, content in content/*.json.
-import { GOAL, TOP, ROWS, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, STR } from "./content.js";
+import { GOAL, TOP, ROWS, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, STR, squareOf } from "./content.js";
 import { lang, urlLang, setLangValue, L, num, t, tIn } from "./i18n.js";
 import { G, defaultSetup, pname, pnameIn, cur, newState, loadSelf, saveSelf } from "./state.js";
-import { prefs, setPref } from "./prefs.js";
+import { prefs, setPref, lifeLived, beFirst, freshViewer, firstLife } from "./prefs.js";
 import { $, COLORS, esc, reduced, sleep, quality, forcedQuality, setQuality } from "./ui.js";
 import { die, makeRng, freshSeed } from "./rng.js";
 import { TUMBLE, planTurn, resolveChoice, endTurn, addLog, diceFor, movesFor, moveFor } from "./engine/turn.js";
-import { optionsFor, choiceFor, situationAt } from "./engine/qbn.js";
+import { optionsFor, choiceFor, situationAt, momentOf, optionOf } from "./engine/qbn.js";
 import { S, colRow, labEls, buildCells, draw, drawAge, fxClear, focusSquare } from "./render/board.js";
 import { lens, wash, stageOf } from "./render/age.js";
 import { ageStep } from "./engine/self.js";
-import { castOf } from "./engine/cast.js";
+import { castOf, meetsNamed } from "./engine/cast.js";
 import { frame, pullBack, hold, release } from "./render/camera.js";
 import { spriteURL } from "./render/sprites.js";
 import { tokenEls, buildTokens, place, retrigger, climb, swallow, swallowSecs, animate } from "./render/tokens.js";
-import { openSquare, openEntry, closeCard, cardIdle, cardOpen, cardCarried, cardExpanded, cardNote, setCardRoll, setCardDecide, optionNote, refreshRoll, refreshCard, onCardChange } from "./render/card.js";
+import { openSquare, openEntry, closeCard, cardIdle, cardOpen, cardCarried, cardBlocking, cardExpanded, releaseCard, cardNote, setCardRoll, setCardDecide, optionNote, refreshRoll, refreshCard, onCardChange } from "./render/card.js";
+import { landHuman, landCpu, clearLanded, drawLanded } from "./render/landed.js";
 import { sheetState } from "./render/sheet.js";
 import { renderCodex, showTab } from "./render/codex.js";
 import { renderLog } from "./render/log.js";
@@ -141,18 +142,24 @@ async function takeTurn() {
   if (G.busy || state.over) return;
   const g = G.gen;
   G.busy = true; render();
-  // nobody moves while someone is reading a card, unless they rolled from it
+  // nobody moves while a situation waits on its card for a choice
   await waitCard();
   if (g !== G.gen) return;
   const p = cur(), idx = state.turn, el = tokenEls[idx];
-  if (p.type === "human") cardNote("");
+  // A person's roll takes away the card and the line under the board: the next landing tells its own. From 94 the
+  // card stays until the dice are chosen between, since on a phone the choice is on it (REDESIGN.md Phase 9).
+  let shut = null;
+  if (p.type === "human") { cardNote(""); clearLanded(); G.humanRolled = true; if (cardOpen() && diceFor(p) < 2) shut = closeCard(); }
   release();
   const dice = await rollDice(diceFor(p));
+  await shut;
   if (g !== G.gen) return;
   state.dice = dice;
   // a choice with only one move in it (a double, where there is no sitting) is not asked
   const only = dice.length > 1 && movesFor(state, dice).length === 1;
   const v = dice.length < 2 || only ? dice[0] : p.type === "human" ? await choose(dice) : moveFor(state, dice);
+  if (g !== G.gen) return;
+  if (p.type === "human" && !shut && cardOpen()) await closeCard();
   if (g !== G.gen) return;
   state.last = v || dice[0];
   // the drone begins with the first roll
@@ -183,37 +190,39 @@ async function takeTurn() {
     if (stageOf({ ...p, years: ageStep(p.years ?? 0, p.pos) }) !== born) pullBack();
     await waitCard();
     if (g !== G.gen) return;
-    // Rolled from the card, it turns to each of the reader's own landings, whatever landAll says, and a
-    // computer's move is only noted on it. Otherwise a person's landing card waits for them, and a computer's
-    // closes itself unless someone starts reading it.
-    const carried = cardCarried();
+    // Weighted by what happened (REDESIGN.md Phase 11): a person's situation, snake, ladder, first meeting by name,
+    // first realm and the exit open the full card; any other landing, and every computer's, is a line under the board.
+    // Only the situation waits on its card, for the choice; the others go with the game.
+    let full = false;
     if (plan.situation) {
-      // a situation's card always opens, since the choice is on it; rolled from, only for the reader's own landing
-      const shown = carried ? p.type === "human" : true;
-      G.waitingCard = shown && !carried; refreshRoll();
-      const read = shown ? openSquare(p.pos, { landing: true, auto: p.type === "cpu", who: idx }) : Promise.resolve();
+      if (p.type === "human") {
+        full = true;
+        G.waitingCard = true; refreshRoll();
+        openSquare(p.pos, { landing: true, who: idx });
+      }
       const id = p.type === "human" ? await decide(plan.situation, p) : choiceFor(state, plan.situation);
       if (g !== G.gen) return;
       plan = resolveChoice(state, plan, id);
       G.plan = plan;
       refreshCard();
-      await read;
+      if (p.type === "human") releaseCard();
       G.waitingCard = false; refreshRoll();
+    } else if (!plan.sit && p.type === "human" && fullCard(state, plan, idx)) {
+      // a year sat out lands nowhere new, so nothing opens for it
+      full = true;
+      // settles once the card is up, since it no longer waits to be closed: the camera moves again only after that
+      await openSquare(p.pos, { landing: true, who: idx, focus: false });
       if (g !== G.gen) return;
-    } else if (!plan.sit && (carried ? p.type === "human" : prefs.landAll || !SQ[p.pos])) {
-      // a year sat out lands nowhere new, so no card opens for it
-      // a card rolled from goes on with the game, so the turn is not waiting on it
-      G.waitingCard = !carried; refreshRoll();
-      await openSquare(p.pos, { landing: true, auto: p.type === "cpu", who: idx });
-      G.waitingCard = false; refreshRoll();
-      if (g !== G.gen) return;
+    }
+    if (!plan.sit && !full) {
+      if (p.type === "human") landHuman(p.pos, idx);
+      else landCpu(p.pos, idx, [...plan.after, ...plan.end].filter(e => e.k && !["lPassed", "lSix", "lStay", "lStayOne"].includes(e.k)).at(-1), plan.choice ? optionOf(plan.target, plan.choice) : null);
     }
     plan.after.forEach(log);
     if (plan.jump) {
-      await waitCard();
       if (g !== G.gen) return;
       // the card stays open over the jump, so it waits only a reading beat (a pause, not a motion)
-      if (cardCarried() && p.type === "human") await new Promise(r => setTimeout(r, reduced ? 300 : 900));
+      if (full && cardOpen()) await new Promise(r => setTimeout(r, reduced ? 300 : 900));
       if (g !== G.gen) return;
       // the Brahmā snake is the one place the divine row's tone truly falls; under reduced motion it still takes a moment
       if (plan.jump.rebirth) sound.fall(swallowSecs(p.pos, plan.jump.to) || 1.2);
@@ -225,6 +234,8 @@ async function takeTurn() {
   }
   endTurn(state, plan);
   G.plan = null; G.face = null;
+  // the viewer's own life is over, or begun again: the first life's quiet cards end with it (prefs.js)
+  if (p.type === "human" && (plan.died || plan.win || plan.jump?.rebirth) && firstLife()) { lifeLived(); refreshCard(); }
   // a person whose years run out reads their life at once, rather than watching the others finish
   if (plan.died && p.type === "human") openLife(idx);
   if (cardCarried() && p.type === "cpu") cardNote(tIn(lang, "cardMoved", { name: pname(p), n: plan.final }));
@@ -237,9 +248,18 @@ async function takeTurn() {
   pump();
 }
 
-// Waits while a card is open and being read. A card rolled from is not waited for.
+// Whether a person's landing opens the full card: everything that changes a life, or every landing when the reader
+// has asked for that. plan has not been ended yet, so p.life is the life before this landing.
+function fullCard(state, plan, idx) {
+  if (prefs.everyCard || plan.jump || plan.target === GOAL) return true;
+  const p = state.players[idx], n = plan.target;
+  if (HEAVEN[n]) return !p.life?.includes(n);
+  return meetsNamed(state, idx, momentOf(n, plan.told?.[0]).moment ?? squareOf(n)?.moment);
+}
+
+// Waits while a situation's card waits for its choice. No other card holds the game up.
 async function waitCard() {
-  if (!cardOpen() || cardCarried()) return;
+  if (!cardBlocking()) return;
   G.waitingCard = true; refreshRoll();
   await cardIdle();
   G.waitingCard = false; refreshRoll();
@@ -352,7 +372,7 @@ function renderSetup() {
   $("ruleBrahmaloka").checked = !!setup.rules.brahmaloka;
   $("prefDepth").innerHTML = [["story", "depthStory"], ["school", "depthSchool"], ["scholar", "depthScholar"]]
     .map(([v, k]) => `<option value="${v}"${v === prefs.depth ? " selected" : ""}>${t(k)}</option>`).join("");
-  $("prefLand").checked = prefs.landAll;
+  $("prefEvery").checked = prefs.everyCard;
   $("prefBoth").checked = prefs.both;
 }
 function readSetup() {
@@ -387,6 +407,7 @@ function setLang(l) {
   renderCodex();
   refreshCard();
   refreshLife();
+  drawLanded();
 }
 document.querySelectorAll("[data-lang]").forEach(b => b.addEventListener("click", () => setLang(b.dataset.lang)));
 
@@ -402,12 +423,15 @@ let nextSeed = urlSeed != null && /^\d+$/.test(urlSeed) ? +urlSeed >>> 0 : null;
 function startGame() {
   G.gen++;
   clearTimeout(G.cpuTimer);
-  G.rollQueued = false; G.plan = null; G.face = null; G.waitingCard = false;
+  // a game left after a roll was a life, as one that ended is (prefs.js)
+  if (G.humanRolled && firstLife()) lifeLived();
+  G.rollQueued = false; G.plan = null; G.face = null; G.waitingCard = false; G.humanRolled = false;
   // a choice still waiting belongs to the game being left
   G.choosing = null; G.deciding = null; $("pick").hidden = true; $("pick").innerHTML = ""; $("roll").hidden = false;
   closeCard({ instant: true });
   closeLife();
   $("toastSlot").innerHTML = "";
+  clearLanded();
   if (S) fxClear();
   G.busy = false;
   G.state = newState(nextSeed ?? freshSeed());
@@ -457,8 +481,11 @@ document.addEventListener("keydown", e => {
   if (e.code !== "Space" || e.target.closest("input, select, button, textarea, summary")) return;
   if (e.target.closest("[role=button]")) return;
   e.preventDefault();
-  if (cardOpen()) return closeCard();
-  if (cur().type === "human") takeTurn();
+  // a situation's choice is made with 1, 2 and 3, not by rolling past it
+  if (cardBlocking()) return;
+  // a person's roll takes the card away (REDESIGN.md Phase 11)
+  if (cur().type === "human" && !G.busy && !G.state.over) return takeTurn();
+  if (cardOpen()) closeCard();
 });
 
 // ---- Reading the board without playing: any square, any move in the log ----
@@ -490,7 +517,7 @@ $("log").addEventListener("click", e => {
 
 // ---- Preferences, which apply at once ----
 $("prefDepth").addEventListener("change", e => { setPref("depth", e.target.value); refreshCard(); });
-$("prefLand").addEventListener("change", e => setPref("landAll", e.target.checked));
+$("prefEvery").addEventListener("change", e => setPref("everyCard", e.target.checked));
 $("prefBoth").addEventListener("change", e => { setPref("both", e.target.checked); refreshCard(); });
 function renderMute() {
   const b = $("mute");
@@ -566,6 +593,10 @@ if (new URLSearchParams(location.search).has("debug")) {
     // mp.cast(0) is player 0's cast for this game, names, genders and ages, as the account draws it (Phase 10C)
     cast: (i = 0, life = 0) => castOf(G.state, i, life),
     naming: openNaming,
+    // mp.first() treats this viewer as new from here on, as ?first does: the first life's cards, every bridge untold
+    first() { beFirst(); refreshCard(); return firstLife(); },
+    // the line under the board, or null when it is empty
+    landed: () => ($("landed").hidden ? null : $("landed").textContent),
   };
 }
 
@@ -584,7 +615,7 @@ function start(data) {
   else {
     startGame();
     // the naming comes first for someone new, unless they arrived on a link to one card
-    if (!data?.setup && !loadSelf() && !location.hash) openNaming();
+    if (freshViewer || (!data?.setup && !loadSelf() && !location.hash)) openNaming();
   }
   draw();
   renderCodex();

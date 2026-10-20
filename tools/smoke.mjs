@@ -181,35 +181,32 @@ await check("a human's landing card stays open; Space then rolls", async page =>
   await page.waitForFunction(() => !document.getElementById("folio").open);
 });
 
-await check("the computer waits while a card is open, then carries on", async page => {
+await check("Phase 11: a card does not hold the game up: the computers play on under it, and it stays open", async page => {
   await twoCpus(page);
   await page.goto(BASE + "?seed=2&debug");
-  await page.evaluate(() => { mp.open(50); }); // open() settles only when the card closes
+  await page.evaluate(() => { mp.open(50); });
+  await page.waitForFunction(() => document.getElementById("folio").open);
   const before = await page.evaluate(() => mp.state.log.length);
-  await page.waitForTimeout(4000);
-  assert((await page.evaluate(() => mp.state.log.length)) === before, "a computer moved while a card was open");
-  await page.evaluate(() => mp.close());
-  await page.waitForFunction(n => mp.state.log.length > n, before, { timeout: 20000 });
+  await page.waitForFunction(n => mp.state.log.length > n + 2, before, { timeout: 20000 });
+  assert(await folioOpen(page), "the card closed when a computer moved");
+  assert(await page.evaluate(() => location.hash === "#sq/50"), "a computer's move turned the reader's card");
 });
 
-await check("a computer's landing card closes itself, unless someone is reading", async page => {
+await check("Phase 11: a computer's turn opens no card, and is told in the line under the board", async page => {
   await twoCpus(page);
   await page.goto(BASE + "?seed=2&debug");
-  await page.waitForFunction(() => document.getElementById("folio").open, null, { timeout: 15000 });
-  await page.waitForFunction(() => !document.getElementById("folio").open, null, { timeout: 8000 });
-  await page.waitForFunction(() => document.getElementById("folio").open, null, { timeout: 15000 });
-  await page.mouse.move(600, 450); await page.mouse.move(610, 460);
-  await page.waitForTimeout(6000);
-  assert(await folioOpen(page), "the card closed while being read");
+  await page.evaluate(() => { window.opened = 0; new MutationObserver(() => { if (document.getElementById("folio").open) opened++; }).observe(document.getElementById("folio"), { attributes: true }); });
+  await page.waitForFunction(() => mp.state.log.length >= 8, null, { timeout: 30000 });
+  const r = await page.evaluate(() => ({ opened, landed: mp.landed() }));
+  assert(r.opened === 0, `${r.opened} cards opened for the computers`);
+  assert(r.landed && /rolled|reached|came back/.test(r.landed), `the line under the board: ${r.landed}`);
 });
 
 await check("each log entry reopens its square", async page => {
   // you against the computer: roll, read, close, and wait for your turn to come back
   await page.goto(BASE + "?seed=5&debug");
   await page.keyboard.press("Space");
-  await page.waitForFunction(() => document.getElementById("folio").open, null, { timeout: 15000 });
-  await page.keyboard.press("Escape");
-  await page.waitForFunction(() => !document.getElementById("roll").disabled && !document.getElementById("folio").open && document.querySelectorAll("#log .logbtn").length >= 2, null, { timeout: 30000 });
+  await page.waitForFunction(() => { if (document.getElementById("folio").open) mp.close({ instant: true }); return !document.getElementById("roll").disabled && document.querySelectorAll("#log .logbtn").length >= 2; }, null, { timeout: 30000, polling: 200 });
   const sq = await page.evaluate(() => { const b = document.querySelector("#log .logbtn"); b.click(); return +b.dataset.sq; });
   await page.waitForFunction(() => document.getElementById("folio").open);
   assert(await page.evaluate(sq => location.hash === `#sq/${sq}`, sq), "log entry opened the wrong square");
@@ -602,8 +599,9 @@ await check("Phase 9: rolled from the card on a phone, the choice is on the card
   assert(labels.join("|") === "Move 1|Move 3|Sit", labels.join("|"));
   await page.click('#leaf .pick-c button[data-v="0"]');
   await page.waitForFunction(() => mp.state.log.some(e => e.k === "lSit") && !mp.busy, null, { timeout: 15000 });
+  // the card stayed for the choice, and went once it was made (REDESIGN.md Phase 11)
   const r = await page.evaluate(() => ({ p: mp.state.players[0].pos, y: mp.state.players[0].years, practised: mp.practised(0), open: document.getElementById("folio").open }));
-  assert(r.p === 96 && r.y === 87 && r.practised === 2 && r.open, JSON.stringify(r));
+  assert(r.p === 96 && r.y === 87 && r.practised === 2 && !r.open, JSON.stringify(r));
 }, { phone: [375, 812] });
 
 await check("Phase 9: the account tells a year sat out, and a life let go names what it put down", async page => {
@@ -849,9 +847,9 @@ await check("Phase 6: the sheet goes by swipe, backdrop, × and Escape; a scroll
   await page.evaluate(() => { document.querySelector("#leaf .leaf-main").scrollTop = 0; });
   await drag(page, 200, mid.top + 40, 800);
   assert(!(await folioOpen(page)), "a drag down from the top of the text did not close the card");
-  // the backdrop, the × and Escape
+  // the page around it (Phase 11: there is no backdrop, the board stays live), the × and Escape
   await openOn(page, 34);
-  await page.mouse.click(187, 20);
+  await page.mouse.click(3, 200);
   await page.waitForFunction(() => !document.getElementById("folio").open);
   await openOn(page, 34);
   await page.click("#leaf .x-foot");
@@ -868,25 +866,30 @@ await check("Phase 6: under reduced motion the sheet comes and goes without movi
   assert(moving === 0, `${moving} animations on the sheet`);
 }, { phone: [375, 812] });
 
-await check("Phase 6: rolling from the card keeps it open, turns it to each of your landings, and leaves the computer's alone", async page => {
+await check("Phase 11: on a phone, rolling from the card takes it away, and each of your landings tells its own, never the computer's", async page => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.addInitScript(() => { const st = window.setTimeout; window.setTimeout = (f, ms, ...r) => st(f, Math.min(ms, 30), ...r); });
   await page.goto(BASE + "?seed=5&debug");
-  await page.click("#roll");
-  await page.waitForFunction(() => document.getElementById("folio").open, null, { timeout: 15000 });
-  // every square the card shows from here on
-  await page.evaluate(() => { window.shown = []; new MutationObserver(() => shown.push(location.hash)).observe(document.getElementById("leaf"), { childList: true }); });
+  await openOn(page, 34);
+  // every square a card or the line under the board shows from here on
+  await page.evaluate(() => {
+    window.shown = []; window.lines = [];
+    new MutationObserver(() => document.getElementById("folio").open && shown.push(location.hash)).observe(document.getElementById("leaf"), { childList: true });
+    new MutationObserver(() => mp.landed() && lines.push([+document.getElementById("landed").dataset.sq, mp.state.turn])).observe(document.getElementById("landed"), { childList: true, attributes: true });
+  });
+  assert(await page.evaluate(() => mp.rollFromCard()), "the card had no Roll");
+  await page.waitForFunction(() => !document.getElementById("folio").open, null, { timeout: 5000 });
   for (let i = 0; i < 4; i++) {
-    const before = await page.evaluate(() => mp.state.log.length);
-    await page.waitForFunction(() => document.querySelector('#leaf .roll-c[aria-disabled="false"]'), null, { timeout: 15000 });
-    await page.click("#leaf .roll-c");
-    await page.waitForFunction(n => !mp.state.winner && mp.state.log.length > n && document.querySelector('#leaf .roll-c[aria-disabled="false"]'), before, { timeout: 20000 });
-    assert(await folioOpen(page), `the card closed on roll ${i + 1}`);
+    const before = await page.evaluate(() => mp.state.players[0].life?.length ?? 0);
+    await page.waitForFunction(n => (mp.state.players[0].life?.length ?? 0) > n && !mp.busy && mp.state.turn === 0 && !document.getElementById("roll").disabled, before, { timeout: 20000 });
+    const told = await page.evaluate(() => ({ card: document.getElementById("folio").open ? location.hash : null, line: mp.landed(), pos: mp.state.players[0].life.at(-1) }));
+    assert(told.card || told.line, `landing ${i + 1} on ${told.pos} told nothing`);
+    if (i < 3) { await page.evaluate(() => document.getElementById("roll").click()); }
   }
   const r = await page.evaluate(() => ({ shown: [...new Set(shown)], mine: mp.state.players[0].life, carried: mp.sheet().carried, cpu: mp.state.log.filter(e => e.who === 1).length }));
-  assert(r.carried && r.cpu > 0, JSON.stringify(r));
-  const strays = r.shown.filter(h => !r.mine.includes(+h.split("/")[1]));
-  assert(!strays.length, `the card showed squares that were not yours: ${strays} (yours: ${r.mine})`);
+  assert(r.cpu > 0, JSON.stringify(r));
+  const strays = r.shown.filter(h => h !== "#sq/34" && !r.mine.includes(+h.split("/")[1]));
+  assert(!strays.length, `a card showed squares that were not yours: ${strays} (yours: ${r.mine})`);
 }, { phone: [375, 812] });
 
 await check("Phase 6: rolled from the card onto a snake, the card stays on the snake and the token still falls", async page => {
@@ -908,24 +911,168 @@ await check("Phase 6: a six rolled from the card offers to roll again", async pa
   await page.evaluate(() => { mp.jump(40); mp.open(40); });
   await page.waitForFunction(() => document.getElementById("folio").open);
   await page.evaluate(() => mp.rollFromCard(6));
-  await page.waitForFunction(() => mp.state.players[0].pos === 46 && document.querySelector('#leaf .roll-c[aria-disabled="false"]'), null, { timeout: 15000 });
+  await page.waitForFunction(() => mp.state.players[0].pos === 46 && !mp.busy, null, { timeout: 15000 });
+  // the roll took the card away (Phase 11); any card opened now offers the roll again
+  await page.evaluate(() => mp.open(46));
+  await page.waitForFunction(() => document.querySelector('#leaf .roll-c[aria-disabled="false"]'), null, { timeout: 15000 });
   const label = await page.evaluate(() => document.querySelector("#leaf .roll-c").textContent);
   assert(label === "Roll again", `the card's Roll says ${label}`);
 }, { phone: [375, 812] });
 
-await check("Phase 6: on a wide screen the card is the centred folio it was, × top right, no grip, with the morph", async page => {
+await check("Phase 6: on a wide screen the card is the folio it was, over the board and clear of the dice, × top right, no grip, with the morph", async page => {
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.goto(BASE + "?seed=1&debug");
   await page.evaluate(() => { const vt = document.startViewTransition.bind(document); window.morphs = 0; document.startViewTransition = f => { morphs++; return vt(f); }; });
   await page.click('#labels .lab[data-n="14"]');
   await page.waitForFunction(() => document.getElementById("folio").open);
   await page.waitForTimeout(500);
-  const leaf = await rect(page, "#leaf"), x = await rect(page, "#leaf .x-top");
+  const leaf = await rect(page, "#leaf"), x = await rect(page, "#leaf .x-top"), col = await rect(page, ".board-col"), roll = await rect(page, "#roll");
   const r = await page.evaluate(() => ({ morphs, grip: document.querySelector("#leaf .grip").getClientRects().length, sheet: mp.sheet().sheet }));
-  assert(Math.round(leaf.right - leaf.left) === 780 && Math.abs(leaf.left + leaf.right - 1280) < 2, `the card is at ${JSON.stringify(leaf)}`);
+  // Phase 11: not modal, so it sits over the board, centred on it, and the panel with the dice stays in reach
+  assert(Math.round(leaf.right - leaf.left) <= 780 && Math.abs(leaf.x - col.x) < 2 && leaf.right <= roll.left, `the card is at ${JSON.stringify(leaf)}, the board at ${JSON.stringify(col)}, the Roll at ${JSON.stringify(roll)}`);
   assert(x.right > leaf.right - 60 && x.top < leaf.top + 40, `the × is at ${JSON.stringify(x)}`);
   assert(r.morphs === 1 && r.grip === 0 && r.sheet === null, JSON.stringify(r));
 });
+
+// ---- Phase 11: the first five minutes ----
+// a first-time player, as ?first makes one: named in the naming, as anyone new is
+const firstTime = async (page, q = "") => {
+  await page.goto(BASE + "?first&debug&seed=1" + q);
+  await page.waitForFunction(() => document.getElementById("naming").open);
+  await page.fill("#namingName", "Asha");
+  await page.check('#namingGenders input[value="f"]');
+  await page.click('#namingForm button[type="submit"], #namingForm [type="submit"]');
+  await page.waitForFunction(() => !document.getElementById("naming").open);
+};
+
+await check("Phase 11: the die is live under a card: a landing's card keeps the focus off it, and Space rolls it away", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=1&debug");
+  // the ladder at 6 opens the full card
+  await page.evaluate(() => { mp.jump(5); mp.roll(1); });
+  await page.waitForFunction(() => document.getElementById("folio").open && location.hash === "#sq/6", null, { timeout: 15000 });
+  await page.waitForFunction(() => !mp.busy && mp.state.turn === 0 && !document.getElementById("roll").disabled, null, { timeout: 20000 });
+  const r = await page.evaluate(() => ({ modal: document.getElementById("folio").matches(":modal"), focus: !!document.activeElement?.closest("#leaf"), life: mp.state.players[0].life.length }));
+  assert(!r.modal && !r.focus, JSON.stringify(r));
+  await page.keyboard.press("Space");
+  await page.waitForFunction(n => mp.state.players[0].life.length > n, r.life, { timeout: 15000 });
+  // and the panel's Roll is in reach under a card opened from the board
+  await page.waitForFunction(() => !mp.busy && mp.state.turn === 0 && !document.getElementById("roll").disabled, null, { timeout: 20000 });
+  await page.click('#labels .lab[data-n="50"]');
+  await page.waitForFunction(() => document.getElementById("folio").open);
+  const life = await page.evaluate(() => mp.state.players[0].life.length);
+  await page.click("#roll");
+  await page.waitForFunction(n => mp.state.players[0].life.length > n, life, { timeout: 15000 });
+});
+
+await check("Phase 11: a situation still waits for its choice: modal, and Space does not roll past it", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=1&debug");
+  await page.evaluate(() => { Object.assign(mp.state.players[0], { pos: 52, life: [52], told: [null], years: 40 }); mp.roll(3); });
+  await page.waitForFunction(() => mp.deciding && document.querySelector("#leaf .options"), null, { timeout: 30000 });
+  assert(await page.evaluate(() => document.getElementById("folio").matches(":modal")), "the situation's card is not modal");
+  const before = await page.evaluate(() => mp.state.log.length);
+  await page.keyboard.press("Space");
+  await page.waitForTimeout(800);
+  assert(await page.evaluate(n => mp.deciding && mp.state.log.length === n, before), "Space rolled past the choice");
+  await page.keyboard.press("2");
+  await page.waitForFunction(() => !mp.deciding && !mp.busy, null, { timeout: 30000 });
+  const r = await page.evaluate(() => ({ open: document.getElementById("folio").open, modal: document.getElementById("folio").matches(":modal") }));
+  assert(r.open && !r.modal, `after the choice the card should stay, and stop holding the game: ${JSON.stringify(r)}`);
+});
+
+await check("Phase 11: an ordinary landing is a line under the board, with its moment, and opens its card", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=1&debug");
+  await page.evaluate(() => { mp.jump(30); mp.roll(2); });
+  await page.waitForFunction(() => !mp.busy && mp.landed(), null, { timeout: 15000 });
+  const r = await page.evaluate(() => ({ open: document.getElementById("folio").open, line: mp.landed(), sq: document.getElementById("landed").dataset.sq }));
+  assert(!r.open && r.sq === "32" && r.line.length > 20, JSON.stringify(r));
+  await page.click("#landed");
+  await page.waitForFunction(() => document.getElementById("folio").open && location.hash === "#sq/32");
+  // the same line in Hindi
+  await page.evaluate(() => { mp.close({ instant: true }); mp.setLang("hi"); });
+  assert(/[\u0900-\u097F]/.test(await page.evaluate(() => mp.landed())), "the line did not follow the language");
+});
+
+await check("Phase 11: with every card asked for, an ordinary landing opens the full card", async page => {
+  await page.addInitScript(() => localStorage.setItem("mp-prefs", JSON.stringify({ everyCard: true })));
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=1&debug");
+  await page.evaluate(() => { mp.jump(30); mp.roll(2); });
+  await page.waitForFunction(() => document.getElementById("folio").open && location.hash === "#sq/32", null, { timeout: 15000 });
+  assert(!(await page.evaluate(() => mp.landed())), "the line showed as well as the card");
+});
+
+await check("Phase 11: the first life shows the moment, with the story behind its bridge; opened once, it stays open", async page => {
+  await firstTime(page);
+  await page.evaluate(() => mp.open(28));
+  await page.waitForFunction(() => document.getElementById("folio").open);
+  let r = await page.evaluate(() => ({ more: document.querySelector("#leaf .story-more")?.textContent, mirror: !!document.querySelector("#leaf p.mirror"), voices: !!document.querySelector("#leaf .more-btn"), moment: !!document.querySelector("#leaf p.moment") }));
+  assert(r.moment && !r.mirror && !r.voices && /An Upanishad story: Satyakāma/.test(r.more || ""), JSON.stringify(r));
+  await page.click("#leaf .story-more");
+  r = await page.evaluate(() => ({ bridge: document.querySelector("#leaf p.bridge")?.textContent, mirror: document.querySelector("#leaf p.mirror")?.textContent, voices: !!document.querySelector("#leaf .more-btn") }));
+  assert(/Satyakāma/.test(r.bridge || "") && /Satyakama/.test(r.mirror || "") && r.voices, JSON.stringify(r));
+  // the next card opens with its story showing, and a figure met before is not told again
+  await page.evaluate(() => mp.open(32));
+  await page.waitForFunction(() => location.hash === "#sq/32");
+  r = await page.evaluate(() => ({ more: !!document.querySelector("#leaf .story-more"), bridge: document.querySelector("#leaf p.bridge")?.textContent, mirror: !!document.querySelector("#leaf p.mirror") }));
+  assert(!r.more && r.mirror && /Śvetaketu/.test(r.bridge || ""), JSON.stringify(r));
+  await page.evaluate(async () => { await mp.close({ instant: true }); await mp.open(45); });
+  r = await page.evaluate(() => ({ bridge: !!document.querySelector("#leaf p.bridge"), mirror: !!document.querySelector("#leaf p.mirror") }));
+  assert(!r.bridge && r.mirror, `Satyakāma told twice: ${JSON.stringify(r)}`);
+  // ?first leaves what is stored alone
+  assert(await page.evaluate(() => localStorage.getItem("mp-first") === null && localStorage.getItem("mp-who") === null), "?first wrote to storage");
+});
+
+await check("Phase 11: someone new is in their first life across a reload; a story already known reads 'The old story'", async page => {
+  // no name kept: someone who has never played
+  await page.goto(BASE + "?seed=1&debug");
+  await page.waitForFunction(() => document.getElementById("naming").open);
+  await page.fill("#namingName", "Asha");
+  await page.check('#namingGenders input[value="f"]');
+  await page.click('#namingForm [type="submit"]');
+  await page.evaluate(() => mp.open(28));
+  await page.waitForFunction(() => document.querySelector("#leaf .story-more"));
+  await page.click("#leaf .story-more");
+  const kept = await page.evaluate(() => ({ lives: localStorage.getItem("mp-lives"), first: localStorage.getItem("mp-first"), who: localStorage.getItem("mp-who") }));
+  assert(kept.lives === "0" && kept.first === '"mirror"' && /Satyakama/.test(kept.who || ""), JSON.stringify(kept));
+  // the story closed again, as it is at the start of a first life, and the page reloaded mid-life
+  await page.evaluate(() => localStorage.setItem("mp-first", '"moment"'));
+  await page.reload();
+  await page.evaluate(() => mp.open(45));
+  await page.waitForFunction(() => document.getElementById("folio").open);
+  const en = await page.evaluate(() => document.querySelector("#leaf .story-more")?.textContent);
+  await page.evaluate(() => mp.setLang("hi"));
+  const hi = await page.evaluate(() => document.querySelector("#leaf .story-more")?.textContent);
+  assert(en === "The old story" && hi === "पुरानी कथा", `${en} / ${hi}`);
+}, { named: false });
+
+await check("Phase 11: a returning player keeps the full card, and every mirror a card shows has its bridge", async page => {
+  await page.goto(BASE + "?seed=1&debug");
+  const missing = await page.evaluate(async () => {
+    const out = [];
+    for (let n = 1; n <= 110; n++) {
+      await mp.open(n);
+      if (document.querySelector("#leaf .story-more")) out.push(`${n}: hidden for a returning player`);
+      if (!document.querySelector("#leaf .story p.mirror, #leaf .story p:not(.moment)")) out.push(`${n}: no mirror`);
+      await mp.close({ instant: true });
+    }
+    return out;
+  });
+  assert(!missing.length, missing.slice(0, 5).join("; "));
+});
+
+await check("Phase 11: on a phone the sheet does not trap: a square tapped turns it, and a tap beside the board closes it", async page => {
+  await page.goto(BASE + "?seed=1&debug");
+  await openOn(page, 34);
+  const lab = await rect(page, '#labels .lab[data-n="20"]');
+  await page.mouse.click(lab.x, (lab.top + lab.bottom) / 2);
+  await page.waitForFunction(() => location.hash === "#sq/20", null, { timeout: 5000 });
+  assert(await folioOpen(page), "tapping a square closed the sheet");
+  await page.mouse.click(3, 200);
+  await page.waitForFunction(() => !document.getElementById("folio").open, null, { timeout: 5000 });
+}, { phone: [375, 812] });
 
 await check("installable: manifest and service worker pass Chrome's check", async page => {
   await page.goto(BASE);
@@ -946,7 +1093,7 @@ await check("offline: after one visit the game reloads and plays with no network
   await page.reload();
   assert(await page.evaluate(() => document.querySelectorAll("#labels .lab").length) === 110, "board did not render offline");
   await page.keyboard.press("Space");
-  await page.waitForFunction(() => document.getElementById("folio").open, null, { timeout: 15000 });
+  await page.waitForFunction(() => document.getElementById("folio").open || !document.getElementById("landed").hidden, null, { timeout: 15000 });
   const loaded = await page.evaluate(async () => { await document.fonts.ready; return [...document.fonts].filter(f => f.status === "loaded").map(f => f.family.replace(/"/g, "")); });
   assert(loaded.includes("Crimson Pro"), "card font not available offline: " + loaded.join(", "));
   await ctx.setOffline(false);

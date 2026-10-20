@@ -232,6 +232,21 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 }
 @keyframes toast { 0% { opacity: 0; transform: translate(-50%, -40%); } 10%, 82% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; transform: translate(-50%, 0); } }
 
+/* The line under the board (REDESIGN.md Phase 11): an ordinary landing, told in a line, which opens its card */
+.landed {
+  width: 100%; max-width: 600px; margin: 0; padding: 8px 12px; text-align: left;
+  border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--ink);
+  font: 400 15px/1.4 var(--f-card); cursor: pointer;
+}
+/* the whole moment where it fits: two lines on a wide screen, three on a phone, where it is the card */
+.landed-t { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+@media (max-width: 767px) { .landed-t { -webkit-line-clamp: 3; } }
+.landed:lang(hi) { font-family: var(--f-card-hi); }
+.landed b { font: 600 13px/1.4 var(--f-body); color: var(--muted); margin-right: 4px; }
+.landed b::after { content: " ·"; }
+.landed:hover { border-color: var(--accent); }
+.landed:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
 /* The card: a pothi folio, a landscape manuscript leaf with a string hole, its text held between double red rules.
    Fixed paper colours, so it reads the same in both themes. */
 .folio {
@@ -239,6 +254,8 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
   width: min(780px, calc(100vw - 24px)); max-width: none; max-height: calc(100dvh - 24px);
 }
 .folio::backdrop { background: rgba(20, 12, 4, 0.58); }
+/* not modal (Phase 11): no backdrop, the board and dice live around it; on a wide screen it sits over the board */
+.folio:not(:modal)[open] { position: fixed; inset: 0; margin: auto; height: fit-content; z-index: 30; }
 .leaf {
   --l-ink: #2A1A08; --l-ink2: #5E4527; --l-gold: #8A5A1E; --l-rule: #B5261E; --l-line: rgba(110, 70, 20, 0.32);
   view-transition-name: folio;
@@ -336,6 +353,17 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 .leaf .story p.moment.remnant { font-style: italic; color: var(--l-ink2); }
 .leaf .story p.mirror { font-size: 18px; color: var(--l-ink2); }
 .leaf .story p.moment.second, .leaf .story p.mirror.second { font-size: 0.86em; }
+/* Phase 11: the bridge says the mirror is a story and who is in it; in the first life the story waits behind it */
+.leaf .story p.bridge { margin-bottom: 2px; font: 600 12px/1.4 var(--f-body); letter-spacing: 0.04em; color: var(--l-gold); }
+.leaf .story p.bridge.second { font-size: 11px; }
+.leaf .story-more {
+  display: block; margin: 12px 0 2px; padding: 4px 0; border: 0; background: none; text-align: left; cursor: pointer;
+  font: italic 18px/1.4 var(--f-card); color: var(--l-ink2); opacity: 0.8;
+}
+.leaf .story-more:lang(hi) { font-family: var(--f-card-hi); font-style: normal; }
+.leaf .story-more::before { content: "▸ "; font-style: normal; color: var(--l-gold); }
+.leaf .story-more:hover { opacity: 1; text-decoration: underline; text-decoration-color: var(--l-line); }
+.leaf .story p:focus, .leaf h2[tabindex="-1"]:focus { outline: none; }
 
 /* the naming, before the board */
 .naming { width: min(460px, calc(100vw - 32px)); }
@@ -790,6 +818,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           </div>
         </div>
       </div>
+      <button type="button" class="landed" id="landed" aria-live="polite" hidden></button>
       <div class="tray"><span class="label" data-t="start">Start</span><span class="slots" id="tray"></span></div>
     </div>
 
@@ -830,7 +859,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           <label class="check"><input type="checkbox" id="ruleBrahmaloka"> <span data-t="ruleBrahmaloka"></span></label>
           <label class="pick"><span data-t="depth"></span><select id="prefDepth"></select></label>
           <span class="hint depth-hint" data-t="depthHint"></span>
-          <label class="check"><input type="checkbox" id="prefLand"> <span data-t="landAll"></span></label>
+          <label class="check"><input type="checkbox" id="prefEvery"> <span data-t="everyCard"></span></label>
           <label class="check"><input type="checkbox" id="prefBoth"> <span data-t="cardBoth"></span></label>
           <button id="newGame" type="button" data-t="newGame">Start new game</button>
           <span class="hint" id="seed"></span>
@@ -1102,7 +1131,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         depthStory: "Story",
         depthSchool: "Story + school",
         depthScholar: "Scholar",
-        landAll: "Open a card on every landing (otherwise only snakes, ladders and realms)",
+        everyCard: "Open the full card on every square (otherwise an ordinary square is told in a line under the board)",
+        storyMore: "The old story",
         cardBoth: "Show both languages on cards, for Hindi learners",
         close: "Close",
         prevSq: "Previous square",
@@ -1288,7 +1318,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         depthStory: "कथा",
         depthSchool: "कथा + दर्शन",
         depthScholar: "विद्वान",
-        landAll: "हर खाने पर उतरते ही कार्ड खोलें (नहीं तो केवल साँप, सीढ़ी और लोक)",
+        everyCard: "हर खाने पर पूरा कार्ड खोलें (नहीं तो साधारण खाना बोर्ड के नीचे एक पंक्ति में बताया जाता है)",
+        storyMore: "पुरानी कथा",
         cardBoth: "कार्ड पर दोनों भाषाएँ दिखाएँ, हिंदी सीखने वालों के लिए",
         close: "बंद करें",
         prevSq: "पिछला खाना",
@@ -2504,6 +2535,79 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     }
   };
 
+  // content/bridges.json
+  var bridges_default = {
+    about: "What a cold reader is told the first time a mirror names someone: that it is a story, and who is in it (REDESIGN.md Phase 11). One bridge per figure, keyed by Codex id or by the figure's first English form in names.json, about eight words, no {name}. Which figure a mirror is about is whoOf in src/content.js: its own `who`, or whoever it names first. `same` sends a figure to another's bridge: the Panchatantra's animals are one story world, so it is said once.",
+    bridges: {
+      Aitareya: { en: "The Aitareya, an Upanishad: one of India's oldest books of teaching", hi: "ऐतरेय, एक उपनिषद्: भारत के सबसे पुराने ज्ञान-ग्रंथों में से एक" },
+      Taittiriya: { en: "The Taittirīya, an Upanishad: an old teacher's lessons to his students", hi: "तैत्तिरीय, एक उपनिषद्: एक प्राचीन गुरु की अपने शिष्यों को सीख" },
+      patanjali: { en: "Patañjali, who wrote the old handbook of yoga", hi: "पतंजलि, जिन्होंने योग का प्राचीन ग्रंथ लिखा" },
+      panchatantra: { en: "A fable from the Panchatantra, India's old book of animal stories", hi: "पंचतंत्र की एक कथा: जानवरों की कहानियों की प्राचीन भारतीय पुस्तक" },
+      badarayana: { en: "Bādarāyaṇa, who boiled the Upanishads down to short sayings", hi: "बादरायण, जिन्होंने उपनिषदों को छोटे-छोटे सूत्रों में बाँधा" },
+      vishnusharma: { en: "Vishnu Sharma, the old teacher behind the Panchatantra's animal stories", hi: "विष्णु शर्मा, पंचतंत्र की कहानियाँ सुनाने वाले वृद्ध गुरु" },
+      mimamsa: { en: "Mīmāṃsā, an old school of Indian thought about ritual and duty", hi: "मीमांसा, कर्मकांड और धर्म का एक प्राचीन दर्शन" },
+      samkhya: { en: "Sāṃkhya, one of the oldest schools of Indian thought", hi: "सांख्य, भारतीय चिंतन के सबसे पुराने दर्शनों में से एक" },
+      Prahlada: { en: "An old story: Prahlāda, a boy whose father was a demon king", hi: "एक पुरानी कथा: प्रह्लाद, एक बालक जिसके पिता असुरों के राजा थे" },
+      "Gṛhya Sūtras": { en: "The Gṛhya Sūtras, old handbooks for the rites of family life", hi: "गृह्यसूत्र, गृहस्थ जीवन के संस्कारों की प्राचीन पुस्तिकाएँ" },
+      Upamanyu: { en: "A Mahābhārata story: Upamanyu, a student who obeyed", hi: "महाभारत की एक कथा: उपमन्यु, एक आज्ञाकारी शिष्य" },
+      Aruni: { en: "A Mahābhārata story: Āruṇi, a student sent to guard a field", hi: "महाभारत की एक कथा: आरुणि, खेत की रखवाली पर भेजा गया एक शिष्य" },
+      vishvamitra: { en: "Viśvāmitra, a king who became a sage, in the old stories", hi: "पुरानी कथाओं के विश्वामित्र, जो राजा से ऋषि बने" },
+      Mundaka: { en: "The Muṇḍaka, an Upanishad: a short old book of teaching in verse", hi: "मुंडक, एक उपनिषद्: पद्य में लिखा एक छोटा प्राचीन ज्ञान-ग्रंथ" },
+      Pippalada: { en: "An Upanishad story: Pippalāda, a sage six seekers came to", hi: "एक उपनिषद् की कथा: पिप्पलाद, एक ऋषि जिनके पास छह जिज्ञासु आए" },
+      Satyakama: { en: "An Upanishad story: Satyakāma, a boy who wanted to be taught", hi: "एक उपनिषद् की कथा: सत्यकाम, एक बालक जो पढ़ना चाहता था" },
+      Yayati: { en: "A Mahābhārata story: Yayāti, a king who always wanted more", hi: "महाभारत की एक कथा: ययाति, एक राजा जिनकी चाह कभी नहीं भरी" },
+      Shvetaketu: { en: "An Upanishad story: Śvetaketu, a son taught by his father", hi: "एक उपनिषद् की कथा: श्वेतकेतु, एक पुत्र जिसे उसके पिता ने सिखाया" },
+      Nachiketa: { en: "An Upanishad story: Naciketā, a boy who went to see Death", hi: "एक उपनिषद् की कथा: नचिकेता, एक बालक जो यमराज से मिलने गया" },
+      Yama: { en: "Yama, the god of death, in an old Upanishad story", hi: "एक उपनिषद् की कथा में यम, मृत्यु के देवता" },
+      Manu: { en: "Manu, author of an old book of rules for living", hi: "मनु, जीवन के नियमों की एक प्राचीन पुस्तक के रचयिता" },
+      Prajapati: { en: "An Upanishad story: Prajāpati, father of the gods, the demons and people", hi: "एक उपनिषद् की कथा: प्रजापति, देवों, असुरों और मनुष्यों के पिता" },
+      Dhritarashtra: { en: "From the Mahābhārata: Dhṛtarāṣṭra, the blind king", hi: "महाभारत से: धृतराष्ट्र, अंधे राजा" },
+      ushasti: { en: "An Upanishad story: Uṣasti, a poor scholar caught in a famine", hi: "एक उपनिषद् की कथा: उषस्ति, अकाल में फँसा एक निर्धन विद्वान" },
+      carvaka: { en: "Cārvāka, the old Indian school that believed only what it could see", hi: "चार्वाक, वह प्राचीन भारतीय दर्शन जो केवल प्रत्यक्ष को मानता था" },
+      Duryodhana: { en: "From the Mahābhārata: Duryodhana, a prince eaten up by envy", hi: "महाभारत से: दुर्योधन, ईर्ष्या में जलता एक राजकुमार" },
+      Kaushitaki: { en: "The Kauṣītaki, an Upanishad that sets down a dying father's rite", hi: "कौषीतकि, एक उपनिषद् जिसमें मरते हुए पिता का संस्कार लिखा है" },
+      Raikva: { en: "An Upanishad story: Raikva, a poor man who knew more than kings", hi: "एक उपनिषद् की कथा: रैक्व, एक गरीब जो राजाओं से अधिक जानता था" },
+      Janaka: { en: "Janaka, a king who was also a sage, in the old stories", hi: "पुरानी कथाओं के जनक, जो राजा भी थे और ज्ञानी भी" },
+      Agni: { en: "Agni, the god of fire, in the old stories", hi: "अग्नि, पुरानी कथाओं में आग के देवता" },
+      Indra: { en: "Indra, king of the gods in the old stories", hi: "इंद्र, पुरानी कथाओं में देवताओं के राजा" },
+      Isha: { en: "The Īśa, an Upanishad only eighteen verses long", hi: "ईश, केवल अठारह मंत्रों का एक उपनिषद्" },
+      Bharata: { en: "A Bhāgavata story: Bharata, a king who gave up his throne", hi: "भागवत की एक कथा: भरत, एक राजा जिसने राजपाट छोड़ दिया" },
+      Maitreyi: { en: "An Upanishad story: Maitreyī, a sage's wife who wanted the truth", hi: "एक उपनिषद् की कथा: मैत्रेयी, एक ऋषि की पत्नी जो सत्य चाहती थीं" },
+      yajnavalkya: { en: "An Upanishad story: Yājñavalkya, a sage famous for winning arguments", hi: "एक उपनिषद् की कथा: याज्ञवल्क्य, शास्त्रार्थ जीतने के लिए प्रसिद्ध ऋषि" },
+      Narada: { en: "An Upanishad story: Nārada, a learned sage who still felt lost", hi: "एक उपनिषद् की कथा: नारद, एक विद्वान ऋषि जिन्हें फिर भी चैन नहीं था" },
+      Bhrigu: { en: "An Upanishad story: Bhṛgu, a son who asked what is real", hi: "एक उपनिषद् की कथा: भृगु, एक पुत्र जिसने पूछा कि सत्य क्या है" },
+      Chandogya: { en: "The Chāndogya, one of the two oldest Upanishads", hi: "छांदोग्य, दो सबसे पुराने उपनिषदों में से एक" },
+      Yaksha: { en: "An Upanishad story: a Yaksha, a spirit who puzzled the gods", hi: "एक उपनिषद् की कथा: एक यक्ष, जिसने देवताओं को उलझन में डाल दिया" },
+      gargi: { en: "An Upanishad story: Gārgī, a woman who questioned the greatest sage", hi: "एक उपनिषद् की कथा: गार्गी, जिन्होंने सबसे बड़े ऋषि से प्रश्न किए" },
+      Mandukya: { en: "The Māṇḍūkya, the shortest Upanishad: twelve verses on waking and sleep", hi: "माण्डूक्य, सबसे छोटा उपनिषद्: जागने और सोने पर बारह मंत्र" },
+      Kena: { en: "The Kena, a short Upanishad named for its first word, 'by whom'", hi: "केन, एक छोटा उपनिषद्, जिसका नाम उसके पहले शब्द 'किससे' पर है" },
+      Pushan: { en: "A verse of the Īśa Upanishad: a prayer to Pūṣan, the sun", hi: "ईश उपनिषद् का एक मंत्र: सूर्य-देव पूषन् से प्रार्थना" },
+      Brihadaranyaka: { en: "The Bṛhadāraṇyaka, the longest of the Upanishads, and among the oldest", hi: "बृहदारण्यक, उपनिषदों में सबसे बड़ा, और सबसे पुराने उपनिषदों में से एक" },
+      Shandilya: { en: "Śāṇḍilya, a sage whose meditation the Chāndogya Upanishad keeps", hi: "शांडिल्य, एक ऋषि जिनका ध्यान छांदोग्य उपनिषद् में लिखा है" },
+      Virochana: { en: "An Upanishad story: Virocana, an asura prince who came to learn", hi: "एक उपनिषद् की कथा: विरोचन, एक असुर राजकुमार जो सीखने आया" },
+      nyaya: { en: "Nyāya, the old Indian school of logic and argument", hi: "न्याय, तर्क और शास्त्रार्थ का प्राचीन भारतीय दर्शन" },
+      Surya: { en: "Sūrya, the sun, worshipped as a god since the oldest hymns", hi: "सूर्य, जिन्हें सबसे पुराने मंत्रों से ही देवता माना गया" },
+      Ganesha: { en: "Gaṇeśa, the elephant-headed god prayed to before any beginning", hi: "गणेश, हाथी के सिर वाले देवता, जिन्हें हर आरंभ से पहले पूजा जाता है" },
+      Lakshmi: { en: "Lakṣmī, goddess of fortune and plenty", hi: "लक्ष्मी, धन और समृद्धि की देवी" },
+      Saraswati: { en: "Sarasvatī, goddess of learning, music and speech", hi: "सरस्वती, विद्या, संगीत और वाणी की देवी" },
+      Nasadiya: { en: "The Nāsadīya, a hymn of the Ṛg Veda, India's oldest book", hi: "नासदीय, ऋग्वेद का एक सूक्त; ऋग्वेद भारत का सबसे पुराना ग्रंथ है" },
+      gita: { en: "The Bhagavad Gītā, Krishna's teaching on the eve of a battle", hi: "भगवद् गीता, एक युद्ध से ठीक पहले कृष्ण का उपदेश" },
+      Vishnu: { en: "Viṣṇu, one of the three great gods of the old stories", hi: "विष्णु, पुरानी कथाओं के तीन महान देवों में से एक" },
+      Shiva: { en: "Śiva, one of the three great gods: the one who ends", hi: "शिव, तीन महान देवों में से एक: जो अंत करते हैं" }
+    },
+    same: {
+      crow: "panchatantra",
+      tortoise: "panchatantra",
+      jackal: "panchatantra",
+      hare: "panchatantra",
+      monkey: "panchatantra",
+      deer: "panchatantra",
+      lion: "panchatantra",
+      mongoose: "panchatantra",
+      cat: "panchatantra"
+    }
+  };
+
   // src/content.js
   var { GOAL, TOP, ROWS, ASHRAMAS, LADDERS, SNAKES, HEAVEN, MOKSHA } = squares_default;
   var { SQ } = squares_default;
@@ -2516,6 +2620,38 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var CODEX = codex_default;
   var squareOf = (n) => n === GOAL ? MOKSHA : HEAVEN[n] || LADDERS[n] || SNAKES[n] || SQ[n] || null;
   var snakeOn = (n) => HEAVEN[n] && SNAKES[n] || null;
+  var BRIDGES = bridges_default.bridges;
+  var BRIDGE_SAME = bridges_default.same || {};
+  var fold = (s) => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
+  var WHO_FORMS = /* @__PURE__ */ new Map();
+  for (const [codexed, list] of [
+    [1, ["figures", "schools", "sources"].flatMap((g3) => Object.entries(codex_default[g3]).map(([id, e]) => ({ id, forms: [e.name.en, ...e.iast ? e.iast.split(" · ") : []] })))],
+    [0, Object.values(names_default).filter(Array.isArray).flat().map((e) => ({ id: e.en[0], forms: e.en }))]
+  ]) for (const { id, forms } of list) for (const f2 of forms) {
+    const k = fold(f2);
+    if (!WHO_FORMS.has(k)) WHO_FORMS.set(k, []);
+    WHO_FORMS.get(k).push({ id, codex: codexed, len: f2.length });
+  }
+  var whoSeen = /* @__PURE__ */ new WeakMap();
+  function whoOf(mirror) {
+    if (!mirror?.en) return null;
+    if (mirror.who) return mirror.who;
+    if (whoSeen.has(mirror)) return whoSeen.get(mirror);
+    const text = fold(mirror.en), words = [...text.matchAll(/\p{L}+/gu)];
+    let best = null;
+    for (let w = 0; w < words.length && !best; w++) for (const k of [2, 1]) {
+      const last2 = words[w + k - 1];
+      if (!last2 || k === 2 && text.slice(words[w].index + words[w][0].length, last2.index) !== " ") continue;
+      for (const e of WHO_FORMS.get(text.slice(words[w].index, last2.index + last2[0].length)) || [])
+        if (!best || e.len > best.len || e.len === best.len && e.codex > best.codex) best = e;
+    }
+    whoSeen.set(mirror, best?.id ?? null);
+    return best?.id ?? null;
+  }
+  function bridgeOf(mirror) {
+    const who2 = whoOf(mirror), id = BRIDGE_SAME[who2] ?? who2;
+    return id && BRIDGES[id] ? { id, ...BRIDGES[id] } : null;
+  }
   var srcOfSquare = (n) => squareOf(n)?.src || "";
   var sourceOf = (src) => src ? Object.keys(CODEX.sources).find((id) => src.startsWith(CODEX.sources[id].match)) ?? null : null;
   var ENTRY_GROUPS = [["school", "schools"], ["source", "sources"], ["figure", "figures"]];
@@ -2791,7 +2927,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       rng: makeRng(seed)
     };
   }
-  var entry = (k, v = {}, kind = "", who = null) => ({ k, v, kind, who });
+  var entry = (k, v = {}, kind = "", who2 = null) => ({ k, v, kind, who: who2 });
   function addLog(state, e) {
     state.log.unshift(e);
     state.log = state.log.slice(0, 80);
@@ -2932,12 +3068,13 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
 
   // src/prefs.js
   var KEY = "mp-prefs";
-  var DEFAULTS = { depth: "school", landAll: true, both: false, mute: false };
+  var DEFAULTS = { depth: "school", everyCard: false, both: false, mute: false };
   var prefs = { ...DEFAULTS };
   try {
     Object.assign(prefs, JSON.parse(localStorage.getItem(KEY) || "{}"));
   } catch {
   }
+  delete prefs.landAll;
   var q = new URLSearchParams(location.search).get("depth");
   if (q === "story" || q === "school" || q === "scholar") prefs.depth = q;
   function setPref(k, v) {
@@ -2965,6 +3102,62 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     return fresh;
   }
   var metCount = (ids) => ids.filter((id) => seen.has(id)).length;
+  var LIVES = "mp-lives";
+  var FIRST = "mp-first";
+  var WHO = "mp-who";
+  var freshViewer = new URLSearchParams(location.search).has("first");
+  var read = (k, d) => {
+    if (freshViewer) return d;
+    try {
+      return JSON.parse(localStorage.getItem(k) ?? "null") ?? d;
+    } catch {
+      return d;
+    }
+  };
+  var write = (k, v) => {
+    if (freshViewer) return;
+    try {
+      localStorage.setItem(k, JSON.stringify(v));
+    } catch {
+    }
+  };
+  var played = () => {
+    try {
+      return !!(localStorage.getItem("mp-self") || localStorage.getItem(SEEN));
+    } catch {
+      return false;
+    }
+  };
+  var lives = read(LIVES, null);
+  if (lives == null) {
+    lives = !freshViewer && played() ? 1 : 0;
+    write(LIVES, lives);
+  }
+  var opened = read(FIRST, "moment");
+  var who = new Set(read(WHO, []));
+  var firstLife = () => !(lives > 0);
+  var lifeLived = () => {
+    lives = (lives || 0) + 1;
+    opened = "moment";
+    write(LIVES, lives);
+    write(FIRST, opened);
+  };
+  var firstOpened = () => opened;
+  var openFirst = (d) => {
+    opened = d;
+    write(FIRST, d);
+  };
+  var knowsWho = (id) => who.has(id);
+  var meetWho = (id) => {
+    if (!id || who.has(id)) return;
+    who.add(id);
+    write(WHO, [...who]);
+  };
+  var beFirst = () => {
+    lives = 0;
+    opened = "moment";
+    who = /* @__PURE__ */ new Set();
+  };
 
   // src/ui.js
   var COLORS = ["var(--p0)", "var(--p1)", "var(--p2)", "var(--p3)"];
@@ -3086,11 +3279,11 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         const n = r % 2 === 0 ? r * 10 + c + 1 : r * 10 + (9 - c) + 1;
         const [bg, light] = PALETTE[(c + 2 * r) % PALETTE.length];
         const heaven = n > 100;
-        const el = document.createElement("div");
-        el.className = "cell" + (heaven ? " heaven" : "") + (n === GOAL ? " goal" : "");
-        if (!heaven) el.style.background = bg;
-        if (SQ[n]) el.innerHTML = `<span class="pic">${art(`sq-${n}`, SQ[n].ic)}</span>`;
-        cells.appendChild(el);
+        const el2 = document.createElement("div");
+        el2.className = "cell" + (heaven ? " heaven" : "") + (n === GOAL ? " goal" : "");
+        if (!heaven) el2.style.background = bg;
+        if (SQ[n]) el2.innerHTML = `<span class="pic">${art(`sq-${n}`, SQ[n].ic)}</span>`;
+        cells.appendChild(el2);
         const lab = document.createElement("div");
         const kind = n === GOAL ? " heaven goal" : heaven ? " heaven" : SNAKES[n] ? " vice" : LADDERS[n] ? " virtue" : "";
         lab.className = "lab" + kind + (light && !heaven ? " li" : "");
@@ -3331,7 +3524,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
 
   // src/engine/cast.js
   var MEMBERS = ["mother", "father", "teacher", "friend", "spouse", "son", "daughter", "rival"];
-  var tokenOf = (who) => who === "son" || who === "daughter" ? "child" : who;
+  var tokenOf = (who2) => who2 === "son" || who2 === "daughter" ? "child" : who2;
   var PARENTS = /* @__PURE__ */ new Set(["mother", "father"]);
   var CHILDREN = /* @__PURE__ */ new Set(["son", "daughter"]);
   var MOMENTS = [];
@@ -3360,18 +3553,18 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const pool = (gd) => [...list[gd], ...list.either || []].filter(([en, hi]) => !taken.has(nameKey(en)) && !taken.has(nameKey(hi)));
     const coin = () => next(rng) < 0.5 ? "m" : "f", span = (a, b) => a + Math.floor(next(rng) * (b - a + 1));
     const cast2 = { mother: { gender: "f", en: null, hi: null }, father: { gender: "m", en: null, hi: null } };
-    const draw2 = (who, gender, either = false) => {
+    const draw2 = (who2, gender, either = false) => {
       const u = next(rng);
       let gd = gender, names = pool(gd);
       if (!names.length && either) names = pool(gd = gd === "m" ? "f" : "m");
       const nm = names.length ? names[Math.floor(u * names.length)] : null;
       if (nm) nm.forEach((x) => taken.add(nameKey(x)));
-      cast2[who] = { gender: nm ? gd : gender, en: nm?.[0] ?? null, hi: nm?.[1] ?? null };
+      cast2[who2] = { gender: nm ? gd : gender, en: nm?.[0] ?? null, hi: nm?.[1] ?? null };
     };
     draw2("son", "m");
     draw2("daughter", "f");
     draw2("spouse", p.gender === "m" ? "f" : p.gender === "f" ? "m" : coin());
-    for (const who of ["teacher", "friend", "rival"]) draw2(who, coin(), true);
+    for (const who2 of ["teacher", "friend", "rival"]) draw2(who2, coin(), true);
     cast2.mother.older = span(20, 38);
     cast2.father.older = span(20, 38);
     cast2.teacher.older = span(20, 35);
@@ -3380,28 +3573,34 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     cast2.spouse.older = span(-4, 4);
     cast2.son.gap = span(1, 4);
     cast2.daughter.gap = span(1, 4);
-    for (const who of MEMBERS) cast2[who].fate = [next(rng), next(rng)];
+    for (const who2 of MEMBERS) cast2[who2].fate = [next(rng), next(rng)];
     return cast2;
   }
-  function calledIn(cast2, who, l) {
-    const c = cast2?.[who];
+  function calledIn(cast2, who2, l) {
+    const c = cast2?.[who2];
     if (!c?.en) return null;
-    const call = CAST_WORDS.call[who];
+    const call = CAST_WORDS.call[who2];
     return (call ? call[l] || call.en : "{n}").replace("{n}", c[l] || c.en);
   }
   function peopleOf(cast2, met, l, about = null) {
     if (!cast2) return {};
     const out = {}, child = about === "daughter" ? "daughter" : "son";
-    for (const who of MEMBERS) {
-      if (CHILDREN.has(who) && who !== child) continue;
-      out[tokenOf(who)] = { gender: cast2[who].gender, name: met.has(who) ? calledIn(cast2, who, l) : null };
+    for (const who2 of MEMBERS) {
+      if (CHILDREN.has(who2) && who2 !== child) continue;
+      out[tokenOf(who2)] = { gender: cast2[who2].gender, name: met.has(who2) ? calledIn(cast2, who2, l) : null };
     }
     return out;
   }
-  function introIn(cast2, who, l) {
-    const c = cast2?.[who], t2 = CAST_WORDS.intro[who];
+  function introIn(cast2, who2, l) {
+    const c = cast2?.[who2], t2 = CAST_WORDS.intro[who2];
     if (!c?.en || !t2) return "";
     return castFill((t2[l] || t2.en).replace("{n}", c[l] || c.en), { who: { gender: c.gender } });
+  }
+  function meetsNamed(state, i, m) {
+    if (!m?.cast || m.introduces === false || !CAST_WORDS.intro[m.cast]) return false;
+    const p = state.players[i], along = yearsAlong(p.life || [], p.told || []).filter((e) => e.via !== "stay");
+    const last2 = castAlong(state, i, along).at(-1);
+    return !(last2 && (last2.before.has(m.cast) || last2.meets && last2.about === m.cast));
   }
   function castAlong(state, i, along) {
     let life = 0, cast2 = castOf(state, i, 0), met = /* @__PURE__ */ new Set();
@@ -3430,18 +3629,18 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         seen2[c.about] = Math.max(seen2[c.about] ?? 0, e.years);
         told.add(e.via === "sit" ? null : momentOf(e.n, e.told).moment);
       }
-      for (const who of MEMBERS) if (SQUARES2[who]?.has(e.n)) landed[who] = Math.max(landed[who] ?? 0, e.years);
+      for (const who2 of MEMBERS) if (SQUARES2[who2]?.has(e.n)) landed[who2] = Math.max(landed[who2] ?? 0, e.years);
       const m = e.via === "sit" ? null : momentOf(e.n, e.told).moment;
       if (m?.gone && gone == null) gone = { years: e.years, who: new Set(m.gone) };
     }
     const end = p.years ?? 0;
-    return order.map((who) => {
-      const c = cast2[who], older = c.older ?? 0, floor = Math.max(FLOOR[who] ?? 0, landed[who] ?? 0), ceil = gone?.who.has(who) ? gone.years : null;
-      const arc = { who, seen: seen2[who], floor, ceil, end, older, coda: c.fate[1] };
-      if (CHILDREN.has(who)) return { ...arc, death: null, kind: "outlived" };
-      if (DIES[who] != null) {
-        const saw = MOMENTS.some(({ m }) => m.dies && m.cast === who && told.has(m));
-        return { ...arc, death: DIES[who], kind: saw ? "seen" : DIES[who] > end ? "outlived" : "died" };
+    return order.map((who2) => {
+      const c = cast2[who2], older = c.older ?? 0, floor = Math.max(FLOOR[who2] ?? 0, landed[who2] ?? 0), ceil = gone?.who.has(who2) ? gone.years : null;
+      const arc = { who: who2, seen: seen2[who2], floor, ceil, end, older, coda: c.fate[1] };
+      if (CHILDREN.has(who2)) return { ...arc, death: null, kind: "outlived" };
+      if (DIES[who2] != null) {
+        const saw = MOMENTS.some(({ m }) => m.dies && m.cast === who2 && told.has(m));
+        return { ...arc, death: DIES[who2], kind: saw ? "seen" : DIES[who2] > end ? "outlived" : "died" };
       }
       const lo = Math.floor(floor) + 1, hi = ceil == null ? Infinity : Math.ceil(ceil) - 1;
       let a = Math.max(lo, 60 - older), b = Math.min(hi, 95 - older);
@@ -3455,21 +3654,21 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   }
   var FATES = 4;
   var FULL = 3;
-  function fatesIn(state, i, l, along, cc, who) {
+  function fatesIn(state, i, l, along, cc, who2) {
     const cast2 = cc.at(-1)?.cast, W2 = CAST_WORDS, words = (n) => wordsIn(l, Math.floor(n)), pick3 = (t2) => t2[l] || t2.en;
     let coded = false;
-    const say = (t2, member, v) => fill(castFill(pick3(t2), { who: member }).replace(/\{(seen|at|by|pos)\}/g, (_, k) => v[k] ?? ""), who);
+    const say = (t2, member, v) => fill(castFill(pick3(t2), { who: member }).replace(/\{(seen|at|by|pos)\}/g, (_, k) => v[k] ?? ""), who2);
     const arcs = castArcs(state, i, along, cc).filter((a) => a.kind !== "seen" && (PARENTS.has(a.who) || calledIn(cast2, a.who, l)));
     return arcs.slice(0, FATES).map((a, at2) => {
       const c = cast2[a.who], family = PARENTS.has(a.who) || a.who === "spouse" || CHILDREN.has(a.who);
-      const name = PARENTS.has(a.who) ? fill(pick3(W2.family[a.who]), who) : calledIn(cast2, a.who, l);
+      const name = PARENTS.has(a.who) ? fill(pick3(W2.family[a.who]), who2) : calledIn(cast2, a.who, l);
       const member = { name, gender: c.gender }, n = a.death - a.end;
       const by = n === 1 ? pick3(W2.year) : pick3(W2.years).replace("{n}", words(n));
       if (at2 >= FULL) return a.kind === "outlived" ? say(W2.childOutlived, member, {}) : say(W2.familyDied, member, { at: words(a.death) });
       if (CHILDREN.has(a.who)) return say(W2.childOutlived, member, {});
       if (family) return a.kind === "died" ? say(W2.familyDied, member, { at: words(a.death) }) : say(W2.familyOutlived, member, { by });
       if (a.kind === "outlived") return say(a.who === "teacher" ? W2.outlivedHon : W2.outlived, member, { seen: words(a.seen), by });
-      const k = Math.floor(a.coda * (W2.codas.length + 2)), coda = k < W2.codas.length && !coded ? " " + fill(pick3(W2.codas[k]), who) : "";
+      const k = Math.floor(a.coda * (W2.codas.length + 2)), coda = k < W2.codas.length && !coded ? " " + fill(pick3(W2.codas[k]), who2) : "";
       if (coda) coded = true;
       return say(W2.died, member, { seen: words(a.seen), at: words(a.death + a.older), pos: pick3(a.who === "teacher" ? W2.posHon : W2.pos) }) + coda;
     });
@@ -3708,15 +3907,19 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       <span class="pos">${pl.pos === 0 ? t("start") : pl.pos === GOAL ? t("moksha") : t("square", { n: pl.pos })}</span>
     </li>`).join("");
   }
+  function entryText(e) {
+    const who2 = e.who == null ? null : G.state.players[e.who];
+    return e.k ? t(e.k, { ...e.v, name: who2 ? pname(who2) : "", what: e.v?.sq ? squareName(e.v.sq) : "" }) : e.text;
+  }
   function renderLog() {
     $("log").innerHTML = G.state.log.map((e) => {
-      const who = e.who == null ? null : G.state.players[e.who];
+      const who2 = e.who == null ? null : G.state.players[e.who];
       if (e.k === "lPassed") return `
     <li class="passed"><span class="dot" style="background:transparent;border-color:transparent;box-shadow:none"></span><span>${esc(t("lPassed"))} ${e.v.passed.map((n) => `<button type="button" class="logbtn" data-sq="${n}">${esc(squareName(n) || num(n))}</button>`).join(" · ")}</span></li>`;
-      const text = e.k ? t(e.k, { ...e.v, name: who ? pname(who) : "", what: e.v?.sq ? squareName(e.v.sq) : "" }) : e.text;
+      const text = entryText(e);
       const sq = e.v?.sq ?? (e.k === "lWin" || e.k === "lWinAbove" ? GOAL : null);
       return `
-    <li class="${e.kind}"><span class="dot" style="background:${who ? COLORS[who.color] : "transparent"};${who ? "" : "border-color:transparent;box-shadow:none"}"></span>${sq ? `<button type="button" class="logbtn" data-sq="${sq}">${esc(text)}</button>` : `<span>${esc(text)}</span>`}</li>`;
+    <li class="${e.kind}"><span class="dot" style="background:${who2 ? COLORS[who2.color] : "transparent"};${who2 ? "" : "border-color:transparent;box-shadow:none"}"></span>${sq ? `<button type="button" class="logbtn" data-sq="${sq}">${esc(text)}</button>` : `<span>${esc(text)}</span>`}</li>`;
     }).join("");
   }
 
@@ -3729,70 +3932,70 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     $("tokens").innerHTML = "";
     $("tray").innerHTML = "";
     G.state.players.forEach((p) => {
-      const el = document.createElement("div");
-      el.className = "token";
-      el.innerHTML = `<div class="body"><div class="spr"></div></div>`;
-      el.style.setProperty("--pc", COLORS[p.color]);
-      el._frame = 0;
-      el._stage = null;
-      tokenEls.push(el);
+      const el2 = document.createElement("div");
+      el2.className = "token";
+      el2.innerHTML = `<div class="body"><div class="spr"></div></div>`;
+      el2.style.setProperty("--pc", COLORS[p.color]);
+      el2._frame = 0;
+      el2._stage = null;
+      tokenEls.push(el2);
     });
     place(true);
   }
-  function setSprite(el, p, stage) {
-    el.querySelector(".spr").style.backgroundImage = spriteURL(stage, p.color, el._frame);
-    el.classList.toggle("divine", STAGES[stage].art === "divine");
+  function setSprite(el2, p, stage) {
+    el2.querySelector(".spr").style.backgroundImage = spriteURL(stage, p.color, el2._frame);
+    el2.classList.toggle("divine", STAGES[stage].art === "divine");
   }
-  function setXY(el, x, y) {
-    el.style.left = x / (S * 10) * 100 + "%";
-    el.style.top = (y + FEET * S) / (S * ROWS) * 100 + "%";
+  function setXY(el2, x, y) {
+    el2.style.left = x / (S * 10) * 100 + "%";
+    el2.style.top = (y + FEET * S) / (S * ROWS) * 100 + "%";
   }
-  function retrigger(el, cls) {
-    el.classList.remove(cls);
-    void el.offsetWidth;
-    el.classList.add(cls);
+  function retrigger(el2, cls) {
+    el2.classList.remove(cls);
+    void el2.offsetWidth;
+    el2.classList.add(cls);
   }
   function place(silent = false) {
     const at2 = {};
     G.state.players.forEach((p, i) => (at2[p.pos] ||= []).push(i));
     G.state.players.forEach((p, i) => {
-      const el = tokenEls[i];
-      el.title = pname(p);
-      el.classList.toggle("active", i === G.state.turn && !G.state.over && !G.busy);
-      el.classList.toggle("dead", !!p.dead);
-      el.classList.toggle("left", p.face === "l" && el._frame < 2);
+      const el2 = tokenEls[i];
+      el2.title = pname(p);
+      el2.classList.toggle("active", i === G.state.turn && !G.state.over && !G.busy);
+      el2.classList.toggle("dead", !!p.dead);
+      el2.classList.toggle("left", p.face === "l" && el2._frame < 2);
       const stage = stageOf2(p);
-      if (el._stage !== stage) {
-        if (el._stage != null && !silent) {
-          retrigger(el, "poof");
+      if (el2._stage !== stage) {
+        if (el2._stage != null && !silent) {
+          retrigger(el2, "poof");
           const v = { name: pname(p), stage: stageName(stage) }, you = !p.name && p.color === 0;
-          const key = stage > el._stage ? "grew" : "bornAgain";
+          const key = stage > el2._stage ? "grew" : "bornAgain";
           toast(fill(t(key + (you && key !== "grew" ? "You" : ""), v), { name: v.name, gender: p.gender }));
         }
-        el._stage = stage;
+        el2._stage = stage;
       }
-      setSprite(el, p, stage);
+      setSprite(el2, p, stage);
       if (p.pos === 0) {
-        if (el.parentNode !== $("tray")) $("tray").appendChild(el);
+        if (el2.parentNode !== $("tray")) $("tray").appendChild(el2);
         return;
       }
-      if (el.parentNode !== $("tokens")) $("tokens").appendChild(el);
+      if (el2.parentNode !== $("tokens")) $("tokens").appendChild(el2);
       const group = at2[p.pos], k = group.indexOf(i);
       const [ox, oy] = group.length === 1 ? OFFS[0] : OFFS[k + 1];
       const { col, row } = colRow(p.pos);
-      el.style.left = (col + 0.5) * 10 + ox + "%";
-      el.style.top = ((ROWS - 1 - row + 0.5 + FEET) * 10 + oy) * (10 / ROWS) + "%";
+      el2.style.left = (col + 0.5) * 10 + ox + "%";
+      el2.style.top = ((ROWS - 1 - row + 0.5 + FEET) * 10 + oy) * (10 / ROWS) + "%";
     });
     renderPlayers();
   }
   function toast(text) {
     const slot = $("toastSlot");
     slot.innerHTML = "";
-    const el = document.createElement("div");
-    el.className = "toast";
-    el.textContent = text;
-    slot.appendChild(el);
-    setTimeout(() => el.remove(), 2500);
+    const el2 = document.createElement("div");
+    el2.className = "toast";
+    el2.textContent = text;
+    slot.appendChild(el2);
+    setTimeout(() => el2.remove(), 2500);
   }
   var animate = (ms, fn) => new Promise((res) => {
     const g3 = G.gen, t0 = performance.now(), d = reduced ? 1 : ms;
@@ -3806,20 +4009,20 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   });
   var ease = (f2) => f2 < 0.5 ? 2 * f2 * f2 : 1 - (-2 * f2 + 2) ** 2 / 2;
   async function climb(idx, a, b) {
-    const g3 = G.gen, el = tokenEls[idx], p = G.state.players[idx];
+    const g3 = G.gen, el2 = tokenEls[idx], p = G.state.players[idx];
     const P = center(a), Q = center(b), len = Math.hypot(Q.x - P.x, Q.y - P.y);
     const rungs = Math.max(2, Math.floor(len / (S * 0.36)));
     const trail = [], glints = [], extras2 = quality !== "low";
     let lastRung = -1;
-    el.classList.add("free");
-    el.classList.remove("left");
+    el2.classList.add("free");
+    el2.classList.remove("left");
     await animate(Math.min(1700, Math.max(900, len / S * 230)), (u) => {
       const r = u * rungs, k = Math.min(rungs - 1, Math.floor(r)), f2 = r - k;
       const e = (k + ease(f2)) / rungs;
       const x = P.x + (Q.x - P.x) * e, y = P.y + (Q.y - P.y) * e - Math.sin(f2 * Math.PI) * S * 0.08;
-      el._frame = 2 + k % 2;
-      setSprite(el, p, el._stage);
-      setXY(el, x, y);
+      el2._frame = 2 + k % 2;
+      setSprite(el2, p, el2._stage);
+      setXY(el2, x, y);
       trail.push({ x, y, u });
       if (extras2 && k !== lastRung) {
         lastRung = k;
@@ -3846,12 +4049,12 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     });
     fxClear();
     if (g3 !== G.gen) return;
-    el.classList.remove("free");
-    el._frame = 0;
+    el2.classList.remove("free");
+    el2._frame = 0;
     p.pos = b;
     place();
-    retrigger(el, "land");
-    setTimeout(() => el.classList.remove("land"), 340);
+    retrigger(el2, "land");
+    setTimeout(() => el2.classList.remove("land"), 340);
   }
   var bulgeMs = (pts) => {
     let len = 0;
@@ -3860,7 +4063,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   };
   var swallowSecs = (h, tail) => reduced ? 0 : (450 + 340 + bulgeMs(snakePath(h, tail)) + 700) / 1e3;
   async function swallow(idx, h, tail) {
-    const g3 = G.gen, el = tokenEls[idx], p = G.state.players[idx];
+    const g3 = G.gen, el2 = tokenEls[idx], p = G.state.players[idx];
     const pts = snakePath(h, tail), N = pts.length - 1, cols = snakeColors(h);
     await animate(450, (u) => {
       fxClear();
@@ -3872,11 +4075,11 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       drawHood(fx, pts[0], pts[4], cols, 1 + 0.35 * Math.sin(u * Math.PI));
     });
     if (g3 !== G.gen) return fxClear();
-    retrigger(el, "gulp");
+    retrigger(el2, "gulp");
     await sleep(340);
     if (g3 !== G.gen) return fxClear();
-    el.classList.add("hide");
-    el.classList.remove("gulp");
+    el2.classList.add("hide");
+    el2.classList.remove("gulp");
     await animate(bulgeMs(pts), (v) => {
       const u = ease(v), i = u * N, k = Math.min(N - 1, Math.floor(i)), f2 = i - k, a = pts[k], b = pts[k + 1];
       const x = a.x + (b.x - a.x) * f2, y = a.y + (b.y - a.y) * f2, r = Math.max(S * 0.11, a.w * 0.95);
@@ -3899,11 +4102,11 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     fxClear();
     if (g3 !== G.gen) return;
     p.pos = tail;
-    el.classList.remove("hide");
+    el2.classList.remove("hide");
     place();
-    retrigger(el, "dizzy");
+    retrigger(el2, "dizzy");
     await sleep(700);
-    el.classList.remove("dizzy");
+    el2.classList.remove("dizzy");
   }
 
   // src/audio/drone.js
@@ -4491,11 +4694,12 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var cardLang = null;
   var backTo = null;
   var subject = null;
-  var autoTimer = null;
   var closing = false;
   var waiters = [];
   var expanded = false;
-  var carried = false;
+  var blocking = false;
+  var storyOpen = false;
+  var bridged = /* @__PURE__ */ new Set();
   var rollSrc = () => null;
   var rollFn = () => {
   };
@@ -4503,9 +4707,10 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   };
   var onChange = /* @__PURE__ */ new Set();
   var cardOpen = () => dlg2.open;
-  var cardCarried = () => dlg2.open && carried;
+  var cardCarried = () => dlg2.open && !blocking;
+  var cardBlocking = () => dlg2.open && blocking;
   var cardExpanded = () => dlg2.open && expanded;
-  var cardIdle = () => dlg2.open && !carried ? new Promise((r) => waiters.push(r)) : Promise.resolve();
+  var cardIdle = () => dlg2.open && blocking ? new Promise((r) => waiters.push(r)) : Promise.resolve();
   var onCardChange = (fn) => onChange.add(fn);
   var setCardRoll = (src, fn, pick3) => {
     rollSrc = src;
@@ -4586,8 +4791,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     if (!p) return text(castFill(m[l] || m.en));
     const i = G.state.players.indexOf(p), here = livedOn(n), planning = G.plan && G.state.players[G.plan.idx] === p;
     const along = yearsAlong(p.life || [], p.told || []).filter((e) => e.via !== "stay"), upto = here && !planning ? along.length - 1 : along.length;
-    const cc = castAlong(G.state, i, along.slice(0, Math.max(upto, 0))), last = cc.at(-1);
-    const cast2 = last ? last.cast : castOf(G.state, i, 0), met = new Set(last ? [...last.before, ...last.meets ? [last.about] : []] : []);
+    const cc = castAlong(G.state, i, along.slice(0, Math.max(upto, 0))), last2 = cc.at(-1);
+    const cast2 = last2 ? last2.cast : castOf(G.state, i, 0), met = new Set(last2 ? [...last2.before, ...last2.meets ? [last2.about] : []] : []);
     const intro = meeting && here && m.cast && !met.has(m.cast) && m.introduces !== false ? introIn(cast2, m.cast, l) : "";
     return text(castFill(m[l] || m.en, peopleOf(cast2, met, l, m.cast))) + (intro ? " " + intro : "");
   }
@@ -4610,6 +4815,17 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     if (kind === "virtue") return `<div class="rays"></div>` + [...Array(7)].map((_, i) => `<span class="sp" style="left:${8 + rnd(i + 1) * 0.84}%;animation-delay:${(i * 0.26).toFixed(2)}s">✦</span>`).join("");
     if (kind === "heaven" || kind === "goal") return `<div class="rays"></div>` + [...Array(6)].map((_, i) => `<span class="pt" style="left:${6 + rnd(i + 2) * 0.86}%;animation-delay:${(i * 0.4).toFixed(2)}s">🌸</span>`).join("");
     return "";
+  }
+  var storyHidden = (m) => !!m && firstLife() && firstOpened() === "moment" && !storyOpen;
+  function mirrorHtml(l, mirror, m, hideable = true) {
+    const b = bridgeOf(mirror), tell = b && (!knowsWho(b.id) || bridged.has(b.id));
+    const said = texts(l, mirror.en, mirror.hi, m ? "mirror" : "");
+    if (hideable && storyHidden(m)) {
+      const line = tell ? l === "hi" ? b.hi : b.en : tIn(l, "storyMore");
+      return `<button type="button" class="story-more" data-act="story" aria-expanded="false" data-bridge="${tell ? esc(b.id) : ""}">${esc(line)}</button>`;
+    }
+    if (tell) bridged.add(b.id);
+    return (tell ? texts(l, b.en, b.hi, "bridge") : "") + said;
   }
   var moreBtn = (l) => `<button type="button" class="more-btn" data-act="more" aria-controls="leafMore" aria-expanded="${expanded}">${tIn(l, expanded ? "less" : deep("scholar") ? "moreScholar" : "moreSchool")}</button>`;
   function frame2(l, { kind, eb, big, sqn, age: age2, body, more = "", foot, prev, next: next2, prevLabel, nextLabel }) {
@@ -4659,7 +4875,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const above = n > GOAL && HEAVEN[n] ? texts(l, ...["en", "hi"].map((x) => tIn(x, "aboveExit", { n: numIn(x, GOAL), top: numIn(x, TOP) })), "remedy above") : "";
     const opts = pending && G.deciding?.sit === pending ? G.deciding.opts : null;
     const options = opts ? `<div class="options" role="group" aria-label="${esc(T("chooseLabel"))}">` + opts.map((o, i) => `<button type="button" class="opt" data-act="opt" data-id="${esc(o.id)}"${o.open ? "" : ` aria-disabled="true" aria-describedby="why-${esc(o.id)}"`}><span class="opt-k" aria-hidden="true">${numIn(l, i + 1)}</span><span class="opt-l">${esc(o.label[l] || o.label.en)}</span><span class="opt-c">${esc(optionNote(l, n, o))}</span>` + (o.open ? "" : `<span class="opt-why" id="why-${esc(o.id)}">${esc(T("optWithheld"))} ${esc(o.why[l] || o.why.en)}</span>`) + `</button>`).join("") + `</div>` : "";
-    body += `<div class="story">${moment}${options}${remedy}${pending ? "" : texts(l, mirror.en, mirror.hi, m ? "mirror" : "")}${bi(l, r.line2, "line2")}${above}</div>`;
+    body += `<div class="story">${moment}${options}${remedy}${pending ? "" : mirrorHtml(l, mirror, m)}${bi(l, r.line2, "line2")}${above}</div>`;
     let more = "";
     const metMore2 = [];
     const viewList = (vs, cls) => `<ul class="${cls}">` + vs.map((v) => `<li>${entryLink(v.id, l)}${texts(l, v.en, v.hi)}</li>`).join("") + `</ul>`;
@@ -4691,13 +4907,14 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const sn = snakeOn(n);
     if (sn) {
       const sm = sn.moment;
-      body += `<section class="snake-on"><h3 class="sub">${art(`sn-${n}`, sn.ic, "spr snake-glyph")} ${esc(T("meritSnake"))}</h3><h2 class="snake-title">${esc(sn[l])}</h2><p class="alt" lang="${other(l)}">${esc([sn[other(l)], sn.skt].join(" · "))}</p><div class="story">${sm ? texts(l, fill(sm.en, person("en", n)), fill(sm.hi, person("hi", n)), "moment") : ""}${texts(l, sn.mirror.en, sn.mirror.hi, sm ? "mirror" : "")}${sn.rebirth ? texts(l, tIn("en", "fallWhen"), tIn("hi", "fallWhen"), "remedy fall") : ""}</div>`;
+      body += `<section class="snake-on"><h3 class="sub">${art(`sn-${n}`, sn.ic, "spr snake-glyph")} ${esc(T("meritSnake"))}</h3><h2 class="snake-title">${esc(sn[l])}</h2><p class="alt" lang="${other(l)}">${esc([sn[other(l)], sn.skt].join(" · "))}</p><div class="story">${sm ? texts(l, fill(sm.en, person("en", n)), fill(sm.hi, person("hi", n)), "moment") : ""}${mirrorHtml(l, sn.mirror, sm, false)}${sn.rebirth ? texts(l, tIn("en", "fallWhen"), tIn("hi", "fallWhen"), "remedy fall") : ""}</div>`;
       if (sn.schools && deep("school")) {
         body += `<ul class="chips more-only">` + sn.schools.map((s) => `<li>${entryLink(s.id, l)}${texts(l, s.en, s.hi)}</li>`).join("") + `</ul>`;
         metMore2.push(...sn.schools.map((s) => s.id));
       }
       body += srcLine(sn.src, l, met, { square: true }) + `</section>`;
     }
+    if (!pending && storyHidden(m)) more = "";
     return {
       kind: info.kind,
       met,
@@ -4759,8 +4976,9 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     metMore = out.metMore || [];
     if (sheetOn() && leaf2.querySelector(".options")) setDetent("full");
     meet([...out.met, ...expanded ? metMore : []].filter(Boolean));
+    bridged.forEach(meetWho);
     refreshRoll();
-    if (again) [...leaf2.querySelectorAll(again)].find((el) => el.offsetParent)?.focus({ preventScroll: true });
+    if (again) [...leaf2.querySelectorAll(again)].find((el2) => el2.offsetParent)?.focus({ preventScroll: true });
     cue();
     history.replaceState(null, "", location.pathname + location.search + (view.type === "square" ? `#sq/${view.n}` : `#codex/${view.id}`));
     onChange.forEach((fn) => fn());
@@ -4803,13 +5021,13 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     cue();
   }
   function cardNote(text) {
-    const el = leaf2.querySelector(".cnote");
-    if (!el) return;
-    el.textContent = text;
-    el.hidden = !text;
+    const el2 = leaf2.querySelector(".cnote");
+    if (!el2) return;
+    el2.textContent = text;
+    el2.hidden = !text;
   }
-  var visible = (el) => {
-    const r = el?.getBoundingClientRect();
+  var visible = (el2) => {
+    const r = el2?.getBoundingClientRect();
     return r && r.width > 0 && r.bottom > 0 && r.top < innerHeight;
   };
   async function transition(update, label) {
@@ -4835,12 +5053,43 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       leaf2.animate([{ transform: `translate(${dx}px, ${dy}px) scale(${from.width / to.width})`, opacity: 0.3 }, { transform: "none", opacity: 1 }], { duration: 360, easing: "cubic-bezier(.2,.8,.25,1.1)" });
     }
   }
-  async function open(next2, { landing = false, auto = false, from = null, who = null } = {}) {
-    clearTimeout(autoTimer);
+  function show(block) {
+    blocking = block;
+    if (block) dlg2.showModal();
+    else dlg2.show();
+    place2();
+  }
+  function place2() {
+    const col = document.querySelector(".board-col")?.getBoundingClientRect();
+    const over = dlg2.open && !blocking && !sheetOn() && col && innerWidth > 820;
+    dlg2.style.left = over ? `${Math.max(12, col.left)}px` : "";
+    dlg2.style.right = over ? `${Math.max(12, innerWidth - col.right)}px` : "";
+    dlg2.style.width = over ? `${Math.min(780, Math.round(col.width))}px` : "";
+  }
+  addEventListener("resize", place2);
+  function holdFocus() {
+    const h = $("leafTitle");
+    if (!h) return;
+    h.tabIndex = -1;
+    h.focus({ preventScroll: true });
+  }
+  function setBlocking(block) {
+    if (block === blocking || !dlg2.open) return;
+    dlg2.close();
+    show(block);
+    if (block) holdFocus();
+  }
+  function releaseCard() {
+    setBlocking(false);
+    waiters.splice(0).forEach((r) => r());
+  }
+  async function open(next2, { landing = false, from = null, who: who2 = null, focus = true } = {}) {
     const wasOpen = dlg2.open, was = view;
     view = next2;
-    subject = who;
+    subject = who2;
+    const block = next2.type === "square" && !!pendingOn(next2.n);
     if (wasOpen) {
+      setBlocking(block);
       paint({ landing });
       turnPage(was?.type === "square" && next2.type === "square" ? Math.sign(next2.n - was.n) : 0);
       return cardIdle();
@@ -4848,19 +5097,17 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     cardLang = null;
     pullBack(true);
     const label = from ?? (next2.type === "square" ? labEls[next2.n] : null);
+    const before = document.activeElement;
     sound.open();
     await transition(() => {
       paint({ landing });
-      dlg2.showModal();
+      if (!focus && !block) leaf2.querySelectorAll("[autofocus]").forEach((b) => b.removeAttribute("autofocus"));
+      show(block);
+      if (block) holdFocus();
+      else if (!focus) before && before !== document.body ? before.focus({ preventScroll: true }) : document.activeElement?.blur();
       cue();
     }, label);
     cue();
-    if (auto && !carried) {
-      const words = leaf2.querySelector(".story")?.textContent.split(/\s+/).length ?? 20;
-      autoTimer = setTimeout(() => {
-        if (!carried) closeCard();
-      }, Math.min(4200, 1400 + words * 90));
-    }
     return cardIdle();
   }
   var openSquare = (n, opts) => open({ type: "square", n }, opts);
@@ -4868,7 +5115,6 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   async function closeCard({ instant = false } = {}) {
     if (!dlg2.open || closing) return;
     closing = true;
-    clearTimeout(autoTimer);
     const label = view?.type === "square" ? labEls[view.n] : null;
     if (!instant) sound.close();
     if (instant || reduced) dlg2.close();
@@ -4894,7 +5140,10 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     backTo = null;
     subject = null;
     expanded = false;
-    carried = false;
+    blocking = false;
+    storyOpen = false;
+    bridged = /* @__PURE__ */ new Set();
+    place2();
     if (location.hash) history.replaceState(null, "", location.pathname + location.search);
     waiters.splice(0).forEach((r) => r());
     onChange.forEach((fn) => fn());
@@ -4920,17 +5169,30 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   }
   function roll() {
     const r = rollSrc(cardLang ?? lang);
-    if (!r?.ready) return;
-    carried = true;
-    clearTimeout(autoTimer);
-    waiters.splice(0).forEach((w) => w());
-    rollFn();
+    if (r?.ready) rollFn();
   }
-  var pin = () => clearTimeout(autoTimer);
-  ["pointerdown", "pointermove", "keydown", "wheel"].forEach((ev) => leaf2.addEventListener(ev, pin, { passive: true }));
+  function openStory() {
+    storyOpen = true;
+    openFirst("mirror");
+    const id = leaf2.querySelector(".story-more")?.dataset.bridge;
+    if (id) bridged.add(id);
+    paint();
+    leaf2.querySelector(".story p.mirror, .story p.bridge")?.setAttribute("tabindex", "-1");
+    leaf2.querySelector(".story p.bridge, .story p.mirror")?.focus({ preventScroll: true });
+  }
   dlg2.addEventListener("cancel", (e) => {
     e.preventDefault();
     closeCard();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && dlg2.open && !blocking) {
+      e.preventDefault();
+      closeCard();
+    }
+  });
+  document.addEventListener("click", (e) => {
+    if (!dlg2.open || blocking || closing || leaf2.contains(e.target)) return;
+    if (!e.target.closest(".lab, button, a, input, select, label, summary, dialog")) closeCard();
   });
   dlg2.addEventListener("click", (e) => {
     if (e.target === dlg2) return closeCard();
@@ -4944,6 +5206,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       return;
     }
     if (act === "more") return setExpanded(!expanded);
+    if (act === "story") return openStory();
     if (act === "grip") {
       toggleDetent();
       const g3 = leaf2.querySelector(".grip");
@@ -4988,9 +5251,59 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       go(e.key === "ArrowLeft" ? -1 : 1);
     }
   });
+  function momentLine(n, who2, l) {
+    const keep = subject;
+    subject = who2;
+    try {
+      const m = momentOf(n, toldHere(n)).moment ?? squareOf(n)?.moment;
+      return { title: squareInfo(n, l).title, text: m ? momentIn(m, l, n, false) : "" };
+    } finally {
+      subject = keep;
+    }
+  }
   function refreshCard() {
     if (dlg2.open && view) paint();
   }
+
+  // src/render/landed.js
+  var el = $("landed");
+  var last = null;
+  var landHuman = (n, who2) => {
+    last = { n, who: who2 };
+    drawLanded();
+  };
+  var landCpu = (n, who2, entry2, opt) => {
+    last = { n, who: who2, entry: entry2, opt };
+    drawLanded();
+  };
+  var clearLanded = () => {
+    last = null;
+    drawLanded();
+  };
+  function drawLanded() {
+    const s = G.state;
+    if (!last || !s || s.players[last.who]?.pos == null) {
+      el.hidden = true;
+      el.innerHTML = "";
+      return;
+    }
+    const { n, who: who2, entry: entry2, opt } = last;
+    let title, text;
+    if (entry2) {
+      title = "";
+      text = entryText(entry2) + (opt ? ` · ${L(opt.label.en, opt.label.hi || opt.label.en)}` : "");
+    } else ({ title, text } = momentLine(n, who2, lang));
+    if (!text && !title) {
+      el.hidden = true;
+      return;
+    }
+    el.innerHTML = `<span class="landed-t">${title ? `<b>${esc(title)}</b> ` : ""}${esc(text)}</span>`;
+    el.dataset.sq = n;
+    el.hidden = false;
+  }
+  el.addEventListener("click", () => {
+    if (last) openSquare(last.n, { from: labEls[last.n], who: last.who });
+  });
 
   // src/render/codex.js
   var showAll = false;
@@ -5037,10 +5350,10 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var after = (raw, text, l) => l === "en" && !NAMED.test(raw) && /^(?:\p{Lu}\p{Ll}|(?!I\s)\p{Lu}\s)/u.test(text) ? text[0].toLowerCase() + text.slice(1) : text;
   var stageAt2 = (e) => e.n > EARTH3 ? 5 : stageOfYears(e.years);
   function lifeOf(state, i, l) {
-    const p = state.players[i], name = pnameIn(p, l), who = { name, gender: p.gender };
-    const T = (key, v = {}) => fill(tIn(l, key, { name, ...v }), who);
+    const p = state.players[i], name = pnameIn(p, l), who2 = { name, gender: p.gender };
+    const T = (key, v = {}) => fill(tIn(l, key, { name, ...v }), who2);
     const J = (j, v = {}) => {
-      const x = fill((j[l] || j.en).replace(/\{(\w+)\}/g, (_, k) => v[k] ?? `{${k}}`), who);
+      const x = fill((j[l] || j.en).replace(/\{(\w+)\}/g, (_, k) => v[k] ?? `{${k}}`), who2);
       return x[0].toUpperCase() + x.slice(1);
     };
     const words = (n) => wordsIn(l, Math.floor(n));
@@ -5055,7 +5368,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const along = yearsAlong(p.life || [], p.told || []).filter((e) => e.via !== "stay"), paras = [];
     const cc = castAlong(state, i, along);
     let toldN = 0, lastTold = {}, metAt = {};
-    let para = null, seen2 = /* @__PURE__ */ new Set(), lived = /* @__PURE__ */ new Map(), own = /* @__PURE__ */ new Set(), taken = /* @__PURE__ */ new Map(), lastYears = null, fold = [], sat = [], reborn = false, skip = false;
+    let para = null, seen2 = /* @__PURE__ */ new Set(), lived = /* @__PURE__ */ new Map(), own = /* @__PURE__ */ new Set(), taken = /* @__PURE__ */ new Map(), lastYears = null, fold2 = [], sat = [], reborn = false, skip = false;
     const told = (e) => momentOf(e.n, e.told).key;
     const note = (e) => {
       seen2.add(told(e));
@@ -5067,14 +5380,14 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       return q2[l] || q2.en;
     };
     const flushFold = () => {
-      if (!fold.length) return;
-      const earth = fold.filter((e) => e.n <= EARTH3).map((e) => Math.floor(lived.get(e.n)));
+      if (!fold2.length) return;
+      const earth = fold2.filter((e) => e.n <= EARTH3).map((e) => Math.floor(lived.get(e.n)));
       if (earth.length) {
         const a = Math.min(...earth), b = Math.max(...earth);
         para.parts.push(a === b ? J(JOINS.foldOne, { a: words(a) }) : J(JOINS.foldRun, { a: words(a), b: words(b) }));
       } else para.parts.push(J(JOINS.foldHeights));
-      lastYears = fold.at(-1).years;
-      fold = [];
+      lastYears = fold2.at(-1).years;
+      fold2 = [];
     };
     const flushSat = () => {
       if (!sat.length) return;
@@ -5138,7 +5451,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       const repeat = seen2.has(told(e));
       if (repeat && !e.via && !event) {
         flushSat();
-        fold.push(e);
+        fold2.push(e);
         para.ages.push(Math.floor(e.years));
         note(e);
         continue;
@@ -5164,7 +5477,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       else if (echo && own.has(q2.callsBack) && !repeat) join = echo[l] || echo.en;
       else if (back) {
         const t2 = CAST_WORDS.returns[back] || CAST_WORDS.returns.friend, rec = metAt[back].recall;
-        join = fill(castFill((t2[l] || t2.en).replace("{recall}", rec[l] || rec.en), { who: { name: calledIn(c.cast, back, l), gender: c.cast[back].gender } }), who);
+        join = fill(castFill((t2[l] || t2.en).replace("{recall}", rec[l] || rec.en), { who: { name: calledIn(c.cast, back, l), gender: c.cast[back].gender } }), who2);
       } else if (e.via === "ladder") join = J(JOINS.ladder);
       else if (repeat) join = J(JOINS.again);
       else if (para.parts.length && gap != null && gap >= GAP) join = J(JOINS.gap, { gap: words(gap) });
@@ -5173,7 +5486,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       const age2 = Number.isInteger(e.years) ? ageWordsIn(l, e.years, e.via === "snake") : "";
       const raw = repeat && e.via ? (JOINS.backTo[l] || JOINS.backTo.en).replace("{first}", words(lived.get(e.n))) : m[l] || m.en;
       const intro = c.meets && !repeat ? introIn(c.cast, c.about, l) : "";
-      const text = fill(castFill(raw, peopleOf(c.cast, c.before, l, c.about)), { ...who, age: age2 }) + (intro ? " " + intro : "");
+      const text = fill(castFill(raw, peopleOf(c.cast, c.before, l, c.about)), { ...who2, age: age2 }) + (intro ? " " + intro : "");
       para.parts.push(join ? join + after(raw, text, l) : text);
       if (!(repeat && e.via)) {
         toldN++;
@@ -5185,12 +5498,12 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       note(e);
       lastYears = e.years;
       const sn = snakeOn(e.n);
-      if (sn?.moment && nextE?.n === sn.to) para.parts.push(fill(sn.moment[l] || sn.moment.en, who));
+      if (sn?.moment && nextE?.n === sn.to) para.parts.push(fill(sn.moment[l] || sn.moment.en, who2));
     }
     close();
     const stage = (s) => l === "hi" ? ASHRAMAS[s][2] : ASHRAMAS[s][1];
-    const last = cc.at(-1), people = last ? peopleOf(last.cast, /* @__PURE__ */ new Set([...last.before, ...last.meets ? [last.about] : []]), l) : {};
-    const held2 = (t2) => fill(castFill(t2 ? t2[l] || t2.en : "", people), who);
+    const last2 = cc.at(-1), people = last2 ? peopleOf(last2.cast, /* @__PURE__ */ new Set([...last2.before, ...last2.meets ? [last2.about] : []]), l) : {};
+    const held2 = (t2) => fill(castFill(t2 ? t2[l] || t2.en : "", people), who2);
     return {
       title: T("lifeTitle"),
       sub: p.peak != null ? tIn(l, "title" + titleOf(p.peak)) : "",
@@ -5202,7 +5515,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       }),
       end: state.winner === i ? winEnd(p, T, words, held2) : !p.life?.length ? T("lifeUnborn") : p.dead ? T("lifeEndDied", { age: words(p.years), holding: held2(SNAKES[p.holding]?.holding) }).replace(/, ([.।])$/, "$1") : T("lifeEndOpen", { n: p.pos }),
       // what the life never found out about the people in it (Phase 10C): empty with no cast
-      fates: fatesIn(state, i, l, along, cc, who)
+      fates: fatesIn(state, i, l, along, cc, who2)
     };
   }
   function winEnd(p, T, words, held2) {
@@ -5393,10 +5706,10 @@ ${p.text}`), end, fates.join(" ")].filter(Boolean).join("\n\n") + "\n";
     };
     watched++;
     const ts = [];
-    let on2 = true, last = performance.now(), until = last + 2e4;
+    let on2 = true, last2 = performance.now(), until = last2 + 2e4;
     const tick = (now) => {
-      ts.push(now - last);
-      last = now;
+      ts.push(now - last2);
+      last2 = now;
       if (on2 && now < until) requestAnimationFrame(tick);
     };
     requestAnimationFrame(tick);
@@ -5422,14 +5735,23 @@ ${p.text}`), end, fates.join(" ")].filter(Boolean).join("\n\n") + "\n";
     render();
     await waitCard();
     if (g3 !== G.gen) return;
-    const p = cur(), idx = state.turn, el = tokenEls[idx];
-    if (p.type === "human") cardNote("");
+    const p = cur(), idx = state.turn, el2 = tokenEls[idx];
+    let shut = null;
+    if (p.type === "human") {
+      cardNote("");
+      clearLanded();
+      G.humanRolled = true;
+      if (cardOpen() && diceFor(p) < 2) shut = closeCard();
+    }
     release();
     const dice = await rollDice(diceFor(p));
+    await shut;
     if (g3 !== G.gen) return;
     state.dice = dice;
     const only = dice.length > 1 && movesFor(state, dice).length === 1;
     const v = dice.length < 2 || only ? dice[0] : p.type === "human" ? await choose(dice) : moveFor(state, dice);
+    if (g3 !== G.gen) return;
+    if (p.type === "human" && !shut && cardOpen()) await closeCard();
     if (g3 !== G.gen) return;
     state.last = v || dice[0];
     setDrone(lens(state).droneStage);
@@ -5448,46 +5770,47 @@ ${p.text}`), end, fates.join(" ")].filter(Boolean).join("\n\n") + "\n";
           if (dc) p.face = dc > 0 ? "r" : "l";
         }
         p.pos = n;
-        el._frame = 1 - el._frame;
-        retrigger(el, "hop");
+        el2._frame = 1 - el2._frame;
+        retrigger(el2, "hop");
         place();
         setShepard(lens(state).lead);
         await sleep(200);
       }
       if (g3 !== G.gen) return;
-      el._frame = 0;
+      el2._frame = 0;
       place();
       if (stageOf({ ...p, years: ageStep(p.years ?? 0, p.pos) }) !== born) pullBack();
       await waitCard();
       if (g3 !== G.gen) return;
-      const carried2 = cardCarried();
+      let full = false;
       if (plan.situation) {
-        const shown = carried2 ? p.type === "human" : true;
-        G.waitingCard = shown && !carried2;
-        refreshRoll();
-        const read = shown ? openSquare(p.pos, { landing: true, auto: p.type === "cpu", who: idx }) : Promise.resolve();
+        if (p.type === "human") {
+          full = true;
+          G.waitingCard = true;
+          refreshRoll();
+          openSquare(p.pos, { landing: true, who: idx });
+        }
         const id = p.type === "human" ? await decide(plan.situation, p) : choiceFor(state, plan.situation);
         if (g3 !== G.gen) return;
         plan = resolveChoice(state, plan, id);
         G.plan = plan;
         refreshCard();
-        await read;
+        if (p.type === "human") releaseCard();
         G.waitingCard = false;
         refreshRoll();
+      } else if (!plan.sit && p.type === "human" && fullCard(state, plan, idx)) {
+        full = true;
+        await openSquare(p.pos, { landing: true, who: idx, focus: false });
         if (g3 !== G.gen) return;
-      } else if (!plan.sit && (carried2 ? p.type === "human" : prefs.landAll || !SQ[p.pos])) {
-        G.waitingCard = !carried2;
-        refreshRoll();
-        await openSquare(p.pos, { landing: true, auto: p.type === "cpu", who: idx });
-        G.waitingCard = false;
-        refreshRoll();
-        if (g3 !== G.gen) return;
+      }
+      if (!plan.sit && !full) {
+        if (p.type === "human") landHuman(p.pos, idx);
+        else landCpu(p.pos, idx, [...plan.after, ...plan.end].filter((e) => e.k && !["lPassed", "lSix", "lStay", "lStayOne"].includes(e.k)).at(-1), plan.choice ? optionOf(plan.target, plan.choice) : null);
       }
       plan.after.forEach(log);
       if (plan.jump) {
-        await waitCard();
         if (g3 !== G.gen) return;
-        if (cardCarried() && p.type === "human") await new Promise((r) => setTimeout(r, reduced ? 300 : 900));
+        if (full && cardOpen()) await new Promise((r) => setTimeout(r, reduced ? 300 : 900));
         if (g3 !== G.gen) return;
         if (plan.jump.rebirth) sound.fall(swallowSecs(p.pos, plan.jump.to) || 1.2);
         else (plan.jump.kind === "snake" ? sound.snake : sound.ladder)();
@@ -5499,6 +5822,10 @@ ${p.text}`), end, fates.join(" ")].filter(Boolean).join("\n\n") + "\n";
     endTurn(state, plan);
     G.plan = null;
     G.face = null;
+    if (p.type === "human" && (plan.died || plan.win || plan.jump?.rebirth) && firstLife()) {
+      lifeLived();
+      refreshCard();
+    }
     if (plan.died && p.type === "human") openLife(idx);
     if (cardCarried() && p.type === "cpu") cardNote(tIn(lang, "cardMoved", { name: pname(p), n: plan.final }));
     watching();
@@ -5509,8 +5836,14 @@ ${p.text}`), end, fates.join(" ")].filter(Boolean).join("\n\n") + "\n";
     queueCpu();
     pump();
   }
+  function fullCard(state, plan, idx) {
+    if (prefs.everyCard || plan.jump || plan.target === GOAL) return true;
+    const p = state.players[idx], n = plan.target;
+    if (HEAVEN[n]) return !p.life?.includes(n);
+    return meetsNamed(state, idx, momentOf(n, plan.told?.[0]).moment ?? squareOf(n)?.moment);
+  }
   async function waitCard() {
-    if (!cardOpen() || cardCarried()) return;
+    if (!cardBlocking()) return;
     G.waitingCard = true;
     refreshRoll();
     await cardIdle();
@@ -5529,8 +5862,8 @@ ${p.text}`), end, fates.join(" ")].filter(Boolean).join("\n\n") + "\n";
     const p = s.players[i], dot = humans > 1 ? COLORS[p.color] : null;
     if (G.rollQueued || G.busy && !G.waitingCard) {
       const mover = s.players[plan?.idx ?? s.turn];
-      const who = mover.type === "cpu" ? tIn(l, "rolling", { name: pnameIn(mover, l) }) : "";
-      return { label: [G.face ? G.face.map((f2) => FACES[f2]).join(" ") : "", who].filter(Boolean).join("  ") || FACES[s.last || 6], ready: false, dot: null };
+      const who2 = mover.type === "cpu" ? tIn(l, "rolling", { name: pnameIn(mover, l) }) : "";
+      return { label: [G.face ? G.face.map((f2) => FACES[f2]).join(" ") : "", who2].filter(Boolean).join("  ") || FACES[s.last || 6], ready: false, dot: null };
     }
     const again = plan ? plan.again : s.turn === i && s.log[0]?.k === "lSix";
     return { label: again ? tIn(l, "rollAgain") : humans > 1 ? tIn(l, "rollFor", { name: pnameIn(p, l) }) : tIn(l, "roll"), ready: true, dot };
@@ -5621,7 +5954,7 @@ ${p.text}`), end, fates.join(" ")].filter(Boolean).join("\n\n") + "\n";
     $("ruleSix").checked = setup.rules.six;
     $("ruleBrahmaloka").checked = !!setup.rules.brahmaloka;
     $("prefDepth").innerHTML = [["story", "depthStory"], ["school", "depthSchool"], ["scholar", "depthScholar"]].map(([v, k]) => `<option value="${v}"${v === prefs.depth ? " selected" : ""}>${t(k)}</option>`).join("");
-    $("prefLand").checked = prefs.landAll;
+    $("prefEvery").checked = prefs.everyCard;
     $("prefBoth").checked = prefs.both;
   }
   function readSetup() {
@@ -5636,8 +5969,8 @@ ${p.text}`), end, fates.join(" ")].filter(Boolean).join("\n\n") + "\n";
   function applyStatic() {
     document.documentElement.lang = lang;
     document.title = t("title");
-    document.querySelectorAll("[data-t]").forEach((el) => {
-      el.textContent = t(el.dataset.t);
+    document.querySelectorAll("[data-t]").forEach((el2) => {
+      el2.textContent = t(el2.dataset.t);
     });
     document.querySelectorAll("[data-lang]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.lang === lang)));
     renderMute();
@@ -5659,6 +5992,7 @@ ${p.text}`), end, fates.join(" ")].filter(Boolean).join("\n\n") + "\n";
     renderCodex();
     refreshCard();
     refreshLife();
+    drawLanded();
   }
   document.querySelectorAll("[data-lang]").forEach((b) => b.addEventListener("click", () => setLang(b.dataset.lang)));
   $("count").addEventListener("click", (e) => {
@@ -5673,10 +6007,12 @@ ${p.text}`), end, fates.join(" ")].filter(Boolean).join("\n\n") + "\n";
   function startGame() {
     G.gen++;
     clearTimeout(G.cpuTimer);
+    if (G.humanRolled && firstLife()) lifeLived();
     G.rollQueued = false;
     G.plan = null;
     G.face = null;
     G.waitingCard = false;
+    G.humanRolled = false;
     G.choosing = null;
     G.deciding = null;
     $("pick").hidden = true;
@@ -5685,6 +6021,7 @@ ${p.text}`), end, fates.join(" ")].filter(Boolean).join("\n\n") + "\n";
     closeCard({ instant: true });
     closeLife();
     $("toastSlot").innerHTML = "";
+    clearLanded();
     if (S) fxClear();
     G.busy = false;
     G.state = newState(nextSeed ?? freshSeed());
@@ -5739,8 +6076,9 @@ ${p.text}`), end, fates.join(" ")].filter(Boolean).join("\n\n") + "\n";
     if (e.code !== "Space" || e.target.closest("input, select, button, textarea, summary")) return;
     if (e.target.closest("[role=button]")) return;
     e.preventDefault();
-    if (cardOpen()) return closeCard();
-    if (cur().type === "human") takeTurn();
+    if (cardBlocking()) return;
+    if (cur().type === "human" && !G.busy && !G.state.over) return takeTurn();
+    if (cardOpen()) closeCard();
   });
   $("board").addEventListener("pointerdown", hold, { passive: true });
   $("labels").addEventListener("focusin", hold);
@@ -5775,7 +6113,7 @@ ${p.text}`), end, fates.join(" ")].filter(Boolean).join("\n\n") + "\n";
     setPref("depth", e.target.value);
     refreshCard();
   });
-  $("prefLand").addEventListener("change", (e) => setPref("landAll", e.target.checked));
+  $("prefEvery").addEventListener("change", (e) => setPref("everyCard", e.target.checked));
   $("prefBoth").addEventListener("change", (e) => {
     setPref("both", e.target.checked);
     refreshCard();
@@ -5885,7 +6223,15 @@ ${p.text}`), end, fates.join(" ")].filter(Boolean).join("\n\n") + "\n";
       lifeText: (i = 0, l) => lifeText2(G.state, i, l),
       // mp.cast(0) is player 0's cast for this game, names, genders and ages, as the account draws it (Phase 10C)
       cast: (i = 0, life = 0) => castOf(G.state, i, life),
-      naming: openNaming
+      naming: openNaming,
+      // mp.first() treats this viewer as new from here on, as ?first does: the first life's cards, every bridge untold
+      first() {
+        beFirst();
+        refreshCard();
+        return firstLife();
+      },
+      // the line under the board, or null when it is empty
+      landed: () => $("landed").hidden ? null : $("landed").textContent
     };
   }
   function start(data) {
@@ -5905,7 +6251,7 @@ ${p.text}`), end, fates.join(" ")].filter(Boolean).join("\n\n") + "\n";
       queueCpu();
     } else {
       startGame();
-      if (!data?.setup && !loadSelf() && !location.hash) openNaming();
+      if (freshViewer || !data?.setup && !loadSelf() && !location.hash) openNaming();
     }
     draw();
     renderCodex();

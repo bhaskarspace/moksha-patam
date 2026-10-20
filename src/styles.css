@@ -210,6 +210,21 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 }
 @keyframes toast { 0% { opacity: 0; transform: translate(-50%, -40%); } 10%, 82% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; transform: translate(-50%, 0); } }
 
+/* The line under the board (REDESIGN.md Phase 11): an ordinary landing, told in a line, which opens its card */
+.landed {
+  width: 100%; max-width: 600px; margin: 0; padding: 8px 12px; text-align: left;
+  border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--ink);
+  font: 400 15px/1.4 var(--f-card); cursor: pointer;
+}
+/* the whole moment where it fits: two lines on a wide screen, three on a phone, where it is the card */
+.landed-t { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+@media (max-width: 767px) { .landed-t { -webkit-line-clamp: 3; } }
+.landed:lang(hi) { font-family: var(--f-card-hi); }
+.landed b { font: 600 13px/1.4 var(--f-body); color: var(--muted); margin-right: 4px; }
+.landed b::after { content: " ·"; }
+.landed:hover { border-color: var(--accent); }
+.landed:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
 /* The card: a pothi folio, a landscape manuscript leaf with a string hole, its text held between double red rules.
    Fixed paper colours, so it reads the same in both themes. */
 .folio {
@@ -217,6 +232,8 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
   width: min(780px, calc(100vw - 24px)); max-width: none; max-height: calc(100dvh - 24px);
 }
 .folio::backdrop { background: rgba(20, 12, 4, 0.58); }
+/* not modal (Phase 11): no backdrop, the board and dice live around it; on a wide screen it sits over the board */
+.folio:not(:modal)[open] { position: fixed; inset: 0; margin: auto; height: fit-content; z-index: 30; }
 .leaf {
   --l-ink: #2A1A08; --l-ink2: #5E4527; --l-gold: #8A5A1E; --l-rule: #B5261E; --l-line: rgba(110, 70, 20, 0.32);
   view-transition-name: folio;
@@ -314,6 +331,17 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 .leaf .story p.moment.remnant { font-style: italic; color: var(--l-ink2); }
 .leaf .story p.mirror { font-size: 18px; color: var(--l-ink2); }
 .leaf .story p.moment.second, .leaf .story p.mirror.second { font-size: 0.86em; }
+/* Phase 11: the bridge says the mirror is a story and who is in it; in the first life the story waits behind it */
+.leaf .story p.bridge { margin-bottom: 2px; font: 600 12px/1.4 var(--f-body); letter-spacing: 0.04em; color: var(--l-gold); }
+.leaf .story p.bridge.second { font-size: 11px; }
+.leaf .story-more {
+  display: block; margin: 12px 0 2px; padding: 4px 0; border: 0; background: none; text-align: left; cursor: pointer;
+  font: italic 18px/1.4 var(--f-card); color: var(--l-ink2); opacity: 0.8;
+}
+.leaf .story-more:lang(hi) { font-family: var(--f-card-hi); font-style: normal; }
+.leaf .story-more::before { content: "▸ "; font-style: normal; color: var(--l-gold); }
+.leaf .story-more:hover { opacity: 1; text-decoration: underline; text-decoration-color: var(--l-line); }
+.leaf .story p:focus, .leaf h2[tabindex="-1"]:focus { outline: none; }
 
 /* the naming, before the board */
 .naming { width: min(460px, calc(100vw - 32px)); }

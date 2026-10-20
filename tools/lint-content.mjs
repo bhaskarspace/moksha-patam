@@ -8,7 +8,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { GOAL, TOP, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, STR, SRC_HI, JOINS, NUM_HI, READINGS, CODEX, REFS, ENTRY_IDS, srcOfSquare, sourceOf, leadOf, squareOf, SITUATIONS, CAST, CAST_WORDS } from "../src/content.js";
+import { GOAL, TOP, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, STR, SRC_HI, JOINS, NUM_HI, READINGS, CODEX, REFS, ENTRY_IDS, srcOfSquare, sourceOf, leadOf, squareOf, SITUATIONS, CAST, CAST_WORDS, BRIDGES, BRIDGE_SAME, whoOf, bridgeOf } from "../src/content.js";
 import NAMES from "../content/names.json" with { type: "json" };
 import { ENDGAME, createGame, playTurn } from "../src/engine/turn.js";
 import { destOf, worthOf } from "../src/engine/qbn.js";
@@ -305,6 +305,36 @@ export function lintReport() {
         if (lo.cost > hi.cost) err(w, `the option worth least (${lo.id}) costs more years than the one worth most (${hi.id})`);
       }
     }
+  }
+
+  // Phase 11: every mirror a card can show tells a cold reader, the first time it names someone, that it is a story and
+  // who is in it. The mirror shown is the told moment's own, or the square's (src/render/card.js).
+  {
+    const used = new Set();
+    for (let n = 1; n <= TOP; n++) {
+      const q = squareOf(n);
+      if (!q) continue;
+      const shown = [[`square ${n}`, q.moment?.mirror || q.mirror], [`square ${n} roll`, SQ[n]?.roll?.moment && (SQ[n].roll.moment.mirror || q.mirror)],
+        ...(SITUATIONS[n]?.options || []).map(o => [`situation ${n}.${o.id}`, o.outcome && (o.outcome.mirror || q.mirror)]), [`snake ${n}`, HEAVEN[n] && SNAKES[n]?.mirror]];
+      for (const [w, mr] of shown) {
+        if (!mr?.en) continue;
+        const who = whoOf(mr), b = bridgeOf(mr);
+        if (mr.who && !BRIDGES[BRIDGE_SAME[mr.who] ?? mr.who]) err(`${w} mirror`, `says who "${mr.who}", which has no bridge in content/bridges.json`);
+        else if (!b) err(`${w} mirror`, who ? `is about ${who}, who has no bridge in content/bridges.json` : "names nobody a bridge can be found for");
+        else used.add(b.id);
+      }
+    }
+    for (const [id, b] of Object.entries(BRIDGES)) {
+      const w = `bridges.${id}`;
+      bilingual(w, b);
+      if (!b.en) continue;
+      lintLead(w, [b.en, b.hi]);
+      const words = b.en.split(/\s+/).length;
+      if (words > 12) err(w, `is ${words} words; a bridge is a clause, about eight, never more than twelve`);
+      for (const l of ["en", "hi"]) if (/[{}]/.test(b[l] || "")) err(w, `the ${l} has a placeholder; a bridge is about the story, never the player`);
+      if (!used.has(id)) warn(w, "is the bridge of no mirror a card shows");
+    }
+    for (const [a, id] of Object.entries(BRIDGE_SAME)) if (!BRIDGES[id]) err(`bridges.same.${a}`, `sends to "${id}", which has no bridge`);
   }
 
   // Phase 10C: the cast's names and words. First names only, never repeated, none in the lead lexicon and none in any
