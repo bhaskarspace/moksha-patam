@@ -192,7 +192,7 @@ async function takeTurn() {
     if (g !== G.gen) return;
     // Weighted by what happened (REDESIGN.md Phase 11): a person's situation, snake, ladder, first meeting by name,
     // first realm and the exit open the full card; any other landing of theirs is a line under the board.
-    // Only the situation waits on its card, for the choice; the others go with the game.
+    // Only the situation waits on its card, for the choice, and closes on it; the others go with the game.
     let full = false;
     if (plan.situation) {
       if (p.type === "human") {
@@ -205,7 +205,8 @@ async function takeTurn() {
       plan = resolveChoice(state, plan, id);
       G.plan = plan;
       refreshCard();
-      if (p.type === "human") releaseCard();
+      // the card was for the choice; its outcome is the line under the board, like any landing, and the die is live
+      if (p.type === "human") { releaseCard(); await closeCard(); if (g !== G.gen) return; landHuman(plan.target, idx, id); }
       G.waitingCard = false; refreshRoll();
     } else if (!plan.sit && p.type === "human" && fullCard(state, plan, idx)) {
       // a year sat out lands nowhere new, so nothing opens for it
@@ -354,7 +355,7 @@ function render() {
 function renderSetup() {
   const setup = G.setup;
   $("count").setAttribute("aria-label", t("players"));
-  $("count").innerHTML = [2, 3, 4].map(n => `<button type="button" data-n="${n}" aria-pressed="${n === setup.count}">${t("nPlayers", { n })}</button>`).join("");
+  $("count").innerHTML = [1, 2, 3, 4].map(n => `<button type="button" data-n="${n}" aria-pressed="${n === setup.count}">${n === 1 ? t("onePlayer") : t("nPlayers", { n })}</button>`).join("");
   $("prows").innerHTML = setup.rows.slice(0, setup.count).map((r, i) => `
     <div class="prow">
       <span class="dot" style="background:${COLORS[i]}"></span>
@@ -407,6 +408,7 @@ function setLang(l) {
   refreshCard();
   refreshLife();
   drawLanded();
+  drawNaming();
 }
 document.querySelectorAll("[data-lang]").forEach(b => b.addEventListener("click", () => setLang(b.dataset.lang)));
 
@@ -445,22 +447,62 @@ $("again").addEventListener("click", startGame);
 $("readLife").addEventListener("click", () => openLife());
 
 // ---- The naming, before the board (docs/NARRATIVE.md §3) ----
-// The first player's name and gender, asked as the first thing that happens. Gender is required: Hindi
-// verbs agree with it. A name left blank is drawn from content/names.json when the game starts.
+// Who is playing, then each person's name and gender, asked as the first thing that happens: just one person, one
+// against a computer (the default), or two to four people, named one after another before the game starts. Gender is
+// required: Hindi verbs agree with it. A name left blank is drawn from content/names.json when the game starts. The
+// "Players & rules" panel still sets up any table; this is the way in for someone new.
+const WHO = ["1", "cpu", "2", "3", "4"];
+let naming = null; // { who, k }: the table chosen, and whose naming this is
+const people = who => (who === "1" || who === "cpu" ? 1 : +who);
+// the table the setup already is, in the naming's terms; a mix of people and computers reads as the default
+function whoOfSetup({ count, rows }) {
+  if (count === 1 && rows[0].type === "human") return "1";
+  return count > 1 && rows.slice(0, count).every(r => r.type === "human") ? String(count) : "cpu";
+}
+function drawNaming() {
+  if (!naming) return;
+  const { who, k } = naming, n = people(who);
+  $("namingWhoOpts").innerHTML = WHO.map(v => `<label><input type="radio" name="who" value="${v}"${v === who ? " checked" : ""}> <span>${esc(v === "1" ? t("whoMe") : v === "cpu" ? t("whoCpu") : t("whoPeople", { n: +v }))}</span></label>`).join("");
+  $("namingWho").hidden = k > 0;
+  $("namingStep").hidden = n < 2;
+  $("namingStep").textContent = n < 2 ? "" : t("namingOf", { k: k + 1, n, colour: t("colour" + k) });
+  $("namingBegin").textContent = t(k < n - 1 ? "namingNext" : "namingBegin");
+  $("namingBack").hidden = k === 0;
+}
+// the fields for person k, as the setup has them
+function fillNaming(k) {
+  const r = G.setup.rows[k], human = r.type === "human";
+  $("namingName").value = human ? r.name : "";
+  $("namingName").autocomplete = k ? "off" : "given-name";
+  document.querySelectorAll("#namingGenders input").forEach(i => { i.checked = human && i.value === r.gender; });
+}
 function openNaming() {
-  const r = G.setup.rows[0];
-  $("namingName").value = r.name;
-  document.querySelectorAll("#namingGenders input").forEach(i => { i.checked = i.value === r.gender; });
+  readSetup();
+  naming = { who: whoOfSetup(G.setup), k: 0 };
+  fillNaming(0);
+  drawNaming();
   $("naming").showModal();
 }
-$("namingForm").addEventListener("submit", () => {
-  readSetup();
-  const r = G.setup.rows[0];
+$("namingWhoOpts").addEventListener("change", e => { if (naming && e.target.name === "who") { naming.who = e.target.value; drawNaming(); } });
+$("namingBack").addEventListener("click", () => {
+  if (!naming?.k) return;
+  naming.k--; fillNaming(naming.k); drawNaming();
+  $("namingName").focus();
+});
+$("namingForm").addEventListener("submit", e => {
+  if (!naming) return;
+  const { who, k } = naming, n = people(who), r = G.setup.rows[k];
   r.name = $("namingName").value.trim(); r.type = "human";
   r.gender = new FormData($("namingForm")).get("gender");
-  saveSelf(r.name, r.gender);
+  if (k === 0) saveSelf(r.name, r.gender);
+  // the next person's naming, in the same dialog
+  if (k < n - 1) { e.preventDefault(); naming.k++; fillNaming(naming.k); drawNaming(); $("namingName").focus(); return; }
+  naming = null;
+  G.setup.count = who === "cpu" ? 2 : n;
+  // against a computer, the second seat is the computer's, unnamed unless it was one already
+  if (who === "cpu" && G.setup.rows[1].type !== "cpu") Object.assign(G.setup.rows[1], { name: "", type: "cpu", gender: "" });
   renderSetup();
-  // nothing has been rolled yet, so the same seed gives the same game, now with its name
+  // nothing has been rolled yet, so the same seed gives the same game, now with its names
   nextSeed = G.state.rng.seed;
   startGame();
 });
@@ -596,6 +638,8 @@ if (new URLSearchParams(location.search).has("debug")) {
     first() { beFirst(); refreshCard(); return firstLife(); },
     // the line under the board, or null when it is empty
     landed: () => $("landed").textContent || null,
+    // mp.land(n, told) puts player 0's landing on square n in the line, told by an option or roll moment if given
+    land: (n, told) => { landHuman(n, 0, told); return $("landed").textContent || null; },
   };
 }
 

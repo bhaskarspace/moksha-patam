@@ -374,6 +374,53 @@ await check("reduced motion: a whole computer game plays through with cards", as
   await page.waitForFunction(() => !document.getElementById("win").hidden, null, { timeout: 60000 });
 });
 
+await check("Phase 11: the naming asks who is playing, a computer by default, and names each person in turn", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=1&debug");
+  await page.waitForFunction(() => document.getElementById("naming").open);
+  assert(await page.evaluate(() => document.querySelector('#namingWhoOpts input[value="cpu"]').checked), "me and a computer is not the default");
+  await page.check('#namingWhoOpts input[value="3"]');
+  assert(/Next/.test(await page.textContent("#namingBegin")), "the first of three is not asked for the next");
+  const name = async (who, g) => { await page.fill("#namingName", who); await page.check(`#namingGenders input[value="${g}"]`); await page.click("#namingBegin"); };
+  await name("Asha", "f");
+  const step = await page.evaluate(() => ({ step: document.getElementById("namingStep").textContent, who: document.getElementById("namingWho").hidden, name: document.getElementById("namingName").value, open: document.getElementById("naming").open }));
+  assert(step.open && /Player 2 of 3/.test(step.step) && step.who && step.name === "", JSON.stringify(step));
+  // back to the first, kept as given, and on again
+  await page.click("#namingBack");
+  assert(await page.inputValue("#namingName") === "Asha", "Back lost the first person's name");
+  await page.click("#namingBegin");
+  await name("Ravi", "m");
+  // the third is a person too: no gender, no game
+  await page.fill("#namingName", "Kiran");
+  await page.click("#namingBegin");
+  assert(await page.evaluate(() => document.getElementById("naming").open), "the naming closed without the third person's gender");
+  await page.check('#namingGenders input[value="n"]');
+  await page.click("#namingBegin");
+  await page.waitForFunction(() => !document.getElementById("naming").open);
+  const r = await page.evaluate(() => ({ players: mp.state.players.map(p => [p.name, p.type, p.gender]), panel: document.querySelector('#count [aria-pressed="true"]')?.dataset.n }));
+  assert(JSON.stringify(r.players) === JSON.stringify([["Asha", "human", "f"], ["Ravi", "human", "m"], ["Kiran", "human", "n"]]) && r.panel === "3", JSON.stringify(r));
+}, { named: false });
+
+await check("Phase 11: just me is a table of one, and plays", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=1&debug");
+  await page.waitForFunction(() => document.getElementById("naming").open);
+  await page.check('#namingWhoOpts input[value="1"]');
+  await page.fill("#namingName", "Meera");
+  await page.check('#namingGenders input[value="f"]');
+  await page.click("#namingBegin");
+  await page.waitForFunction(() => !document.getElementById("naming").open);
+  assert(await page.evaluate(() => mp.state.players.length === 1 && mp.state.players[0].name === "Meera"), "not a table of one");
+  for (let i = 0; i < 3; i++) {
+    const n = await page.evaluate(() => mp.state.players[0].life.length);
+    await page.waitForFunction(() => !mp.busy && !document.getElementById("roll").disabled && !mp.deciding);
+    await page.evaluate(() => { if (document.getElementById("folio").open) mp.close({ instant: true }); document.getElementById("roll").click(); });
+    await page.waitForFunction(k => mp.state.players[0].life.length > k || mp.deciding, n, { timeout: 15000 });
+    if (await page.evaluate(() => mp.deciding)) await page.evaluate(() => mp.choose(mp.deciding.find(o => o.open).id));
+  }
+  assert(await page.evaluate(() => mp.state.turn === 0 && mp.state.log.every(e => e.who == null || e.who === 0)), "someone else played");
+}, { named: false });
+
 await check("Phase 3: the naming comes first, needs a gender, and the cards agree with it", async page => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto(BASE + "?seed=1&debug&lang=hi");
@@ -559,8 +606,8 @@ await check("Phase 10: a situation's card asks, takes the choice on the card, an
   assert(asked.opts.length === 2 && /Pocket it/.test(asked.opts[0]) && /down to 43/.test(asked.opts[0]) && /stays on 55 · 7 years/.test(asked.opts[1]), `options: ${asked.opts}`);
   assert(!asked.mirror, "the mirror waits until the choice is made");
   await page.click('#leaf .opt[data-id="return"]');
-  await page.waitForFunction(() => !mp.deciding && /goes back to the counter/.test(document.querySelector("#leaf .moment")?.textContent || ""), null, { timeout: 30000 });
-  await page.evaluate(() => mp.close());
+  // the card goes with the choice, and the outcome is the line under the board (Phase 11)
+  await page.waitForFunction(() => !mp.deciding && !document.getElementById("folio").open && /goes back to the counter/.test(mp.landed() || ""), null, { timeout: 30000 });
   await page.waitForFunction(() => mp.state.players[0].life.length > 1 && !mp.busy, null, { timeout: 30000 });
   const p = await page.evaluate(() => ({ pos: mp.state.players[0].pos, years: mp.state.players[0].years }));
   assert(p.pos === 55 && p.years === 49, `kept to 55 at 49: ${JSON.stringify(p)}`);
@@ -580,7 +627,6 @@ await check("Phase 10: an option a gate withholds is shown, says why, and cannot
   assert(await page.evaluate(() => !!mp.deciding), "key 2 took the withheld option");
   await page.keyboard.press("1");
   await page.waitForFunction(() => !mp.deciding, null, { timeout: 30000 });
-  await page.evaluate(() => mp.close());
   await page.waitForFunction(() => !mp.busy && mp.state.players[0].pos === 50, null, { timeout: 30000 });
   // a square with no situation is its story card, as before: no options
   const plain = await page.evaluate(() => { mp.open(44, { who: 0 }); const o = !!document.querySelector("#leaf .options"); mp.close({ instant: true }); return o; });
@@ -1010,7 +1056,7 @@ await check("Phase 11: the die is live under a card: a landing's card keeps the 
   await page.waitForFunction(n => mp.state.players[0].life.length > n, life, { timeout: 15000 });
 });
 
-await check("Phase 11: a situation still waits for its choice: modal, and Space does not roll past it", async page => {
+await check("Phase 11: a situation waits for its choice, modal, and Space does not roll past it; the choice closes it", async page => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto(BASE + "?seed=1&debug");
   await page.evaluate(() => { Object.assign(mp.state.players[0], { pos: 52, life: [52], told: [null], years: 40 }); mp.roll(3); });
@@ -1021,9 +1067,12 @@ await check("Phase 11: a situation still waits for its choice: modal, and Space 
   await page.waitForTimeout(800);
   assert(await page.evaluate(n => mp.deciding && mp.state.log.length === n, before), "Space rolled past the choice");
   await page.keyboard.press("2");
-  await page.waitForFunction(() => !mp.deciding && !mp.busy, null, { timeout: 30000 });
-  const r = await page.evaluate(() => ({ open: document.getElementById("folio").open, modal: document.getElementById("folio").matches(":modal") }));
-  assert(r.open && !r.modal, `after the choice the card should stay, and stop holding the game: ${JSON.stringify(r)}`);
+  // the card was for the choice: it goes, the outcome holds the line until the next roll, and the die is live
+  await page.waitForFunction(() => !mp.deciding && !document.getElementById("folio").open, null, { timeout: 30000 });
+  const r = await page.evaluate(() => ({ line: mp.landed(), sq: document.getElementById("landed").dataset.sq }));
+  assert(r.sq === "55" && /goes back to the counter/.test(r.line || ""), `the outcome is not the line: ${JSON.stringify(r)}`);
+  await page.waitForFunction(() => !mp.busy && mp.state.turn === 0 && !document.getElementById("roll").disabled, null, { timeout: 30000 });
+  assert(/goes back to the counter/.test(await page.evaluate(() => mp.landed()) || ""), "the outcome did not hold until the next roll");
 });
 
 await check("Phase 11: an ordinary landing is a line under the board, with its moment, and opens its card", async page => {

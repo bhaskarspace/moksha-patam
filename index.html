@@ -383,6 +383,9 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 .naming-genders input { accent-color: var(--l-rule); margin: 0; }
 .naming .hint { font-size: 12.5px; font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--l-ink2); }
 .naming button[type="submit"] { align-self: flex-start; background: var(--l-rule); color: #FFF6E0; }
+.naming-step { margin: 0; font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--l-ink2); }
+.naming-act { display: flex; gap: 10px; align-items: center; }
+.naming #namingBack { background: none; border: 1px solid var(--l-line); color: var(--l-ink); }
 
 /* the life account */
 .life-who { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px 24px 0; font-family: var(--f-body); }
@@ -886,6 +889,11 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     <div class="naming-body">
       <h2 id="namingTitle" data-t="namingTitle">Nāmakaraṇa</h2>
       <p class="naming-line" data-t="namingLine"></p>
+      <fieldset class="naming-field" id="namingWho">
+        <legend data-t="namingWho">Who is playing?</legend>
+        <div class="naming-genders" id="namingWhoOpts"></div>
+      </fieldset>
+      <p class="naming-step" id="namingStep" hidden></p>
       <label class="naming-field"><span data-t="namingName">Name</span>
         <input type="text" id="namingName" maxlength="16" autocomplete="given-name" spellcheck="false">
       </label>
@@ -898,7 +906,10 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         </div>
         <span class="hint" data-t="genderWhy"></span>
       </fieldset>
-      <button type="submit" id="namingBegin" data-t="namingBegin">Begin</button>
+      <div class="naming-act">
+        <button type="submit" id="namingBegin">Begin</button>
+        <button type="button" id="namingBack" data-t="namingBack" hidden>Back</button>
+      </div>
     </div>
   </form>
 </dialog>
@@ -1185,6 +1196,14 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         genderWhy: "Hindi verbs agree with this, so the cards need it.",
         genderAny: "Drawn with the name",
         namingBegin: "Begin",
+        namingWho: "Who is playing?",
+        whoMe: "Just me",
+        whoCpu: "Me and a computer",
+        whoPeople: "{n} people",
+        namingOf: "Player {k} of {n} · {colour}",
+        namingNext: "Next",
+        namingBack: "Back",
+        onePlayer: "1 player",
         age: "age {n}",
         ageMonths: "{n} months old",
         ageBirth: "newborn",
@@ -1371,6 +1390,14 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         genderWhy: "हिंदी की क्रियाएँ इसी से मेल खाती हैं, इसलिए कार्डों को यह चाहिए।",
         genderAny: "नाम के साथ",
         namingBegin: "आरंभ",
+        namingWho: "कौन खेल रहा है?",
+        whoMe: "सिर्फ़ मैं",
+        whoCpu: "मैं और कंप्यूटर",
+        whoPeople: "{n} लोग",
+        namingOf: "{n} में से खिलाड़ी {k} · {colour}",
+        namingNext: "आगे",
+        namingBack: "पीछे",
+        onePlayer: "1 खिलाड़ी",
         age: "आयु {n}",
         ageMonths: "{n} महीने",
         ageBirth: "नवजात",
@@ -2711,7 +2738,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var CAST_ROLES = ["mother", "father", "teacher", "friend", "spouse", "child", "rival", "who"];
   var CAST_AGREE = new RegExp(`\\{(${CAST_ROLES.join("|")}):([^{}|]*)\\|([^{}|]*)\\}`, "g");
   var CAST_REF = new RegExp(`\\{(${CAST_ROLES.join("|")})(?:=((?:[^{}]|\\{name\\})*))?\\}`, "g");
-  var castFill = (text, people = {}) => text.replace(CAST_AGREE, (_, r, m, f2) => people[r]?.gender === "f" ? f2 : m).replace(CAST_REF, (_, r, words = "") => people[r]?.name ?? words);
+  var castFill = (text, people2 = {}) => text.replace(CAST_AGREE, (_, r, m, f2) => people2[r]?.gender === "f" ? f2 : m).replace(CAST_REF, (_, r, words = "") => people2[r]?.name ?? words);
   var ONES = "zero one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen".split(" ");
   var TENS = ["", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"];
   var wordsEn = (n) => n < 20 ? ONES[n] : n < 100 ? TENS[Math.floor(n / 10)] + (n % 10 ? "-" + ONES[n % 10] : "") : "a hundred" + (n % 100 ? " and " + wordsEn(n % 100) : "");
@@ -4941,15 +4968,15 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     body += `<div class="story">${bi(l, e.line || e.gloss)}</div>`;
     if (e.body) body += bi(l, e.body, "note");
     if (e.moksha) body += `<h3 class="sub">${T("mokshaFor")}</h3>` + bi(l, e.moksha, "moksha");
-    const people = kind === "school" ? Object.keys(CODEX.figures).filter((f2) => CODEX.figures[f2].school === id) : kind === "figure" && e.school ? [e.school] : [];
-    if (people.length) body += `<p class="people"><span>${T(kind === "school" ? "people" : "school")}:</span> ${people.map((p) => entryLink(p, l, "plink")).join(" · ")}</p>`;
+    const people2 = kind === "school" ? Object.keys(CODEX.figures).filter((f2) => CODEX.figures[f2].school === id) : kind === "figure" && e.school ? [e.school] : [];
+    if (people2.length) body += `<p class="people"><span>${T(kind === "school" ? "people" : "school")}:</span> ${people2.map((p) => entryLink(p, l, "plink")).join(" · ")}</p>`;
     const refs = REFS[id] || [];
     if (refs.length) body += `<p class="onboard"><span>${T("onBoard")}:</span> ${refs.map((n) => `<a href="#sq/${n}" data-sq="${n}">${numIn(l, n)}</a>`).join(" ")}</p>`;
     if (e.url) body += `<p class="srcline"><a class="src" href="${esc(e.url)}" target="_blank" rel="noopener">${T("readMore")} ↗</a></p>`;
     const prev = ENTRY_IDS[i - 1], next2 = ENTRY_IDS[i + 1];
     return {
       kind: "entry",
-      met: [id, ...people],
+      met: [id, ...people2],
       html: frame2(l, {
         kind: "entry",
         eb: T(kind === "school" ? "entrySchool" : kind === "source" ? "entrySource" : "entryFigure"),
@@ -5243,11 +5270,11 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       go(e.key === "ArrowLeft" ? -1 : 1);
     }
   });
-  function momentLine(n, who2, l) {
+  function momentLine(n, who2, l, told) {
     const keep = subject;
     subject = who2;
     try {
-      const m = momentOf(n, toldHere(n)).moment ?? squareOf(n)?.moment;
+      const m = momentOf(n, told !== void 0 ? told : toldHere(n)).moment ?? squareOf(n)?.moment;
       return { title: squareInfo(n, l).title, text: m ? momentIn(m, l, n, false) : "" };
     } finally {
       subject = keep;
@@ -5260,8 +5287,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   // src/render/landed.js
   var el = $("landed");
   var last = null;
-  var landHuman = (n, who2) => {
-    last = { n, who: who2 };
+  var landHuman = (n, who2, told) => {
+    last = { n, who: who2, told };
     drawLanded();
   };
   var clearLanded = () => {
@@ -5270,7 +5297,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   };
   function drawLanded() {
     const s = G.state;
-    const { title, text } = last && s && s.players[last.who]?.pos != null ? momentLine(last.n, last.who, lang) : {};
+    const { title, text } = last && s && s.players[last.who]?.pos != null ? momentLine(last.n, last.who, lang, last.told) : {};
     if (!text && !title) {
       el.dataset.empty = "";
       el.innerHTML = "";
@@ -5483,8 +5510,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     }
     close();
     const stage = (s) => l === "hi" ? ASHRAMAS[s][2] : ASHRAMAS[s][1];
-    const last2 = cc.at(-1), people = last2 ? peopleOf(last2.cast, /* @__PURE__ */ new Set([...last2.before, ...last2.meets ? [last2.about] : []]), l) : {};
-    const held2 = (t2) => fill(castFill(t2 ? t2[l] || t2.en : "", people), who2);
+    const last2 = cc.at(-1), people2 = last2 ? peopleOf(last2.cast, /* @__PURE__ */ new Set([...last2.before, ...last2.meets ? [last2.about] : []]), l) : {};
+    const held2 = (t2) => fill(castFill(t2 ? t2[l] || t2.en : "", people2), who2);
     return {
       title: T("lifeTitle"),
       sub: p.peak != null ? tIn(l, "title" + titleOf(p.peak)) : "",
@@ -5775,7 +5802,12 @@ ${p.text}`), end, fates.join(" ")].filter(Boolean).join("\n\n") + "\n";
         plan = resolveChoice(state, plan, id);
         G.plan = plan;
         refreshCard();
-        if (p.type === "human") releaseCard();
+        if (p.type === "human") {
+          releaseCard();
+          await closeCard();
+          if (g3 !== G.gen) return;
+          landHuman(plan.target, idx, id);
+        }
         G.waitingCard = false;
         refreshRoll();
       } else if (!plan.sit && p.type === "human" && fullCard(state, plan, idx)) {
@@ -5916,7 +5948,7 @@ ${p.text}`), end, fates.join(" ")].filter(Boolean).join("\n\n") + "\n";
   function renderSetup() {
     const setup = G.setup;
     $("count").setAttribute("aria-label", t("players"));
-    $("count").innerHTML = [2, 3, 4].map((n) => `<button type="button" data-n="${n}" aria-pressed="${n === setup.count}">${t("nPlayers", { n })}</button>`).join("");
+    $("count").innerHTML = [1, 2, 3, 4].map((n) => `<button type="button" data-n="${n}" aria-pressed="${n === setup.count}">${n === 1 ? t("onePlayer") : t("nPlayers", { n })}</button>`).join("");
     $("prows").innerHTML = setup.rows.slice(0, setup.count).map((r, i) => `
     <div class="prow">
       <span class="dot" style="background:${COLORS[i]}"></span>
@@ -5971,6 +6003,7 @@ ${p.text}`), end, fates.join(" ")].filter(Boolean).join("\n\n") + "\n";
     refreshCard();
     refreshLife();
     drawLanded();
+    drawNaming();
   }
   document.querySelectorAll("[data-lang]").forEach((b) => b.addEventListener("click", () => setLang(b.dataset.lang)));
   $("count").addEventListener("click", (e) => {
@@ -6015,21 +6048,69 @@ ${p.text}`), end, fates.join(" ")].filter(Boolean).join("\n\n") + "\n";
   });
   $("again").addEventListener("click", startGame);
   $("readLife").addEventListener("click", () => openLife());
-  function openNaming() {
-    const r = G.setup.rows[0];
-    $("namingName").value = r.name;
+  var WHO2 = ["1", "cpu", "2", "3", "4"];
+  var naming = null;
+  var people = (who2) => who2 === "1" || who2 === "cpu" ? 1 : +who2;
+  function whoOfSetup({ count, rows }) {
+    if (count === 1 && rows[0].type === "human") return "1";
+    return count > 1 && rows.slice(0, count).every((r) => r.type === "human") ? String(count) : "cpu";
+  }
+  function drawNaming() {
+    if (!naming) return;
+    const { who: who2, k } = naming, n = people(who2);
+    $("namingWhoOpts").innerHTML = WHO2.map((v) => `<label><input type="radio" name="who" value="${v}"${v === who2 ? " checked" : ""}> <span>${esc(v === "1" ? t("whoMe") : v === "cpu" ? t("whoCpu") : t("whoPeople", { n: +v }))}</span></label>`).join("");
+    $("namingWho").hidden = k > 0;
+    $("namingStep").hidden = n < 2;
+    $("namingStep").textContent = n < 2 ? "" : t("namingOf", { k: k + 1, n, colour: t("colour" + k) });
+    $("namingBegin").textContent = t(k < n - 1 ? "namingNext" : "namingBegin");
+    $("namingBack").hidden = k === 0;
+  }
+  function fillNaming(k) {
+    const r = G.setup.rows[k], human = r.type === "human";
+    $("namingName").value = human ? r.name : "";
+    $("namingName").autocomplete = k ? "off" : "given-name";
     document.querySelectorAll("#namingGenders input").forEach((i) => {
-      i.checked = i.value === r.gender;
+      i.checked = human && i.value === r.gender;
     });
+  }
+  function openNaming() {
+    readSetup();
+    naming = { who: whoOfSetup(G.setup), k: 0 };
+    fillNaming(0);
+    drawNaming();
     $("naming").showModal();
   }
-  $("namingForm").addEventListener("submit", () => {
-    readSetup();
-    const r = G.setup.rows[0];
+  $("namingWhoOpts").addEventListener("change", (e) => {
+    if (naming && e.target.name === "who") {
+      naming.who = e.target.value;
+      drawNaming();
+    }
+  });
+  $("namingBack").addEventListener("click", () => {
+    if (!naming?.k) return;
+    naming.k--;
+    fillNaming(naming.k);
+    drawNaming();
+    $("namingName").focus();
+  });
+  $("namingForm").addEventListener("submit", (e) => {
+    if (!naming) return;
+    const { who: who2, k } = naming, n = people(who2), r = G.setup.rows[k];
     r.name = $("namingName").value.trim();
     r.type = "human";
     r.gender = new FormData($("namingForm")).get("gender");
-    saveSelf(r.name, r.gender);
+    if (k === 0) saveSelf(r.name, r.gender);
+    if (k < n - 1) {
+      e.preventDefault();
+      naming.k++;
+      fillNaming(naming.k);
+      drawNaming();
+      $("namingName").focus();
+      return;
+    }
+    naming = null;
+    G.setup.count = who2 === "cpu" ? 2 : n;
+    if (who2 === "cpu" && G.setup.rows[1].type !== "cpu") Object.assign(G.setup.rows[1], { name: "", type: "cpu", gender: "" });
     renderSetup();
     nextSeed = G.state.rng.seed;
     startGame();
@@ -6209,7 +6290,12 @@ ${p.text}`), end, fates.join(" ")].filter(Boolean).join("\n\n") + "\n";
         return firstLife();
       },
       // the line under the board, or null when it is empty
-      landed: () => $("landed").textContent || null
+      landed: () => $("landed").textContent || null,
+      // mp.land(n, told) puts player 0's landing on square n in the line, told by an option or roll moment if given
+      land: (n, told) => {
+        landHuman(n, 0, told);
+        return $("landed").textContent || null;
+      }
     };
   }
   function start(data) {

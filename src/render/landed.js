@@ -11,15 +11,16 @@ import { labEls } from "./board.js";
 import { momentLine, openSquare } from "./card.js";
 
 const el = $("landed");
-let last = null; // { n, who }, the person's last landing
+let last = null; // { n, who, told }, the person's last landing, and the option told there if they chose one
 
-// A person's landing on square n, told by its moment.
-export const landHuman = (n, who) => { last = { n, who }; drawLanded(); };
+// A person's landing on square n, told by its moment. A situation's is told by the option chosen, kept here since the
+// option's ladder or snake takes the token off the square.
+export const landHuman = (n, who, told) => { last = { n, who, told }; drawLanded(); };
 export const clearLanded = () => { last = null; drawLanded(); };
 
 export function drawLanded() {
   const s = G.state;
-  const { title, text } = last && s && s.players[last.who]?.pos != null ? momentLine(last.n, last.who, lang) : {};
+  const { title, text } = last && s && s.players[last.who]?.pos != null ? momentLine(last.n, last.who, lang, last.told) : {};
   if (!text && !title) { el.dataset.empty = ""; el.innerHTML = ""; el.tabIndex = -1; return; }
   el.innerHTML = `<span class="landed-t">${title ? `<b>${esc(title)}</b> ` : ""}${esc(text)}</span>`;
   el.dataset.sq = last.n;

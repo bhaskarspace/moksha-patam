@@ -361,6 +361,9 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 .naming-genders input { accent-color: var(--l-rule); margin: 0; }
 .naming .hint { font-size: 12.5px; font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--l-ink2); }
 .naming button[type="submit"] { align-self: flex-start; background: var(--l-rule); color: #FFF6E0; }
+.naming-step { margin: 0; font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--l-ink2); }
+.naming-act { display: flex; gap: 10px; align-items: center; }
+.naming #namingBack { background: none; border: 1px solid var(--l-line); color: var(--l-ink); }
 
 /* the life account */
 .life-who { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px 24px 0; font-family: var(--f-body); }

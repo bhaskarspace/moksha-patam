@@ -580,11 +580,11 @@ dlg.addEventListener("keydown", e => {
 
 // What a landing told, as { title, text } in language l, for the line under the board when the card does not open
 // (REDESIGN.md Phase 11): the square's name and the moment, as the card would say it, without the mirror.
-export function momentLine(n, who, l) {
+export function momentLine(n, who, l, told) {
   const keep = subject;
   subject = who;
   try {
-    const m = momentOf(n, toldHere(n)).moment ?? squareOf(n)?.moment;
+    const m = momentOf(n, told !== undefined ? told : toldHere(n)).moment ?? squareOf(n)?.moment;
     return { title: squareInfo(n, l).title, text: m ? momentIn(m, l, n, false) : "" };
   } finally { subject = keep; }
 }
