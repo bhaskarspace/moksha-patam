@@ -291,7 +291,7 @@ ran out of years at a hundred and eleven, lived to ninety-four and at eighty-nin
 begin again, nothing went backwards, or lived to an age. **The ending** of a life that ran
 out of years names what it was still holding: the vice it took most often, in that snake's
 `holding` ("…on ground already walked once, still asking whether the son has eaten.").
-Phase 12 makes that what carries over. **A life let go** ends with the same weight (Phase 9): it names
+Phase 14 makes that what carries over. **A life let go** ends with the same weight (Phase 9): it names
 that same vice, the one a death would have named as still held, as the thing put down, in the
 snake's `letgo` ("Then, at eighty-eight, moksha, and Meera put down the body that seemed to
 settle it."). A life that took no snake has "nothing to put down". What the dying hold is what
@@ -404,7 +404,7 @@ visible burn-down.
 ## 13. The story layer — people, the book, the question, the door
 
 *Written 19 Oct after Phase 9, approved by Bhaskar, appended after Phase 10 shipped. Threaded
-into REDESIGN.md as Phase 10C and into Phases 11–13 and 16. Nothing here is a new mechanic;
+into REDESIGN.md as Phase 10C and into Phases 12–15 and 18. Nothing here is a new mechanic;
 it is the narrative layer the existing phases were built to carry.*
 
 ### 13.1 What the accounts proved
@@ -526,7 +526,7 @@ second.
 
 The life account is already the central object of the game, and the design has not said so.
 Say so. Citragupta is Yama's scribe in the Garuḍa Purāṇa, who writes every deed down, and
-what he has written is read back at the reckoning. **The account is that record.** Phase 12's
+what he has written is read back at the reckoning. **The account is that record.** Phase 14's
 reckoning screen is Citragupta reading it aloud to Yama.
 
 What this buys is a narrator with a stake. The account already knows what the player did not
@@ -543,7 +543,7 @@ not belong in this game. He is never a character in the life. He is the hand.
 
 Bhaskar asked for mystery after Phase 5 and nothing answered it. The tradition's native
 device is the curse — Durvāsā to Śakuntalā, the ṛṣi's son to Parikṣit — which is **a fuse
-with words attached**. Phase 11 has fuses. One of them speaks.
+with words attached**. Phase 12 has fuses. One of them speaks.
 
 Early in the life, in childhood or brahmacharya, someone says one line the player cannot
 yet understand. Keep the game's register; nothing oracular, nothing in capitals:
@@ -595,7 +595,7 @@ year. **The player never sees a number. They feel the debt as how long they stan
 That is Émerson's 5×10 kept whole and made into the game's most devastating scene, and it is
 `p.holding` under cross-examination.
 
-The last question is where the laws bite. Under Phase 13 the Advaitin door and the
+The last question is where the laws bite. Under Phase 15 the Advaitin door and the
 Mīmāṃsaka door ask the same questions and accept different answers — and that is where
 "informative" stops being annotation and becomes structure.
 
@@ -626,7 +626,7 @@ Branching plot, dialogue trees, cutscenes. They cost everything and kill replay.
 rule — most playthroughs see under a tenth of the text — only pays if the player *wants* the
 other nine tenths, and a named friend whose death they were not told about is the reason
 they will. The whole layer is data on squares and rules in the account; no new screen until
-the door, and the door is Phase 11's gate with words.
+the door, and the door is Phase 13's gate with words.
 
 ### 13.10 Authoring constraints
 
@@ -650,10 +650,10 @@ Everything slots into a phase that exists.
    its own PR from a clean main. Tagging ~40 squares, one name list, one join rung. Highest
    leverage of anything on the table.
 2. **Fates in the closing** — same pass.
-3. **The curse** — Phase 11. It is a fuse.
-4. **The door as praśna** — Phase 11. It is the gate.
-5. **Cast across lives; the forgotten holding** — Phase 12. It is saṃskāra.
-6. **Schools as cast** — Phases 13 and 16, content.
+3. **The curse** — Phase 13. It is a fuse.
+4. **The door as praśna** — Phase 13. It is the gate.
+5. **Cast across lives; the forgotten holding** — Phase 14. It is saṃskāra.
+6. **Schools as cast** — Phases 15 and 16, content.
 
 **Done when:** a generated life names a friend on their first square and uses the name on
 every later one; the account joins a return by name; the closing names at least one fate the

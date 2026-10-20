@@ -526,7 +526,7 @@ them, including the modern commercial one. **Keep the counts** — 13:11 is a de
 thesis — but state it as a choice rather than a restoration.
 
 **Deliberately not in this phase:** the ablation harness, and the cowrie-shell
-randomizer. Both are in Phase 15, and the reasoning is in `docs/BOARDCRAFT.md §4, §6`.
+randomizer. Both are in Phase 17, and the reasoning is in `docs/BOARDCRAFT.md §4, §6`.
 
 **Done when:** a player can open any square the token passed over, no game can stall on
 an exact roll, the divine row can be fallen out of, the five paired snake tails announce
@@ -541,7 +541,7 @@ this phase is everything around it.*
 
 > **Shipped, with these decisions.**
 > - *What ages:* only the paint. One canvas sits between the art and the labels and washes each square in palette colours. Numbers, names, clicks, keyboard focus, cards and the log are never dimmed. The row filter proposed below was not used: CONTENT.md §7 forbids filters on the sprites, and the ages are per square anyway. Each wash pushes a square away from its ink colour, so a label's contrast can only rise or hold (`tests/contrast.test.mjs`).
-> - *Whose age:* all the lives at once. Sepia is what every player has left behind, keyed to the youngest player. Dim is what no player has reached, keyed to the oldest. The squares between stay in full colour. The drone follows whoever is furthest on. `lens(state, i)` in `render/age.js` already takes one player's index, for Phase 14.
+> - *Whose age:* all the lives at once. Sepia is what every player has left behind, keyed to the youngest player. Dim is what no player has reached, keyed to the oldest. The squares between stay in full colour. The drone follows whoever is furthest on. `lens(state, i)` in `render/age.js` already takes one player's index, for Phase 16.
 > - *Ages vs position:* every earthly square's age never decreases along the board, so which squares count as "behind" is the same either way. Age decides only how fast a square fades, measured in years.
 > - *Performance:* the turbulence filter is drawn into a bitmap once. When it was a background inside the zoomed layer, it ran again on every zoom and cost frames of up to 430 ms at 4× throttle. With the bitmap, the branch's longest frames match `main` (`npm run perf`). On a weak device the camera goes first, then the motion extras, then the grain. The ageing is never dropped.
 > - *Sound:* the drone is synthesised, about 6 KB unminified. Audio starts only from a gesture and never while muted. Muting suspends the context. Hiding the tab suspends it, and showing the tab resumes it.
@@ -646,7 +646,7 @@ the sound is this geometry made audible.*
 > | 108 → 24 | 66 | 225 | 30.1% | 703 |
 > | 108 → 20 | 66 | 231 | 30.8% | 934 |
 >
-> No tail from 20 to 60 meets the Phase 4 bar; the cliff is between 100 and 98, as it was between 101 and 95 before. **Item 5's premise measured false:** the fall does not fire on "a minority of approaches" but in 59% of lives, 1.45 times each, because from above the exit can only be reached from 109 (a 6) or 110 (a 5), so the higher heavens hold a player while 108 keeps being hit. 108 → 48 ships anyway, with a quarter of lives over 100 turns, and is accepted until Phase 12, when the fall ends a life instead of lengthening one. A once-per-life fall measured 55 / 116 / 9.7% and was not taken.
+> No tail from 20 to 60 meets the Phase 4 bar; the cliff is between 100 and 98, as it was between 101 and 95 before. **Item 5's premise measured false:** the fall does not fire on "a minority of approaches" but in 59% of lives, 1.45 times each, because from above the exit can only be reached from 109 (a 6) or 110 (a 5), so the higher heavens hold a player while 108 keeps being hit. 108 → 48 ships anyway, with a quarter of lives over 100 turns, and is accepted until Phase 14, when the fall ends a life instead of lengthening one. A once-per-life fall measured 55 / 116 / 9.7% and was not taken.
 > - *Changed after shipping (2026-10-19, fix pass before Phase 8):* the fall now goes to **1**, birth, so that it really is a rebirth. 108 → 1 on every landing measured unplayable, so the fall was made rarer instead of shorter: it takes only a player climbing onto 108 (a bounce down onto it is just Brahmā's square) and at most once in a life (`p.hasFallen`). Brahmā's card says so (`fallWhen`).
 >
 > | rule | median | p95 | over 100 | fall fires |
@@ -739,7 +739,7 @@ bear, because the drama is in the distance.
 
 **5. Don't over-tune the fall in this phase.** Right now it is a long snake inside one
 game, and a long snake is expensive — 109 → 81 measured 21.9% over 100 turns. But it only
-fires on an overshoot past 105, which is a minority of approaches, and in Phase 12 it
+fires on an overshoot past 105, which is a minority of approaches, and in Phase 14 it
 becomes a true rebirth that *ends a life* rather than lengthening one. At that point the
 arithmetic changes completely. Tune it to something playable now, and expect to retune it
 when rebirth exists.
@@ -759,7 +759,7 @@ Three smaller sound changes with it:
   give it something underneath.
 - **Continuous drift rather than steps.** The drone currently changes at ashrama
   boundaries. Make it drift with age so a player never catches it changing.
-- **Later, a karma-responsive partial.** Once Phase 11 exists, accumulated karma adds a
+- **Later, a karma-responsive partial.** Once Phase 12 exists, accumulated karma adds a
   low beating partial that strengthens. Sound that knows something the player does not is
   most of what mystery is.
 
@@ -801,12 +801,12 @@ candidate tail in column 7.
 >   above Milton Bradley's 3.3% and the Phase 4 baseline of 1.7%. Recorded as an open regression with its reason, not
 >   called fixed: only span 100 gets under 3.3%, at the price of a third of lives. With two players: median 38, p95 88,
 >   over 100 2.1%, against 38 / 86 / 1.8% before. That rise has its own reason: when one life ends, the other finishes
->   the race alone. YS 2.13 (jāti, āyus, bhoga) is the hook for Phases 11–12, where prārabdha sets the span.
+>   the race alone. YS 2.13 (jāti, āyus, bhoga) is the hook for Phases 12 and 14, where prārabdha sets the span.
 > - *When the years run out, the life ends.* The reason, on the record: a life's length is almost entirely its snakes.
 >   Across 20,000 single lives, snakes taken by game-length quartile run 2.1 / 5.1 / 8.0 / 14.6, and 22.1 in the
 >   slowest 5%; the lives that die took 16.5 snakes on average against 6.1. Death is where a life the snakes already
 >   wrecked comes to an end. That is the teaching, and it needs no new content. Only re-walking outruns the table,
->   which tops out at 90, so only snakes bring it about. *Rejected:* rebirth at square 1, which before Phase 11
+>   which tops out at 90, so only snakes bring it about. *Rejected:* rebirth at square 1, which before Phase 12
 >   gives karma anything to carry is a respawn: it would teach that rebirth costs nothing and reopen the tail the
 >   fix pass closed. *Rejected:* the divine row, which works as a ladder for anyone who dies early and is wrong in
 >   the theology: the divine row is earned by merit and spent by merit, which is what the 108 snake is for.
@@ -816,7 +816,7 @@ candidate tail in column 7.
 >     not play on for nobody. A dead token stays where it fell, greyed in the paint only.
 >   - The account's last line names what the life was still holding: the vice taken most, the latest on a tie, in
 >     its snake's `holding` ("…on ground already walked once, still asking whether the son has eaten."). It is kept
->     as `p.holding` for Phase 12 to carry over.
+>     as `p.holding` for Phase 14 to carry over.
 > - *The account's joins* (`src/engine/account.js`, now pure and tested in node; NARRATIVE §9 has the rule). First
 >   match wins: snake (the years undone), echo, ladder, again, a gap of eight years or more, same year, then a plain
 >   join drawn from the seed. **Echo goes before ladder, against the order first proposed**: five of the ten new
@@ -868,7 +868,7 @@ instead of "STORY · SANNYASA · AGE 72". Not one card moves.
 
 **Key decision: the stage is set by state, not by square.** A player who reaches sannyāsa
 still clutching artha is at śubhecchā however far up the board they are. Tie it to bandha
-(§2.3) once Phase 11 exists; before that, approximate from the guṇa mix. This is the
+(§2.3) once Phase 12 exists; before that, approximate from the guṇa mix. This is the
 version worth building, because position-based stages would just be a second name for the
 square number.
 
@@ -972,7 +972,7 @@ age, and p95 has not risen.
 >   its own, so the dice and `npm run golden` are untouched.
 > - *The hidden value is the guna and aims already in state.* An option carries the same `guna` and `aims` tags as
 >   the vices and virtues, applied by the same `grow()`. No ledger of its own: the choice is history in `p.told`, and
->   Phase 11 can read āgāmi from it. Ranked for the sim and the lint by dharma, then guna.
+>   Phase 12 can read āgāmi from it. Ranked for the sim and the lint by dharma, then guna.
 > - *Cheaper, never further, is a build failure.* The option worth least may not go further, or cost more years,
 >   than the one worth most. On a ladder both climb and the honest one costs a year; on a story square both stay and
 >   the honest one costs a year; on a snake the vice is the fall and restraint costs the years a fall costs. Measured
@@ -998,7 +998,7 @@ age, and p95 has not risen.
 >   back on the board until the re-walk catches it up. Always-dishonest plays the Phase 9 board exactly, pinned by a
 >   test, since every least-worth option is the old snake, the old ladder or the old square at no cost.
 > - *Guardrails, the game's own computer:* median 34 → 32, p95 71 → 65, over 100 0.7% → 0.3%, two players 28/49/0.1% →
->   27/47/0.1%. **Liberation 97.5% → 96.5%**, down, not worse; Phase 13 still owns it. A square landed on four times or
+>   27/47/0.1%. **Liberation 97.5% → 96.5%**, down, not worse; Phase 15 still owns it. A square landed on four times or
 >   more 31.0% → 26.6%, the same moment told four times or more 27.4% → 23.4%: restraint keeps lives off the snake
 >   tails. Turyā 1.5% → 3.3% of sannyasins, from the sattva the honest options mix in; it still needs practice.
 
@@ -1048,7 +1048,7 @@ further.** If lying simply moved you ahead, lying would be the correct move ever
 the choice would die; the design literature calls this out as the standard failure of
 morality systems, where players make one decision early and keep it. So honesty costs
 something now — a turn, the longer way round — and dishonesty costs nothing now and
-accrues. The settlement is Phase 11's.
+accrues. The settlement is Phase 12's.
 
 **Authoring rule:** no option is obviously correct, and the game never tells a player they
 chose wrongly. It only shows them, later, what they became.
@@ -1114,7 +1114,7 @@ the ledger.
 >   joined by the recall of the moment where they were met, in words of their own (`strings.json` `CAST.returns`): the
 >   teacher "was waiting", the rival "was back", the friend "was there again" ("Tārā, who once broke a biscuit badly
 >   with Meera, was there again: "), the spouse "was still there" (present, not met again). The son and the
->   daughter take the friend's words until Phase 12. An echo
+>   daughter take the friend's words until Phase 14. An echo
 >   outranks it; a fold, a "back where" line or a tally names nobody and is not a return.
 > - *Fates*: after the end line, one per member the last life met, in order, four at most: the fourth takes the short
 >   form ("Rādhā died when Meera was seventy-two." or "Arjun outlived Meera."; "outlived" only for someone alive when
@@ -1165,7 +1165,51 @@ to Phase 10; and a native reader passes the Hindi.
 
 ---
 
-### Phase 11 — Karma
+### Phase 11 — The first five minutes
+
+*A first-time player's report, 20 Oct, relayed through Bhaskar's labmate: "it doesn't feel like
+a game — you roll, a popup appears with a lot written on it, and I can't understand what's
+written." Educated, curious, exactly the audience, and lost in the first five minutes.
+Everything built so far is retention at turn thirty. This phase is retention at turn three.*
+
+**Why it comes before karma.** The door in Phase 13 is a card-heavy scene — eight questions,
+one a turn, on the card. If the card is wrong, the door is built on a wrong card. The card
+comes first.
+
+**Measured by people, not by sim.** Nothing moves and nothing is drawn, so `sim.mjs` and the
+golden seeds must be byte-identical to `main`. The acceptance test is three players who have
+never seen the game, ten turns each, then one question — *what happened to your character?* —
+answered without help. Bhaskar runs it. If they cannot answer, the moments are not landing; if
+they can but never mention a story, the mirrors are not.
+
+- **The card does not block the roll.** The die is live while a card is up; rolling replaces
+  the card. Reading becomes optional per turn. On the phone the sheet rises but does not trap.
+  Situations are the exception, since a choice has to be made, and the omen will be another.
+- **First life, moment only.** The mirror sits behind a tap, and the depth the player raises
+  it to is remembered (localStorage, wrapped — it may come back empty). From the second life
+  the present default returns. The "there is more" affordance has to read so a player knows
+  more exists without being made to read it.
+- **Every mirror says it is a story and who is in it, on first contact.** Square 28's mirror
+  opens "Satyakāma had a harder question" — a cold reader does not know that is a tale or who
+  he is. Two ways, and the count decides: an authored bridge clause per mirror (about eight
+  words, lint-checked), or a gloss derived from `codex.json` for the first figure a mirror
+  names. Report how many mirrors name a codex figure, how many do not, and whether the
+  existing glosses are in a register a first-time reader can take.
+- **Not every square deserves a stop.** Weight the card by what happened: a one-line toast for
+  an ordinary story square, the full card for a snake, a ladder, a situation, a cast
+  introduction. This is what makes the loop feel like play and the big moments feel big.
+  Measure it: with weighting on, what share of turns show a full card.
+
+Curiosity is lit by a small thing not yet understood, with a way to pull on it. A wall that
+cannot be parsed puts it out. The mirror is the wall today; it should be the crack of light.
+
+**Done when:** three first-time players get through ten turns and say what happened to their
+character; sim and golden byte-identical to `main`; a full card appears on a minority of
+ordinary turns; and every mirror a first-life player can reach tells them it is a story.
+
+---
+
+### Phase 12 — Karma
 
 - Three buckets, fuses, deferred firing.
 - `bandha` and the gate at **105** (the exit, after Phase 7).
@@ -1237,6 +1281,17 @@ rises toward 105, but a player taught to dread a 1 is also taught to hope for on
 **Open, from Phase 10: the divine row repeats.** 19.2% of lives land on a square at or above 94 four times or more,
 mostly 106–109 bounced around under Phase 9's two dice. Phase 10 cannot touch it, by its own boundary.
 
+**Done when:** a seed planted at square 20 ripens and then waits for a 1, firing with a
+card that names where it came from; the chance visibly rises toward 105; severity depends
+only on the ledger; and a player can reach 105 and be refused with a legible reason. Phase 13
+turns that refusal into the examination.
+
+---
+
+### Phase 13 — The door and the curse
+
+*`docs/NARRATIVE.md` §13.6–13.7, built on Phase 12's ledger and Phase 11's card. Its own PR.*
+
 **The curse — a fuse with a sentence** (`docs/NARRATIVE.md` §13.6). One fuse per life speaks.
 Early, in childhood or brahmacharya, someone says a line the player cannot yet understand — in
 the board's own register, nothing oracular — seeded to a *family* of late squares. Land on one
@@ -1252,18 +1307,18 @@ year in practice — and **practice pays the debt down**, so the door is a choic
 and clearing rather than a counter emptying. That is the one place the allocation loop Phase 9
 declined earns its complexity.
 
-**This settles the open item above about the shared face.** At the door a 1 is the question.
+**This settles Phase 12's open item about the shared face.** At the door a 1 is the question.
 Below 94 it is how you arrived. They never share a square.
 
-**Done when:** a seed planted at square 20 ripens and then waits for a 1, firing with a
-card that names where it came from; the chance visibly rises toward 105; severity depends
-only on the ledger; and a player who reaches 105 carrying debt is examined rather than refused —
-the Yakṣa's questions, answered from the life, one a turn, a year for each the life fails, and
-never a number on screen.
+**Done when:** a player who reaches 105 carrying debt is examined rather than refused — the
+Yakṣa's questions, answered from the life, one a turn, a year for each the life fails, practice
+paying the debt down, and never a number on screen; one curse per life is spoken early and
+closed in the account either way; and liberation rate is reported before and after, since this
+is the first phase expected to move it.
 
 ---
 
-### Phase 12 — Death and rebirth
+### Phase 14 — Death and rebirth
 
 - Yama's reckoning screen reading the ledger.
 - āgāmi flows into sañcita; a slice is drawn as next life's prārabdha.
@@ -1279,7 +1334,7 @@ arrival.
 **This phase is gated by how rare death now is.** After Phase 9 a life runs out of years in
 2.5% of games (was 16.8%) and the rebirth snake fires in 8.2% (was 37.3%). Yama's reckoning
 screen, the saṃskāra record and the worlds below square 1 would all be built for something
-one player in forty ever sees. Either the exit gets harder first — see Phase 13 — or this
+one player in forty ever sees. Either the exit gets harder first — see Phase 15 — or this
 is content written for an audience that does not arrive.
 
 **The cast crosses lives** (§13.6, §13.8). `saṃskāra` carries the cast, and the Jātaka rule
@@ -1298,7 +1353,7 @@ legible to the player on the birth screen.
 
 ---
 
-### Phase 13 — The laws
+### Phase 15 — The laws
 
 - Mīmāṃsā first (default), then Cārvāka, then the rest.
 - A law-select screen that explains each in the player's own terms before they commit.
@@ -1307,7 +1362,7 @@ legible to the player on the birth screen.
 **This phase now carries an urgent problem, not only a payoff.** After Phase 9, **97.5% of
 lives reach mokṣa.** After Phase 10 it is 96.5%. That inverts the game's own thesis: the intro text says the heavens
 past the exit are still the wheel, and a board where liberation is the overwhelming default
-says the opposite. It also strands Phases 11 and 12, whose content only fires on lives that
+says the opposite. It also strands Phases 12 and 14, whose content only fires on lives that
 fall or run out of years.
 
 The cause is not a defect in Phase 9 — the agency it added is right, and the loop repetition
@@ -1332,7 +1387,7 @@ rather than only in mean.
 
 ---
 
-### Phase 14 — Historical boards
+### Phase 16 — Historical boards
 
 Board geometry becomes data. The variants are documented, not invented; see
 `docs/REFERENCE.md §4`.
@@ -1357,7 +1412,7 @@ each board's rules load with it.
 
 ---
 
-### Phase 15 — Parallel lives
+### Phase 17 — Parallel lives
 
 - Multiplayer becomes four lives lived side by side rather than a race.
 - End screen: guṇa trajectories plotted over time, choices made at shared squares,
@@ -1368,7 +1423,7 @@ each board's rules load with it.
 
 ---
 
-### Phase 16 — Content to full, and balancing
+### Phase 18 — Content to full, and balancing
 
 - All 110 squares with situations where they earn one.
 - Codex complete across schools, sources and figures.
@@ -1406,6 +1461,9 @@ because you are authoring breadth for replay rather than a script.
 - Do not restyle the board geometry or the snake rendering in Phases 0–1. That art is
   finished work; Phase 2 is where it changes, deliberately.
 - One phase per PR. No phase leaves `main` unplayable.
+- **One number per phase; no lettered sub-phases.** 10A, 10B and 10C happened and are closed.
+  From 11 on, a piece of work that needs its own PR gets its own number, and the phases after
+  it move up.
 - **No hierarchy of birth, anywhere, ever.** The game's only ranking is karma. This is a
   standing decision, not a preference to be reweighed.
 
@@ -1440,7 +1498,7 @@ because you are authoring breadth for replay rather than a script.
   liberation 96.5%. Treat a rise in p95 or
   in over-100% as a regression that needs a reason — and note that Phase 9 cleared the
   guardrail partly by making lives shorter and safer, which is why **liberation rate now
-  needs watching alongside it** (Phase 13): turn count is no longer the only thing a
+  needs watching alongside it** (Phase 15): turn count is no longer the only thing a
   movement change can break.
 - Graceful degradation everywhere: missing situation falls back to story card, missing
   Hindi shows English and warns, missing sprite shows the old emoji. Never a blank card.

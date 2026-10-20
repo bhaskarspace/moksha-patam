@@ -32,8 +32,8 @@ costs are the square again in the life, told "stay". The lint fails an option wo
 more. Phase 10C was the cast (`src/engine/cast.js`): a moment says who it is about in `cast` and names them with
 `{friend=the friend}` / `{friend:लेता|लेती}` (`castFill` in `src/i18n.js`, run before `fill`); names come from
 `content/names.json` `cast`, drawn per life off a sequence of their own, and the account meets them, joins their
-returns by name and closes on their fates. With `cast` taken away every account is Phase 10's exactly. Phase 11, Karma,
-is next.
+returns by name and closes on their fates. With `cast` taken away every account is Phase 10's exactly. Phase 11, The first five minutes,
+is next; then 12 Karma, 13 The door and the curse.
 Phase 7 was The Exit (REDESIGN.md §4): Moksha is square 105 (`GOAL`), partway
 along the divine row, while the board still ends at 110 (`TOP`); a roll bounces off `TOP` and can come back down onto the
 exit. The rebirth snake falls from Brahma (108) to 1, only for a player climbing onto it and once per life, and a Shepard tone plays under the divine row
