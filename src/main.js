@@ -192,7 +192,7 @@ async function takeTurn() {
     if (g !== G.gen) return;
     // Weighted by what happened (REDESIGN.md Phase 11): a person's situation, snake, ladder, first meeting by name,
     // first realm and the exit open the full card; any other landing of theirs is a line under the board.
-    // Only the situation waits on its card, for the choice, and closes on it; the others go with the game.
+    // Only the situation waits on its card, for the choice, then tells its outcome there; the others go with the game.
     let full = false;
     if (plan.situation) {
       if (p.type === "human") {
@@ -205,8 +205,9 @@ async function takeTurn() {
       plan = resolveChoice(state, plan, id);
       G.plan = plan;
       refreshCard();
-      // the card was for the choice; its outcome is the line under the board, like any landing, and the die is live
-      if (p.type === "human") { releaseCard(); await closeCard(); if (g !== G.gen) return; landHuman(plan.target, idx, id); }
+      // the card is for a choice and for its result: it turns to the outcome and stops holding the game, with the die
+      // live on it, and a roll takes it away. The outcome is the line under the board too, for after the card is gone.
+      if (p.type === "human") { releaseCard(); landHuman(plan.target, idx, id); }
       G.waitingCard = false; refreshRoll();
     } else if (!plan.sit && p.type === "human" && fullCard(state, plan, idx)) {
       // a year sat out lands nowhere new, so nothing opens for it

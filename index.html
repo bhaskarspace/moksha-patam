@@ -237,13 +237,12 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
   width: 100%; max-width: 600px; margin: 0; padding: 8px 12px; text-align: left;
   border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--ink);
   font: 400 15px/1.4 var(--f-card); cursor: pointer;
-  /* the height of the longest line it shows, kept when empty, so nothing under it moves as it comes and goes */
-  height: calc(2 * 1.4em + 18px); overflow: hidden;
+  /* the height of an ordinary moment, three lines (four on a phone), kept when empty so nothing under it moves as the
+     line comes and goes; a choice's outcome that runs longer is shown whole, never cut, and the strip grows for it */
+  min-height: calc(3 * 1.4em + 18px);
 }
 .landed[data-empty] { visibility: hidden; }
-/* the whole moment where it fits: two lines on a wide screen, three on a phone, where it is the card */
-.landed-t { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-@media (max-width: 767px) { .landed { height: calc(3 * 1.4em + 18px); } .landed-t { -webkit-line-clamp: 3; } }
+@media (max-width: 767px) { .landed { min-height: calc(4 * 1.4em + 18px); } }
 .landed:lang(hi) { font-family: var(--f-card-hi); }
 .landed b { font: 600 13px/1.4 var(--f-body); color: var(--muted); margin-right: 4px; }
 .landed b::after { content: " ·"; }
@@ -5804,8 +5803,6 @@ ${p.text}`), end, fates.join(" ")].filter(Boolean).join("\n\n") + "\n";
         refreshCard();
         if (p.type === "human") {
           releaseCard();
-          await closeCard();
-          if (g3 !== G.gen) return;
           landHuman(plan.target, idx, id);
         }
         G.waitingCard = false;

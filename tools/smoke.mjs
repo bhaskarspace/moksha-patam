@@ -606,8 +606,10 @@ await check("Phase 10: a situation's card asks, takes the choice on the card, an
   assert(asked.opts.length === 2 && /Pocket it/.test(asked.opts[0]) && /down to 43/.test(asked.opts[0]) && /stays on 55 · 7 years/.test(asked.opts[1]), `options: ${asked.opts}`);
   assert(!asked.mirror, "the mirror waits until the choice is made");
   await page.click('#leaf .opt[data-id="return"]');
-  // the card goes with the choice, and the outcome is the line under the board (Phase 11)
-  await page.waitForFunction(() => !mp.deciding && !document.getElementById("folio").open && /goes back to the counter/.test(mp.landed() || ""), null, { timeout: 30000 });
+  // the card turns to the outcome, without the options, and the line under the board tells it too (Phase 11)
+  await page.waitForFunction(() => !mp.deciding && /goes back to the counter/.test(document.querySelector("#leaf .moment")?.textContent || ""), null, { timeout: 30000 });
+  assert(await page.evaluate(() => !document.querySelector("#leaf .options") && /goes back to the counter/.test(mp.landed() || "")), "the outcome is not on the card alone, or not in the line");
+  await page.evaluate(() => mp.close());
   await page.waitForFunction(() => mp.state.players[0].life.length > 1 && !mp.busy, null, { timeout: 30000 });
   const p = await page.evaluate(() => ({ pos: mp.state.players[0].pos, years: mp.state.players[0].years }));
   assert(p.pos === 55 && p.years === 49, `kept to 55 at 49: ${JSON.stringify(p)}`);
@@ -627,6 +629,7 @@ await check("Phase 10: an option a gate withholds is shown, says why, and cannot
   assert(await page.evaluate(() => !!mp.deciding), "key 2 took the withheld option");
   await page.keyboard.press("1");
   await page.waitForFunction(() => !mp.deciding, null, { timeout: 30000 });
+  await page.evaluate(() => mp.close());
   await page.waitForFunction(() => !mp.busy && mp.state.players[0].pos === 50, null, { timeout: 30000 });
   // a square with no situation is its story card, as before: no options
   const plain = await page.evaluate(() => { mp.open(44, { who: 0 }); const o = !!document.querySelector("#leaf .options"); mp.close({ instant: true }); return o; });
@@ -1056,7 +1059,7 @@ await check("Phase 11: the die is live under a card: a landing's card keeps the 
   await page.waitForFunction(n => mp.state.players[0].life.length > n, life, { timeout: 15000 });
 });
 
-await check("Phase 11: a situation waits for its choice, modal, and Space does not roll past it; the choice closes it", async page => {
+await check("Phase 11: a situation waits for its choice, modal, and Space does not roll past it; then the card tells the outcome, the die live on it", async page => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto(BASE + "?seed=1&debug");
   await page.evaluate(() => { Object.assign(mp.state.players[0], { pos: 52, life: [52], told: [null], years: 40 }); mp.roll(3); });
@@ -1067,13 +1070,34 @@ await check("Phase 11: a situation waits for its choice, modal, and Space does n
   await page.waitForTimeout(800);
   assert(await page.evaluate(n => mp.deciding && mp.state.log.length === n, before), "Space rolled past the choice");
   await page.keyboard.press("2");
-  // the card was for the choice: it goes, the outcome holds the line until the next roll, and the die is live
-  await page.waitForFunction(() => !mp.deciding && !document.getElementById("folio").open, null, { timeout: 30000 });
-  const r = await page.evaluate(() => ({ line: mp.landed(), sq: document.getElementById("landed").dataset.sq }));
-  assert(r.sq === "55" && /goes back to the counter/.test(r.line || ""), `the outcome is not the line: ${JSON.stringify(r)}`);
+  // the card is for the result of a choice too: it turns to the outcome, stops holding the game, and the line tells it
+  await page.waitForFunction(() => !mp.deciding && /goes back to the counter/.test(document.querySelector("#leaf .moment")?.textContent || ""), null, { timeout: 30000 });
+  const r = await page.evaluate(() => ({ open: document.getElementById("folio").open, modal: document.getElementById("folio").matches(":modal"), options: !!document.querySelector("#leaf .options"), line: mp.landed(), sq: document.getElementById("landed").dataset.sq }));
+  assert(r.open && !r.modal && !r.options && r.sq === "55" && /goes back to the counter/.test(r.line || ""), JSON.stringify(r));
+  // the die is live on it, and a roll takes the card away; the line holds until that roll
   await page.waitForFunction(() => !mp.busy && mp.state.turn === 0 && !document.getElementById("roll").disabled, null, { timeout: 30000 });
-  assert(/goes back to the counter/.test(await page.evaluate(() => mp.landed()) || ""), "the outcome did not hold until the next roll");
+  assert(await page.evaluate(() => document.getElementById("folio").open && /goes back to the counter/.test(mp.landed() || "")), "the outcome did not stay until the next roll");
+  assert(await page.evaluate(() => mp.rollFromCard()), "the outcome's card has no live die");
+  await page.waitForFunction(() => !document.getElementById("folio").open, null, { timeout: 5000 });
 });
+
+await check("Phase 11: nothing in the line under the board is cut: every moment and every outcome shows whole", async page => {
+  await page.goto(BASE + "?seed=1&debug");
+  const cut = await page.evaluate(() => {
+    const el = document.getElementById("landed"), out = [];
+    for (const l of ["en", "hi"]) { mp.setLang(l);
+      for (let n = 1; n <= 110; n++) {
+        const s = mp.situation(n);
+        for (const t of [...(s ? s.options.map(o => o.id) : [null]), ...(mp.data.SQ[n]?.roll ? ["else"] : [])]) {
+          mp.land(n, t);
+          if (el.scrollHeight > el.clientHeight + 1 || getComputedStyle(el.firstChild || el).webkitLineClamp !== "none") out.push(`${l} ${n}:${t}`);
+        }
+      }
+    }
+    return out;
+  });
+  assert(!cut.length, `cut: ${cut.join(", ")}`);
+}, { phone: [375, 812] });
 
 await check("Phase 11: an ordinary landing is a line under the board, with its moment, and opens its card", async page => {
   await page.emulateMedia({ reducedMotion: "reduce" });
