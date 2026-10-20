@@ -192,15 +192,60 @@ await check("Phase 11: a card does not hold the game up: the computers play on u
   assert(await page.evaluate(() => location.hash === "#sq/50"), "a computer's move turned the reader's card");
 });
 
-await check("Phase 11: a computer's turn opens no card, and is told in the line under the board", async page => {
+await check("Phase 11: a computer's turn opens no card, and never writes the line under the board", async page => {
   await twoCpus(page);
   await page.goto(BASE + "?seed=2&debug");
   await page.evaluate(() => { window.opened = 0; new MutationObserver(() => { if (document.getElementById("folio").open) opened++; }).observe(document.getElementById("folio"), { attributes: true }); });
   await page.waitForFunction(() => mp.state.log.length >= 8, null, { timeout: 30000 });
   const r = await page.evaluate(() => ({ opened, landed: mp.landed() }));
   assert(r.opened === 0, `${r.opened} cards opened for the computers`);
-  assert(r.landed && /rolled|reached|came back/.test(r.landed), `the line under the board: ${r.landed}`);
+  assert(!r.landed, `a computer's turn wrote the line under the board: ${r.landed}`);
 });
+
+await check("Phase 11: the person's line holds through the computer's turn, until their next roll", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=1&debug");
+  await page.evaluate(() => { mp.jump(30); mp.roll(2); });
+  await page.waitForFunction(() => !mp.busy && mp.landed(), null, { timeout: 15000 });
+  const mine = await page.evaluate(() => mp.landed());
+  // the computer walks and lands; the line is still the person's
+  await page.waitForFunction(() => mp.state.log.some(e => e.who === 1) && !mp.busy && mp.state.turn === 0, null, { timeout: 20000 });
+  const r = await page.evaluate(() => ({ line: mp.landed(), sq: document.getElementById("landed").dataset.sq }));
+  assert(r.line === mine && r.sq === "32", `the line changed under the computer's turn: ${JSON.stringify({ mine, ...r })}`);
+  // the person's own roll takes it away
+  await page.evaluate(() => document.getElementById("roll").click());
+  await page.waitForFunction(m => mp.landed() !== m, mine, { timeout: 5000 });
+}, { phone: [375, 812] });
+
+await check("Phase 11: a computer's move writes nothing into an open card", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=1&debug");
+  await page.evaluate(() => { mp.jump(30); mp.roll(2); });
+  await page.waitForFunction(() => !mp.busy && mp.state.turn === 1);
+  await page.evaluate(() => mp.open(20));
+  await page.waitForFunction(() => document.getElementById("folio").open);
+  const before = await page.evaluate(() => document.querySelector("#folio .leaf-top").textContent);
+  await page.waitForFunction(() => mp.state.log.some(e => e.who === 1) && !mp.busy && mp.state.turn === 0, null, { timeout: 20000 });
+  const r = await page.evaluate(() => ({ top: document.querySelector("#folio .leaf-top").textContent, name: mp.state.players[1].alias?.en || mp.state.players[1].name }));
+  assert(r.top === before && !r.top.includes(r.name), `the card's header took the computer's move: ${r.top}`);
+}, { phone: [375, 812] });
+
+for (const phone of [[375, 812], null]) {
+  await check(`Phase 11: nothing under the board moves as the line comes and goes (${phone ? "phone" : "desktop"})`, async page => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await page.goto(BASE + "?seed=1&debug");
+    const at = () => page.evaluate(() => {
+      const y = id => Math.round(document.getElementById(id).getBoundingClientRect().top + scrollY);
+      return { roll: y("roll"), tray: Math.round(document.querySelector(".tray").getBoundingClientRect().top + scrollY), line: !!mp.landed() };
+    });
+    const empty = await at();
+    await page.evaluate(() => { mp.jump(30); mp.roll(2); });
+    await page.waitForFunction(() => !mp.busy && mp.landed(), null, { timeout: 15000 });
+    const full = await at();
+    assert(!empty.line && full.line, JSON.stringify({ empty, full }));
+    assert(empty.roll === full.roll && empty.tray === full.tray, `the roll moved when the line appeared: ${JSON.stringify({ empty, full })}`);
+  }, { phone });
+}
 
 await check("each log entry reopens its square", async page => {
   // you against the computer: roll, read, close, and wait for your turn to come back
@@ -1093,7 +1138,7 @@ await check("offline: after one visit the game reloads and plays with no network
   await page.reload();
   assert(await page.evaluate(() => document.querySelectorAll("#labels .lab").length) === 110, "board did not render offline");
   await page.keyboard.press("Space");
-  await page.waitForFunction(() => document.getElementById("folio").open || !document.getElementById("landed").hidden, null, { timeout: 15000 });
+  await page.waitForFunction(() => document.getElementById("folio").open || !("empty" in document.getElementById("landed").dataset), null, { timeout: 15000 });
   const loaded = await page.evaluate(async () => { await document.fonts.ready; return [...document.fonts].filter(f => f.status === "loaded").map(f => f.family.replace(/"/g, "")); });
   assert(loaded.includes("Crimson Pro"), "card font not available offline: " + loaded.join(", "));
   await ctx.setOffline(false);

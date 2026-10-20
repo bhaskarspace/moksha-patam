@@ -237,10 +237,13 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
   width: 100%; max-width: 600px; margin: 0; padding: 8px 12px; text-align: left;
   border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--ink);
   font: 400 15px/1.4 var(--f-card); cursor: pointer;
+  /* the height of the longest line it shows, kept when empty, so nothing under it moves as it comes and goes */
+  height: calc(2 * 1.4em + 18px); overflow: hidden;
 }
+.landed[data-empty] { visibility: hidden; }
 /* the whole moment where it fits: two lines on a wide screen, three on a phone, where it is the card */
 .landed-t { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-@media (max-width: 767px) { .landed-t { -webkit-line-clamp: 3; } }
+@media (max-width: 767px) { .landed { height: calc(3 * 1.4em + 18px); } .landed-t { -webkit-line-clamp: 3; } }
 .landed:lang(hi) { font-family: var(--f-card-hi); }
 .landed b { font: 600 13px/1.4 var(--f-body); color: var(--muted); margin-right: 4px; }
 .landed b::after { content: " ·"; }
@@ -454,7 +457,6 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 .leaf .pick-c[hidden] { display: none; }
 .leaf .roll-c .dot { width: 10px; height: 10px; border-radius: 50%; box-shadow: 0 0 0 1.5px #FFF6E0; flex: none; }
 .leaf .grip, .leaf .x-foot, .leaf .ft-top { display: none; }
-.leaf .cnote { font-family: var(--f-body); font-size: 12.5px; font-weight: 600; color: var(--l-ink2); }
 
 /* while the text goes on below, its lower edge fades, so nothing ever looks cut off */
 .leaf-main.more-below {
@@ -484,7 +486,6 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
   #folio .leaf.goal .grip span { background: rgba(255, 216, 107, 0.55); }
   #folio .ft-top { display: block; margin-top: 3px; font-size: 12px; letter-spacing: 0.04em; text-transform: none; }
   #folio .ft-top .nav { margin-top: 2px; }
-  #folio .cnote { order: 3; flex-basis: 100%; }
   #folio .x-top, #folio .leaf-foot .ft { display: none; }
   #folio .x-foot { display: grid; place-items: center; width: 44px; height: 44px; }
   #folio .leaf-foot { grid-template-columns: auto auto minmax(0, 1fr) auto; gap: 8px; padding: 8px 10px 12px; }
@@ -818,7 +819,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           </div>
         </div>
       </div>
-      <button type="button" class="landed" id="landed" aria-live="polite" hidden></button>
+      <button type="button" class="landed" id="landed" aria-live="polite" data-empty tabindex="-1"></button>
       <div class="tray"><span class="label" data-t="start">Start</span><span class="slots" id="tray"></span></div>
     </div>
 
@@ -1148,7 +1149,6 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         gripLess: "Show less of the card",
         rollAgain: "Roll again",
         rollFor: "Roll for {name}",
-        cardMoved: "{name} moved to {n}",
         depthHint: "Every card opens with its story. This sets what it shows when you open it further.",
         codex: "Codex",
         codexSchools: "Schools",
@@ -1335,7 +1335,6 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         gripLess: "कार्ड कम करें",
         rollAgain: "फिर से फेंकें",
         rollFor: "{name} के लिए फेंकें",
-        cardMoved: "{name} खाना {n} पर पहुँचे",
         depthHint: "हर कार्ड अपनी कथा के साथ खुलता है। यह तय करता है कि उसे आगे खोलने पर क्या दिखे।",
         codex: "दर्शन-कोश",
         codexSchools: "दर्शन",
@@ -4835,7 +4834,6 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     <header class="leaf-top">
       <button type="button" class="grip" data-act="grip" aria-label="${T(sheetDetent() === "full" ? "gripLess" : "gripMore")}" aria-expanded="${sheetDetent() === "full"}"><span></span></button>
       <span class="eb">${eb}${foot ? `<span class="ft-top">${foot}</span>` : ""}</span>
-      <span class="cnote" hidden></span>
       <div class="leaf-tools">
         <div class="lang-mini" role="group" aria-label="${T("cardLang")}">
           <button type="button" data-cl="en" aria-pressed="${l === "en"}">EN</button><button type="button" data-cl="hi" lang="hi" aria-pressed="${l === "hi"}">हिं</button>
@@ -5019,12 +5017,6 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     if (on2) meet(metMore.filter(Boolean));
     if (sheetOn()) setDetent(on2 ? "full" : "half");
     cue();
-  }
-  function cardNote(text) {
-    const el2 = leaf2.querySelector(".cnote");
-    if (!el2) return;
-    el2.textContent = text;
-    el2.hidden = !text;
   }
   var visible = (el2) => {
     const r = el2?.getBoundingClientRect();
@@ -5272,34 +5264,23 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     last = { n, who: who2 };
     drawLanded();
   };
-  var landCpu = (n, who2, entry2, opt) => {
-    last = { n, who: who2, entry: entry2, opt };
-    drawLanded();
-  };
   var clearLanded = () => {
     last = null;
     drawLanded();
   };
   function drawLanded() {
     const s = G.state;
-    if (!last || !s || s.players[last.who]?.pos == null) {
-      el.hidden = true;
-      el.innerHTML = "";
-      return;
-    }
-    const { n, who: who2, entry: entry2, opt } = last;
-    let title, text;
-    if (entry2) {
-      title = "";
-      text = entryText(entry2) + (opt ? ` · ${L(opt.label.en, opt.label.hi || opt.label.en)}` : "");
-    } else ({ title, text } = momentLine(n, who2, lang));
+    const { title, text } = last && s && s.players[last.who]?.pos != null ? momentLine(last.n, last.who, lang) : {};
     if (!text && !title) {
-      el.hidden = true;
+      el.dataset.empty = "";
+      el.innerHTML = "";
+      el.tabIndex = -1;
       return;
     }
     el.innerHTML = `<span class="landed-t">${title ? `<b>${esc(title)}</b> ` : ""}${esc(text)}</span>`;
-    el.dataset.sq = n;
-    el.hidden = false;
+    el.dataset.sq = last.n;
+    delete el.dataset.empty;
+    el.tabIndex = 0;
   }
   el.addEventListener("click", () => {
     if (last) openSquare(last.n, { from: labEls[last.n], who: last.who });
@@ -5738,7 +5719,6 @@ ${p.text}`), end, fates.join(" ")].filter(Boolean).join("\n\n") + "\n";
     const p = cur(), idx = state.turn, el2 = tokenEls[idx];
     let shut = null;
     if (p.type === "human") {
-      cardNote("");
       clearLanded();
       G.humanRolled = true;
       if (cardOpen() && diceFor(p) < 2) shut = closeCard();
@@ -5805,7 +5785,6 @@ ${p.text}`), end, fates.join(" ")].filter(Boolean).join("\n\n") + "\n";
       }
       if (!plan.sit && !full) {
         if (p.type === "human") landHuman(p.pos, idx);
-        else landCpu(p.pos, idx, [...plan.after, ...plan.end].filter((e) => e.k && !["lPassed", "lSix", "lStay", "lStayOne"].includes(e.k)).at(-1), plan.choice ? optionOf(plan.target, plan.choice) : null);
       }
       plan.after.forEach(log);
       if (plan.jump) {
@@ -5827,7 +5806,6 @@ ${p.text}`), end, fates.join(" ")].filter(Boolean).join("\n\n") + "\n";
       refreshCard();
     }
     if (plan.died && p.type === "human") openLife(idx);
-    if (cardCarried() && p.type === "cpu") cardNote(tIn(lang, "cardMoved", { name: pname(p), n: plan.final }));
     watching();
     pullBack();
     G.busy = false;
@@ -6231,7 +6209,7 @@ ${p.text}`), end, fates.join(" ")].filter(Boolean).join("\n\n") + "\n";
         return firstLife();
       },
       // the line under the board, or null when it is empty
-      landed: () => $("landed").hidden ? null : $("landed").textContent
+      landed: () => $("landed").textContent || null
     };
   }
   function start(data) {

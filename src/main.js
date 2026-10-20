@@ -6,7 +6,7 @@ import { prefs, setPref, lifeLived, beFirst, freshViewer, firstLife } from "./pr
 import { $, COLORS, esc, reduced, sleep, quality, forcedQuality, setQuality } from "./ui.js";
 import { die, makeRng, freshSeed } from "./rng.js";
 import { TUMBLE, planTurn, resolveChoice, endTurn, addLog, diceFor, movesFor, moveFor } from "./engine/turn.js";
-import { optionsFor, choiceFor, situationAt, momentOf, optionOf } from "./engine/qbn.js";
+import { optionsFor, choiceFor, situationAt, momentOf } from "./engine/qbn.js";
 import { S, colRow, labEls, buildCells, draw, drawAge, fxClear, focusSquare } from "./render/board.js";
 import { lens, wash, stageOf } from "./render/age.js";
 import { ageStep } from "./engine/self.js";
@@ -14,8 +14,8 @@ import { castOf, meetsNamed } from "./engine/cast.js";
 import { frame, pullBack, hold, release } from "./render/camera.js";
 import { spriteURL } from "./render/sprites.js";
 import { tokenEls, buildTokens, place, retrigger, climb, swallow, swallowSecs, animate } from "./render/tokens.js";
-import { openSquare, openEntry, closeCard, cardIdle, cardOpen, cardCarried, cardBlocking, cardExpanded, releaseCard, cardNote, setCardRoll, setCardDecide, optionNote, refreshRoll, refreshCard, onCardChange } from "./render/card.js";
-import { landHuman, landCpu, clearLanded, drawLanded } from "./render/landed.js";
+import { openSquare, openEntry, closeCard, cardIdle, cardOpen, cardCarried, cardBlocking, cardExpanded, releaseCard, setCardRoll, setCardDecide, optionNote, refreshRoll, refreshCard, onCardChange } from "./render/card.js";
+import { landHuman, clearLanded, drawLanded } from "./render/landed.js";
 import { sheetState } from "./render/sheet.js";
 import { renderCodex, showTab } from "./render/codex.js";
 import { renderLog } from "./render/log.js";
@@ -149,7 +149,7 @@ async function takeTurn() {
   // A person's roll takes away the card and the line under the board: the next landing tells its own. From 94 the
   // card stays until the dice are chosen between, since on a phone the choice is on it (REDESIGN.md Phase 9).
   let shut = null;
-  if (p.type === "human") { cardNote(""); clearLanded(); G.humanRolled = true; if (cardOpen() && diceFor(p) < 2) shut = closeCard(); }
+  if (p.type === "human") { clearLanded(); G.humanRolled = true; if (cardOpen() && diceFor(p) < 2) shut = closeCard(); }
   release();
   const dice = await rollDice(diceFor(p));
   await shut;
@@ -191,7 +191,7 @@ async function takeTurn() {
     await waitCard();
     if (g !== G.gen) return;
     // Weighted by what happened (REDESIGN.md Phase 11): a person's situation, snake, ladder, first meeting by name,
-    // first realm and the exit open the full card; any other landing, and every computer's, is a line under the board.
+    // first realm and the exit open the full card; any other landing of theirs is a line under the board.
     // Only the situation waits on its card, for the choice; the others go with the game.
     let full = false;
     if (plan.situation) {
@@ -215,8 +215,8 @@ async function takeTurn() {
       if (g !== G.gen) return;
     }
     if (!plan.sit && !full) {
+      // a computer's landing is in the moves log; the line keeps the person's last moment
       if (p.type === "human") landHuman(p.pos, idx);
-      else landCpu(p.pos, idx, [...plan.after, ...plan.end].filter(e => e.k && !["lPassed", "lSix", "lStay", "lStayOne"].includes(e.k)).at(-1), plan.choice ? optionOf(plan.target, plan.choice) : null);
     }
     plan.after.forEach(log);
     if (plan.jump) {
@@ -238,7 +238,6 @@ async function takeTurn() {
   if (p.type === "human" && (plan.died || plan.win || plan.jump?.rebirth) && firstLife()) { lifeLived(); refreshCard(); }
   // a person whose years run out reads their life at once, rather than watching the others finish
   if (plan.died && p.type === "human") openLife(idx);
-  if (cardCarried() && p.type === "cpu") cardNote(tIn(lang, "cardMoved", { name: pname(p), n: plan.final }));
   watching();
   pullBack();
   G.busy = false;
@@ -596,7 +595,7 @@ if (new URLSearchParams(location.search).has("debug")) {
     // mp.first() treats this viewer as new from here on, as ?first does: the first life's cards, every bridge untold
     first() { beFirst(); refreshCard(); return firstLife(); },
     // the line under the board, or null when it is empty
-    landed: () => ($("landed").hidden ? null : $("landed").textContent),
+    landed: () => $("landed").textContent || null,
   };
 }
 

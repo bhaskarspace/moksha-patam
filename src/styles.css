@@ -215,10 +215,13 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
   width: 100%; max-width: 600px; margin: 0; padding: 8px 12px; text-align: left;
   border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--ink);
   font: 400 15px/1.4 var(--f-card); cursor: pointer;
+  /* the height of the longest line it shows, kept when empty, so nothing under it moves as it comes and goes */
+  height: calc(2 * 1.4em + 18px); overflow: hidden;
 }
+.landed[data-empty] { visibility: hidden; }
 /* the whole moment where it fits: two lines on a wide screen, three on a phone, where it is the card */
 .landed-t { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-@media (max-width: 767px) { .landed-t { -webkit-line-clamp: 3; } }
+@media (max-width: 767px) { .landed { height: calc(3 * 1.4em + 18px); } .landed-t { -webkit-line-clamp: 3; } }
 .landed:lang(hi) { font-family: var(--f-card-hi); }
 .landed b { font: 600 13px/1.4 var(--f-body); color: var(--muted); margin-right: 4px; }
 .landed b::after { content: " ·"; }
@@ -432,7 +435,6 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 .leaf .pick-c[hidden] { display: none; }
 .leaf .roll-c .dot { width: 10px; height: 10px; border-radius: 50%; box-shadow: 0 0 0 1.5px #FFF6E0; flex: none; }
 .leaf .grip, .leaf .x-foot, .leaf .ft-top { display: none; }
-.leaf .cnote { font-family: var(--f-body); font-size: 12.5px; font-weight: 600; color: var(--l-ink2); }
 
 /* while the text goes on below, its lower edge fades, so nothing ever looks cut off */
 .leaf-main.more-below {
@@ -462,7 +464,6 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
   #folio .leaf.goal .grip span { background: rgba(255, 216, 107, 0.55); }
   #folio .ft-top { display: block; margin-top: 3px; font-size: 12px; letter-spacing: 0.04em; text-transform: none; }
   #folio .ft-top .nav { margin-top: 2px; }
-  #folio .cnote { order: 3; flex-basis: 100%; }
   #folio .x-top, #folio .leaf-foot .ft { display: none; }
   #folio .x-foot { display: grid; place-items: center; width: 44px; height: 44px; }
   #folio .leaf-foot { grid-template-columns: auto auto minmax(0, 1fr) auto; gap: 8px; padding: 8px 10px 12px; }

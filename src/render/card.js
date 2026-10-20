@@ -184,7 +184,6 @@ function frame(l, { kind, eb, big, sqn, age, body, more = "", foot, prev, next, 
     <header class="leaf-top">
       <button type="button" class="grip" data-act="grip" aria-label="${T(sheetDetent() === "full" ? "gripLess" : "gripMore")}" aria-expanded="${sheetDetent() === "full"}"><span></span></button>
       <span class="eb">${eb}${foot ? `<span class="ft-top">${foot}</span>` : ""}</span>
-      <span class="cnote" hidden></span>
       <div class="leaf-tools">
         <div class="lang-mini" role="group" aria-label="${T("cardLang")}">
           <button type="button" data-cl="en" aria-pressed="${l === "en"}">EN</button><button type="button" data-cl="hi" lang="hi" aria-pressed="${l === "hi"}">हिं</button>
@@ -384,14 +383,6 @@ function setExpanded(on) {
   if (on) meet(metMore.filter(Boolean));
   if (sheetOn()) setDetent(on ? "full" : "half");
   cue();
-}
-
-// A note in the card's top strip, for a computer's move while the reader rolls from the card.
-export function cardNote(text) {
-  const el = leaf.querySelector(".cnote");
-  if (!el) return;
-  el.textContent = text;
-  el.hidden = !text;
 }
 
 // ---- Opening and closing ----
