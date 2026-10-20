@@ -242,8 +242,9 @@
   },
   "59": {
     "prompt": {
-      "en": "{name} is {age}. {name}'s daughter breaks something precious, and {name}'s hand is already rising.",
-      "hi": "{name} {age} बरस {का|की} है। बेटी ने {name} की कोई प्यारी चीज़ तोड़ दी है, और {name} का हाथ उठ चुका है।"
+      "en": "{name} is {age}. {child={name}'s daughter} breaks something precious, and {name}'s hand is already rising.",
+      "hi": "{name} {age} बरस {का|की} है। {child=बेटी} ने {name} की कोई प्यारी चीज़ तोड़ दी है, और {name} का हाथ उठ चुका है।",
+      "cast": "daughter"
     },
     "options": [
       {
@@ -263,7 +264,7 @@
         "aims": {"dharma":5},
         "require": {"guna":{"r":{"max":0.5}}},
         "why": {"en":"Too restless to stop the hand in time.","hi":"इतनी बेचैनी है कि हाथ समय पर नहीं रुकेगा।"},
-        "outcome": {"en":"{name} is {age}, and with the hand already up looks at the daughter first, and sees that she is more frightened of the broken thing than of {name}. The hand comes down onto her head, and stays there. It takes years before looking first is quicker than the hand.","hi":"{name} {age} बरस {का|की} है। हाथ उठ चुका था, पर {name} ने पहले बेटी की ओर देखा, और दिखा कि वह {name} से ज़्यादा उस टूटी चीज़ से डरी हुई है। हाथ उसके सिर पर आकर रुक गया, और वहीं रहा। पहले देखना हाथ से तेज़ होने में बरसों लगे।","mirror":{"en":"The brahmin's wife looked in the cradle only after the mongoose was dead.","hi":"ब्राह्मणी ने पालने में तब झाँका जब नेवला मर चुका था।"}}
+        "outcome": {"en":"{name} is {age}, and with the hand already up looks at {child=the daughter} first, and sees that she is more frightened of the broken thing than of {name}. The hand comes down onto her head, and stays there. It takes years before looking first is quicker than the hand.","hi":"{name} {age} बरस {का|की} है। हाथ उठ चुका था, पर {name} ने पहले {child=बेटी} की ओर देखा, और दिखा कि वह {name} से ज़्यादा उस टूटी चीज़ से डरी हुई है। हाथ उसके सिर पर आकर रुक गया, और वहीं रहा। पहले देखना हाथ से तेज़ होने में बरसों लगे।","mirror":{"en":"The brahmin's wife looked in the cradle only after the mongoose was dead.","hi":"ब्राह्मणी ने पालने में तब झाँका जब नेवला मर चुका था।"},"cast":"daughter","recall":{"en":"at whom {name} once looked first, with the hand already up","hi":"जिसकी ओर कभी {name} ने उठे हाथ के साथ पहले देखा था"}}
       },
       {
         "id": "leave",

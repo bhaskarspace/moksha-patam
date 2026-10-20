@@ -479,6 +479,33 @@ await check("Phase 10: a square that tells two moments shows on the card the one
   assert(/saves the last mango/.test(browsed), `browsed: ${browsed}`);
 });
 
+await check("Phase 10C: the card meets the friend by name, calls them by it after, and the life closes on their fate", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=1&debug");
+  const card = (n, life, years) => page.evaluate(([n, life, years]) => {
+    Object.assign(mp.state.players[0], { name: "Asha", gender: "f", pos: life.at(-1), life, told: life.map(() => null), years });
+    mp.open(n, { who: 0 });
+    const t = document.querySelector("#leaf .moment").textContent;
+    mp.close({ instant: true });
+    return t;
+  }, [n, life, years]);
+  const met = await card(6, [6], 3), name = met.match(/(?:His|Her) name is (\S+)\./)?.[1];
+  assert(name && /has found a friend/.test(met), `square 6: ${met}`);
+  const after = await card(15, [6, 15], 8);
+  assert(after.includes(`something ${name} did too. ${name} owns up`) && !/name is/.test(after), `square 15: ${after}`);
+  // a square browsed names who the life has met, and meets nobody
+  const browsed = await card(48, [6, 15], 8);
+  assert(browsed.includes(`borrows from ${name} for food`) && !/name is/.test(browsed), `square 48: ${browsed}`);
+  const text = await page.evaluate(() => {
+    Object.assign(mp.state.players[0], { life: [6, 15, 20, 48, 100], told: [null, null, null, null, null], pos: 100, years: 92, dead: true });
+    mp.life(0);
+    const t = document.querySelector("#lifeLeaf .life-fates")?.textContent || "";
+    document.getElementById("lifeDlg").close();
+    return t;
+  });
+  assert(text.startsWith(`${name}, whom Asha last saw at thirty-three, died at `), `fates: ${text}`);
+});
+
 await check("Phase 10: a situation's card asks, takes the choice on the card, and tells what was chosen", async page => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto(BASE + "?seed=1&debug");

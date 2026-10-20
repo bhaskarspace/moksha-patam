@@ -10,6 +10,7 @@ import { optionsFor, choiceFor, situationAt } from "./engine/qbn.js";
 import { S, colRow, labEls, buildCells, draw, drawAge, fxClear, focusSquare } from "./render/board.js";
 import { lens, wash, stageOf } from "./render/age.js";
 import { ageStep } from "./engine/self.js";
+import { castOf } from "./engine/cast.js";
 import { frame, pullBack, hold, release } from "./render/camera.js";
 import { spriteURL } from "./render/sprites.js";
 import { tokenEls, buildTokens, place, retrigger, climb, swallow, swallowSecs, animate } from "./render/tokens.js";
@@ -562,6 +563,8 @@ if (new URLSearchParams(location.search).has("debug")) {
     // mp.rules({ brahmaloka: true }) changes the running game's rules
     rules(r) { if (r) Object.assign(G.state.rules, r); return { ...G.state.rules }; },
     lifeText: (i = 0, l) => lifeText(G.state, i, l),
+    // mp.cast(0) is player 0's cast for this game, names, genders and ages, as the account draws it (Phase 10C)
+    cast: (i = 0, life = 0) => castOf(G.state, i, life),
     naming: openNaming,
   };
 }

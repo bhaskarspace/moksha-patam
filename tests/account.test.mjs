@@ -3,7 +3,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { createGame, playTurn } from "../src/engine/turn.js";
 import { lifeOf, lifeText } from "../src/engine/account.js";
-import { JOINS, SQ, squareOf } from "../src/content.js";
+import { castFill } from "../src/i18n.js";
+import { JOINS, SQ, CAST, squareOf } from "../src/content.js";
 
 const meera = (seed, gender = "f") => {
   const s = createGame({ players: [{ name: "Meera", type: "cpu", gender }], rules: { six: true }, seed });
@@ -16,6 +17,8 @@ const lived = (life, extra = {}) => {
   Object.assign(s.players[0], { life, pos: life.at(-1), ...extra });
   return s;
 };
+// the prose as Phase 8–10 pinned it: with the cast stripped, every account is the one Phase 10 wrote (Phase 10C)
+const uncast = fn => () => { const names = CAST.names; CAST.names = null; try { fn(); } finally { CAST.names = names; } };
 const all = (s, l = "en") => lifeOf(s, 0, l).paras.map(p => p.text).join(" ");
 // Seed 83 as Phase 8 played it, before the endgame's two dice: pinned, so the account is tested apart from the rules
 const seed83 = () => {
@@ -88,7 +91,7 @@ test("the opening knows the shape of the life and says only what happened", () =
   assert.equal(lifeOf(lived([1, 108, 1]), 0, "hi").open, "Meera का जन्म दो बार हुआ।");
 });
 
-test("a life that ran out of years ends on what it was still holding, carried in the state for Phase 12", () => {
+test("a life that ran out of years ends on what it was still holding, carried in the state for Phase 12", uncast(() => {
   let s = null;
   // a life that died without first falling from Brahma, which the opening would name instead
   for (let seed = 1; !s; seed++) { const g = meera(seed); if (g.players[0].dead && !g.players[0].hasFallen) s = g; }
@@ -96,10 +99,10 @@ test("a life that ran out of years ends on what it was still holding, carried in
   assert.match(open, /^Meera ran out of years at a hundred and/);
   assert.ok(end.startsWith(`Meera's years ran out at ${"a hundred and"}`), end);
   assert.ok(end.includes("on ground already walked once, still "), end);
-  assert.ok(end.endsWith(squareOf(p.holding).holding.en.replace("{name}", "Meera") + "."), end);
+  assert.ok(end.endsWith(castFill(squareOf(p.holding).holding.en).replace("{name}", "Meera") + "."), end);
   assert.match(lifeOf(s, 0, "hi").end, /उस राह पर जो एक बार चली जा चुकी थी, अब भी/);
   assert.doesNotMatch(lifeText(s, 0, "en"), /nobody won|no one/i);
-});
+}));
 
 test("an unbroken climb reads every age as the square wrote it", () => {
   const climb = [1, 5, 9, 13, 18, 22, 27];
@@ -109,7 +112,7 @@ test("an unbroken climb reads every age as the square wrote it", () => {
   assert.match(text, /Meera is sixteen and asks the big question/);
 });
 
-test("the seed-83 life, as a whole", () => {
+test("the seed-83 life, as a whole", uncast(() => {
   const text = lifeText(seed83(), 0, "en");
   assert.match(text, /^The life of Meera\nMumukṣu · longing to be free\n\nMeera lived to ninety-four/);
   assert.match(text, /That same year, Meera is eighteen and stirs sugar into tea/);
@@ -120,7 +123,7 @@ test("the seed-83 life, as a whole", () => {
   assert.match(text, /And the same heights again\./);
   // a life let go names what it put down: the vice taken most, the latest on a tie, as a death names it held
   assert.match(text, /Then, at ninety-four, moksha, and Meera put down the body that seemed to settle it\.\n$/);
-});
+}));
 
 // ---- Phase 9 ----
 test("seed 23: a life stuck in the 99 → 61 loop reads as stuck in one line, not three verbatim cycles", () => {

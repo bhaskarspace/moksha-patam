@@ -1090,7 +1090,39 @@ the ledger.
 
 ---
 
-### Phase 10C — The cast
+### Phase 10C — The cast  ✅ SHIPPED
+
+> **Shipped, with these decisions.**
+> - *The roles, re-derived from the shipped moments:* 24 squares, 28 moments, not ~40. Mother 18; father 3, 53; teacher
+>   20, 23, 26, 37, 38; friend 6, 15, 16, 48; spouse 41, 65, 78; daughter 50, 59; son 60, 62, 64, 93; rival 52, 67, 69
+>   (and 59's prompt, and the holding and letgo of 62, 69, 93). The numbers below ("the rival at 38, 55, 57") were
+>   partly ages: 38, 55 and 57 are the ages of squares 52, 67 and 69.
+> - *The field is on each moment, not the square* (`cast`, `recall`; `introduces: false` on 60, whose "His name is"
+>   would name the grandson; `dies` on 53; `gone` on 100), since 59's two outcomes differ. One member per moment.
+> - *Tokens* (`src/i18n.js` `castFill`, before `fill`): `{friend=the friend}` is the name once met and the words until
+>   then; `{friend:लेता|लेती}` agrees with the friend's own gender. With no names every reference is its words and every
+>   choice its first form, which is the shipped text: every cast verb was masculine. Seven Hindi moments needed the
+>   choice (6, 15, 23, 37, 38, 65, 78); no English one did. Joins and fates are written to need none.
+> - *The son and the daughter are two people*, each `{child}` in the text; a life that meets both names both. Children
+>   always outlive the player (104–108 keep heirs below). *Parents are cast but not named*: "Meera's mother".
+> - *Meeting, not introduction*: the name is said once, at the end of the moment where the life meets them ("Her name
+>   is Tārā."; the teacher "उनका नाम आनंद है।" and then आनंदजी). The card says it on the landing too.
+> - *The draw* (`src/engine/cast.js`): per player and per life, off a sequence of its own seeded by the game; nothing in
+>   state, so old saves have a cast. No name anyone at the table has (compared by Devanagari, or Latin without marks:
+>   "Meera" excludes Mīrā). Offsets: friend 0, teacher +20–35, rival ±2, spouse ±4, parents +20–38.
+> - *Returns* rank snake → echo → **returns** → ladder → …: a member met earlier, not told in the moment just before,
+>   joined by the recall of the moment where they were met ("Tārā, who once broke a biscuit badly with Meera, was there
+>   again: "). An echo outranks it; a fold, a "back where" line or a tally names nobody and is not a return.
+> - *Fates*: after the end line, one per member the last life met, in order. Drawn in the player's years between the
+>   board's last word on them (landed or not) and every landing on their squares, and before 100 if the life told it;
+>   the father's is 53's age. `lintFates` holds it for 500 seeds a gender in the build, 2000 in the tests.
+> - *Measured* (4000 lives): 99.7% name someone, 58.5% join a return by name, 99.6% close on a fate, 4.1 fate lines
+>   a life. **Nothing moved**: `npm run sim` for one and two players is byte-identical to Phase 10, and with
+>   `names.json` `cast` stripped all 16,000 accounts of `node tools/accounts.mjs 2000` (seeds 1–2000, both languages,
+>   both genders, and two unnamed computers) are byte-identical to Phase 10.
+> - *For Bhaskar*: the list is the §13.3 starter, unchanged. The lint warns that Līlā (7) and आनंद (70, 89) are also
+>   words in the mirrors; Arjun, Rādhā, Tārā, Kabīr and Mīrā carry mythic or devotional echoes; Jaya is rarely a man's
+>   name. The Hindi of every recall, intro and fate line wants a native ear.
 
 *`docs/NARRATIVE.md` §13.1–13.4 and §13.10. Its own PR from a clean `main`. The highest-leverage
 piece of work on the table, and the cheapest.*

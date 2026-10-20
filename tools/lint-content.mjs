@@ -8,11 +8,13 @@
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { GOAL, TOP, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, STR, SRC_HI, JOINS, NUM_HI, READINGS, CODEX, REFS, ENTRY_IDS, srcOfSquare, sourceOf, leadOf, squareOf, SITUATIONS } from "../src/content.js";
+import { GOAL, TOP, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, STR, SRC_HI, JOINS, NUM_HI, READINGS, CODEX, REFS, ENTRY_IDS, srcOfSquare, sourceOf, leadOf, squareOf, SITUATIONS, CAST, CAST_WORDS } from "../src/content.js";
 import NAMES from "../content/names.json" with { type: "json" };
-import { ENDGAME } from "../src/engine/turn.js";
+import { ENDGAME, createGame, playTurn } from "../src/engine/turn.js";
 import { destOf, worthOf } from "../src/engine/qbn.js";
-import { ageOf, stageOfYears } from "../src/engine/self.js";
+import { ageOf, stageOfYears, yearsAlong } from "../src/engine/self.js";
+import { castFill, CAST_ROLES } from "../src/i18n.js";
+import { MEMBERS, tokenOf, castArcs } from "../src/engine/cast.js";
 
 // Names compare without diacritics or case, so "Śaṅkara", "Sankara" and "sankara" are one name.
 const fold = s => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
@@ -73,7 +75,8 @@ export function englishPronouns(en) {
   });
 }
 // The moment's placeholders: {name}, {age} (Phase 8: the years lived, as words), or two or three choices for g().
-const badSlots = text => [...text.matchAll(/\{([^{}]*)\}/g)].map(m => m[1]).filter(x => x !== "name" && x !== "age" && !/^[^|]+\|[^|]+(\|[^|]+)?$/.test(x));
+// A member of the cast ({friend=the friend}, {friend:लेता|लेती}) reads as its own words here; castText checks it.
+const badSlots = text => [...castFill(text).matchAll(/\{([^{}]*)\}/g)].map(m => m[1]).filter(x => x !== "name" && x !== "age" && !/^[^|]+\|[^|]+(\|[^|]+)?$/.test(x));
 // An age spoken as a number word in English, which since Phase 8 must come from {age} so it can be the years lived.
 const SPOKEN_AGE = /^\{name\} is (one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety)\b(?! months)/;
 
@@ -113,15 +116,37 @@ export function lintReport() {
       if (!o[l].includes("{name}")) err(where, `the ${l === "en" ? "English" : "Hindi"} does not name the player with {name}`);
       for (const x of badSlots(o[l])) err(where, `unknown placeholder {${x}}`);
     }
-    const agree = hindiAgreement(o.hi);
+    const agree = hindiAgreement(castFill(o.hi));
     if (agree.errors.length) err(where, `the Hindi agrees with {name} without a {m|f} choice: ${agree.errors.join(", ")}`);
     if (agree.warnings.length) warn(where, `the Hindi may agree with {name} without a {m|f} choice: ${agree.warnings.join(", ")}`);
-    const he = englishPronouns(o.en);
+    const he = englishPronouns(castFill(o.en));
     if (he.length) warn(where, `the English uses "${he.join('", "')}"; use the name again, or a {his|her|their} choice`);
   };
   const citation = (where, src) => {
     if (src && !sourceOf(src)) err(where, `citation "${src}" matches no Codex source`);
     if (src && /[A-Za-z]/.test(SRC_HI.reduce((a, [en, hi]) => a.replace(en, hi), src))) err(where, `citation "${src}" has no Hindi in strings.SRC_HI`);
+  };
+
+  // Phase 10C, the cast: a moment that names a member of the cast says which in `cast`, names only that one, in both
+  // languages alike; a member whose gender is drawn agrees through {member:m|f} in Hindi; and the moment where a life
+  // can meet a named member carries the recall the returns join reads back.
+  const refs = s => new Set([...s.matchAll(new RegExp(`\\{(${CAST_ROLES.join("|")})(?:=(?:[^{}]|\\{name\\})*)?\\}`, "g"))].map(x => x[1]));
+  const agrees = s => new Set([...s.matchAll(new RegExp(`\\{(${CAST_ROLES.join("|")}):[^{}|]*\\|[^{}|]*\\}`, "g"))].map(x => x[1]));
+  const castText = (where, m) => {
+    const used = new Set([...refs(m.en), ...refs(m.hi), ...agrees(m.en), ...agrees(m.hi)]);
+    if (!m.cast) { if (used.size) err(where, `names ${[...used].join(", ")} without saying so in "cast"`); return; }
+    if (!MEMBERS.includes(m.cast)) return err(where, `cast "${m.cast}" is not one of ${MEMBERS.join(", ")}`);
+    const token = tokenOf(m.cast);
+    for (const r of used) if (r !== token) err(where, `is about the ${m.cast} but names {${r}}`);
+    if (refs(m.en).has(token) !== refs(m.hi).has(token)) err(where, `names the ${m.cast} in one language only`);
+    if (["teacher", "friend", "spouse", "rival"].includes(m.cast)) {
+      // the member stands in for {name} and the player is someone else: a bare agreeing word after them is the error
+      const a = hindiAgreement(m.hi.replace(/\{name\}/g, "X").replace(new RegExp(`\\{${token}=(?:[^{}]|\\{name\\})*\\}`, "g"), "{name}"));
+      if (a.errors.length) err(where, `the Hindi agrees with the ${m.cast} without a {${token}:m|f} choice: ${a.errors.join(", ")}`);
+      if (a.warnings.length) warn(where, `the Hindi may agree with the ${m.cast} without a {${token}:m|f} choice: ${a.warnings.join(", ")}`);
+    }
+    if (m.recall) { bilingual(`${where} recall`, m.recall); for (const l of ["en", "hi"]) for (const x of badSlots(m.recall[l] || "")) err(`${where} recall`, `unknown placeholder {${x}}`); }
+    else if (!["mother", "father"].includes(m.cast) && m.introduces !== false && !where.endsWith("prompt")) err(where, `meets the ${m.cast} and has no recall for the returns join`);
   };
 
   // every square has a name and a mirror in both languages, and its citation is in the Codex
@@ -130,6 +155,7 @@ export function lintReport() {
   // what every moment must do, a square's own or the other one it can tell
   const momentText = (where, m, q) => {
     playerText(where, m);
+    castText(where, m);
     if (SPOKEN_AGE.test(m.en)) err(where, "says the age in words; say {age}, so the moment tells the years actually lived (REDESIGN.md Phase 8)");
     if ((m.en.includes("{age}") || m.hi.includes("{age}")) && !(Number.isInteger(q.age) && q.age >= 1)) err(where, "says {age} on a square whose age is not a whole year");
     if (m.en.includes("{age}") !== m.hi.includes("{age}")) err(where, "says {age} in one language only");
@@ -281,6 +307,39 @@ export function lintReport() {
     }
   }
 
+  // Phase 10C: the cast's names and words. First names only, never repeated, none in the lead lexicon and none in any
+  // mirror: the named people of the foreground are not the named people behind the glass (docs/NARRATIVE.md §13.10).
+  if (CAST.names) {
+    const list = [...CAST.names.m, ...CAST.names.f, ...(CAST.names.either || [])], seenNames = new Set();
+    const mirrors = [];
+    for (let n = 1; n <= TOP; n++) {
+      const q = squareOf(n);
+      if (!q) continue;
+      for (const m of [q, q.moment, SQ[n]?.roll?.moment, SNAKES[n], ...(SITUATIONS[n]?.options || []).map(o => o.outcome)]) if (m?.mirror) mirrors.push([n, m.mirror]);
+    }
+    for (const [i, nm] of list.entries()) {
+      const w = `names.cast[${i}]`;
+      if (!Array.isArray(nm) || nm.length !== 2 || !nm[0]?.trim() || !nm[1]?.trim()) { err(w, "is not [en, hi]"); continue; }
+      const [en, hi] = nm;
+      if (/\s/.test(en) || /\s/.test(hi)) err(w, `"${en}" is more than a first name: a surname marks a caste`);
+      if (seenNames.has(fold(en))) err(w, `"${en}" is on the list twice`);
+      seenNames.add(fold(en));
+      if (NAMED.some(e => e.en.some(f => fold(f) === fold(en)) || e.hi.some(f => f === hi))) err(w, `"${en}" is in the lead lexicon: a mirror's name is never the cast's`);
+      // a name that is also one of the board's own words (līlā, play; आनंद, bliss) is for Bhaskar to keep or drop
+      const inMirror = [...new Set(mirrors.filter(([, mr]) => has(mr.en || "", en, fold) || has(mr.hi || "", hi)).map(([n]) => n))];
+      if (inMirror.length) warn(w, `"${en}" is also a word in the mirror of square ${inMirror.join(", ")}: the same word in the foreground and behind the glass`);
+    }
+    for (const who of ["teacher", "friend", "spouse", "rival", "son", "daughter"]) {
+      bilingual(`strings.CAST.intro.${who}`, CAST_WORDS.intro[who]);
+      for (const l of ["en", "hi"]) if (CAST_WORDS.intro[who]?.[l] && !CAST_WORDS.intro[who][l].includes("{n}")) err(`strings.CAST.intro.${who}`, `the ${l} does not say the name with {n}`);
+    }
+    join("strings.CAST.returns", CAST_WORDS.returns);
+    for (const k of ["died", "outlived", "familyDied", "familyOutlived", "childOutlived", "years", "year"]) bilingual(`strings.CAST.${k}`, CAST_WORDS[k]);
+    for (const [i, c] of CAST_WORDS.codas.entries()) bilingual(`strings.CAST.codas[${i}]`, c);
+    for (const who of ["mother", "father"]) bilingual(`strings.CAST.family.${who}`, CAST_WORDS.family[who]);
+    errors.push(...lintFates());
+  }
+
   // readings: bilingual, and every school or person they name exists
   for (const [n, r] of Object.entries(READINGS)) {
     if (!(+n >= 1 && +n <= TOP)) err(`readings.${n}`, "not a square");
@@ -329,6 +388,27 @@ export function lintReport() {
 }
 
 export const lintContent = () => lintReport().errors;
+
+// Phase 10C: a fate contradicts nothing the life saw. Over a run of seeded lives, every member of the cast a life met
+// dies after the last time it was with them and after the board's last word on them, before 100 says they are gone,
+// and outlives the player only by dying after the player's own end. A son or daughter always outlives.
+export function lintFates(seeds = 500) {
+  const errors = [];
+  for (let seed = 1; seed <= seeds; seed++) for (const gender of ["m", "f"]) {
+    const s = createGame({ players: [{ name: "", type: "cpu", gender }], rules: { six: true }, seed });
+    while (!s.over) playTurn(s);
+    const p = s.players[0], along = yearsAlong(p.life || [], p.told || []).filter(e => e.via !== "stay");
+    for (const a of castArcs(s, 0, along)) {
+      const w = `fates: seed ${seed} ${gender}, the ${a.who}`;
+      if (a.death == null) { if (a.kind !== "outlived") errors.push(`${w} has no death and does not outlive`); continue; }
+      if (a.seen != null && a.death <= a.seen && a.kind !== "seen") errors.push(`${w} dies at ${a.death}, not after the life last saw them at ${a.seen}`);
+      if (a.death < a.floor && a.kind !== "seen") errors.push(`${w} dies at ${a.death}, before the board's last word on them at ${a.floor}`);
+      if (a.ceil != null && a.death >= a.ceil) errors.push(`${w} dies at ${a.death}, but square 100 said they were gone at ${a.ceil}`);
+      if ((a.kind === "outlived") !== (a.death > a.end) && a.kind !== "seen") errors.push(`${w} is "${a.kind}" with death ${a.death} and the life over at ${a.end}`);
+    }
+  }
+  return errors;
+}
 
 // "moments: 23/109 written (Childhood 20/20 · Brahmacharya 3/20 · …)"
 export const momentsLine = ({ written, total, bands }) =>

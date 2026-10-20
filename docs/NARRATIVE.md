@@ -177,6 +177,9 @@ screen, and recur naturally:
 Use "your teacher", "your daughter". Do not name them; the player's name is the only
 proper noun in the foreground, and the named people belong to the mirror.
 
+**Reversed in Phase 10C (§13.2).** The cast is named now, and this table is superseded by the
+one re-derived from the shipped moments in REDESIGN.md Phase 10C.
+
 ### Callbacks
 
 Add an optional `callsBack: n` to a square. The moment may then refer to an earlier one.
@@ -408,9 +411,9 @@ it is the narrative layer the existing phases were built to carry.*
 
 Phase 8's account is good glue around good moments and it still reads as a chronicle, and
 the reason is now measurable. Generate any life and ask who is in it. A friend, a teacher, a
-rival, a spouse, a son, a daughter, a father — by role, in the prose, across some forty
-squares. The rival is at 38, 55, 57, 69, 79. The son at 53, 62, 93. The friend at 6, 9, 16,
-33. **The prose already has a recurring cast and the data does not know it**, so the rival
+rival, a spouse, a son, a daughter, a father — by role, in the prose. The rival is at 38, 55, 57,
+69, 79. The son at 53, 62, 93. The friend at 6, 9, 16, 33. *(These are ages in one account, not
+squares; Phase 10C found the cast on 24 squares: REDESIGN.md Phase 10C.)* **The prose already has a recurring cast and the data does not know it**, so the rival
 at 57 and the rival at 79 are the same words and not the same person, the account cannot
 thread them, and the reader feels nothing when the rival returns because nothing says it is a
 return.
@@ -474,6 +477,13 @@ This is the first decision to settle: whether the player meets the friend (the n
 in the moment) or is introduced (the account says it later). Meeting is better; it is how
 the reader learns the name in a novel, and the moment's own text is where the name belongs.
 The introducing clause is a per-role string, not per-square, so it is authored once.
+
+**As built (Phase 10C).** A moment declares its member in `cast` and names them with
+`{friend=the friend}`: the name once this life has met them, and until then the words after the
+`=`. A bare `{friend}` is the name alone. Hindi agreement with the member, not the player, is
+`{friend:लेता|लेती}`. `{child=…}` is the son or the daughter, whichever the moment's `cast` says.
+Authoring rule: the words after `=` are the moment exactly as it read before the cast, and the first
+form of every choice is the one it used, so a game with no names reads as it always did.
 
 **The cast ages on the Phase 8 clock.** The friend is three at 6 and eighty-six at 86, for
 nothing. Where a moment states the cast member's age it should be `{friend.age}`, filled

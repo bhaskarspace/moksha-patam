@@ -341,6 +341,7 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 .life-main .leaf-text { border-left: 4px double var(--l-rule); }
 .life-leaf .leaf-text p { margin: 6px 0 0; font-size: 18px; line-height: 1.6; max-width: 62ch; text-wrap: pretty; }
 .life-leaf .leaf-text p.life-end { margin-top: 18px; font-style: italic; color: var(--l-ink2); }
+.life-leaf .leaf-text p.life-fates { margin-top: 12px; color: var(--l-ink2); }
 /* Phase 8: the title the life earned, under its name, and a first line that knows the shape of the whole life */
 .life-leaf .leaf-text p.life-sub { margin-top: 0; font-size: 14px; letter-spacing: 0.04em; color: var(--l-ink2); }
 .life-leaf .leaf-text p.life-open { margin-top: 14px; font-style: italic; }

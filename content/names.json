@@ -95,5 +95,11 @@
     "about": "Names drawn for a computer player, or for anyone left unnamed at the naming (docs/NARRATIVE.md §3), each [en, hi], by the gender the cards agree with. Kept out of the lead lexicon above: these are the players, not people a card can name.",
     "m": [["Aarav","आरव"],["Kabir","कबीर"],["Rohan","रोहन"],["Imran","इमरान"],["Vikram","विक्रम"],["Arjun","अर्जुन"],["Dev","देव"],["Sameer","समीर"],["Anil","अनिल"],["Joseph","जोसेफ़"]],
     "f": [["Asha","आशा"],["Meera","मीरा"],["Kavya","काव्या"],["Ananya","अनन्या"],["Zoya","ज़ोया"],["Priya","प्रिया"],["Lata","लता"],["Nandini","नंदिनी"],["Farah","फ़रह"],["Rhea","रिया"]]
+  },
+  "cast": {
+    "about": "The cast's names (docs/NARRATIVE.md §13.3; REDESIGN.md Phase 10C), each [en, hi]: the friend, the teacher, the rival, the one the player married and the children, drawn per life. First names only, since a surname marks a caste; ordinary, none mythic, none marked. Bhaskar passes this list. Kept out of the lead lexicon above, and the lint keeps every name here out of every mirror. Without this key the cast stays unnamed and every account reads exactly as it did in Phase 10.",
+    "m": [["Arjun","अर्जुन"],["Kabīr","कबीर"],["Ānand","आनंद"],["Rohan","रोहन"],["Sameer","समीर"],["Vikram","विक्रम"]],
+    "f": [["Mīrā","मीरा"],["Tārā","तारा"],["Rādhā","राधा"],["Līlā","लीला"],["Āśā","आशा"],["Nīrā","नीरा"]],
+    "either": [["Kiran","किरण"],["Jaya","जया"]]
   }
 }
