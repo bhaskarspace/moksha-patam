@@ -98,7 +98,7 @@ export function lintReport() {
   // the joining phrases of the life account: each reads on into a moment, so it ends in a space (Phase 8)
   const join = (where, j) => { bilingual(where, j); for (const l of ["en", "hi"]) if (j?.[l] && !j[l].endsWith(" ")) err(where, `the ${l} join does not read on into the moment: end it with a space`); };
   for (const [i, j] of JOINS.then.entries()) join(`strings.JOINS.then[${i}]`, j);
-  for (const k of ["snake", "ladder", "again", "gap", "sameYear", "months"]) join(`strings.JOINS.${k}`, JOINS[k]);
+  for (const k of ["snake", "ladder", "again", "gap", "sameYear", "months", "reckon", "door"]) join(`strings.JOINS.${k}`, JOINS[k]);
   // whole sentences, or the part of one a tally counts in (Phase 9: repeats told short, years sat out)
   for (const k of ["foldRun", "foldOne", "foldHeights", "snakeAgain", "ladderAgain", "tallySnake", "tallyLadder", "times", "sitOne", "sitRun", "backTo"]) bilingual(`strings.JOINS.${k}`, JOINS[k]);
   if (NUM_HI?.length !== 101 || NUM_HI.some(w => !w?.trim())) err("strings.NUM_HI", "needs the Hindi number words from 0 to 100");

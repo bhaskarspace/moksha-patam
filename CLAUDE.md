@@ -17,7 +17,7 @@ single static `index.html` at https://codebpr.com/moksha-patam/
 - `docs/REFERENCE.md`: philosophy-to-mechanics mapping and the history of the board.
 - `docs/LANDSCAPE.md`: comparable games.
 
-**State:** Phases 0 to 11 have shipped. Phase 8 was Life State (REDESIGN.md §4): years lived are a clock of their own
+**State:** Phases 0 to 12 have shipped. Phase 8 was Life State (REDESIGN.md §4): years lived are a clock of their own
 (`src/engine/self.js`) that a snake never turns back, moments say their age through `{age}`, a life ends when its years
 pass `SPAN` (110), and the life account (`src/engine/account.js`, pure) chooses each join by how a moment relates to the
 last. Gunas, aims and the bhumika are in state and never shown as numbers. Phase 9 was Dice as currency: from 94
@@ -37,7 +37,7 @@ has shipped, and Bhaskar's three-player test is done: only a situation's card is
 other card away, an ordinary landing is a line under the board (`src/render/landed.js`, `prefs.everyCard` for the old way),
 a viewer's first life (`mp-lives`) shows the moment with the story behind one tap, and every mirror tells, on first
 contact, that it is a story and who is in it (`content/bridges.json`, `whoOf` in `src/content.js`). The naming asks who is playing and names each person in turn. `?first` plays as
-someone new. Then 12 Karma, 13 The painted cloth, 14 The door and the curse (REDESIGN.md Phases 12–19).
+someone new. Phase 12, Karma, has shipped (below). Then 13 The painted cloth, 14 The door and the curse (REDESIGN.md Phases 13–19).
 Phase 7 was The Exit (REDESIGN.md §4): Moksha is square 105 (`GOAL`), partway
 along the divine row, while the board still ends at 110 (`TOP`). Since Phase 12 nothing above the exit turns back: past 105 the
 heavens (106–110) are walked, and the throw that would pass `TOP` is the fall, which ends the life (`plan.fell`, `p.fell`;
@@ -51,7 +51,8 @@ omen: a 6 among the dice (never a 1), on 1–100 or at 105, at a chance rising t
 the dice never change. What it costs is a fixed function of the ledger (`reckonOf`): nothing, years, a holding (`p.held`), then
 back down the board; the death tier is only reported (`wouldDie`) until Phase 15. The reckoning's card is modal. The door at 105
 refuses a life carrying any unmet debt, or artha/kāma at `ATTACHED` (`refusalOf`, `plan.refused`, `p.door`), in words; the
-player stays on 105 and the next throw goes into the heavens. Unmet debts go to `sancita` when a life ends, recorded only. The
+player stays on 105 and the next throw goes into the heavens. Each refused arrival is kept in `p.refusals` and told in the
+account, and a fall closes on the debts still carried, in the door's words (`carryIn`). Unmet debts go to `sancita` when a life ends, recorded only. The
 buckets are never numbers: "debt" is the only player-facing word, and the scholar depth alone shows the ledger
 (`src/render/ledger.js`). The computer ranks its dice by where they land before the omen, so it never sees a reckoning coming. Phase 6 was The Card in Hand: the card opens collapsed (`src/render/card.js`), with an
 illuminated frame (`frame.js`) and a bottom sheet below 768px (`sheet.js`).
@@ -88,7 +89,7 @@ illuminated frame (`frame.js`) and a bottom sheet below 768px (`sheet.js`).
   languages, both genders, and two unnamed computers per seed). Compare a run against a worktree of `main` with
   `--root` to prove a change leaves the prose alone; `--cast=off` takes the cast's names away. `--tag` marks each game that
   went above the exit (`above`) or that the ledger touched (`karma`: a reckoning, a refusal, or a debt carried within a throw
-  of the door); every untagged account must match.
+  of the door), or whose account tells the door (`door`: a refusal, or a fall carrying a debt); every untagged account must match.
 - `npm run perf [--rate=4] [--query=quality=low]`: frame times on a throttled phone-sized page. Reports only;
   compare against a run on `main`.
 - `node tools/icons.mjs`: regenerates `icons/`. Only needed when the emblem changes.

@@ -1305,6 +1305,10 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         doorArtha: "The door does not open. {name} is still holding on to what was earned.",
         doorKama: "The door does not open. {name} is still holding on to what was wanted.",
         doorOn: "From here every throw goes on into the heavens.",
+        endRefused: "The door that did not open",
+        carryDebts: "still carrying {debts}",
+        carryArtha: "still holding on to what was earned",
+        carryKama: "still holding on to what was wanted",
         listAnd: " and ",
         lifeEndFellDoor: "{name} came as far as the door, and it did not open, and a later throw went on past it into the heavens, and the merit was spent there, {holding}.",
         lifeEndFellDoorFree: "{name} came as far as the door, and it did not open, and a later throw went on past it into the heavens, and the merit was spent there.",
@@ -1521,6 +1525,10 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         doorArtha: "द्वार नहीं खुलता। {name} अब भी कमाए हुए को पकड़े हुए है।",
         doorKama: "द्वार नहीं खुलता। {name} अब भी चाही हुई चीज़ों को पकड़े हुए है।",
         doorOn: "यहाँ से हर दाँव आगे स्वर्गों में ही ले जाता है।",
+        endRefused: "वह द्वार जो नहीं खुला",
+        carryDebts: "अब भी {debts} ढोते हुए",
+        carryArtha: "अब भी कमाए हुए को पकड़े हुए",
+        carryKama: "अब भी चाही हुई चीज़ों को पकड़े हुए",
         listAnd: " और ",
         lifeEndFellDoor: "{name} द्वार तक {पहुँचा|पहुँची}, और वह नहीं खुला, और बाद का एक दाँव उसके पार स्वर्गों में ले गया, और पुण्य वहीं चुक गया, {holding}।",
         lifeEndFellDoorFree: "{name} द्वार तक {पहुँचा|पहुँची}, और वह नहीं खुला, और बाद का एक दाँव उसके पार स्वर्गों में ले गया, और पुण्य वहीं चुक गया।",
@@ -1612,6 +1620,10 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       reckon: {
         en: "At {age}, on a six, the floor opened: ",
         hi: "{age} बरस पर, एक छक्के पर, ज़मीन खिसकी: "
+      },
+      door: {
+        en: "At {age}, Moksha was reached, and ",
+        hi: "{age} बरस पर मोक्ष तक पहुँचना हुआ, और "
       }
     },
     NUM_HI: ["शून्य", "एक", "दो", "तीन", "चार", "पाँच", "छह", "सात", "आठ", "नौ", "दस", "ग्यारह", "बारह", "तेरह", "चौदह", "पंद्रह", "सोलह", "सत्रह", "अठारह", "उन्नीस", "बीस", "इक्कीस", "बाईस", "तेईस", "चौबीस", "पच्चीस", "छब्बीस", "सत्ताईस", "अट्ठाईस", "उनतीस", "तीस", "इकतीस", "बत्तीस", "तैंतीस", "चौंतीस", "पैंतीस", "छत्तीस", "सैंतीस", "अड़तीस", "उनतालीस", "चालीस", "इकतालीस", "बयालीस", "तैंतालीस", "चवालीस", "पैंतालीस", "छियालीस", "सैंतालीस", "अड़तालीस", "उनचास", "पचास", "इक्यावन", "बावन", "तिरपन", "चौवन", "पचपन", "छप्पन", "सत्तावन", "अट्ठावन", "उनसठ", "साठ", "इकसठ", "बासठ", "तिरसठ", "चौंसठ", "पैंसठ", "छियासठ", "सड़सठ", "अड़सठ", "उनहत्तर", "सत्तर", "इकहत्तर", "बहत्तर", "तिहत्तर", "चौहत्तर", "पचहत्तर", "छिहत्तर", "सतहत्तर", "अठहत्तर", "उन्यासी", "अस्सी", "इक्यासी", "बयासी", "तिरासी", "चौरासी", "पचासी", "छियासी", "सत्तासी", "अट्ठासी", "नवासी", "नब्बे", "इक्यानवे", "बानवे", "तिरानवे", "चौरानवे", "पंचानवे", "छियानवे", "सत्तानवे", "अट्ठानवे", "निन्यानवे", "सौ"],
@@ -3038,9 +3050,15 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   function refusalIn(l, refusal, who2) {
     if (!refusal) return [];
     if (refusal.aim) return [T(l, refusal.aim === "artha" ? "doorArtha" : "doorKama", who2), T(l, "doorOn", who2)];
-    const ds = refusal.debts.map((d) => debtIn(l, d, who2)), and = tIn(l, "listAnd");
-    const debts = ds.length > 1 ? ds.slice(0, -1).join(", ") + and + ds.at(-1) : ds[0];
-    return [T(l, "doorRefused", who2, { debts }), T(l, "doorOn", who2)];
+    return [T(l, "doorRefused", who2, { debts: debtsIn(l, refusal.debts, who2) }), T(l, "doorOn", who2)];
+  }
+  function debtsIn(l, debts, who2) {
+    const ds = debts.map((d) => debtIn(l, d, who2)), and = tIn(l, "listAnd");
+    return ds.length > 1 ? ds.slice(0, -1).join(", ") + and + ds.at(-1) : ds[0] ?? "";
+  }
+  function carryIn(l, debts, aim, who2) {
+    if (debts.length) return T(l, "carryDebts", who2, { debts: debtsIn(l, debts, who2) });
+    return aim ? T(l, aim === "artha" ? "carryArtha" : "carryKama", who2) : "";
   }
 
   // src/engine/turn.js
@@ -3099,6 +3117,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         karma: freshKarma(),
         held: [],
         reckonings: [],
+        refusals: [],
         door: null
       })),
       rules: { ...rules },
@@ -3214,6 +3233,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         if (rk.holds) p.held = [...p.held ?? [], rk.holds];
         p.reckonings = [...p.reckonings ?? [], { at: at2, src: rk.src, opt: rk.opt, planted: rk.planted, tier: rk.tier, applied: rk.applied, wouldDie: rk.wouldDie, years: rk.years, to: rk.to, age: rk.age }];
       }
+      if (plan.refused && !p.door) p.refusals = [...p.refusals ?? [], { at: at2, ...plan.refused }];
       p.door = plan.refused ?? (p.pos === GOAL && !plan.win ? p.door : null);
       if (plan.died) {
         p.dead = true;
@@ -5166,7 +5186,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       metMore: metMore2,
       html: frame2(l, {
         kind: info.kind,
-        eb: info.eb + (age2 ? ` · ${age2}` : ""),
+        eb: (refusal ? T2("endRefused") : info.eb) + (age2 ? ` · ${age2}` : ""),
         big: n === GOAL ? illumined(null, info.big) : illumined(document.getElementById(`sq-${n}`) ? `sq-${n}` : null, info.big),
         sqn: numIn(l, n),
         age: age2,
@@ -5636,11 +5656,21 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       flushFold();
       flushSat();
     };
-    const recks = p.reckonings || [];
+    const all = yearsAlong(p.life || [], p.told || []);
+    const recks = [...(p.refusals || []).map((r) => ({ ...r, door: true })), ...p.reckonings || []].sort((a, b) => a.at - b.at || !!b.door - !!a.door);
     let rq = 0;
     const reckon = (upto) => {
       for (; rq < recks.length && recks[rq].at <= upto; rq++) {
-        const r = recks[rq], t2 = seedOf(r.src, r.opt)?.reckoning;
+        const r = recks[rq];
+        if (r.door) {
+          if (!para) continue;
+          flush();
+          const said = refusalIn(l, r, who2)[0], age2 = all[r.at - 1]?.years ?? p.years;
+          para.parts.push(J(JOINS.door, { age: words(age2) }) + after(said, said, l));
+          lastYears = age2;
+          continue;
+        }
+        const t2 = seedOf(r.src, r.opt)?.reckoning;
         if (!para || !t2) continue;
         flush();
         para.parts.push(J(JOINS.reckon, { age: words(r.age) }) + after(t2[l] || t2.en, reckoningIn(l, r, who2), l));
@@ -5752,7 +5782,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         const head = s === 5 || !ages.length ? stage(s) : a === b ? T2("lifeAt", { stage: stage(s), a }) : T2("lifeSpan", { stage: stage(s), a, b });
         return { head, text: parts.join(" ") };
       }),
-      end: state.winner === i ? winEnd(p, T2, words, held2) : p.fell ? fellEnd(p, along, T2, sq, held2) : !p.life?.length ? T2("lifeUnborn") : p.dead ? T2("lifeEndDied", { age: words(p.years), holding: held2(SNAKES[p.holding]?.holding) }).replace(/, ([.।])$/, "$1") : T2("lifeEndOpen", { n: p.pos }),
+      end: state.winner === i ? winEnd(p, T2, words, held2) : p.fell ? fellEnd(p, along, T2, sq, held2, l, who2) : !p.life?.length ? T2("lifeUnborn") : p.dead ? T2("lifeEndDied", { age: words(p.years), holding: held2(SNAKES[p.holding]?.holding) }).replace(/, ([.।])$/, "$1") : T2("lifeEndOpen", { n: p.pos }),
       // what the life never found out about the people in it (Phase 10C): empty with no cast
       fates: fatesIn(state, i, l, along, cc, who2)
     };
@@ -5761,10 +5791,13 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const letgo = SNAKES[holdingOf(p.life || [], p.held)]?.letgo, age2 = words(p.years ?? 0);
     return letgo ? T2("lifeEndWin", { age: age2, letgo: held2(letgo) }) : T2("lifeEndFree", { age: age2 });
   }
-  function fellEnd(p, along, T2, sq, held2) {
-    const top = p.fellFrom ?? Math.max(...along.map((e) => e.n)), holding = SNAKES[p.holding]?.holding;
-    if (top === GOAL) return holding ? T2("lifeEndFellDoor", { holding: held2(holding) }) : T2("lifeEndFellDoorFree");
-    return holding ? T2("lifeEndFell", { realm: sq(top), holding: held2(holding) }) : T2("lifeEndFellFree", { realm: sq(top) });
+  function fellEnd(p, along, T2, sq, held2, l, who2) {
+    const top = p.fellFrom ?? Math.max(...along.map((e) => e.n)), vice = SNAKES[p.holding]?.holding;
+    const k = karmaOf(p), unmet = [...carried(k), ...k.sancita], aim = (p.refusals || []).findLast((r) => r.aim)?.aim;
+    const carry = carryIn(l, unmet, aim, who2), and = tIn(l, "listAnd");
+    const holding = vice || carry ? [vice && held2(vice), carry].filter(Boolean).join(and) : null;
+    if (top === GOAL) return holding ? T2("lifeEndFellDoor", { holding }) : T2("lifeEndFellDoorFree");
+    return holding ? T2("lifeEndFell", { realm: sq(top), holding }) : T2("lifeEndFellFree", { realm: sq(top) });
   }
   function opening(p, along, T2, words) {
     if (!along.length) return "";
@@ -5970,14 +6003,21 @@ ${p.text}`), end, fates.join(" ")].filter(Boolean).join("\n\n") + "\n";
     addLog(G.state, e);
     renderLog();
   }
+  var canThrow = () => !G.busy && !G.state.over;
   async function takeTurn() {
     const state = G.state;
-    if (G.busy || state.over) return;
+    if (!canThrow()) {
+      G.forcedRoll = null;
+      return;
+    }
     const g3 = G.gen;
     G.busy = true;
     render();
     await waitCard();
-    if (g3 !== G.gen) return;
+    if (g3 !== G.gen) {
+      G.forcedRoll = null;
+      return;
+    }
     const p = cur(), idx = state.turn, el2 = tokenEls[idx];
     let shut = null;
     if (p.type === "human") {
@@ -6485,7 +6525,9 @@ ${p.text}`), end, fates.join(" ")].filter(Boolean).join("\n\n") + "\n";
         }
         return quality;
       },
+      // mp.roll(v) or mp.roll(a, b) fixes this throw's dice, for this throw alone; it is false when no throw can be taken
       roll(...vs) {
+        if (!canThrow()) return false;
         G.forcedRoll = vs.length > 1 ? vs : vs[0];
         return takeTurn();
       },
@@ -6522,7 +6564,7 @@ ${p.text}`), end, fates.join(" ")].filter(Boolean).join("\n\n") + "\n";
       // presses the card's Roll; mp.rollFromCard(v) fixes the next roll, so call it on the reader's own turn
       rollFromCard(v) {
         const b = document.querySelector('#leaf .roll-c[aria-disabled="false"]');
-        if (b && v != null) G.forcedRoll = v;
+        if (b && v != null && canThrow()) G.forcedRoll = v;
         b?.click();
         return !!b;
       },

@@ -84,13 +84,13 @@ export const gone = p => !!(p.dead || p.fell);
 // reached, and once the years run out, dead and the vice they were still holding. Phase 12 adds fell: the life that
 // threw past the top of the heavens, which ends it as the years running out does, and fellFrom, the realm it fell from;
 // and the ledger (src/engine/karma.js): karma, its three buckets; held, the vices a reckoning added to what the life
-// is holding; reckonings, each one met, where in the life it came; and door, why the exit refused them while they stand
-// at it.
+// is holding; reckonings, each one met, where in the life it came; refusals, each arrival the exit refused, and where;
+// and door, why the exit refused them while they stand at it.
 export function createGame({ players, rules, seed }) {
   return {
     players: players.map((r, i) => ({ name: r.name.trim(), type: r.type, gender: r.gender || "m", alias: r.alias || null, color: i, pos: 0, face: "r", life: [], told: [], fell: false,
       years: 0, gunas: freshGunas(), aims: freshAims(), practised: 0, bhumika: null, peak: null, dead: false, holding: null,
-      karma: freshKarma(), held: [], reckonings: [], door: null })),
+      karma: freshKarma(), held: [], reckonings: [], refusals: [], door: null })),
     rules: { ...rules },
     // over: someone reached the exit, or nobody is left in the game to
     turn: 0, winner: null, over: false, last: null,
@@ -242,6 +242,9 @@ export function endTurn(state, plan) {
       if (rk.holds) p.held = [...(p.held ?? []), rk.holds];
       p.reckonings = [...(p.reckonings ?? []), { at, src: rk.src, opt: rk.opt, planted: rk.planted, tier: rk.tier, applied: rk.applied, wouldDie: rk.wouldDie, years: rk.years, to: rk.to, age: rk.age }];
     }
+    // an arrival the door refused is kept for the account, where in the life it came (a refusal again while they
+    // stand there is the same one)
+    if (plan.refused && !p.door) p.refusals = [...(p.refusals ?? []), { at, ...plan.refused }];
     // standing at a door that has refused them, they keep the reason; anywhere else there is none
     p.door = plan.refused ?? (p.pos === GOAL && !plan.win ? p.door : null);
     if (plan.died) { p.dead = true; p.holding = holdingOf(p.life, p.held); }

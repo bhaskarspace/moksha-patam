@@ -1226,7 +1226,12 @@ ordinary turns; and every mirror a first-life player can reach tells them it is 
 
 ---
 
-### Phase 12 — Karma
+### Phase 12 — Karma  ✅ SHIPPED
+
+> **Shipped, in two steps, with these numbers** (`npm run sim 20000 1`, single lives, mixed policy).
+> - *Step 1, the geometry* (`822a9b7`): nothing above 105 turns back, and the throw past 110 is the fall. Against Phase 11: median 32 → 28, p95 65 → 49, over 100 0.3% → 0.0%; liberation per life 96.5% → 47.6%; the fall 7.7% → 49.2%; years ran out 3.5% → 3.2%; lives per liberation 1.04 → 2.10; turns in 106–110 mean 4.79 → 1.01 (p95 20 → 3); a square at or above 94 landed on four times or more 18.8% → 0.0%, which closes Phase 10's divine-row repeat. Golden re-pinned for the new rule; every account whose game never went above 105 byte-identical.
+> - *Step 2, the ledger* (`41cb8da`): median 29, p95 48, over 100 0.0%. Debts planted 1.45 a life; 41.1% of lives end with one never met. **The omen**: a 6 with a ripe debt 1.17 times a life, a reckoning 0.61 a life, in 45.6% of lives; the share of those 6s that fire rises toward the exit, 23% on 21–40, 31% on 41–60, 46% on 61–80, 70% on 81–100 and 88% at 105. **Severity**, of 12,136 reckonings: the floor alone 28.5%, years 35.7%, a holding 18.0%, sent back 11.4%, death 6.4% (reported only, until Phase 15); death would have fired in 3.3% of lives, nearly all past sixty (40–59: 27, 60–79: 208, 80+: 420). **The door**: 0.41 arrivals a life, a third of them refused, all for debt; 13.7% of lives refused at least once. **Liberation per life after the ledger: 27.6%** (from 47.6%), the fall 64.4%, years ran out 8.1%, lives per liberation 3.63.
+> - *After Bhaskar's live check* (23 Oct): a life the door refused that then fell closed "with nothing in particular in hand". The fall now closes on what is still carried, in the door's own words (`carryIn`, `debtsIn` in `karma.js`), and the refusal is told in the account where it came, one line joined as a snake is (`p.refusals`, `JOINS.door`). The refused 105 card is headed "The door that did not open". `mp.roll` no longer leaves a forced roll behind when no throw can be taken. `accounts.mjs --tag` adds `door`: all 9,284 accounts without it are byte-identical to the build before; 590 of 4,000 single lives were refused for debt, none for an aim alone, and 902 more fell carrying a debt.
 
 *The ledger. Everything after this phase reads from it — the door, the curse, death, rebirth,
 the laws. Its own PR. The door and the curse are Phase 14, not here.*

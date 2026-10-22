@@ -130,7 +130,16 @@ export function reckonLinesIn(l, rk, who) {
 export function refusalIn(l, refusal, who) {
   if (!refusal) return [];
   if (refusal.aim) return [T(l, refusal.aim === "artha" ? "doorArtha" : "doorKama", who), T(l, "doorOn", who)];
-  const ds = refusal.debts.map(d => debtIn(l, d, who)), and = tIn(l, "listAnd");
-  const debts = ds.length > 1 ? ds.slice(0, -1).join(", ") + and + ds.at(-1) : ds[0];
-  return [T(l, "doorRefused", who, { debts }), T(l, "doorOn", who)];
+  return [T(l, "doorRefused", who, { debts: debtsIn(l, refusal.debts, who) }), T(l, "doorOn", who)];
+}
+// Several debts as one phrase, in the door's words: "a, b and c".
+export function debtsIn(l, debts, who) {
+  const ds = debts.map(d => debtIn(l, d, who)), and = tIn(l, "listAnd");
+  return ds.length > 1 ? ds.slice(0, -1).join(", ") + and + ds.at(-1) : ds[0] ?? "";
+}
+// What a life still carries at its end, as the door would say it, after a comma: the unmet debts, or the holding on
+// the door refused it for. Empty when there is neither.
+export function carryIn(l, debts, aim, who) {
+  if (debts.length) return T(l, "carryDebts", who, { debts: debtsIn(l, debts, who) });
+  return aim ? T(l, aim === "artha" ? "carryArtha" : "carryKama", who) : "";
 }

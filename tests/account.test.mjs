@@ -4,7 +4,8 @@ import assert from "node:assert/strict";
 import { createGame, playTurn } from "../src/engine/turn.js";
 import { lifeOf, lifeText } from "../src/engine/account.js";
 import { castFill } from "../src/i18n.js";
-import { JOINS, SQ, SNAKES, CAST, squareOf } from "../src/content.js";
+import { JOINS, SQ, SNAKES, CAST, GOAL, squareOf } from "../src/content.js";
+import { debtsIn, refusalIn } from "../src/engine/karma.js";
 
 const meera = (seed, gender = "f") => {
   const s = createGame({ players: [{ name: "Meera", type: "cpu", gender }], rules: { six: true }, seed });
@@ -87,24 +88,44 @@ test("every join reads on into its moment, and nothing is left unfilled in eithe
 // REDESIGN.md Phase 12: the throw past 110 ends the life on a line of its own: the realm reached, the merit spent, and
 // what was still held, the vice a death would have named.
 test("a life that fell from the heavens closes on the realm, the merit spent and what it still held", uncast(() => {
+  // a life that fell carrying an unmet debt closes on it instead (below); these two carry none
   let held = null, free = null;
   for (let seed = 1; !(held && free); seed++) {
-    const g = meera(seed);
-    if (!g.players[0].fell) continue;
-    if (g.players[0].holding) held ||= seed; else free ||= seed;
+    const g = meera(seed), p = g.players[0];
+    if (!p.fell || p.karma.sancita.length || p.refusals.length) continue;
+    if (p.holding) held ||= seed; else free ||= seed;
   }
   for (const [seed, holds] of [[held, true], [free, false]]) {
     const f = meera(seed), m = meera(seed, "m"), p = f.players[0];
     const realm = squareOf(Math.max(...p.life));
     const en = lifeOf(f, 0, "en").end;
     assert.ok(en.startsWith(`Meera rose as far as the realm of ${realm.en} and lived there on what had been earned below`), en);
-    assert.ok(holds ? en.endsWith(`world, ${SNAKES[p.holding].holding.en.replace(/\{\w+=([^}]*)\}/g, "$1")}.`) : en.endsWith("with nothing in particular in hand."), en);
+    assert.ok(holds ? en.endsWith(`world, ${SNAKES[p.holding].holding.en.replace(/\{\w+=([^}]*)\}/g, "$1").replaceAll("{name}", "Meera")}.`) : en.endsWith("with nothing in particular in hand."), en);
     // Hindi agrees with who lived it
     const hf = lifeOf(f, 0, "hi").end, hm = lifeOf(m, 0, "hi").end;
     assert.ok(hf.startsWith(`Meera ${realm.hi} के लोक तक पहुँची,`) && hf.includes("लौट आई"), hf);
     assert.ok(hm.startsWith(`Meera ${realm.hi} के लोक तक पहुँचा,`) && hm.includes("लौट आया"), hm);
     assert.ok(!/[{}]/.test(en + hf + hm));
   }
+}));
+
+// Bhaskar's check of Phase 12: a life the door refused, that then fell, closes on what the door named, in the door's
+// words, and its account says the refusal where it came, in one line joined as a snake is.
+test("a life the door refused closes on what the door named, and the refusal is told where it came", uncast(() => {
+  let seed = 1;
+  for (; ; seed++) { const p = meera(seed).players[0]; if (p.fell && p.refusals.some(r => r.debts) && p.karma.sancita.length) break; }
+  const f = meera(seed), p = f.players[0], who = l => ({ name: "Meera", gender: "f" });
+  for (const l of ["en", "hi"]) {
+    const life = lifeOf(f, 0, l), text = lifeText(f, 0, l), debts = debtsIn(l, p.karma.sancita, who(l));
+    assert.ok(life.end.includes(debts), life.end);
+    assert.ok(!life.end.includes("nothing in particular") && !life.end.includes("कुछ ख़ास लिए बिना"), life.end);
+    const said = refusalIn(l, p.refusals[0], who(l))[0], join = JOINS.door[l].split("{age}")[1];
+    assert.ok(text.includes(join) && text.includes(l === "en" ? said[0].toLowerCase() + said.slice(1) : said), text);
+    assert.equal(text.split(join).length - 1, p.refusals.length);
+  }
+  // the door's own card heads itself as the door that did not open (src/render/card.js), which no test reaches in node;
+  // here, only that it was refused at the exit
+  assert.ok(p.life.includes(GOAL));
 }));
 
 test("the opening knows the shape of the life and says only what happened", () => {

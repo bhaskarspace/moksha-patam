@@ -9,7 +9,8 @@
 // which is everything Phase 12's first step changed, so every untagged account must be the same before and after it. Its
 // second step adds "karma" to each game in which a debt came due, the door refused someone, or someone carried a debt
 // within a throw of the door (where a computer would rather stand short than be refused): the ledger alone touches
-// nothing else, so every account untagged by either must be the same as the first step's.
+// nothing else, so every account untagged by either must be the same as the first step's. "door" marks a game whose
+// account tells the door's refusal, or whose fall still carried a debt down: every account without it must be main's.
 import path from "node:path";
 import crypto from "node:crypto";
 import { pathToFileURL } from "node:url";
@@ -35,6 +36,8 @@ const play = (players, seed) => {
     if (plan.fell || plan.path.some(n => n > content.GOAL)) s.above = true;
     if (plan.reckon || plan.refused) s.karma = true;
   }
+  // the door (Bhaskar's check of Phase 12): an account that tells a refusal, or a fall that still carried a debt down
+  s.door = s.players.some(p => p.refusals?.length || (p.fell && p.karma?.sancita?.length));
   return s;
 };
 const hash = t => crypto.createHash("sha256").update(t).digest("hex");
@@ -42,7 +45,7 @@ const tally = { intros: 0, returns: 0, fates: 0, lives: 0 };
 const out = [];
 const say = (key, s, i, l) => {
   const text = lifeText(s, i, l);
-  out.push(flags.full ? `## ${key}\n${text}` : `${key} ${hash(text)}${flags.tag ? (s.above ? " above" : "") + (s.karma ? " karma" : "") : ""}`);
+  out.push(flags.full ? `## ${key}\n${text}` : `${key} ${hash(text)}${flags.tag ? (s.above ? " above" : "") + (s.karma ? " karma" : "") + (s.door ? " door" : "") : ""}`);
   const life = lifeOf(s, i, l);
   if (l === "en" && life.fates) {
     tally.lives++;

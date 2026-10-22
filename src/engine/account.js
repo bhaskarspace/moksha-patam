@@ -29,7 +29,7 @@ import { pnameIn } from "../state.js";
 import { ageOf, yearsAlong, stageOfYears, titleOf, holdingOf } from "./self.js";
 import { momentOf } from "./qbn.js";
 import { castAlong, peopleOf, introIn, calledIn, fatesIn } from "./cast.js";
-import { reckoningIn, seedOf } from "./karma.js";
+import { reckoningIn, seedOf, refusalIn, carryIn, karmaOf, carried } from "./karma.js";
 
 const EARTH = 100, GAP = 8;
 // An English moment that does not open with the name reads on after a joining phrase in lower case:
@@ -84,12 +84,23 @@ export function lifeOf(state, i, l) {
     sat = [];
   };
   const flush = () => { flushFold(); flushSat(); };
-  // the reckonings, each told before the first entry of the life that comes after it (p.reckonings[].at)
-  const recks = p.reckonings || [];
+  // the reckonings and the door's refusals, each told before the first entry of the life that comes after it
+  // (p.reckonings[].at, p.refusals[].at); at the door the refusal comes first, since it is said on arriving
+  const all = yearsAlong(p.life || [], p.told || []);
+  const recks = [...(p.refusals || []).map(r => ({ ...r, door: true })), ...(p.reckonings || [])].sort((a, b) => a.at - b.at || !!b.door - !!a.door);
   let rq = 0;
   const reckon = upto => {
     for (; rq < recks.length && recks[rq].at <= upto; rq++) {
-      const r = recks[rq], t = seedOf(r.src, r.opt)?.reckoning;
+      const r = recks[rq];
+      if (r.door) {
+        if (!para) continue;
+        flush();
+        const said = refusalIn(l, r, who)[0], age = all[r.at - 1]?.years ?? p.years;
+        para.parts.push(J(JOINS.door, { age: words(age) }) + after(said, said, l));
+        lastYears = age;
+        continue;
+      }
+      const t = seedOf(r.src, r.opt)?.reckoning;
       if (!para || !t) continue;
       flush();
       para.parts.push(J(JOINS.reckon, { age: words(r.age) }) + after(t[l] || t.en, reckoningIn(l, r, who), l));
@@ -187,7 +198,7 @@ export function lifeOf(state, i, l) {
       return { head, text: parts.join(" ") };
     }),
     end: state.winner === i ? winEnd(p, T, words, held)
-      : p.fell ? fellEnd(p, along, T, sq, held)
+      : p.fell ? fellEnd(p, along, T, sq, held, l, who)
       : !p.life?.length ? T("lifeUnborn")
       : p.dead ? T("lifeEndDied", { age: words(p.years), holding: held(SNAKES[p.holding]?.holding) }).replace(/, ([.।])$/, "$1")
       : T("lifeEndOpen", { n: p.pos }),
@@ -204,12 +215,17 @@ function winEnd(p, T, words, held) {
 
 // The fall from the heavens (REDESIGN.md Phase 12): the realm the life reached, the merit spent, and what it was still
 // holding, the vice a death would have named. Gita 9.21 in the board's own words.
-function fellEnd(p, along, T, sq, held) {
+// What the door named is still carried down: the debts the life never met, or the holding on it was refused for.
+function fellEnd(p, along, T, sq, held, l, who) {
   // nothing above the exit turns back, so the square it fell from is the highest it reached; from the door itself, the
   // throw went past it and every heaven at once
-  const top = p.fellFrom ?? Math.max(...along.map(e => e.n)), holding = SNAKES[p.holding]?.holding;
-  if (top === GOAL) return holding ? T("lifeEndFellDoor", { holding: held(holding) }) : T("lifeEndFellDoorFree");
-  return holding ? T("lifeEndFell", { realm: sq(top), holding: held(holding) }) : T("lifeEndFellFree", { realm: sq(top) });
+  const top = p.fellFrom ?? Math.max(...along.map(e => e.n)), vice = SNAKES[p.holding]?.holding;
+  // the fall has already put what was unmet into the store (sañcita), which in one life is only this life's
+  const k = karmaOf(p), unmet = [...carried(k), ...k.sancita], aim = (p.refusals || []).findLast(r => r.aim)?.aim;
+  const carry = carryIn(l, unmet, aim, who), and = tIn(l, "listAnd");
+  const holding = vice || carry ? [vice && held(vice), carry].filter(Boolean).join(and) : null;
+  if (top === GOAL) return holding ? T("lifeEndFellDoor", { holding }) : T("lifeEndFellDoorFree");
+  return holding ? T("lifeEndFell", { realm: sq(top), holding }) : T("lifeEndFellFree", { realm: sq(top) });
 }
 
 // The first line knows the shape of the whole life, and says only what happened, never what it was worth.

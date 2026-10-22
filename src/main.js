@@ -139,14 +139,16 @@ function log(e) {
   renderLog();
 }
 
+// Whether a throw can be taken now: a forced roll (mp.roll) set when it cannot would wait and drive some later throw.
+const canThrow = () => !G.busy && !G.state.over;
 async function takeTurn() {
   const state = G.state;
-  if (G.busy || state.over) return;
+  if (!canThrow()) { G.forcedRoll = null; return; }
   const g = G.gen;
   G.busy = true; render();
   // nobody moves while a situation waits on its card for a choice
   await waitCard();
-  if (g !== G.gen) return;
+  if (g !== G.gen) { G.forcedRoll = null; return; }
   const p = cur(), idx = state.turn, el = tokenEls[idx];
   // A person's roll takes away the card and the line under the board: the next landing tells its own. From 94 the
   // card stays until the dice are chosen between, since on a phone the choice is on it (REDESIGN.md Phase 9).
@@ -625,7 +627,8 @@ if (new URLSearchParams(location.search).has("debug")) {
     audio: audioState,
     // mp.quality("low") draws less: no camera, no motion extras, no paper grain
     quality(q) { if (q) { setQuality(q); pullBack(true); draw(); } return quality; },
-    roll(...vs) { G.forcedRoll = vs.length > 1 ? vs : vs[0]; return takeTurn(); },
+    // mp.roll(v) or mp.roll(a, b) fixes this throw's dice, for this throw alone; it is false when no throw can be taken
+    roll(...vs) { if (!canThrow()) return false; G.forcedRoll = vs.length > 1 ? vs : vs[0]; return takeTurn(); },
     // the moves the dice now offer, or null when nothing is waiting on a choice
     get choosing() { return G.choosing ? [...G.choosing.moves] : null; },
     pick: pickMove,
@@ -646,7 +649,7 @@ if (new URLSearchParams(location.search).has("debug")) {
     // presses the card's Roll; mp.rollFromCard(v) fixes the next roll, so call it on the reader's own turn
     rollFromCard(v) {
       const b = document.querySelector('#leaf .roll-c[aria-disabled="false"]');
-      if (b && v != null) G.forcedRoll = v;
+      if (b && v != null && canThrow()) G.forcedRoll = v;
       b?.click();
       return !!b;
     },

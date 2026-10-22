@@ -355,6 +355,8 @@ await check("Phase 12: the door refuses a life still carrying a debt, says which
   await page.waitForFunction(() => document.getElementById("folio").open && document.getElementById("leafTitle"), null, { timeout: 15000 });
   const door = await page.evaluate(() => document.getElementById("leaf").textContent);
   assert(/The door does not open\. .* is still carrying the extra change pocketed at eighty/.test(door) && /every throw goes on into the heavens/.test(door), `door: ${door.slice(0, 400)}`);
+  // and the card is headed as the door that did not open, not the end of the journey
+  assert(/The door that did not open/.test(door) && !/The end of the journey/.test(door), `the refused card's header: ${door.slice(0, 200)}`);
   await page.evaluate(() => mp.close({ instant: true }));
   // the ledger is the scholar's alone
   const shown = () => page.evaluate(() => { const c = document.getElementById("ledgerCard"); return { hidden: c.hidden, text: c.textContent }; });
@@ -365,6 +367,25 @@ await check("Phase 12: the door refuses a life still carrying a debt, says which
   assert(!/\d/.test(sch.text.replace(/eighty|forty/g, "")), `the ledger shows a number: ${sch.text}`);
   await page.evaluate(() => { const s = document.getElementById("prefDepth"); s.value = "story"; s.dispatchEvent(new Event("change")); });
   assert((await shown()).hidden, "the ledger stays at story depth");
+});
+
+await check("Phase 12: a forced roll is for one throw: mp.roll while a throw is under way leaves nothing behind", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=1&debug");
+  await page.evaluate(() => { mp.jump(40); mp.roll(3); });
+  // a second forced roll while the first throw is still being played is refused, and is not kept for the next throw
+  const refused = await page.evaluate(() => mp.busy && mp.roll(2, 4) === false);
+  assert(refused, "mp.roll was accepted while a throw was under way");
+  await until(page, () => !mp.busy);
+  assert((await page.evaluate(() => mp.state.dice)).join() === "3", "the first throw was not the forced 3");
+  // from 94 two dice: the throw after a refused mp.roll(2, 4) is the dice's own, and a forced one is used once
+  await page.goto(BASE + "?seed=1&debug");
+  const twice = await page.evaluate(() => { mp.jump(94); mp.roll(2, 4); return mp.roll(2, 4); });
+  assert(twice === false, "a second mp.roll during the first was accepted");
+  await page.waitForFunction(() => mp.choosing || !mp.busy, null, { timeout: 15000 });
+  if (await page.evaluate(() => !!mp.choosing)) await page.evaluate(() => mp.pick(mp.choosing[0].v ?? mp.choosing[0]));
+  await until(page, () => !mp.busy);
+  assert(await page.evaluate(() => mp.state.dice.join() === "2,4"), "the forced 2,4 was not thrown");
 });
 
 await check("Phase 7: muted, nothing in the divine row starts audio; unmuted, the Shepard tone follows the walk", async page => {
