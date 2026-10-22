@@ -5,7 +5,7 @@ import { G, defaultSetup, pname, pnameIn, cur, newState, loadSelf, saveSelf } fr
 import { prefs, setPref, lifeLived, beFirst, freshViewer, firstLife } from "./prefs.js";
 import { $, COLORS, esc, reduced, sleep, quality, forcedQuality, setQuality } from "./ui.js";
 import { die, makeRng, freshSeed } from "./rng.js";
-import { TUMBLE, planTurn, resolveChoice, endTurn, addLog, diceFor, movesFor, moveFor } from "./engine/turn.js";
+import { TUMBLE, planTurn, resolveChoice, endTurn, addLog, diceFor, movesFor, moveFor, gone } from "./engine/turn.js";
 import { optionsFor, choiceFor, situationAt, momentOf } from "./engine/qbn.js";
 import { S, colRow, labEls, buildCells, draw, drawAge, fxClear, focusSquare } from "./render/board.js";
 import { lens, wash, stageOf } from "./render/age.js";
@@ -13,7 +13,7 @@ import { ageStep } from "./engine/self.js";
 import { castOf, meetsNamed } from "./engine/cast.js";
 import { frame, pullBack, hold, release } from "./render/camera.js";
 import { spriteURL } from "./render/sprites.js";
-import { tokenEls, buildTokens, place, retrigger, climb, swallow, swallowSecs, animate } from "./render/tokens.js";
+import { tokenEls, buildTokens, place, retrigger, climb, swallow, animate } from "./render/tokens.js";
 import { openSquare, openEntry, closeCard, cardIdle, cardOpen, cardCarried, cardBlocking, cardExpanded, releaseCard, setCardRoll, setCardDecide, optionNote, refreshRoll, refreshCard, onCardChange } from "./render/card.js";
 import { landHuman, clearLanded, drawLanded } from "./render/landed.js";
 import { sheetState } from "./render/sheet.js";
@@ -168,12 +168,12 @@ async function takeTurn() {
   let plan = planTurn(state, v, dice);
   G.plan = plan;
   plan.pre.forEach(log);
-  // every roll moves now: a bounce can come back to the square it started from, but it still walks
+  // every roll walks; the throw past the top walks to it, and falls
   {
     await sleep(150);
     const born = stageOf(p);
     frame(p.pos || 1, plan.path.at(-1));
-    // the walk follows the planned path, which turns at the top of the board on a bounce
+    // the walk follows the planned path
     for (const n of plan.path) {
       if (g !== G.gen) return;
       if (n > 1 && p.pos > 0) { const dc = colRow(n).col - colRow(p.pos).col; if (dc) p.face = dc > 0 ? "r" : "l"; }
@@ -186,60 +186,67 @@ async function takeTurn() {
     }
     if (g !== G.gen) return;
     el._frame = 0; place();
-    // a new ashrama is seen whole: the one this landing's years bring, not the square's
-    if (stageOf({ ...p, years: ageStep(p.years ?? 0, p.pos) }) !== born) pullBack();
-    await waitCard();
-    if (g !== G.gen) return;
-    // Weighted by what happened (REDESIGN.md Phase 11): a person's situation, snake, ladder, first meeting by name,
-    // first realm and the exit open the full card; any other landing of theirs is a line under the board.
-    // Only the situation waits on its card, for the choice, then tells its outcome there; the others go with the game.
-    let full = false;
-    if (plan.situation) {
-      if (p.type === "human") {
+    // the fall (REDESIGN.md Phase 12): merit spent, the one place the divine row's tone truly falls. Nothing is landed
+    // on; the token rests on the top square for a beat and then leaves the board.
+    if (plan.fell) {
+      plan.after.forEach(log);
+      sound.fall(reduced ? 1.2 : 2.6);
+      await sleep(reduced ? 300 : 1200);
+      if (g !== G.gen) return;
+    } else {
+      // a new ashrama is seen whole: the one this landing's years bring, not the square's
+      if (stageOf({ ...p, years: ageStep(p.years ?? 0, p.pos) }) !== born) pullBack();
+      await waitCard();
+      if (g !== G.gen) return;
+      // Weighted by what happened (REDESIGN.md Phase 11): a person's situation, snake, ladder, first meeting by name,
+      // first realm and the exit open the full card; any other landing of theirs is a line under the board.
+      // Only the situation waits on its card, for the choice, then tells its outcome there; the others go with the game.
+      let full = false;
+      if (plan.situation) {
+        if (p.type === "human") {
+          full = true;
+          G.waitingCard = true; refreshRoll();
+          openSquare(p.pos, { landing: true, who: idx });
+        }
+        const id = p.type === "human" ? await decide(plan.situation, p) : choiceFor(state, plan.situation);
+        if (g !== G.gen) return;
+        plan = resolveChoice(state, plan, id);
+        G.plan = plan;
+        refreshCard();
+        // the card is for a choice and for its result: it turns to the outcome and stops holding the game, with the die
+        // live on it, and a roll takes it away. The outcome is the line under the board too, for after the card is gone.
+        if (p.type === "human") { releaseCard(); landHuman(plan.target, idx, id); }
+        G.waitingCard = false; refreshRoll();
+      } else if (!plan.sit && p.type === "human" && fullCard(state, plan, idx)) {
+        // a year sat out lands nowhere new, so nothing opens for it
         full = true;
-        G.waitingCard = true; refreshRoll();
-        openSquare(p.pos, { landing: true, who: idx });
+        // settles once the card is up, since it no longer waits to be closed: the camera moves again only after that
+        await openSquare(p.pos, { landing: true, who: idx, focus: false });
+        if (g !== G.gen) return;
       }
-      const id = p.type === "human" ? await decide(plan.situation, p) : choiceFor(state, plan.situation);
-      if (g !== G.gen) return;
-      plan = resolveChoice(state, plan, id);
-      G.plan = plan;
-      refreshCard();
-      // the card is for a choice and for its result: it turns to the outcome and stops holding the game, with the die
-      // live on it, and a roll takes it away. The outcome is the line under the board too, for after the card is gone.
-      if (p.type === "human") { releaseCard(); landHuman(plan.target, idx, id); }
-      G.waitingCard = false; refreshRoll();
-    } else if (!plan.sit && p.type === "human" && fullCard(state, plan, idx)) {
-      // a year sat out lands nowhere new, so nothing opens for it
-      full = true;
-      // settles once the card is up, since it no longer waits to be closed: the camera moves again only after that
-      await openSquare(p.pos, { landing: true, who: idx, focus: false });
-      if (g !== G.gen) return;
-    }
-    if (!plan.sit && !full) {
-      // a computer's landing is in the moves log; the line keeps the person's last moment
-      if (p.type === "human") landHuman(p.pos, idx);
-    }
-    plan.after.forEach(log);
-    if (plan.jump) {
-      if (g !== G.gen) return;
-      // the card stays open over the jump, so it waits only a reading beat (a pause, not a motion)
-      if (full && cardOpen()) await new Promise(r => setTimeout(r, reduced ? 300 : 900));
-      if (g !== G.gen) return;
-      // the Brahmā snake is the one place the divine row's tone truly falls; under reduced motion it still takes a moment
-      if (plan.jump.rebirth) sound.fall(swallowSecs(p.pos, plan.jump.to) || 1.2);
-      else (plan.jump.kind === "snake" ? sound.snake : sound.ladder)();
-      frame(p.pos, plan.jump.to);
-      await (plan.jump.kind === "snake" ? swallow(idx, p.pos, plan.jump.to) : climb(idx, p.pos, plan.jump.to));
-      if (g !== G.gen) return;
+      if (!plan.sit && !full) {
+        // a computer's landing is in the moves log; the line keeps the person's last moment
+        if (p.type === "human") landHuman(p.pos, idx);
+      }
+      plan.after.forEach(log);
+      if (plan.jump) {
+        if (g !== G.gen) return;
+        // the card stays open over the jump, so it waits only a reading beat (a pause, not a motion)
+        if (full && cardOpen()) await new Promise(r => setTimeout(r, reduced ? 300 : 900));
+        if (g !== G.gen) return;
+        (plan.jump.kind === "snake" ? sound.snake : sound.ladder)();
+        frame(p.pos, plan.jump.to);
+        await (plan.jump.kind === "snake" ? swallow(idx, p.pos, plan.jump.to) : climb(idx, p.pos, plan.jump.to));
+        if (g !== G.gen) return;
+      }
     }
   }
   endTurn(state, plan);
   G.plan = null; G.face = null;
-  // the viewer's own life is over, or begun again: the first life's quiet cards end with it (prefs.js)
-  if (p.type === "human" && (plan.died || plan.win || plan.jump?.rebirth) && firstLife()) { lifeLived(); refreshCard(); }
-  // a person whose years run out reads their life at once, rather than watching the others finish
-  if (plan.died && p.type === "human") openLife(idx);
+  // the viewer's own life is over: the first life's quiet cards end with it (prefs.js). The fall counts as a death.
+  if (p.type === "human" && (plan.died || plan.win || plan.fell) && firstLife()) { lifeLived(); refreshCard(); }
+  // a person whose years run out, or who falls, reads their life at once, rather than watching the others finish
+  if ((plan.died || plan.fell) && p.type === "human") openLife(idx);
   watching();
   pullBack();
   G.busy = false;
@@ -272,13 +279,13 @@ async function waitCard() {
 const FACES = ["", "⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
 function rollInfo(l) {
   const s = G.state;
-  if (!s || s.over || !s.players.some(q => q.type === "human" && !q.dead)) return null;
+  if (!s || s.over || !s.players.some(q => q.type === "human" && !gone(q))) return null;
   if (G.choosing) return { choose: G.choosing.moves.map(v => ({ v, label: moveLabel(l, v) })) };
   // the choice on a situation is in the card's body, not its Roll
   if (G.deciding) return null;
   const n = s.players.length, plan = G.plan, humans = s.players.filter(q => q.type === "human").length;
   let i = plan ? (plan.again ? plan.idx : (plan.idx + 1) % n) : s.turn;
-  for (let k = 0; k < n && (s.players[i].type !== "human" || s.players[i].dead); k++) i = (i + 1) % n;
+  for (let k = 0; k < n && (s.players[i].type !== "human" || gone(s.players[i])); k++) i = (i + 1) % n;
   const p = s.players[i], dot = humans > 1 ? COLORS[p.color] : null;
   // already moving on the reader's behalf: show the die, or who is rolling now
   if (G.rollQueued || (G.busy && !G.waitingCard)) {
@@ -344,11 +351,12 @@ function render() {
     $("winTitle").textContent = t("winTitle", { name: pname(wp) });
     $("winText").textContent = wp.type === "human" ? t("winHuman") : t("winCpu");
   } else if (state.over) {
-    // A life that ran out of years ends on its own account, not on a race nobody won (REDESIGN.md Phase 8).
+    // A life that ran out of years, or fell from the heavens, ends on its own account, not on a race nobody won
+    // (REDESIGN.md Phases 8 and 12).
     // Only a game of several people has a race to report.
     const one = humans.length === 1 ? humans[0] : null;
     $("winTitle").textContent = one ? t("lifeTitle", { name: pname(one) }) : t("raceNone");
-    $("winText").textContent = one ? t("diedText") : "";
+    $("winText").textContent = one ? t(one.fell ? "fellText" : "diedText") : "";
   }
 }
 
@@ -370,7 +378,6 @@ function renderSetup() {
       </select>
     </div>`).join("");
   $("ruleSix").checked = setup.rules.six;
-  $("ruleBrahmaloka").checked = !!setup.rules.brahmaloka;
   $("prefDepth").innerHTML = [["story", "depthStory"], ["school", "depthSchool"], ["scholar", "depthScholar"]]
     .map(([v, k]) => `<option value="${v}"${v === prefs.depth ? " selected" : ""}>${t(k)}</option>`).join("");
   $("prefEvery").checked = prefs.everyCard;
@@ -381,7 +388,7 @@ function readSetup() {
   setup.rows.slice(0, setup.count).forEach((r, i) => {
     r.name = $("pname" + i).value; r.type = $("ptype" + i).value; r.gender = $("pgender" + i).value;
   });
-  setup.rules = { six: $("ruleSix").checked, brahmaloka: $("ruleBrahmaloka").checked };
+  setup.rules = { six: $("ruleSix").checked };
 }
 
 // Static text, the ashrama labels on the frame and the language buttons.
@@ -629,7 +636,7 @@ if (new URLSearchParams(location.search).has("debug")) {
     data: { GOAL, TOP, LADDERS, SNAKES, SQ, HEAVEN, STR },
     setLang,
     life: openLife,
-    // mp.rules({ brahmaloka: true }) changes the running game's rules
+    // mp.rules({ six: false }) changes the running game's rules
     rules(r) { if (r) Object.assign(G.state.rules, r); return { ...G.state.rules }; },
     lifeText: (i = 0, l) => lifeText(G.state, i, l),
     // mp.cast(0) is player 0's cast for this game, names, genders and ages, as the account draws it (Phase 10C)

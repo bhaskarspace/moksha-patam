@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { createGame, playTurn } from "../src/engine/turn.js";
 import { lifeOf, lifeText } from "../src/engine/account.js";
 import { castFill } from "../src/i18n.js";
-import { JOINS, SQ, CAST, squareOf } from "../src/content.js";
+import { JOINS, SQ, SNAKES, CAST, squareOf } from "../src/content.js";
 
 const meera = (seed, gender = "f") => {
   const s = createGame({ players: [{ name: "Meera", type: "cpu", gender }], rules: { six: true }, seed });
@@ -84,17 +84,37 @@ test("every join reads on into its moment, and nothing is left unfilled in eithe
   }
 });
 
+// REDESIGN.md Phase 12: the throw past 110 ends the life on a line of its own: the realm reached, the merit spent, and
+// what was still held, the vice a death would have named.
+test("a life that fell from the heavens closes on the realm, the merit spent and what it still held", uncast(() => {
+  let held = null, free = null;
+  for (let seed = 1; !(held && free); seed++) {
+    const g = meera(seed);
+    if (!g.players[0].fell) continue;
+    if (g.players[0].holding) held ||= seed; else free ||= seed;
+  }
+  for (const [seed, holds] of [[held, true], [free, false]]) {
+    const f = meera(seed), m = meera(seed, "m"), p = f.players[0];
+    const realm = squareOf(Math.max(...p.life));
+    const en = lifeOf(f, 0, "en").end;
+    assert.ok(en.startsWith(`Meera rose as far as the realm of ${realm.en} and lived there on what had been earned below`), en);
+    assert.ok(holds ? en.endsWith(`world, ${SNAKES[p.holding].holding.en}.`) : en.endsWith("with nothing in particular in hand."), en);
+    // Hindi agrees with who lived it
+    const hf = lifeOf(f, 0, "hi").end, hm = lifeOf(m, 0, "hi").end;
+    assert.ok(hf.startsWith(`Meera ${realm.hi} के लोक तक पहुँची,`) && hf.includes("लौट आई"), hf);
+    assert.ok(hm.startsWith(`Meera ${realm.hi} के लोक तक पहुँचा,`) && hm.includes("लौट आया"), hm);
+    assert.ok(!/[{}]/.test(en + hf + hm));
+  }
+}));
+
 test("the opening knows the shape of the life and says only what happened", () => {
   assert.equal(lifeOf(seed83(), 0, "en").open, "Meera lived to ninety-four, and at eighty-nine had to begin again.");
   assert.equal(lifeOf(lived([1, 5, 9]), 0, "en").open, "Nothing in Meera's life went backwards.");
-  assert.equal(lifeOf(lived([1, 108, 1]), 0, "en").open, "Meera was born twice.");
-  assert.equal(lifeOf(lived([1, 108, 1]), 0, "hi").open, "Meera का जन्म दो बार हुआ।");
 });
 
 test("a life that ran out of years ends on what it was still holding, carried in the state for Phase 12", uncast(() => {
   let s = null;
-  // a life that died without first falling from Brahma, which the opening would name instead
-  for (let seed = 1; !s; seed++) { const g = meera(seed); if (g.players[0].dead && !g.players[0].hasFallen) s = g; }
+  for (let seed = 1; !s; seed++) { const g = meera(seed); if (g.players[0].dead) s = g; }
   const p = s.players[0], { open, end } = lifeOf(s, 0, "en");
   assert.match(open, /^Meera ran out of years at a hundred and/);
   assert.ok(end.startsWith(`Meera's years ran out at ${"a hundred and"}`), end);

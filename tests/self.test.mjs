@@ -44,7 +44,7 @@ test("a life ends when its years run past the span, only on earth, and says what
   let deaths = 0;
   for (let seed = 1; seed <= 400; seed++) {
     const s = live(seed), p = s.players[0];
-    if (!p.dead) { assert.equal(s.winner, 0); continue; }
+    if (!p.dead) { assert.ok(s.winner === 0 || p.fell, `seed ${seed}`); continue; }
     deaths++;
     assert.ok(p.years > SPAN && p.pos <= 100, `seed ${seed}`);
     assert.equal(s.winner, null);
@@ -62,8 +62,6 @@ test("the vice held at the end is the one taken most, the latest on a tie", () =
   assert.equal(holdingOf([59, 50, 55, 43, 59, 50]), 59);
   assert.equal(holdingOf([59, 50, 55, 43]), 55);
   assert.equal(holdingOf([1, 2, 3]), null);
-  // a second life after the fall holds only its own
-  assert.equal(holdingOf([59, 50, 59, 50, 108, 1, 14, 8]), 14);
 });
 
 test("in a race the dead are passed over, and a game with a person in it ends with them", () => {

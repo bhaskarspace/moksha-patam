@@ -17,7 +17,7 @@ test("position chooses targets only: below heaven it is silent, past the exit it
   assert.equal(targets(null, false).level, 0);
   assert.ok(targets(101, false).level > 0 && targets(104, false).level > targets(101, false).level);
   assert.ok(targets(104, false).rate > targets(101, false).rate);
-  // past the exit the tone still rises, bouncing down from 110 included: position never makes it fall
+  // past the exit the tone still rises through 106–110, and nothing up there turns back (REDESIGN.md Phase 12)
   for (let n = 106; n <= 110; n++) assert.ok(targets(n, false).rate >= targets(104, false).rate && targets(n, false).level === 1);
   assert.deepEqual([targets(105, true).level, targets(105, true).rate], [0, 0]);
 });
@@ -52,14 +52,13 @@ function valueAt(ev, t) {
   return prev ? prev.v : 0;
 }
 
-test("walking up the divine row, bouncing, falling and leaving: no cancelling, and every octave jump is silent", () => {
+test("walking up the divine row, falling and leaving: no cancelling, and every octave jump is silent", () => {
   const ctx = fakeCtx(), sh = makeShepard(ctx, { connect() {} });
   const run = secs => { for (let i = 0; i < secs * 10; i++) { ctx.currentTime += 0.1; sh.set(lead, false); } };
   let lead = 101;
   sh.set(lead, false); run(3);
   for (lead = 102; lead <= 110; lead++) run(1.5);          // up the row and past the exit
-  lead = 107; run(2);                                       // a bounce off 110 lands lower
-  sh.fall(2.6); lead = 1; run(4);                           // the Brahma snake, and back to birth
+  sh.fall(2.6); lead = 0; run(4);                           // the throw past 110: the fall, and the token leaves the board
   lead = 103; run(3);                                       // someone else is still up there
   sh.stop();
 

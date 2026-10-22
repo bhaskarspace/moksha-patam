@@ -17,14 +17,13 @@ export const ageOf = n => (n >= 1 && n <= EARTH ? squareOf(n)?.age ?? null : nul
 // One clock, and it is the authored table: ahead of your own years, the square says how old you are. Walking
 // ground already lived (after a snake) costs a year a turn, as a cycle is about a year (§2.1). A snake takes
 // no time and refunds none: the moment it lands on happens the same year as the vice. A ladder is one turn,
-// so its foot and its top share that turn's year unless the top is older still. The fall from Brahma is a
-// new birth.
+// so its foot and its top share that turn's year unless the top is older still.
 export const ageStep = (years, n) => { const a = ageOf(n); return a == null ? years : a >= years ? a : years + 1; };
 
 // Each square of a life with the years lived there and how it was reached: "snake" or "ladder" for the
-// square a snake or ladder led to, "rebirth" for the birth after the fall, otherwise null. A landing on a
-// snake's head or a ladder's foot is always followed by where it led, except a rebirth snake that did not
-// fire, and that is never followed by its tail.
+// square a snake or ladder led to, otherwise null. A landing on a snake's head or a ladder's foot is always
+// followed by where it led. (Until Phase 12 the fall from Brahma was a snake to a new birth, "rebirth"; the fall
+// now ends the life instead, and is never in it.)
 // A square of earth landed on twice running is a year sat out (Phase 9): no move on earth lands where it began,
 // since only a bounce off the top of the board can. Its via is "sit".
 // With the record of what each square told (Phase 10, src/engine/turn.js toldOn), each entry carries it as told:
@@ -36,9 +35,8 @@ export function yearsAlong(life, told = []) {
   let years = 0;
   for (const [i, n] of life.entries()) {
     const from = life[i - 1], sn = SNAKES[from], ld = LADDERS[from];
-    const via = sn && sn.to === n ? (sn.rebirth ? "rebirth" : "snake") : ld && ld.to === n ? "ladder" : from === n && n <= EARTH ? (toldAt(i) === "stay" ? "stay" : "sit") : null;
-    if (via === "rebirth") years = 0;
-    else if (via === "sit" || via === "stay") years += 1;
+    const via = sn && sn.to === n ? "snake" : ld && ld.to === n ? "ladder" : from === n && n <= EARTH ? (toldAt(i) === "stay" ? "stay" : "sit") : null;
+    if (via === "sit" || via === "stay") years += 1;
     else if (via === "ladder") years = Math.max(years, ageOf(n) ?? years);
     else if (via !== "snake") years = ageStep(years, n);
     out.push({ n, years, via, from: via && via !== "sit" && via !== "stay" ? from : null, told: toldAt(i) });
@@ -48,7 +46,6 @@ export function yearsAlong(life, told = []) {
 // What a turn does to the years: the square landed on, the years a choice there cost, then where a snake or ladder led.
 export function turnYears(years, plan) {
   if (plan.sit) return years + 1;
-  if (plan.jump?.rebirth) return 0;
   const y = ageStep(years, plan.target) + (plan.cost ?? 0);
   return plan.jump?.kind === "ladder" ? Math.max(y, ageOf(plan.final) ?? y) : y;
 }
@@ -127,28 +124,27 @@ export function grow(p, plan) {
   // a game saved before Phase 8 has none of this yet, and starts it fresh
   const years = turnYears(p.years ?? 0, plan);
   let gunas = p.gunas ?? freshGunas(), aims = p.aims ?? freshAims(), practised = p.practised ?? 0;
-  if (plan.jump?.rebirth) { gunas = freshGunas(); aims = freshAims(); practised = 0; }
-  else if (plan.final <= EARTH) {
-    const stage = stageOfYears(years), sl = LADDERS[plan.target] || (SNAKES[plan.target] && !SNAKES[plan.target].rebirth ? SNAKES[plan.target] : null);
+  if (plan.final <= EARTH) {
+    const stage = stageOfYears(years), sl = LADDERS[plan.target] || SNAKES[plan.target];
     // a choice carries its own guna and aims (REDESIGN.md Phase 10); otherwise the vice or virtue taken does
     const mark = plan.mark ?? (plan.jump && sl?.guna ? sl : null);
     if (mark?.guna) { gunas = mixGuna(gunas, mark.guna); aims = applyAims(aims, mark.aims, stage); }
     aims = applyAims(aims, STAGE_RULES[stage].drift, stage);
   }
-  const sannyasin = plan.final <= EARTH && !plan.jump?.rebirth && stageOfYears(years) === SANNYASA;
+  const sannyasin = plan.final <= EARTH && stageOfYears(years) === SANNYASA;
   // the dice not moved by, spent on practice; a win has left the world, and needs none
   const spare = sannyasin && !plan.win && PRACTICE_W > 0 ? plan.spare ?? [] : [];
   for (const d of spare) gunas = practise(gunas, d);
   practised += spare.length;
   const bhumika = sannyasin ? bhumikaOf(gunas, practised) : null;
-  const peak = plan.jump?.rebirth ? null : bhumika == null ? p.peak ?? null : Math.max(p.peak ?? -1, bhumika);
+  const peak = bhumika == null ? p.peak ?? null : Math.max(p.peak ?? -1, bhumika);
   return { years, gunas, aims, practised, bhumika, peak };
 }
 
-// The vice a life was still holding when its years ran out: the snake it took most often, the latest on a tie.
-// Phase 12 makes this what carries over.
+// The vice a life was still holding when it ended, by its years or by the fall: the snake it took most often, the
+// latest on a tie.
 export function holdingOf(life) {
-  const along = yearsAlong(life), born = along.findLastIndex(e => e.via === "rebirth"), snakes = along.slice(born + 1).filter(e => e.via === "snake");
+  const snakes = yearsAlong(life).filter(e => e.via === "snake");
   const count = new Map();
   for (const { from } of snakes) count.set(from, (count.get(from) || 0) + 1);
   let best = null;

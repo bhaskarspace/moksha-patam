@@ -39,9 +39,12 @@ a viewer's first life (`mp-lives`) shows the moment with the story behind one ta
 contact, that it is a story and who is in it (`content/bridges.json`, `whoOf` in `src/content.js`). The naming asks who is playing and names each person in turn. `?first` plays as
 someone new. Then 12 Karma, 13 The painted cloth, 14 The door and the curse (REDESIGN.md Phases 12–19).
 Phase 7 was The Exit (REDESIGN.md §4): Moksha is square 105 (`GOAL`), partway
-along the divine row, while the board still ends at 110 (`TOP`); a roll bounces off `TOP` and can come back down onto the
-exit. The rebirth snake falls from Brahma (108) to 1, only for a player climbing onto it and once per life, and a Shepard tone plays under the divine row
-(`src/audio/shepard.js`). Phase 6 was The Card in Hand: the card opens collapsed (`src/render/card.js`), with an
+along the divine row, while the board still ends at 110 (`TOP`). Since Phase 12 nothing above the exit turns back: past 105 the
+heavens (106–110) are walked, and the throw that would pass `TOP` is the fall, which ends the life (`plan.fell`, `p.fell`;
+`gone(p)` in `src/engine/turn.js` is dead or fallen). It is never a respawn: the account closes on `lifeEndFell`, and it counts in
+`mp-lives` like a death. The Brahma snake (108 → 1), `p.hasFallen` and the Brahmaloka rule are retired; the fall's card is `FALL`
+in `content/squares.json`, shown on 110. A Shepard tone plays under the divine row and keeps rising through 106–110; the fall is
+its only resolution (`src/audio/shepard.js`). Phase 6 was The Card in Hand: the card opens collapsed (`src/render/card.js`), with an
 illuminated frame (`frame.js`) and a bottom sheet below 768px (`sheet.js`).
 - `GOAL` means the win and `TOP` means the board's extent. Use the right one; content moves by identity, never by index.
 - A player's age is `p.years`, never `squareOf(p.pos).age`; the square's age is only the age its moment belongs to.
@@ -55,8 +58,8 @@ illuminated frame (`frame.js`) and a bottom sheet below 768px (`sheet.js`).
   moments: `{name}` in both languages, Hindi agreement through `{m|f}` choices, an age on every
   earthly square, and a `moments: n/109` burn-down line.
 - `npm run format`: rewrites `content/*.json` one entry per line. Run it after editing content.
-- `npm run sim [games] [players] [firstSeed] [--rules=brahmaloka] [--snake=HEAD:TAIL|none] [--span=N] [--spans=a,b,…]
-  [--practice=off] [--endgame=N] [--pick=plain|bigger|first] [--roll=off] [--situations=off]
+- `npm run sim [games] [players] [firstSeed] [--span=N] [--spans=a,b,…]
+  [--practice=off] [--endgame=N] [--pick=plain|phase9|bigger|first] [--roll=off] [--situations=off]
   [--policy=mixed|honest|dishonest]`:
   headless games, reporting median, p5, p95 and the share over 100 turns, and since Phase 8 the share of lives that run
   out of years, years lived, and the bhumika distribution. `--spans` sweeps the span of a life. Since Phase 9 also the
@@ -64,7 +67,9 @@ illuminated frame (`frame.js`) and a bottom sheet below 768px (`sheet.js`).
   show what choosing is worth. Since Phase 10 also the same moment told four times or more; `--roll=off` takes the
   roll-dependent squares' other moments away, and must leave every other number as it was. `--policy` is how every
   computer chooses on a situation, and the report adds the square reached at fifty and seventy and the ledger (gunas,
-  dharma, highest bhumika). Balance against the p95, the share over 100 and the liberation rate.
+  dharma, highest bhumika). Since Phase 12 also how lives end (liberated, years ran out, fell), lives per liberation, turns
+  spent in 106–110 and a square at or above 94 landed on four times or more; `--pick=phase9` plays the endgame by Phase 9's
+  choice. Balance against the p95, the share over 100, liberation per life and lives per liberation.
 - `npm run smoke [-- --only=text]`: Playwright checks of the built page in a real browser (needs Chrome installed).
   `--only` runs just the checks whose names contain the text, e.g. `--only="Phase 6"`.
 - `npm run golden [seeds]`: the built page and `sim.mjs` must produce the same move log.

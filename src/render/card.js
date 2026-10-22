@@ -1,7 +1,7 @@
 // ---- The card: a pothi folio for one square or one Codex entry ----
 // It no longer holds the game up (REDESIGN.md Phase 11): the dice stay live while it is open, and the next roll takes
 // it away. Only a situation waiting on a choice is modal, until the choice is made.
-import { GOAL, TOP, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, READINGS, CODEX, ENTRY_IDS, REFS, entryOf, sourceOf, srcOfSquare, squareOf, snakeOn, bridgeOf } from "../content.js";
+import { GOAL, TOP, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, READINGS, CODEX, ENTRY_IDS, REFS, entryOf, sourceOf, srcOfSquare, squareOf, fallOn, bridgeOf } from "../content.js";
 import { lang, tIn, numIn, srcIn, pick, fill, castFill, ageWordsIn } from "../i18n.js";
 import { ageStep, stageOfYears, bhumikaOf, freshGunas, SANNYASA, yearsAlong } from "../engine/self.js";
 import { castOf, castAlong, peopleOf, introIn } from "../engine/cast.js";
@@ -73,8 +73,7 @@ function squareInfo(n, l) {
   }
   if (HEAVEN[n]) {
     const h = HEAVEN[n];
-    const sn = snakeOn(n);
-    return { kind: "heaven", big: h.ic, title: h[l], alt: [h[o], scholar ? r.iast : ""], eb: T("realm"), ft: sn ? T("snakeTo", { n: sn.to }) : "" };
+    return { kind: "heaven", big: h.ic, title: h[l], alt: [h[o], scholar ? r.iast : ""], eb: T("realm"), ft: fallOn(n) ? T("fallFoot") : "" };
   }
   const q = SQ[n];
   return { kind: "story", big: q.ic, title: q[l], alt: [q[o], scholar ? r.iast : ""], eb: `${T("story")} · ${stageIn(l, n)}`, ft: "" };
@@ -93,7 +92,7 @@ function livedOn(n) {
   if (!p.life?.length) return null;
   const head = SNAKES[p.life.at(-2)];
   // never younger than the square: only a token moved by hand (mp.jump) can be
-  return { p, years: Math.max(p.years ?? 0, squareOf(n)?.age ?? 0), still: !!head && !head.rebirth && head.to === n && p.life.at(-1) === n };
+  return { p, years: Math.max(p.years ?? 0, squareOf(n)?.age ?? 0), still: !!head && head.to === n && p.life.at(-1) === n };
 }
 // Which of square n's moments its subject's landing there told (REDESIGN.md Phase 10): the other one, or a situation's
 // chosen outcome, only on the square they are standing on, during the landing or after it. A square browsed tells
@@ -271,15 +270,13 @@ function squareHtml(n, l) {
     }
   }
   body += srcLine(src, l, met, { square: true });
-  // a snake that starts on a god's square (108, merit spent) follows the god, in the snakes' own voice
-  const sn = snakeOn(n);
+  // the fall past the top square (merit spent) follows its god, in the snakes' own voice (REDESIGN.md Phase 12)
+  const sn = fallOn(n);
   if (sn) {
     const sm = sn.moment;
-    body += `<section class="snake-on"><h3 class="sub">${art(`sn-${n}`, sn.ic, "spr snake-glyph")} ${esc(T("meritSnake"))}</h3>` +
+    body += `<section class="snake-on"><h3 class="sub">${art("fall", sn.ic, "spr snake-glyph")} ${esc(T("fallHead"))}</h3>` +
       `<h2 class="snake-title">${esc(sn[l])}</h2><p class="alt" lang="${other(l)}">${esc([sn[other(l)], sn.skt].join(" · "))}</p>` +
-      `<div class="story">${sm ? texts(l, fill(sm.en, person("en", n)), fill(sm.hi, person("hi", n)), "moment") : ""}${mirrorHtml(l, sn.mirror, sm, false)}` +
-      // the rebirth snake says when it takes someone, since most arrivals on its square are let be
-      `${sn.rebirth ? texts(l, tIn("en", "fallWhen"), tIn("hi", "fallWhen"), "remedy fall") : ""}</div>`;
+      `<div class="story">${sm ? texts(l, fill(sm.en, person("en", n)), fill(sm.hi, person("hi", n)), "moment") : ""}${mirrorHtml(l, sn.mirror, sm, false)}</div>`;
     if (sn.schools && deep("school")) {
       body += `<ul class="chips more-only">` + sn.schools.map(s => `<li>${entryLink(s.id, l)}${texts(l, s.en, s.hi)}</li>`).join("") + `</ul>`;
       metMore.push(...sn.schools.map(s => s.id));

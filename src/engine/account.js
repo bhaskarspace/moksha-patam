@@ -7,7 +7,7 @@
 // first match winning: the years a snake undid, a square's own echo of an earlier one, a ladder, the same
 // snake or ladder again, a long quiet stretch, the same year, and only then one of the plain joins, drawn
 // from a sequence of its own so the dice are never touched. Squares lived a second time are folded into one
-// line instead of being told twice, and the fall from Brahma begins a second life.
+// line instead of being told twice. A life that fell from the heavens ends on a line of its own (REDESIGN.md Phase 12).
 //
 // A snake or ladder taken again is not told again either (REDESIGN.md Phase 9): the second time is one line,
 // and from the third it is only counted, in a tally that ends the paragraph. A life stuck in a loop reads as
@@ -19,7 +19,7 @@
 // moment has an echo of its own only when one is written. A situation's choice is told the same way: by its
 // outcome, or by the square's own moment when the option has none (src/engine/qbn.js momentOf). The years a choice
 // cost pass silently; the outcome says what they were.
-import { ASHRAMAS, LADDERS, SNAKES, JOINS, CAST_WORDS, squareOf, snakeOn } from "../content.js";
+import { ASHRAMAS, LADDERS, SNAKES, JOINS, CAST_WORDS, squareOf } from "../content.js";
 import { tIn, fill, castFill, wordsIn, ageWordsIn, CAST_ROLES } from "../i18n.js";
 import { makeRng, next } from "../rng.js";
 import { pnameIn } from "../state.js";
@@ -55,7 +55,7 @@ export function lifeOf(state, i, l) {
   // lived: each square of this life, with the years it was first lived at; own: the squares that told their own
   // moment; seen: the moments told, by square and which moment; taken: how often each snake or ladder has been
   // taken in this life
-  let para = null, seen = new Set(), lived = new Map(), own = new Set(), taken = new Map(), lastYears = null, fold = [], sat = [], reborn = false, skip = false;
+  let para = null, seen = new Set(), lived = new Map(), own = new Set(), taken = new Map(), lastYears = null, fold = [], sat = [], skip = false;
   const told = e => momentOf(e.n, e.told).key;
   const note = e => { seen.add(told(e)); if (momentOf(e.n, e.told).own) own.add(e.n); if (!lived.has(e.n)) lived.set(e.n, e.years); };
   const sq = n => { const q = squareOf(n); return q[l] || q.en; };
@@ -89,28 +89,27 @@ export function lifeOf(state, i, l) {
       para.parts.push(SNAKES[n] ? J(JOINS.tallySnake, { ...v, vice: sq(n) }) : J(JOINS.tallyLadder, { ...v, virtue: sq(n) }));
     }
   };
-  const open = (s, again) => { close(); para = { s, ages: [], parts: [], reborn: again, tally: new Map() }; paras.push(para); };
+  const open = s => { close(); para = { s, ages: [], parts: [], tally: new Map() }; paras.push(para); };
 
   for (const [k, e] of along.entries()) {
     // the moment this landing told: the square's own, or the other one a roll-dependent square has
     const q = squareOf(e.n), said = momentOf(e.n, e.told), m = said.moment, nextE = along[k + 1];
     // a roll-dependent square's other moment may have an echo of its own; a chosen outcome has none
     const echo = said.own ? q?.echo : e.told === "else" ? q?.roll?.echo : null;
-    if (e.via === "rebirth") { close(); seen = new Set(); lived = new Map(); own = new Set(); taken = new Map(); lastYears = null; para = null; reborn = true; toldN = 0; lastTold = {}; metAt = {}; }
     // where a snake or ladder told short led: lived, and not told
     if (skip) { skip = false; note(e); lastYears = e.years; continue; }
     if (!m && e.via !== "sit") { note(e); continue; }
     const s = stageAt(e);
-    if (!para || para.s !== s) open(s, reborn && !paras.some(x => x.reborn));
+    if (!para || para.s !== s) open(s);
     if (e.via === "sit") { flushFold(); sat.push(e); para.ages.push(Math.floor(e.years)); continue; }
     // a snake or ladder taken from here, and whether this square has been told already in this life
-    const event = nextE && (nextE.via === "snake" || nextE.via === "ladder" || nextE.via === "rebirth");
+    const event = nextE && (nextE.via === "snake" || nextE.via === "ladder");
     const repeat = seen.has(told(e));
     if (repeat && !e.via && !event) { flushSat(); fold.push(e); para.ages.push(Math.floor(e.years)); note(e); continue; }
     flush();
     para.ages.push(Math.floor(e.years));
     // the same snake or ladder again: the second time in one line, and after that only counted
-    const times = event && nextE.via !== "rebirth" ? (taken.get(e.n) || 0) + 1 : 0;
+    const times = event ? (taken.get(e.n) || 0) + 1 : 0;
     if (times) taken.set(e.n, times);
     if (times >= 2) {
       const age = words(e.years);
@@ -151,9 +150,6 @@ export function lifeOf(state, i, l) {
     }
     note(e);
     lastYears = e.years;
-    // a snake that starts on a god's square was taken: its own moment follows the god's
-    const sn = snakeOn(e.n);
-    if (sn?.moment && nextE?.n === sn.to) para.parts.push(fill(sn.moment[l] || sn.moment.en, who));
   }
   close();
 
@@ -165,12 +161,13 @@ export function lifeOf(state, i, l) {
     title: T("lifeTitle"),
     sub: p.peak != null ? tIn(l, "title" + titleOf(p.peak)) : "",
     open: opening(p, along, T, words),
-    paras: paras.map(({ s, ages, parts, reborn }) => {
+    paras: paras.map(({ s, ages, parts }) => {
       const a = Math.min(...ages), b = Math.max(...ages);
       const head = s === 5 || !ages.length ? stage(s) : a === b ? T("lifeAt", { stage: stage(s), a }) : T("lifeSpan", { stage: stage(s), a, b });
-      return { head: reborn ? `${T("lifeReborn")} · ${head}` : head, text: parts.join(" ") };
+      return { head, text: parts.join(" ") };
     }),
     end: state.winner === i ? winEnd(p, T, words, held)
+      : p.fell ? fellEnd(p, along, T, sq, held)
       : !p.life?.length ? T("lifeUnborn")
       : p.dead ? T("lifeEndDied", { age: words(p.years), holding: held(SNAKES[p.holding]?.holding) }).replace(/, ([.।])$/, "$1")
       : T("lifeEndOpen", { n: p.pos }),
@@ -185,10 +182,17 @@ function winEnd(p, T, words, held) {
   return letgo ? T("lifeEndWin", { age, letgo: held(letgo) }) : T("lifeEndFree", { age });
 }
 
+// The fall from the heavens (REDESIGN.md Phase 12): the realm the life reached, the merit spent, and what it was still
+// holding, the vice a death would have named. Gita 9.21 in the board's own words.
+function fellEnd(p, along, T, sq, held) {
+  // nothing above the exit turns back, so the square it fell from is the highest it reached
+  const top = p.fellFrom ?? Math.max(...along.map(e => e.n)), holding = SNAKES[p.holding]?.holding;
+  return holding ? T("lifeEndFell", { realm: sq(top), holding: held(holding) }) : T("lifeEndFellFree", { realm: sq(top) });
+}
+
 // The first line knows the shape of the whole life, and says only what happened, never what it was worth.
 function opening(p, along, T, words) {
   if (!along.length) return "";
-  if (along.some(e => e.via === "rebirth")) return T("lifeOpenReborn");
   if (p.dead) return T("lifeOpenDied", { age: words(p.years) });
   const earthly = along.filter(e => e.n <= EARTH), to = Math.max(...earthly.map(e => e.years));
   const snakes = along.filter(e => e.via === "snake");

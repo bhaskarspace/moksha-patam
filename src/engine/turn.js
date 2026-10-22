@@ -14,7 +14,7 @@ export function rollValue(rng) {
 
 // ---- Dice as currency (REDESIGN.md Phase 9) ----
 // From the top of the last ladder the player rolls two dice, sees both, and moves by either. Measured against
-// "move up to the roll", which let a player stop on the exit every time and so never met the rebirth snake.
+// "move up to the roll", which let a player stop on the exit every time and so never met the fall.
 // Below 94 a turn is one die, as it always was.
 export let ENDGAME = 94;
 // tools/sim.mjs sweeps it; nothing in the game changes it
@@ -50,27 +50,37 @@ export function movesFor(state, dice) {
   if (dice.length > 1 && canSit(p)) out.push(0);
   return out;
 }
-// The computer's choice, the same in the page and in tools/sim.mjs: the exit if a die reaches it, otherwise a
-// die that is not a snake, the bigger one first; sitting only when both dice are snakes.
+// The computer's choice, the same in the page and in tools/sim.mjs: the exit if a die reaches it; otherwise a die
+// that stops short of the exit and is not a snake, the bigger first; then sitting, where a sannyasin may; then a die
+// into the heavens, the smaller first, to stay there longest; then a snake; and the fall last, since it ends the life
+// (REDESIGN.md Phase 12 treats the throw past the top as the heavens' snake). Below the exit this is Phase 9's choice
+// exactly; Phase 9's whole rule, the bigger die that is not a snake, is kept in tools/sim.mjs as --pick=phase9.
 export function moveFor(state, dice) {
   const moves = movesFor(state, dice), plans = moves.filter(Boolean).map(v => planTurn(state, v, dice));
   const win = plans.find(pl => pl.win);
   if (win) return win.v;
-  const safe = plans.filter(pl => pl.jump?.kind !== "snake").sort((a, b) => b.v - a.v);
-  if (safe.length) return safe[0].v;
-  return moves.includes(0) ? 0 : Math.max(...dice);
+  const short = plans.filter(pl => !pl.fell && pl.final < GOAL && pl.jump?.kind !== "snake").sort((a, b) => b.v - a.v);
+  if (short.length) return short[0].v;
+  if (moves.includes(0)) return 0;
+  const heaven = plans.filter(pl => !pl.fell && pl.final > GOAL).sort((a, b) => a.v - b.v);
+  if (heaven.length) return heaven[0].v;
+  const snake = plans.filter(pl => !pl.fell).sort((a, b) => b.v - a.v);
+  return snake.length ? snake[0].v : Math.max(...dice);
 }
+// A player still in the game: not dead, and not fallen from the heavens.
+export const gone = p => !!(p.dead || p.fell);
 
 // A player has a gender for Hindi agreement (docs/NARRATIVE.md §4), an alias {en, hi} when the name was
 // drawn rather than typed, and a life: every square landed on, in order, for the life account. Phase 8 adds
 // who they are (src/engine/self.js): years lived, gunas, aims, the bhumika in sannyasa and the highest
-// reached, and once the years run out, dead and the vice they were still holding.
+// reached, and once the years run out, dead and the vice they were still holding. Phase 12 adds fell: the life that
+// threw past the top of the heavens, which ends it as the years running out does, and fellFrom, the realm it fell from.
 export function createGame({ players, rules, seed }) {
   return {
-    players: players.map((r, i) => ({ name: r.name.trim(), type: r.type, gender: r.gender || "m", alias: r.alias || null, color: i, pos: 0, face: "r", life: [], told: [], hasFallen: false,
+    players: players.map((r, i) => ({ name: r.name.trim(), type: r.type, gender: r.gender || "m", alias: r.alias || null, color: i, pos: 0, face: "r", life: [], told: [], fell: false,
       years: 0, gunas: freshGunas(), aims: freshAims(), practised: 0, bhumika: null, peak: null, dead: false, holding: null })),
     rules: { ...rules },
-    // over: someone reached the exit, or nobody is left alive to
+    // over: someone reached the exit, or nobody is left in the game to
     turn: 0, winner: null, over: false, last: null,
     log: [{ k: "lNew", kind: "" }],
     rng: makeRng(seed),
@@ -86,14 +96,10 @@ export function addLog(state, e) {
 
 // What a roll of v does for the current player. Log entries come in three groups, by when the UI
 // shows them: pre (before walking), after (on landing) and end (once the turn is over).
-// A roll that would pass the top of the board walks up to it and back down by the remainder (bounce-back), so
-// no roll is ever wasted. The exit sits partway along the divine row (REDESIGN.md Phase 7): landing exactly on it
-// is liberation, passing it carries the player into the higher heavens, and a bounce off the top can bring them
-// back down onto it. Under the Brahmaloka rule the exit stays shut until the player has once fallen by the
-// rebirth snake: the first arrival walks on to its head instead (REDESIGN.md Phase 4).
-// The rebirth snake takes a player back to birth, so it is rare: it takes only someone climbing onto its head,
-// never one coming back down onto it from above, and only once in a life.
-export const rebirthHead = () => +Object.keys(SNAKES).find(h => SNAKES[h].rebirth);
+// The exit sits partway along the divine row (REDESIGN.md Phase 7): landing exactly on it is liberation, and passing
+// it carries the player into the heavens. Nothing above it turns back (REDESIGN.md Phase 12): the heavens are walked,
+// and the throw that would carry the player past the top is the fall. Merit spent, the life ends there; there is no
+// landing, and no square 1 with the years still running.
 // v is the move: a die's value, or 0 to sit. dice is everything rolled; the dice not moved by are spare, and in
 // sannyasa they go to practice (src/engine/self.js).
 export function planTurn(state, v, dice = [v]) {
@@ -109,22 +115,23 @@ export function planTurn(state, v, dice = [v]) {
     if (died) end.push(entry("lDied", { pos: from, age: years, sq: from }, "death", idx));
     return { idx, v, dice, spare, sit: true, from, path, target: from, final: from, jump: null, win: false, died, again: false, told: [null], pre, after, end };
   }
-  for (let i = 0, n = from, dir = 1; i < v; i++) {
-    if (n === TOP) dir = -1;
-    path.push((n += dir));
+  const fell = from + v > TOP;
+  for (let n = from; n < Math.min(from + v, TOP); ) path.push(++n);
+  if (fell) {
+    // the walk goes to the top of the heavens and no further: what was passed, then the fall, and the life is over
+    const passed = path.filter(n => n !== from);
+    if (passed.length) after.push(entry("lPassed", { passed }, "passed", idx));
+    end.push(entry("lFell", { v, pos: from }, "fall", idx));
+    return { idx, v, dice, spare, sit: false, fell: true, from, path, target: TOP, final: TOP, jump: null, win: false, died: false, again: false, told: [], cost: 0, pre, after, end };
   }
-  let target = path.at(-1);
-  const bounced = from + v > TOP;
-  const closed = rules.brahmaloka && !p.hasFallen && target === GOAL && rebirthHead();
-  if (closed) for (let n = GOAL, d = Math.sign(closed - GOAL); n !== closed; ) path.push((target = n += d));
+  const target = path.at(-1);
   // every square walked over and not landed on, once each, in the order they were passed
-  const passed = [...new Set(path.slice(0, -1))].filter(n => n !== target);
+  const passed = path.slice(0, -1);
   if (passed.length) after.push(entry("lPassed", { passed }, "passed", idx));
-  if (closed) after.push(entry("lClosed", { v, pos: target }, "", idx));
-  const plan = { idx, v, dice, spare, sit: false, from, path, target, bounced, final: target, jump: null, win: false, died: false, again: false, told: [null], cost: 0, pre, after, end };
+  const plan = { idx, v, dice, spare, sit: false, from, path, target, final: target, jump: null, win: false, died: false, again: false, told: [null], cost: 0, pre, after, end };
   // a square where the player chooses (REDESIGN.md Phase 10): the plan waits for the choice, and resolveChoice
   // finishes it. A square with no situation is resolved at once, exactly as before.
-  const sit = !closed && !bounced ? situationAt(target) : null;
+  const sit = situationAt(target);
   if (sit) return Object.assign(plan, { situation: sit });
   return finish(state, plan, null);
 }
@@ -139,21 +146,18 @@ export function resolveChoice(state, plan, id) {
 
 // The rest of a turn, once it is known what the square does: the snake or ladder, the years, the win or the death.
 function finish(state, plan, o) {
-  const { idx, v, dice, from, target, bounced, after, end } = plan, p = state.players[idx], rules = state.rules;
+  const { idx, v, dice, from, target, after, end } = plan, p = state.players[idx], rules = state.rules;
   let jump = null, final = target;
-  const climbing = target > (plan.path.at(-2) ?? from);
   // a situation's option decides whether the snake or the ladder is taken; elsewhere the square does
-  const s = o ? (o.move === "snake" ? SNAKES[target] : null) : SNAKES[target] && (!SNAKES[target].rebirth || (climbing && !p.hasFallen)) ? SNAKES[target] : null;
+  const s = o ? (o.move === "snake" ? SNAKES[target] : null) : SNAKES[target];
   const l = o ? (o.move === "ladder" ? LADDERS[target] : null) : LADDERS[target];
   const cost = o?.cost ?? 0;
   // the years an option costs pass on its square, before any snake or ladder
   if (cost) after.push(entry(cost === 1 ? "lStayOne" : "lStay", { n: cost, pos: target, sq: target }, "", idx));
   if (s || l) {
-    jump = { kind: s ? "snake" : "ladder", to: (s || l).to, rebirth: !!s?.rebirth };
+    jump = { kind: s ? "snake" : "ladder", to: (s || l).to };
     final = jump.to;
-    after.push(entry(s?.rebirth ? "lRebirth" : s ? "lSnake" : "lLadder", { v, pos: target, to: jump.to, sq: target }, s ? "snake" : "ladder", idx));
-  } else if (bounced) {
-    after.push(entry("lBounce", { v, pos: target, sq: target }, HEAVEN[target] ? "heaven" : "", idx));
+    after.push(entry(s ? "lSnake" : "lLadder", { v, pos: target, to: jump.to, sq: target }, s ? "snake" : "ladder", idx));
   } else if (HEAVEN[target]) {
     after.push(entry("lHeaven", { v, pos: target, sq: target }, "heaven", idx));
   } else if (target !== GOAL) {
@@ -164,8 +168,7 @@ function finish(state, plan, o) {
   // already lived can outrun the span, so only the snakes bring this about.
   const years = turnYears(p.years ?? 0, { target, final, jump, cost }), died = !win && final <= 100 && years > SPAN;
   const again = !win && !died && v === 6 && rules.six;
-  // coming back down onto the exit, after overshooting it, is said so: it is the point of the geometry
-  if (win) end.push(entry(from > GOAL ? "lWinAbove" : "lWin", { pos: GOAL }, "heaven", idx));
+  if (win) end.push(entry("lWin", { pos: GOAL }, "heaven", idx));
   else if (died) end.push(entry("lDied", { pos: final, age: years, sq: final }, "death", idx));
   else if (again) end.push(entry("lSix", {}, "", idx));
   // which moment each square of this turn tells, in the order they join the life: one face for the whole turn. A
@@ -179,26 +182,30 @@ function finish(state, plan, o) {
 export function endTurn(state, plan) {
   const p = state.players[plan.idx];
   p.pos = plan.final;
-  // a snake or a ladder is two moments: the square that did it, and the one it led to
-  // a year sat out is the same square again: on earth nothing else lands where it stands (src/engine/self.js)
-  // the years a choice cost are the square again, once a year (src/engine/self.js yearsAlong reads them as stays)
-  (p.life ||= []).push(plan.target, ...Array(plan.cost ?? 0).fill(plan.target), ...(plan.jump ? [plan.final] : []));
-  // and which of a square's moments each one told, kept beside the life, one for one. A life with none for some of
-  // its squares (a game saved before Phase 10, or one set by hand) told their own moments there.
-  const before = p.life.length - plan.told.length, kept = (p.told ?? []).slice(0, before);
-  p.told = [...kept, ...Array(before - kept.length).fill(null), ...plan.told];
-  if (plan.jump?.rebirth) p.hasFallen = true;
-  Object.assign(p, grow(p, plan));
-  if (plan.died) { p.dead = true; p.holding = holdingOf(p.life); }
+  // the fall ends the life: nothing is landed on and nothing more is lived, and the token leaves the board, back into
+  // the world below it (Phase 15 builds what that world is)
+  if (plan.fell) { p.fell = true; p.fellFrom = plan.from; p.pos = 0; p.holding = holdingOf(p.life || []); }
+  else {
+    // a snake or a ladder is two moments: the square that did it, and the one it led to
+    // a year sat out is the same square again: on earth nothing else lands where it stands (src/engine/self.js)
+    // the years a choice cost are the square again, once a year (src/engine/self.js yearsAlong reads them as stays)
+    (p.life ||= []).push(plan.target, ...Array(plan.cost ?? 0).fill(plan.target), ...(plan.jump ? [plan.final] : []));
+    // and which of a square's moments each one told, kept beside the life, one for one. A life with none for some of
+    // its squares (a game saved before Phase 10, or one set by hand) told their own moments there.
+    const before = p.life.length - plan.told.length, kept = (p.told ?? []).slice(0, before);
+    p.told = [...kept, ...Array(before - kept.length).fill(null), ...plan.told];
+    Object.assign(p, grow(p, plan));
+    if (plan.died) { p.dead = true; p.holding = holdingOf(p.life); }
+  }
   if (plan.win) state.winner = plan.idx;
   // the turn passes to the next player still alive; with nobody left, the game is over
   else if (!plan.again) for (let k = 1; k <= state.players.length; k++) {
     const i = (plan.idx + k) % state.players.length;
-    if (!state.players[i].dead) { state.turn = i; break; }
+    if (!gone(state.players[i])) { state.turn = i; break; }
   }
   // Over when someone is through, or nobody is left to be: in a game with people in it, once none of them is
   // alive, since the computers would only be playing on for nobody.
-  const alive = state.players.filter(q => !q.dead), humans = state.players.some(q => q.type === "human");
+  const alive = state.players.filter(q => !gone(q)), humans = state.players.some(q => q.type === "human");
   state.over = state.winner != null || !alive.length || (humans && !alive.some(q => q.type === "human"));
   plan.end.forEach(e => addLog(state, e));
 }

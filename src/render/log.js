@@ -6,6 +6,7 @@ import { $, COLORS, esc } from "../ui.js";
 import { squareName } from "./board.js";
 import { stageOf, stageName } from "./sprites.js";
 import { stageOf as ashramaOfPlayer } from "./age.js";
+import { gone } from "../engine/turn.js";
 
 // Who a player is becoming, as words and never as a number (REDESIGN.md Phase 8): the strongest guna and the
 // aim they have most of. Nothing is said until one guna stands out, so a life starts without a description.
@@ -21,12 +22,12 @@ const ashramaIn = p => { const s = ashramaOfPlayer(p); return s < ASHRAMAS.lengt
 
 export function renderPlayers() {
   $("players").innerHTML = G.state.players.map((pl, i) => `
-    <li class="${i === G.state.turn && !G.state.over ? "current" : ""}${pl.dead ? " dead" : ""}">
+    <li class="${i === G.state.turn && !G.state.over ? "current" : ""}${gone(pl) ? " dead" : ""}">
       <span class="dot" style="background:${COLORS[pl.color]}"></span>
       <span><span class="pname">${esc(pname(pl))}</span><span class="kind">${pl.type === "cpu" ? t("cpu") : ""}</span>
-        <span class="stage">${pl.pos === 0 ? t("notBorn") : pl.dead ? t("dead") : [...new Set([stageName(stageOf(pl)), ashramaIn(pl)])].join(" · ")}</span>
-        ${selfLine(pl) && !pl.dead ? `<span class="self">${esc(selfLine(pl))}</span>` : ""}</span>
-      <span class="pos">${pl.pos === 0 ? t("start") : pl.pos === GOAL ? t("moksha") : t("square", { n: pl.pos })}</span>
+        <span class="stage">${pl.fell ? t("fell") : pl.pos === 0 ? t("notBorn") : pl.dead ? t("dead") : [...new Set([stageName(stageOf(pl)), ashramaIn(pl)])].join(" · ")}</span>
+        ${selfLine(pl) && !gone(pl) ? `<span class="self">${esc(selfLine(pl))}</span>` : ""}</span>
+      <span class="pos">${pl.fell ? "" : pl.pos === 0 ? t("start") : pl.pos === GOAL ? t("moksha") : t("square", { n: pl.pos })}</span>
     </li>`).join("");
 }
 
@@ -44,7 +45,7 @@ export function renderLog() {
     <li class="passed"><span class="dot" style="background:transparent;border-color:transparent;box-shadow:none"></span><span>${esc(t("lPassed"))} ${e.v.passed.map(n => `<button type="button" class="logbtn" data-sq="${n}">${esc(squareName(n) || num(n))}</button>`).join(" · ")}</span></li>`;
     const text = entryText(e);
     // each move reopens the card of the square it landed on
-    const sq = e.v?.sq ?? (e.k === "lWin" || e.k === "lWinAbove" ? GOAL : null);
+    const sq = e.v?.sq ?? (e.k === "lWin" ? GOAL : null);
     return `
     <li class="${e.kind}"><span class="dot" style="background:${who ? COLORS[who.color] : "transparent"};${who ? "" : "border-color:transparent;box-shadow:none"}"></span>${sq ? `<button type="button" class="logbtn" data-sq="${sq}">${esc(text)}</button>` : `<span>${esc(text)}</span>`}</li>`;
   }).join("");

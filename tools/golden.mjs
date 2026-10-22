@@ -2,7 +2,9 @@
 // produce the same move log, so the page and the headless engine never drift apart.
 // Until Phase 4 it also replayed the Phase 0 build (commit fb0bc2a) and required the same log. Phase 4
 // changed the rules on purpose (bounce-back, the merit snake, the log of passed squares), so
-// that leg was retired; `git show fb0bc2a:tools/golden.mjs` has it.
+// that leg was retired; `git show fb0bc2a:tools/golden.mjs` has it. Phase 12 changed them on purpose again: nothing above
+// the exit turns back, the Brahma snake is gone, and the throw past 110 ends the life, so every game that passes 105 now
+// falls. Only the page-against-sim leg is kept, and it holds.
 //   node tools/golden.mjs [seeds=20]
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -36,7 +38,7 @@ function harness({ seed, cards }) {
   const raf = window.requestAnimationFrame;
   window.requestAnimationFrame = cb => raf(() => cb(performance.now()));
   const cpu = { name: "", type: "cpu" };
-  window.claude = { hot: { data: { setup: { count: 2, rows: [cpu, cpu, cpu, cpu], rules: { six: true, brahmaloka: false, cards } } } } };
+  window.claude = { hot: { data: { setup: { count: 2, rows: [cpu, cpu, cpu, cpu], rules: { six: true, cards } } } } };
 }
 
 async function run(url, seed, cards) {

@@ -119,13 +119,13 @@ export function meetsNamed(state, i, m) {
 // For each entry of a life (yearsAlong, without the years a choice cost): the member its moment is about, whether this
 // is where the life meets them, who it had met before, and the cast of the life it is in.
 export function castAlong(state, i, along) {
-  let life = 0, cast = castOf(state, i, 0), met = new Set();
+  // one life, so one cast: a second life's cast (castOf's third argument) waits for Phase 15
+  const cast = castOf(state, i, 0), met = new Set();
   return along.map(e => {
-    if (e.via === "rebirth") { life++; cast = castOf(state, i, life); met = new Set(); }
     const m = e.via === "sit" ? null : momentOf(e.n, e.told).moment, about = m?.cast ?? null, before = new Set(met);
     const meets = !!about && !met.has(about) && m.introduces !== false;
     if (meets) met.add(about);
-    return { about, meets, before, cast, life };
+    return { about, meets, before, cast, life: 0 };
   });
 }
 
@@ -134,7 +134,7 @@ export function castAlong(state, i, along) {
 // (before 100 says they are gone), and when they did, in the player's years. Only once the life is over.
 export function castArcs(state, i, along, cc = castAlong(state, i, along)) {
   const p = state.players[i];
-  if (!cc.length || !cc.at(-1).cast || !(p.dead || state.winner === i)) return [];
+  if (!cc.length || !cc.at(-1).cast || !(p.dead || p.fell || state.winner === i)) return [];
   const { life, cast } = cc.at(-1), from = cc.findIndex(c => c.life === life);
   const order = [], seen = {}, landed = {}, told = new Set();
   let gone = null;

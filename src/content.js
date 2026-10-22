@@ -10,8 +10,9 @@ import bridges from "../content/bridges.json" with { type: "json" };
 // Every square is { ic, en, hi, age, moment, mirror, callsBack, src } (docs/NARRATIVE.md §11). Snakes and
 // ladders add { to, skt }. The mirror is the Phase 2 lead; the moment, when there is one, sits above it and
 // says what is happening to the player, as { en, hi } with an optional mirror of its own to read after it.
-// GOAL is the exit, where a life is let go; TOP is the last square of the board, where a roll turns back.
-export const { GOAL, TOP, ROWS, ASHRAMAS, LADDERS, SNAKES, HEAVEN, MOKSHA } = squares;
+// GOAL is the exit, where a life is let go; TOP is the last square of the board, the board's extent: the throw past it
+// is the fall (REDESIGN.md Phase 12), whose card is FALL.
+export const { GOAL, TOP, ROWS, ASHRAMAS, LADDERS, SNAKES, HEAVEN, MOKSHA, FALL } = squares;
 export const { SQ } = squares;
 export const { STR, SRC_HI, JOINS, NUM_HI } = strings;
 // What the account says about the cast: introductions, the returns join and the fate lines (src/engine/cast.js).
@@ -31,10 +32,10 @@ export const READINGS = readings;
 export const CODEX = codex;
 
 // Square n's record, whichever table it lives in.
-// A god's square stays the god's even when a snake starts on it (108, merit spent): heaven comes first.
 export const squareOf = n => (n === GOAL ? MOKSHA : HEAVEN[n] || LADDERS[n] || SNAKES[n] || SQ[n] || null);
-// The snake that starts on a god's square, which the square's card shows after the god.
-export const snakeOn = n => (HEAVEN[n] && SNAKES[n]) || null;
+// The fall, which the top square's card shows after its god: merit spent, the throw past the top (REDESIGN.md Phase 12).
+// Until Phase 12 it was the Brahma snake, 108 to 1.
+export const fallOn = n => (n === TOP ? FALL : null);
 // Square n's mirror (the Phase 2 lead) as [en, hi].
 export const leadOf = n => { const m = squareOf(n)?.mirror; return m ? [m.en, m.hi] : null; };
 
@@ -98,7 +99,7 @@ export const REFS = (() => {
   for (let n = 1; n <= TOP; n++) {
     const r = READINGS[n] || {};
     add(sourceOf(srcOfSquare(n)), n);
-    const sn = snakeOn(n);
+    const sn = fallOn(n);
     if (sn) add(sourceOf(sn.src), n);
     for (const s of [...(r.schools || []), ...(r.views || []), ...(r.beyond || []), ...(sn?.schools || [])]) add(s.id, n);
     (r.figures || []).forEach(id => add(id, n));

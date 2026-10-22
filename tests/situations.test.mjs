@@ -31,7 +31,7 @@ test("ten squares offer a choice: four snakes, three ladders and three story squ
 test("a square without a situation is resolved at once, exactly as before", () => {
   const plan = planTurn(game(40), 4);
   assert.equal(plan.situation, undefined);
-  assert.deepEqual(plan.jump, { kind: "ladder", to: 63, rebirth: false });
+  assert.deepEqual(plan.jump, { kind: "ladder", to: 63 });
 });
 
 test("on a situation the turn waits for the choice, and the choice is the move", () => {

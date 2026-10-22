@@ -1,10 +1,12 @@
 // Every life account for a run of seeds, one sha256 per account, so two builds can be compared byte for byte.
 // Phase 10C's acceptance test: with the cast list stripped, every account must be the account Phase 10 wrote.
-//   node tools/accounts.mjs [seeds=2000] [--root=<checkout>] [--cast=off] [--full]
+//   node tools/accounts.mjs [seeds=2000] [--root=<checkout>] [--cast=off] [--full] [--tag]
 // --root reads the engine from another checkout (a worktree of main, say) instead of this one. --cast=off takes the
 // cast's names away (content/names.json `cast`), which must give back every account exactly. --full prints the
 // accounts themselves instead of their hashes. Each seed is played twice: one named player in each gender, read in
-// both languages, and two unnamed computers, so drawn names and the second player are covered too.
+// both languages, and two unnamed computers, so drawn names and the second player are covered too. --tag adds "above" to
+// each hash whose game went above the exit (REDESIGN.md Phase 12): a bounce, the Brahma snake, the heavens or the fall,
+// which is everything Phase 12 changed, so every untagged account must be the same before and after it.
 import path from "node:path";
 import crypto from "node:crypto";
 import { pathToFileURL } from "node:url";
@@ -21,7 +23,8 @@ if (flags.cast === "off") {
 
 const play = (players, seed) => {
   const s = createGame({ players, rules: { six: true }, seed });
-  while (!s.over) playTurn(s);
+  s.above = false;
+  while (!s.over) { const plan = playTurn(s); if (plan.fell || plan.path.some(n => n > content.GOAL)) s.above = true; }
   return s;
 };
 const hash = t => crypto.createHash("sha256").update(t).digest("hex");
@@ -29,7 +32,7 @@ const tally = { intros: 0, returns: 0, fates: 0, lives: 0 };
 const out = [];
 const say = (key, s, i, l) => {
   const text = lifeText(s, i, l);
-  out.push(flags.full ? `## ${key}\n${text}` : `${key} ${hash(text)}`);
+  out.push(flags.full ? `## ${key}\n${text}` : `${key} ${hash(text)}${flags.tag && s.above ? " above" : ""}`);
   const life = lifeOf(s, i, l);
   if (l === "en" && life.fates) {
     tally.lives++;

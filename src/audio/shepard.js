@@ -1,11 +1,11 @@
 // The Shepard–Risset glissando under the divine row (REDESIGN.md Phase 7, item 6): octave-spaced partials, each
 // rising through a window that is silent at both ends, so the pitch climbs forever and never arrives. Walking
-// toward the exit it rises; past the exit it rises faster and never resolves; the Brahmā snake is the only
-// place it truly falls. A sine an octave under Sa gives it weight.
+// toward the exit it rises; past the exit it rises faster through 106–110 and never resolves; the fall past the top
+// (REDESIGN.md Phase 12) is the only place it truly falls. A sine an octave under Sa gives it weight.
 //
 // Board position never sets an audio parameter. It chooses targets (level, rate, brightness), which glide in JS,
 // and a look-ahead scheduler writes short ramps that each begin where the last one ended. Nothing here calls
-// cancelScheduledValues on a partial, so a bounce, a jump or the fall can never click.
+// cancelScheduledValues on a partial, so a jump or the fall can never click.
 import { GOAL } from "../content.js";
 import { SA } from "./drone.js";
 
@@ -128,7 +128,7 @@ export function makeShepard(ctx, out, { lite = false } = {}) {
       if (!timer) { timer = setInterval(schedule, TICK * 1000); }
       schedule();
     },
-    // the Brahmā snake: the tone falls for secs and ends on Sa, its phase brought round to a whole octave
+    // the fall: the tone falls for secs and ends on Sa, its phase brought round to a whole octave
     fall(secs) {
       if (!graph || st.level < 1e-3) return;
       const t0 = Math.max(at, ctx.currentTime), whole = (Math.ceil(st.p * K - 1e-9) - st.p * K) / K;

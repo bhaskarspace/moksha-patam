@@ -142,7 +142,7 @@ export const sound = {
     hiss(now, 0.5 * SOFT, 5200, 3000, 0.16, 0.7, "highpass");
     tone(now + 0.05, 196, 0.7 * SOFT, 0.2, "sawtooth", 62);
   },
-  // the Brahmā snake: the hiss, and then the Shepard tone itself falls, the one resolution in the piece
+  // the fall past the top of the heavens: the hiss, and then the Shepard tone itself falls, the one resolution in the piece
   fall(secs) {
     if (!ready()) return;
     const now = ctx.currentTime;
