@@ -295,7 +295,7 @@ function squareHtml(n, l) {
   if (!pending && storyHidden(m)) more = "";
   return {
     kind: info.kind, met, metMore,
-    html: frame(l, { kind: info.kind, eb: (refusal ? T("endRefused") : info.eb) + (age ? ` · ${age}` : ""), big: n === GOAL ? illumined(null, info.big) : illumined(document.getElementById(`sq-${n}`) ? `sq-${n}` : null, info.big), sqn: numIn(l, n), age, body, more, foot: info.ft,
+    html: frame(l, { kind: info.kind, eb: (refusal ? T("endRefused") : info.eb) + (age ? ` · ${age}` : ""), big: illumined(document.getElementById(`sq-${n}`) ? `sq-${n}` : null, info.big), sqn: numIn(l, n), age, body, more, foot: info.ft,
       prev: n > 1 ? numIn(l, n - 1) : null, next: n < TOP ? numIn(l, n + 1) : null, prevLabel: T("prevSq"), nextLabel: T("nextSq") }),
   };
 }

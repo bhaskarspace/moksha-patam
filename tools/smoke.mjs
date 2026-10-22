@@ -298,8 +298,10 @@ await check("Phase 7: Moksha is 105, Brahma at 108 is only his realm, and 110 is
   assert(brahma.title === "Brahma" && !brahma.snake && !brahma.foot && /nothing up here turns back/i.test(brahma.above), `108: ${JSON.stringify(brahma)}`);
   assert(shiva.title === "Shiva" && shiva.art && /105/.test(shiva.above) && shiva.snake === "Merit spent" && shiva.gita && /the fall$/.test(shiva.foot), `110: ${JSON.stringify(shiva)}`);
   assert(!ganesha.above, "104 is below the exit and should not say Moksha is behind");
-  // the board: 105 is the goal cell, and Shiva's sprite sits on 110
-  assert(await page.evaluate(() => document.querySelector('#labels .lab.goal')?.dataset.n === "105" && !!document.querySelector('#labels .lab[data-n="110"] svg.spr use[href="#sq-110"]')), "the board does not show the exit at 105");
+  // the board: 105 is the goal cell and keeps ॐ (its vignette is the card's alone), and Shiva's picture sits on 110, in his
+  // label's roundel or, since Phase 13, as his vignette in the cell
+  assert(await page.evaluate(() => document.querySelector('#labels .lab.goal')?.dataset.n === "105" && !!document.querySelector('#labels .lab.goal .om') && !document.querySelector('#cells use[href="#sq-105"]') &&
+    !!document.querySelector('#labels .lab[data-n="110"] svg.spr use[href="#sq-110"], #cells .pic.vg use[href="#sq-110"]')), "the board does not show the exit at 105");
   // #sq/110 is a square like any other
   await page.evaluate(() => { location.hash = "#sq/110"; });
   await page.waitForFunction(() => document.getElementById("folio").open && document.getElementById("leafTitle")?.textContent === "Shiva");
@@ -846,9 +848,10 @@ await check("Phase 13: the first screen is the whole cloth at full pigment; the 
     const n = await page.evaluate(() => document.querySelectorAll("#labels .lab.ahead").length);
     assert(n > 0 && (await page.evaluate(() => mp.look())) === look, `${look}: ${n} squares dimmed after a throw`);
   }
-  // the snakes are thirteen painted creatures, and the 34 priority squares carry vignettes (or will: see REDESIGN.md)
+  // the 34 priority squares carry vignettes: 33 on the board, and Moksha's on its card alone (the board keeps ॐ)
   const vg = await page.evaluate(() => [...document.querySelectorAll("#cells .pic.vg")].length);
-  assert(vg >= 3, `${vg} vignettes on the board`);
+  assert(vg === 33, `${vg} vignettes on the board`);
+  assert(await page.evaluate(() => { mp.open(105); return !!document.querySelector('#leaf svg.ill use[href="#sq-105"]'); }), "Moksha's card has no vignette");
 });
 
 await check("Phase 5: the camera follows a climb, and shows the whole board before the card opens", async page => {

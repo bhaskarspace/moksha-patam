@@ -214,21 +214,45 @@ only the pictures need to change.
 
 ### Palette
 
-Lock these as CSS custom properties and let nothing else in.
+Lock these as tokens and let nothing else in. Since Phase 13 they live in one place,
+`content/boards.json` (the 110 board's `palette`); `tools/build.mjs` writes them into
+`styles.css` as `--b-*` custom properties, and the lint, the contrast test and the sprite
+generator all read them from there. The grounds are pale and the pigment is in the
+figures, the snakes, the ladders, the border and the divine row, as on the surviving
+boards: a saturated ground under a dark pictogram is the hierarchy upside down.
 
 | Token | Use |
 |---|---|
-| vermilion `#C8352A` | borders, the red frame, snake bodies |
-| ochre `#D9A441` | ground, backgrounds |
-| indigo `#2B3A67` | night, water, robes |
-| malachite `#3F7A4E` | vegetation |
-| lamp black `#1A1410` | every outline, one weight |
-| shell white `#F4EDDC` | paper, raised dots for pearls |
+| vermilion `#C8352A` | borders, the red frame, snake bodies, ladder outlines, robes |
+| ochre `#D9A441` | earth, brick, wood, the warm robes |
+| Indian yellow `#E3A21A` | ladder rails, sashes, the sun, coins, flames' cores |
+| indigo `#2B3A67` | night, water, robes; Moksha's flat ground at 105 |
+| malachite `#3F7A4E` | vegetation, robes |
+| lamp black `#1A1410` | every outline, one weight; hair; the black nāga |
+| shell white `#F4EDDC` | paper, skin, raised dots for pearls, a snake's belly |
 | beetle green `#1F7A5A` | one accent per board, reserved for jewels |
+| gold `#B8862B` and gold-hi `#EDCF72` | the divine row and the board's border, and nothing else: the only gradient on the page runs between these two, because that is what metal does |
+| cream `#F5E9C9`, pale ochre `#EDD49B`, pale green `#DCE0B4` | the squares' grounds, two per āśrama band, alternating by row (`grounds`) |
+| cloth `#E8D7AE` | the page itself |
+| lac `#5A1208` | the darkest red: the page's rules and ink, the frame's dark edge, the vimāna's outline |
+
+**No gradients but the gold.** The lint rejects any CSS gradient that uses a token other
+than gold or gold-hi, and any canvas gradient in `board.js`; the age canvas's worn edge is
+five flat rings, not a radial gradient.
+
+**The board's look is data.** A board entry in `content/boards.json` declares its palette,
+its grounds by band, its divine row (`ground`, `goal`), its snake pigments (pairs of body
+and band; `snakeHues` in `src/render/ground.js` gives each snake one, so that no two snakes
+whose bodies come within 1.6 squares share a pigment), its ladder (`rail`, `outline`), its
+`border` (today `scroll`, a flat floral tile) and its `superstructure` (today `vimana`, the
+arches over 101–110). Phase 17's 72, 84 and 101 boards are new entries plus their motifs,
+not new code paths. On a weak device (`:root.plain`) the ornament (scroll and vimāna) goes
+first; the pigment and the ageing always stay.
 
 ### SVG rules
 
-- 24×24 viewBox, 1px safe margin, no artwork touching the edge.
+- 24×24 viewBox for a sprite, 1px safe margin, no artwork touching the edge (a vignette's
+  are below).
 - Flat fills only. No gradients, no blur, no filters on the sprites.
 - One outline weight throughout the sheet (1.25 units at 24px).
 - Figures in profile, one large eye, sturdy outline, no foreshortening.
@@ -237,6 +261,37 @@ Lock these as CSS custom properties and let nothing else in.
 - Ship as one `assets/sprites.svg` symbol sheet, referenced by `<use>`.
 - **Keep the emoji as fallback.** If a symbol id is missing, render the old emoji. No
   blank squares at any point during the art build.
+
+### Vignettes (Phase 13)
+
+A square's picture can be a **vignette**: a small painted scene of its *moment*, not its
+abstract name, filling the whole square rather than the roundel. 34 have one: the 13 snake
+heads, the 11 ladder feet and the divine row 101–110. The other 76 keep their sprites.
+
+- **Generated, not hand-written.** `tools/vignette-parts.mjs` is a parts library (a profile
+  head with the one eye, as man, woman or child, with black, grey or white hair; robe,
+  seated, limb, lying; arch, sea, sun, cloth, lotus, flame, moon, pot, books, house, bowl,
+  crown), each returning paths with their coordinates already placed (no `transform=`). The
+  scenes are `art/vignettes.mjs`, one `{ keep, draw }` per square; `node tools/vignettes.mjs
+  [squares…]` writes them into `assets/sprites.svg` under the square's own id, `sq-N`, with
+  `class="vg"`, so the fallback chain is unchanged: vignette, else emoji.
+- `viewBox="0 0 48 48"`, outline **1.25**, the same weight the sprites have at 24 (the lint
+  holds every stroke to 1.25). Flat fills from the palette only, one outline, profile with
+  one eye, no gradients.
+- **Composed around the square.** The number sits in the top-left (about 12 × 9) and the
+  name along the bottom (about 7). On a snake's square the hood and body cover part of the
+  cell, and on a ladder's the rails do; a scene is told in the part its square leaves open,
+  measured from the board's own geometry (`keep` names it). Figures go to one side, the
+  thing they look at in a niche or a corner.
+- **On the board** a vignette is painted in the cell layer (`.cell .pic.vg`), under the
+  snakes and ladders and under the ageing, as all the art is; its label then carries no
+  roundel. On the card it sits in the illuminated arch like any sprite.
+- **Moksha keeps ॐ on the board.** 105's vignette, the door open with a lotus on its
+  threshold, is drawn for its card alone.
+- The divine row's are seals, more pattern than figure: Indra's vajra, Agni over the brick
+  altar, Surya's disc with a face in profile, Ganesha crowned, Lakshmi's lotus with coins,
+  Saraswati's swan, Brahma's faces on the lotus, Vishnu's discus and conch, Shiva's trident,
+  drum and moon.
 
 ### Icon direction by square type
 

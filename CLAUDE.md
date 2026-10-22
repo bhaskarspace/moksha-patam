@@ -17,7 +17,7 @@ single static `index.html` at https://codebpr.com/moksha-patam/
 - `docs/REFERENCE.md`: philosophy-to-mechanics mapping and the history of the board.
 - `docs/LANDSCAPE.md`: comparable games.
 
-**State:** Phases 0 to 12 have shipped. Phase 8 was Life State (REDESIGN.md §4): years lived are a clock of their own
+**State:** Phases 0 to 13 have shipped. Phase 8 was Life State (REDESIGN.md §4): years lived are a clock of their own
 (`src/engine/self.js`) that a snake never turns back, moments say their age through `{age}`, a life ends when its years
 pass `SPAN` (110), and the life account (`src/engine/account.js`, pure) chooses each join by how a moment relates to the
 last. Gunas, aims and the bhumika are in state and never shown as numbers. Phase 9 was Dice as currency: from 94
@@ -37,7 +37,11 @@ has shipped, and Bhaskar's three-player test is done: only a situation's card is
 other card away, an ordinary landing is a line under the board (`src/render/landed.js`, `prefs.everyCard` for the old way),
 a viewer's first life (`mp-lives`) shows the moment with the story behind one tap, and every mirror tells, on first
 contact, that it is a story and who is in it (`content/bridges.json`, `whoOf` in `src/content.js`). The naming asks who is playing and names each person in turn. `?first` plays as
-someone new. Phase 12, Karma, has shipped (below). Then 13 The painted cloth, 14 The door and the curse (REDESIGN.md Phases 13–19).
+someone new. Phase 12, Karma, has shipped (below). Phase 13, The painted cloth, has shipped: the board's look is data
+(`content/boards.json`: palette, grounds, snake pigments, ladder, border, superstructure; the build writes the palette into
+`styles.css` as `--b-*` tokens), the snakes are painted nāgas, and 34 squares carry vignettes drawn by `node tools/vignettes.mjs`
+from `art/vignettes.mjs` (docs/CONTENT.md §7). `?look=first|veil|asrama` chooses the first impression (default `first`, the
+choice still open). Dark is `prefs.theme`, not the system's. Next is 14 The door and the curse (REDESIGN.md Phases 14–19).
 Phase 7 was The Exit (REDESIGN.md §4): Moksha is square 105 (`GOAL`), partway
 along the divine row, while the board still ends at 110 (`TOP`). Since Phase 12 nothing above the exit turns back: past 105 the
 heavens (106–110) are walked, and the throw that would pass `TOP` is the fall, which ends the life (`plan.fell`, `p.fell`;
@@ -93,6 +97,8 @@ illuminated frame (`frame.js`) and a bottom sheet below 768px (`sheet.js`).
 - `npm run perf [--rate=4] [--query=quality=low]`: frame times on a throttled phone-sized page. Reports only;
   compare against a run on `main`.
 - `node tools/icons.mjs`: regenerates `icons/`. Only needed when the emblem changes.
+- `node tools/vignettes.mjs [squares…]`: draws the scenes in `art/vignettes.mjs` into `assets/sprites.svg` (`sq-N`, `class="vg"`).
+  Run it after editing a scene or a part, then build.
 
 ## Guardrails (REDESIGN.md §5)
 - Never break the single-file deploy.
@@ -100,12 +106,14 @@ illuminated frame (`frame.js`) and a bottom sheet below 768px (`sheet.js`).
 - Every new string must be bilingual `{en, hi}`, or the content lint fails.
 - Keep the `?debug` helpers working (`mp.jump`, `mp.roll`, `mp.seed`, `mp.setLang`, `mp.years`, `mp.cast`, …
   in `src/main.js`) and extend them; don't remove any. Phase 12 adds `mp.fire()` (the next turn's omen fires on the
-  current player's oldest debt, whatever is rolled), `mp.dumpKarma(i)` and `mp.plant(n, id)`.
+  current player's oldest debt, whatever is rolled), `mp.dumpKarma(i)` and `mp.plant(n, id)`. Phase 13 adds `mp.look(x)`.
 - No physics on any card. "Debt" is the only word a player sees for a seed, and the ledger's buckets, weights, fuses
   and chances are never shown as numbers. The 1 is the threshold face and the 6 is the world's (`tests/faces.test.mjs`).
 - Never use `unshift` on anything but the log: `tools/golden.mjs` records every `unshift` of an entry as logged.
 - The ageing paints only the art: labels, cards and clicks never dim (`tests/contrast.test.mjs` holds every
-  label's contrast). Phase 5 colours are `--b-*` tokens only (lint). Never touch `G.state.rng` from sound or drawing.
+  label's contrast). Phase 5 colours are `--b-*` tokens only (lint), and since Phase 13 their values live only in
+  `content/boards.json`. No gradient but the gold (lint). Never touch `G.state.rng` from sound or drawing.
+- Moksha keeps ॐ on the board; its vignette is the card's alone. Every vignette stroke is 1.25 in a 48 viewBox (lint).
 - The card's × stays in every layout; closing is never gesture-only. Below 768px the card is a sheet whose gesture
   rule is in `sheet.js`: the sheet moves only when a touch can't be a scroll, decided when the touch starts.
 - Preserve `prefers-reduced-motion`, the aria-live card, the card's dialog role

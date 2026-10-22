@@ -135,11 +135,11 @@ test("Phase 7: every god kept its own moment, mirror, readings and sprite when M
   assert.ok(HEAVEN[108].src, "Brahma's citation travels with Brahma");
 });
 
-test("Phase 7: Moksha is 105, the exit, with no sprite; Phase 12: the fall is past 110, shown on its card", () => {
+test("Phase 7: Moksha is 105, the exit, with no sprite (since Phase 13 a vignette for its card alone); Phase 12: the fall is past 110, shown on its card", () => {
   assert.equal(GOAL, 105);
   assert.equal(TOP, 110);
   assert.equal(squareOf(105), MOKSHA);
-  assert.equal(spriteHash("sq-105"), null);
+  assert.ok(spriteHash("sq-105") === null || isVignette("sq-105"), "105 carries no sprite, only the card's vignette");
   assert.equal(squareOf(108), HEAVEN[108]);
   // the Brahma snake is retired: no snake starts in the heavens, and its card is the fall's
   assert.ok(Object.keys(SNAKES).every(h => +h < 101));

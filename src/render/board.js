@@ -21,8 +21,8 @@ export function squareName(n) {
 
 // A square's painted vignette (REDESIGN.md Phase 13): a symbol of the sheet's drawn as a scene for the whole square. It is
 // painted in the cell, under the snakes and ladders and the ageing, as all the art is; its square's label then carries no
-// roundel. A square without one keeps its sprite in the roundel, or its emoji.
-export const vignette = n => !!document.getElementById(`sq-${n}`)?.classList.contains("vg");
+// roundel. A square without one keeps its sprite in the roundel, or its emoji. Moksha's is the card's alone: the board keeps ॐ.
+export const vignette = n => n !== GOAL && !!document.getElementById(`sq-${n}`)?.classList.contains("vg");
 
 function labelHtml(n) {
   const numEl = `<span class="n">${num(n)}</span>`, vg = vignette(n);

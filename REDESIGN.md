@@ -1407,7 +1407,16 @@ reported alongside median, p95 and over-100, before and after.
 
 ---
 
-### Phase 13 — The painted cloth
+### Phase 13 — The painted cloth  ✅ SHIPPED
+
+> **Shipped** (23 Oct). No rules change: `git diff main -- src/engine` is empty, `npm run golden` is identical on all 20 seeds, and `node tools/accounts.mjs 2000` gives the same 16,000 hashes as `main`.
+> - *The look as data.* `content/boards.json` holds the 110 board's palette, grounds by band, divine row, snake pigments, ladder, border (`scroll`) and superstructure (`vimana`); the build writes the palette into `styles.css` as `--b-*` tokens, and the lint, the contrast and frame tests and the vignette generator read it from there. Gold is the only gradient (lint).
+> - *The hierarchy inverted.* Pale grounds per band (cream, pale ochre, pale green), dark ink on every label, gold on 101–110, flat indigo at 105. The snakes are nāgas: a seven-lobed hood with the spectacle mark, the one almond eye, a forked tongue and scales, each in one of five pigment pairs, with no two snakes that come within 1.6 squares sharing one (`snakeHues`). The ladders are yellow, outlined in vermilion. A floral scroll border, the vimāna arches over the divine row. The page is the cloth; dark is a setting (`prefs.theme`), no longer the system's choice. The panel is a ruled margin with rubric headings, and the introduction is a colophon.
+> - *Vignettes for the 34.* The 13 snake heads, the 11 ladder feet and 101–110, each a scene of the square's moment drawn from a parts library (`tools/vignette-parts.mjs`, `art/vignettes.mjs`, `node tools/vignettes.mjs`) into `assets/sprites.svg` under the square's own id, so a missing sheet still shows the emoji (checked: with the sheet removed every square shows its emoji). Each is composed in the part of its square the snake or ladder leaves open. 105 keeps ॐ on the board; its vignette, the open door with a lotus, is its card's alone. Spec in `docs/CONTENT.md §7`.
+> - *The first impression.* `?look=first` (the default until Bhaskar chooses), `veil` or `asrama` (`mp.look(x)` under `?debug`): `first` shows the whole cloth at full pigment through the naming and until the first throw, then ages as before. **The choice between the three is still open**, to be made with cold players as the brief says.
+> - *Cost.* The page is 803,062 bytes (`main` 781,829). `npm run perf` on the throttled phone matches `main`: walk, climb and swallow at p50 16.7 ms on both, and the climb's longest frame 104–106 ms against `main`'s 105 (both noisy, 101–150 across runs); `quality=low` the same. The scales are drawn only at high quality.
+> - *Still to do* (Phase 19): the other 76 squares keep their Phase 5 sprites. The parts already cover most of them: a single figure in profile with one object (rites, scenes, the aged figures of 60–100), the arch for the settings, sea, sun, moon, flame and lotus for the argument squares. The fables (13, 16, 22, 35, 43, 45, 64, 71, 94) need animals, which the library does not have yet. And the "what is this?" test with three cold players has not been run.
+
 
 *Presentational only; no rules change. Asked for by Bhaskar on 21 Oct after the research
 plates, and placed here on purpose: the door, the reckoning, the interlude and the

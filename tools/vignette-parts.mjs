@@ -94,3 +94,42 @@ export function symbol(n, parts) {
   return `<symbol id="sq-${n}" class="vg" viewBox="0 0 ${SIZE} ${SIZE}"><g stroke="${hex("black")}" stroke-width="${LINE}" stroke-linejoin="round" stroke-linecap="round">${parts.join("")}</g></symbol>`;
 }
 
+
+// ---- Things, and the gods' emblems ----
+// A lotus seen from the side: petals fanned about (cx, cy), r wide.
+export function lotus(cx, cy, r, { fill = "vermilion", inner = "shell", leaf = "malachite" } = {}) {
+  const o = { x: cx, y: cy, s: r / 10 };
+  return shape("M-12,4 Q0,9 12,4 Q0,6.5 -12,4 Z", leaf, o) +
+    shape("M0,4 C-9,3 -11,-3 -10,-6 C-6,-4 -3,0 0,4 Z", fill, o) + shape("M0,4 C9,3 11,-3 10,-6 C6,-4 3,0 0,4 Z", fill, o) +
+    shape("M0,4 C-5,1 -5,-6 0,-10 C5,-6 5,1 0,4 Z", inner, o);
+}
+// A flame of three tongues rising from (cx, base), h tall.
+export function flame(cx, base, h, { fill = "vermilion", core = "yellow" } = {}) {
+  const o = { x: cx, y: base, s: h / 20 };
+  return shape("M0,0 C-8,0 -9,-7 -6,-12 C-5,-9 -4,-8 -3,-8 C-4,-13 -1,-17 1,-20 C1,-15 4,-12 5,-14 C5,-11 8,-9 7,-6 C9,-3 6,0 0,0 Z", fill, o) +
+    shape("M0,0 C-4,0 -5,-4 -3,-7 C-2,-5 -1,-6 0,-10 C1,-7 3,-6 3,-4 C4,-2 3,0 0,0 Z", core, o);
+}
+// A crescent moon, horns up and to the right.
+export const moon = (cx, cy, r, fill = "shell") => shape("M3,-9 C-6,-10 -11,-1 -7,6 C-4,10 4,10 8,6 C3,7 -2,4 -2,-1 C-2,-5 0,-8 3,-9 Z", fill, { x: cx, y: cy, s: r / 10 });
+// A pot (a lota): round body, short neck, lip.
+export const pot = (cx, cy, s = 1, fill = "ochre", band = "vermilion") =>
+  shape("M-2.5,-6 L2.5,-6 L2,-4 C6,-3 7,1 6,4 C5,7 -5,7 -6,4 C-7,1 -6,-3 -2,-4 Z", fill, { x: cx, y: cy, s }) +
+  shape("M-3.6,-7.4 L3.6,-7.4 L3.2,-5.6 L-3.2,-5.6 Z", fill, { x: cx, y: cy, s }) + shape("M-6.3,0 L6.3,0 L6.1,1.6 L-6.1,1.6 Z", band, { x: cx, y: cy, s }, false);
+// Books stacked flat, from the bottom up, each a colour.
+export function books(x, y, w, colours = ["vermilion", "indigo", "malachite"]) {
+  return colours.map((c, k) => poly([[x + k * 0.8, y - k * 3], [x + w - k * 0.6, y - k * 3], [x + w - k * 0.6, y - k * 3 - 3], [x + k * 0.8, y - k * 3 - 3]], c)).join("");
+}
+// A house with a pitched roof and a doorway, its foot at (x, y), w wide.
+export function house(x, y, w, { wall = "shell", roof = "vermilion", door = "indigo" } = {}) {
+  const h = w * 0.6;
+  return poly([[x, y], [x + w, y], [x + w, y - h], [x, y - h]], wall) + poly([[x - 1.5, y - h], [x + w / 2, y - h - w * 0.45], [x + w + 1.5, y - h]], roof) +
+    arch(x + w * 0.38, y - h * 0.62, w * 0.24, h * 0.62, door);
+}
+// A shallow bowl, its foot at (cx, y).
+export const bowl = (cx, y, w, fill = "ochre") => shape("M-10,-5 L10,-5 C9,0 5,2 0,2 C-5,2 -9,0 -10,-5 Z", fill, { x: cx, y: y - 2, s: w / 20 });
+// A crown of three points.
+export const crown = (cx, y, w, fill = "yellow") => shape("M-5,0 L-5,-3 L-3,-1.6 L0,-5 L3,-1.6 L5,-3 L5,0 Z", fill, { x: cx, y, s: w / 10 });
+// A figure lying along (x, y), the head at the left end facing up: a sick child on a cot, a sleeper.
+export function lying(x, y, len, { fill = "vermilion", s = 1 } = {}) {
+  return poly([[x + 4 * s, y - 3 * s], [x + len, y - 2.5 * s], [x + len, y + 1.5 * s], [x + 4 * s, y + 1.5 * s]], fill) + head(x + 2 * s, y - 2 * s, { s: 0.6 * s, kind: "child" });
+}
