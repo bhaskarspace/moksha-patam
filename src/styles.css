@@ -1,35 +1,31 @@
 /* Layout: board as the hero on the left, a narrow control column (turn, die, players, log) on the right; stacks on phones. */
 :root {
   color-scheme: light;
-  --ground: #E4E7F0;
-  --surface: #F6F7FB;
-  --ink: #1A1D35;
-  --muted: #5B6080;
-  --line: #CBD0E0;
-  --accent: #2B3A8F;
-  --on-accent: #FFFFFF;
+  /* the page is the cloth the board is painted on (REDESIGN.md Phase 13): a warm ground, ink in lamp black and lac */
+  --ground: var(--b-cloth);
+  --surface: color-mix(in srgb, var(--b-cream) 70%, var(--b-cloth));
+  --ink: #2A1A08;
+  --muted: #6B4F2C;
+  --line: color-mix(in srgb, var(--b-lac) 28%, transparent);
+  --accent: var(--b-vermilion);
+  --on-accent: #FFF6E0;
+  --rubric: var(--b-vermilion);
   --f-display: "Noto Sans Devanagari", "Rozha One", "Iowan Old Style", Georgia, serif;
   --f-body: "Noto Sans Devanagari", "Hind", system-ui, -apple-system, "Segoe UI", sans-serif;
   --f-emoji: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
   --f-card: "Crimson Pro", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
   --f-card-hi: "Tiro Devanagari Hindi", "Noto Serif Devanagari", "Kohinoor Devanagari", "Noto Sans Devanagari", serif;
   --p0: #C0392B; --p1: #2E5BBA; --p2: #2E8B57; --p3: #D98300;
-  --frame-red: #B5261E; --frame-dark: #5A1208; --frame-gold: #F6C443;
-  /* the Basohli palette: assets/sprites.svg may use these seven colours and nothing else (lint-content.mjs) */
-  --b-vermilion: #C8352A; --b-ochre: #D9A441; --b-indigo: #2B3A67; --b-malachite: #3F7A4E;
-  --b-black: #1A1410; --b-shell: #F4EDDC; --b-beetle: #1F7A5A;
+  --frame-red: var(--b-vermilion); --frame-dark: var(--b-lac); --frame-gold: var(--b-gold-hi);
+  /* the Basohli palette, the --b-* tokens: written here by the build from the board's look in content/boards.json.
+     assets/sprites.svg may use these colours and nothing else (lint-content.mjs) */
+  /* @palette */
 }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    color-scheme: dark;
-    --ground: #11132A; --surface: #1B1E3A; --ink: #ECEDF7; --muted: #A2A7C6;
-    --line: #2E3257; --accent: #A3B2FF; --on-accent: #11132A;
-  }
-}
+/* Dark is a setting (prefs.theme), never the default: the page around the board goes dark, the cloth does not. */
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --ground: #11132A; --surface: #1B1E3A; --ink: #ECEDF7; --muted: #A2A7C6;
-  --line: #2E3257; --accent: #A3B2FF; --on-accent: #11132A;
+  --ground: #17120C; --surface: #221A12; --ink: #F1E6CF; --muted: #BFA985;
+  --line: rgba(237, 207, 114, 0.22); --accent: #E0644F; --on-accent: #17120C; --rubric: #EDCF72;
 }
 
 * { box-sizing: border-box; }
@@ -45,7 +41,7 @@ body {
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
 }
-.wrap { max-width: 1060px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+.wrap { max-width: 1320px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
 
 header { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 12px 14px; }
 header .tools { display: flex; align-items: center; gap: 8px; }
@@ -54,33 +50,44 @@ button.icon { width: 34px; height: 34px; padding: 0; border-radius: 50%; display
 #mute.off .cross { display: inline; }
 #mute.off .wave { display: none; }
 h1 { font-family: var(--f-display); font-weight: 400; font-size: clamp(34px, 6vw, 52px); line-height: 1; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
-header p { margin: 0; color: var(--muted); max-width: 62ch; grid-column: 1 / -1; }
 .lang { display: inline-flex; border: 1px solid var(--line); border-radius: 99px; overflow: hidden; }
 .lang button { padding: 5px 14px; border: 0; border-radius: 0; background: transparent; color: var(--ink); font-size: 14px; }
 .lang button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); }
 
-.game { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 24px; align-items: start; }
+/* the board fills the page, as tall as the screen allows; the panel beside it is the margin (REDESIGN.md Phase 13) */
+.game { display: grid; grid-template-columns: minmax(0, 1fr) 272px; gap: 28px; align-items: start; }
 @media (max-width: 820px) { .game { grid-template-columns: 1fr; } }
 
 /* Board: an ornate red-and-gold printed frame around a 10 x 11 grid (100 earthly squares + a row of heavenly realms). */
-.board-col { display: flex; flex-direction: column; gap: 10px; }
+.board-col { display: flex; flex-direction: column; gap: 10px; width: min(100%, calc((100dvh - 110px) * 0.84)); margin-left: auto; }
+@media (max-width: 820px) { .board-col { width: 100%; } }
 .board-frame {
   --fp: clamp(8px, 2.6vw, 18px);
-  width: 100%; max-width: 600px;
+  width: 100%;
   padding: var(--fp);
-  background: radial-gradient(circle, var(--frame-gold) 0 1.6px, transparent 2.2px) 0 0 / 11px 11px, var(--frame-red);
-  border: 3px solid var(--frame-dark); border-radius: 6px;
+  /* the border: a floral scroll on vermilion (one flat tile), inside a band of gold, the one gradient (REDESIGN.md Phase 13) */
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22'%3E%3Crect width='22' height='22' fill='%23C8352A'/%3E%3Cpath d='M0,11 C5.5,3 5.5,3 11,11 S16.5,19 22,11' fill='none' stroke='%23EDCF72' stroke-width='1.6'/%3E%3Cellipse cx='5.5' cy='5.2' rx='2.2' ry='1.2' fill='%233F7A4E' stroke='%231A1410' stroke-width='.5'/%3E%3Cellipse cx='16.5' cy='16.8' rx='2.2' ry='1.2' fill='%233F7A4E' stroke='%231A1410' stroke-width='.5'/%3E%3Ccircle cx='5.5' cy='15' r='1.1' fill='%23F4EDDC'/%3E%3Ccircle cx='16.5' cy='7' r='1.1' fill='%23F4EDDC'/%3E%3C/svg%3E") 0 0 / 22px 22px, var(--frame-red);
+  border: 4px solid var(--frame-dark); border-image: linear-gradient(135deg, var(--b-gold-hi), var(--b-gold), var(--b-gold-hi)) 1; border-radius: 0;
   box-shadow: inset 0 0 0 2px var(--frame-gold), 0 10px 30px rgba(10, 12, 40, 0.3);
 }
+/* the vimāna over the divine row: gold domes with their doorways, the exit's in indigo (render/board.js superstructure) */
+.vimana { aspect-ratio: 100 / 9; margin: 0 3px -1px; }
+.vimana svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.vimana .dome { fill: var(--b-gold-hi); stroke: var(--b-lac); stroke-width: 0.45; }
+.vimana .door { fill: var(--b-vermilion); stroke: var(--b-lac); stroke-width: 0.35; }
+.vimana .door.goal { fill: var(--b-indigo); }
+.vimana .finial { fill: var(--b-vermilion); stroke: var(--b-lac); stroke-width: 0.3; }
+/* on a weak device the ornament goes first, before any pigment, and the ageing never does */
+:root.plain .vimana { display: none; }
+:root.plain .board-frame { background: var(--frame-red); }
 .board-wrap { position: relative; width: 100%; aspect-ratio: 10 / 11; border: 3px solid var(--frame-dark); outline: 2px solid var(--frame-gold); background: var(--frame-dark); container-type: inline-size; }
 .cells, .labels { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(10, 1fr); grid-template-rows: repeat(11, 1fr); }
 .cell { position: relative; box-shadow: inset 0 0 0 0.5px rgba(40, 18, 4, 0.45); }
 /* The picture on each plain square sits under the snakes and ladders, like the painted boards. */
 .cell .pic { position: absolute; inset: 0; display: grid; place-items: center; padding-top: 8%; font-family: var(--f-emoji); font-size: 4.6cqi; line-height: 1; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.3)); }
-.cell.heaven { background: radial-gradient(circle at 50% 40%, #FFF3C4, #F2C14E 62%, #D9922B); box-shadow: inset 0 -3px 0 var(--frame-dark), inset 0 0 0 0.5px rgba(90, 30, 8, 0.5); }
-.cell.goal { background: radial-gradient(circle at 50% 42%, #4A5CD0, #1E2A78 75%); }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .cells { filter: brightness(0.9) saturate(0.92); } }
-:root[data-theme="dark"] .cells { filter: brightness(0.9) saturate(0.92); }
+/* Gold is the one gradient on the board, because it is metal (REDESIGN.md Phase 13): the divine row, and the border. */
+.cell.heaven { background: linear-gradient(170deg, var(--b-gold-hi), var(--b-gold)); box-shadow: inset 0 -3px 0 var(--frame-dark), inset 0 0 0 0.5px rgba(90, 30, 8, 0.5); }
+.cell.goal { background: var(--b-indigo); }
 canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 #fx { z-index: 1; }
 /* The camera moves .cam inside .board-stage, which clips it to the board; the frame's ashrama labels stay outside. */
@@ -142,6 +149,9 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events
 svg.sprites { position: absolute; width: 0; height: 0; overflow: hidden; }
 svg.spr { display: block; width: 1.2em; height: 1.2em; }
 .cell .pic:has(svg), .lab .ic:has(svg), .leaf .glyph:has(svg) { filter: none; }
+/* a painted vignette fills its square (REDESIGN.md Phase 13) */
+.cell .pic.vg { padding: 0; }
+.cell .pic.vg svg.spr { width: 100%; height: 100%; }
 .lab .ic svg.spr { width: 82%; height: 82%; }
 .lab.heaven .ic svg.spr { width: 5.6cqi; height: 5.6cqi; }
 .lab .dv { position: absolute; left: 0; right: 0; bottom: 6%; text-align: center; font-family: var(--f-display); font-size: clamp(7px, 1.75cqi, 13px); line-height: 1; color: #5A1E08; white-space: nowrap; }
@@ -181,7 +191,7 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 .token.hide { opacity: 0; }
 .token.poof::before {
   content: ""; position: absolute; inset: -45%; border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 236, 150, 0.95) 0 18%, rgba(255, 200, 80, 0.55) 40%, transparent 66%);
+  background: var(--b-gold-hi);
   animation: poof 0.65s ease-out forwards;
 }
 @keyframes bob { 50% { transform: translateY(-7%); } }
@@ -212,7 +222,7 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 
 /* The line under the board (REDESIGN.md Phase 11): an ordinary landing, told in a line, which opens its card */
 .landed {
-  width: 100%; max-width: 600px; margin: 0; padding: 8px 12px; text-align: left;
+  width: 100%; margin: 0; padding: 8px 12px; text-align: left;
   border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--ink);
   font: 400 15px/1.4 var(--f-card); cursor: pointer;
   /* the height of an ordinary moment, three lines (four on a phone), kept when empty so nothing under it moves as the
@@ -241,10 +251,8 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
   view-transition-name: folio;
   position: relative; display: flex; flex-direction: column; max-height: calc(100dvh - 24px);
   border-radius: 14px / 18px; color: var(--l-ink); font-family: var(--f-card);
-  background:
-    radial-gradient(130% 150% at 50% 45%, transparent 55%, rgba(120, 72, 20, 0.3) 100%),
-    radial-gradient(60% 40% at 85% 12%, rgba(255, 255, 255, 0.35), transparent 70%),
-    linear-gradient(176deg, #FBF3DC, #F2DFB0 85%);
+  /* a flat leaf of paper, as the board is flat cloth: no gradients but the gold (REDESIGN.md Phase 13) */
+  background: var(--b-cream);
   box-shadow: inset 0 0 0 1px rgba(110, 70, 20, 0.35), inset 0 0 34px rgba(120, 72, 20, 0.22), 0 22px 60px rgba(0, 0, 0, 0.5);
 }
 .leaf > :not(.flourish) { position: relative; z-index: 1; }
@@ -265,7 +273,7 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 /* the hole the binding string passed through */
 .leaf .hole {
   margin: auto 0; width: 16px; aspect-ratio: 1; border-radius: 50%;
-  background: radial-gradient(circle, #24160A 0 42%, #6B4A22 58%, rgba(107, 74, 34, 0) 72%);
+  background: var(--b-black); box-shadow: 0 0 0 2px color-mix(in srgb, var(--b-ochre) 60%, transparent);
 }
 .leaf-text { padding: 6px 18px 10px 22px; border-right: 4px double var(--l-rule); min-width: 0; }
 .leaf-text:lang(hi), .leaf-text :lang(hi) { font-family: var(--f-card-hi); }
@@ -318,9 +326,9 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 .leaf .ft { font-size: 14px; font-weight: 700; color: var(--l-gold); text-align: center; }
 
 .leaf.virtue { --l-rule: #2E7D4F; --l-gold: #2E6B45; }
-.leaf.vice { --l-rule: #B3261E; --l-gold: #9E2A1C; background: radial-gradient(130% 150% at 50% 45%, transparent 55%, rgba(120, 30, 20, 0.3) 100%), linear-gradient(176deg, #FDF0E6, #F1CDBF 85%); }
-.leaf.heaven { --l-rule: #C08A14; background: radial-gradient(130% 150% at 50% 45%, transparent 55%, rgba(150, 100, 10, 0.3) 100%), linear-gradient(176deg, #FFFBEA, #F8E3A0 85%); }
-.leaf.goal { --l-ink: #FFF3D6; --l-ink2: #E2D6B4; --l-gold: #FFD86B; --l-rule: #FFD86B; --l-line: rgba(255, 216, 107, 0.35); background: radial-gradient(circle at 30% 30%, #4A5CD0, #1E2A78 75%); }
+.leaf.vice { --l-rule: #B3261E; --l-gold: #9E2A1C; background: color-mix(in srgb, var(--b-vermilion) 12%, var(--b-cream)); }
+.leaf.heaven { --l-rule: #C08A14; background: linear-gradient(176deg, color-mix(in srgb, var(--b-gold-hi) 25%, var(--b-cream)), color-mix(in srgb, var(--b-gold-hi) 65%, var(--b-cream)) 85%); }
+.leaf.goal { --l-ink: #FFF3D6; --l-ink2: #E2D6B4; --l-gold: #FFD86B; --l-rule: #FFD86B; --l-line: rgba(255, 216, 107, 0.35); background: var(--b-indigo); }
 .leaf.goal .chip { background: #FFD86B; color: #1E2A78; }
 .leaf.goal .views li { background: rgba(255, 255, 255, 0.08); }
 .leaf.goal .src, .leaf.goal .people a, .leaf.goal .onboard a { color: #FFE7A0; }
@@ -357,7 +365,11 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 .naming-genders { display: flex; flex-wrap: wrap; gap: 8px; }
 .naming-genders label { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border: 1px solid var(--l-line); border-radius: 99px; font-size: 15px; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--l-ink); cursor: pointer; }
 .naming-genders label:has(input:checked) { background: var(--l-rule); border-color: var(--l-rule); color: #FFF6E0; }
-.naming-genders input { accent-color: var(--l-rule); margin: 0; }
+/* the radio is drawn, not the system's: a hollow ring until chosen, and a dot in it once chosen. (The system's control,
+   tinted the colour of the chosen pill, read the wrong way round: a filled dot on every option not taken.) */
+.naming-genders input { appearance: none; -webkit-appearance: none; flex: none; width: 15px; height: 15px; margin: 0; border-radius: 50%; border: 1.5px solid currentColor; background: transparent; }
+.naming-genders input:checked { background: currentColor; box-shadow: inset 0 0 0 3px var(--l-rule); }
+.naming-genders input:focus-visible { outline: 3px solid var(--l-rule); outline-offset: 2px; }
 .naming .hint { font-size: 12.5px; font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--l-ink2); }
 .naming button[type="submit"] { align-self: flex-start; background: var(--l-rule); color: #FFF6E0; }
 .naming-step { margin: 0; font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--l-ink2); }
@@ -488,7 +500,7 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 .flourish { position: absolute; inset: 0; overflow: hidden; border-radius: inherit; pointer-events: none; z-index: 0; }
 .flourish .rays {
   position: absolute; left: 76px; top: 45%; width: 560px; aspect-ratio: 1; transform: translate(-50%, -50%);
-  background: repeating-conic-gradient(rgba(255, 190, 50, 0.2) 0 9deg, transparent 9deg 18deg);
+  background: repeating-conic-gradient(color-mix(in srgb, var(--b-gold-hi) 30%, transparent) 0 9deg, transparent 9deg 18deg);
   -webkit-mask: radial-gradient(circle, #000 10%, transparent 60%); mask: radial-gradient(circle, #000 10%, transparent 60%);
   animation: spin 24s linear infinite;
 }
@@ -525,9 +537,15 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 .win p { margin: 0; color: var(--muted); }
 
 /* Side panel */
-.panel { display: flex; flex-direction: column; gap: 16px; }
-.card { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
-.eyebrow { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; color: var(--muted); }
+/* Side panel: the margin of the cloth, written in the leaf's manuscript idiom: ruled, with vermilion rubrics, no boxes */
+.panel { display: flex; flex-direction: column; gap: 0; }
+.card { background: transparent; border: 0; border-top: 3px double var(--line); border-radius: 0; padding: 14px 2px 16px; display: flex; flex-direction: column; gap: 10px; }
+.panel > .card:first-child { border-top: 0; padding-top: 2px; }
+.eyebrow { font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; font-weight: 700; color: var(--rubric); }
+.turn { font-family: var(--f-card); }
+/* the colophon: what the cloth is, written at its foot */
+.colophon p { margin: 0; font: italic 400 15px/1.45 var(--f-card); color: var(--muted); }
+.colophon p:lang(hi) { font-family: var(--f-card-hi); }
 
 .turn { display: flex; align-items: center; gap: 10px; font-size: 20px; font-weight: 600; }
 .dot { width: 14px; height: 14px; border-radius: 50%; flex: none; border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0,0,0,0.25); }
@@ -585,11 +603,6 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 :root[data-theme="dark"] .log li.snake { color: #FF8C75; }
 :root[data-theme="dark"] .log li.ladder { color: #7FD9A3; }
 :root[data-theme="dark"] .log li.heaven { color: #F2C55C; }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .log li.snake { color: #FF8C75; }
-  :root:not([data-theme="light"]) .log li.ladder { color: #7FD9A3; }
-  :root:not([data-theme="light"]) .log li.heaven { color: #F2C55C; }
-}
 
 details.card summary { cursor: pointer; font-weight: 600; list-style: none; display: flex; justify-content: space-between; }
 details.card summary::after { content: "+"; color: var(--muted); }

@@ -1,8 +1,8 @@
 // ---- The board: squares, labels, and the painted snakes and ladders ----
-import { GOAL, TOP, ROWS, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN } from "../content.js";
+import { GOAL, TOP, ROWS, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, BOARD } from "../content.js";
 import { lang, L, t, num } from "../i18n.js";
 import { $, art, quality } from "../ui.js";
-import { PALETTE, colRow, fills, WASH } from "./ground.js";
+import { groundToken, groundOf, colRow, fills, WASH, snakeHues } from "./ground.js";
 import { cameraOn } from "./camera.js";
 
 export { colRow };
@@ -19,13 +19,36 @@ export function squareName(n) {
   return SQ[n] ? L(SQ[n].en, SQ[n].hi) : "";
 }
 
+// A square's painted vignette (REDESIGN.md Phase 13): a symbol of the sheet's drawn as a scene for the whole square. It is
+// painted in the cell, under the snakes and ladders and the ageing, as all the art is; its square's label then carries no
+// roundel. A square without one keeps its sprite in the roundel, or its emoji.
+export const vignette = n => !!document.getElementById(`sq-${n}`)?.classList.contains("vg");
+
 function labelHtml(n) {
-  const numEl = `<span class="n">${num(n)}</span>`;
+  const numEl = `<span class="n">${num(n)}</span>`, vg = vignette(n);
   if (n === GOAL) return numEl + `<span class="om">ॐ</span><span class="dv">${t("moksha")}</span>`;
-  if (HEAVEN[n]) return numEl + `<span class="ic">${art(`sq-${n}`, HEAVEN[n].ic)}</span><span class="dv">${L(HEAVEN[n].en, HEAVEN[n].hi)}</span>`;
+  if (HEAVEN[n]) return numEl + (vg ? "" : `<span class="ic">${art(`sq-${n}`, HEAVEN[n].ic)}</span>`) + `<span class="dv">${L(HEAVEN[n].en, HEAVEN[n].hi)}</span>`;
   const sl = SNAKES[n] || LADDERS[n];
-  if (sl) return numEl + `<span class="ic">${art(`sq-${n}`, sl.ic)}</span><span class="nm">${L(sl.en, sl.hi)}</span>`;
+  if (sl) return numEl + (vg ? "" : `<span class="ic">${art(`sq-${n}`, sl.ic)}</span>`) + `<span class="nm">${L(sl.en, sl.hi)}</span>`;
   return numEl;
+}
+
+// The board's superstructure, from its look (content/boards.json): for the 110, a vimāna over each square of the divine row,
+// as on the 1780 board and the Jain charts, the exit's doorway in indigo. Ornament: it goes first on a weak device.
+function superstructure() {
+  const el = $("vimana");
+  if (!el) return;
+  el.hidden = BOARD.superstructure !== "vimana";
+  if (el.hidden) return;
+  const top = ROWS - 1, f = n => +n.toFixed(2);
+  let d = "";
+  for (let c = 0; c < 10; c++) {
+    const n = top % 2 === 0 ? top * 10 + c + 1 : top * 10 + (9 - c) + 1, x = c * 10;
+    d += `<path class="dome" d="M${x + 1},9 L${x + 1},6.2 Q${x + 1},2.6 ${x + 5},1.9 Q${x + 9},2.6 ${x + 9},6.2 L${x + 9},9 Z"/>` +
+      `<path class="door${n === GOAL ? " goal" : ""}" d="M${x + 3.4},9 L${x + 3.4},6.6 Q${x + 5},4.4 ${x + 6.6},6.6 L${x + 6.6},9 Z"/>` +
+      `<circle class="finial" cx="${x + 5}" cy="${f(1.3)}" r="0.75"/>`;
+  }
+  el.innerHTML = `<svg viewBox="0 0 100 9" preserveAspectRatio="none">${d}</svg>`;
 }
 
 export const labEls = {};
@@ -38,16 +61,17 @@ export function focusSquare(n) {
 }
 export function buildCells() {
   const cells = $("cells"), labels = $("labels");
+  superstructure();
   cells.innerHTML = ""; labels.innerHTML = "";
   for (let r = ROWS - 1; r >= 0; r--) {
     for (let c = 0; c < 10; c++) {
       const n = r % 2 === 0 ? r * 10 + c + 1 : r * 10 + (9 - c) + 1;
-      const [bg, light] = PALETTE[(c + 2 * r) % PALETTE.length];
-      const heaven = n > 100;
+      const light = groundOf(n)[1], heaven = n > 100;
       const el = document.createElement("div");
       el.className = "cell" + (heaven ? " heaven" : "") + (n === GOAL ? " goal" : "");
-      if (!heaven) el.style.background = bg;
-      if (SQ[n]) el.innerHTML = `<span class="pic">${art(`sq-${n}`, SQ[n].ic)}</span>`;
+      if (!heaven) el.style.background = `var(--b-${groundToken(n)})`;
+      if (vignette(n)) el.innerHTML = `<span class="pic vg">${art(`sq-${n}`, "", "spr vg")}</span>`;
+      else if (SQ[n]) el.innerHTML = `<span class="pic">${art(`sq-${n}`, SQ[n].ic)}</span>`;
       cells.appendChild(el);
 
       const lab = document.createElement("div");
@@ -74,33 +98,41 @@ export let S = 0;
 export const center = n => { const { col, row } = colRow(n); return { x: (col + 0.5) * S, y: (ROWS - 1 - row + 0.5) * S }; };
 export const fxClear = () => fx.clearRect(0, 0, S * 10, S * ROWS);
 
+// A palette colour by token name ("vermilion"), as the page's stylesheet has it (content/boards.json, by the build).
+const tokenCache = {};
+export const paint = name => (tokenCache[name] ||= getComputedStyle(document.documentElement).getPropertyValue(`--b-${name}`).trim());
+
+// Ladders red-outlined, as on the 72-square boards: a vermilion outline under rails and rungs of Indian yellow.
 function drawLadder(a, b) {
   const p = center(a), q = center(b);
   const dx = q.x - p.x, dy = q.y - p.y, len = Math.hypot(dx, dy);
   const nx = -dy / len, ny = dx / len, half = S * 0.18;
   ctx.lineCap = "round";
   const rungs = Math.max(2, Math.floor(len / (S * 0.36)));
-  for (let pass = 0; pass < 2; pass++) {
-    ctx.strokeStyle = pass ? "#F7DB64" : "#4A2E06";
-    ctx.lineWidth = pass ? S * 0.055 : S * 0.095;
+  for (let pass = 0; pass < 3; pass++) {
+    // lamp black, the single outline; then the vermilion band; then the yellow wood
+    ctx.strokeStyle = pass === 0 ? paint("black") : pass === 1 ? paint(BOARD.ladder.outline) : paint(BOARD.ladder.rail);
+    const w = [S * 0.135, S * 0.105, S * 0.05][pass];
+    ctx.lineWidth = w * 0.85;
     for (let i = 1; i <= rungs; i++) {
       const t = i / (rungs + 1), x = p.x + dx * t, y = p.y + dy * t;
       ctx.beginPath(); ctx.moveTo(x - nx * half, y - ny * half); ctx.lineTo(x + nx * half, y + ny * half); ctx.stroke();
     }
-    ctx.strokeStyle = pass ? "#F4CF3A" : "#4A2E06";
-    ctx.lineWidth = pass ? S * 0.07 : S * 0.115;
+    ctx.lineWidth = w;
     for (const sg of [-1, 1]) {
       ctx.beginPath(); ctx.moveTo(p.x + nx * half * sg, p.y + ny * half * sg); ctx.lineTo(q.x + nx * half * sg, q.y + ny * half * sg); ctx.stroke();
     }
   }
 }
 
-// [body, band, belly] for each cobra, dark like the snakes on painted boards.
-const SNAKE_COLORS = [
-  ["#4A4F5C", "#262A33", "#C9CFC2"], ["#2F4C70", "#18293F", "#BFD3E6"], ["#5B5240", "#332D22", "#E3D3A8"],
-  ["#3C5A44", "#1F3325", "#C8DDB8"], ["#6A3B32", "#3D1F1A", "#E8C2A8"],
-];
-export const snakeColors = h => SNAKE_COLORS[Object.keys(SNAKES).indexOf(String(h)) % SNAKE_COLORS.length];
+// [body, band, belly, tongue] for each snake: a pigment of its own from the board's look, so no two snakes near each
+// other match (ground.js snakeHues), with lamp-black scales and a pale or bright belly.
+let hues = null;
+export const snakeColors = h => {
+  hues ||= snakeHues(SNAKES, BOARD.snakes);
+  const [body, belly] = BOARD.snakes[hues[h]];
+  return [paint(body), paint("black"), paint(belly), paint(body === "vermilion" ? "yellow" : "vermilion")];
+};
 
 // The wavy body from head (index 0) to tail, shared by drawing and the swallow animation.
 export function snakePath(h, t) {
@@ -117,39 +149,66 @@ export function snakePath(h, t) {
   return pts;
 }
 
-export function drawHood(c, a, b, [body, band, belly], flare = 1) {
-  const ang = Math.atan2(a.y - b.y, a.x - b.x);
+// The nāga's head: a hood of seven lobes with the spectacle mark, the head before it with two almond eyes, and a forked
+// tongue. Flat pigment inside one lamp-black line.
+export function drawHood(c, a, b, [body, band, belly, tongue], flare = 1) {
+  const ang = Math.atan2(a.y - b.y, a.x - b.x), ink = paint("black"), line = Math.max(1.2, S * 0.022);
   c.save(); c.translate(a.x, a.y); c.rotate(ang); c.scale(flare, flare);
-  c.strokeStyle = "#B3261E"; c.lineWidth = S * 0.025;
-  c.beginPath(); c.moveTo(S * 0.16, 0); c.lineTo(S * 0.3, 0); c.lineTo(S * 0.35, -S * 0.04); c.moveTo(S * 0.3, 0); c.lineTo(S * 0.35, S * 0.04); c.stroke();
-  c.lineWidth = 2; c.strokeStyle = "#0E0C08";
-  c.fillStyle = body; c.beginPath(); c.ellipse(-S * 0.07, 0, S * 0.19, S * 0.3, 0, 0, Math.PI * 2); c.fill(); c.stroke();
-  c.fillStyle = band; c.beginPath(); c.ellipse(-S * 0.07, 0, S * 0.12, S * 0.2, 0, 0, Math.PI * 2); c.fill();
-  c.strokeStyle = belly; c.lineWidth = S * 0.022;
-  for (const sg of [-1, 1]) { c.beginPath(); c.arc(-S * 0.1, sg * S * 0.09, S * 0.045, 0, Math.PI * 2); c.stroke(); }
-  c.lineWidth = 1.5; c.strokeStyle = "#0E0C08";
-  c.fillStyle = body; c.beginPath(); c.ellipse(S * 0.06, 0, S * 0.13, S * 0.1, 0, 0, Math.PI * 2); c.fill(); c.stroke();
+  c.lineJoin = "round"; c.lineCap = "round";
+  c.strokeStyle = tongue; c.lineWidth = S * 0.028;
+  c.beginPath(); c.moveTo(S * 0.17, 0); c.lineTo(S * 0.31, 0); c.lineTo(S * 0.37, -S * 0.045); c.moveTo(S * 0.31, 0); c.lineTo(S * 0.37, S * 0.045); c.stroke();
+  // the hood: lobes round a broad oval, then the oval over them
+  c.fillStyle = body; c.strokeStyle = ink; c.lineWidth = line;
+  const hx = -S * 0.08, rx = S * 0.17, ry = S * 0.31;
+  for (let k = 0; k < 7; k++) {
+    // round the back of the hood only, from one shoulder to the other, as the hood spreads behind the head
+    const th = Math.PI * (0.55 + (0.9 * k) / 6), x = hx + Math.cos(th) * rx, y = Math.sin(th) * ry;
+    c.beginPath(); c.arc(x, y, S * 0.055, 0, Math.PI * 2); c.fill(); c.stroke();
+  }
+  c.beginPath(); c.ellipse(hx, 0, rx, ry, 0, 0, Math.PI * 2); c.fill(); c.stroke();
+  // the inner hood in the belly's colour, and the spectacle mark on it
+  c.fillStyle = belly; c.beginPath(); c.ellipse(hx - S * 0.01, 0, rx * 0.62, ry * 0.68, 0, 0, Math.PI * 2); c.fill();
+  c.strokeStyle = band; c.lineWidth = S * 0.02;
+  for (const sg of [-1, 1]) { c.beginPath(); c.arc(hx - S * 0.03, sg * S * 0.085, S * 0.042, 0, Math.PI * 2); c.stroke(); }
+  c.beginPath(); c.moveTo(hx - S * 0.03, -S * 0.043); c.quadraticCurveTo(hx + S * 0.02, 0, hx - S * 0.03, S * 0.043); c.stroke();
+  // the head, and its eyes
+  c.strokeStyle = ink; c.lineWidth = line; c.fillStyle = body;
+  c.beginPath(); c.ellipse(S * 0.07, 0, S * 0.13, S * 0.095, 0, 0, Math.PI * 2); c.fill(); c.stroke();
   for (const sg of [-1, 1]) {
-    c.fillStyle = "#FFF6D8"; c.beginPath(); c.arc(S * 0.1, sg * S * 0.05, S * 0.03, 0, Math.PI * 2); c.fill();
-    c.fillStyle = "#111"; c.beginPath(); c.arc(S * 0.11, sg * S * 0.05, S * 0.015, 0, Math.PI * 2); c.fill();
+    c.fillStyle = paint("shell"); c.beginPath();
+    c.moveTo(S * 0.05, sg * S * 0.05); c.quadraticCurveTo(S * 0.1, sg * S * 0.085, S * 0.15, sg * S * 0.045); c.quadraticCurveTo(S * 0.1, sg * S * 0.025, S * 0.05, sg * S * 0.05);
+    c.fill(); c.lineWidth = line * 0.6; c.stroke();
+    c.fillStyle = ink; c.beginPath(); c.arc(S * 0.108, sg * S * 0.05, S * 0.016, 0, Math.PI * 2); c.fill();
   }
   c.restore();
 }
 
 function drawSnake(h, t) {
-  const pts = snakePath(h, t), N = pts.length - 1, cols = snakeColors(h), [body, band, belly] = cols;
+  const pts = snakePath(h, t), N = pts.length - 1, cols = snakeColors(h), [body, band, belly] = cols, ink = paint("black");
   ctx.lineCap = "round";
-  // outline, banded body, then a pale belly stripe
+  // the outline, the body, a belly stripe, then the scales: lamp-black crescents down both flanks
   for (let pass = 0; pass < 3; pass++) {
-    ctx.globalAlpha = pass === 2 ? 0.45 : 1;
     for (let i = 0; i < N; i++) {
       const a = pts[i], b = pts[i + 1];
-      ctx.strokeStyle = pass === 0 ? "#0E0C08" : pass === 1 ? (Math.floor(i / 5) % 2 ? body : band) : belly;
-      ctx.lineWidth = pass === 0 ? a.w + 3 : pass === 1 ? a.w : a.w * 0.3;
+      ctx.strokeStyle = pass === 0 ? ink : pass === 1 ? body : belly;
+      ctx.lineWidth = pass === 0 ? a.w + 3 : pass === 1 ? a.w : a.w * 0.26;
       ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
     }
   }
-  ctx.globalAlpha = 1;
+  if (quality !== "low") {
+    // all of a snake's scales are one path, stroked once
+    ctx.strokeStyle = band; ctx.lineWidth = Math.max(0.8, S * 0.014);
+    ctx.beginPath();
+    for (let i = 3; i < N - 2; i += 3) {
+      const a = pts[i], b = pts[i + 1], ang = Math.atan2(b.y - a.y, b.x - a.x), r = a.w * 0.22;
+      for (const sg of [-1, 1]) {
+        const cx = a.x + Math.cos(ang + (sg * Math.PI) / 2) * a.w * 0.3, cy = a.y + Math.sin(ang + (sg * Math.PI) / 2) * a.w * 0.3;
+        ctx.moveTo(cx + Math.cos(ang + Math.PI / 2) * r, cy + Math.sin(ang + Math.PI / 2) * r);
+        ctx.arc(cx, cy, r, ang + Math.PI / 2, ang + (3 * Math.PI) / 2);
+      }
+    }
+    ctx.stroke();
+  }
   drawHood(ctx, pts[0], pts[4], cols);
 }
 
@@ -172,14 +231,15 @@ export function drawAge(next = washes) {
       agx.fillRect(x, y, S, S);
     }
   }
-  // and the edges worn darker, an ellipse that clears toward the middle
-  agx.save();
-  agx.translate(W / 2, H / 2); agx.scale(W * 0.72, H * 0.7);
-  const edge = agx.createRadialGradient(0, 0, 0, 0, 0, 1);
-  edge.addColorStop(0.62, "transparent"); edge.addColorStop(1, tokens["--b-black"]);
-  agx.globalAlpha = WASH.edge; agx.fillStyle = edge;
-  agx.fillRect(-W / (2 * W * 0.72) - 1, -H / (2 * H * 0.7) - 1, 1 / 0.72 + 2, 1 / 0.7 + 2);
-  agx.restore();
+  // and the edges worn darker: five flat rings, each a little darker toward the rim, never more than WASH.edge in all
+  // (no gradients but the gold, REDESIGN.md Phase 13)
+  agx.fillStyle = tokens["--b-black"];
+  for (const k of [1, 0.95, 0.9, 0.85, 0.8]) {
+    agx.globalAlpha = WASH.edge / 5;
+    agx.beginPath(); agx.rect(0, 0, W, H);
+    agx.ellipse(W / 2, H / 2, W * 0.72 * k, H * 0.7 * k, 0, 0, Math.PI * 2);
+    agx.fill("evenodd");
+  }
   agx.globalAlpha = 1;
 }
 

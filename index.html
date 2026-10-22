@@ -23,35 +23,31 @@
 /* Layout: board as the hero on the left, a narrow control column (turn, die, players, log) on the right; stacks on phones. */
 :root {
   color-scheme: light;
-  --ground: #E4E7F0;
-  --surface: #F6F7FB;
-  --ink: #1A1D35;
-  --muted: #5B6080;
-  --line: #CBD0E0;
-  --accent: #2B3A8F;
-  --on-accent: #FFFFFF;
+  /* the page is the cloth the board is painted on (REDESIGN.md Phase 13): a warm ground, ink in lamp black and lac */
+  --ground: var(--b-cloth);
+  --surface: color-mix(in srgb, var(--b-cream) 70%, var(--b-cloth));
+  --ink: #2A1A08;
+  --muted: #6B4F2C;
+  --line: color-mix(in srgb, var(--b-lac) 28%, transparent);
+  --accent: var(--b-vermilion);
+  --on-accent: #FFF6E0;
+  --rubric: var(--b-vermilion);
   --f-display: "Noto Sans Devanagari", "Rozha One", "Iowan Old Style", Georgia, serif;
   --f-body: "Noto Sans Devanagari", "Hind", system-ui, -apple-system, "Segoe UI", sans-serif;
   --f-emoji: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
   --f-card: "Crimson Pro", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
   --f-card-hi: "Tiro Devanagari Hindi", "Noto Serif Devanagari", "Kohinoor Devanagari", "Noto Sans Devanagari", serif;
   --p0: #C0392B; --p1: #2E5BBA; --p2: #2E8B57; --p3: #D98300;
-  --frame-red: #B5261E; --frame-dark: #5A1208; --frame-gold: #F6C443;
-  /* the Basohli palette: assets/sprites.svg may use these seven colours and nothing else (lint-content.mjs) */
-  --b-vermilion: #C8352A; --b-ochre: #D9A441; --b-indigo: #2B3A67; --b-malachite: #3F7A4E;
-  --b-black: #1A1410; --b-shell: #F4EDDC; --b-beetle: #1F7A5A;
+  --frame-red: var(--b-vermilion); --frame-dark: var(--b-lac); --frame-gold: var(--b-gold-hi);
+  /* the Basohli palette, the --b-* tokens: written here by the build from the board's look in content/boards.json.
+     assets/sprites.svg may use these colours and nothing else (lint-content.mjs) */
+  --b-vermilion: #C8352A; --b-ochre: #D9A441; --b-yellow: #E3A21A; --b-indigo: #2B3A67; --b-malachite: #3F7A4E; --b-black: #1A1410; --b-shell: #F4EDDC; --b-beetle: #1F7A5A; --b-gold: #B8862B; --b-gold-hi: #EDCF72; --b-cream: #F5E9C9; --b-paleochre: #EDD49B; --b-palegreen: #DCE0B4; --b-cloth: #E8D7AE; --b-lac: #5A1208;
 }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    color-scheme: dark;
-    --ground: #11132A; --surface: #1B1E3A; --ink: #ECEDF7; --muted: #A2A7C6;
-    --line: #2E3257; --accent: #A3B2FF; --on-accent: #11132A;
-  }
-}
+/* Dark is a setting (prefs.theme), never the default: the page around the board goes dark, the cloth does not. */
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --ground: #11132A; --surface: #1B1E3A; --ink: #ECEDF7; --muted: #A2A7C6;
-  --line: #2E3257; --accent: #A3B2FF; --on-accent: #11132A;
+  --ground: #17120C; --surface: #221A12; --ink: #F1E6CF; --muted: #BFA985;
+  --line: rgba(237, 207, 114, 0.22); --accent: #E0644F; --on-accent: #17120C; --rubric: #EDCF72;
 }
 
 * { box-sizing: border-box; }
@@ -67,7 +63,7 @@ body {
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
 }
-.wrap { max-width: 1060px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+.wrap { max-width: 1320px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
 
 header { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 12px 14px; }
 header .tools { display: flex; align-items: center; gap: 8px; }
@@ -76,33 +72,44 @@ button.icon { width: 34px; height: 34px; padding: 0; border-radius: 50%; display
 #mute.off .cross { display: inline; }
 #mute.off .wave { display: none; }
 h1 { font-family: var(--f-display); font-weight: 400; font-size: clamp(34px, 6vw, 52px); line-height: 1; margin: 0; letter-spacing: -0.01em; text-wrap: balance; }
-header p { margin: 0; color: var(--muted); max-width: 62ch; grid-column: 1 / -1; }
 .lang { display: inline-flex; border: 1px solid var(--line); border-radius: 99px; overflow: hidden; }
 .lang button { padding: 5px 14px; border: 0; border-radius: 0; background: transparent; color: var(--ink); font-size: 14px; }
 .lang button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); }
 
-.game { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 24px; align-items: start; }
+/* the board fills the page, as tall as the screen allows; the panel beside it is the margin (REDESIGN.md Phase 13) */
+.game { display: grid; grid-template-columns: minmax(0, 1fr) 272px; gap: 28px; align-items: start; }
 @media (max-width: 820px) { .game { grid-template-columns: 1fr; } }
 
 /* Board: an ornate red-and-gold printed frame around a 10 x 11 grid (100 earthly squares + a row of heavenly realms). */
-.board-col { display: flex; flex-direction: column; gap: 10px; }
+.board-col { display: flex; flex-direction: column; gap: 10px; width: min(100%, calc((100dvh - 110px) * 0.84)); margin-left: auto; }
+@media (max-width: 820px) { .board-col { width: 100%; } }
 .board-frame {
   --fp: clamp(8px, 2.6vw, 18px);
-  width: 100%; max-width: 600px;
+  width: 100%;
   padding: var(--fp);
-  background: radial-gradient(circle, var(--frame-gold) 0 1.6px, transparent 2.2px) 0 0 / 11px 11px, var(--frame-red);
-  border: 3px solid var(--frame-dark); border-radius: 6px;
+  /* the border: a floral scroll on vermilion (one flat tile), inside a band of gold, the one gradient (REDESIGN.md Phase 13) */
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22'%3E%3Crect width='22' height='22' fill='%23C8352A'/%3E%3Cpath d='M0,11 C5.5,3 5.5,3 11,11 S16.5,19 22,11' fill='none' stroke='%23EDCF72' stroke-width='1.6'/%3E%3Cellipse cx='5.5' cy='5.2' rx='2.2' ry='1.2' fill='%233F7A4E' stroke='%231A1410' stroke-width='.5'/%3E%3Cellipse cx='16.5' cy='16.8' rx='2.2' ry='1.2' fill='%233F7A4E' stroke='%231A1410' stroke-width='.5'/%3E%3Ccircle cx='5.5' cy='15' r='1.1' fill='%23F4EDDC'/%3E%3Ccircle cx='16.5' cy='7' r='1.1' fill='%23F4EDDC'/%3E%3C/svg%3E") 0 0 / 22px 22px, var(--frame-red);
+  border: 4px solid var(--frame-dark); border-image: linear-gradient(135deg, var(--b-gold-hi), var(--b-gold), var(--b-gold-hi)) 1; border-radius: 0;
   box-shadow: inset 0 0 0 2px var(--frame-gold), 0 10px 30px rgba(10, 12, 40, 0.3);
 }
+/* the vimāna over the divine row: gold domes with their doorways, the exit's in indigo (render/board.js superstructure) */
+.vimana { aspect-ratio: 100 / 9; margin: 0 3px -1px; }
+.vimana svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.vimana .dome { fill: var(--b-gold-hi); stroke: var(--b-lac); stroke-width: 0.45; }
+.vimana .door { fill: var(--b-vermilion); stroke: var(--b-lac); stroke-width: 0.35; }
+.vimana .door.goal { fill: var(--b-indigo); }
+.vimana .finial { fill: var(--b-vermilion); stroke: var(--b-lac); stroke-width: 0.3; }
+/* on a weak device the ornament goes first, before any pigment, and the ageing never does */
+:root.plain .vimana { display: none; }
+:root.plain .board-frame { background: var(--frame-red); }
 .board-wrap { position: relative; width: 100%; aspect-ratio: 10 / 11; border: 3px solid var(--frame-dark); outline: 2px solid var(--frame-gold); background: var(--frame-dark); container-type: inline-size; }
 .cells, .labels { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(10, 1fr); grid-template-rows: repeat(11, 1fr); }
 .cell { position: relative; box-shadow: inset 0 0 0 0.5px rgba(40, 18, 4, 0.45); }
 /* The picture on each plain square sits under the snakes and ladders, like the painted boards. */
 .cell .pic { position: absolute; inset: 0; display: grid; place-items: center; padding-top: 8%; font-family: var(--f-emoji); font-size: 4.6cqi; line-height: 1; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.3)); }
-.cell.heaven { background: radial-gradient(circle at 50% 40%, #FFF3C4, #F2C14E 62%, #D9922B); box-shadow: inset 0 -3px 0 var(--frame-dark), inset 0 0 0 0.5px rgba(90, 30, 8, 0.5); }
-.cell.goal { background: radial-gradient(circle at 50% 42%, #4A5CD0, #1E2A78 75%); }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .cells { filter: brightness(0.9) saturate(0.92); } }
-:root[data-theme="dark"] .cells { filter: brightness(0.9) saturate(0.92); }
+/* Gold is the one gradient on the board, because it is metal (REDESIGN.md Phase 13): the divine row, and the border. */
+.cell.heaven { background: linear-gradient(170deg, var(--b-gold-hi), var(--b-gold)); box-shadow: inset 0 -3px 0 var(--frame-dark), inset 0 0 0 0.5px rgba(90, 30, 8, 0.5); }
+.cell.goal { background: var(--b-indigo); }
 canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 #fx { z-index: 1; }
 /* The camera moves .cam inside .board-stage, which clips it to the board; the frame's ashrama labels stay outside. */
@@ -164,6 +171,9 @@ canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events
 svg.sprites { position: absolute; width: 0; height: 0; overflow: hidden; }
 svg.spr { display: block; width: 1.2em; height: 1.2em; }
 .cell .pic:has(svg), .lab .ic:has(svg), .leaf .glyph:has(svg) { filter: none; }
+/* a painted vignette fills its square (REDESIGN.md Phase 13) */
+.cell .pic.vg { padding: 0; }
+.cell .pic.vg svg.spr { width: 100%; height: 100%; }
 .lab .ic svg.spr { width: 82%; height: 82%; }
 .lab.heaven .ic svg.spr { width: 5.6cqi; height: 5.6cqi; }
 .lab .dv { position: absolute; left: 0; right: 0; bottom: 6%; text-align: center; font-family: var(--f-display); font-size: clamp(7px, 1.75cqi, 13px); line-height: 1; color: #5A1E08; white-space: nowrap; }
@@ -203,7 +213,7 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 .token.hide { opacity: 0; }
 .token.poof::before {
   content: ""; position: absolute; inset: -45%; border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 236, 150, 0.95) 0 18%, rgba(255, 200, 80, 0.55) 40%, transparent 66%);
+  background: var(--b-gold-hi);
   animation: poof 0.65s ease-out forwards;
 }
 @keyframes bob { 50% { transform: translateY(-7%); } }
@@ -234,7 +244,7 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 
 /* The line under the board (REDESIGN.md Phase 11): an ordinary landing, told in a line, which opens its card */
 .landed {
-  width: 100%; max-width: 600px; margin: 0; padding: 8px 12px; text-align: left;
+  width: 100%; margin: 0; padding: 8px 12px; text-align: left;
   border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--ink);
   font: 400 15px/1.4 var(--f-card); cursor: pointer;
   /* the height of an ordinary moment, three lines (four on a phone), kept when empty so nothing under it moves as the
@@ -263,10 +273,8 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
   view-transition-name: folio;
   position: relative; display: flex; flex-direction: column; max-height: calc(100dvh - 24px);
   border-radius: 14px / 18px; color: var(--l-ink); font-family: var(--f-card);
-  background:
-    radial-gradient(130% 150% at 50% 45%, transparent 55%, rgba(120, 72, 20, 0.3) 100%),
-    radial-gradient(60% 40% at 85% 12%, rgba(255, 255, 255, 0.35), transparent 70%),
-    linear-gradient(176deg, #FBF3DC, #F2DFB0 85%);
+  /* a flat leaf of paper, as the board is flat cloth: no gradients but the gold (REDESIGN.md Phase 13) */
+  background: var(--b-cream);
   box-shadow: inset 0 0 0 1px rgba(110, 70, 20, 0.35), inset 0 0 34px rgba(120, 72, 20, 0.22), 0 22px 60px rgba(0, 0, 0, 0.5);
 }
 .leaf > :not(.flourish) { position: relative; z-index: 1; }
@@ -287,7 +295,7 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 /* the hole the binding string passed through */
 .leaf .hole {
   margin: auto 0; width: 16px; aspect-ratio: 1; border-radius: 50%;
-  background: radial-gradient(circle, #24160A 0 42%, #6B4A22 58%, rgba(107, 74, 34, 0) 72%);
+  background: var(--b-black); box-shadow: 0 0 0 2px color-mix(in srgb, var(--b-ochre) 60%, transparent);
 }
 .leaf-text { padding: 6px 18px 10px 22px; border-right: 4px double var(--l-rule); min-width: 0; }
 .leaf-text:lang(hi), .leaf-text :lang(hi) { font-family: var(--f-card-hi); }
@@ -340,9 +348,9 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 .leaf .ft { font-size: 14px; font-weight: 700; color: var(--l-gold); text-align: center; }
 
 .leaf.virtue { --l-rule: #2E7D4F; --l-gold: #2E6B45; }
-.leaf.vice { --l-rule: #B3261E; --l-gold: #9E2A1C; background: radial-gradient(130% 150% at 50% 45%, transparent 55%, rgba(120, 30, 20, 0.3) 100%), linear-gradient(176deg, #FDF0E6, #F1CDBF 85%); }
-.leaf.heaven { --l-rule: #C08A14; background: radial-gradient(130% 150% at 50% 45%, transparent 55%, rgba(150, 100, 10, 0.3) 100%), linear-gradient(176deg, #FFFBEA, #F8E3A0 85%); }
-.leaf.goal { --l-ink: #FFF3D6; --l-ink2: #E2D6B4; --l-gold: #FFD86B; --l-rule: #FFD86B; --l-line: rgba(255, 216, 107, 0.35); background: radial-gradient(circle at 30% 30%, #4A5CD0, #1E2A78 75%); }
+.leaf.vice { --l-rule: #B3261E; --l-gold: #9E2A1C; background: color-mix(in srgb, var(--b-vermilion) 12%, var(--b-cream)); }
+.leaf.heaven { --l-rule: #C08A14; background: linear-gradient(176deg, color-mix(in srgb, var(--b-gold-hi) 25%, var(--b-cream)), color-mix(in srgb, var(--b-gold-hi) 65%, var(--b-cream)) 85%); }
+.leaf.goal { --l-ink: #FFF3D6; --l-ink2: #E2D6B4; --l-gold: #FFD86B; --l-rule: #FFD86B; --l-line: rgba(255, 216, 107, 0.35); background: var(--b-indigo); }
 .leaf.goal .chip { background: #FFD86B; color: #1E2A78; }
 .leaf.goal .views li { background: rgba(255, 255, 255, 0.08); }
 .leaf.goal .src, .leaf.goal .people a, .leaf.goal .onboard a { color: #FFE7A0; }
@@ -379,7 +387,11 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 .naming-genders { display: flex; flex-wrap: wrap; gap: 8px; }
 .naming-genders label { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border: 1px solid var(--l-line); border-radius: 99px; font-size: 15px; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--l-ink); cursor: pointer; }
 .naming-genders label:has(input:checked) { background: var(--l-rule); border-color: var(--l-rule); color: #FFF6E0; }
-.naming-genders input { accent-color: var(--l-rule); margin: 0; }
+/* the radio is drawn, not the system's: a hollow ring until chosen, and a dot in it once chosen. (The system's control,
+   tinted the colour of the chosen pill, read the wrong way round: a filled dot on every option not taken.) */
+.naming-genders input { appearance: none; -webkit-appearance: none; flex: none; width: 15px; height: 15px; margin: 0; border-radius: 50%; border: 1.5px solid currentColor; background: transparent; }
+.naming-genders input:checked { background: currentColor; box-shadow: inset 0 0 0 3px var(--l-rule); }
+.naming-genders input:focus-visible { outline: 3px solid var(--l-rule); outline-offset: 2px; }
 .naming .hint { font-size: 12.5px; font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--l-ink2); }
 .naming button[type="submit"] { align-self: flex-start; background: var(--l-rule); color: #FFF6E0; }
 .naming-step { margin: 0; font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--l-ink2); }
@@ -510,7 +522,7 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 .flourish { position: absolute; inset: 0; overflow: hidden; border-radius: inherit; pointer-events: none; z-index: 0; }
 .flourish .rays {
   position: absolute; left: 76px; top: 45%; width: 560px; aspect-ratio: 1; transform: translate(-50%, -50%);
-  background: repeating-conic-gradient(rgba(255, 190, 50, 0.2) 0 9deg, transparent 9deg 18deg);
+  background: repeating-conic-gradient(color-mix(in srgb, var(--b-gold-hi) 30%, transparent) 0 9deg, transparent 9deg 18deg);
   -webkit-mask: radial-gradient(circle, #000 10%, transparent 60%); mask: radial-gradient(circle, #000 10%, transparent 60%);
   animation: spin 24s linear infinite;
 }
@@ -547,9 +559,15 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 .win p { margin: 0; color: var(--muted); }
 
 /* Side panel */
-.panel { display: flex; flex-direction: column; gap: 16px; }
-.card { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
-.eyebrow { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600; color: var(--muted); }
+/* Side panel: the margin of the cloth, written in the leaf's manuscript idiom: ruled, with vermilion rubrics, no boxes */
+.panel { display: flex; flex-direction: column; gap: 0; }
+.card { background: transparent; border: 0; border-top: 3px double var(--line); border-radius: 0; padding: 14px 2px 16px; display: flex; flex-direction: column; gap: 10px; }
+.panel > .card:first-child { border-top: 0; padding-top: 2px; }
+.eyebrow { font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; font-weight: 700; color: var(--rubric); }
+.turn { font-family: var(--f-card); }
+/* the colophon: what the cloth is, written at its foot */
+.colophon p { margin: 0; font: italic 400 15px/1.45 var(--f-card); color: var(--muted); }
+.colophon p:lang(hi) { font-family: var(--f-card-hi); }
 
 .turn { display: flex; align-items: center; gap: 10px; font-size: 20px; font-weight: 600; }
 .dot { width: 14px; height: 14px; border-radius: 50%; flex: none; border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0,0,0,0.25); }
@@ -607,11 +625,6 @@ button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-v
 :root[data-theme="dark"] .log li.snake { color: #FF8C75; }
 :root[data-theme="dark"] .log li.ladder { color: #7FD9A3; }
 :root[data-theme="dark"] .log li.heaven { color: #F2C55C; }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .log li.snake { color: #FF8C75; }
-  :root:not([data-theme="light"]) .log li.ladder { color: #7FD9A3; }
-  :root:not([data-theme="light"]) .log li.heaven { color: #F2C55C; }
-}
 
 details.card summary { cursor: pointer; font-weight: 600; list-style: none; display: flex; justify-content: space-between; }
 details.card summary::after { content: "+"; color: var(--muted); }
@@ -674,7 +687,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
 <symbol id="sq-16" viewBox="0 0 24 24"><g stroke="#1A1410" stroke-width="1.25" stroke-linejoin="round" stroke-linecap="round"><path d="M 2.84,9.84 L 5.36,8.40 C 6.26,6.60 8.60,5.88 10.76,6.06 C 11.30,4.80 12.74,4.26 13.82,5.16 L 15.44,5.70 L 13.82,6.24 C 13.64,7.86 12.92,9.66 10.94,10.38 L 10.04,12.36 L 9.50,12.36 L 9.50,10.56 L 8.06,10.74 L 7.70,12.36 L 7.16,12.36 L 7.16,10.74 C 5.90,10.74 4.46,10.56 2.84,9.84 Z" fill="#1A1410"/><circle cx="13.10" cy="5.52" r="0.41" fill="#F4EDDC" stroke="none"/><path d="M 11.00,13.40 C 12.00,18.00 16.00,19.60 20.00,17.40" fill="none"/><circle cx="11.80" cy="15.40" r="0.85" fill="#1F7A5A" stroke="none"/><circle cx="13.00" cy="17.20" r="0.85" fill="#1F7A5A" stroke="none"/><circle cx="14.60" cy="18.40" r="0.85" fill="#1F7A5A" stroke="none"/><circle cx="16.40" cy="18.80" r="0.85" fill="#1F7A5A" stroke="none"/><circle cx="18.20" cy="18.40" r="0.85" fill="#1F7A5A" stroke="none"/></g></symbol>
 <symbol id="sq-17" viewBox="0 0 24 24"><g stroke="#1A1410" stroke-width="1.25" stroke-linejoin="round" stroke-linecap="round"><path d="M 3.00,15.00 L 21.00,15.00 L 21.00,19.00 L 3.00,19.00 Z" fill="#2B3A67"/><path d="M 4.20,12.20 C 4.20,10.00 5.80,9.60 7.00,9.80 C 8.00,10.00 8.40,10.80 8.40,11.60 L 9.00,12.80 L 8.40,13.10 C 8.50,13.80 8.20,14.50 7.60,14.70 L 6.80,14.80 C 5.80,15.00 4.20,14.20 4.20,12.20 Z" fill="#F4EDDC"/><path d="M 4.20,12.20 C 4.00,10.00 5.80,9.30 7.20,9.70 L 7.00,10.40 C 5.80,10.40 5.20,11.20 5.20,12.20 C 5.20,13.00 4.80,13.60 4.30,13.50 C 4.20,13.00 4.20,12.60 4.20,12.20 Z" fill="#1A1410"/><path d="M 6.30,11.80 Q 7.30,10.80 8.30,11.80 Q 7.30,12.40 6.30,11.80 Z" fill="#1A1410" stroke="none"/><path d="M 7.00,13.00 C 10.00,10.60 18.00,11.00 21.00,13.00 L 21.00,15.00 L 6.00,15.00 Z" fill="#D9A441"/><path d="M 14.00,4.60 L 17.00,4.60 L 14.00,7.60 L 17.00,7.60" fill="none"/><path d="M 18.00,2.00 L 20.00,2.00 L 18.00,4.00 L 20.00,4.00" fill="none"/></g></symbol>
 <symbol id="sq-18" viewBox="0 0 24 24"><g stroke="#1A1410" stroke-width="1.25" stroke-linejoin="round" stroke-linecap="round"><path d="M 7.93,8.02 L 10.87,8.02 L 12.34,16.52 L 6.46,16.52 Z" fill="#D9A441"/><path d="M 7.09,5.18 C 7.09,2.87 8.77,2.45 10.03,2.66 C 11.08,2.87 11.50,3.71 11.50,4.55 L 12.13,5.81 L 11.50,6.12 C 11.61,6.86 11.29,7.59 10.66,7.80 L 9.82,7.91 C 8.77,8.12 7.09,7.28 7.09,5.18 Z" fill="#F4EDDC"/><path d="M 7.09,5.18 C 6.88,2.87 8.77,2.13 10.24,2.55 L 10.03,3.29 C 8.77,3.29 8.14,4.13 8.14,5.18 C 8.14,6.02 7.72,6.65 7.20,6.54 C 7.09,6.02 7.09,5.60 7.09,5.18 Z" fill="#1A1410"/><path d="M 9.29,4.76 Q 10.35,3.71 11.39,4.76 Q 10.35,5.39 9.29,4.76 Z" fill="#1A1410" stroke="none"/><path d="M10.89,9.37 L12.18,5.82 L11.10,5.42 L9.80,8.97 Z" fill="#F4EDDC"/><circle cx="11.64" cy="5.62" r="0.58" fill="#F4EDDC"/><path d="M 17.00,3.00 L 21.00,3.00 L 21.00,21.00 L 17.00,21.00 Z" fill="#C8352A"/><path d="M17.00,9.00 L21.00,9.00" fill="none"/><path d="M17.00,15.00 L21.00,15.00" fill="none"/></g></symbol>
-<symbol id="sq-19" viewBox="0 0 24 24"><g stroke="#1A1410" stroke-width="1.25" stroke-linejoin="round" stroke-linecap="round"><path d="M 4.80,13.80 C 3.00,12.60 2.88,9.96 4.08,9.00 C 4.56,10.68 5.52,11.40 6.72,11.16 L 14.40,10.68 L 15.60,7.80 L 16.56,10.44 L 17.28,7.80 L 17.76,10.92 L 20.40,12.12 L 18.00,13.32 L 16.80,13.32 L 16.32,15.00 L 15.60,17.88 L 14.40,17.88 L 14.40,14.52 L 8.88,14.52 L 8.16,17.88 L 6.96,17.88 L 6.96,14.04 Z" fill="#2B3A67"/><circle cx="17.04" cy="11.40" r="0.54" fill="#1A1410" stroke="none"/><path d="M 14.60,4.60 L 15.80,2.60 L 17.00,4.20 L 18.40,2.60 L 19.40,4.60 Z" fill="#D9A441"/></g></symbol>
+<symbol id="sq-19" class="vg" viewBox="0 0 48 48"><g stroke="#1A1410" stroke-width="1.25" stroke-linejoin="round" stroke-linecap="round"><path d="M31,38 L31,17.6 Q31,11.6 35.8,11 Q38.5,8 38.5,6.2 Q38.5,8 41.2,11 Q46,11.6 46,17.6 L46,38 Z" fill="#E3A21A"/><path d="M42.85,16 L41.24,16.89 L42.02,18.56 L40.19,18.33 L39.84,20.14 L38.5,18.88 L37.16,20.14 L36.81,18.33 L34.98,18.56 L35.76,16.89 L34.15,16 L35.76,15.11 L34.98,13.44 L36.81,13.67 L37.16,11.86 L38.5,13.12 L39.84,11.86 L40.19,13.67 L42.02,13.44 L41.24,15.11 Z" fill="#C8352A"/><circle cx="38.5" cy="16" r="3" fill="#E3A21A"/><path d="M31,38 L31,27 Q33,24.4 35,27 Q37,24.4 39,27 Q41,24.4 43,27 Q45,24.4 46,27 L46,38 Z" fill="#2B3A67"/><path d="M33,32.5 Q35,29.9 37,32.5 Q39,29.9 41,32.5 Q43,29.9 45,32.5 Q45,29.9 45,32.5" fill="none" stroke="#F4EDDC" stroke-width="1.25"/><path d="M5.6,22.5 L10.4,22.5 L11.45,29.25 L15.13,41.25 L1.25,41.25 L4.55,29.25 Z" fill="#E3A21A"/><path d="M4.55,28.8 L11.45,28.8 L11.75,30.45 L4.25,30.45 Z" fill="#C8352A"/><path d="M11.94,25.69 L16.94,15.19 L14.06,13.81 L9.06,24.31 Z" fill="#F4EDDC"/><circle cx="15.5" cy="14.5" r="2" fill="#F4EDDC"/><path d="M3.8,15.45 C3.8,11.25 6.95,10.2 9.57,10.62 C11.78,11.04 12.83,12.72 12.94,14.82 L14.51,17.66 L12.94,18.18 C13.14,19.23 12.73,20.18 11.78,20.39 L10.31,21.44 C8,22.27 4.85,21.33 3.8,19.02 Z" fill="#F4EDDC"/><path d="M3.17,18.39 C1.7,13.35 5.27,9.25 9.99,10.3 L9.47,12.62 C7.37,12.41 6.11,13.88 6.11,15.87 C6.11,17.87 5.06,19.55 3.17,18.39 Z" fill="#1A1410"/><path d="M7.37,10.62 C7.37,7.89 9.68,7.47 10.52,8.73 C9.26,8.94 8.84,9.57 9.26,10.62 Z" fill="#1A1410"/><path d="M8.21,15.13 Q10.41,13.35 12.41,14.93 Q10.41,16.29 8.21,15.13 Z" fill="#1A1410" stroke="none"/></g></symbol>
 <symbol id="sq-20" viewBox="0 0 24 24"><g stroke="#1A1410" stroke-width="1.25" stroke-linejoin="round" stroke-linecap="round"><path d="M 6.00,3.40 C 14.00,7.00 17.40,13.60 17.00,20.40" fill="none"/><path d="M 7.40,3.00 C 15.60,7.40 19.00,14.00 18.60,20.60" fill="none"/><path d="M 8.80,2.60 C 17.00,7.60 20.60,14.40 20.20,20.60" fill="none"/><circle cx="17.80" cy="20.60" r="1.40" fill="#D9A441"/></g></symbol>
 <symbol id="sq-21" viewBox="0 0 24 24"><g stroke="#1A1410" stroke-width="1.25" stroke-linejoin="round" stroke-linecap="round"><path d="M 3.00,12.00 L 12.00,4.00 L 21.00,12.00 Z" fill="#D9A441"/><path d="M 5.00,12.00 L 19.00,12.00 L 19.00,20.60 L 5.00,20.60 Z" fill="#F4EDDC"/><path d="M 10.00,14.60 L 14.00,14.60 L 14.00,20.60 L 10.00,20.60 Z" fill="#2B3A67"/><path d="M 13.10,17.87 C 13.10,16.88 13.87,16.66 14.75,16.77 L 15.85,16.33 L 16.40,16.77 L 17.94,16.77 L 18.38,15.67 L 18.71,16.66 C 19.37,16.55 20.03,16.77 20.25,17.32 L 20.36,18.42 L 19.48,18.53 L 18.82,18.20 L 18.38,18.97 L 18.38,20.73 L 17.83,20.73 L 17.61,19.08 L 14.64,19.08 L 14.42,20.73 L 13.87,20.73 L 13.76,18.86 C 13.21,18.64 13.10,18.20 13.10,17.87 Z" fill="#F4EDDC"/><circle cx="19.37" cy="17.32" r="0.25" fill="#1A1410" stroke="none"/></g></symbol>
 <symbol id="sq-22" viewBox="0 0 24 24"><g stroke="#1A1410" stroke-width="1.25" stroke-linejoin="round" stroke-linecap="round"><path d="M 3.60,12.60 C 2.88,10.68 3.12,8.52 4.32,8.04 C 4.08,9.48 4.80,10.92 6.48,10.92 L 12.72,10.44 C 13.20,7.32 16.08,5.88 18.48,6.84 C 21.12,7.80 21.60,10.68 20.88,12.84 L 19.68,13.56 C 18.72,15.00 17.52,15.24 16.32,15.00 L 16.08,18.12 L 14.64,18.12 L 14.40,15.24 L 8.88,15.24 L 8.40,18.12 L 6.96,18.12 L 6.72,14.52 C 5.28,14.28 4.08,13.56 3.60,12.60 Z" fill="#D9A441"/><circle cx="18.96" cy="9.96" r="0.54" fill="#1A1410" stroke="none"/><path d="M 5.00,6.00 L 8.00,9.00" fill="none"/><path d="M 12.00,3.40 L 12.00,7.40" fill="none"/><path d="M 19.00,6.00 L 16.00,9.00" fill="none"/></g></symbol>
@@ -699,7 +712,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
 <symbol id="sq-41" viewBox="0 0 24 24"><g stroke="#1A1410" stroke-width="1.25" stroke-linejoin="round" stroke-linecap="round"><path d="M 12.00,13.40 C 9.66,13.40 9.30,11.06 10.38,9.44 C 10.56,10.34 11.10,10.70 11.46,10.52 C 10.92,8.90 12.00,7.28 13.08,6.74 C 12.72,8.18 14.34,9.08 14.34,11.06 C 14.34,12.50 13.44,13.40 12.00,13.40 Z" fill="#C8352A"/><path d="M 12.00,12.86 C 10.92,12.86 10.74,11.60 11.46,10.70 C 11.64,11.24 12.00,11.42 12.18,11.24 C 12.00,10.34 12.54,9.62 12.90,9.44 C 12.90,10.52 13.44,11.06 13.44,11.78 C 13.44,12.50 12.90,12.86 12.00,12.86 Z" fill="#D9A441" stroke="none"/><circle cx="12.00" cy="5.40" r="1.20" fill="#D9A441"/><circle cx="17.94" cy="8.26" r="1.20" fill="#D9A441"/><circle cx="19.41" cy="14.69" r="1.20" fill="#D9A441"/><circle cx="15.30" cy="19.85" r="1.20" fill="#D9A441"/><circle cx="8.70" cy="19.85" r="1.20" fill="#D9A441"/><circle cx="4.59" cy="14.69" r="1.20" fill="#D9A441"/><circle cx="6.06" cy="8.26" r="1.20" fill="#C8352A"/></g></symbol>
 <symbol id="sq-42" viewBox="0 0 24 24"><g stroke="#1A1410" stroke-width="1.25" stroke-linejoin="round" stroke-linecap="round"><path d="M 3.00,11.00 L 12.00,3.40 L 21.00,11.00 Z" fill="#C8352A"/><path d="M 5.00,11.00 L 19.00,11.00 L 19.00,20.60 L 5.00,20.60 Z" fill="#D9A441"/><path d="M 10.00,14.00 L 14.00,14.00 L 14.00,20.60 L 10.00,20.60 Z" fill="#2B3A67"/><path d="M 6.60,13.00 L 8.60,13.00 L 8.60,15.00 L 6.60,15.00 Z" fill="#F4EDDC"/><path d="M 15.40,13.00 L 17.40,13.00 L 17.40,15.00 L 15.40,15.00 Z" fill="#F4EDDC"/></g></symbol>
 <symbol id="sq-43" viewBox="0 0 24 24"><g stroke="#1A1410" stroke-width="1.25" stroke-linejoin="round" stroke-linecap="round"><path d="M 5.00,3.00 C 14.00,6.00 14.00,18.00 5.00,21.00" fill="none"/><path d="M5.00,3.00 L8.00,12.40 L5.00,21.00" fill="none"/><path d="M 10.20,15.80 C 9.00,15.00 8.92,13.24 9.72,12.60 C 10.04,13.72 10.68,14.20 11.48,14.04 L 16.60,13.72 L 17.40,11.80 L 18.04,13.56 L 18.52,11.80 L 18.84,13.88 L 20.60,14.68 L 19.00,15.48 L 18.20,15.48 L 17.88,16.60 L 17.40,18.52 L 16.60,18.52 L 16.60,16.28 L 12.92,16.28 L 12.44,18.52 L 11.64,18.52 L 11.64,15.96 Z" fill="#D9A441"/><circle cx="18.36" cy="14.20" r="0.36" fill="#1A1410" stroke="none"/></g></symbol>
-<symbol id="sq-44" viewBox="0 0 24 24"><g stroke="#1A1410" stroke-width="1.25" stroke-linejoin="round" stroke-linecap="round"><path d="M 3.00,16.00 C 5.00,13.00 10.00,12.60 12.00,15.00 C 14.00,12.60 19.00,13.00 21.00,16.00 L 19.00,19.00 L 5.00,19.00 Z" fill="#F4EDDC"/><path d="M 9.00,5.00 L 15.00,5.00 L 15.00,10.40 L 9.00,10.40 Z" fill="#D9A441"/><path d="M12.00,10.40 L12.00,13.00" fill="none"/></g></symbol>
+<symbol id="sq-44" class="vg" viewBox="0 0 48 48"><g stroke="#1A1410" stroke-width="1.25" stroke-linejoin="round" stroke-linecap="round"><path d="M6.18,20 L11.82,20 L13.05,27.92 L17.36,42 L1.08,42 L4.95,27.92 Z" fill="#3F7A4E"/><path d="M4.95,27.39 L13.05,27.39 L13.4,29.33 L4.6,29.33 Z" fill="#E3A21A"/><path d="M15.5,24 L25.5,24 L25.5,37 L15.5,37 Z" fill="#C8352A"/><path d="M15.5,26.55 L25.5,26.55 L25.5,27.95 L15.5,27.95 Z" fill="#E3A21A" stroke="none"/><path d="M15.5,29.8 L25.5,29.8 L25.5,31.2 L15.5,31.2 Z" fill="#E3A21A" stroke="none"/><path d="M15.5,33.05 L25.5,33.05 L25.5,34.45 L15.5,34.45 Z" fill="#E3A21A" stroke="none"/><path d="M10.62,24.66 L17.12,26.16 L17.88,22.84 L11.38,21.34 Z" fill="#F4EDDC"/><circle cx="17.5" cy="24.5" r="2" fill="#F4EDDC"/><path d="M4.4,12.35 C4.4,7.75 7.85,6.6 10.72,7.06 C13.14,7.52 14.29,9.36 14.4,11.66 L16.13,14.77 L14.4,15.34 C14.63,16.49 14.18,17.52 13.14,17.75 L11.53,18.91 C9,19.82 5.55,18.79 4.4,16.26 Z" fill="#F4EDDC"/><path d="M3.71,15.57 C2.1,10.05 6.01,5.57 11.18,6.71 L10.61,9.25 C8.31,9.02 6.93,10.63 6.93,12.81 C6.93,14.99 5.78,16.84 3.71,15.57 Z" fill="#1A1410"/><path d="M3.94,14.65 C2.56,18.1 2.79,22.13 4.17,25.57 L6.01,25 C4.86,21.55 5.09,18.33 6.01,16.26 Z" fill="#1A1410"/><path d="M9.23,12.01 Q11.64,10.05 13.83,11.78 Q11.64,13.27 9.23,12.01 Z" fill="#1A1410" stroke="none"/><path d="M41.85,27 L36.15,27 L34.73,34.6 L28.55,36.98 L28.55,41.25 L45.17,41.25 L44.23,34.6 Z" fill="#2B3A67"/><path d="M37.54,27.99 L30.54,25.49 L29.46,28.51 L36.46,31.01 Z" fill="#F4EDDC"/><circle cx="30" cy="27" r="2" fill="#F4EDDC"/><path d="M43.2,19.95 C43.2,15.75 40.05,14.7 37.42,15.12 C35.22,15.54 34.17,17.22 34.06,19.32 L32.49,22.16 L34.06,22.68 C33.85,23.73 34.27,24.68 35.22,24.89 L36.69,25.94 C39,26.77 42.15,25.83 43.2,23.52 Z" fill="#F4EDDC"/><path d="M43.83,22.89 C45.3,17.85 41.73,13.75 37.01,14.8 L37.53,17.11 C39.63,16.91 40.89,18.38 40.89,20.37 C40.89,22.37 41.94,24.05 43.83,22.89 Z" fill="#F4EDDC"/><path d="M38.79,19.63 Q36.59,17.85 34.59,19.43 Q36.59,20.79 38.79,19.63 Z" fill="#1A1410" stroke="none"/></g></symbol>
 <symbol id="sq-45" viewBox="0 0 24 24"><g stroke="#1A1410" stroke-width="1.25" stroke-linejoin="round" stroke-linecap="round"><path d="M 4.20,11.52 C 4.20,10.08 5.32,9.76 6.60,9.92 L 8.20,9.28 L 9.00,9.92 L 11.24,9.92 L 11.88,8.32 L 12.36,9.76 C 13.32,9.60 14.28,9.92 14.60,10.72 L 14.76,12.32 L 13.48,12.48 L 12.52,12.00 L 11.88,13.12 L 11.88,15.68 L 11.08,15.68 L 10.76,13.28 L 6.44,13.28 L 6.12,15.68 L 5.32,15.68 L 5.16,12.96 C 4.36,12.64 4.20,12.00 4.20,11.52 Z" fill="#F4EDDC"/><circle cx="13.32" cy="10.72" r="0.36" fill="#1A1410" stroke="none"/><path d="M 9.80,16.52 C 9.80,15.08 10.92,14.76 12.20,14.92 L 13.80,14.28 L 14.60,14.92 L 16.84,14.92 L 17.48,13.32 L 17.96,14.76 C 18.92,14.60 19.88,14.92 20.20,15.72 L 20.36,17.32 L 19.08,17.48 L 18.12,17.00 L 17.48,18.12 L 17.48,20.68 L 16.68,20.68 L 16.36,18.28 L 12.04,18.28 L 11.72,20.68 L 10.92,20.68 L 10.76,17.96 C 9.96,17.64 9.80,17.00 9.80,16.52 Z" fill="#D9A441"/><circle cx="18.92" cy="15.72" r="0.36" fill="#1A1410" stroke="none"/><circle cx="18.60" cy="5.00" r="2.20" fill="#D9A441"/></g></symbol>
 <symbol id="sq-46" viewBox="0 0 24 24"><g stroke="#1A1410" stroke-width="1.25" stroke-linejoin="round" stroke-linecap="round"><path d="M 4.00,20.00 L 18.60,5.40 L 19.80,6.60 L 5.20,21.20 Z" fill="#F4EDDC"/><path d="M 20.00,20.00 L 5.40,5.40 L 4.20,6.60 L 18.80,21.20 Z" fill="#F4EDDC"/><path d="M 15.40,6.60 L 17.40,8.60" fill="none"/><path d="M 8.60,6.60 L 6.60,8.60" fill="none"/><circle cx="12.00" cy="13.40" r="1.60" fill="#C8352A"/></g></symbol>
 <symbol id="sq-47" viewBox="0 0 24 24"><g stroke="#1A1410" stroke-width="1.25" stroke-linejoin="round" stroke-linecap="round"><path d="M 12.00,21.00 C 8.36,21.00 7.80,17.36 9.48,14.84 C 9.76,16.24 10.60,16.80 11.16,16.52 C 10.32,14.00 12.00,11.48 13.68,10.64 C 13.12,12.88 15.64,14.28 15.64,17.36 C 15.64,19.60 14.24,21.00 12.00,21.00 Z" fill="#C8352A"/><path d="M 12.00,20.16 C 10.32,20.16 10.04,18.20 11.16,16.80 C 11.44,17.64 12.00,17.92 12.28,17.64 C 12.00,16.24 12.84,15.12 13.40,14.84 C 13.40,16.52 14.24,17.36 14.24,18.48 C 14.24,19.60 13.40,20.16 12.00,20.16 Z" fill="#D9A441" stroke="none"/><path d="M 9.58,6.56 C 9.58,4.14 11.34,3.70 12.66,3.92 C 13.76,4.14 14.20,5.02 14.20,5.90 L 14.86,7.22 L 14.20,7.55 C 14.31,8.32 13.98,9.09 13.32,9.31 L 12.44,9.42 C 11.34,9.64 9.58,8.76 9.58,6.56 Z" fill="#F4EDDC"/><path d="M 9.47,5.90 C 9.36,3.48 12.22,2.82 13.98,4.36 L 13.76,5.24 C 12.66,4.58 11.12,4.80 10.46,5.90 C 10.02,6.34 9.69,6.34 9.47,5.90 Z" fill="#C8352A"/><path d="M 11.89,6.12 Q 12.99,5.02 14.09,6.12 Q 12.99,6.78 11.89,6.12 Z" fill="#1A1410" stroke="none"/><path d="M 9.40,9.60 L 14.60,9.60 L 13.60,14.00 L 10.40,14.00 Z" fill="#2B3A67"/></g></symbol>
@@ -758,7 +771,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
 <symbol id="sq-100" viewBox="0 0 24 24"><g stroke="#1A1410" stroke-width="1.25" stroke-linejoin="round" stroke-linecap="round"><path d="M 2.00,21.00 L 9.00,10.00 L 13.00,15.00 L 16.00,11.00 L 22.00,21.00 Z" fill="#3F7A4E"/><path d="M 14.70,8.16 L 16.03,8.60 L 14.70,9.04 Z" fill="#C8352A"/><path d="M 14.44,9.83 L 15.26,10.97 L 13.93,10.54 Z" fill="#C8352A"/><path d="M 13.25,11.03 L 13.25,12.43 L 12.42,11.30 Z" fill="#C8352A"/><path d="M 11.58,11.30 L 10.75,12.43 L 10.75,11.03 Z" fill="#C8352A"/><path d="M 10.07,10.54 L 8.74,10.97 L 9.56,9.83 Z" fill="#C8352A"/><path d="M 9.30,9.04 L 7.97,8.60 L 9.30,8.16 Z" fill="#C8352A"/><path d="M 9.56,7.37 L 8.74,6.23 L 10.07,6.66 Z" fill="#C8352A"/><path d="M 10.75,6.17 L 10.75,4.77 L 11.58,5.90 Z" fill="#C8352A"/><path d="M 12.42,5.90 L 13.25,4.77 L 13.25,6.17 Z" fill="#C8352A"/><path d="M 13.93,6.66 L 15.26,6.23 L 14.44,7.37 Z" fill="#C8352A"/><circle cx="12.00" cy="8.60" r="2.60" fill="#D9A441"/><path d="M 2.00,15.60 L 22.00,15.60" fill="none"/></g></symbol>
 <symbol id="sq-101" viewBox="0 0 24 24"><g stroke="#1A1410" stroke-width="1.25" stroke-linejoin="round" stroke-linecap="round"><circle cx="12.00" cy="12.00" r="10.00" fill="#C8352A"/><circle cx="12.00" cy="12.00" r="8.20" fill="#D9A441"/><path d="M 13.60,4.60 L 8.60,13.00 L 12.00,13.00 L 10.00,19.40 L 16.00,10.40 L 12.40,10.40 L 14.60,4.60 Z" fill="#F4EDDC"/></g></symbol>
 <symbol id="sq-102" viewBox="0 0 24 24"><g stroke="#1A1410" stroke-width="1.25" stroke-linejoin="round" stroke-linecap="round"><circle cx="12.00" cy="12.00" r="10.00" fill="#C8352A"/><circle cx="12.00" cy="12.00" r="8.20" fill="#D9A441"/><path d="M 12.00,18.60 C 8.62,18.60 8.10,15.22 9.66,12.88 C 9.92,14.18 10.70,14.70 11.22,14.44 C 10.44,12.10 12.00,9.76 13.56,8.98 C 13.04,11.06 15.38,12.36 15.38,15.22 C 15.38,17.30 14.08,18.60 12.00,18.60 Z" fill="#C8352A"/><path d="M 12.00,17.82 C 10.44,17.82 10.18,16.00 11.22,14.70 C 11.48,15.48 12.00,15.74 12.26,15.48 C 12.00,14.18 12.78,13.14 13.30,12.88 C 13.30,14.44 14.08,15.22 14.08,16.26 C 14.08,17.30 13.30,17.82 12.00,17.82 Z" fill="#F4EDDC" stroke="none"/></g></symbol>
-<symbol id="sq-103" viewBox="0 0 24 24"><g stroke="#1A1410" stroke-width="1.25" stroke-linejoin="round" stroke-linecap="round"><circle cx="12.00" cy="12.00" r="10.00" fill="#D9A441"/><circle cx="12.00" cy="12.00" r="8.20" fill="#C8352A"/><path d="M 15.73,11.40 L 17.58,12.00 L 15.73,12.60 Z" fill="#F4EDDC"/><path d="M 15.53,13.34 L 16.83,14.79 L 14.93,14.39 Z" fill="#F4EDDC"/><path d="M 14.39,14.93 L 14.79,16.83 L 13.34,15.53 Z" fill="#F4EDDC"/><path d="M 12.60,15.73 L 12.00,17.58 L 11.40,15.73 Z" fill="#F4EDDC"/><path d="M 10.66,15.53 L 9.21,16.83 L 9.61,14.93 Z" fill="#F4EDDC"/><path d="M 9.07,14.39 L 7.17,14.79 L 8.47,13.34 Z" fill="#F4EDDC"/><path d="M 8.27,12.60 L 6.42,12.00 L 8.27,11.40 Z" fill="#F4EDDC"/><path d="M 8.47,10.66 L 7.17,9.21 L 9.07,9.61 Z" fill="#F4EDDC"/><path d="M 9.61,9.07 L 9.21,7.17 L 10.66,8.47 Z" fill="#F4EDDC"/><path d="M 11.40,8.27 L 12.00,6.42 L 12.60,8.27 Z" fill="#F4EDDC"/><path d="M 13.34,8.47 L 14.79,7.17 L 14.39,9.07 Z" fill="#F4EDDC"/><path d="M 14.93,9.61 L 16.83,9.21 L 15.53,10.66 Z" fill="#F4EDDC"/><circle cx="12.00" cy="12.00" r="3.60" fill="#D9A441"/></g></symbol>
+<symbol id="sq-103" class="vg" viewBox="0 0 48 48"><g stroke="#1A1410" stroke-width="1.25" stroke-linejoin="round" stroke-linecap="round"><path d="M39.4,20.5 L34.36,22.56 L38.23,26.39 L32.78,26.37 L34.89,31.39 L29.87,29.28 L29.89,34.73 L26.06,30.86 L24,35.9 L21.94,30.86 L18.11,34.73 L18.13,29.28 L13.11,31.39 L15.22,26.37 L9.77,26.39 L13.64,22.56 L8.6,20.5 L13.64,18.44 L9.77,14.61 L15.22,14.63 L13.11,9.61 L18.13,11.72 L18.11,6.27 L21.94,10.14 L24,5.1 L26.06,10.14 L29.89,6.27 L29.87,11.72 L34.89,9.61 L32.78,14.63 L38.23,14.61 L34.36,18.44 Z" fill="#C8352A"/><circle cx="24" cy="20.5" r="11" fill="#E3A21A"/><circle cx="24" cy="20.5" r="8.2" fill="#C8352A"/><path d="M19.5,19.75 C19.5,14.75 23.25,13.5 26.38,14 C29,14.5 30.25,16.5 30.38,19 L32.25,22.38 L30.38,23 C30.63,24.25 30.13,25.38 29,25.63 L27.25,26.88 C24.5,27.88 20.75,26.75 19.5,24 Z" fill="#E3A21A"/><path d="M24.75,19.38 Q27.38,17.25 29.75,19.13 Q27.38,20.75 24.75,19.38 Z" fill="#1A1410" stroke="none"/></g></symbol>
 <symbol id="sq-104" viewBox="0 0 24 24"><g stroke="#1A1410" stroke-width="1.25" stroke-linejoin="round" stroke-linecap="round"><circle cx="12.00" cy="12.00" r="10.00" fill="#C8352A"/><circle cx="12.00" cy="12.00" r="8.20" fill="#D9A441"/><path d="M 9.00,7.00 C 5.00,5.60 3.60,9.00 4.60,12.00 C 5.40,14.40 8.00,14.60 9.40,13.00 Z" fill="#F4EDDC"/><path d="M 15.00,7.00 C 19.00,5.60 20.40,9.00 19.40,12.00 C 18.60,14.40 16.00,14.60 14.60,13.00 Z" fill="#F4EDDC"/><path d="M 8.60,9.00 C 8.60,5.40 15.40,5.40 15.40,9.00 C 15.40,11.00 14.00,12.00 13.40,12.60 C 13.60,15.00 14.60,16.40 16.00,16.40 C 16.40,17.60 15.60,18.60 14.40,18.40 C 12.40,18.00 11.40,15.60 11.40,13.00 C 10.00,12.40 8.60,11.00 8.60,9.00 Z" fill="#F4EDDC"/><circle cx="10.60" cy="9.40" r="0.60" fill="#1A1410" stroke="none"/><circle cx="13.40" cy="9.40" r="0.60" fill="#1A1410" stroke="none"/><path d="M 12.00,4.60 L 11.00,6.40 L 13.00,6.40 Z" fill="#C8352A"/></g></symbol>
 <symbol id="sq-106" viewBox="0 0 24 24"><g stroke="#1A1410" stroke-width="1.25" stroke-linejoin="round" stroke-linecap="round"><circle cx="12.00" cy="12.00" r="10.00" fill="#C8352A"/><circle cx="12.00" cy="12.00" r="8.20" fill="#D9A441"/><path d="M 12.00,16.40 C 8.88,15.92 7.20,14.00 6.72,12.08 C 8.88,12.32 10.80,14.00 12.00,16.40 Z" fill="#F4EDDC"/><path d="M 12.00,16.40 C 15.12,15.92 16.80,14.00 17.28,12.08 C 15.12,12.32 13.20,14.00 12.00,16.40 Z" fill="#F4EDDC"/><path d="M 12.00,16.40 C 10.32,14.72 10.32,12.08 12.00,10.40 C 13.68,12.08 13.68,14.72 12.00,16.40 Z" fill="#C8352A"/><path d="M7.68,16.40 L16.32,16.40" fill="none"/><circle cx="12.00" cy="8.00" r="1.30" fill="#1F7A5A"/></g></symbol>
 <symbol id="sq-107" viewBox="0 0 24 24"><g stroke="#1A1410" stroke-width="1.25" stroke-linejoin="round" stroke-linecap="round"><circle cx="12.00" cy="12.00" r="10.00" fill="#C8352A"/><circle cx="12.00" cy="12.00" r="8.20" fill="#D9A441"/><path d="M 6.56,14.68 C 6.39,12.81 8.09,12.13 10.30,12.47 L 13.70,12.81 C 14.21,11.45 13.87,9.92 14.72,8.73 C 15.40,7.71 16.93,7.88 17.27,8.90 L 18.63,9.41 L 17.27,9.75 C 16.42,9.75 15.91,10.26 15.91,11.28 C 15.74,12.98 15.57,14.85 13.87,15.87 C 11.49,17.06 8.26,16.72 6.56,14.68 Z" fill="#F4EDDC"/><circle cx="16.42" cy="8.73" r="0.38" fill="#1A1410" stroke="none"/></g></symbol>
@@ -793,12 +806,12 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         <button type="button" data-lang="hi" aria-pressed="false" lang="hi">हिं</button>
       </div>
     </div>
-    <p data-t="intro"></p>
   </header>
 
   <div class="game">
     <div class="board-col">
       <div class="board-frame">
+        <div class="vimana" id="vimana" aria-hidden="true"></div>
         <div class="board-wrap" id="board">
           <div class="ashramas" id="ashramas" aria-hidden="true"></div>
           <!-- the stage clips the camera; cam is what it moves -->
@@ -869,10 +882,12 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           <span class="hint depth-hint" data-t="depthHint"></span>
           <label class="check"><input type="checkbox" id="prefEvery"> <span data-t="everyCard"></span></label>
           <label class="check"><input type="checkbox" id="prefBoth"> <span data-t="cardBoth"></span></label>
+          <label class="pick"><span data-t="theme"></span><select id="prefTheme"></select></label>
           <button id="newGame" type="button" data-t="newGame">Start new game</button>
           <span class="hint" id="seed"></span>
         </div>
       </details>
+      <section class="card colophon"><p data-t="intro"></p></section>
     </aside>
   </div>
 </div>
@@ -1159,6 +1174,9 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         everyCard: "Open the full card on every square (otherwise an ordinary square is told in a line under the board)",
         storyMore: "The old story",
         cardBoth: "Show both languages on cards, for Hindi learners",
+        theme: "Page",
+        themeLight: "Cloth",
+        themeDark: "Dark",
         close: "Close",
         prevSq: "Previous square",
         nextSq: "Next square",
@@ -1379,6 +1397,9 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         everyCard: "हर खाने पर पूरा कार्ड खोलें (नहीं तो साधारण खाना बोर्ड के नीचे एक पंक्ति में बताया जाता है)",
         storyMore: "पुरानी कथा",
         cardBoth: "कार्ड पर दोनों भाषाएँ दिखाएँ, हिंदी सीखने वालों के लिए",
+        theme: "पन्ना",
+        themeLight: "कपड़ा",
+        themeDark: "गहरा",
         close: "बंद करें",
         prevSq: "पिछला खाना",
         nextSq: "अगला खाना",
@@ -2716,6 +2737,87 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     }
   };
 
+  // content/boards.json
+  var boards_default = {
+    "110": {
+      about: "The 110-square board: cream, pale ochre and pale green grounds by band, as the painted boards vary their rows; the pigment is in the figures, the snakes, the ladders, the border and the divine row. Gold is the only gradient (REDESIGN.md Phase 13). Each snake is [body, belly]; no two snakes that come near each other share a body.",
+      palette: {
+        vermilion: "#C8352A",
+        ochre: "#D9A441",
+        yellow: "#E3A21A",
+        indigo: "#2B3A67",
+        malachite: "#3F7A4E",
+        black: "#1A1410",
+        shell: "#F4EDDC",
+        beetle: "#1F7A5A",
+        gold: "#B8862B",
+        "gold-hi": "#EDCF72",
+        cream: "#F5E9C9",
+        paleochre: "#EDD49B",
+        palegreen: "#DCE0B4",
+        cloth: "#E8D7AE",
+        lac: "#5A1208"
+      },
+      grounds: [
+        [
+          "cream",
+          "paleochre"
+        ],
+        [
+          "palegreen",
+          "cream"
+        ],
+        [
+          "paleochre",
+          "cream"
+        ],
+        [
+          "palegreen",
+          "paleochre"
+        ],
+        [
+          "cream",
+          "palegreen"
+        ]
+      ],
+      divine: {
+        ground: [
+          "gold",
+          "gold-hi"
+        ],
+        goal: "indigo"
+      },
+      snakes: [
+        [
+          "vermilion",
+          "yellow"
+        ],
+        [
+          "indigo",
+          "shell"
+        ],
+        [
+          "malachite",
+          "yellow"
+        ],
+        [
+          "yellow",
+          "vermilion"
+        ],
+        [
+          "black",
+          "shell"
+        ]
+      ],
+      ladder: {
+        rail: "yellow",
+        outline: "vermilion"
+      },
+      border: "scroll",
+      superstructure: "vimana"
+    }
+  };
+
   // src/content.js
   var { GOAL, TOP, ROWS, ASHRAMAS, LADDERS, SNAKES, HEAVEN, MOKSHA, FALL } = squares_default;
   var { SQ } = squares_default;
@@ -2724,6 +2826,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var SITUATIONS = situations_default;
   var PLAYER_NAMES = names_default.players;
   var CAST = { names: names_default.cast || null };
+  var BOARD = boards_default["110"];
   var READINGS = readings_default;
   var CODEX = codex_default;
   var squareOf = (n) => n === GOAL ? MOKSHA : HEAVEN[n] || LADDERS[n] || SNAKES[n] || SQ[n] || null;
@@ -3305,7 +3408,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
 
   // src/prefs.js
   var KEY = "mp-prefs";
-  var DEFAULTS = { depth: "school", everyCard: false, both: false, mute: false };
+  var DEFAULTS = { depth: "school", everyCard: false, both: false, mute: false, theme: "light" };
   var prefs = { ...DEFAULTS };
   try {
     Object.assign(prefs, JSON.parse(localStorage.getItem(KEY) || "{}"));
@@ -3314,6 +3417,10 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   delete prefs.landAll;
   var q = new URLSearchParams(location.search).get("depth");
   if (q === "story" || q === "school" || q === "scholar") prefs.depth = q;
+  var applyTheme = () => {
+    document.documentElement.dataset.theme = prefs.theme === "dark" ? "dark" : "light";
+  };
+  applyTheme();
   function setPref(k, v) {
     prefs[k] = v;
     try {
@@ -3414,19 +3521,24 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
 
   // src/render/ground.js
-  var PALETTE = [["#D2402E", true], ["#F2C232", false], ["#3A78C2", true], ["#EC8A2E", false], ["#3F9A52", true], ["#7CC3E8", false]];
-  var HEAVEN_MID = "#F2C14E";
-  var GOAL_MID = "#1E2A78";
   function colRow(n) {
     const i = n - 1, row2 = Math.floor(i / 10);
     const col = row2 % 2 === 0 ? i % 10 : 9 - i % 10;
     return { col, row: row2 };
   }
-  function groundOf(n) {
-    if (n === GOAL) return [GOAL_MID, true];
-    if (n > 100) return [HEAVEN_MID, false];
+  function groundToken(n) {
+    if (n === GOAL) return BOARD.divine.goal;
+    if (n > 100) return BOARD.divine.ground[0];
+    const band = Math.max(0, ASHRAMAS.findIndex(([max]) => n <= max)), [a, b] = BOARD.grounds[band % BOARD.grounds.length];
     const { col, row: row2 } = colRow(n);
-    return PALETTE[(col + 2 * row2) % PALETTE.length];
+    return (col + row2) % 2 ? b : a;
+  }
+  var hex = (t2) => BOARD.palette[t2];
+  var mix = (a, b) => "#" + [1, 3, 5].map((i) => Math.round((parseInt(a.slice(i, i + 2), 16) + parseInt(b.slice(i, i + 2), 16)) / 2).toString(16).padStart(2, "0")).join("");
+  function groundOf(n) {
+    if (n === GOAL) return [hex(BOARD.divine.goal), true];
+    if (n > 100) return [mix(hex(BOARD.divine.ground[0]), hex(BOARD.divine.ground[1])), false];
+    return [hex(groundToken(n)), false];
   }
   var SQUARES = ROWS * 10;
   var WASH = { ochre: 0.42, deepen: 0.22, dim: 0.5, edge: 0.14 };
@@ -3437,6 +3549,27 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       if (light) out.push(["--b-black", sepia * WASH.deepen]);
     }
     if (dim) out.push([light ? "--b-black" : "--b-shell", dim * WASH.dim]);
+    return out;
+  }
+  var NEAR = 1.6;
+  function snakeHues(snakes, hues2, at2 = (n) => {
+    const { col, row: row2 } = colRow(n);
+    return { x: col + 0.5, y: row2 + 0.5 };
+  }) {
+    const heads = Object.keys(snakes).map(Number).sort((a, b) => a - b);
+    const line = (h) => {
+      const p = at2(h), q2 = at2(snakes[h].to);
+      return Array.from({ length: 21 }, (_, i) => ({ x: p.x + (q2.x - p.x) * i / 20, y: p.y + (q2.y - p.y) * i / 20 }));
+    };
+    const pts = Object.fromEntries(heads.map((h) => [h, line(h)]));
+    const near = (a, b) => pts[a].some((p) => pts[b].some((q2) => Math.hypot(p.x - q2.x, p.y - q2.y) < NEAR));
+    const out = {};
+    for (const h of heads) {
+      const taken = heads.filter((o) => o in out && near(h, o)).map((o) => out[o]);
+      const used = (k) => Object.values(out).filter((v) => v === k).length, ks = hues2.map((_, k) => k);
+      const free = ks.filter((k) => !taken.includes(k));
+      out[h] = free.length ? free.sort((a, b) => used(a) - used(b) || a - b)[0] : ks.sort((a, b) => taken.filter((t2) => t2 === a).length - taken.filter((t2) => t2 === b).length || a - b)[0];
+    }
     return out;
   }
 
@@ -3491,13 +3624,27 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     if (n === GOAL) return t("moksha");
     return SQ[n] ? L(SQ[n].en, SQ[n].hi) : "";
   }
+  var vignette = (n) => !!document.getElementById(`sq-${n}`)?.classList.contains("vg");
   function labelHtml(n) {
-    const numEl = `<span class="n">${num(n)}</span>`;
+    const numEl = `<span class="n">${num(n)}</span>`, vg = vignette(n);
     if (n === GOAL) return numEl + `<span class="om">ॐ</span><span class="dv">${t("moksha")}</span>`;
-    if (HEAVEN[n]) return numEl + `<span class="ic">${art(`sq-${n}`, HEAVEN[n].ic)}</span><span class="dv">${L(HEAVEN[n].en, HEAVEN[n].hi)}</span>`;
+    if (HEAVEN[n]) return numEl + (vg ? "" : `<span class="ic">${art(`sq-${n}`, HEAVEN[n].ic)}</span>`) + `<span class="dv">${L(HEAVEN[n].en, HEAVEN[n].hi)}</span>`;
     const sl = SNAKES[n] || LADDERS[n];
-    if (sl) return numEl + `<span class="ic">${art(`sq-${n}`, sl.ic)}</span><span class="nm">${L(sl.en, sl.hi)}</span>`;
+    if (sl) return numEl + (vg ? "" : `<span class="ic">${art(`sq-${n}`, sl.ic)}</span>`) + `<span class="nm">${L(sl.en, sl.hi)}</span>`;
     return numEl;
+  }
+  function superstructure() {
+    const el2 = $("vimana");
+    if (!el2) return;
+    el2.hidden = BOARD.superstructure !== "vimana";
+    if (el2.hidden) return;
+    const top = ROWS - 1, f2 = (n) => +n.toFixed(2);
+    let d = "";
+    for (let c = 0; c < 10; c++) {
+      const n = top % 2 === 0 ? top * 10 + c + 1 : top * 10 + (9 - c) + 1, x = c * 10;
+      d += `<path class="dome" d="M${x + 1},9 L${x + 1},6.2 Q${x + 1},2.6 ${x + 5},1.9 Q${x + 9},2.6 ${x + 9},6.2 L${x + 9},9 Z"/><path class="door${n === GOAL ? " goal" : ""}" d="M${x + 3.4},9 L${x + 3.4},6.6 Q${x + 5},4.4 ${x + 6.6},6.6 L${x + 6.6},9 Z"/><circle class="finial" cx="${x + 5}" cy="${f2(1.3)}" r="0.75"/>`;
+    }
+    el2.innerHTML = `<svg viewBox="0 0 100 9" preserveAspectRatio="none">${d}</svg>`;
   }
   var labEls = {};
   var focusN = 1;
@@ -3509,17 +3656,18 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   }
   function buildCells() {
     const cells = $("cells"), labels = $("labels");
+    superstructure();
     cells.innerHTML = "";
     labels.innerHTML = "";
     for (let r = ROWS - 1; r >= 0; r--) {
       for (let c = 0; c < 10; c++) {
         const n = r % 2 === 0 ? r * 10 + c + 1 : r * 10 + (9 - c) + 1;
-        const [bg, light] = PALETTE[(c + 2 * r) % PALETTE.length];
-        const heaven = n > 100;
+        const light = groundOf(n)[1], heaven = n > 100;
         const el2 = document.createElement("div");
         el2.className = "cell" + (heaven ? " heaven" : "") + (n === GOAL ? " goal" : "");
-        if (!heaven) el2.style.background = bg;
-        if (SQ[n]) el2.innerHTML = `<span class="pic">${art(`sq-${n}`, SQ[n].ic)}</span>`;
+        if (!heaven) el2.style.background = `var(--b-${groundToken(n)})`;
+        if (vignette(n)) el2.innerHTML = `<span class="pic vg">${art(`sq-${n}`, "", "spr vg")}</span>`;
+        else if (SQ[n]) el2.innerHTML = `<span class="pic">${art(`sq-${n}`, SQ[n].ic)}</span>`;
         cells.appendChild(el2);
         const lab = document.createElement("div");
         const kind = n === GOAL ? " heaven goal" : heaven ? " heaven" : SNAKES[n] ? " vice" : LADDERS[n] ? " virtue" : "";
@@ -3546,15 +3694,18 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     return { x: (col + 0.5) * S, y: (ROWS - 1 - row2 + 0.5) * S };
   };
   var fxClear = () => fx.clearRect(0, 0, S * 10, S * ROWS);
+  var tokenCache = {};
+  var paint = (name) => tokenCache[name] ||= getComputedStyle(document.documentElement).getPropertyValue(`--b-${name}`).trim();
   function drawLadder(a, b) {
     const p = center(a), q2 = center(b);
     const dx = q2.x - p.x, dy = q2.y - p.y, len = Math.hypot(dx, dy);
     const nx = -dy / len, ny = dx / len, half = S * 0.18;
     ctx.lineCap = "round";
     const rungs = Math.max(2, Math.floor(len / (S * 0.36)));
-    for (let pass = 0; pass < 2; pass++) {
-      ctx.strokeStyle = pass ? "#F7DB64" : "#4A2E06";
-      ctx.lineWidth = pass ? S * 0.055 : S * 0.095;
+    for (let pass = 0; pass < 3; pass++) {
+      ctx.strokeStyle = pass === 0 ? paint("black") : pass === 1 ? paint(BOARD.ladder.outline) : paint(BOARD.ladder.rail);
+      const w = [S * 0.135, S * 0.105, S * 0.05][pass];
+      ctx.lineWidth = w * 0.85;
       for (let i = 1; i <= rungs; i++) {
         const t2 = i / (rungs + 1), x = p.x + dx * t2, y = p.y + dy * t2;
         ctx.beginPath();
@@ -3562,8 +3713,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         ctx.lineTo(x + nx * half, y + ny * half);
         ctx.stroke();
       }
-      ctx.strokeStyle = pass ? "#F4CF3A" : "#4A2E06";
-      ctx.lineWidth = pass ? S * 0.07 : S * 0.115;
+      ctx.lineWidth = w;
       for (const sg of [-1, 1]) {
         ctx.beginPath();
         ctx.moveTo(p.x + nx * half * sg, p.y + ny * half * sg);
@@ -3572,14 +3722,12 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       }
     }
   }
-  var SNAKE_COLORS = [
-    ["#4A4F5C", "#262A33", "#C9CFC2"],
-    ["#2F4C70", "#18293F", "#BFD3E6"],
-    ["#5B5240", "#332D22", "#E3D3A8"],
-    ["#3C5A44", "#1F3325", "#C8DDB8"],
-    ["#6A3B32", "#3D1F1A", "#E8C2A8"]
-  ];
-  var snakeColors = (h) => SNAKE_COLORS[Object.keys(SNAKES).indexOf(String(h)) % SNAKE_COLORS.length];
+  var hues = null;
+  var snakeColors = (h) => {
+    hues ||= snakeHues(SNAKES, BOARD.snakes);
+    const [body, belly] = BOARD.snakes[hues[h]];
+    return [paint(body), paint("black"), paint(belly), paint(body === "vermilion" ? "yellow" : "vermilion")];
+  };
   function snakePath(h, t2) {
     const p = center(h), q2 = center(t2);
     const dx = q2.x - p.x, dy = q2.y - p.y, len = Math.hypot(dx, dy);
@@ -3593,74 +3741,104 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     }
     return pts;
   }
-  function drawHood(c, a, b, [body, band, belly], flare = 1) {
-    const ang = Math.atan2(a.y - b.y, a.x - b.x);
+  function drawHood(c, a, b, [body, band, belly, tongue], flare = 1) {
+    const ang = Math.atan2(a.y - b.y, a.x - b.x), ink = paint("black"), line = Math.max(1.2, S * 0.022);
     c.save();
     c.translate(a.x, a.y);
     c.rotate(ang);
     c.scale(flare, flare);
-    c.strokeStyle = "#B3261E";
-    c.lineWidth = S * 0.025;
+    c.lineJoin = "round";
+    c.lineCap = "round";
+    c.strokeStyle = tongue;
+    c.lineWidth = S * 0.028;
     c.beginPath();
-    c.moveTo(S * 0.16, 0);
-    c.lineTo(S * 0.3, 0);
-    c.lineTo(S * 0.35, -S * 0.04);
-    c.moveTo(S * 0.3, 0);
-    c.lineTo(S * 0.35, S * 0.04);
+    c.moveTo(S * 0.17, 0);
+    c.lineTo(S * 0.31, 0);
+    c.lineTo(S * 0.37, -S * 0.045);
+    c.moveTo(S * 0.31, 0);
+    c.lineTo(S * 0.37, S * 0.045);
     c.stroke();
-    c.lineWidth = 2;
-    c.strokeStyle = "#0E0C08";
     c.fillStyle = body;
-    c.beginPath();
-    c.ellipse(-S * 0.07, 0, S * 0.19, S * 0.3, 0, 0, Math.PI * 2);
-    c.fill();
-    c.stroke();
-    c.fillStyle = band;
-    c.beginPath();
-    c.ellipse(-S * 0.07, 0, S * 0.12, S * 0.2, 0, 0, Math.PI * 2);
-    c.fill();
-    c.strokeStyle = belly;
-    c.lineWidth = S * 0.022;
-    for (const sg of [-1, 1]) {
+    c.strokeStyle = ink;
+    c.lineWidth = line;
+    const hx = -S * 0.08, rx = S * 0.17, ry = S * 0.31;
+    for (let k = 0; k < 7; k++) {
+      const th = Math.PI * (0.55 + 0.9 * k / 6), x = hx + Math.cos(th) * rx, y = Math.sin(th) * ry;
       c.beginPath();
-      c.arc(-S * 0.1, sg * S * 0.09, S * 0.045, 0, Math.PI * 2);
+      c.arc(x, y, S * 0.055, 0, Math.PI * 2);
+      c.fill();
       c.stroke();
     }
-    c.lineWidth = 1.5;
-    c.strokeStyle = "#0E0C08";
+    c.beginPath();
+    c.ellipse(hx, 0, rx, ry, 0, 0, Math.PI * 2);
+    c.fill();
+    c.stroke();
+    c.fillStyle = belly;
+    c.beginPath();
+    c.ellipse(hx - S * 0.01, 0, rx * 0.62, ry * 0.68, 0, 0, Math.PI * 2);
+    c.fill();
+    c.strokeStyle = band;
+    c.lineWidth = S * 0.02;
+    for (const sg of [-1, 1]) {
+      c.beginPath();
+      c.arc(hx - S * 0.03, sg * S * 0.085, S * 0.042, 0, Math.PI * 2);
+      c.stroke();
+    }
+    c.beginPath();
+    c.moveTo(hx - S * 0.03, -S * 0.043);
+    c.quadraticCurveTo(hx + S * 0.02, 0, hx - S * 0.03, S * 0.043);
+    c.stroke();
+    c.strokeStyle = ink;
+    c.lineWidth = line;
     c.fillStyle = body;
     c.beginPath();
-    c.ellipse(S * 0.06, 0, S * 0.13, S * 0.1, 0, 0, Math.PI * 2);
+    c.ellipse(S * 0.07, 0, S * 0.13, S * 0.095, 0, 0, Math.PI * 2);
     c.fill();
     c.stroke();
     for (const sg of [-1, 1]) {
-      c.fillStyle = "#FFF6D8";
+      c.fillStyle = paint("shell");
       c.beginPath();
-      c.arc(S * 0.1, sg * S * 0.05, S * 0.03, 0, Math.PI * 2);
+      c.moveTo(S * 0.05, sg * S * 0.05);
+      c.quadraticCurveTo(S * 0.1, sg * S * 0.085, S * 0.15, sg * S * 0.045);
+      c.quadraticCurveTo(S * 0.1, sg * S * 0.025, S * 0.05, sg * S * 0.05);
       c.fill();
-      c.fillStyle = "#111";
+      c.lineWidth = line * 0.6;
+      c.stroke();
+      c.fillStyle = ink;
       c.beginPath();
-      c.arc(S * 0.11, sg * S * 0.05, S * 0.015, 0, Math.PI * 2);
+      c.arc(S * 0.108, sg * S * 0.05, S * 0.016, 0, Math.PI * 2);
       c.fill();
     }
     c.restore();
   }
   function drawSnake(h, t2) {
-    const pts = snakePath(h, t2), N = pts.length - 1, cols = snakeColors(h), [body, band, belly] = cols;
+    const pts = snakePath(h, t2), N = pts.length - 1, cols = snakeColors(h), [body, band, belly] = cols, ink = paint("black");
     ctx.lineCap = "round";
     for (let pass = 0; pass < 3; pass++) {
-      ctx.globalAlpha = pass === 2 ? 0.45 : 1;
       for (let i = 0; i < N; i++) {
         const a = pts[i], b = pts[i + 1];
-        ctx.strokeStyle = pass === 0 ? "#0E0C08" : pass === 1 ? Math.floor(i / 5) % 2 ? body : band : belly;
-        ctx.lineWidth = pass === 0 ? a.w + 3 : pass === 1 ? a.w : a.w * 0.3;
+        ctx.strokeStyle = pass === 0 ? ink : pass === 1 ? body : belly;
+        ctx.lineWidth = pass === 0 ? a.w + 3 : pass === 1 ? a.w : a.w * 0.26;
         ctx.beginPath();
         ctx.moveTo(a.x, a.y);
         ctx.lineTo(b.x, b.y);
         ctx.stroke();
       }
     }
-    ctx.globalAlpha = 1;
+    if (quality !== "low") {
+      ctx.strokeStyle = band;
+      ctx.lineWidth = Math.max(0.8, S * 0.014);
+      ctx.beginPath();
+      for (let i = 3; i < N - 2; i += 3) {
+        const a = pts[i], b = pts[i + 1], ang = Math.atan2(b.y - a.y, b.x - a.x), r = a.w * 0.22;
+        for (const sg of [-1, 1]) {
+          const cx = a.x + Math.cos(ang + sg * Math.PI / 2) * a.w * 0.3, cy = a.y + Math.sin(ang + sg * Math.PI / 2) * a.w * 0.3;
+          ctx.moveTo(cx + Math.cos(ang + Math.PI / 2) * r, cy + Math.sin(ang + Math.PI / 2) * r);
+          ctx.arc(cx, cy, r, ang + Math.PI / 2, ang + 3 * Math.PI / 2);
+        }
+      }
+      ctx.stroke();
+    }
     drawHood(ctx, pts[0], pts[4], cols);
   }
   var ageCanvas = $("age");
@@ -3686,16 +3864,14 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         agx.fillRect(x, y, S, S);
       }
     }
-    agx.save();
-    agx.translate(W2 / 2, H2 / 2);
-    agx.scale(W2 * 0.72, H2 * 0.7);
-    const edge = agx.createRadialGradient(0, 0, 0, 0, 0, 1);
-    edge.addColorStop(0.62, "transparent");
-    edge.addColorStop(1, tokens["--b-black"]);
-    agx.globalAlpha = WASH.edge;
-    agx.fillStyle = edge;
-    agx.fillRect(-W2 / (2 * W2 * 0.72) - 1, -H2 / (2 * H2 * 0.7) - 1, 1 / 0.72 + 2, 1 / 0.7 + 2);
-    agx.restore();
+    agx.fillStyle = tokens["--b-black"];
+    for (const k of [1, 0.95, 0.9, 0.85, 0.8]) {
+      agx.globalAlpha = WASH.edge / 5;
+      agx.beginPath();
+      agx.rect(0, 0, W2, H2);
+      agx.ellipse(W2 / 2, H2 / 2, W2 * 0.72 * k, H2 * 0.7 * k, 0, 0, Math.PI * 2);
+      agx.fill("evenodd");
+    }
     agx.globalAlpha = 1;
   }
   var GRAIN = 180;
@@ -3739,23 +3915,32 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var stageAt = (pos) => pos === GOAL ? ASHRAMAS.length : ASHRAMAS.findIndex(([max]) => Math.max(pos, 1) <= max);
   var yearsOf = (p) => Math.max(p.years ?? 0, ageAt(p.pos));
   var stageOf = (p) => p.pos === GOAL ? ASHRAMAS.length : p.pos > EARTH2 ? stageAt(p.pos) : stageOfYears(yearsOf(p));
-  function lens(state, i = null) {
+  var LOOKS = ["first", "veil", "asrama"];
+  var lookOf = (q2) => LOOKS.includes(q2) ? q2 : LOOKS[0];
+  var VEIL = 0.5;
+  function lens(state, i = null, look2 = null) {
     const ps = i == null ? state.players : [state.players[i]];
     const pos = ps.map((p) => p.pos), lead = Math.max(...pos), years = ps.map(yearsOf);
+    const dimAge = Math.max(...years);
     return {
       fadeAge: Math.min(...years),
-      dimAge: Math.max(...years),
+      // under asrama, the dimness waits for the end of the oldest's stage of life (the age of its last square)
+      dimAge: look2 === "asrama" ? Math.max(dimAge, ageOf2(ASHRAMAS[Math.min(stageOfYears(dimAge), 4)][0]) ?? dimAge) : dimAge,
       lead,
-      droneStage: state.winner != null ? ASHRAMAS.length : stageOf(ps[pos.indexOf(lead)])
+      droneStage: state.winner != null ? ASHRAMAS.length : stageOf(ps[pos.indexOf(lead)]),
+      look: look2,
+      // the game's first throw has been made (state.last is set by every throw, and only by a throw)
+      begun: state.last != null
     };
   }
   var clamp3 = (x) => Math.max(0, Math.min(1, x));
-  function wash(n, { fadeAge, dimAge, lead }) {
-    const a = ageOf2(n);
-    if (a == null) return { sepia: 0, dim: n > lead ? 1 : 0 };
+  function wash(n, { fadeAge, dimAge, lead, look: look2 = null, begun = true }) {
+    if (look2 === "first" && !begun) return { sepia: 0, dim: 0 };
+    const k = look2 === "veil" ? VEIL : 1, a = ageOf2(n);
+    if (a == null) return { sepia: 0, dim: n > lead ? k : 0 };
     return {
       sepia: a < fadeAge ? clamp3((fadeAge - a) / FADE_YEARS) : 0,
-      dim: a > dimAge ? clamp3(0.2 + 0.8 * (a - dimAge) / DIM_YEARS) : 0
+      dim: a > dimAge ? k * clamp3(0.2 + 0.8 * (a - dimAge) / DIM_YEARS) : 0
     };
   }
 
@@ -4072,8 +4257,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   }
   var stageName = (i) => L(STAGES[i].en, STAGES[i].hi);
   var spriteCache = /* @__PURE__ */ new Map();
-  function shade(hex, f2) {
-    const n = parseInt(hex.slice(1), 16), ch = [n >> 16, n >> 8 & 255, n & 255].map((v) => Math.round(v * (1 + f2)));
+  function shade(hex2, f2) {
+    const n = parseInt(hex2.slice(1), 16), ch = [n >> 16, n >> 8 & 255, n & 255].map((v) => Math.round(v * (1 + f2)));
     return "#" + ch.map((v) => Math.max(0, Math.min(255, v)).toString(16).padStart(2, "0")).join("");
   }
   function spriteURL(stage, color, frame3) {
@@ -4346,7 +4531,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       fxClear();
       drawHood(fx, pts[0], pts[4], cols);
       fx.lineWidth = 2;
-      fx.strokeStyle = "#0E0C08";
+      fx.strokeStyle = paint("black");
       fx.fillStyle = cols[0];
       fx.beginPath();
       fx.arc(x, y, r, 0, Math.PI * 2);
@@ -5238,7 +5423,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     };
   }
   var metMore = [];
-  function paint({ landing = false } = {}) {
+  function paint2({ landing = false } = {}) {
     const l = cardLang ?? lang;
     const fa = leaf2.contains(document.activeElement) ? document.activeElement : null;
     const again = fa?.dataset.act ? `[data-act="${fa.dataset.act}"]` : fa?.dataset.cl ? `[data-cl="${fa.dataset.cl}"]` : null;
@@ -5356,7 +5541,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const block = next2.type === "reckon" || next2.type === "square" && !!pendingOn(next2.n);
     if (wasOpen) {
       setBlocking(block);
-      paint({ landing });
+      paint2({ landing });
       turnPage(was?.type === "square" && next2.type === "square" ? Math.sign(next2.n - was.n) : 0);
       return cardIdle();
     }
@@ -5366,7 +5551,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const before = document.activeElement;
     sound.open();
     await transition(() => {
-      paint({ landing });
+      paint2({ landing });
       if (!focus && !block) leaf2.querySelectorAll("[autofocus]").forEach((b) => b.removeAttribute("autofocus"));
       show(block);
       if (block) holdFocus();
@@ -5431,7 +5616,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       if (!id) return;
       view = { type: "entry", id };
     }
-    paint();
+    paint2();
     turnPage(dir);
   }
   function roll() {
@@ -5443,7 +5628,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     openFirst("mirror");
     const id = leaf2.querySelector(".story-more")?.dataset.bridge;
     if (id) bridged.add(id);
-    paint();
+    paint2();
     leaf2.querySelector(".story p.mirror, .story p.bridge")?.setAttribute("tabindex", "-1");
     leaf2.querySelector(".story p.bridge, .story p.mirror")?.focus({ preventScroll: true });
   }
@@ -5484,14 +5669,14 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       const n = backTo;
       backTo = null;
       view = { type: "square", n };
-      paint();
+      paint2();
       turnPage(-1);
       return;
     }
     const cl = e.target.closest("[data-cl]")?.dataset.cl;
     if (cl) {
       cardLang = cl;
-      paint();
+      paint2();
       return;
     }
     const entry2 = e.target.closest("[data-entry]")?.dataset.entry;
@@ -5499,7 +5684,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       e.preventDefault();
       if (view?.type === "square") backTo = view.n;
       view = { type: "entry", id: entry2 };
-      paint();
+      paint2();
       turnPage(1);
       return;
     }
@@ -5508,7 +5693,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       e.preventDefault();
       backTo = null;
       view = { type: "square", n: +sq };
-      paint();
+      paint2();
       turnPage(1);
     }
   });
@@ -5529,7 +5714,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     }
   }
   function refreshCard() {
-    if (dlg2.open && view) paint();
+    if (dlg2.open && view) paint2();
   }
 
   // src/render/landed.js
@@ -5820,7 +6005,7 @@ ${p.text}`), end, fates.join(" ")].filter(Boolean).join("\n\n") + "\n";
   var leaf3 = $("lifeLeaf");
   var whose = 0;
   var lifeText2 = (state, i, l = lang) => lifeText(state, i, l);
-  function paint2() {
+  function paint3() {
     const state = G.state, l = lang, T2 = (k, v) => tIn(l, k, v);
     const { title, sub, open: open2, paras, end, fates } = lifeOf(state, whose, l);
     const tabs = state.players.length > 1 ? `<div class="life-who" role="group" aria-label="${T2("lifeWhose")}">` + state.players.map((p, i) => `<button type="button" data-who="${i}" aria-pressed="${i === whose}"><span class="dot" style="background:${COLORS[p.color]}"></span>${esc(pnameIn(p, l))}</button>`).join("") + `</div>` : "";
@@ -5848,11 +6033,11 @@ ${p.text}`), end, fates.join(" ")].filter(Boolean).join("\n\n") + "\n";
   }
   function openLife(i = G.state.winner ?? Math.max(0, G.state.players.findIndex((p) => p.type === "human"))) {
     whose = i;
-    paint2();
+    paint3();
     if (!dlg3.open) dlg3.showModal();
   }
   var refreshLife = () => {
-    if (dlg3.open) paint2();
+    if (dlg3.open) paint3();
   };
   var closeLife = () => {
     if (dlg3.open) dlg3.close();
@@ -5862,7 +6047,7 @@ ${p.text}`), end, fates.join(" ")].filter(Boolean).join("\n\n") + "\n";
     if (!b) return;
     if (b.dataset.who) {
       whose = +b.dataset.who;
-      return paint2();
+      return paint3();
     }
     const act = b.dataset.act;
     if (act === "close") return dlg3.close();
@@ -6204,9 +6389,10 @@ ${p.text}`), end, fates.join(" ")].filter(Boolean).join("\n\n") + "\n";
   }
   var aged = null;
   var ageSeq = 0;
-  var mix = (a, b, u) => ({ sepia: a.sepia + (b.sepia - a.sepia) * u, dim: a.dim + (b.dim - a.dim) * u });
+  var mix2 = (a, b, u) => ({ sepia: a.sepia + (b.sepia - a.sepia) * u, dim: a.dim + (b.dim - a.dim) * u });
+  var look = lookOf(new URLSearchParams(location.search).get("look"));
   function age(instant = false) {
-    const L2 = lens(G.state), to = Array.from({ length: TOP + 1 }, (_, n) => n ? wash(n, L2) : null);
+    const L2 = lens(G.state, null, look), to = Array.from({ length: TOP + 1 }, (_, n) => n ? wash(n, L2) : null);
     for (let n = 1; n <= TOP; n++) labEls[n]?.classList.toggle("ahead", to[n].dim > 0);
     setDrone(G.state.last != null ? L2.droneStage : null);
     setShepard(G.state.last != null ? L2.lead : null, G.state.winner != null);
@@ -6214,7 +6400,7 @@ ${p.text}`), end, fates.join(" ")].filter(Boolean).join("\n\n") + "\n";
     aged = to;
     if (instant || !from) return drawAge(to);
     return animate(600, (u) => {
-      if (seq === ageSeq) drawAge(to.map((w, n) => n ? mix(from[n], w, u) : null));
+      if (seq === ageSeq) drawAge(to.map((w, n) => n ? mix2(from[n], w, u) : null));
     });
   }
   function render() {
@@ -6263,6 +6449,7 @@ ${p.text}`), end, fates.join(" ")].filter(Boolean).join("\n\n") + "\n";
     $("prefDepth").innerHTML = [["story", "depthStory"], ["school", "depthSchool"], ["scholar", "depthScholar"]].map(([v, k]) => `<option value="${v}"${v === prefs.depth ? " selected" : ""}>${t(k)}</option>`).join("");
     $("prefEvery").checked = prefs.everyCard;
     $("prefBoth").checked = prefs.both;
+    $("prefTheme").innerHTML = [["light", "themeLight"], ["dark", "themeDark"]].map(([v, k]) => `<option value="${v}"${v === prefs.theme ? " selected" : ""}>${t(k)}</option>`).join("");
   }
   function readSetup() {
     const setup = G.setup;
@@ -6475,6 +6662,10 @@ ${p.text}`), end, fates.join(" ")].filter(Boolean).join("\n\n") + "\n";
     setPref("both", e.target.checked);
     refreshCard();
   });
+  $("prefTheme").addEventListener("change", (e) => {
+    setPref("theme", e.target.value);
+    applyTheme();
+  });
   function renderMute() {
     const b = $("mute");
     b.setAttribute("aria-pressed", String(!prefs.mute));
@@ -6513,7 +6704,15 @@ ${p.text}`), end, fates.join(" ")].filter(Boolean).join("\n\n") + "\n";
         return cur().years;
       },
       // the lens the board is aged through: { fadeAge, dimAge, lead, droneStage }
-      age: () => lens(G.state),
+      age: () => lens(G.state, null, look),
+      // mp.look("veil") changes how the first impression looks (first | veil | asrama), and redraws the ageing
+      look(x) {
+        if (x) {
+          look = lookOf(x);
+          age(true);
+        }
+        return look;
+      },
       // { ctx, stage, voices, wanted, muted }
       audio: audioState,
       // mp.quality("low") draws less: no camera, no motion extras, no paper grain

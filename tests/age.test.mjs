@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { ASHRAMAS, GOAL, TOP } from "../src/content.js";
-import { ageOf, lens, wash } from "../src/render/age.js";
+import { ageOf, lens, wash, LOOKS, VEIL } from "../src/render/age.js";
 
 const at = (...pos) => ({ players: pos.map(p => ({ pos: p })), winner: null });
 const board = L => Array.from({ length: TOP }, (_, i) => wash(i + 1, L));
@@ -78,4 +78,29 @@ test("the drone stage changes at every ashrama boundary", () => {
 
 test("the same positions always give the same board", () => {
   assert.deepEqual(board(lens(at(33, 8))), board(lens(at(33, 8))));
+});
+
+// REDESIGN.md Phase 13, item 6: three first impressions, to be chosen with cold players. Each keeps the rule: once the
+// ageing has begun, a life never sees the whole board clearly.
+const begun = (...pos) => ({ ...at(...pos), last: 3 });
+test("first: the whole cloth at full pigment until the game's first throw, then the ageing as before", () => {
+  for (const w of board(lens(at(0, 0), null, "first"))) assert.deepEqual(w, { sepia: 0, dim: 0 });
+  assert.deepEqual(board(lens(begun(30), null, "first")), board(lens(begun(30))));
+});
+test("veil: ahead is veiled at half the dimness, and what is reached is clear", () => {
+  const plain = lens(begun(30)), veil = lens(begun(30), null, "veil");
+  for (let n = 1; n <= TOP; n++) {
+    const a = wash(n, plain), b = wash(n, veil);
+    assert.equal(b.sepia, a.sepia);
+    assert.ok(Math.abs(b.dim - a.dim * VEIL) < 1e-9, `square ${n}`);
+  }
+  assert.deepEqual(wash(30, veil), { sepia: 0, dim: 0 });
+});
+test("asrama: nothing dims within the oldest player's own stage of life; beyond it the ageing begins", () => {
+  const L = lens(begun(25), null, "asrama");
+  for (let n = 25; n <= ASHRAMAS[1][0]; n++) assert.equal(wash(n, L).dim, 0, `square ${n}`);
+  assert.ok(wash(ASHRAMAS[1][0] + 5, L).dim > 0);
+});
+test("under every look, once a throw is made, some square is dimmed: no life sees the whole board clearly", () => {
+  for (const look of LOOKS) for (const p of [1, 30, 70, 99]) assert.ok(board(lens(begun(p), null, look)).some(w => w.dim > 0), `${look} at ${p}`);
 });

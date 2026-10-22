@@ -8,7 +8,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { GOAL, TOP, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, FALL, STR, SRC_HI, JOINS, NUM_HI, READINGS, CODEX, REFS, ENTRY_IDS, srcOfSquare, sourceOf, leadOf, squareOf, SITUATIONS, CAST, CAST_WORDS, BRIDGES, BRIDGE_SAME, whoOf, bridgeOf } from "../src/content.js";
+import { GOAL, TOP, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, FALL, STR, SRC_HI, JOINS, NUM_HI, READINGS, CODEX, REFS, ENTRY_IDS, srcOfSquare, sourceOf, leadOf, squareOf, SITUATIONS, CAST, CAST_WORDS, BRIDGES, BRIDGE_SAME, whoOf, bridgeOf, BOARDS } from "../src/content.js";
 import NAMES from "../content/names.json" with { type: "json" };
 import { ENDGAME, createGame, playTurn } from "../src/engine/turn.js";
 import { destOf, worthOf } from "../src/engine/qbn.js";
@@ -428,7 +428,7 @@ export function lintReport() {
   // and nothing else, one outline weight, flat fills, and a symbol for every square and every school
   const root = path.resolve(import.meta.dirname, "..");
   const sheet = path.join(root, "assets/sprites.svg");
-  if (fs.existsSync(sheet)) errors.push(...lintSprites(fs.readFileSync(sheet, "utf8"), fs.readFileSync(path.join(root, "src/styles.css"), "utf8")));
+  if (fs.existsSync(sheet)) errors.push(...lintSprites(fs.readFileSync(sheet, "utf8")));
   errors.push(...lintPaint(root));
 
   // REFERENCE.md §6: the board's own history is medieval, not ancient
@@ -465,13 +465,22 @@ export function lintFates(seeds = 500) {
 export const momentsLine = ({ written, total, bands }) =>
   `moments: ${written}/${total} written (${bands.filter(b => b.total).map(b => `${b.en} ${b.written}/${b.total}`).join(" · ")})`;
 
-export function lintSprites(svg, css) {
+// the palette of every board (content/boards.json), upper case
+const PALETTE_HEX = () => new Set(Object.values(BOARDS).flatMap(b => Object.values(b.palette)).map(c => c.toUpperCase()));
+
+export function lintSprites(svg) {
   const errors = [], err = msg => errors.push(`sprites.svg: ${msg}`);
-  const palette = new Set([...css.matchAll(/--b-[\w-]+:\s*(#[0-9A-Fa-f]{6})/g)].map(m => m[1].toUpperCase()));
+  const palette = PALETTE_HEX();
   const off = [...new Set(svg.match(/#[0-9A-Fa-f]{3,8}\b/g) || [])].filter(c => !palette.has(c.toUpperCase()));
   if (off.length) err(`colours outside the Basohli palette: ${off.join(", ")}`);
-  const widths = [...new Set([...svg.matchAll(/stroke-width="([^"]+)"/g)].map(m => m[1]))];
-  if (widths.some(w => w !== "1.25")) err(`outline weights other than 1.25: ${widths.join(", ")}`);
+  // one weight on the whole sheet, 1.25, on the 24-unit sprites, the 16-unit seals and the 48-unit vignettes (Phase 13),
+  // which fill a square where a sprite fills half of one, so the line on the board is the same
+  const off2 = new Set();
+  for (const [, id, box, body] of svg.matchAll(/<symbol id="([^"]+)"[^>]*viewBox="0 0 (\d+) \d+"[^>]*>([\s\S]*?)<\/symbol>/g)) {
+    const want = "1.25";
+    for (const [, w] of body.matchAll(/stroke-width="([^"]+)"/g)) if (w !== want) off2.add(`${id} ${w}`);
+  }
+  if (off2.size) err(`outline weights other than 1.25 at 24: ${[...off2].join(", ")}`);
   if (/<(linearGradient|radialGradient|filter)\b|\b(filter|transform)=/.test(svg)) err("gradients, filters or transforms; the sprites are flat fills");
   for (let n = 1; n <= TOP; n++) if (n !== GOAL && !svg.includes(`id="sq-${n}"`)) err(`no symbol for square ${n}`);
   if (!svg.includes(`id="fall"`)) err("no symbol for the fall");
@@ -483,14 +492,21 @@ export function lintSprites(svg, css) {
 // names colours only as --b-* tokens, and the paper grain in styles.css floods with palette colours only.
 export function lintPaint(root) {
   const errors = [], css = fs.readFileSync(path.join(root, "src/styles.css"), "utf8");
-  const palette = new Set([...css.matchAll(/--b-[\w-]+:\s*(#[0-9A-Fa-f]{6})/g)].map(m => m[1].toUpperCase()));
-  for (const f of ["src/render/age.js", "src/render/ground.js", "src/render/camera.js", "src/audio/drone.js", "src/render/frame.js"]) {
+  const palette = PALETTE_HEX();
+  for (const f of ["src/render/age.js", "src/render/ground.js", "src/render/board.js", "src/render/camera.js", "src/audio/drone.js", "src/render/frame.js"]) {
     const src = fs.readFileSync(path.join(root, f), "utf8");
-    // ground.js holds the board's shipped printed colours, which predate the palette; anything after them must not
-    const body = f.endsWith("ground.js") ? src.replace(/export const PALETTE[^\n]*\n|const HEAVEN_MID[^\n]*\n/g, "") : src;
-    const hex = body.match(/#[0-9A-Fa-f]{6}\b/g);
+    // since Phase 13 the grounds are the board's palette too (content/boards.json), so no file here has an exception
+    const hex = src.match(/#[0-9A-Fa-f]{6}\b/g);
     if (hex) errors.push(`${f}: colours written as hex (${[...new Set(hex)].join(", ")}); name a --b-* token`);
   }
+  // no gradients but the gold, which is metal (REDESIGN.md Phase 13): every gradient painted in the stylesheet is drawn in
+  // the gold tokens, and only a mask (a fade, not paint) may grade anything else
+  for (const [, prop, value] of css.matchAll(/([\w-]+)\s*:\s*([^;{}]*gradient\([^;{}]*)/g)) {
+    if (/mask/.test(prop)) continue;
+    const toks = [...value.matchAll(/var\((--b-[\w-]+)\)/g)].map(m => m[1]);
+    if (!toks.some(t => t.startsWith("--b-gold")) || /#[0-9A-Fa-f]{3,8}\b|rgba?\(/.test(value)) errors.push(`styles.css: ${prop} is a gradient that is not gold (${value.trim().slice(0, 80)})`);
+  }
+  if (/create(Radial|Linear|Conic)Gradient/.test(fs.readFileSync(path.join(root, "src/render/board.js"), "utf8"))) errors.push("src/render/board.js: a canvas gradient; only the gold may be graded");
   // the card's illuminated frame is painted from the tokens alone (REDESIGN.md Phase 6)
   for (const [, sel, body] of css.matchAll(/([^{}]*\.ill\b[^{}]*)\{([^}]*)\}/g)) {
     const hex = body.match(/#[0-9A-Fa-f]{3,8}\b/g);

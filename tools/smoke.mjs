@@ -822,7 +822,8 @@ await check("Phase 5: the drone changes at every ashrama boundary", async page =
 
 await check("Phase 5: squares ahead are dimmed, yet every one still opens its card", async page => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto(BASE + "?seed=1&debug");
+  // a look whose ageing begins at once (Phase 13: the default shows the whole cloth until the first throw)
+  await page.goto(BASE + "?seed=1&debug&look=veil");
   await page.evaluate(() => { mp.state.players.forEach(p => (p.pos = 40)); mp.jump(40); });
   const ahead = await page.evaluate(() => [...document.querySelectorAll("#labels .lab.ahead")].map(l => +l.dataset.n));
   assert(ahead.length && Math.min(...ahead) > 40, `ahead: ${ahead.slice(0, 5)}`);
@@ -831,6 +832,23 @@ await check("Phase 5: squares ahead are dimmed, yet every one still opens its ca
     await page.waitForFunction(n => document.getElementById("folio").open && location.hash === `#sq/${n}`, n);
     await page.evaluate(() => mp.close({ instant: true }));
   }
+});
+
+await check("Phase 13: the first screen is the whole cloth at full pigment; the ageing begins with the first throw, under every look", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?first&seed=1&debug");
+  const before = await page.evaluate(() => document.querySelectorAll("#labels .lab.ahead").length);
+  assert(before === 0, `${before} squares dimmed before the first throw`);
+  for (const look of ["first", "veil", "asrama"]) {
+    await page.goto(BASE + `?seed=1&debug&look=${look}`);
+    await page.evaluate(() => mp.roll(3));
+    await until(page, () => !mp.busy);
+    const n = await page.evaluate(() => document.querySelectorAll("#labels .lab.ahead").length);
+    assert(n > 0 && (await page.evaluate(() => mp.look())) === look, `${look}: ${n} squares dimmed after a throw`);
+  }
+  // the snakes are thirteen painted creatures, and the 34 priority squares carry vignettes (or will: see REDESIGN.md)
+  const vg = await page.evaluate(() => [...document.querySelectorAll("#cells .pic.vg")].length);
+  assert(vg >= 3, `${vg} vignettes on the board`);
 });
 
 await check("Phase 5: the camera follows a climb, and shows the whole board before the card opens", async page => {

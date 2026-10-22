@@ -3,7 +3,7 @@ import { ROWS } from "../content.js";
 import { t, fill } from "../i18n.js";
 import { G, pname } from "../state.js";
 import { $, COLORS, P_HEX, reduced, sleep, quality } from "../ui.js";
-import { S, colRow, center, fx, fxClear, snakePath, snakeColors, drawHood } from "./board.js";
+import { S, colRow, center, fx, fxClear, snakePath, snakeColors, drawHood, paint } from "./board.js";
 import { STAGES, stageOf, stageName, spriteURL } from "./sprites.js";
 import { renderPlayers } from "./log.js";
 import { gone } from "../engine/turn.js";
@@ -156,7 +156,7 @@ export async function swallow(idx, h, tail) {
     const x = a.x + (b.x - a.x) * f, y = a.y + (b.y - a.y) * f, r = Math.max(S * 0.11, a.w * 0.95);
     fxClear();
     drawHood(fx, pts[0], pts[4], cols);
-    fx.lineWidth = 2; fx.strokeStyle = "#0E0C08"; fx.fillStyle = cols[0];
+    fx.lineWidth = 2; fx.strokeStyle = paint("black"); fx.fillStyle = cols[0];
     fx.beginPath(); fx.arc(x, y, r, 0, Math.PI * 2); fx.fill(); fx.stroke();
     fx.globalAlpha = 0.6; fx.fillStyle = P_HEX[p.color];
     fx.beginPath(); fx.arc(x, y, r * 0.65, 0, Math.PI * 2); fx.fill();

@@ -2,13 +2,13 @@
 import { GOAL, TOP, ROWS, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, STR, squareOf } from "./content.js";
 import { lang, urlLang, setLangValue, L, num, t, tIn } from "./i18n.js";
 import { G, defaultSetup, pname, pnameIn, cur, newState, loadSelf, saveSelf } from "./state.js";
-import { prefs, setPref, lifeLived, beFirst, freshViewer, firstLife } from "./prefs.js";
+import { prefs, setPref, applyTheme, lifeLived, beFirst, freshViewer, firstLife } from "./prefs.js";
 import { $, COLORS, esc, reduced, sleep, quality, forcedQuality, setQuality } from "./ui.js";
 import { die, makeRng, freshSeed } from "./rng.js";
 import { TUMBLE, planTurn, resolveChoice, endTurn, addLog, diceFor, movesFor, moveFor, gone } from "./engine/turn.js";
 import { optionsFor, choiceFor, situationAt, momentOf } from "./engine/qbn.js";
 import { S, colRow, labEls, buildCells, draw, drawAge, fxClear, focusSquare } from "./render/board.js";
-import { lens, wash, stageOf } from "./render/age.js";
+import { lens, wash, stageOf, lookOf } from "./render/age.js";
 import { ageStep } from "./engine/self.js";
 import { karmaOf, carried, plantOf } from "./engine/karma.js";
 import { castOf, meetsNamed } from "./engine/cast.js";
@@ -338,8 +338,10 @@ function queueCpu() {
 // ---- The ageing board (render/age.js): repainted when a turn ends, fading over 600 ms ----
 let aged = null, ageSeq = 0;
 const mix = (a, b, u) => ({ sepia: a.sepia + (b.sepia - a.sepia) * u, dim: a.dim + (b.dim - a.dim) * u });
+// the look of the first impression (REDESIGN.md Phase 13), ?look=first|veil|asrama, until one is chosen
+let look = lookOf(new URLSearchParams(location.search).get("look"));
 function age(instant = false) {
-  const L = lens(G.state), to = Array.from({ length: TOP + 1 }, (_, n) => (n ? wash(n, L) : null));
+  const L = lens(G.state, null, look), to = Array.from({ length: TOP + 1 }, (_, n) => (n ? wash(n, L) : null));
   for (let n = 1; n <= TOP; n++) labEls[n]?.classList.toggle("ahead", to[n].dim > 0);
   setDrone(G.state.last != null ? L.droneStage : null);
   setShepard(G.state.last != null ? L.lead : null, G.state.winner != null);
@@ -404,6 +406,8 @@ function renderSetup() {
     .map(([v, k]) => `<option value="${v}"${v === prefs.depth ? " selected" : ""}>${t(k)}</option>`).join("");
   $("prefEvery").checked = prefs.everyCard;
   $("prefBoth").checked = prefs.both;
+  $("prefTheme").innerHTML = [["light", "themeLight"], ["dark", "themeDark"]]
+    .map(([v, k]) => `<option value="${v}"${v === prefs.theme ? " selected" : ""}>${t(k)}</option>`).join("");
 }
 function readSetup() {
   const setup = G.setup;
@@ -590,6 +594,7 @@ $("log").addEventListener("click", e => {
 $("prefDepth").addEventListener("change", e => { setPref("depth", e.target.value); refreshCard(); renderLedger(); });
 $("prefEvery").addEventListener("change", e => setPref("everyCard", e.target.checked));
 $("prefBoth").addEventListener("change", e => { setPref("both", e.target.checked); refreshCard(); });
+$("prefTheme").addEventListener("change", e => { setPref("theme", e.target.value); applyTheme(); });
 function renderMute() {
   const b = $("mute");
   b.setAttribute("aria-pressed", String(!prefs.mute));
@@ -622,7 +627,9 @@ if (new URLSearchParams(location.search).has("debug")) {
     // mp.years(n) sets how many years the current player has lived, so the end of a life can be reached on demand
     years(n) { if (n != null) { cur().years = n; render(); age(true); } return cur().years; },
     // the lens the board is aged through: { fadeAge, dimAge, lead, droneStage }
-    age: () => lens(G.state),
+    age: () => lens(G.state, null, look),
+    // mp.look("veil") changes how the first impression looks (first | veil | asrama), and redraws the ageing
+    look(x) { if (x) { look = lookOf(x); age(true); } return look; },
     // { ctx, stage, voices, wanted, muted }
     audio: audioState,
     // mp.quality("low") draws less: no camera, no motion extras, no paper grain

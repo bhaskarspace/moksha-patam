@@ -1,0 +1,79 @@
+{
+  "110": {
+    "about": "The 110-square board: cream, pale ochre and pale green grounds by band, as the painted boards vary their rows; the pigment is in the figures, the snakes, the ladders, the border and the divine row. Gold is the only gradient (REDESIGN.md Phase 13). Each snake is [body, belly]; no two snakes that come near each other share a body.",
+    "palette": {
+      "vermilion": "#C8352A",
+      "ochre": "#D9A441",
+      "yellow": "#E3A21A",
+      "indigo": "#2B3A67",
+      "malachite": "#3F7A4E",
+      "black": "#1A1410",
+      "shell": "#F4EDDC",
+      "beetle": "#1F7A5A",
+      "gold": "#B8862B",
+      "gold-hi": "#EDCF72",
+      "cream": "#F5E9C9",
+      "paleochre": "#EDD49B",
+      "palegreen": "#DCE0B4",
+      "cloth": "#E8D7AE",
+      "lac": "#5A1208"
+    },
+    "grounds": [
+      [
+        "cream",
+        "paleochre"
+      ],
+      [
+        "palegreen",
+        "cream"
+      ],
+      [
+        "paleochre",
+        "cream"
+      ],
+      [
+        "palegreen",
+        "paleochre"
+      ],
+      [
+        "cream",
+        "palegreen"
+      ]
+    ],
+    "divine": {
+      "ground": [
+        "gold",
+        "gold-hi"
+      ],
+      "goal": "indigo"
+    },
+    "snakes": [
+      [
+        "vermilion",
+        "yellow"
+      ],
+      [
+        "indigo",
+        "shell"
+      ],
+      [
+        "malachite",
+        "yellow"
+      ],
+      [
+        "yellow",
+        "vermilion"
+      ],
+      [
+        "black",
+        "shell"
+      ]
+    ],
+    "ladder": {
+      "rail": "yellow",
+      "outline": "vermilion"
+    },
+    "border": "scroll",
+    "superstructure": "vimana"
+  }
+}
