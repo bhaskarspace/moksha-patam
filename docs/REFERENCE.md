@@ -150,12 +150,13 @@ recognition rather than arrival.
 ## 4. The historical boards
 
 Not invented. Sectarian variants with different square counts are documented, which
-means Phase 9 restores something rather than adding a gimmick.
+means Phase 17 restores something rather than adding a gimmick.
 
 | Variant | Squares | Notes |
 |---|---|---|
-| Jain (*jñāna bāzī*, *gyān bāzī*) | **84** | Gujarat and Rajasthan; standardised. Dated examples 1735 (Jaipur), 1834 (Calico Museum, Ahmedabad). Opaque watercolour on cloth, text in Prākrit, Sanskrit and Gujarati. Popular at Paryuṣaṇ. |
-| Hindu, medieval | **72** | 9×8; the Nepali form is called *nāgapāśa*. A Lucknow Vaiṣṇava board of the early 1780s is in the British Library. |
+| Jain (*jñāna bāzī*, *gyān bāzī*) | **84** | Gujarat and Rajasthan; standardised. Earliest dated examples 1797 and 1812 (Schmidt-Madsen 2019). Opaque watercolour on cloth, text in Prākrit, Sanskrit and Gujarati. Popular at Paryuṣaṇ. 9 snakes, 6 ladders, 9 footprints up the centre column; five vimānas and the siddhaśilā above the grid. |
+| Vaiṣṇava, western India | **72** | 9×8; the Nepali form is called *nāgapāśa*. A Lucknow Vaiṣṇava board of the early 1780s is in the British Library. 10 snakes, 8–10 ladders; Vaikuṇṭha at 68, flanked by Śiva (67) and Brahmā (69); the last square's snake drops the overreacher to 51, the earth. |
+| Maharashtra, Marathi | 108 | 1905; 40 snakes, 22 ladders |
 | Maharashtra | 124 | 14×10, divided into four zones |
 | Vaiṣṇava, Punjab Hills | 300+ | split into left and right sections |
 | Muslim / Sufi | 100, or 101 counting the throne | 17 ladders, 13 snakes; Persian inscription; *fanā fi Allāh* leads toward the throne; Mughal period |
@@ -166,15 +167,33 @@ top of the Jain board, *vaikuṇṭha* as the winning square on most Hindu board
 crescent at the top for the Supreme One. Some boards are framed by the *Lok Puruṣa*,
 the cosmic body.
 
-**Rules worth restoring:**
+**Rules worth restoring** (the rules texts are in Schmidt-Madsen 2019, Appendix F: Harikṛṣṇa's
+*Krīḍākauśalya* 241–55 of 1872, and Jeṭhābhāī's Gujarati *Jñān bājī ramvānī rīt* of 1877):
 - Squares reachable only on an exact roll, which also cannot be passed.
-- A snake on the final square returning overreachers to the start.
+- **What happens above the winning square.** Three of the four surviving rules send the
+  overreacher back to the world: the 72's last snake to 51 (*pṛthvī*, earth), and Dampier
+  (1895) "beyond 72, start again from 1"; Jeṭhābhāī's Jain 84 walks the pawn that misses its
+  1 on 80 to 84, turns it, and drops it down the snake at 76 into 52, the human-birth row,
+  "and one should climb up again"; Harikṛṣṇa's 500-square board sends it round the whole
+  board. Only Harikṛṣṇa's 84 has the pawn roam 80–84 until it throws a 1 — the rule this game
+  had until Phase 12, and the one the thesis faults for disrupting the cycle. Gītā 9.20–21
+  is the doctrine behind the majority rule: merit buys heaven, heaven ends.
+- **The admitting 1.** In the Jain rules a 1 leaves square 1, climbs a ladder only from a
+  pawn already waiting at its foot, moves one square up a footprint, and enters each vimāna
+  in turn; in Harikṛṣṇa's 84 a 1 takes the pawn from Vaikuṇṭha (80) to mokṣa above it. A
+  verse on a 72-board names the faces of a four-sided die dharma (1), artha (2), kāma (3),
+  mokṣa (4): "by dharma and mokṣa one climbs house by house; because of artha and kāma one
+  wanders." The low face is the gate; the game's rule that the 1 is the threshold face and
+  the 6 the world's comes from here.
 - Squares that must be passed in a set order; a player who climbed to Brahmaloka had to
   later slide down to *pṛthvī* at least once.
-- ~~Snakes outnumbering ladders roughly two to one~~ — **this popular claim is wrong.**
-  Simulation work on the documented boards gives the Jaina 84 board 15 ladders to 9
-  snakes, the Vaiṣṇava 72 board 10 to 10, and the Mughal board 17 to 13. Every
-  pre-modern board on record is balanced or ladder-heavy. See `docs/BOARDCRAFT.md §1`.
+- **The counts, corrected 20 Oct.** The critically read 72 has ten snakes and eight to ten
+  ladders; the Jain 84 nine snakes, six ladders and nine footprints; the Marathi 108 forty
+  snakes and twenty-two ladders; the Mughal 100–101 is 17 ladders to 13 snakes. Snake-heavy
+  is the norm. The earlier claim here that every pre-modern board is balanced or
+  ladder-heavy counted the Jain footprints as ladders and did not have the 108; it was
+  wrong, and `docs/BOARDCRAFT.md §1` still carries it. The popular "two to one" is also
+  unsupported for the 72 and 84.
 - Thematic linking of the two ends of a snake or a ladder (ego to illusion, devotion to
   paradise). The existing design already does a version of this.
 
@@ -185,15 +204,20 @@ the summit. This is the warrant for adding regions below square 1 so that a fall
 somewhere real to land.
 
 **On dating:** popular accounts push the game back to the second century and the
-evidence does not support that. Surviving boards are mostly 18th century or later
-because cloth and paper do not last. The oldest known example is 17th-century Mewar; a
-10th-century text (Dhanapāla) mentions the Jain game; attribution to the 13th-century
-Marathi saint Dnyāneśvar is contested. Say "medieval, with older roots claimed" in the
-Codex, not "ancient".
+evidence does not support that. The fullest study (Schmidt-Madsen 2019) places the
+game's origin in late-17th- or early-18th-century western India, as a Vaiṣṇava bhakti
+adaptation of tantric subtle-body diagrams onto the track of the European game of goose,
+with the Jain 84 redesigned from it; the earliest charts in the record are late 18th
+century, and the attribution to the 13th-century Marathi saint Jñāneśvar is a 19th-century
+one (Harikṛṣṇa 1872). Say "eighteenth-century, with older roots claimed" in the Codex, not
+"ancient" and not "medieval".
 
-Primary scholarship: Andrew Topsfield, *The Art of Play: Board and Card Games of
-India* (Marg, 2006), and his Artibus Asiae articles. Deepak Shimkhada (1983) on the
-game of Karma.
+Primary scholarship: Jacob Schmidt-Madsen, *The Game of Knowledge: Playing at Spiritual
+Liberation in 18th- and 19th-Century Western India* (PhD, Copenhagen 2019; Primus Books
+2026), both volumes in `research/`; Andrew Topsfield, "The Indian Game of Snakes and
+Ladders" (*Artibus Asiae* 1985) and "Snakes and Ladders in India: Some Further Discoveries"
+(2006), and *The Art of Play: Board and Card Games of India* (Marg, 2006); Deepak Shimkhada
+(1983) on the game of Karma.
 
 ---
 
@@ -289,6 +313,9 @@ mean. If they do not, the laws are flavour text and the design has failed its ow
 - [Gyan Chaupar: The Game that Became Snakes and Ladders in British India — Sahapedia](http://www.sahapedia.org/gyan-chaupar-game-became-snakes-and-ladders-british-india)
 - [Jain snakes and ladders board (V&A) — JAINpedia](https://jainpedia.org/manuscript/snakes-and-ladders)
 - [Gyan chaupar board evidence — Ludii Portal](https://ludii.games/data.php?gameId=51)
+- Schmidt-Madsen, *The Game of Knowledge* (2019), main volume and appendices — `research/`
+- Topsfield 1985 and 2006; Shimkhada 1983 — `research/`
+- [Schmidt-Madsen, *The Game of Knowledge*, Primus Books 2026 — announcement](https://list.indology.info/pipermail/indology/2026-August/062270.html)
 - [Pramana — Wikipedia](https://en.wikipedia.org/wiki/Pramana)
 - [Moksha — Wikipedia](https://en.wikipedia.org/wiki/Moksha)
 - [Samskara (Indian philosophy) — Wikipedia](https://en.wikipedia.org/wiki/Samskara_(Indian_philosophy))

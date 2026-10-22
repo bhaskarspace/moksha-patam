@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import crypto from "node:crypto";
 import { lintContent, lintSprites, leadNames } from "../tools/lint-content.mjs";
-import { GOAL, TOP, READINGS, CODEX, REFS, SQ, SNAKES, LADDERS, HEAVEN, MOKSHA, sourceOf, leadOf, squareOf, snakeOn } from "../src/content.js";
+import { GOAL, TOP, READINGS, CODEX, REFS, SQ, SNAKES, LADDERS, HEAVEN, MOKSHA, FALL, sourceOf, leadOf, squareOf, fallOn } from "../src/content.js";
 
 test("all content passes the lint", () => {
   assert.deepEqual(lintContent(), []);
@@ -134,16 +134,18 @@ test("Phase 7: every god kept its own moment, mirror, readings and sprite when M
   assert.ok(HEAVEN[108].src, "Brahma's citation travels with Brahma");
 });
 
-test("Phase 7: Moksha is 105, the exit, with no sprite; Brahma at 108 carries the fall back to birth", () => {
+test("Phase 7: Moksha is 105, the exit, with no sprite; Phase 12: the fall is past 110, shown on its card", () => {
   assert.equal(GOAL, 105);
   assert.equal(TOP, 110);
   assert.equal(squareOf(105), MOKSHA);
   assert.equal(spriteHash("sq-105"), null);
   assert.equal(squareOf(108), HEAVEN[108]);
-  assert.equal(snakeOn(108), SNAKES[108]);
-  assert.ok(SNAKES[108].rebirth && SNAKES[108].to === 1 && SNAKES[108].src.startsWith("Bhagavad Gita"));
-  assert.equal(SNAKES[109], undefined);
-  assert.equal(spriteHash("sn-108"), "409050c182");
-  assert.equal(spriteHash("sn-109"), null);
-  assert.ok(REFS.gita?.includes(108) && REFS.mimamsa.includes(108));
+  // the Brahma snake is retired: no snake starts in the heavens, and its card is the fall's
+  assert.ok(Object.keys(SNAKES).every(h => +h < 101));
+  assert.equal(fallOn(TOP), FALL);
+  assert.equal(fallOn(108), null);
+  assert.ok(FALL.src.startsWith("Bhagavad Gita") && FALL.to === undefined);
+  assert.equal(spriteHash("fall"), "409050c182");
+  assert.equal(spriteHash("sn-108"), null);
+  assert.ok(REFS.gita?.includes(TOP) && REFS.mimamsa.includes(TOP));
 });

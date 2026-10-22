@@ -87,6 +87,12 @@
         <ul class="players" id="players"></ul>
       </section>
 
+      <section class="card" id="ledgerCard" hidden>
+        <span class="eyebrow" data-t="ledgerHead">Ledger</span>
+        <ul class="players" id="ledger"></ul>
+        <p class="hint" id="ledgerNote"></p>
+      </section>
+
       <section class="card">
         <div class="tabs" role="tablist">
           <button type="button" role="tab" id="tabMoves" aria-controls="log" aria-selected="true" data-t="moves">Moves</button>
@@ -102,7 +108,6 @@
           <div class="seg" id="count" role="group"></div>
           <div id="prows" class="setup-body"></div>
           <label class="check"><input type="checkbox" id="ruleSix" checked> <span data-t="ruleSix"></span></label>
-          <label class="check"><input type="checkbox" id="ruleBrahmaloka"> <span data-t="ruleBrahmaloka"></span></label>
           <label class="pick"><span data-t="depth"></span><select id="prefDepth"></select></label>
           <span class="hint depth-hint" data-t="depthHint"></span>
           <label class="check"><input type="checkbox" id="prefEvery"> <span data-t="everyCard"></span></label>

@@ -6,6 +6,7 @@ import { $, COLORS, P_HEX, reduced, sleep, quality } from "../ui.js";
 import { S, colRow, center, fx, fxClear, snakePath, snakeColors, drawHood } from "./board.js";
 import { STAGES, stageOf, stageName, spriteURL } from "./sprites.js";
 import { renderPlayers } from "./log.js";
+import { gone } from "../engine/turn.js";
 
 export const tokenEls = [];
 const OFFS = [[0, 0], [-2.2, -1.2], [2.2, -1.2], [-2.2, 1.2], [2.2, 1.2]];
@@ -44,7 +45,7 @@ export function place(silent = false) {
     const el = tokenEls[i];
     el.title = pname(p);
     el.classList.toggle("active", i === G.state.turn && !G.state.over && !G.busy);
-    el.classList.toggle("dead", !!p.dead);
+    el.classList.toggle("dead", gone(p));
     el.classList.toggle("left", p.face === "l" && el._frame < 2);
     const stage = stageOf(p);
     if (el._stage !== stage) {

@@ -52,6 +52,11 @@ const twoCpus = page => page.addInitScript(() => {
   const cpu = { name: "", type: "cpu" };
   window.claude = { hot: { data: { setup: { count: 2, rows: [cpu, cpu, cpu, cpu], rules: { six: true } } } } };
 });
+// waits for a condition, closing any landing card that would hold the turn up
+const until = (page, fn) => page.waitForFunction(fn => {
+  if (document.getElementById("folio").open) mp.close({ instant: true });
+  return new Function(`return (${fn})()`)();
+}, fn.toString(), { timeout: 30000, polling: 100 });
 
 await check("every square 1–110 opens from the board, and closes", async page => {
   await page.goto(BASE + "?seed=1");
@@ -271,7 +276,7 @@ await check("Phase 4: the squares a move passed are named in the log, and each o
   assert(await page.evaluate(() => /Guru-bhakti/.test(document.querySelector("#leaf .story p.remedy")?.textContent || "")), "square 22 does not name its remedy");
 });
 
-await check("Phase 7: Moksha is 105, Brahma at 108 carries the fall, and 110 is Shiva, past the exit", async page => {
+await check("Phase 7: Moksha is 105, Brahma at 108 is only his realm, and 110 is Shiva, past the exit, with the fall on his card", async page => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto(BASE + "?seed=5&debug");
   const card = n => page.evaluate(n => {
@@ -283,7 +288,6 @@ await check("Phase 7: Moksha is 105, Brahma at 108 carries the fall, and 110 is 
       gita: !!document.querySelector('#leaf .snake-on a.src[data-entry="gita"]'),
       foot: document.querySelector("#leaf .leaf-foot .ft")?.textContent,
       above: document.querySelector("#leaf .story p.remedy.above")?.textContent || "",
-      fallWhen: document.querySelector("#leaf .snake-on p.remedy.fall")?.textContent || "",
       art: !!document.querySelector("#leaf .glyph svg.ill"),
     };
     mp.close({ instant: true });
@@ -291,8 +295,8 @@ await check("Phase 7: Moksha is 105, Brahma at 108 carries the fall, and 110 is 
   }, n);
   const goal = await card(105), brahma = await card(108), shiva = await card(110), ganesha = await card(104);
   assert(goal.title === "Moksha" && goal.views === 6, `105: ${JSON.stringify(goal)}`);
-  assert(brahma.title === "Brahma" && brahma.snake === "Merit spent" && brahma.gita && /down to 1$/.test(brahma.foot) && brahma.above && /only once/.test(brahma.fallWhen), `108: ${JSON.stringify(brahma)}`);
-  assert(shiva.title === "Shiva" && shiva.art && /105/.test(shiva.above) && !shiva.snake, `110: ${JSON.stringify(shiva)}`);
+  assert(brahma.title === "Brahma" && !brahma.snake && !brahma.foot && /nothing up here turns back/i.test(brahma.above), `108: ${JSON.stringify(brahma)}`);
+  assert(shiva.title === "Shiva" && shiva.art && /105/.test(shiva.above) && shiva.snake === "Merit spent" && shiva.gita && /the fall$/.test(shiva.foot), `110: ${JSON.stringify(shiva)}`);
   assert(!ganesha.above, "104 is below the exit and should not say Moksha is behind");
   // the board: 105 is the goal cell, and Shiva's sprite sits on 110
   assert(await page.evaluate(() => document.querySelector('#labels .lab.goal')?.dataset.n === "105" && !!document.querySelector('#labels .lab[data-n="110"] svg.spr use[href="#sq-110"]')), "the board does not show the exit at 105");
@@ -302,22 +306,65 @@ await check("Phase 7: Moksha is 105, Brahma at 108 carries the fall, and 110 is 
   await page.evaluate(() => mp.close({ instant: true }));
 });
 
-await check("Phase 7: a roll that bounces off 110 comes back down onto the exit and wins; climbing onto Brahma falls back to birth, once; coming down onto it does not", async page => {
+await check("Phase 12: past 105 the heavens are walked, and the throw past 110 ends the life on its own line, counted as a life", async page => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto(BASE + "?seed=5&debug");
   const settle = k => page.waitForFunction(k => { if (document.getElementById("folio").open) mp.close({ instant: true }); return mp.state.log.some(e => e.k === k) && !mp.busy; }, k, { timeout: 15000, polling: 200 });
-  await page.evaluate(() => { mp.jump(106); mp.roll(2); });     // 107, 108: merit spent, and back to birth
-  await settle("lRebirth");
-  await page.waitForFunction(() => mp.state.players[0].pos === 1, null, { timeout: 15000 });
+  await page.evaluate(() => { mp.jump(106); mp.roll(2); });     // 107, 108: Brahma's realm, and nothing falls
+  await settle("lHeaven");
+  assert(await page.evaluate(() => mp.state.players[0].pos === 108 && !mp.state.players[0].fell), "108 is not just a realm");
   await page.goto(BASE + "?seed=5&debug");
-  await page.evaluate(() => { mp.jump(108); mp.roll(4); });     // 109, 110, 109, 108: down onto Brahma, who lets be
-  await settle("lBounce");
-  assert(await page.evaluate(() => mp.state.players[0].pos === 108 && !mp.state.log.some(e => e.k === "lRebirth")), "a bounce down onto 108 fell");
-  await page.goto(BASE + "?seed=5&debug");
-  await page.evaluate(() => { mp.jump(110); mp.roll(5); });     // 109, 108, 107, 106, 105, passing Brahma's snake
-  await settle("lWinAbove");
-  assert(await page.evaluate(() => mp.state.winner === 0 && mp.state.players[0].pos === 105), "the bounce did not win on 105");
-  assert(await page.evaluate(() => !document.getElementById("win").hidden), "no win screen");
+  // as a new viewer: the fall is their first life ended, counted in mp-lives as a death is
+  const before = 0;
+  await page.evaluate(() => { mp.first(); mp.jump(107); mp.roll(6); });     // 108, 109, 110, and past it: the fall
+  await settle("lFell");
+  const r = await page.evaluate(() => ({ fell: mp.state.players[0].fell, pos: mp.state.players[0].pos, over: mp.state.over, winner: mp.state.winner,
+    win: !document.getElementById("win").hidden, text: document.getElementById("winText").textContent, end: mp.lifeText(0, "en"), lives: +(localStorage.getItem("mp-lives") || 0) }));
+  assert(r.fell && r.pos === 0 && r.over && r.winner === null && r.win, `the fall did not end the life: ${JSON.stringify(r)}`);
+  assert(/merit ran out in the heavens/i.test(r.text), `end screen: ${r.text}`);
+  assert(/rose as far as the realm of/.test(r.end), `the account does not close on the fall: ${r.end}`);
+  assert(r.lives === before + 1, `mp-lives ${before} → ${r.lives}`);
+});
+
+await check("Phase 12: a debt comes due on its own card, which holds the game until it is read, and the ledger keeps it", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=1&debug");
+  await page.evaluate(() => { Object.assign(mp.state.players[0], { pos: 30, years: 40, life: [30], told: [null] }); mp.plant(12, "lie"); mp.fire(); mp.roll(2); });
+  await page.waitForFunction(() => document.getElementById("folio").open && /floor is not there/.test(document.getElementById("leaf").textContent), null, { timeout: 15000 });
+  const card = await page.evaluate(() => ({ text: document.getElementById("leaf").textContent, busy: mp.busy, hash: location.hash }));
+  assert(/square 12/.test(card.text) && /the teacher who was coming, at forty/.test(card.text), `the card does not name the debt: ${card.text.slice(0, 300)}`);
+  assert(card.busy && card.hash === "#sq/12", `the reckoning does not hold the game: ${JSON.stringify({ busy: card.busy, hash: card.hash })}`);
+  assert(!/\b(weight|fuse|prārabdha|āgāmi)\b/i.test(card.text), "the card shows the ledger's workings");
+  await page.evaluate(() => mp.close());
+  await until(page, () => !mp.busy && mp.state.players[0].reckonings?.length === 1);
+  const k = await page.evaluate(() => mp.dumpKarma(0));
+  assert(!k.karma.agami.length && !k.karma.prarabdha.length && k.reckonings[0].src === 12, JSON.stringify(k));
+  assert(await page.evaluate(() => mp.state.log.some(e => e.k === "lReckon" && e.v.src === 12)), "no lReckon in the log");
+});
+
+await check("Phase 12: the door refuses a life still carrying a debt, says which in words, and the scholar's ledger lists it", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=1&debug");
+  await page.evaluate(() => { Object.assign(mp.state.players[0], { pos: 103, years: 80, life: [103], told: [null] }); mp.plant(55, "keep"); mp.roll(2, 1); });
+  await page.waitForFunction(() => mp.choosing, null, { timeout: 15000 });
+  await page.evaluate(() => mp.pick(2));
+  await until(page, () => !mp.busy && mp.state.log.some(e => e.k === "lRefused"));
+  const r = await page.evaluate(() => ({ pos: mp.state.players[0].pos, winner: mp.state.winner, over: mp.state.over, win: !document.getElementById("win").hidden }));
+  assert(r.pos === 105 && r.winner === null && !r.over && !r.win, `the door opened: ${JSON.stringify(r)}`);
+  await page.evaluate(() => mp.open(105));
+  await page.waitForFunction(() => document.getElementById("folio").open && document.getElementById("leafTitle"), null, { timeout: 15000 });
+  const door = await page.evaluate(() => document.getElementById("leaf").textContent);
+  assert(/The door does not open\. .* is still carrying the extra change pocketed at eighty/.test(door) && /every throw goes on into the heavens/.test(door), `door: ${door.slice(0, 400)}`);
+  await page.evaluate(() => mp.close({ instant: true }));
+  // the ledger is the scholar's alone
+  const shown = () => page.evaluate(() => { const c = document.getElementById("ledgerCard"); return { hidden: c.hidden, text: c.textContent }; });
+  assert((await shown()).hidden, "the ledger shows below scholar depth");
+  await page.evaluate(() => { const s = document.getElementById("prefDepth"); s.value = "scholar"; s.dispatchEvent(new Event("change")); });
+  const sch = await shown();
+  assert(!sch.hidden && /the extra change pocketed at eighty/.test(sch.text) && /āgāmi/.test(sch.text) && /deterministic dynamical system/.test(sch.text), `ledger: ${sch.text.slice(0, 300)}`);
+  assert(!/\d/.test(sch.text.replace(/eighty|forty/g, "")), `the ledger shows a number: ${sch.text}`);
+  await page.evaluate(() => { const s = document.getElementById("prefDepth"); s.value = "story"; s.dispatchEvent(new Event("change")); });
+  assert((await shown()).hidden, "the ledger stays at story depth");
 });
 
 await check("Phase 7: muted, nothing in the divine row starts audio; unmuted, the Shepard tone follows the walk", async page => {
@@ -510,11 +557,6 @@ const twoPeople = page => page.addInitScript(() => {
   const rows = [{ name: "Asha", type: "human", gender: "f" }, { name: "Ravi", type: "human", gender: "m" }, { name: "", type: "cpu" }, { name: "", type: "cpu" }];
   window.claude = { hot: { data: { setup: { count: 3, rows, rules: { six: true } } } } };
 });
-// waits for a condition, closing any landing card that would hold the turn up
-const until = (page, fn) => page.waitForFunction(fn => {
-  if (document.getElementById("folio").open) mp.close({ instant: true });
-  return new Function(`return (${fn})()`)();
-}, fn.toString(), { timeout: 30000, polling: 100 });
 
 await check("Phase 8: a sannyasin's card names the bhumika they are in, at the years they have lived", async page => {
   await page.emulateMedia({ reducedMotion: "reduce" });

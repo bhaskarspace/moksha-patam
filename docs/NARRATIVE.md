@@ -291,7 +291,7 @@ ran out of years at a hundred and eleven, lived to ninety-four and at eighty-nin
 begin again, nothing went backwards, or lived to an age. **The ending** of a life that ran
 out of years names what it was still holding: the vice it took most often, in that snake's
 `holding` ("…on ground already walked once, still asking whether the son has eaten.").
-Phase 14 makes that what carries over. **A life let go** ends with the same weight (Phase 9): it names
+Phase 15 makes that what carries over. **A life let go** ends with the same weight (Phase 9): it names
 that same vice, the one a death would have named as still held, as the thing put down, in the
 snake's `letgo` ("Then, at eighty-eight, moksha, and Meera put down the body that seemed to
 settle it."). A life that took no snake has "nothing to put down". What the dying hold is what
@@ -526,7 +526,7 @@ second.
 
 The life account is already the central object of the game, and the design has not said so.
 Say so. Citragupta is Yama's scribe in the Garuḍa Purāṇa, who writes every deed down, and
-what he has written is read back at the reckoning. **The account is that record.** Phase 14's
+what he has written is read back at the reckoning. **The account is that record.** Phase 15's
 reckoning screen is Citragupta reading it aloud to Yama.
 
 What this buys is a narrator with a stake. The account already knows what the player did not
@@ -595,18 +595,25 @@ year. **The player never sees a number. They feel the debt as how long they stan
 That is Émerson's 5×10 kept whole and made into the game's most devastating scene, and it is
 `p.holding` under cross-examination.
 
-The last question is where the laws bite. Under Phase 15 the Advaitin door and the
+The last question is where the laws bite. Under Phase 16 the Advaitin door and the
 Mīmāṃsaka door ask the same questions and accept different answers — and that is where
 "informative" stops being annotation and becomes structure.
 
-This also resolves the tension Phase 10A recorded, that a 1 is both the omen's dread-face
-and the slow arrival's lucky face: at the door, a 1 is the question. Below 94 it is how you
-arrived. They never share a square.
+The tension Phase 10A recorded — that a 1 was to be both the omen's dread-face and the
+slow arrival's lucky face — went away on 20 Oct when the omen moved to the 6 (REDESIGN.md
+Phase 12). The 1 is the threshold face on every square: below 94 how you arrived, at the
+door the question, and in the historical rules the admitting throw — Jeṭhābhāī's 1 that
+climbs a ladder from its foot and enters each vimāna, Harikṛṣṇa's 1 from Vaikuṇṭha to
+mokṣa. The door's own word is attested too: Rasik Rāy's verse on a 72-board says that
+without the grace of god and the knowledge of Brahman "one does not see the door."
 
 Each turn at the door is still a Phase 9 turn: two dice, and the sannyāsin's option to sit
 the year in practice. If practice pays the debt down — penance, which is what it is — the
 door is a choice between moving and clearing, not a counter emptying. That is the one place
-the allocation loop Phase 9 declined earns its complexity.
+the allocation loop Phase 9 declined earns its complexity. And since Phase 12's geometry
+nothing above 105 turns back: the player who will not sit walks on into the heavens and,
+when the merit runs out, falls back to the world, reborn (Gītā 9.21). The book tells it as
+a choice. The door is sit, settle, or go.
 
 ### 13.8 The schools as people
 
@@ -626,7 +633,7 @@ Branching plot, dialogue trees, cutscenes. They cost everything and kill replay.
 rule — most playthroughs see under a tenth of the text — only pays if the player *wants* the
 other nine tenths, and a named friend whose death they were not told about is the reason
 they will. The whole layer is data on squares and rules in the account; no new screen until
-the door, and the door is Phase 13's gate with words.
+the door, and the door is Phase 14's gate with words.
 
 ### 13.10 Authoring constraints
 
@@ -650,10 +657,10 @@ Everything slots into a phase that exists.
    its own PR from a clean main. Tagging ~40 squares, one name list, one join rung. Highest
    leverage of anything on the table.
 2. **Fates in the closing** — same pass.
-3. **The curse** — Phase 13. It is a fuse.
-4. **The door as praśna** — Phase 13. It is the gate.
-5. **Cast across lives; the forgotten holding** — Phase 14. It is saṃskāra.
-6. **Schools as cast** — Phases 15 and 16, content.
+3. **The curse** — Phase 14. It is a fuse.
+4. **The door as praśna** — Phase 14. It is the gate.
+5. **Cast across lives; the forgotten holding** — Phase 15. It is saṃskāra.
+6. **Schools as cast** — Phases 16 and 17, content.
 
 **Done when:** a generated life names a friend on their first square and uses the name on
 every later one; the account joins a return by name; the closing names at least one fate the

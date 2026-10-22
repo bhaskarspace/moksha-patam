@@ -22,7 +22,7 @@ export const defaultSetup = () => {
   return {
     count: 2,
     rows: [{ name: self?.name || "", type: "human", gender: self?.gender || "" }, { name: "", type: "cpu", gender: "" }, { name: "", type: "cpu", gender: "" }, { name: "", type: "cpu", gender: "" }],
-    rules: { six: true, brahmaloka: false },
+    rules: { six: true },
   };
 };
 

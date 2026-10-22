@@ -31,7 +31,7 @@ test("ten squares offer a choice: four snakes, three ladders and three story squ
 test("a square without a situation is resolved at once, exactly as before", () => {
   const plan = planTurn(game(40), 4);
   assert.equal(plan.situation, undefined);
-  assert.deepEqual(plan.jump, { kind: "ladder", to: 63, rebirth: false });
+  assert.deepEqual(plan.jump, { kind: "ladder", to: 63 });
 });
 
 test("on a situation the turn waits for the choice, and the choice is the move", () => {
@@ -95,11 +95,16 @@ test("a computer chooses without touching the dice, and only what is open", () =
 });
 
 test("the dishonest player plays the board as it was: every least-worth option is the old snake, ladder or square", () => {
-  const saved = { ...SITUATIONS };
+  // the structural guarantee is about where an option takes the player and what it costs; what the least-worth options
+  // plant (REDESIGN.md Phase 12) is the ledger's, so the seeds are taken away for both runs
+  const saved = { ...SITUATIONS }, seeds = Object.values(SITUATIONS).flatMap(s => s.options.filter(o => o.seed).map(o => [o, o.seed]));
+  seeds.forEach(([o]) => delete o.seed);
   const run = () => Array.from({ length: 300 }, (_, i) => playGame(i + 1, { players: 2 })).map(g => JSON.stringify([g.log, g.turns, g.winner, g.players.map(p => [p.life, p.years])]));
-  const crooked = policy("dishonest", run);
-  for (const k of Object.keys(SITUATIONS)) delete SITUATIONS[k];
-  try { assert.deepEqual(run(), crooked); } finally { Object.assign(SITUATIONS, saved); }
+  try {
+    const crooked = policy("dishonest", run);
+    for (const k of Object.keys(SITUATIONS)) delete SITUATIONS[k];
+    assert.deepEqual(run(), crooked);
+  } finally { Object.assign(SITUATIONS, saved); seeds.forEach(([o, sd]) => { o.seed = sd; }); }
 });
 
 test("the account tells the outcome chosen, passes the years silently, and keeps callbacks to the moment named", () => {
@@ -118,7 +123,9 @@ test("the account tells the outcome chosen, passes the years silently, and keeps
 
 test("every prompt and outcome agrees in Hindi for a man and a woman, and leaves no choice unmade", () => {
   for (const [n, sit] of Object.entries(SITUATIONS)) {
-    const texts = [sit.prompt, ...sit.options.flatMap(o => [o.outcome, o.outcome?.mirror].filter(Boolean)), ...sit.options.map(o => o.label), ...sit.options.map(o => o.why).filter(Boolean)];
+    // a debt names the age it was made at, {at}, filled where it is told (src/engine/karma.js)
+    const at = t => t && { en: t.en.replaceAll("{at}", "x"), hi: t.hi.replaceAll("{at}", "x") };
+    const texts = [sit.prompt, ...sit.options.flatMap(o => [o.outcome, o.outcome?.mirror, at(o.seed?.debt), at(o.seed?.reckoning)].filter(Boolean)), ...sit.options.map(o => o.label), ...sit.options.map(o => o.why).filter(Boolean)];
     for (const m of texts) {
       for (const gender of ["m", "f", "n"]) for (const l of ["en", "hi"]) assert.doesNotMatch(fill(castFill(m[l]), { name: "Asha", gender, age: "x" }), /[{}|]/, `situation ${n} ${l} ${gender}`);
       const hi = castFill(m.hi);

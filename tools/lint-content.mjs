@@ -8,7 +8,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { GOAL, TOP, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, STR, SRC_HI, JOINS, NUM_HI, READINGS, CODEX, REFS, ENTRY_IDS, srcOfSquare, sourceOf, leadOf, squareOf, SITUATIONS, CAST, CAST_WORDS, BRIDGES, BRIDGE_SAME, whoOf, bridgeOf } from "../src/content.js";
+import { GOAL, TOP, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, FALL, STR, SRC_HI, JOINS, NUM_HI, READINGS, CODEX, REFS, ENTRY_IDS, srcOfSquare, sourceOf, leadOf, squareOf, SITUATIONS, CAST, CAST_WORDS, BRIDGES, BRIDGE_SAME, whoOf, bridgeOf } from "../src/content.js";
 import NAMES from "../content/names.json" with { type: "json" };
 import { ENDGAME, createGame, playTurn } from "../src/engine/turn.js";
 import { destOf, worthOf } from "../src/engine/qbn.js";
@@ -228,11 +228,10 @@ export function lintReport() {
     if (roll.echo) { if (q.callsBack == null) err(`${rw} echo`, "has an echo but the square calls back to nothing"); join(`${rw} echo`, roll.echo); }
   }
 
-  // a snake that starts on a god's square (Phase 4: 109, merit spent) is a snake card of its own: a name,
-  // a moment, a mirror that names someone, two voices and a citation, like every other snake
-  for (const [h, sn] of Object.entries(SNAKES)) {
-    if (!HEAVEN[h]) continue;
-    const where = `snake ${h}`;
+  // the fall past the top square (until Phase 12 the snake from 108, merit spent) is a card of its own: a name, a
+  // moment, a mirror that names someone, two voices and a citation, like every snake
+  for (const sn of [FALL]) {
+    const where = "the fall";
     bilingual(`${where} name`, sn);
     if (!sn.skt) err(where, "no Sanskrit name");
     bilingual(`${where} mirror`, sn.mirror);
@@ -247,7 +246,6 @@ export function lintReport() {
 
   // Phase 8: every vice and virtue moves the gunas, and a vice says what a life was still holding when it ended
   for (const [h, sl] of [...Object.entries(SNAKES), ...Object.entries(LADDERS)]) {
-    if (SNAKES[h]?.rebirth) continue;
     const where = `${LADDERS[h] ? "ladder" : "snake"} ${h}`;
     if (!["s", "r", "t"].includes(sl.guna)) err(where, "needs a guna: s, r or t");
     if (LADDERS[h] && sl.guna !== "s") err(where, "a virtue is sattva");
@@ -281,7 +279,7 @@ export function lintReport() {
       const ow = `${w}.${o.id}`;
       bilingual(`${ow} label`, o.label);
       if (!["snake", "ladder", "here"].includes(o.move)) err(ow, `move "${o.move}" is not snake, ladder or here`);
-      if (o.move === "snake" && (!SNAKES[n] || SNAKES[n].rebirth)) err(ow, "takes a snake on a square that has none");
+      if (o.move === "snake" && !SNAKES[n]) err(ow, "takes a snake on a square that has none");
       if (o.move === "ladder" && !LADDERS[n]) err(ow, "takes a ladder on a square that has none");
       if (!(Number.isInteger(o.cost) && o.cost >= 0 && o.cost <= 8)) err(ow, `cost ${o.cost} is not a whole number of years, 0 to 8`);
       if (!GUNAS.includes(o.guna)) err(ow, `guna "${o.guna}" is not s, r or t`);
@@ -296,6 +294,29 @@ export function lintReport() {
         // years only go forward, so a stage before the square's own can never be in force there
         if (o.require.stage && !o.require.stage.some(x => Number.isInteger(x) && x >= earliest && x <= 4)) err(`${ow} require.stage`, "names no stage a life can be in on this square");
       } else if (o.why) err(ow, "has a reason for being withheld, but no gate");
+      // Phase 12: the seed a choice plants (src/engine/karma.js). One ledger: a debt is planted only by a choice that also
+      // moves the player toward rajas or tamas and away from dharma, so what is coming and what they are becoming agree.
+      if (o.seed) {
+        const sd = o.seed, sw = `${ow} seed`;
+        if (!["r", "t"].includes(o.guna)) err(sw, `plants a debt on a choice whose guna is "${o.guna}", not r or t`);
+        if ((o.aims?.dharma ?? 0) > 0) err(sw, "plants a debt on a choice that adds dharma");
+        if (!(Number.isInteger(sd.fuse) && sd.fuse > 0)) err(sw, `fuse ${sd.fuse} is not a positive whole number of years`);
+        if (![1, 2, 3].includes(sd.weight)) err(sw, `weight ${sd.weight} is not 1, 2 or 3`);
+        if (sd.holds != null && !SNAKES[sd.holds]) err(sw, `holds ${sd.holds}, which is not a snake's head`);
+        // the debt is a phrase naming the moment and the age it was made at, {at}; what came due is about the player
+        const atless = o => ({ en: o.en?.replaceAll("{at}", "ten"), hi: o.hi?.replaceAll("{at}", "दस") });
+        bilingual(`${sw} debt`, sd.debt);
+        if (sd.debt?.en && sd.debt?.hi) {
+          for (const l of ["en", "hi"]) {
+            if (!sd.debt[l].includes("{at}")) err(`${sw} debt`, `the ${l === "en" ? "English" : "Hindi"} does not say when with {at}`);
+            for (const x of badSlots(atless(sd.debt)[l])) err(`${sw} debt`, `unknown placeholder {${x}}`);
+          }
+          const agree = hindiAgreement(castFill(atless(sd.debt).hi));
+          if (agree.errors.length) err(`${sw} debt`, `the Hindi agrees without a {m|f} choice: ${agree.errors.join(", ")}`);
+        }
+        bilingual(`${sw} reckoning`, sd.reckoning);
+        if (sd.reckoning?.en && sd.reckoning?.hi) playerText(`${sw} reckoning`, atless(sd.reckoning));
+      }
     }
     if (opts.length >= 2) {
       const sorted = [...opts].sort((a, b) => worthOf(a) - worthOf(b)), lo = sorted[0], hi = sorted.at(-1);
@@ -315,7 +336,7 @@ export function lintReport() {
       const q = squareOf(n);
       if (!q) continue;
       const shown = [[`square ${n}`, q.moment?.mirror || q.mirror], [`square ${n} roll`, SQ[n]?.roll?.moment && (SQ[n].roll.moment.mirror || q.mirror)],
-        ...(SITUATIONS[n]?.options || []).map(o => [`situation ${n}.${o.id}`, o.outcome && (o.outcome.mirror || q.mirror)]), [`snake ${n}`, HEAVEN[n] && SNAKES[n]?.mirror]];
+        ...(SITUATIONS[n]?.options || []).map(o => [`situation ${n}.${o.id}`, o.outcome && (o.outcome.mirror || q.mirror)]), [`the fall`, n === TOP && FALL.mirror]];
       for (const [w, mr] of shown) {
         if (!mr?.en) continue;
         const who = whoOf(mr), b = bridgeOf(mr);
@@ -345,7 +366,7 @@ export function lintReport() {
     for (let n = 1; n <= TOP; n++) {
       const q = squareOf(n);
       if (!q) continue;
-      for (const m of [q, q.moment, SQ[n]?.roll?.moment, SNAKES[n], ...(SITUATIONS[n]?.options || []).map(o => o.outcome)]) if (m?.mirror) mirrors.push([n, m.mirror]);
+      for (const m of [q, q.moment, SQ[n]?.roll?.moment, SNAKES[n], n === TOP && FALL, ...(SITUATIONS[n]?.options || []).map(o => o.outcome)]) if (m?.mirror) mirrors.push([n, m.mirror]);
     }
     for (const [i, nm] of list.entries()) {
       const w = `names.cast[${i}]`;
@@ -453,7 +474,7 @@ export function lintSprites(svg, css) {
   if (widths.some(w => w !== "1.25")) err(`outline weights other than 1.25: ${widths.join(", ")}`);
   if (/<(linearGradient|radialGradient|filter)\b|\b(filter|transform)=/.test(svg)) err("gradients, filters or transforms; the sprites are flat fills");
   for (let n = 1; n <= TOP; n++) if (n !== GOAL && !svg.includes(`id="sq-${n}"`)) err(`no symbol for square ${n}`);
-  for (const h of Object.keys(SNAKES)) if (HEAVEN[h] && !svg.includes(`id="sn-${h}"`)) err(`no symbol for the snake on square ${h}`);
+  if (!svg.includes(`id="fall"`)) err("no symbol for the fall");
   for (const id of Object.keys(CODEX.schools)) if (!svg.includes(`id="seal-${id}"`)) err(`no seal for ${id}`);
   return errors;
 }

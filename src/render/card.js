@@ -1,11 +1,13 @@
 // ---- The card: a pothi folio for one square or one Codex entry ----
 // It no longer holds the game up (REDESIGN.md Phase 11): the dice stay live while it is open, and the next roll takes
-// it away. Only a situation waiting on a choice is modal, until the choice is made.
-import { GOAL, TOP, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, READINGS, CODEX, ENTRY_IDS, REFS, entryOf, sourceOf, srcOfSquare, squareOf, snakeOn, bridgeOf } from "../content.js";
+// it away. Only a situation waiting on a choice is modal, until the choice is made, and a reckoning (REDESIGN.md Phase
+// 12), until it is read: a choice's result arriving, the one other thing a turn waits on.
+import { GOAL, TOP, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, READINGS, CODEX, ENTRY_IDS, REFS, entryOf, sourceOf, srcOfSquare, squareOf, fallOn, bridgeOf } from "../content.js";
 import { lang, tIn, numIn, srcIn, pick, fill, castFill, ageWordsIn } from "../i18n.js";
 import { ageStep, stageOfYears, bhumikaOf, freshGunas, SANNYASA, yearsAlong } from "../engine/self.js";
 import { castOf, castAlong, peopleOf, introIn } from "../engine/cast.js";
 import { momentOf, destOf } from "../engine/qbn.js";
+import { reckonLinesIn, refusalIn } from "../engine/karma.js";
 import { prefs, hasMet, meet, firstLife, firstOpened, openFirst, knowsWho, meetWho } from "../prefs.js";
 import { G, pnameIn } from "../state.js";
 import { $, esc, reduced, art } from "../ui.js";
@@ -20,7 +22,7 @@ const other = l => (l === "hi" ? "en" : "hi");
 const DEPTHS = ["story", "school", "scholar"];
 const deep = d => DEPTHS.indexOf(prefs.depth) >= DEPTHS.indexOf(d);
 
-let view = null;           // { type: "square", n } or { type: "entry", id }
+let view = null;           // { type: "square", n }, { type: "entry", id } or { type: "reckon", rk }
 let cardLang = null;       // the card's own language, when the reader flips it
 let backTo = null;         // the square an entry was opened from
 let subject = null;        // the player a square's moment is about; the player whose turn it is when unset
@@ -73,8 +75,7 @@ function squareInfo(n, l) {
   }
   if (HEAVEN[n]) {
     const h = HEAVEN[n];
-    const sn = snakeOn(n);
-    return { kind: "heaven", big: h.ic, title: h[l], alt: [h[o], scholar ? r.iast : ""], eb: T("realm"), ft: sn ? T("snakeTo", { n: sn.to }) : "" };
+    return { kind: "heaven", big: h.ic, title: h[l], alt: [h[o], scholar ? r.iast : ""], eb: T("realm"), ft: fallOn(n) ? T("fallFoot") : "" };
   }
   const q = SQ[n];
   return { kind: "story", big: q.ic, title: q[l], alt: [q[o], scholar ? r.iast : ""], eb: `${T("story")} · ${stageIn(l, n)}`, ft: "" };
@@ -93,7 +94,7 @@ function livedOn(n) {
   if (!p.life?.length) return null;
   const head = SNAKES[p.life.at(-2)];
   // never younger than the square: only a token moved by hand (mp.jump) can be
-  return { p, years: Math.max(p.years ?? 0, squareOf(n)?.age ?? 0), still: !!head && !head.rebirth && head.to === n && p.life.at(-1) === n };
+  return { p, years: Math.max(p.years ?? 0, squareOf(n)?.age ?? 0), still: !!head && head.to === n && p.life.at(-1) === n };
 }
 // Which of square n's moments its subject's landing there told (REDESIGN.md Phase 10): the other one, or a situation's
 // chosen outcome, only on the square they are standing on, during the landing or after it. A square browsed tells
@@ -238,7 +239,13 @@ function squareHtml(n, l) {
     `<span class="opt-k" aria-hidden="true">${numIn(l, i + 1)}</span><span class="opt-l">${esc(o.label[l] || o.label.en)}</span>` +
     `<span class="opt-c">${esc(optionNote(l, n, o))}</span>` +
     (o.open ? "" : `<span class="opt-why" id="why-${esc(o.id)}">${esc(T("optWithheld"))} ${esc(o.why[l] || o.why.en)}</span>`) + `</button>`).join("") + `</div>` : "";
-  body += `<div class="story">${moment}${options}${remedy}${pending ? "" : mirrorHtml(l, mirror, m)}${bi(l, r.line2, "line2")}${above}</div>`;
+  // the door that did not open says why, in words (REDESIGN.md Phase 12): during the landing, and while they stand at it
+  // (whoever is standing there refused, if it is not the player whose turn it is)
+  const sp0 = subjectOf(), landing = G.plan && sp0 === G.state.players[G.plan.idx] && G.plan.target === n ? G.plan : null;
+  const sp = landing || sp0?.door ? sp0 : G.state?.players.find(q => q.pos === GOAL && q.door) ?? sp0;
+  const refusal = n === GOAL && sp ? (landing ? landing.refused : sp.pos === GOAL ? sp.door : null) : null;
+  const door = refusal ? (() => { const [en, hi] = ["en", "hi"].map(x => refusalIn(x, refusal, { name: pnameIn(sp, x), gender: sp.gender })); return en.map((t, i) => texts(l, t, hi[i], "remedy door")).join(""); })() : "";
+  body += `<div class="story">${door}${moment}${options}${remedy}${pending ? "" : mirrorHtml(l, mirror, m)}${bi(l, r.line2, "line2")}${above}</div>`;
   // what the toggle opens: the voices, and the notes, at the reader's depth
   // Codex entries in it count as met only once the reader opens it
   let more = "";
@@ -271,15 +278,13 @@ function squareHtml(n, l) {
     }
   }
   body += srcLine(src, l, met, { square: true });
-  // a snake that starts on a god's square (108, merit spent) follows the god, in the snakes' own voice
-  const sn = snakeOn(n);
+  // the fall past the top square (merit spent) follows its god, in the snakes' own voice (REDESIGN.md Phase 12)
+  const sn = fallOn(n);
   if (sn) {
     const sm = sn.moment;
-    body += `<section class="snake-on"><h3 class="sub">${art(`sn-${n}`, sn.ic, "spr snake-glyph")} ${esc(T("meritSnake"))}</h3>` +
+    body += `<section class="snake-on"><h3 class="sub">${art("fall", sn.ic, "spr snake-glyph")} ${esc(T("fallHead"))}</h3>` +
       `<h2 class="snake-title">${esc(sn[l])}</h2><p class="alt" lang="${other(l)}">${esc([sn[other(l)], sn.skt].join(" · "))}</p>` +
-      `<div class="story">${sm ? texts(l, fill(sm.en, person("en", n)), fill(sm.hi, person("hi", n)), "moment") : ""}${mirrorHtml(l, sn.mirror, sm, false)}` +
-      // the rebirth snake says when it takes someone, since most arrivals on its square are let be
-      `${sn.rebirth ? texts(l, tIn("en", "fallWhen"), tIn("hi", "fallWhen"), "remedy fall") : ""}</div>`;
+      `<div class="story">${sm ? texts(l, fill(sm.en, person("en", n)), fill(sm.hi, person("hi", n)), "moment") : ""}${mirrorHtml(l, sn.mirror, sm, false)}</div>`;
     if (sn.schools && deep("school")) {
       body += `<ul class="chips more-only">` + sn.schools.map(s => `<li>${entryLink(s.id, l)}${texts(l, s.en, s.hi)}</li>`).join("") + `</ul>`;
       metMore.push(...sn.schools.map(s => s.id));
@@ -293,6 +298,17 @@ function squareHtml(n, l) {
     html: frame(l, { kind: info.kind, eb: info.eb + (age ? ` · ${age}` : ""), big: n === GOAL ? illumined(null, info.big) : illumined(document.getElementById(`sq-${n}`) ? `sq-${n}` : null, info.big), sqn: numIn(l, n), age, body, more, foot: info.ft,
       prev: n > 1 ? numIn(l, n - 1) : null, next: n < TOP ? numIn(l, n + 1) : null, prevLabel: T("prevSq"), nextLabel: T("nextSq") }),
   };
+}
+
+// A reckoning (REDESIGN.md Phase 12): the floor opening, what came due, the square it came from, and what it took. It
+// names its source and links to it; the ledger behind it is never a number.
+function reckonHtml(rk, l) {
+  const p = subjectOf(), lines = x => reckonLinesIn(x, rk, { name: pnameIn(p, x), gender: p.gender });
+  const en = lines("en"), hi = lines("hi"), q = squareOf(rk.src);
+  let body = `<h2 id="leafTitle">${esc(q[l] || q.en)}</h2>`;
+  body += `<div class="story">` + en.map((t, i) => texts(l, t, hi[i], i === 1 ? "moment" : i === 0 ? "remedy floor" : "remedy")).join("") +
+    `<p class="srcline"><a class="src" href="#sq/${rk.src}" data-sq="${rk.src}">${esc(tIn(l, "square", { n: numIn(l, rk.src) }))}</a></p></div>`;
+  return { kind: "reckon", met: [], html: frame(l, { kind: "reckon", eb: esc(tIn(l, "reckonTitle")), big: "⚅", sqn: numIn(l, rk.src), body, foot: "" }) };
 }
 
 function entryHtml(id, l) {
@@ -325,7 +341,7 @@ function paint({ landing = false } = {}) {
   const l = cardLang ?? lang;
   const fa = leaf.contains(document.activeElement) ? document.activeElement : null;
   const again = fa?.dataset.act ? `[data-act="${fa.dataset.act}"]` : fa?.dataset.cl ? `[data-cl="${fa.dataset.cl}"]` : null;
-  const out = view.type === "square" ? squareHtml(view.n, l) : entryHtml(view.id, l);
+  const out = view.type === "square" ? squareHtml(view.n, l) : view.type === "reckon" ? reckonHtml(view.rk, l) : entryHtml(view.id, l);
   leaf.className = "leaf " + out.kind + (landing ? " landed" : "") + (expanded ? " open" : "");
   leaf.innerHTML = out.html;
   metMore = out.metMore || [];
@@ -337,7 +353,7 @@ function paint({ landing = false } = {}) {
   if (again) [...leaf.querySelectorAll(again)].find(el => el.offsetParent)?.focus({ preventScroll: true });
   cue();
   // the address bar names what is open, so a card can be linked
-  history.replaceState(null, "", location.pathname + location.search + (view.type === "square" ? `#sq/${view.n}` : `#codex/${view.id}`));
+  history.replaceState(null, "", location.pathname + location.search + (view.type === "square" ? `#sq/${view.n}` : view.type === "reckon" ? `#sq/${view.rk.src}` : `#codex/${view.id}`));
   onChange.forEach(fn => fn());
 }
 
@@ -448,7 +464,7 @@ async function open(next, { landing = false, from = null, who = null, focus = tr
   const wasOpen = dlg.open, was = view;
   view = next;
   subject = who;
-  const block = next.type === "square" && !!pendingOn(next.n);
+  const block = next.type === "reckon" || (next.type === "square" && !!pendingOn(next.n));
   // already open: the leaf turns to the new square, forward or back
   if (wasOpen) {
     setBlocking(block);
@@ -475,6 +491,8 @@ async function open(next, { landing = false, from = null, who = null, focus = tr
   return cardIdle();
 }
 export const openSquare = (n, opts) => open({ type: "square", n }, opts);
+// A reckoning's card, for player who: it holds the game until it is closed.
+export const openReckoning = (rk, who) => open({ type: "reckon", rk }, { landing: true, who });
 export const openEntry = (id, opts) => (entryOf(id) ? open({ type: "entry", id }, opts) : Promise.resolve());
 
 export async function closeCard({ instant = false } = {}) {
