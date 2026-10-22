@@ -217,7 +217,31 @@
       "fallHead": "The fall · past this realm",
       "fallFoot": "Past here, the fall",
       "lifeEndFell": "{name} rose as far as the realm of {realm} and lived there on what had been earned below, a little at a time, until none was left, and went back down into the world, {holding}.",
-      "lifeEndFellFree": "{name} rose as far as the realm of {realm} and lived there on what had been earned below, a little at a time, until none was left, and went back down into the world with nothing in particular in hand."
+      "lifeEndFellFree": "{name} rose as far as the realm of {realm} and lived there on what had been earned below, a little at a time, until none was left, and went back down into the world with nothing in particular in hand.",
+      "lReckon": "{name} rolled a six, and a debt from square {src} came due.",
+      "lRefused": "{name} reached Moksha on square {pos}, and the door did not open.",
+      "reckonTitle": "A debt comes due",
+      "reckonFloor": "The six lands, and for a moment the floor is not there.",
+      "reckonFrom": "It comes from square {src}: {debt}.",
+      "reckonNone": "Then the floor is there again. This time it took nothing.",
+      "reckonYears": "It takes {years} of {name}'s years.",
+      "reckonYear": "It takes a year of {name}'s life.",
+      "reckonHeld": "{name} goes on, {holding}.",
+      "reckonBack": "And it sends {name} back down the board, to square {to}.",
+      "doorRefused": "The door does not open. {name} is still carrying {debts}.",
+      "doorArtha": "The door does not open. {name} is still holding on to what was earned.",
+      "doorKama": "The door does not open. {name} is still holding on to what was wanted.",
+      "doorOn": "From here every throw goes on into the heavens.",
+      "listAnd": " and ",
+      "lifeEndFellDoor": "{name} came as far as the door, and it did not open, and a later throw went on past it into the heavens, and the merit was spent there, {holding}.",
+      "lifeEndFellDoorFree": "{name} came as far as the door, and it did not open, and a later throw went on past it into the heavens, and the merit was spent there.",
+      "ledgerHead": "Ledger",
+      "ledgerEmpty": "Nothing carried.",
+      "ledgerHeld": "made, not yet ripe · āgāmi · sattā",
+      "ledgerRipe": "ripe, waiting for a six · prārabdha · udīraṇā",
+      "ledgerMet": "met at {age} · uday",
+      "ledgerStore": "carried on, unmet, into what comes after · sañcita",
+      "ledgerNote": "This panel is the engine itself, and it is a deterministic dynamical system in the plain sense. A choice early in a life plants a seed whose fuse is measured in years lived; when the fuse runs out the seed is ripe, and waits for an event the player cannot steer, a six, whose chance rises toward the exit. What it then costs is a fixed function of the whole ledger at that moment: nothing in the cost is drawn. The die decides when and the life decides how much, and the outcome depends on everything that happened between the choice and the six. The three stores are Vedānta's sañcita (what earlier lives left, empty here until a life carries one over), āgāmi (what this life is making) and prārabdha (what has been released to fruit in this life). The Jain charts draw the same passage as sattā, karma bound and held; udīraṇā, karma stirred to ripen; and uday, karma in fruit."
     },
     "hi": {
       "title": "मोक्ष पटम",
@@ -409,7 +433,31 @@
       "fallHead": "पतन · इस लोक के पार",
       "fallFoot": "इसके पार, पतन",
       "lifeEndFell": "{name} {realm} के लोक तक {पहुँचा|पहुँची}, और वहाँ नीचे कमाए पुण्य पर थोड़ा-थोड़ा करके {जिया|जी}, जब तक वह चुक नहीं गया, और फिर संसार में लौट {आया|आई}, {holding}।",
-      "lifeEndFellFree": "{name} {realm} के लोक तक {पहुँचा|पहुँची}, और वहाँ नीचे कमाए पुण्य पर थोड़ा-थोड़ा करके {जिया|जी}, जब तक वह चुक नहीं गया, और फिर संसार में लौट {आया|आई}, हाथ में कुछ ख़ास लिए बिना।"
+      "lifeEndFellFree": "{name} {realm} के लोक तक {पहुँचा|पहुँची}, और वहाँ नीचे कमाए पुण्य पर थोड़ा-थोड़ा करके {जिया|जी}, जब तक वह चुक नहीं गया, और फिर संसार में लौट {आया|आई}, हाथ में कुछ ख़ास लिए बिना।",
+      "lReckon": "{name} का छक्का आया, और खाना {src} का एक क़र्ज़ चुकाने की घड़ी आ गई।",
+      "lRefused": "{name} खाना {pos} पर मोक्ष तक पहुँचे, और द्वार नहीं खुला।",
+      "reckonTitle": "क़र्ज़ की घड़ी",
+      "reckonFloor": "छक्का पड़ता है, और एक पल को पैरों तले ज़मीन नहीं रहती।",
+      "reckonFrom": "यह खाना {src} से आया है: {debt}।",
+      "reckonNone": "फिर ज़मीन लौट आती है। इस बार कुछ नहीं गया।",
+      "reckonYears": "इसमें {name} के {years} बरस चले जाते हैं।",
+      "reckonYear": "इसमें {name} का एक बरस चला जाता है।",
+      "reckonHeld": "{name} आगे {बढ़ता|बढ़ती} है, {holding}।",
+      "reckonBack": "और यह {name} को बोर्ड पर नीचे, खाना {to} तक लौटा देता है।",
+      "doorRefused": "द्वार नहीं खुलता। {name} अब भी {debts} {ढो रहा|ढो रही} है।",
+      "doorArtha": "द्वार नहीं खुलता। {name} अब भी कमाए हुए को पकड़े हुए है।",
+      "doorKama": "द्वार नहीं खुलता। {name} अब भी चाही हुई चीज़ों को पकड़े हुए है।",
+      "doorOn": "यहाँ से हर दाँव आगे स्वर्गों में ही ले जाता है।",
+      "listAnd": " और ",
+      "lifeEndFellDoor": "{name} द्वार तक {पहुँचा|पहुँची}, और वह नहीं खुला, और बाद का एक दाँव उसके पार स्वर्गों में ले गया, और पुण्य वहीं चुक गया, {holding}।",
+      "lifeEndFellDoorFree": "{name} द्वार तक {पहुँचा|पहुँची}, और वह नहीं खुला, और बाद का एक दाँव उसके पार स्वर्गों में ले गया, और पुण्य वहीं चुक गया।",
+      "ledgerHead": "लेखा",
+      "ledgerEmpty": "कुछ नहीं ढोया जा रहा।",
+      "ledgerHeld": "किया गया, अभी पका नहीं · आगामी · सत्ता",
+      "ledgerRipe": "पका हुआ, छक्के की प्रतीक्षा में · प्रारब्ध · उदीरणा",
+      "ledgerMet": "{age} बरस पर फल मिला · उदय",
+      "ledgerStore": "बिना भुगते, आगे जो आएगा उसमें ढोया गया · संचित",
+      "ledgerNote": "यह पटल स्वयं इंजन है, और सीधे अर्थ में एक नियतिवादी गतिशील तंत्र है। जीवन में पहले लिया गया कोई निर्णय एक बीज बोता है, जिसकी अवधि जिए गए बरसों में गिनी जाती है; अवधि पूरी होने पर बीज पक जाता है, और एक ऐसी घटना की प्रतीक्षा करता है जिसे खिलाड़ी मोड़ नहीं सकता, एक छक्का, जिसकी संभावना द्वार की ओर बढ़ती जाती है। तब उसकी कीमत उस पल के पूरे लेखे का एक निश्चित फलन होती है: कीमत में कुछ भी पासे से नहीं आता। पासा तय करता है कब, और जीवन तय करता है कितना, और परिणाम निर्णय और छक्के के बीच हुई हर बात पर निर्भर करता है। तीनों भंडार वेदांत के संचित (पिछले जन्मों का छोड़ा हुआ, जो यहाँ तब तक ख़ाली है जब तक कोई जीवन उसे आगे न ले जाए), आगामी (जो यह जीवन बना रहा है) और प्रारब्ध (जो इस जीवन में फल देने को छूट चुका है) हैं। जैन चित्रपट यही यात्रा सत्ता, बँधा और रखा हुआ कर्म; उदीरणा, पकने को उकसाया गया कर्म; और उदय, फल में आया कर्म, के रूप में दिखाते हैं।"
     }
   },
   "JOINS": {
@@ -487,6 +535,10 @@
     "backTo": {
       "en": "{name} is {age} and back where {name} was at {first}.",
       "hi": "{name} {age} बरस {का|की} है और फिर वहीं है जहाँ {first} बरस की उम्र में {था|थी}।"
+    },
+    "reckon": {
+      "en": "At {age}, on a six, the floor opened: ",
+      "hi": "{age} बरस पर, एक छक्के पर, ज़मीन खिसकी: "
     }
   },
   "NUM_HI": ["शून्य","एक","दो","तीन","चार","पाँच","छह","सात","आठ","नौ","दस","ग्यारह","बारह","तेरह","चौदह","पंद्रह","सोलह","सत्रह","अठारह","उन्नीस","बीस","इक्कीस","बाईस","तेईस","चौबीस","पच्चीस","छब्बीस","सत्ताईस","अट्ठाईस","उनतीस","तीस","इकतीस","बत्तीस","तैंतीस","चौंतीस","पैंतीस","छत्तीस","सैंतीस","अड़तीस","उनतालीस","चालीस","इकतालीस","बयालीस","तैंतालीस","चवालीस","पैंतालीस","छियालीस","सैंतालीस","अड़तालीस","उनचास","पचास","इक्यावन","बावन","तिरपन","चौवन","पचपन","छप्पन","सत्तावन","अट्ठावन","उनसठ","साठ","इकसठ","बासठ","तिरसठ","चौंसठ","पैंसठ","छियासठ","सड़सठ","अड़सठ","उनहत्तर","सत्तर","इकहत्तर","बहत्तर","तिहत्तर","चौहत्तर","पचहत्तर","छिहत्तर","सतहत्तर","अठहत्तर","उन्यासी","अस्सी","इक्यासी","बयासी","तिरासी","चौरासी","पचासी","छियासी","सत्तासी","अट्ठासी","नवासी","नब्बे","इक्यानवे","बानवे","तिरानवे","चौरानवे","पंचानवे","छियानवे","सत्तानवे","अट्ठानवे","निन्यानवे","सौ"],

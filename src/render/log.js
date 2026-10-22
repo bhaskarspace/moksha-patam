@@ -7,6 +7,7 @@ import { squareName } from "./board.js";
 import { stageOf, stageName } from "./sprites.js";
 import { stageOf as ashramaOfPlayer } from "./age.js";
 import { gone } from "../engine/turn.js";
+import { renderLedger } from "./ledger.js";
 
 // Who a player is becoming, as words and never as a number (REDESIGN.md Phase 8): the strongest guna and the
 // aim they have most of. Nothing is said until one guna stands out, so a life starts without a description.
@@ -29,6 +30,7 @@ export function renderPlayers() {
         ${selfLine(pl) && !gone(pl) ? `<span class="self">${esc(selfLine(pl))}</span>` : ""}</span>
       <span class="pos">${pl.fell ? "" : pl.pos === 0 ? t("start") : pl.pos === GOAL ? t("moksha") : t("square", { n: pl.pos })}</span>
     </li>`).join("");
+  renderLedger();
 }
 
 // A log entry as the log says it, in the page's language.

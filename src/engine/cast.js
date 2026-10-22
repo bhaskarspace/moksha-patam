@@ -122,7 +122,8 @@ export function castAlong(state, i, along) {
   // one life, so one cast: a second life's cast (castOf's third argument) waits for Phase 15
   const cast = castOf(state, i, 0), met = new Set();
   return along.map(e => {
-    const m = e.via === "sit" ? null : momentOf(e.n, e.told).moment, about = m?.cast ?? null, before = new Set(met);
+    // a year sat out tells nothing, and nor does the square a reckoning sent the life back to (REDESIGN.md Phase 12)
+    const m = e.via === "sit" || e.via === "reckon" ? null : momentOf(e.n, e.told).moment, about = m?.cast ?? null, before = new Set(met);
     const meets = !!about && !met.has(about) && m.introduces !== false;
     if (meets) met.add(about);
     return { about, meets, before, cast, life: 0 };
@@ -140,6 +141,8 @@ export function castArcs(state, i, along, cc = castAlong(state, i, along)) {
   let gone = null;
   for (let k = from; k < along.length; k++) {
     const e = along[k], c = cc[k];
+    // a reckoning's way back is not a landing: nobody is met or lived beside there
+    if (e.via === "reckon") continue;
     if (c.meets) order.push(c.about);
     if (c.about) { seen[c.about] = Math.max(seen[c.about] ?? 0, e.years); told.add(e.via === "sit" ? null : momentOf(e.n, e.told).moment); }
     for (const who of MEMBERS) if (SQUARES[who]?.has(e.n)) landed[who] = Math.max(landed[who] ?? 0, e.years);

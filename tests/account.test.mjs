@@ -98,7 +98,7 @@ test("a life that fell from the heavens closes on the realm, the merit spent and
     const realm = squareOf(Math.max(...p.life));
     const en = lifeOf(f, 0, "en").end;
     assert.ok(en.startsWith(`Meera rose as far as the realm of ${realm.en} and lived there on what had been earned below`), en);
-    assert.ok(holds ? en.endsWith(`world, ${SNAKES[p.holding].holding.en}.`) : en.endsWith("with nothing in particular in hand."), en);
+    assert.ok(holds ? en.endsWith(`world, ${SNAKES[p.holding].holding.en.replace(/\{\w+=([^}]*)\}/g, "$1")}.`) : en.endsWith("with nothing in particular in hand."), en);
     // Hindi agrees with who lived it
     const hf = lifeOf(f, 0, "hi").end, hm = lifeOf(m, 0, "hi").end;
     assert.ok(hf.startsWith(`Meera ${realm.hi} के लोक तक पहुँची,`) && hf.includes("लौट आई"), hf);

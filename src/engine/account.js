@@ -19,13 +19,17 @@
 // moment has an echo of its own only when one is written. A situation's choice is told the same way: by its
 // outcome, or by the square's own moment when the option has none (src/engine/qbn.js momentOf). The years a choice
 // cost pass silently; the outcome says what they were.
-import { ASHRAMAS, LADDERS, SNAKES, JOINS, CAST_WORDS, squareOf } from "../content.js";
+//
+// A reckoning (REDESIGN.md Phase 12) is told where it came, as what came due, after a join that says the six. The years
+// it took pass silently like a choice's, and the square it sent the life back to is lived, not told.
+import { ASHRAMAS, LADDERS, SNAKES, GOAL, JOINS, CAST_WORDS, squareOf } from "../content.js";
 import { tIn, fill, castFill, wordsIn, ageWordsIn, CAST_ROLES } from "../i18n.js";
 import { makeRng, next } from "../rng.js";
 import { pnameIn } from "../state.js";
 import { ageOf, yearsAlong, stageOfYears, titleOf, holdingOf } from "./self.js";
 import { momentOf } from "./qbn.js";
 import { castAlong, peopleOf, introIn, calledIn, fatesIn } from "./cast.js";
+import { reckoningIn, seedOf } from "./karma.js";
 
 const EARTH = 100, GAP = 8;
 // An English moment that does not open with the name reads on after a joining phrase in lower case:
@@ -80,6 +84,18 @@ export function lifeOf(state, i, l) {
     sat = [];
   };
   const flush = () => { flushFold(); flushSat(); };
+  // the reckonings, each told before the first entry of the life that comes after it (p.reckonings[].at)
+  const recks = p.reckonings || [];
+  let rq = 0;
+  const reckon = upto => {
+    for (; rq < recks.length && recks[rq].at <= upto; rq++) {
+      const r = recks[rq], t = seedOf(r.src, r.opt)?.reckoning;
+      if (!para || !t) continue;
+      flush();
+      para.parts.push(J(JOINS.reckon, { age: words(r.age) }) + after(t[l] || t.en, reckoningIn(l, r, who), l));
+      lastYears = r.age + r.years;
+    }
+  };
   // a paragraph ends on the count of anything taken three times or more in it
   const close = () => {
     if (!para) return;
@@ -96,6 +112,9 @@ export function lifeOf(state, i, l) {
     const q = squareOf(e.n), said = momentOf(e.n, e.told), m = said.moment, nextE = along[k + 1];
     // a roll-dependent square's other moment may have an echo of its own; a chosen outcome has none
     const echo = said.own ? q?.echo : e.told === "else" ? q?.roll?.echo : null;
+    reckon(e.i);
+    // where a reckoning sent the life back to: lived, and not told
+    if (e.via === "reckon") { note(e); lastYears = e.years; continue; }
     // where a snake or ladder told short led: lived, and not told
     if (skip) { skip = false; note(e); lastYears = e.years; continue; }
     if (!m && e.via !== "sit") { note(e); continue; }
@@ -151,6 +170,7 @@ export function lifeOf(state, i, l) {
     note(e);
     lastYears = e.years;
   }
+  reckon(Infinity);
   close();
 
   const stage = s => (l === "hi" ? ASHRAMAS[s][2] : ASHRAMAS[s][1]);
@@ -178,15 +198,17 @@ export function lifeOf(state, i, l) {
 
 // A life let go names what it put down: the vice it took most, the one a death would have named as still held.
 function winEnd(p, T, words, held) {
-  const letgo = SNAKES[holdingOf(p.life || [])]?.letgo, age = words(p.years ?? 0);
+  const letgo = SNAKES[holdingOf(p.life || [], p.held)]?.letgo, age = words(p.years ?? 0);
   return letgo ? T("lifeEndWin", { age, letgo: held(letgo) }) : T("lifeEndFree", { age });
 }
 
 // The fall from the heavens (REDESIGN.md Phase 12): the realm the life reached, the merit spent, and what it was still
 // holding, the vice a death would have named. Gita 9.21 in the board's own words.
 function fellEnd(p, along, T, sq, held) {
-  // nothing above the exit turns back, so the square it fell from is the highest it reached
+  // nothing above the exit turns back, so the square it fell from is the highest it reached; from the door itself, the
+  // throw went past it and every heaven at once
   const top = p.fellFrom ?? Math.max(...along.map(e => e.n)), holding = SNAKES[p.holding]?.holding;
+  if (top === GOAL) return holding ? T("lifeEndFellDoor", { holding: held(holding) }) : T("lifeEndFellDoorFree");
   return holding ? T("lifeEndFell", { realm: sq(top), holding: held(holding) }) : T("lifeEndFellFree", { realm: sq(top) });
 }
 

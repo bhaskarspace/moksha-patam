@@ -43,6 +43,8 @@ export const SIM_RULES = { six: true, cards: "off" };
 export function playGame(seed, { players = 2, rules = SIM_RULES, pick = moveFor } = {}) {
   const state = createGame({ players: Array.from({ length: players }, () => ({ name: "", type: "cpu" })), rules, seed });
   const log = [...state.log], turns = Array(players).fill(0), heaven = Array(players).fill(0), seen = state.players.map(() => new Set());
+  // Phase 12, the ledger: per player, the omens, the reckonings and the door
+  const karma = state.players.map(() => ({ planted: 0, eligible: 0, fired: 0, bands: {}, tiers: [], dies: [], arrivals: 0, refused: [] }));
   while (!state.over) {
     turns[state.turn]++;
     // a turn begun on 106–110 is a turn spent in the heavens (REDESIGN.md Phase 12)
@@ -50,9 +52,17 @@ export function playGame(seed, { players = 2, rules = SIM_RULES, pick = moveFor 
     const before = state.log[0];
     const plan = playTurn(state, rollDice(state.rng, diceFor(state.players[state.turn])), pick), p = state.players[plan.idx];
     if (p.bhumika != null) seen[plan.idx].add(p.bhumika);
+    const k = karma[plan.idx];
+    if (plan.plant) k.planted++;
+    if (plan.omen) {
+      const band = plan.reckon?.from ?? plan.final, b = band >= 105 ? "105" : `${Math.floor((band - 1) / 20) * 20 + 1}–${Math.floor((band - 1) / 20) * 20 + 20}`;
+      k.eligible++; (k.bands[b] ||= [0, 0])[0]++;
+      if (plan.reckon) { k.fired++; k.bands[b][1]++; k.tiers.push(plan.reckon.tier); if (plan.reckon.wouldDie) k.dies.push(plan.reckon.age); }
+    }
+    if (!plan.sit && !plan.fell && plan.target === 105) { k.arrivals++; if (plan.refused) k.refused.push(plan.refused.aim ?? "debt"); }
     log.push(...state.log.slice(0, state.log.indexOf(before)).reverse());
   }
-  return { log, turns, heaven, winner: state.winner, players: state.players, seen };
+  return { log, turns, heaven, karma, winner: state.winner, players: state.players, seen };
 }
 
 // Turn counts summarised the way docs/BOARDCRAFT.md §5 asks: the distribution is right-skewed, so the
@@ -103,8 +113,11 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   // Phase 12: how lives end, the turns spent in the heavens, and the divine row repeated
   let falls12 = 0, divine4 = 0, open = 0;
   const heavenTurns = [];
+  // Phase 12, the ledger
+  let planted = 0, eligible = 0, fired = 0, reckoned = 0, arrivals = 0, refusedLives = 0, dyingLives = 0, carriedEnd = 0;
+  const bands = {}, tiers = Array(5).fill(0), refusals = {}, dieAges = {};
   for (let s = first; s < first + games; s++) {
-    const g = playGame(s, { players, rules, pick }), { turns, heaven, log, players: ps, seen } = g;
+    const g = playGame(s, { players, rules, pick }), { turns, heaven, karma, log, players: ps, seen } = g;
     lengths.push(Math.max(...turns));
     rolls += turns.reduce((a, b) => a + b, 0);
     // Phase 8: each life's end, length in years, and the bhumikas it was in
@@ -114,6 +127,14 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       falls12 += p.fell;
       open += g.winner !== i && !p.dead && !p.fell;
       heavenTurns.push(heaven[i]);
+      const k = karma[i];
+      planted += k.planted; eligible += k.eligible; fired += k.fired; reckoned += k.fired > 0; arrivals += k.arrivals;
+      for (const [b, [e, f]] of Object.entries(k.bands)) { (bands[b] ||= [0, 0])[0] += e; bands[b][1] += f; }
+      k.tiers.forEach(t => tiers[t]++);
+      refusedLives += k.refused.length > 0; k.refused.forEach(r => { refusals[r] = (refusals[r] || 0) + 1; });
+      dyingLives += k.dies.length > 0;
+      if (k.dies.length) { const a = k.dies[0], band = a < 40 ? "under 40" : a < 60 ? "40–59" : a < 80 ? "60–79" : "80+"; dieAges[band] = (dieAges[band] || 0) + 1; }
+      carriedEnd += (p.karma?.sancita?.length ?? 0) > 0;
       const along = yearsAlong(p.life).filter(e => e.n <= 100);
       if (along.length) spans.push(Math.max(...along.map(e => e.years)));
       // the 99 → 61 loop taken twice or more, a square landed on four times or more, and years sat out
@@ -153,5 +174,10 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   const h = summarise(heavenTurns);
   console.log(`how lives end: liberated ${pct(freed.length / lives)}, years ran out ${pct(died / lives)}, fell from the heavens ${pct(falls12 / lives)}, still playing when the game ended ${pct(open / lives)}; lives per liberation ${(lives / freed.length).toFixed(2)}`);
   console.log(`turns in 106–110: mean ${h.mean.toFixed(2)}, median ${h.median}, p95 ${h.p95}, max ${h.max}; in those that went there ${(heavenTurns.reduce((a, b) => a + b, 0) / Math.max(1, heavenTurns.filter(Boolean).length)).toFixed(2)}; a square at or above 94 landed on four times or more: ${pct(divine4 / lives)}`);
+  const all = tiers.reduce((a, b) => a + b, 0) || 1, nref = Object.values(refusals).reduce((a, b) => a + b, 0);
+  console.log(`the ledger: debts planted ${(planted / lives).toFixed(2)} a life; lives ending with a debt never met ${pct(carriedEnd / lives)}`);
+  console.log(`the omen: a 6 with a ripe debt ${(eligible / lives).toFixed(2)} a life, a reckoning ${(fired / lives).toFixed(2)} a life, in ${pct(reckoned / lives)} of lives; fired, by where it fell: ${Object.keys(bands).sort((a, b) => parseInt(a) - parseInt(b)).map(b => `${b} ${bands[b][0] ? pct(bands[b][1] / bands[b][0]) : "—"} of ${bands[b][0]}`).join(" · ")}`);
+  console.log(`severity of ${fired} reckonings: ${tiers.map((c, t) => `${["floor only", "years", "+ holding", "+ sent back", "death (reported only)"][t]} ${pct(c / all)}`).join(" · ")}; lives in which death would have fired ${pct(dyingLives / lives)}${dyingLives ? ` (at ${Object.entries(dieAges).map(([b, c]) => `${b}: ${c}`).join(", ")})` : ""}`);
+  console.log(`the door: arrivals at 105 ${(arrivals / lives).toFixed(2)} a life, refused ${arrivals ? pct(nref / arrivals) : "—"} of them (${Object.entries(refusals).map(([r, c]) => `${r} ${c}`).join(", ") || "none"}); lives refused at least once ${pct(refusedLives / lives)}`);
   console.log(`through the exit by ${AT} years: ${pct(freed.filter(y => y <= AT).length / lives)}; age at the exit: p5 ${b.p5}, median ${b.median}, p95 ${b.p95}`);
 }

@@ -6,7 +6,10 @@
 // accounts themselves instead of their hashes. Each seed is played twice: one named player in each gender, read in
 // both languages, and two unnamed computers, so drawn names and the second player are covered too. --tag adds "above" to
 // each hash whose game went above the exit (REDESIGN.md Phase 12): a bounce, the Brahma snake, the heavens or the fall,
-// which is everything Phase 12 changed, so every untagged account must be the same before and after it.
+// which is everything Phase 12's first step changed, so every untagged account must be the same before and after it. Its
+// second step adds "karma" to each game in which a debt came due, the door refused someone, or someone carried a debt
+// within a throw of the door (where a computer would rather stand short than be refused): the ledger alone touches
+// nothing else, so every account untagged by either must be the same as the first step's.
 import path from "node:path";
 import crypto from "node:crypto";
 import { pathToFileURL } from "node:url";
@@ -23,8 +26,15 @@ if (flags.cast === "off") {
 
 const play = (players, seed) => {
   const s = createGame({ players, rules: { six: true }, seed });
-  s.above = false;
-  while (!s.over) { const plan = playTurn(s); if (plan.fell || plan.path.some(n => n > content.GOAL)) s.above = true; }
+  s.above = s.karma = false;
+  while (!s.over) {
+    // a debt carried within a throw of the door changes how a computer moves there, even when the door is never reached
+    const p = s.players[s.turn], k = p.karma;
+    if (k && k.agami.length + k.prarabdha.length && p.pos >= content.GOAL - 6) s.karma = true;
+    const plan = playTurn(s);
+    if (plan.fell || plan.path.some(n => n > content.GOAL)) s.above = true;
+    if (plan.reckon || plan.refused) s.karma = true;
+  }
   return s;
 };
 const hash = t => crypto.createHash("sha256").update(t).digest("hex");
@@ -32,7 +42,7 @@ const tally = { intros: 0, returns: 0, fates: 0, lives: 0 };
 const out = [];
 const say = (key, s, i, l) => {
   const text = lifeText(s, i, l);
-  out.push(flags.full ? `## ${key}\n${text}` : `${key} ${hash(text)}${flags.tag && s.above ? " above" : ""}`);
+  out.push(flags.full ? `## ${key}\n${text}` : `${key} ${hash(text)}${flags.tag ? (s.above ? " above" : "") + (s.karma ? " karma" : "") : ""}`);
   const life = lifeOf(s, i, l);
   if (l === "en" && life.fates) {
     tally.lives++;

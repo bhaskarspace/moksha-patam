@@ -1,9 +1,12 @@
 // ---- Life state (REDESIGN.md Phase 8) ----
 // Who the player is, as opposed to where the token is: years lived, the guna mix, the three aims, and in
 // sannyasa the bhumika they are actually in. Pure, so tools/sim.mjs and the tests run it in node.
-import { ASHRAMAS, LADDERS, SNAKES, squareOf } from "../content.js";
+import { ASHRAMAS, LADDERS, SNAKES, GOAL, squareOf } from "../content.js";
 
 const EARTH = 100;
+// Ground where years pass by the square and a year can be sat out: earth, and the door at 105 for a life it has refused
+// (REDESIGN.md Phase 12). The heavens above it are not ground.
+const ground = n => n <= EARTH || n === GOAL;
 // The years a life has. Measured (REDESIGN.md Phase 8): a life with no snakes reaches square 100 at 90, so
 // only a life the snakes sent back over its own ground can outrun it.
 export let SPAN = 110;
@@ -24,6 +27,8 @@ export const ageStep = (years, n) => { const a = ageOf(n); return a == null ? ye
 // square a snake or ladder led to, otherwise null. A landing on a snake's head or a ladder's foot is always
 // followed by where it led. (Until Phase 12 the fall from Brahma was a snake to a new birth, "rebirth"; the fall
 // now ends the life instead, and is never in it.)
+// Phase 12 adds "reckon": the square a reckoning sent the life back to, the square its debt was made on, told "reckon";
+// it is reached as a snake's tail is, taking no time. Each entry also carries i, its place in the life.
 // A square of earth landed on twice running is a year sat out (Phase 9): no move on earth lands where it began,
 // since only a bounce off the top of the board can. Its via is "sit".
 // With the record of what each square told (Phase 10, src/engine/turn.js toldOn), each entry carries it as told:
@@ -35,19 +40,22 @@ export function yearsAlong(life, told = []) {
   let years = 0;
   for (const [i, n] of life.entries()) {
     const from = life[i - 1], sn = SNAKES[from], ld = LADDERS[from];
-    const via = sn && sn.to === n ? "snake" : ld && ld.to === n ? "ladder" : from === n && n <= EARTH ? (toldAt(i) === "stay" ? "stay" : "sit") : null;
+    const via = toldAt(i) === "reckon" ? "reckon" : sn && sn.to === n ? "snake" : ld && ld.to === n ? "ladder" : from === n && ground(n) ? (toldAt(i) === "stay" ? "stay" : "sit") : null;
     if (via === "sit" || via === "stay") years += 1;
+    else if (via === "reckon") { /* no time: the years it took follow as stays */ }
     else if (via === "ladder") years = Math.max(years, ageOf(n) ?? years);
     else if (via !== "snake") years = ageStep(years, n);
-    out.push({ n, years, via, from: via && via !== "sit" && via !== "stay" ? from : null, told: toldAt(i) });
+    out.push({ n, years, via, from: via && via !== "sit" && via !== "stay" ? from : null, told: toldAt(i), i });
   }
   return out;
 }
-// What a turn does to the years: the square landed on, the years a choice there cost, then where a snake or ladder led.
+// What a turn does to the years: the square landed on, the years a choice there cost, then where a snake or ladder led,
+// and last the years a reckoning took (REDESIGN.md Phase 12).
 export function turnYears(years, plan) {
-  if (plan.sit) return years + 1;
+  const lost = plan.reckon?.years ?? 0;
+  if (plan.sit) return years + 1 + lost;
   const y = ageStep(years, plan.target) + (plan.cost ?? 0);
-  return plan.jump?.kind === "ladder" ? Math.max(y, ageOf(plan.final) ?? y) : y;
+  return (plan.jump?.kind === "ladder" ? Math.max(y, ageOf(plan.jump.to) ?? y) : y) + lost;
 }
 
 // ---- Stage of life, by years rather than by square ----
@@ -56,7 +64,7 @@ export function turnYears(years, plan) {
 const BOUNDS = ASHRAMAS.slice(0, 5).map(([max]) => ageOf(max));
 // An ASHRAMAS index: 0 childhood … 4 sannyasa, 5 above the world.
 export const stageOfYears = y => { const i = BOUNDS.findIndex(b => y <= b); return i < 0 ? 4 : i; };
-export const stageOfPlayer = p => (p.pos > EARTH ? 5 : stageOfYears(p.years ?? ageOf(Math.max(p.pos, 1))));
+export const stageOfPlayer = p => (p.pos > EARTH && p.pos !== GOAL ? 5 : stageOfYears(p.years ?? ageOf(Math.max(p.pos, 1))));
 export const SANNYASA = 4;
 
 // ---- The gunas (§2.2) ----
@@ -124,14 +132,15 @@ export function grow(p, plan) {
   // a game saved before Phase 8 has none of this yet, and starts it fresh
   const years = turnYears(p.years ?? 0, plan);
   let gunas = p.gunas ?? freshGunas(), aims = p.aims ?? freshAims(), practised = p.practised ?? 0;
-  if (plan.final <= EARTH) {
+  const onGround = plan.final <= EARTH || (plan.final === GOAL && !plan.win);
+  if (onGround) {
     const stage = stageOfYears(years), sl = LADDERS[plan.target] || SNAKES[plan.target];
     // a choice carries its own guna and aims (REDESIGN.md Phase 10); otherwise the vice or virtue taken does
     const mark = plan.mark ?? (plan.jump && sl?.guna ? sl : null);
     if (mark?.guna) { gunas = mixGuna(gunas, mark.guna); aims = applyAims(aims, mark.aims, stage); }
     aims = applyAims(aims, STAGE_RULES[stage].drift, stage);
   }
-  const sannyasin = plan.final <= EARTH && stageOfYears(years) === SANNYASA;
+  const sannyasin = onGround && stageOfYears(years) === SANNYASA;
   // the dice not moved by, spent on practice; a win has left the world, and needs none
   const spare = sannyasin && !plan.win && PRACTICE_W > 0 ? plan.spare ?? [] : [];
   for (const d of spare) gunas = practise(gunas, d);
@@ -142,12 +151,12 @@ export function grow(p, plan) {
 }
 
 // The vice a life was still holding when it ended, by its years or by the fall: the snake it took most often, the
-// latest on a tie.
-export function holdingOf(life) {
-  const snakes = yearsAlong(life).filter(e => e.via === "snake");
+// latest on a tie. held is what reckonings added (REDESIGN.md Phase 12), each counted as the snake taken once more.
+export function holdingOf(life, held = []) {
+  const vices = [...yearsAlong(life).filter(e => e.via === "snake").map(e => e.from), ...(held ?? [])];
   const count = new Map();
-  for (const { from } of snakes) count.set(from, (count.get(from) || 0) + 1);
+  for (const v of vices) count.set(v, (count.get(v) || 0) + 1);
   let best = null;
-  for (const { from } of snakes) if (count.get(from) >= (count.get(best) || 0)) best = from;
+  for (const v of vices) if (count.get(v) >= (count.get(best) || 0)) best = v;
   return best;
 }

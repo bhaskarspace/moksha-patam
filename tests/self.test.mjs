@@ -28,13 +28,11 @@ test("a snake takes no time and gives none back; walking old ground costs a year
   assert.equal(ageStep(50, 99), 89);
 });
 
-test("within a life the years never go down, and the fall from Brahma begins a new one at nought", () => {
+test("within a life the years never go down", () => {
   for (let seed = 1; seed <= 300; seed++) {
-    const s = live(seed), along = yearsAlong(s.players[0].life);
-    for (let k = 1; k < along.length; k++) {
-      if (along[k].via === "rebirth") assert.equal(along[k].years, 0);
-      else assert.ok(along[k].years >= along[k - 1].years, `seed ${seed}, step ${k}`);
-    }
+    // with what each square told: a reckoning's way back and the years it took are read from it (REDESIGN.md Phase 12)
+    const s = live(seed), along = yearsAlong(s.players[0].life, s.players[0].told);
+    for (let k = 1; k < along.length; k++) assert.ok(along[k].years >= along[k - 1].years, `seed ${seed}, step ${k}`);
     // the engine's clock and the account's agree
     assert.equal(along.at(-1)?.years ?? 0, s.players[0].years, `seed ${seed}`);
   }
@@ -52,7 +50,7 @@ test("a life ends when its years run past the span, only on earth, and says what
     assert.equal(s.log[0].k, "lDied");
     // only a life the snakes sent back over its own ground can die
     assert.ok(SNAKES[p.holding], `seed ${seed} holds ${p.holding}`);
-    assert.equal(p.holding, holdingOf(p.life));
+    assert.equal(p.holding, holdingOf(p.life, p.held));
   }
   // since Phase 9's two dice a life rarely dies (2.5% of 20,000), but it still can
   assert.ok(deaths > 4, `${deaths} deaths in 400 lives`);

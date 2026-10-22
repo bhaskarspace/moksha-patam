@@ -52,6 +52,11 @@ const twoCpus = page => page.addInitScript(() => {
   const cpu = { name: "", type: "cpu" };
   window.claude = { hot: { data: { setup: { count: 2, rows: [cpu, cpu, cpu, cpu], rules: { six: true } } } } };
 });
+// waits for a condition, closing any landing card that would hold the turn up
+const until = (page, fn) => page.waitForFunction(fn => {
+  if (document.getElementById("folio").open) mp.close({ instant: true });
+  return new Function(`return (${fn})()`)();
+}, fn.toString(), { timeout: 30000, polling: 100 });
 
 await check("every square 1–110 opens from the board, and closes", async page => {
   await page.goto(BASE + "?seed=1");
@@ -321,6 +326,47 @@ await check("Phase 12: past 105 the heavens are walked, and the throw past 110 e
   assert(r.lives === before + 1, `mp-lives ${before} → ${r.lives}`);
 });
 
+await check("Phase 12: a debt comes due on its own card, which holds the game until it is read, and the ledger keeps it", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=1&debug");
+  await page.evaluate(() => { Object.assign(mp.state.players[0], { pos: 30, years: 40, life: [30], told: [null] }); mp.plant(12, "lie"); mp.fire(); mp.roll(2); });
+  await page.waitForFunction(() => document.getElementById("folio").open && /floor is not there/.test(document.getElementById("leaf").textContent), null, { timeout: 15000 });
+  const card = await page.evaluate(() => ({ text: document.getElementById("leaf").textContent, busy: mp.busy, hash: location.hash }));
+  assert(/square 12/.test(card.text) && /the teacher who was coming, at forty/.test(card.text), `the card does not name the debt: ${card.text.slice(0, 300)}`);
+  assert(card.busy && card.hash === "#sq/12", `the reckoning does not hold the game: ${JSON.stringify({ busy: card.busy, hash: card.hash })}`);
+  assert(!/\b(weight|fuse|prārabdha|āgāmi)\b/i.test(card.text), "the card shows the ledger's workings");
+  await page.evaluate(() => mp.close());
+  await until(page, () => !mp.busy && mp.state.players[0].reckonings?.length === 1);
+  const k = await page.evaluate(() => mp.dumpKarma(0));
+  assert(!k.karma.agami.length && !k.karma.prarabdha.length && k.reckonings[0].src === 12, JSON.stringify(k));
+  assert(await page.evaluate(() => mp.state.log.some(e => e.k === "lReckon" && e.v.src === 12)), "no lReckon in the log");
+});
+
+await check("Phase 12: the door refuses a life still carrying a debt, says which in words, and the scholar's ledger lists it", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=1&debug");
+  await page.evaluate(() => { Object.assign(mp.state.players[0], { pos: 103, years: 80, life: [103], told: [null] }); mp.plant(55, "keep"); mp.roll(2, 1); });
+  await page.waitForFunction(() => mp.choosing, null, { timeout: 15000 });
+  await page.evaluate(() => mp.pick(2));
+  await until(page, () => !mp.busy && mp.state.log.some(e => e.k === "lRefused"));
+  const r = await page.evaluate(() => ({ pos: mp.state.players[0].pos, winner: mp.state.winner, over: mp.state.over, win: !document.getElementById("win").hidden }));
+  assert(r.pos === 105 && r.winner === null && !r.over && !r.win, `the door opened: ${JSON.stringify(r)}`);
+  await page.evaluate(() => mp.open(105));
+  await page.waitForFunction(() => document.getElementById("folio").open && document.getElementById("leafTitle"), null, { timeout: 15000 });
+  const door = await page.evaluate(() => document.getElementById("leaf").textContent);
+  assert(/The door does not open\. .* is still carrying the extra change pocketed at eighty/.test(door) && /every throw goes on into the heavens/.test(door), `door: ${door.slice(0, 400)}`);
+  await page.evaluate(() => mp.close({ instant: true }));
+  // the ledger is the scholar's alone
+  const shown = () => page.evaluate(() => { const c = document.getElementById("ledgerCard"); return { hidden: c.hidden, text: c.textContent }; });
+  assert((await shown()).hidden, "the ledger shows below scholar depth");
+  await page.evaluate(() => { const s = document.getElementById("prefDepth"); s.value = "scholar"; s.dispatchEvent(new Event("change")); });
+  const sch = await shown();
+  assert(!sch.hidden && /the extra change pocketed at eighty/.test(sch.text) && /āgāmi/.test(sch.text) && /deterministic dynamical system/.test(sch.text), `ledger: ${sch.text.slice(0, 300)}`);
+  assert(!/\d/.test(sch.text.replace(/eighty|forty/g, "")), `the ledger shows a number: ${sch.text}`);
+  await page.evaluate(() => { const s = document.getElementById("prefDepth"); s.value = "story"; s.dispatchEvent(new Event("change")); });
+  assert((await shown()).hidden, "the ledger stays at story depth");
+});
+
 await check("Phase 7: muted, nothing in the divine row starts audio; unmuted, the Shepard tone follows the walk", async page => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.addInitScript(() => { try { localStorage.setItem("mp-prefs", JSON.stringify({ mute: true })); } catch {} });
@@ -511,11 +557,6 @@ const twoPeople = page => page.addInitScript(() => {
   const rows = [{ name: "Asha", type: "human", gender: "f" }, { name: "Ravi", type: "human", gender: "m" }, { name: "", type: "cpu" }, { name: "", type: "cpu" }];
   window.claude = { hot: { data: { setup: { count: 3, rows, rules: { six: true } } } } };
 });
-// waits for a condition, closing any landing card that would hold the turn up
-const until = (page, fn) => page.waitForFunction(fn => {
-  if (document.getElementById("folio").open) mp.close({ instant: true });
-  return new Function(`return (${fn})()`)();
-}, fn.toString(), { timeout: 30000, polling: 100 });
 
 await check("Phase 8: a sannyasin's card names the bhumika they are in, at the years they have lived", async page => {
   await page.emulateMedia({ reducedMotion: "reduce" });

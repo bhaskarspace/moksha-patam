@@ -294,6 +294,29 @@ export function lintReport() {
         // years only go forward, so a stage before the square's own can never be in force there
         if (o.require.stage && !o.require.stage.some(x => Number.isInteger(x) && x >= earliest && x <= 4)) err(`${ow} require.stage`, "names no stage a life can be in on this square");
       } else if (o.why) err(ow, "has a reason for being withheld, but no gate");
+      // Phase 12: the seed a choice plants (src/engine/karma.js). One ledger: a debt is planted only by a choice that also
+      // moves the player toward rajas or tamas and away from dharma, so what is coming and what they are becoming agree.
+      if (o.seed) {
+        const sd = o.seed, sw = `${ow} seed`;
+        if (!["r", "t"].includes(o.guna)) err(sw, `plants a debt on a choice whose guna is "${o.guna}", not r or t`);
+        if ((o.aims?.dharma ?? 0) > 0) err(sw, "plants a debt on a choice that adds dharma");
+        if (!(Number.isInteger(sd.fuse) && sd.fuse > 0)) err(sw, `fuse ${sd.fuse} is not a positive whole number of years`);
+        if (![1, 2, 3].includes(sd.weight)) err(sw, `weight ${sd.weight} is not 1, 2 or 3`);
+        if (sd.holds != null && !SNAKES[sd.holds]) err(sw, `holds ${sd.holds}, which is not a snake's head`);
+        // the debt is a phrase naming the moment and the age it was made at, {at}; what came due is about the player
+        const atless = o => ({ en: o.en?.replaceAll("{at}", "ten"), hi: o.hi?.replaceAll("{at}", "दस") });
+        bilingual(`${sw} debt`, sd.debt);
+        if (sd.debt?.en && sd.debt?.hi) {
+          for (const l of ["en", "hi"]) {
+            if (!sd.debt[l].includes("{at}")) err(`${sw} debt`, `the ${l === "en" ? "English" : "Hindi"} does not say when with {at}`);
+            for (const x of badSlots(atless(sd.debt)[l])) err(`${sw} debt`, `unknown placeholder {${x}}`);
+          }
+          const agree = hindiAgreement(castFill(atless(sd.debt).hi));
+          if (agree.errors.length) err(`${sw} debt`, `the Hindi agrees without a {m|f} choice: ${agree.errors.join(", ")}`);
+        }
+        bilingual(`${sw} reckoning`, sd.reckoning);
+        if (sd.reckoning?.en && sd.reckoning?.hi) playerText(`${sw} reckoning`, atless(sd.reckoning));
+      }
     }
     if (opts.length >= 2) {
       const sorted = [...opts].sort((a, b) => worthOf(a) - worthOf(b)), lo = sorted[0], hi = sorted.at(-1);

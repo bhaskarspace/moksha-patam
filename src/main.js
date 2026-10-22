@@ -10,15 +10,17 @@ import { optionsFor, choiceFor, situationAt, momentOf } from "./engine/qbn.js";
 import { S, colRow, labEls, buildCells, draw, drawAge, fxClear, focusSquare } from "./render/board.js";
 import { lens, wash, stageOf } from "./render/age.js";
 import { ageStep } from "./engine/self.js";
+import { karmaOf, carried, plantOf } from "./engine/karma.js";
 import { castOf, meetsNamed } from "./engine/cast.js";
 import { frame, pullBack, hold, release } from "./render/camera.js";
 import { spriteURL } from "./render/sprites.js";
 import { tokenEls, buildTokens, place, retrigger, climb, swallow, animate } from "./render/tokens.js";
-import { openSquare, openEntry, closeCard, cardIdle, cardOpen, cardCarried, cardBlocking, cardExpanded, releaseCard, setCardRoll, setCardDecide, optionNote, refreshRoll, refreshCard, onCardChange } from "./render/card.js";
+import { openSquare, openReckoning, openEntry, closeCard, cardIdle, cardOpen, cardCarried, cardBlocking, cardExpanded, releaseCard, setCardRoll, setCardDecide, optionNote, refreshRoll, refreshCard, onCardChange } from "./render/card.js";
 import { landHuman, clearLanded, drawLanded } from "./render/landed.js";
 import { sheetState } from "./render/sheet.js";
 import { renderCodex, showTab } from "./render/codex.js";
 import { renderLog } from "./render/log.js";
+import { renderLedger } from "./render/ledger.js";
 import { openLife, refreshLife, closeLife, lifeText } from "./render/life.js";
 import { sound, unlockAudio, setDrone, setShepard, setMuted, audioState } from "./audio/engine.js";
 
@@ -238,6 +240,24 @@ async function takeTurn() {
         frame(p.pos, plan.jump.to);
         await (plan.jump.kind === "snake" ? swallow(idx, p.pos, plan.jump.to) : climb(idx, p.pos, plan.jump.to));
         if (g !== G.gen) return;
+      }
+      // a reckoning (REDESIGN.md Phase 12): a person's holds the game on its card until it is read; a computer's is in the
+      // moves log. At the third tier the token goes back down the board, where the debt's vice would have sent it.
+      if (plan.reckon) {
+        if (p.type === "human") {
+          if (cardOpen() && !cardBlocking()) await closeCard({ instant: true });
+          G.waitingCard = true; refreshRoll();
+          await openReckoning(plan.reckon, idx);
+          G.waitingCard = false; refreshRoll();
+          if (g !== G.gen) return;
+        }
+        if (plan.reckon.to) {
+          sound.snake();
+          frame(p.pos, plan.reckon.to);
+          await sleep(reduced ? 150 : 600);
+          p.pos = plan.reckon.to; place();
+          if (g !== G.gen) return;
+        }
       }
     }
   }
@@ -565,7 +585,7 @@ $("log").addEventListener("click", e => {
 });
 
 // ---- Preferences, which apply at once ----
-$("prefDepth").addEventListener("change", e => { setPref("depth", e.target.value); refreshCard(); });
+$("prefDepth").addEventListener("change", e => { setPref("depth", e.target.value); refreshCard(); renderLedger(); });
 $("prefEvery").addEventListener("change", e => setPref("everyCard", e.target.checked));
 $("prefBoth").addEventListener("change", e => { setPref("both", e.target.checked); refreshCard(); });
 function renderMute() {
@@ -648,6 +668,21 @@ if (new URLSearchParams(location.search).has("debug")) {
     landed: () => $("landed").textContent || null,
     // mp.land(n, told) puts player 0's landing on square n in the line, told by an option or roll moment if given
     land: (n, told) => { landHuman(n, 0, told); return $("landed").textContent || null; },
+    // mp.fire() makes the next turn's omen fire on whatever is rolled, on the current player's oldest ripe debt
+    // (ripening the oldest held one if nothing is ripe yet); false when the ledger is empty (REDESIGN.md Phase 12)
+    fire() { const k = karmaOf(cur()); if (!carried(k).length) return false; G.state.forceOmen = true; return true; },
+    // mp.dumpKarma(i) logs and returns player i's ledger: the three buckets, the vices added, the reckonings met, the door
+    dumpKarma(i = G.state.turn) {
+      const p = G.state.players[i], out = { karma: karmaOf(p), held: p.held ?? [], reckonings: p.reckonings ?? [], door: p.door ?? null };
+      console.log(JSON.stringify(out, null, 2));
+      return out;
+    },
+    // mp.plant(n, id) plants the seed of option id on square n in the current player's ledger, at their years now
+    plant(n, id) {
+      const o = situationAt(n)?.options?.find(x => x.id === id), s = plantOf(n, o, cur().years);
+      if (s) { const k = karmaOf(cur()); cur().karma = { ...k, agami: [...k.agami, s] }; render(); }
+      return s;
+    },
   };
 }
 

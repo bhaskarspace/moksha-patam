@@ -44,7 +44,16 @@ heavens (106–110) are walked, and the throw that would pass `TOP` is the fall,
 `gone(p)` in `src/engine/turn.js` is dead or fallen). It is never a respawn: the account closes on `lifeEndFell`, and it counts in
 `mp-lives` like a death. The Brahma snake (108 → 1), `p.hasFallen` and the Brahmaloka rule are retired; the fall's card is `FALL`
 in `content/squares.json`, shown on 110. A Shepard tone plays under the divine row and keeps rising through 106–110; the fall is
-its only resolution (`src/audio/shepard.js`). Phase 6 was The Card in Hand: the card opens collapsed (`src/render/card.js`), with an
+its only resolution (`src/audio/shepard.js`). Phase 12's second step is the ledger (`src/engine/karma.js`, pure): a situation's
+least-worth options carry a `seed` (`content/situations.json`: `fuse` in years, `weight` 1–3, `holds` a snake head, `debt` and
+`reckoning` text) that is planted in `p.karma.agami`, ripens into `prarabdha` when the years reach `at + fuse`, and is fired by the
+omen: a 6 among the dice (never a 1), on 1–100 or at 105, at a chance rising toward the exit, drawn off a sequence of its own so
+the dice never change. What it costs is a fixed function of the ledger (`reckonOf`): nothing, years, a holding (`p.held`), then
+back down the board; the death tier is only reported (`wouldDie`) until Phase 15. The reckoning's card is modal. The door at 105
+refuses a life carrying any unmet debt, or artha/kāma at `ATTACHED` (`refusalOf`, `plan.refused`, `p.door`), in words; the
+player stays on 105 and the next throw goes into the heavens. Unmet debts go to `sancita` when a life ends, recorded only. The
+buckets are never numbers: "debt" is the only player-facing word, and the scholar depth alone shows the ledger
+(`src/render/ledger.js`). The computer ranks its dice by where they land before the omen, so it never sees a reckoning coming. Phase 6 was The Card in Hand: the card opens collapsed (`src/render/card.js`), with an
 illuminated frame (`frame.js`) and a bottom sheet below 768px (`sheet.js`).
 - `GOAL` means the win and `TOP` means the board's extent. Use the right one; content moves by identity, never by index.
 - A player's age is `p.years`, never `squareOf(p.pos).age`; the square's age is only the age its moment belongs to.
@@ -69,13 +78,17 @@ illuminated frame (`frame.js`) and a bottom sheet below 768px (`sheet.js`).
   computer chooses on a situation, and the report adds the square reached at fifty and seventy and the ledger (gunas,
   dharma, highest bhumika). Since Phase 12 also how lives end (liberated, years ran out, fell), lives per liberation, turns
   spent in 106–110 and a square at or above 94 landed on four times or more; `--pick=phase9` plays the endgame by Phase 9's
-  choice. Balance against the p95, the share over 100, liberation per life and lives per liberation.
+  choice. Since Phase 12's ledger also debts planted and left unmet, the omen (6s with a ripe debt, reckonings, the firing
+  share by band of square), the severity tiers with would-be deaths by age, and the door's arrivals and refusals.
+  Balance against the p95, the share over 100, liberation per life and lives per liberation.
 - `npm run smoke [-- --only=text]`: Playwright checks of the built page in a real browser (needs Chrome installed).
   `--only` runs just the checks whose names contain the text, e.g. `--only="Phase 6"`.
 - `npm run golden [seeds]`: the built page and `sim.mjs` must produce the same move log.
 - `node tools/accounts.mjs [seeds] [--root=<checkout>] [--cast=off] [--full]`: a sha256 per life account (both
   languages, both genders, and two unnamed computers per seed). Compare a run against a worktree of `main` with
-  `--root` to prove a change leaves the prose alone; `--cast=off` takes the cast's names away.
+  `--root` to prove a change leaves the prose alone; `--cast=off` takes the cast's names away. `--tag` marks each game that
+  went above the exit (`above`) or that the ledger touched (`karma`: a reckoning, a refusal, or a debt carried within a throw
+  of the door); every untagged account must match.
 - `npm run perf [--rate=4] [--query=quality=low]`: frame times on a throttled phone-sized page. Reports only;
   compare against a run on `main`.
 - `node tools/icons.mjs`: regenerates `icons/`. Only needed when the emblem changes.
@@ -85,7 +98,11 @@ illuminated frame (`frame.js`) and a bottom sheet below 768px (`sheet.js`).
 - No `Math.random()` outside `src/rng.js`. All randomness goes through the seeded RNG.
 - Every new string must be bilingual `{en, hi}`, or the content lint fails.
 - Keep the `?debug` helpers working (`mp.jump`, `mp.roll`, `mp.seed`, `mp.setLang`, `mp.years`, `mp.cast`, …
-  in `src/main.js`) and extend them; don't remove any.
+  in `src/main.js`) and extend them; don't remove any. Phase 12 adds `mp.fire()` (the next turn's omen fires on the
+  current player's oldest debt, whatever is rolled), `mp.dumpKarma(i)` and `mp.plant(n, id)`.
+- No physics on any card. "Debt" is the only word a player sees for a seed, and the ledger's buckets, weights, fuses
+  and chances are never shown as numbers. The 1 is the threshold face and the 6 is the world's (`tests/faces.test.mjs`).
+- Never use `unshift` on anything but the log: `tools/golden.mjs` records every `unshift` of an entry as logged.
 - The ageing paints only the art: labels, cards and clicks never dim (`tests/contrast.test.mjs` holds every
   label's contrast). Phase 5 colours are `--b-*` tokens only (lint). Never touch `G.state.rng` from sound or drawing.
 - The card's × stays in every layout; closing is never gesture-only. Below 768px the card is a sheet whose gesture
