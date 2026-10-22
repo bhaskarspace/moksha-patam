@@ -6,6 +6,7 @@ import codex from "../content/codex.json" with { type: "json" };
 import names from "../content/names.json" with { type: "json" };
 import situations from "../content/situations.json" with { type: "json" };
 import bridges from "../content/bridges.json" with { type: "json" };
+import boards from "../content/boards.json" with { type: "json" };
 
 // Every square is { ic, en, hi, age, moment, mirror, callsBack, src } (docs/NARRATIVE.md §11). Snakes and
 // ladders add { to, skt }. The mirror is the Phase 2 lead; the moment, when there is one, sits above it and
@@ -26,6 +27,16 @@ export const PLAYER_NAMES = names.players;
 // a test can take them away, as sim --roll=off takes the roll moments: with none, nobody is named and every account
 // reads exactly as Phase 10 wrote it.
 export const CAST = { names: names.cast || null };
+
+// The board's look (REDESIGN.md Phase 13): its palette (the --b-* tokens, written into styles.css by the build), the
+// grounds of each band, the divine row's gold, the snakes' and the ladders' pigments, its border and its superstructure.
+// Content, not code, so another board (Phase 17) is another entry.
+export const BOARDS = boards;
+export const BOARD = boards["110"];
+// The --b-* custom properties of a board's palette, as CSS declarations.
+export const paletteCss = (b = BOARD) => Object.entries(b.palette).map(([k, v]) => `--b-${k}: ${v};`).join(" ");
+// A board's palette as { "--b-name": "#hex" }, for the lint and the tests.
+export const paletteTokens = (b = BOARD) => Object.fromEntries(Object.entries(b.palette).map(([k, v]) => [`--b-${k}`, v]));
 
 // What each square adds when read more deeply (school lines, scholar notes, IAST, views), and the Codex.
 export const READINGS = readings;

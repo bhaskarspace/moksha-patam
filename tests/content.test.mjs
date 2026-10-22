@@ -62,12 +62,11 @@ test("square 105 sets six definitions of moksha side by side, and the three outs
 
 test("the sprite lint holds the Basohli palette and one outline weight", () => {
   const svg = fs.readFileSync(new URL("../assets/sprites.svg", import.meta.url), "utf8");
-  const css = fs.readFileSync(new URL("../src/styles.css", import.meta.url), "utf8");
-  assert.deepEqual(lintSprites(svg, css), []);
+  assert.deepEqual(lintSprites(svg), []);
   const bad = svg.replace('fill="#C8352A"', 'fill="#FF00FF"').replace('stroke-width="1.25"', 'stroke-width="2"').replace('id="sq-50"', 'id="sq-x"');
-  const errors = lintSprites(bad, css);
+  const errors = lintSprites(bad);
   assert.ok(errors.some(e => e.includes("#FF00FF")));
-  assert.ok(errors.some(e => e.includes("outline weights other than 1.25")));
+  assert.ok(errors.some(e => e.includes("outline weights other than 1.25 at 24")));
   assert.ok(errors.includes("sprites.svg: no symbol for square 50"));
 });
 
@@ -116,6 +115,7 @@ const ROW = {
   Shiva: [110, "name comes loose", "dissolves", ["abhinavagupta"], "trika", "7f59c602f3"],
 };
 const SVG = fs.readFileSync(new URL("../assets/sprites.svg", import.meta.url), "utf8");
+const isVignette = id => new RegExp(`<symbol id="${id}" class="vg"`).test(SVG);
 const spriteHash = id => {
   const m = SVG.match(new RegExp(`<symbol id="${id}"[^>]*>([\\s\\S]*?)</symbol>`));
   return m && crypto.createHash("sha1").update(m[1]).digest("hex").slice(0, 10);
@@ -129,16 +129,17 @@ test("Phase 7: every god kept its own moment, mirror, readings and sprite when M
     assert.ok(HEAVEN[n].mirror.en.includes(mirror), `${god}'s mirror does not contain "${mirror}"`);
     assert.deepEqual(READINGS[n].figures || [], figures, `${god}'s people`);
     assert.equal(READINGS[n].schools[0].id, school, `${god}'s first school`);
-    assert.equal(spriteHash(`sq-${n}`), sprite, `${god}'s sprite is not on sq-${n}`);
+    // since Phase 13 a god's square may carry its painted vignette instead, drawn for that god in art/vignettes.mjs
+    if (!isVignette(`sq-${n}`)) assert.equal(spriteHash(`sq-${n}`), sprite, `${god}'s sprite is not on sq-${n}`);
   }
   assert.ok(HEAVEN[108].src, "Brahma's citation travels with Brahma");
 });
 
-test("Phase 7: Moksha is 105, the exit, with no sprite; Phase 12: the fall is past 110, shown on its card", () => {
+test("Phase 7: Moksha is 105, the exit, with no sprite (since Phase 13 a vignette for its card alone); Phase 12: the fall is past 110, shown on its card", () => {
   assert.equal(GOAL, 105);
   assert.equal(TOP, 110);
   assert.equal(squareOf(105), MOKSHA);
-  assert.equal(spriteHash("sq-105"), null);
+  assert.ok(spriteHash("sq-105") === null || isVignette("sq-105"), "105 carries no sprite, only the card's vignette");
   assert.equal(squareOf(108), HEAVEN[108]);
   // the Brahma snake is retired: no snake starts in the heavens, and its card is the fall's
   assert.ok(Object.keys(SNAKES).every(h => +h < 101));

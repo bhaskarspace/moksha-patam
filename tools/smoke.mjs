@@ -298,8 +298,10 @@ await check("Phase 7: Moksha is 105, Brahma at 108 is only his realm, and 110 is
   assert(brahma.title === "Brahma" && !brahma.snake && !brahma.foot && /nothing up here turns back/i.test(brahma.above), `108: ${JSON.stringify(brahma)}`);
   assert(shiva.title === "Shiva" && shiva.art && /105/.test(shiva.above) && shiva.snake === "Merit spent" && shiva.gita && /the fall$/.test(shiva.foot), `110: ${JSON.stringify(shiva)}`);
   assert(!ganesha.above, "104 is below the exit and should not say Moksha is behind");
-  // the board: 105 is the goal cell, and Shiva's sprite sits on 110
-  assert(await page.evaluate(() => document.querySelector('#labels .lab.goal')?.dataset.n === "105" && !!document.querySelector('#labels .lab[data-n="110"] svg.spr use[href="#sq-110"]')), "the board does not show the exit at 105");
+  // the board: 105 is the goal cell and keeps ॐ (its vignette is the card's alone), and Shiva's picture sits on 110, in his
+  // label's roundel or, since Phase 13, as his vignette in the cell
+  assert(await page.evaluate(() => document.querySelector('#labels .lab.goal')?.dataset.n === "105" && !!document.querySelector('#labels .lab.goal .om') && !document.querySelector('#cells use[href="#sq-105"]') &&
+    !!document.querySelector('#labels .lab[data-n="110"] svg.spr use[href="#sq-110"], #cells .pic.vg use[href="#sq-110"]')), "the board does not show the exit at 105");
   // #sq/110 is a square like any other
   await page.evaluate(() => { location.hash = "#sq/110"; });
   await page.waitForFunction(() => document.getElementById("folio").open && document.getElementById("leafTitle")?.textContent === "Shiva");
@@ -822,7 +824,8 @@ await check("Phase 5: the drone changes at every ashrama boundary", async page =
 
 await check("Phase 5: squares ahead are dimmed, yet every one still opens its card", async page => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto(BASE + "?seed=1&debug");
+  // a look whose ageing begins at once (Phase 13: the default shows the whole cloth until the first throw)
+  await page.goto(BASE + "?seed=1&debug&look=veil");
   await page.evaluate(() => { mp.state.players.forEach(p => (p.pos = 40)); mp.jump(40); });
   const ahead = await page.evaluate(() => [...document.querySelectorAll("#labels .lab.ahead")].map(l => +l.dataset.n));
   assert(ahead.length && Math.min(...ahead) > 40, `ahead: ${ahead.slice(0, 5)}`);
@@ -831,6 +834,24 @@ await check("Phase 5: squares ahead are dimmed, yet every one still opens its ca
     await page.waitForFunction(n => document.getElementById("folio").open && location.hash === `#sq/${n}`, n);
     await page.evaluate(() => mp.close({ instant: true }));
   }
+});
+
+await check("Phase 13: the first screen is the whole cloth at full pigment; the ageing begins with the first throw, under every look", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?first&seed=1&debug");
+  const before = await page.evaluate(() => document.querySelectorAll("#labels .lab.ahead").length);
+  assert(before === 0, `${before} squares dimmed before the first throw`);
+  for (const look of ["first", "veil", "asrama"]) {
+    await page.goto(BASE + `?seed=1&debug&look=${look}`);
+    await page.evaluate(() => mp.roll(3));
+    await until(page, () => !mp.busy);
+    const n = await page.evaluate(() => document.querySelectorAll("#labels .lab.ahead").length);
+    assert(n > 0 && (await page.evaluate(() => mp.look())) === look, `${look}: ${n} squares dimmed after a throw`);
+  }
+  // the 34 priority squares carry vignettes: 33 on the board, and Moksha's on its card alone (the board keeps ॐ)
+  const vg = await page.evaluate(() => [...document.querySelectorAll("#cells .pic.vg")].length);
+  assert(vg === 33, `${vg} vignettes on the board`);
+  assert(await page.evaluate(() => { mp.open(105); return !!document.querySelector('#leaf svg.ill use[href="#sq-105"]'); }), "Moksha's card has no vignette");
 });
 
 await check("Phase 5: the camera follows a climb, and shows the whole board before the card opens", async page => {

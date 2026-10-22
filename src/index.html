@@ -36,12 +36,12 @@
         <button type="button" data-lang="hi" aria-pressed="false" lang="hi">हिं</button>
       </div>
     </div>
-    <p data-t="intro"></p>
   </header>
 
   <div class="game">
     <div class="board-col">
       <div class="board-frame">
+        <div class="vimana" id="vimana" aria-hidden="true"></div>
         <div class="board-wrap" id="board">
           <div class="ashramas" id="ashramas" aria-hidden="true"></div>
           <!-- the stage clips the camera; cam is what it moves -->
@@ -112,10 +112,12 @@
           <span class="hint depth-hint" data-t="depthHint"></span>
           <label class="check"><input type="checkbox" id="prefEvery"> <span data-t="everyCard"></span></label>
           <label class="check"><input type="checkbox" id="prefBoth"> <span data-t="cardBoth"></span></label>
+          <label class="pick"><span data-t="theme"></span><select id="prefTheme"></select></label>
           <button id="newGame" type="button" data-t="newGame">Start new game</button>
           <span class="hint" id="seed"></span>
         </div>
       </details>
+      <section class="card colophon"><p data-t="intro"></p></section>
     </aside>
   </div>
 </div>

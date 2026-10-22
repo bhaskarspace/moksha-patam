@@ -4,9 +4,10 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import { illumined } from "../src/render/frame.js";
+import { paletteTokens } from "../src/content.js";
 
 const css = fs.readFileSync(new URL("../src/styles.css", import.meta.url), "utf8");
-const tokens = new Set([...css.matchAll(/(--b-[\w-]+):\s*#[0-9A-Fa-f]{6}/g)].map(m => m[1]));
+const tokens = new Set(Object.keys(paletteTokens()));
 const rules = [...css.matchAll(/([^{}]*\.ill\b[^{}]*)\{([^}]*)\}/g)].map(m => [m[1].trim(), m[2]]);
 
 test("every colour the frame is painted with is a Basohli token", () => {

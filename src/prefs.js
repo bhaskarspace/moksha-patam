@@ -4,14 +4,19 @@
 //              (REDESIGN.md Phase 11). It replaces landAll, which nearly every saved copy holds as true.
 //   both    show both languages on cards (for Hindi learners)
 //   mute    no sound
+//   theme   "light" | "dark": the page around the board. Light is the cloth and the default, whatever the device
+//           prefers (REDESIGN.md Phase 13); dark is a setting. The board itself is painted cloth in both.
 const KEY = "mp-prefs";
-const DEFAULTS = { depth: "school", everyCard: false, both: false, mute: false };
+const DEFAULTS = { depth: "school", everyCard: false, both: false, mute: false, theme: "light" };
 
 export const prefs = { ...DEFAULTS };
 try { Object.assign(prefs, JSON.parse(localStorage.getItem(KEY) || "{}")); } catch {}
 delete prefs.landAll;
 const q = new URLSearchParams(location.search).get("depth");
 if (q === "story" || q === "school" || q === "scholar") prefs.depth = q;
+
+export const applyTheme = () => { document.documentElement.dataset.theme = prefs.theme === "dark" ? "dark" : "light"; };
+applyTheme();
 
 export function setPref(k, v) {
   prefs[k] = v;

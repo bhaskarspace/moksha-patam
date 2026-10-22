@@ -35,7 +35,10 @@ const { outputFiles } = await esbuild.build({
   bundle: true, write: false, format: "iife", target: "es2022", charset: "utf8", legalComments: "none",
 });
 const js = outputFiles[0].text;
-const css = fs.readFileSync(rel("src/styles.css"), "utf8");
+// the board's palette is content (content/boards.json), written into the stylesheet as its --b-* tokens
+const { paletteCss } = await import(new URL("../src/content.js", import.meta.url).href);
+const css = fs.readFileSync(rel("src/styles.css"), "utf8").replace("/* @palette */", () => paletteCss());
+if (!css.includes("--b-black:")) { console.error("styles.css has no /* @palette */ for the board's tokens"); process.exit(1); }
 // The Basohli sprite sheet is inlined too, so the deploy stays one file. Without it every square
 // falls back to its emoji (docs/CONTENT.md §7).
 const sprites = fs.existsSync(rel("assets/sprites.svg"))
