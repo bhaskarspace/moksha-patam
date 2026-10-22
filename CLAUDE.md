@@ -33,7 +33,7 @@ more. Phase 10C was the cast (`src/engine/cast.js`): a moment says who it is abo
 `{friend=the friend}` / `{friend:लेता|लेती}` (`castFill` in `src/i18n.js`, run before `fill`); names come from
 `content/names.json` `cast`, drawn per life off a sequence of their own, and the account meets them, joins their
 returns by name and closes on their fates. With `cast` taken away every account is Phase 10's exactly. Phase 11, The first five minutes,
-has shipped (Bhaskar's three-player test is still to run): only a situation's card is modal and holds the game, a roll takes any
+has shipped, and Bhaskar's three-player test is done: only a situation's card is modal and holds the game, a roll takes any
 other card away, an ordinary landing is a line under the board (`src/render/landed.js`, `prefs.everyCard` for the old way),
 a viewer's first life (`mp-lives`) shows the moment with the story behind one tap, and every mirror tells, on first
 contact, that it is a story and who is in it (`content/bridges.json`, `whoOf` in `src/content.js`). The naming asks who is playing and names each person in turn. `?first` plays as
