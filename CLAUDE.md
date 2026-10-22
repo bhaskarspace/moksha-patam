@@ -37,7 +37,7 @@ has shipped (Bhaskar's three-player test is still to run): only a situation's ca
 other card away, an ordinary landing is a line under the board (`src/render/landed.js`, `prefs.everyCard` for the old way),
 a viewer's first life (`mp-lives`) shows the moment with the story behind one tap, and every mirror tells, on first
 contact, that it is a story and who is in it (`content/bridges.json`, `whoOf` in `src/content.js`). The naming asks who is playing and names each person in turn. `?first` plays as
-someone new. Then 12 Karma, 13 The door and the curse.
+someone new. Then 12 Karma, 13 The painted cloth, 14 The door and the curse (REDESIGN.md Phases 12–19).
 Phase 7 was The Exit (REDESIGN.md §4): Moksha is square 105 (`GOAL`), partway
 along the divine row, while the board still ends at 110 (`TOP`); a roll bounces off `TOP` and can come back down onto the
 exit. The rebirth snake falls from Brahma (108) to 1, only for a player climbing onto it and once per life, and a Shepard tone plays under the divine row
