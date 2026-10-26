@@ -5,18 +5,20 @@ import { G, defaultSetup, pname, pnameIn, cur, newState, loadSelf, saveSelf } fr
 import { prefs, setPref, applyTheme, lifeLived, beFirst, freshViewer, firstLife } from "./prefs.js";
 import { $, COLORS, esc, reduced, sleep, quality, forcedQuality, setQuality } from "./ui.js";
 import { die, makeRng, freshSeed } from "./rng.js";
-import { TUMBLE, planTurn, resolveChoice, endTurn, addLog, diceFor, movesFor, moveFor, gone } from "./engine/turn.js";
+import { TUMBLE, planTurn, resolveChoice, endTurn, addLog, diceFor, movesFor, moveFor, gone, canSit } from "./engine/turn.js";
 import { optionsFor, choiceFor, situationAt, momentOf } from "./engine/qbn.js";
 import { S, colRow, labEls, buildCells, draw, drawAge, fxClear, focusSquare } from "./render/board.js";
 import { lens, wash, stageOf, lookOf } from "./render/age.js";
 import { ageStep } from "./engine/self.js";
-import { karmaOf, carried, plantOf } from "./engine/karma.js";
+import { karmaOf, carried, plantOf, debtKey, refusalOf, examineOf } from "./engine/karma.js";
+import { curseOf } from "./engine/curse.js";
 import { castOf, meetsNamed } from "./engine/cast.js";
 import { frame, pullBack, hold, release } from "./render/camera.js";
 import { spriteURL } from "./render/sprites.js";
 import { tokenEls, buildTokens, place, retrigger, climb, swallow, animate } from "./render/tokens.js";
-import { openSquare, openReckoning, openEntry, closeCard, cardIdle, cardOpen, cardCarried, cardBlocking, cardExpanded, releaseCard, setCardRoll, setCardDecide, optionNote, refreshRoll, refreshCard, onCardChange } from "./render/card.js";
-import { landHuman, clearLanded, drawLanded } from "./render/landed.js";
+import { openSquare, openReckoning, openExam, cardCurse, openEntry, closeCard, cardIdle, cardOpen, cardCarried, cardBlocking, cardExpanded, releaseCard, setCardRoll, setCardDecide, optionNote, refreshRoll, refreshCard, onCardChange } from "./render/card.js";
+import { drawDoor } from "./render/door.js";
+import { landHuman, landDoor, landCurse, clearLanded, drawLanded } from "./render/landed.js";
 import { sheetState } from "./render/sheet.js";
 import { renderCodex, showTab } from "./render/codex.js";
 import { renderLog } from "./render/log.js";
@@ -169,6 +171,8 @@ async function takeTurn() {
   // the drone begins with the first roll
   setDrone(lens(state).droneStage);
   const watching = watchFrames();
+  // whether the landing is told on its card rather than the line (a situation's outcome is both)
+  let onCard = false;
   let plan = planTurn(state, v, dice);
   G.plan = plan;
   plan.pre.forEach(log);
@@ -232,6 +236,7 @@ async function takeTurn() {
         // a computer's landing is in the moves log; the line keeps the person's last moment
         if (p.type === "human") landHuman(p.pos, idx);
       }
+      onCard = full && !plan.situation;
       plan.after.forEach(log);
       if (plan.jump) {
         if (g !== G.gen) return;
@@ -261,9 +266,30 @@ async function takeTurn() {
           if (g !== G.gen) return;
         }
       }
+      // the door is public (REDESIGN.md Phase 14), the one place a computer's landing writes the line under the board:
+      // whoever comes to 105 is refused there or let through, and whoever sits there is examined, a year at a time.
+      // A person's year at the door holds the game on its card until it is read, as a reckoning's does.
+      if (!plan.sit && plan.final === GOAL && !plan.reckon?.to) {
+        landDoor(idx, plan.refused ? { kind: "refused", refusal: plan.refused, sit: canSit({ ...p, pos: GOAL }) } : { kind: "through" });
+      } else if (plan.sit && plan.from === GOAL && (plan.exam || plan.died)) {
+        // what is still owed after this year, should the years run out at it
+        const debts = carried(karmaOf(p)).filter(s => !(plan.exam?.cleared && debtKey(s) === plan.exam.key));
+        const ex = plan.exam && { ...plan.exam, died: plan.died, debts };
+        landDoor(idx, ex ? { kind: "exam", ex } : { kind: "died", debts });
+        if (ex && p.type === "human") {
+          if (cardOpen() && !cardBlocking()) await closeCard({ instant: true });
+          G.waitingCard = true; refreshRoll();
+          await openExam(ex, idx);
+          G.waitingCard = false; refreshRoll();
+          if (g !== G.gen) return;
+        }
+      }
     }
   }
+  const cursed = !!p.curse;
   endTurn(state, plan);
+  // the curse is said on the landing it is spoken at, a person's own (Phase 14); a computer's is told in its account
+  if (!cursed && p.curse && p.type === "human") onCard && cardOpen() ? cardCurse(idx, plan.target) : landCurse(idx, plan.target);
   G.plan = null; G.face = null;
   // the viewer's own life is over: the first life's quiet cards end with it (prefs.js). The fall counts as a death.
   if (p.type === "human" && (plan.died || plan.win || plan.fell) && firstLife()) { lifeLived(); refreshCard(); }
@@ -367,6 +393,7 @@ function render() {
   $("seed").textContent = `${t("seed")} ${state.rng.seed}`;
 
   place();
+  drawDoor();
   renderLog();
 
   const w = state.winner, humans = state.players.filter(q => q.type === "human");
@@ -621,7 +648,8 @@ new ResizeObserver(draw).observe($("cells"));
 
 // ?debug exposes helpers for testing: mp.jump(n) moves the current player, mp.roll(v) rolls a fixed number
 // (mp.roll(a, b) fixes both endgame dice, and mp.pick(v) moves by one of them, 0 to sit),
-// mp.seed() reads the current game's seed and mp.seed(n) starts a new game with that seed.
+// mp.seed() reads the current game's seed and mp.seed(n) starts a new game with that seed. Phase 14 adds mp.door(),
+// mp.examine(), mp.curse(id) and mp.siva().
 if (new URLSearchParams(location.search).has("debug")) {
   window.mp = {
     jump(n) { cur().pos = n; render(); age(true); },
@@ -694,6 +722,22 @@ if (new URLSearchParams(location.search).has("debug")) {
       if (s) { const k = karmaOf(cur()); cur().karma = { ...k, agami: [...k.agami, s] }; render(); }
       return s;
     },
+    // mp.door() stands the current player at 105, refused, as a sannyāsin who may sit there and be examined (Phase 14):
+    // with the debts they carry, or, carrying none, the lie on square 12 told at ten. It returns the refusal.
+    door() {
+      const p = cur();
+      if (!carried(karmaOf(p)).length) { const k = karmaOf(p); p.karma = { ...k, prarabdha: [...k.prarabdha, { ...plantOf(12, situationAt(12).options.find(o => o.id === "lie"), 10), i: 0 }] }; }
+      p.years = Math.max(p.years ?? 0, 80); p.pos = GOAL; p.door = refusalOf(p);
+      p.refusals = [...(p.refusals ?? []), { at: p.life?.length ?? 0, ...p.door }];
+      render(); age(true);
+      return p.door;
+    },
+    // mp.examine(i) is player i's examination: the years asked so far (p.exam, p.sittings) and what the next would ask
+    examine: (i = G.state.turn) => { const p = G.state.players[i]; return { exam: p.exam ?? {}, sittings: p.sittings ?? [], next: examineOf(p) }; },
+    // mp.curse(id) chooses the current life's curse (content/curses.json), before or after it is spoken
+    curse(id) { const p = cur(); if (id) { p.curseId = id; if (p.curse) p.curse = { ...p.curse, id }; } return curseOf(G.state, G.state.turn)?.id ?? null; },
+    // mp.siva() makes the next throw land on 110, where Śiva's snake takes the life down; false if no die reaches it
+    siva() { const v = TOP - cur().pos; if (v < 1 || v > 6 || !canThrow()) return false; G.forcedRoll = v; return v; },
   };
 }
 

@@ -197,6 +197,8 @@ await check("Phase 11: a card does not hold the game up: the computers play on u
   assert(await page.evaluate(() => location.hash === "#sq/50"), "a computer's move turned the reader's card");
 });
 
+// Phase 14 makes the one exception: the door at 105 is public, so a computer refused or examined there writes the line
+// (checked below); nowhere else does a computer's landing.
 await check("Phase 11: a computer's turn opens no card, and never writes the line under the board", async page => {
   await twoCpus(page);
   await page.goto(BASE + "?seed=2&debug");
@@ -244,7 +246,8 @@ for (const phone of [[375, 812], null]) {
       return { roll: y("roll"), tray: Math.round(document.querySelector(".tray").getBoundingClientRect().top + scrollY), line: !!mp.landed() };
     });
     const empty = await at();
-    await page.evaluate(() => { mp.jump(30); mp.roll(2); });
+    // an ordinary landing: the curse already said (Phase 14), since the landing it is said at tells it too, and grows
+    await page.evaluate(() => { mp.state.players[0].curse = { id: "well", i: 0, age: 8 }; mp.jump(30); mp.roll(2); });
     await page.waitForFunction(() => !mp.busy && mp.landed(), null, { timeout: 15000 });
     const full = await at();
     assert(!empty.line && full.line, JSON.stringify({ empty, full }));
@@ -356,7 +359,8 @@ await check("Phase 12: the door refuses a life still carrying a debt, says which
   await page.evaluate(() => mp.open(105));
   await page.waitForFunction(() => document.getElementById("folio").open && document.getElementById("leafTitle"), null, { timeout: 15000 });
   const door = await page.evaluate(() => document.getElementById("leaf").textContent);
-  assert(/The door does not open\. .* is still carrying the extra change pocketed at eighty/.test(door) && /every throw goes on into the heavens/.test(door), `door: ${door.slice(0, 400)}`);
+  // a sannyāsin may sit there and be asked (Phase 14), and is told so
+  assert(/The door does not open\. .* is still carrying the extra change pocketed at eighty/.test(door) && /may sit here, a year at a time, and be asked/.test(door), `door: ${door.slice(0, 400)}`);
   // and the card is headed as the door that did not open, not the end of the journey
   assert(/The door that did not open/.test(door) && !/The end of the journey/.test(door), `the refused card's header: ${door.slice(0, 200)}`);
   await page.evaluate(() => mp.close({ instant: true }));
@@ -1114,6 +1118,98 @@ await check("Phase 13 follow-ups: a reckoning on a 6 takes the extra throw: the 
   assert(await page.evaluate(() => !mp.state.log.some(e => e.k === "lSix")), "the log still gives the six its throw");
 });
 
+// ---- Phase 14: the door and the curse ----
+await check("Phase 14: a refused sannyāsin sits at the door, is asked on a card that holds the game, and the door opens", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=1&debug");
+  await page.evaluate(() => { mp.door(); mp.roll(2, 3); });
+  await page.waitForFunction(() => mp.choosing, null, { timeout: 15000 });
+  await page.evaluate(() => mp.pick(0));
+  await page.waitForFunction(() => document.getElementById("folio").open && /The door asks/.test(document.getElementById("leaf").textContent), null, { timeout: 15000 });
+  const card = await page.evaluate(() => ({ text: document.getElementById("leaf").textContent, busy: mp.busy, hash: location.hash, line: mp.landed() }));
+  assert(/heaven's highest refuge/.test(card.text) && /The answer is truth/.test(card.text) && /the teacher who was coming, at ten/.test(card.text), `the card: ${card.text.slice(0, 400)}`);
+  assert(/The door opens/.test(card.text), `the door did not open on the card: ${card.text.slice(0, 400)}`);
+  assert(card.busy && card.hash === "#sq/105", `the examination does not hold the game: ${JSON.stringify({ busy: card.busy, hash: card.hash })}`);
+  assert(/heaven's highest refuge/.test(card.line || ""), `the line under the board: ${card.line}`);
+  assert(!/\b(weight|penance count|prārabdha|āgāmi)\b/i.test(card.text), "the card shows the ledger's workings");
+  await page.evaluate(() => mp.close());
+  await page.waitForFunction(() => !mp.busy && mp.state.over, null, { timeout: 15000 });
+  const r = await page.evaluate(() => ({ winner: mp.state.winner, open: mp.state.log.some(e => e.k === "lDoorOpen"), gate: document.getElementById("door").className, sittings: mp.examine(0).sittings.length }));
+  assert(r.winner === 0 && r.open && /\bopen\b/.test(r.gate) && r.sittings === 1, JSON.stringify(r));
+});
+
+await check("Phase 14: a computer refused at the door is told on the line under the board, and the door is drawn", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=1&debug");
+  const who = await page.evaluate(() => mp.state.players.findIndex(p => p.type === "cpu"));
+  assert(who > 0, "seed 1 has no computer");
+  await page.evaluate(i => {
+    Object.assign(mp.state.players[i], { pos: 103, years: 80, life: [103], told: [null], karma: { sancita: [], agami: [{ src: 55, opt: "keep", at: 80, fuse: 15, weight: 2, i: 0 }], prarabdha: [] } });
+    // a double: the door is its one move (it would rather not arrive refused)
+    mp.state.turn = i; mp.roll(2, 2);
+  }, who);
+  await page.waitForFunction(i => mp.state.log.some(e => e.k === "lRefused" && e.who === i) && !mp.busy, who, { timeout: 15000 });
+  const r = await page.evaluate(() => ({ line: mp.landed(), opened: document.getElementById("folio").open, gate: !document.getElementById("door").hidden, spokes: document.querySelectorAll("#door .spoke").length }));
+  assert(/The door does not open\. .* is still carrying the extra change pocketed at eighty/.test(r.line || ""), `the line: ${r.line}`);
+  assert(!r.opened, "a computer's refusal opened the card");
+  assert(r.gate && r.spokes === 1, `the door: ${JSON.stringify(r)}`);
+});
+
+await check("Phase 14: the wheel of time turns a step a year at the door, and under reduced motion it does not move", async page => {
+  await page.goto(BASE + "?seed=1&debug");
+  await page.evaluate(() => { mp.plant(12, "lie"); mp.plant(59, "strike"); mp.door(); });
+  const turning = () => page.evaluate(() => [...document.querySelectorAll("#door .spoke")].map(g => ({ t: g.style.transform, gold: g.classList.contains("gold"), dur: getComputedStyle(g).transitionDuration })));
+  const before = await turning();
+  assert(before.length === 2 && before.every(s => !s.gold && s.dur !== "0s"), JSON.stringify(before));
+  // the wheel rises above the board into the vimāna's arches, outside the stage that clips the camera
+  const rise = await page.evaluate(() => {
+    const rim = document.querySelector("#door .rim").getBoundingClientRect(), board = document.getElementById("board").getBoundingClientRect();
+    return { above: Math.round(board.top - rim.top), clipped: !!document.getElementById("door").closest("#stage") };
+  });
+  assert(rise.above > 0 && !rise.clipped, `the wheel is clipped at the board's top: ${JSON.stringify(rise)}`);
+  await page.evaluate(() => { mp.roll(2, 3); });
+  await page.waitForFunction(() => mp.choosing, null, { timeout: 15000 });
+  await page.evaluate(() => mp.pick(0));
+  await until(page, () => !mp.busy && mp.examine(0).sittings.length === 1);
+  const after = await turning();
+  // the oldest debt, the lie, is paid in the year (its weight is one) and stops, gold; the other turned
+  assert(after[0].gold && after[0].t === before[0].t && after.slice(1).every((s, k) => !s.gold && s.t !== before[k + 1].t), JSON.stringify({ before, after }));
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  assert((await turning()).every(s => s.dur === "0s"), "the wheel turns under reduced motion");
+});
+
+await check("Phase 14: the years running out at the door close it over the token, and the line says what was owed", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=1&debug");
+  await page.evaluate(() => { mp.plant(59, "strike"); mp.door(); mp.years(109.5); mp.roll(2, 3); });
+  await page.waitForFunction(() => mp.choosing, null, { timeout: 15000 });
+  await page.evaluate(() => mp.pick(0));
+  await until(page, () => !mp.busy && mp.state.players[0].dead);
+  const r = await page.evaluate(() => ({ line: mp.landed(), gate: document.getElementById("door").className, died: mp.state.log.some(e => e.k === "lDiedDoor"), end: mp.lifeText(0, "en") }));
+  assert(r.died && /\bshut\b/.test(r.gate), JSON.stringify(r));
+  assert(/years ran out at the door, still owing the hand that fell/.test(r.line || ""), `the line: ${r.line}`);
+});
+
+await check("Phase 14: a throw that lands on 110 is Śiva's snake, and ends the life", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=5&debug");
+  await page.evaluate(() => mp.jump(107));
+  assert(await page.evaluate(() => mp.siva()) === 3, "mp.siva did not set the throw to 110");
+  await page.evaluate(() => document.getElementById("roll").click());
+  await until(page, () => !mp.busy && mp.state.log.some(e => e.k === "lSiva"));
+  const r = await page.evaluate(() => ({ p: mp.state.players[0], over: mp.state.over, text: mp.state.log.find(e => e.k === "lSiva") }));
+  assert(r.p.fell && r.p.fellBy === "snake" && r.p.pos === 0 && r.over, JSON.stringify({ fell: r.p.fell, by: r.p.fellBy, pos: r.p.pos, over: r.over }));
+});
+
+await check("Phase 14: the curse is said on the person's line, on the landing it is spoken at", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=1&debug");
+  await page.evaluate(() => { mp.curse("barber"); Object.assign(mp.state.players[0], { pos: 30, years: 12, life: [30], told: [null] }); mp.roll(2); });
+  await until(page, () => !mp.busy && mp.state.players[0].curse);
+  const line = await page.evaluate(() => mp.landed());
+  assert(/The barber, cutting .*'s hair/.test(line || ""), `the line: ${line}`);
+});
+
 await check("Phase 6: on a wide screen the card is the folio it was, over the board and clear of the dice, × top right, no grip, with the morph", async page => {
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.goto(BASE + "?seed=1&debug");
@@ -1220,7 +1316,11 @@ await check("Phase 11: with every card asked for, an ordinary landing opens the 
   await page.goto(BASE + "?seed=1&debug");
   await page.evaluate(() => { mp.jump(30); mp.roll(2); });
   await page.waitForFunction(() => document.getElementById("folio").open && location.hash === "#sq/32", null, { timeout: 15000 });
+  await page.waitForFunction(() => !mp.busy, null, { timeout: 15000 });
   assert(!(await page.evaluate(() => mp.landed())), "the line showed as well as the card");
+  // the curse said at that landing (Phase 14) is on the card, not the line
+  const card = await page.evaluate(() => document.getElementById("leaf").textContent);
+  assert(/ says /.test(card) && /had said so|will /.test(card), `the curse is not on the card: ${card.slice(0, 300)}`);
 });
 
 await check("Phase 11: the first life shows the moment, with the story behind its bridge; opened once, it stays open", async page => {

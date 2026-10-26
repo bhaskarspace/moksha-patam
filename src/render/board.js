@@ -2,7 +2,7 @@
 import { GOAL, TOP, ROWS, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, BOARD } from "../content.js";
 import { lang, L, t, num } from "../i18n.js";
 import { $, art, quality } from "../ui.js";
-import { groundToken, groundOf, colRow, fills, WASH, snakeHues } from "./ground.js";
+import { groundToken, groundOf, colRow, fills, WASH, snakeHues, sivaPath } from "./ground.js";
 import { cameraOn } from "./camera.js";
 
 export { colRow };
@@ -214,6 +214,24 @@ function drawSnake(h, t) {
   drawHood(ctx, pts[0], pts[4], cols);
 }
 
+// Śiva's snake (REDESIGN.md Phase 14): one nāga in nīla, blue-black, apart from the board's five snake pigments, coiled
+// round the trident on 110 and lying along the board's edge to its tail in square 1. It is the second form of the fall,
+// for a throw that lands exactly on 110; it is not one of SNAKES, so nothing moves by it but that.
+export const sivaPoints = () => sivaPath().map(p => ({ x: p.x * S, y: p.y * S, w: p.w * S }));
+function drawSiva() {
+  const pts = sivaPoints(), N = pts.length - 1, ink = paint("black"), body = paint("nila"), belly = paint("shell");
+  ctx.lineCap = "round";
+  for (let pass = 0; pass < 3; pass++) {
+    ctx.strokeStyle = pass === 0 ? ink : pass === 1 ? body : belly;
+    for (let i = 0; i < N; i++) {
+      const a = pts[i], b = pts[i + 1];
+      ctx.lineWidth = pass === 0 ? a.w + 3 : pass === 1 ? a.w : a.w * 0.22;
+      ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+    }
+  }
+  drawHood(ctx, pts[0], pts[2], [body, ink, belly, paint("vermilion")], 0.7);
+}
+
 // ---- The ageing (render/age.js): a wash per square in palette colours, painted between the art and the labels ----
 const ageCanvas = $("age"), agx = ageCanvas.getContext("2d");
 let tokens = null, washes = null, grain = null;
@@ -276,5 +294,6 @@ export function draw() {
   S = W / 10;
   for (const [a, l] of Object.entries(LADDERS)) drawLadder(+a, l.to);
   for (const [h, s] of Object.entries(SNAKES)) drawSnake(+h, s.to);
+  drawSiva();
   drawAge();
 }

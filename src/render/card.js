@@ -7,7 +7,9 @@ import { lang, tIn, numIn, srcIn, pick, fill, castFill, ageWordsIn } from "../i1
 import { ageStep, stageOfYears, bhumikaOf, freshGunas, SANNYASA, yearsAlong } from "../engine/self.js";
 import { castOf, castAlong, peopleOf, introIn } from "../engine/cast.js";
 import { momentOf, destOf } from "../engine/qbn.js";
-import { reckonLinesIn, refusalIn } from "../engine/karma.js";
+import { reckonLinesIn, refusalIn, examLinesIn, debtsIn } from "../engine/karma.js";
+import { canSit } from "../engine/turn.js";
+import { curseSaidIn } from "../engine/curse.js";
 import { prefs, hasMet, meet, firstLife, firstOpened, openFirst, knowsWho, meetWho } from "../prefs.js";
 import { G, pnameIn } from "../state.js";
 import { $, esc, reduced, art } from "../ui.js";
@@ -22,11 +24,12 @@ const other = l => (l === "hi" ? "en" : "hi");
 const DEPTHS = ["story", "school", "scholar"];
 const deep = d => DEPTHS.indexOf(prefs.depth) >= DEPTHS.indexOf(d);
 
-let view = null;           // { type: "square", n }, { type: "entry", id } or { type: "reckon", rk }
+let view = null;           // { type: "square", n }, { type: "entry", id }, { type: "reckon", rk } or { type: "exam", ex }
 let cardLang = null;       // the card's own language, when the reader flips it
 let backTo = null;         // the square an entry was opened from
 let subject = null;        // the player a square's moment is about; the player whose turn it is when unset
 let closing = false, waiters = [];
+let spoken = null;         // { who, n }: the landing a curse was said at, while its card is open (Phase 14)
 // The card opens with its story; the voices wait behind one tap. Opened further, it stays so while the card is open,
 // through paging, the Codex and every roll from it, and is collapsed again when the card closes.
 let expanded = false;
@@ -244,8 +247,11 @@ function squareHtml(n, l) {
   const sp0 = subjectOf(), landing = G.plan && sp0 === G.state.players[G.plan.idx] && G.plan.target === n ? G.plan : null;
   const sp = landing || sp0?.door ? sp0 : G.state?.players.find(q => q.pos === GOAL && q.door) ?? sp0;
   const refusal = n === GOAL && sp ? (landing ? landing.refused : sp.pos === GOAL ? sp.door : null) : null;
-  const door = refusal ? (() => { const [en, hi] = ["en", "hi"].map(x => refusalIn(x, refusal, { name: pnameIn(sp, x), gender: sp.gender })); return en.map((t, i) => texts(l, t, hi[i], "remedy door")).join(""); })() : "";
-  body += `<div class="story">${door}${moment}${options}${remedy}${pending ? "" : mirrorHtml(l, mirror, m)}${bi(l, r.line2, "line2")}${above}</div>`;
+  const door = refusal ? (() => { const [en, hi] = ["en", "hi"].map(x => refusalIn(x, refusal, { name: pnameIn(sp, x), gender: sp.gender }, canSit({ ...sp, pos: GOAL }))); return en.map((t, i) => texts(l, t, hi[i], "remedy door")).join(""); })() : "";
+  // the curse, said at this landing, when the landing's card is open rather than the line (Phase 14)
+  const sayer = spoken && spoken.n === n && G.state?.players[spoken.who];
+  const curse = sayer ? texts(l, curseSaidIn("en", sayer, pnameIn(sayer, "en")), curseSaidIn("hi", sayer, pnameIn(sayer, "hi")), "remedy") : "";
+  body += `<div class="story">${door}${moment}${curse}${options}${remedy}${pending ? "" : mirrorHtml(l, mirror, m)}${bi(l, r.line2, "line2")}${above}</div>`;
   // what the toggle opens: the voices, and the notes, at the reader's depth
   // Codex entries in it count as met only once the reader opens it
   let more = "";
@@ -333,6 +339,21 @@ function entryHtml(id, l) {
   };
 }
 
+// A year sat at the door (REDESIGN.md Phase 14): the question, the life's answer from the book, and whether the debt is
+// met; the door opening, or the years running out there. It names the square the debt was made on and links to it.
+function examHtml(ex, l) {
+  const p = subjectOf(), who = x => ({ name: pnameIn(p, x), gender: p.gender });
+  const lines = x => {
+    const out = examLinesIn(x, ex, who(x));
+    if (!ex.died) return out;
+    return [...out, fill(tIn(x, "doorDied", { name: who(x).name, debts: debtsIn(x, ex.debts ?? [], who(x)) }), who(x))];
+  };
+  const en = lines("en"), hi = lines("hi"), q = squareOf(ex.src);
+  let body = `<h2 id="leafTitle">${esc(q[l] || q.en)}</h2>`;
+  body += `<div class="story">` + en.map((t, i) => texts(l, t, hi[i], i === 0 ? "remedy door" : i === 1 ? "moment" : "remedy")).join("") +
+    `<p class="srcline"><a class="src" href="#sq/${ex.src}" data-sq="${ex.src}">${esc(tIn(l, "square", { n: numIn(l, ex.src) }))}</a></p></div>`;
+  return { kind: "exam", met: [], html: frame(l, { kind: "exam", eb: esc(tIn(l, "examTitle")), big: "☸\uFE0E", sqn: numIn(l, GOAL), body, foot: "" }) };
+}
 // Draws the current view into the leaf. Entries met here are added to the Codex after the
 // leaf is drawn, so "new" marks show on the card that introduced them. Whatever control had focus has it again
 // afterwards, so a keyboard or screen reader keeps its place when the leaf is redrawn under it.
@@ -341,7 +362,7 @@ function paint({ landing = false } = {}) {
   const l = cardLang ?? lang;
   const fa = leaf.contains(document.activeElement) ? document.activeElement : null;
   const again = fa?.dataset.act ? `[data-act="${fa.dataset.act}"]` : fa?.dataset.cl ? `[data-cl="${fa.dataset.cl}"]` : null;
-  const out = view.type === "square" ? squareHtml(view.n, l) : view.type === "reckon" ? reckonHtml(view.rk, l) : entryHtml(view.id, l);
+  const out = view.type === "square" ? squareHtml(view.n, l) : view.type === "reckon" ? reckonHtml(view.rk, l) : view.type === "exam" ? examHtml(view.ex, l) : entryHtml(view.id, l);
   leaf.className = "leaf " + out.kind + (landing ? " landed" : "") + (expanded ? " open" : "");
   leaf.innerHTML = out.html;
   metMore = out.metMore || [];
@@ -353,7 +374,7 @@ function paint({ landing = false } = {}) {
   if (again) [...leaf.querySelectorAll(again)].find(el => el.offsetParent)?.focus({ preventScroll: true });
   cue();
   // the address bar names what is open, so a card can be linked
-  history.replaceState(null, "", location.pathname + location.search + (view.type === "square" ? `#sq/${view.n}` : view.type === "reckon" ? `#sq/${view.rk.src}` : `#codex/${view.id}`));
+  history.replaceState(null, "", location.pathname + location.search + (view.type === "square" ? `#sq/${view.n}` : view.type === "reckon" ? `#sq/${view.rk.src}` : view.type === "exam" ? `#sq/${GOAL}` : `#codex/${view.id}`));
   onChange.forEach(fn => fn());
 }
 
@@ -464,7 +485,7 @@ async function open(next, { landing = false, from = null, who = null, focus = tr
   const wasOpen = dlg.open, was = view;
   view = next;
   subject = who;
-  const block = next.type === "reckon" || (next.type === "square" && !!pendingOn(next.n));
+  const block = next.type === "reckon" || next.type === "exam" || (next.type === "square" && !!pendingOn(next.n));
   // already open: the leaf turns to the new square, forward or back
   if (wasOpen) {
     setBlocking(block);
@@ -493,6 +514,8 @@ async function open(next, { landing = false, from = null, who = null, focus = tr
 export const openSquare = (n, opts) => open({ type: "square", n }, opts);
 // A reckoning's card, for player who: it holds the game until it is closed.
 export const openReckoning = (rk, who) => open({ type: "reckon", rk }, { landing: true, who });
+// A year at the door, for player who (REDESIGN.md Phase 14): like a reckoning, it holds the game until it is read.
+export const openExam = (ex, who) => open({ type: "exam", ex }, { landing: true, who });
 export const openEntry = (id, opts) => (entryOf(id) ? open({ type: "entry", id }, opts) : Promise.resolve());
 
 export async function closeCard({ instant = false } = {}) {
@@ -510,7 +533,7 @@ export async function closeCard({ instant = false } = {}) {
     dlg.close();
   }
   sheetAfter();
-  closing = false; view = null; cardLang = null; backTo = null; subject = null; expanded = false; blocking = false;
+  closing = false; view = null; cardLang = null; backTo = null; subject = null; expanded = false; blocking = false; spoken = null;
   storyOpen = false; bridged = new Set();
   place();
   if (location.hash) history.replaceState(null, "", location.pathname + location.search);
@@ -606,6 +629,9 @@ export function momentLine(n, who, l, told) {
     return { title: squareInfo(n, l).title, text: m ? momentIn(m, l, n, false) : "" };
   } finally { subject = keep; }
 }
+
+// The curse said at player who's landing on n goes on that landing's card, while it is open (Phase 14).
+export function cardCurse(who, n) { spoken = { who, n }; refreshCard(); }
 
 // Redraws an open card when a preference or the language changes.
 export function refreshCard() { if (dlg.open && view) paint(); }

@@ -164,6 +164,26 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
   .lab .ic { width: 4.6cqi; font-size: 2.6cqi; }
 }
 
+/* The door on 105 and the wheel of time round it (REDESIGN.md Phase 14): over the cell, under its label and the token, which stands
+   before the closed door; over the token once the years have run out there. A step of the wheel turns; a met debt's
+   spoke stops, gold. Clicks go through to the square. */
+.gate { position: absolute; width: 10%; pointer-events: none; z-index: 1; }
+.gate[hidden], [data-zoomed] > .gate { display: none; }
+.gate svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.gate .rim { fill: none; stroke: var(--b-black); stroke-width: 1.25; }
+.gate .spoke { transform-box: view-box; transform-origin: 24px 24px; transition: transform 0.9s cubic-bezier(0.4, 0, 0.3, 1); }
+.gate .spoke line { stroke: var(--b-yellow); stroke-width: 2.6; stroke-linecap: round; }
+.gate .spoke line.o { stroke: var(--b-black); stroke-width: 5; }
+.gate .spoke.gold line:not(.o) { stroke: var(--b-gold-hi); }
+.gate .arch { fill: var(--b-gold-hi); stroke: var(--b-gold-hi); stroke-width: 4; stroke-linejoin: round; }
+.gate .leaf { fill: var(--b-lac); stroke: var(--b-black); stroke-width: 1.25; transition: transform 0.9s ease-in-out; transform-box: fill-box; }
+.gate .leaf.l { transform-origin: 0 50%; }
+.gate .leaf.r { transform-origin: 100% 50%; }
+.gate .sill { stroke: var(--b-black); stroke-width: 1.25; stroke-linecap: round; }
+.gate.open .leaf { transform: scaleX(0.18); }
+.gate.shut { z-index: 3; }
+.gate.shut .leaf { fill: var(--b-black); }
+
 /* Players: pixel-art figures that walk, climb and grow. Feet sit on the square, with a shadow in the player's colour. */
 .tokens { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
 .token {
@@ -635,6 +655,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
 
 @media (prefers-reduced-motion: reduce) {
   .token, .token.slide { transition: none; }
+  .gate .spoke, .gate .leaf { transition: none; }
   .cam { transition: none; transform: none !important; }
   #folio.snap, #folio.snap .leaf { transition: none; }
   .token .body, .die.rolling, .lab.goal .om, .leaf, .leaf *, .flourish *, .toast { animation: none !important; }

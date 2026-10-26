@@ -8,7 +8,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { GOAL, TOP, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, FALL, STR, SRC_HI, JOINS, NUM_HI, READINGS, CODEX, REFS, ENTRY_IDS, srcOfSquare, sourceOf, leadOf, squareOf, SITUATIONS, CAST, CAST_WORDS, BRIDGES, BRIDGE_SAME, whoOf, bridgeOf, BOARDS } from "../src/content.js";
+import { GOAL, TOP, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, FALL, STR, SRC_HI, JOINS, NUM_HI, READINGS, CODEX, REFS, ENTRY_IDS, srcOfSquare, sourceOf, leadOf, squareOf, SITUATIONS, CAST, CAST_WORDS, BRIDGES, BRIDGE_SAME, whoOf, bridgeOf, BOARDS, DOOR, CURSES } from "../src/content.js";
 import NAMES from "../content/names.json" with { type: "json" };
 import { ENDGAME, createGame, playTurn } from "../src/engine/turn.js";
 import { destOf, worthOf } from "../src/engine/qbn.js";
@@ -98,9 +98,9 @@ export function lintReport() {
   // the joining phrases of the life account: each reads on into a moment, so it ends in a space (Phase 8)
   const join = (where, j) => { bilingual(where, j); for (const l of ["en", "hi"]) if (j?.[l] && !j[l].endsWith(" ")) err(where, `the ${l} join does not read on into the moment: end it with a space`); };
   for (const [i, j] of JOINS.then.entries()) join(`strings.JOINS.then[${i}]`, j);
-  for (const k of ["snake", "ladder", "again", "gap", "sameYear", "months", "reckon", "door"]) join(`strings.JOINS.${k}`, JOINS[k]);
+  for (const k of ["snake", "ladder", "again", "gap", "sameYear", "months", "reckon", "door", "curse"]) join(`strings.JOINS.${k}`, JOINS[k]);
   // whole sentences, or the part of one a tally counts in (Phase 9: repeats told short, years sat out)
-  for (const k of ["foldRun", "foldOne", "foldHeights", "snakeAgain", "ladderAgain", "tallySnake", "tallyLadder", "times", "sitOne", "sitRun", "backTo"]) bilingual(`strings.JOINS.${k}`, JOINS[k]);
+  for (const k of ["foldRun", "foldOne", "foldHeights", "snakeAgain", "ladderAgain", "tallySnake", "tallyLadder", "times", "sitOne", "sitRun", "backTo", "examPass", "examFail", "examFailPaid", "examPaid"]) bilingual(`strings.JOINS.${k}`, JOINS[k]);
   if (NUM_HI?.length !== 101 || NUM_HI.some(w => !w?.trim())) err("strings.NUM_HI", "needs the Hindi number words from 0 to 100");
 
   // a mirror, wherever it is, names someone in both languages
@@ -126,6 +126,37 @@ export function lintReport() {
     if (src && !sourceOf(src)) err(where, `citation "${src}" matches no Codex source`);
     if (src && /[A-Za-z]/.test(SRC_HI.reduce((a, [en, hi]) => a.replace(en, hi), src))) err(where, `citation "${src}" has no Hindi in strings.SRC_HI`);
   };
+
+  // Phase 14, the door (content/door.json): each question is about a vice, a snake's head, in both languages; what
+  // answers it is a ladder's foot; and the climb that answered it is said of the player, who it agrees with in Hindi
+  for (const [v, q] of Object.entries(DOOR || {})) {
+    const w = `door.${v}`;
+    if (!SNAKES[v]) err(w, `${v} is not a snake's head`);
+    if (!LADDERS[q.heals]) err(w, `heals ${q.heals}, which is not a ladder's foot`);
+    bilingual(`${w} q`, q.q); bilingual(`${w} a`, q.a); bilingual(`${w} answered`, q.answered);
+    if (q.answered?.en && q.answered?.hi) playerText(`${w} answered`, { en: "{name} " + q.answered.en, hi: "{name} " + q.answered.hi });
+  }
+  // Phase 14, the curses (content/curses.json): said of the player, in both languages, naming a thing and never a square,
+  // tied to a family of late squares that exist; and closed both ways
+  const curseIds = new Set();
+  for (const c of CURSES.list || []) {
+    const w = `curse ${c.id}`;
+    if (curseIds.has(c.id)) err(w, "has the id of another curse");
+    curseIds.add(c.id);
+    if (!(c.from >= 5 && c.from <= 15)) err(w, `is said from ${c.from}, not in childhood or brahmacharya`);
+    if (!c.family?.length || c.family.some(n => !squareOf(n) || n < 40)) err(w, `family ${JSON.stringify(c.family)} is not of late squares on the board`);
+    for (const k of ["line", "landed", "not"]) bilingual(`${w} ${k}`, c[k]);
+    if (c.line?.en && c.line?.hi) {
+      playerText(`${w} line`, c.line);
+      for (const l of ["en", "hi"]) if (/\d|\bsquare\b|खाना/.test(c.line[l])) err(`${w} line`, "names a square or a number");
+    }
+    // the closing the other way is about the one who said it ("She was right"), so only the player's Hindi is checked
+    if (c.not?.en && c.not?.hi) {
+      for (const l of ["en", "hi"]) if (!c.not[l].includes("{name}")) err(`${w} not`, `the ${l === "en" ? "English" : "Hindi"} does not name the player with {name}`);
+      const agree = hindiAgreement(castFill(c.not.hi));
+      if (agree.errors.length) err(`${w} not`, `the Hindi agrees with {name} without a {m|f} choice: ${agree.errors.join(", ")}`);
+    }
+  }
 
   // Phase 10C, the cast: a moment that names a member of the cast says which in `cast`, names only that one, in both
   // languages alike; a member whose gender is drawn agrees through {member:m|f} in Hindi; and the moment where a life
@@ -303,6 +334,8 @@ export function lintReport() {
         if (!(Number.isInteger(sd.fuse) && sd.fuse > 0)) err(sw, `fuse ${sd.fuse} is not a positive whole number of years`);
         if (![1, 2, 3].includes(sd.weight)) err(sw, `weight ${sd.weight} is not 1, 2 or 3`);
         if (sd.holds != null && !SNAKES[sd.holds]) err(sw, `holds ${sd.holds}, which is not a snake's head`);
+        // Phase 14: the door asks about every vice a debt holds
+        if (sd.holds != null && !DOOR[sd.holds]?.q) err(sw, `holds ${sd.holds}, which the door has no question for (content/door.json)`);
         // the debt is a phrase naming the moment and the age it was made at, {at}; what came due is about the player
         const atless = o => ({ en: o.en?.replaceAll("{at}", "ten"), hi: o.hi?.replaceAll("{at}", "दस") });
         bilingual(`${sw} debt`, sd.debt);
@@ -493,7 +526,7 @@ export function lintSprites(svg) {
 export function lintPaint(root) {
   const errors = [], css = fs.readFileSync(path.join(root, "src/styles.css"), "utf8");
   const palette = PALETTE_HEX();
-  for (const f of ["src/render/age.js", "src/render/ground.js", "src/render/board.js", "src/render/camera.js", "src/audio/drone.js", "src/render/frame.js"]) {
+  for (const f of ["src/render/age.js", "src/render/ground.js", "src/render/board.js", "src/render/camera.js", "src/audio/drone.js", "src/render/frame.js", "src/render/door.js"]) {
     const src = fs.readFileSync(path.join(root, f), "utf8");
     // since Phase 13 the grounds are the board's palette too (content/boards.json), so no file here has an exception
     const hex = src.match(/#[0-9A-Fa-f]{6}\b/g);

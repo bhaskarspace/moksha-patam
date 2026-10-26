@@ -62,3 +62,31 @@ export function snakeHues(snakes, hues, at = n => { const { col, row } = colRow(
   }
   return out;
 }
+
+// Śiva's snake (REDESIGN.md Phase 14), head to tail in cells (a square is 1 × 1, the board 10 × ROWS): coiled round the
+// trident on 110, its body down the board's right edge and along its foot, so it keeps off the squares' scenes, and its
+// tail curled into square 1, where the life it takes begins again. Each point carries its width, tapering to the tail.
+export const SIVA_TOP = 110;
+export function sivaPath(step = 0.05) {
+  const at = n => { const { col, row } = colRow(n); return { x: col + 0.5, y: ROWS - 1 - row + 0.5 }; };
+  const top = at(SIVA_TOP), one = at(1), pts = [], E = 0.1;
+  // the head to the left of the trident, facing out over the heavens, then the coil: a turn and a half round the trident,
+  // down and round, out to the right
+  for (let x = top.x - 0.4; x < top.x - 0.3; x += step) pts.push({ x, y: top.y - 0.04 });
+  for (let a = Math.PI; a >= -Math.PI * 2; a -= step * 2) pts.push({ x: top.x + Math.cos(a) * 0.3, y: top.y + Math.sin(a) * 0.3 });
+  // a line with a small wave in it, inward from the edge
+  const run = (x0, y0, x1, y1, inward) => {
+    const len = Math.hypot(x1 - x0, y1 - y0), k = Math.ceil(len / step);
+    for (let i = 1; i <= k; i++) {
+      const t = i / k, o = Math.sin(t * len * 2.2) * 0.035;
+      pts.push({ x: x0 + (x1 - x0) * t + inward.x * o, y: y0 + (y1 - y0) * t + inward.y * o });
+    }
+  };
+  run(top.x + 0.3, top.y, 10 - E, top.y + 0.5, { x: 0, y: 0 });
+  run(10 - E, top.y + 0.5, 10 - E, ROWS - E, { x: -1, y: 0 });
+  run(10 - E, ROWS - E, one.x + 0.35, ROWS - E, { x: 0, y: -1 });
+  // and the tail, a curl that tightens into square 1
+  for (let a = Math.PI * 0.5, r = 0.4; r > 0.06; a += step * 3, r -= step * 0.11) pts.push({ x: one.x - Math.cos(a) * r, y: one.y + Math.sin(a) * r });
+  const N = pts.length - 1;
+  return pts.map((p, i) => ({ ...p, w: 0.12 - 0.085 * (i / N) }));
+}

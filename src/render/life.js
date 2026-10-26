@@ -13,7 +13,7 @@ export const lifeText = (state, i, l = lang) => textOf(state, i, l);
 
 function paint() {
   const state = G.state, l = lang, T = (k, v) => tIn(l, k, v);
-  const { title, sub, open, paras, end, fates } = lifeOf(state, whose, l);
+  const { title, sub, open, paras, end, curse, fates } = lifeOf(state, whose, l);
   const tabs = state.players.length > 1
     ? `<div class="life-who" role="group" aria-label="${T("lifeWhose")}">` + state.players.map((p, i) =>
       `<button type="button" data-who="${i}" aria-pressed="${i === whose}"><span class="dot" style="background:${COLORS[p.color]}"></span>${esc(pnameIn(p, l))}</button>`).join("") + `</div>`
@@ -30,7 +30,7 @@ function paint() {
         ${sub ? `<p class="life-sub">${esc(sub)}</p>` : ""}
         ${open ? `<p class="life-open">${esc(open)}</p>` : ""}
         ${paras.map(p => `<h3 class="sub">${esc(p.head)}</h3><p>${esc(p.text)}</p>`).join("")}
-        <p class="life-end">${esc(end)}</p>
+        <p class="life-end">${esc([end, curse].filter(Boolean).join(" "))}</p>
         ${fates.length ? `<p class="life-fates">${esc(fates.join(" "))}</p>` : ""}
       </div>
     </div>

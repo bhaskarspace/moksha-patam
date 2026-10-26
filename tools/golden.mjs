@@ -5,7 +5,8 @@
 // that leg was retired; `git show fb0bc2a:tools/golden.mjs` has it. Phase 12 changed them on purpose again: nothing above
 // the exit turns back, the Brahma snake is gone, and the throw past 110 ends the life, so every game that passes 105 now
 // falls. Only the page-against-sim leg is kept, and it holds. Re-pinned 26 Oct: a reckoning takes the throw a 6 would have
-// given, so in a game of two the turn passes where it used to stay.
+// given, so in a game of two the turn passes where it used to stay. Re-pinned for Phase 14: a landing on 110 is the fall
+// by Śiva's snake, a computer the door refused sits there and is examined, and the door opens when nothing is owed.
 //   node tools/golden.mjs [seeds=20]
 import path from "node:path";
 import { pathToFileURL } from "node:url";
