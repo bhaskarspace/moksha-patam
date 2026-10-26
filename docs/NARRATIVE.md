@@ -581,14 +581,20 @@ Citragupta reads the answer out of the book.
 
 | the Yakṣa asks | the canonical answer | the life answers with |
 |---|---|---|
-| Who is truly happy? | The one without debt | the ledger at the door |
-| Why are friends forsaken? | For greed | 55, and the friend thread |
-| What is the greatest wonder? | That men see others die and believe they will not | 99, the mirror |
+| Who is truly happy? | The one who cooks a little at home, is not in debt and does not stir from home (abridged here as "the one without debt") | the ledger at the door |
+| Why are friends forsaken? | For avarice (greed) | 55, and the friend thread |
+| What is the greatest wonder? | That day after day creatures go to Yama's abode, and those who remain wish to live for ever | 99, the mirror |
 | Which is the invincible enemy? | Anger | 59 |
-| What is poison? | Desire | 47 |
+| What, if renounced, makes one wealthy? | Desire | 47 |
 | What is envy? | Grief of the heart | 69 |
-| What, renounced, makes one liked by all? | Self-pride | 77, 39 |
+| What, if renounced, makes one agreeable? | Pride | 77, 39 |
 | Which is the real path? | Argument settles nothing; scriptures disagree; the path is the one the great have walked | the law in force |
+| What is the highest refuge of heaven? | Truth | 19 (Phase 14) |
+| What is idleness? | Not discharging one's duties | 29 (Phase 14) |
+
+*Checked 26 Oct against Ganguli's translation (Mahābhārata, Vana Parva, Section CCCXI). This table first had "What is
+poison? Desire" for 47; in the text the poison is "a request", so 47 asks what, renounced, makes one wealthy. Every row
+above is attested; the first, third and seventh were paraphrases and now give the text's answer.*
 
 A question the life answers well clears a share of the debt; one it fails, the player sits a
 year. **The player never sees a number. They feel the debt as how long they stand there.**

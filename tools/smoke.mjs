@@ -1127,10 +1127,10 @@ await check("Phase 14: a refused sannyāsin sits at the door, is asked on a card
   await page.evaluate(() => mp.pick(0));
   await page.waitForFunction(() => document.getElementById("folio").open && /The door asks/.test(document.getElementById("leaf").textContent), null, { timeout: 15000 });
   const card = await page.evaluate(() => ({ text: document.getElementById("leaf").textContent, busy: mp.busy, hash: location.hash, line: mp.landed() }));
-  assert(/heaven's highest guard/.test(card.text) && /The answer is truth/.test(card.text) && /the teacher who was coming, at ten/.test(card.text), `the card: ${card.text.slice(0, 400)}`);
+  assert(/heaven's highest refuge/.test(card.text) && /The answer is truth/.test(card.text) && /the teacher who was coming, at ten/.test(card.text), `the card: ${card.text.slice(0, 400)}`);
   assert(/The door opens/.test(card.text), `the door did not open on the card: ${card.text.slice(0, 400)}`);
   assert(card.busy && card.hash === "#sq/105", `the examination does not hold the game: ${JSON.stringify({ busy: card.busy, hash: card.hash })}`);
-  assert(/heaven's highest guard/.test(card.line || ""), `the line under the board: ${card.line}`);
+  assert(/heaven's highest refuge/.test(card.line || ""), `the line under the board: ${card.line}`);
   assert(!/\b(weight|penance count|prārabdha|āgāmi)\b/i.test(card.text), "the card shows the ledger's workings");
   await page.evaluate(() => mp.close());
   await page.waitForFunction(() => !mp.busy && mp.state.over, null, { timeout: 15000 });
@@ -1161,6 +1161,12 @@ await check("Phase 14: the wheel of time turns a step a year at the door, and un
   const turning = () => page.evaluate(() => [...document.querySelectorAll("#door .spoke")].map(g => ({ t: g.style.transform, gold: g.classList.contains("gold"), dur: getComputedStyle(g).transitionDuration })));
   const before = await turning();
   assert(before.length === 2 && before.every(s => !s.gold && s.dur !== "0s"), JSON.stringify(before));
+  // the wheel rises above the board into the vimāna's arches, outside the stage that clips the camera
+  const rise = await page.evaluate(() => {
+    const rim = document.querySelector("#door .rim").getBoundingClientRect(), board = document.getElementById("board").getBoundingClientRect();
+    return { above: Math.round(board.top - rim.top), clipped: !!document.getElementById("door").closest("#stage") };
+  });
+  assert(rise.above > 0 && !rise.clipped, `the wheel is clipped at the board's top: ${JSON.stringify(rise)}`);
   await page.evaluate(() => { mp.roll(2, 3); });
   await page.waitForFunction(() => mp.choosing, null, { timeout: 15000 });
   await page.evaluate(() => mp.pick(0));

@@ -2,8 +2,9 @@
 // A life the door refused stands before it closed, a small painted doorway behind the token, and round it the wheel of
 // time: a spoke for each debt it was refused for. Each year sat there the spokes still owed turn a step; a debt met or
 // paid stops its spoke, gold. When none is left the door opens; if the years run out first, it closes over the token.
-// Time turns while the token stands still. Drawn over the cell, under the tokens, in the board's tokens only; it says
-// nothing a screen reader needs, since the line under the board and the card say it in words. With reduced motion the
+// Time turns while the token stands still. Drawn over the cell, under its label and the tokens, in the board's tokens
+// only; outside the camera's clip, so the wheel rises into the vimāna's arches over the divine row, and hidden while the
+// camera is zoomed, since it does not move with it. It says nothing a screen reader needs, since the line under the board and the card say it in words. With reduced motion the
 // same states show without the turning (styles.css).
 import { GOAL, ROWS } from "../content.js";
 import { G } from "../state.js";

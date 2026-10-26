@@ -168,7 +168,7 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
    before the closed door; over the token once the years have run out there. A step of the wheel turns; a met debt's
    spoke stops, gold. Clicks go through to the square. */
 .gate { position: absolute; width: 10%; pointer-events: none; z-index: 1; }
-.gate[hidden] { display: none; }
+.gate[hidden], [data-zoomed] > .gate { display: none; }
 .gate svg { display: block; width: 100%; height: 100%; overflow: visible; }
 .gate .rim { fill: none; stroke: var(--b-black); stroke-width: 1.25; }
 .gate .spoke { transform-box: view-box; transform-origin: 24px 24px; transition: transform 0.9s cubic-bezier(0.4, 0, 0.3, 1); }

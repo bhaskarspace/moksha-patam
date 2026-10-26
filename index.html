@@ -190,7 +190,7 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
    before the closed door; over the token once the years have run out there. A step of the wheel turns; a met debt's
    spoke stops, gold. Clicks go through to the square. */
 .gate { position: absolute; width: 10%; pointer-events: none; z-index: 1; }
-.gate[hidden] { display: none; }
+.gate[hidden], [data-zoomed] > .gate { display: none; }
 .gate svg { display: block; width: 100%; height: 100%; overflow: visible; }
 .gate .rim { fill: none; stroke: var(--b-black); stroke-width: 1.25; }
 .gate .spoke { transform-box: view-box; transform-origin: 24px 24px; transition: transform 0.9s cubic-bezier(0.4, 0, 0.3, 1); }
@@ -836,13 +836,14 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         <div class="vimana" id="vimana" aria-hidden="true"></div>
         <div class="board-wrap" id="board">
           <div class="ashramas" id="ashramas" aria-hidden="true"></div>
+          <!-- the door and the wheel of time on 105 (render/door.js): drawn, and told in words elsewhere. Outside the stage,
+               so the wheel rises into the vimāna's arches; under the labels and the tokens, and hidden while the camera zooms -->
+          <div class="gate" id="door" aria-hidden="true" hidden></div>
           <!-- the stage clips the camera; cam is what it moves -->
           <div class="board-stage" id="stage"><div class="cam" id="cam">
             <div class="cells" id="cells"></div>
             <canvas id="art"></canvas>
             <canvas id="age"></canvas>
-            <!-- the door and the wheel of time on 105 (render/door.js): drawn, and told in words elsewhere -->
-            <div class="gate" id="door" aria-hidden="true" hidden></div>
             <div class="labels" id="labels"></div>
             <canvas id="fx"></canvas>
             <div class="tokens" id="tokens"></div>
@@ -2905,11 +2906,11 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
 
   // content/door.json
   var door_default = {
-    about: "The door at 105 as an examination (REDESIGN.md Phase 14, docs/NARRATIVE.md §13.7): the Yakṣa's questions, Mahābhārata, Āraṇyaka Parvan. One per vice a debt holds (the seed's holds square). q is asked, a is the canonical answer. heals is the ladder whose climb, after the debt was planted, lets the book answer it, and answered says that climb, after {name}. Greed and anger heal by Phase 4's pairs (43 → 44, 50 → 51); the other four by the door alone (decided 26 Oct). For review: the lie's and sloth's are the text's own (heaven's guard is truth; idleness is not doing one's own duty); 'what is poison? desire' is §13.7's and was not found in a translation, the attested alternative being 'what, given up, makes one rich? desire'.",
+    about: "The door at 105 as an examination (REDESIGN.md Phase 14, docs/NARRATIVE.md §13.7): the Yakṣa's questions, Mahābhārata, Āraṇyaka Parvan. One per vice a debt holds (the seed's holds square). q is asked, a is the canonical answer. heals is the ladder whose climb, after the debt was planted, lets the book answer it, and answered says that climb, after {name}. Greed and anger heal by Phase 4's pairs (43 → 44, 50 → 51); the other four by the door alone (decided 26 Oct). All six are the text's own, checked against Ganguli's translation (Vana Parva, Section CCCXI): truth is the highest refuge of heaven; idleness consists in not discharging one's duties; desire, if renounced, maketh one wealthy; it is from avarice that friends are forsaken; anger is an invincible enemy; pride, if renounced, maketh one agreeable. 'What is poison?' is answered 'a request' in the text, not desire (corrected 26 Oct).",
     questions: {
-      "19": { q: { en: "What is heaven's highest guard?", hi: "स्वर्ग का सबसे बड़ा रक्षक कौन है?" }, a: { en: "truth", hi: "सत्य" }, heals: 28, answered: { en: "told the truth about the homework, in front of everyone", hi: "ने सबके सामने गृहकार्य के बारे में सच कहा था" } },
+      "19": { q: { en: "What is heaven's highest refuge?", hi: "स्वर्ग का परम आश्रय क्या है?" }, a: { en: "truth", hi: "सत्य" }, heals: 28, answered: { en: "told the truth about the homework, in front of everyone", hi: "ने सबके सामने गृहकार्य के बारे में सच कहा था" } },
       "29": { q: { en: "What is idleness?", hi: "आलस्य क्या है?" }, a: { en: "not doing one's own duty", hi: "अपना धर्म न निभाना" }, heals: 34, answered: { en: "waited three days outside an office for an answer", hi: "एक जवाब के लिए तीन दिन एक दफ़्तर के बाहर {बैठा रहा था|बैठी रही थी}" } },
-      "47": { q: { en: "What is poison?", hi: "विष क्या है?" }, a: { en: "desire", hi: "कामना" }, heals: 65, answered: { en: "asked, when everything was being divided, what any of it was for", hi: "ने सब कुछ बँटते समय पूछा था कि यह सब किसलिए है" } },
+      "47": { q: { en: "What, if renounced, makes one wealthy?", hi: "क्या त्यागकर मनुष्य धनी होता है?" }, a: { en: "desire", hi: "कामना" }, heals: 65, answered: { en: "asked, when everything was being divided, what any of it was for", hi: "ने सब कुछ बँटते समय पूछा था कि यह सब किसलिए है" } },
       "55": { q: { en: "Why are friends forsaken?", hi: "मित्र क्यों छोड़ दिए जाते हैं?" }, a: { en: "for greed", hi: "लोभ के कारण" }, heals: 44, answered: { en: "gave the better blanket away", hi: "ने अच्छा वाला कंबल दे दिया था" } },
       "59": { q: { en: "Which enemy cannot be conquered?", hi: "कौन-सा शत्रु अजेय है?" }, a: { en: "anger", hi: "क्रोध" }, heals: 51, answered: { en: "sat up all night with a neighbour's sick child", hi: "पड़ोसी के बीमार बच्चे के पास रात भर {जागता रहा था|जागती रही थी}" } },
       "77": { q: { en: "What, given up, makes one liked by all?", hi: "क्या त्यागकर मनुष्य सबका प्रिय होता है?" }, a: { en: "pride", hi: "अभिमान" }, heals: 23, answered: { en: "stood in the rain over the books because the teacher had asked", hi: "गुरु के कहने पर बारिश में किताबों पर {झुका खड़ा रहा था|झुकी खड़ी रही थी}" } }
@@ -3795,6 +3796,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
 
   // src/render/camera.js
   var cam = $("cam");
+  var board = $("board");
   var MAX = 1.3;
   var motion = matchMedia("(prefers-reduced-motion: reduce)");
   var scale = 1;
@@ -3807,6 +3809,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var clamp2 = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
   function set(s, cx = 0.5, cy = 0.5, instant = false) {
     scale = s;
+    board.toggleAttribute("data-zoomed", s !== 1);
     const tx = clamp2(50 - s * cx * 100, 100 * (1 - s), 0), ty = clamp2(50 - s * cy * 100, 100 * (1 - s), 0);
     const t2 = s === 1 ? "" : `translate(${tx}%, ${ty}%) scale(${s})`;
     if (!instant) return void (cam.style.transform = t2);
@@ -5266,10 +5269,10 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   };
   var onSheetClose = (fn) => closer = fn;
   var sheetState = () => on && dlg.open ? { detent, height: Math.round(dlg.getBoundingClientRect().height), ...heights } : null;
-  var board = () => document.querySelector(".board-wrap");
+  var board2 = () => document.querySelector(".board-wrap");
   function measure() {
     if (!on) return;
-    const vh = innerHeight, b = board()?.getBoundingClientRect().height ?? vh / 2;
+    const vh = innerHeight, b = board2()?.getBoundingClientRect().height ?? vh / 2;
     const full = vh - 24;
     heights = { half: Math.min(full, Math.round(Math.min(vh * 0.62, Math.max(vh * 0.45, vh - b - 16)))), full };
     set2(heights[detent]);
@@ -5287,7 +5290,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     on = true;
     detent = "half";
     saved = scrollY;
-    const b = board();
+    const b = board2();
     if (b) scrollTo({ top: Math.max(0, b.getBoundingClientRect().top + scrollY - 8), behavior: "instant" });
   }
   function sheetIn() {

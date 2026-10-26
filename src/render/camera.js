@@ -6,7 +6,7 @@ import { ROWS } from "../content.js";
 import { $, quality } from "../ui.js";
 import { colRow } from "./ground.js";
 
-const cam = $("cam"), MAX = 1.3, motion = matchMedia("(prefers-reduced-motion: reduce)");
+const cam = $("cam"), board = $("board"), MAX = 1.3, motion = matchMedia("(prefers-reduced-motion: reduce)");
 let scale = 1, held = false;
 export const cameraOn = () => !motion.matches && quality !== "low";
 
@@ -16,6 +16,8 @@ const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 
 function set(s, cx = 0.5, cy = 0.5, instant = false) {
   scale = s;
+  // what is drawn outside the camera (the door on 105) steps aside while it is zoomed
+  board.toggleAttribute("data-zoomed", s !== 1);
   // keep the point in the middle without showing past the board's edge
   const tx = clamp(50 - s * cx * 100, 100 * (1 - s), 0), ty = clamp(50 - s * cy * 100, 100 * (1 - s), 0);
   const t = s === 1 ? "" : `translate(${tx}%, ${ty}%) scale(${s})`;

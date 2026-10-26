@@ -1,3 +1,21 @@
+> - *Balance.* `npm run sim 20000 1`, `main` → this phase, by how the computers choose on a situation (`--policy`):
+>
+>   | | honest | mixed (default) | dishonest |
+>   |---|---|---|---|
+>   | median turns / p95 | 26 → 26 / 44 → 44 | 29 → 28 / 48 → 48 | 30 → 30 / 50 → 50 |
+>   | liberation per life | 46.6% → 46.9% | 27.6% → 39.8% | 13.6% → 29.0% |
+>   | lives per liberation | 2.14 → 2.13 | 3.63 → 2.52 | 7.36 → 3.45 |
+>   | the fall (past 110 / Śiva's snake) | 49.5% → 49.2% (45.8 / 3.4) | 64.4% → 51.2% (47.9 / 3.3) | 67.6% → 49.1% (45.8 / 3.2) |
+>   | years ran out | 3.9% → 3.9% | 8.1% → 9.1% | 18.8% → 21.9% |
+>   | refusals a life (could sit) | 0.003 (100%) | 0.141 (98.2%) | 0.216 (96.0%) |
+>   | lives that sat at the door | 0.3% | 13.4% | 19.6% |
+>   | through the door / died there | 0.3% / 0.0% | 12.1% / 0.6% | 15.4% / 1.2% |
+>
+>   Over 100 turns stays 0% throughout. Under mixed, the years at the door: median 2, p95 5, max 15; the book answered 583
+>   debts and 2,213 were paid in penance. Curses closed by landing 77.9%, the other way 22.1%. A square at or above 94
+>   landed on four times or more rose from 0% to 3.6%, because the years sat at 105 count. Liberation stays ordered honest >
+>   mixed > dishonest, and `tests/balance.test.mjs` holds it so. The dishonest life gains most: penance pays every debt
+>   within three years, so the door lets it through. What penance costs is Phase 16's (recorded there).
 # Moksha Patam — redesign plan
 
 **For Claude Code.** Implement in phases, in order. Each phase ships to a live site.
@@ -1414,7 +1432,7 @@ reported alongside median, p95 and over-100, before and after.
 > - *The hierarchy inverted.* Pale grounds per band (cream, pale ochre, pale green), dark ink on every label, gold on 101–110, flat indigo at 105. The snakes are nāgas: a seven-lobed hood with the spectacle mark, the one almond eye, a forked tongue and scales, each in one of five pigment pairs, with no two snakes that come within 1.6 squares sharing one (`snakeHues`). The ladders are yellow, outlined in vermilion. A floral scroll border, the vimāna arches over the divine row. The page is the cloth; dark is a setting (`prefs.theme`), no longer the system's choice. The panel is a ruled margin with rubric headings, and the introduction is a colophon.
 > - *Vignettes for the 34.* The 13 snake heads, the 11 ladder feet and 101–110, each a scene of the square's moment drawn from a parts library (`tools/vignette-parts.mjs`, `art/vignettes.mjs`, `node tools/vignettes.mjs`) into `assets/sprites.svg` under the square's own id, so a missing sheet still shows the emoji (checked: with the sheet removed every square shows its emoji). Each is composed in the part of its square the snake or ladder leaves open. 105 keeps ॐ on the board; its vignette, the open door with a lotus, is its card's alone. Spec in `docs/CONTENT.md §7`.
 > - *The first impression.* `?look=first` (the default until Bhaskar chooses), `veil` or `asrama` (`mp.look(x)` under `?debug`): `first` shows the whole cloth at full pigment through the naming and until the first throw, then ages as before. **The choice between the three is still open**, to be made with cold players as the brief says.
-> - *Cost.* The page is 842,455 bytes (`main` 781,829). `npm run perf` on the throttled phone matches `main`: walk, climb and swallow at p50 16.7 ms on both, and the climb's longest frame 104–106 ms against `main`'s 105 (both noisy, 101–150 across runs); `quality=low` the same. The scales are drawn only at high quality.
+> - *Cost.* The page is 842,935 bytes (`main` 781,829). `npm run perf` on the throttled phone matches `main`: walk, climb and swallow at p50 16.7 ms on both, and the climb's longest frame 104–106 ms against `main`'s 105 (both noisy, 101–150 across runs); `quality=low` the same. The scales are drawn only at high quality.
 > - *Still to do* (Phase 20): the other 67 squares keep their Phase 5 sprites. The parts already cover most of them: a single figure in profile with one object (rites, scenes, the aged figures of 60–100), the arch for the settings, sea, sun, moon, flame and lotus for the argument squares, and since 26 Oct the animals.
 > - *After Bhaskar's review* (26 Oct). Presentation only, except the last item.
 >   - *Ladders.* They read orange and covered the vignettes: the vermilion band was twice the width of the yellow. Now thinner, Indian yellow inside a thin vermilion line as §7 says (rails 0.14 of a square from the centre, was 0.18; the outline 0.07 wide, was 0.135). Vignette area they cover, by `drawLadder`'s own geometry over the 42 cells that carry one: **11.7% → 5.9%**; the worst, 34 Resolve and 65 Detachment, 49.6% and 49.9% → 25.8% and 26.7%.
@@ -1511,8 +1529,9 @@ cold players asked "what is this?" say a painting or a cloth, not an app.
 >   answers it if the life climbed that ladder after the debt was planted (seeds now keep `i`, where in the life), and the
 >   line names the ladder and the age; otherwise each year is penance and the debt is paid after its weight. The door opens
 >   when nothing is owed (`lDoorOpen`, then `lWin`); the years running out there close the account on what was still owed
->   (`lifeEndDoor`). The computer sits whenever it may. "What is poison?" for desire (§13.7) could not be confirmed in a
->   translation; Bhaskar reviews all six.
+>   (`lifeEndDoor`). The computer sits whenever it may. All six questions are checked against Ganguli's translation (Vana
+>   Parva, Section CCCXI). §13.7's "What is poison? Desire" was wrong (the text's poison is "a request"), so 47 asks "What,
+>   if renounced, makes one wealthy? Desire", and the lie's question is the text's "highest refuge" of heaven, not its guard.
 > - *The door is public.* Anyone's arrival at 105 (refused or let through), each year sat there and a death there is the
 >   line under the board, a computer's too (`landDoor` in `src/render/landed.js`), the one exception to Phase 11's rule.
 >   A person's year at the door is a modal card like the reckoning's (`openExam`), and Space-to-roll and the aria-live
@@ -1540,7 +1559,7 @@ cold players asked "what is this?" say a painting or a cloth, not an app.
 >   `--policy=dishonest` liberation rises most, 13.6% → 29.0% (lives per liberation 7.36 → 3.45, the fall 67.6% → 49.1%,
 >   years ran out 18.8% → 21.9%): a life of the least-worth choices now pays its way through the door in penance. Whether
 >   penance should cost more than a year per weight is for Phase 16, with death.
-> - *Cost.* The page is 842,455 bytes (`main` 806,240). `npm run perf` on the throttled phone matches `main`: walk, climb and
+> - *Cost.* The page is 842,935 bytes (`main` 806,240). `npm run perf` on the throttled phone matches `main`: walk, climb and
 >   swallow at p50 16.7 ms on both, the climb's longest frame 106 ms against `main`'s 108 (107 against 98 with
 >   `--query=quality=low`, inside the noise Phase 13 measured), the turn-end repaint p50 2.6 ms against 2.7.
 
@@ -1641,7 +1660,8 @@ react to a choice; and the witness's choices are recorded for the Mirror.
 *This phase grew on 20 Oct. It was Yama's screen and a saved record; it is now four things,
 each of which makes the game unlike any other board game, and all four sit on Phase 12's
 ledger and Phase 14's door. Its own PR, and probably the largest remaining. If it must be
-split, split by the four headings below, each its own number.*
+split, split by the four headings below, each its own number; the fifth, what penance costs (added from Phase 14),
+goes with the first.*
 
 **Why it was gated, and what ungates it.** After Phase 9 a life ran out of years in 2.5% of
 games (3.5% after 10B) and the rebirth snake fired in 8.2%. Everything in this phase would
@@ -1711,6 +1731,12 @@ next life's prārabdha. `saṃskāra` persists in wrapped localStorage: lives, t
 met, carried debts, last guṇa mix, **and the cast**, so the same souls return in different
 roles — the friend of one life the teacher of the next — which is the reason to play again:
 to find Mīrā. The three worlds: regions below square 1 so a fall has somewhere real to go.
+
+**5. What penance costs** (from Phase 14, decided 26 Oct). At the door a debt the book does not answer is paid in penance,
+a year per unit of its weight, so a life of the least-worth choices reaches liberation 29.0% of the time against 13.6%
+before the examination (an honest life 46.9%). Decide here, beside death, whether penance should cost more: years per
+weight rising with the vice, penance that can run past `SPAN` into death at the door, or a debt penance cannot pay. Keep
+liberation per life ordered honest > mixed > dishonest (`tests/balance.test.mjs`) and report all three before and after.
 
 **Done when:** a death by ledger is reachable, reported as a rate, and ends on the holding
 line; the fall's closing line from Phase 12 opens onto the dream the same way; life two
