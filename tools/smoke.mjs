@@ -1097,6 +1097,16 @@ await check("Phase 6: a six rolled from the card offers to roll again", async pa
   assert(label === "Roll again", `the card's Roll says ${label}`);
 }, { phone: [375, 812] });
 
+await check("Phase 13 follow-ups: a reckoning on a 6 takes the extra throw: the card says Roll, never Roll again", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=1&debug");
+  await page.evaluate(() => { Object.assign(mp.state.players[0], { pos: 30, years: 40, life: [30], told: [null] }); mp.plant(12, "lie"); mp.fire(); mp.roll(6); });
+  await page.waitForFunction(() => document.getElementById("folio").open && /floor is not there/.test(document.getElementById("leaf").textContent), null, { timeout: 15000 });
+  const label = await page.evaluate(() => document.querySelector("#leaf .roll-c")?.textContent || "");
+  assert(label !== "Roll again", `the reckoning's card says ${label}`);
+  assert(await page.evaluate(() => !mp.state.log.some(e => e.k === "lSix")), "the log still gives the six its throw");
+});
+
 await check("Phase 6: on a wide screen the card is the folio it was, over the board and clear of the dice, × top right, no grip, with the morph", async page => {
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.goto(BASE + "?seed=1&debug");

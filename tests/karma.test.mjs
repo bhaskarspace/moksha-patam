@@ -62,6 +62,19 @@ test("a forced reckoning is met: it leaves the ledger and is recorded where it w
   assert.ok(s.log.some(e => e.k === "lReckon" && e.v.src === 20));
 }));
 
+test("a reckoning on a 6 takes the throw the 6 would have given: the turn passes", withFixture(() => {
+  const s = createGame({ players: [{ name: "Asha", type: "human", gender: "f" }, { name: "", type: "cpu" }], rules: { six: true }, seed: 4 });
+  Object.assign(s.players[0], { pos: 18, years: 10 });
+  playTurn(s, 2, undefined, () => "fx");
+  s.turn = 0;
+  s.forceOmen = true;
+  const plan = playTurn(s, 6);
+  assert.ok(plan.reckon);
+  assert.equal(plan.again, false);
+  assert.ok(!plan.end.some(e => e.k === "lSix"));
+  assert.equal(s.turn, 1);
+}));
+
 test("the omen's chance rises all the way to the door", () => {
   for (let pos = 1; pos < GOAL; pos++) assert.ok(omenChance(pos + 1) > omenChance(pos), `${pos}`);
   assert.ok(omenChance(1) >= 0.1 && omenChance(GOAL) <= 0.9 + 1e-9);

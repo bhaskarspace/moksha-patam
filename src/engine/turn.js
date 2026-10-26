@@ -209,8 +209,10 @@ function resolve(state, plan, years) {
   if (!rk) return plan;
   if (rk.to) plan.final = rk.to;
   plan.told.push(...(rk.to ? ["reckon"] : []), ...Array(rk.years).fill("stay"));
-  // first among the turn's ends; a new array, since the log alone is built by unshift (tools/golden.mjs listens for it)
-  plan.end = [entry("lReckon", { src: rk.src, sq: rk.src }, "reckon", idx), ...plan.end];
+  // first among the turn's ends; a new array, since the log alone is built by unshift (tools/golden.mjs listens for it).
+  // A reckoning takes the throw a 6 would have given: the turn passes (Bhaskar, 26 Oct).
+  plan.end = [entry("lReckon", { src: rk.src, sq: rk.src }, "reckon", idx), ...plan.end.filter(e => e.k !== "lSix")];
+  plan.again = false;
   return plan;
 }
 

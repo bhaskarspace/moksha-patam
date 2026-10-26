@@ -3311,7 +3311,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     if (!rk) return plan;
     if (rk.to) plan.final = rk.to;
     plan.told.push(...rk.to ? ["reckon"] : [], ...Array(rk.years).fill("stay"));
-    plan.end = [entry("lReckon", { src: rk.src, sq: rk.src }, "reckon", idx), ...plan.end];
+    plan.end = [entry("lReckon", { src: rk.src, sq: rk.src }, "reckon", idx), ...plan.end.filter((e) => e.k !== "lSix")];
+    plan.again = false;
     return plan;
   }
   function endTurn(state, plan) {
