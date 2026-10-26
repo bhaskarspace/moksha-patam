@@ -18,7 +18,7 @@ English/Hindi, deployed at https://codebpr.com/moksha-patam/
 1. [What we are building and why](#1-what-we-are-building-and-why)
 2. [Core mechanics](#2-core-mechanics)
 3. [Architecture](#3-architecture)
-4. [Phases 0 through 19](#4-phases)
+4. [Phases 0 through 20](#4-phases)
 5. [Guardrails](#5-guardrails)
 6. [Known fixes to fold in](#6-known-fixes)
 
@@ -526,7 +526,7 @@ them, including the modern commercial one. **Keep the counts** — 13:11 is a de
 thesis — but state it as a choice rather than a restoration.
 
 **Deliberately not in this phase:** the ablation harness, and the cowrie-shell
-randomizer. The randomizer is in Phase 17 and the harness in Phase 19; the reasoning is in `docs/BOARDCRAFT.md §4, §6`.
+randomizer. The randomizer is in Phase 18 and the harness in Phase 20; the reasoning is in `docs/BOARDCRAFT.md §4, §6`.
 
 **Done when:** a player can open any square the token passed over, no game can stall on
 an exact roll, the divine row can be fallen out of, the five paired snake tails announce
@@ -541,7 +541,7 @@ this phase is everything around it.*
 
 > **Shipped, with these decisions.**
 > - *What ages:* only the paint. One canvas sits between the art and the labels and washes each square in palette colours. Numbers, names, clicks, keyboard focus, cards and the log are never dimmed. The row filter proposed below was not used: CONTENT.md §7 forbids filters on the sprites, and the ages are per square anyway. Each wash pushes a square away from its ink colour, so a label's contrast can only rise or hold (`tests/contrast.test.mjs`).
-> - *Whose age:* all the lives at once. Sepia is what every player has left behind, keyed to the youngest player. Dim is what no player has reached, keyed to the oldest. The squares between stay in full colour. The drone follows whoever is furthest on. `lens(state, i)` in `render/age.js` already takes one player's index, for Phase 18.
+> - *Whose age:* all the lives at once. Sepia is what every player has left behind, keyed to the youngest player. Dim is what no player has reached, keyed to the oldest. The squares between stay in full colour. The drone follows whoever is furthest on. `lens(state, i)` in `render/age.js` already takes one player's index, for Phase 19.
 > - *Ages vs position:* every earthly square's age never decreases along the board, so which squares count as "behind" is the same either way. Age decides only how fast a square fades, measured in years.
 > - *Performance:* the turbulence filter is drawn into a bitmap once. When it was a background inside the zoomed layer, it ran again on every zoom and cost frames of up to 430 ms at 4× throttle. With the bitmap, the branch's longest frames match `main` (`npm run perf`). On a weak device the camera goes first, then the motion extras, then the grain. The ageing is never dropped.
 > - *Sound:* the drone is synthesised, about 6 KB unminified. Audio starts only from a gesture and never while muted. Muting suspends the context. Hiding the tab suspends it, and showing the tab resumes it.
@@ -802,7 +802,7 @@ candidate tail in column 7.
 >   above Milton Bradley's 3.3% and the Phase 4 baseline of 1.7%. Recorded as an open regression with its reason, not
 >   called fixed: only span 100 gets under 3.3%, at the price of a third of lives. With two players: median 38, p95 88,
 >   over 100 2.1%, against 38 / 86 / 1.8% before. That rise has its own reason: when one life ends, the other finishes
->   the race alone. YS 2.13 (jāti, āyus, bhoga) is the hook for Phases 12 and 15, where prārabdha sets the span.
+>   the race alone. YS 2.13 (jāti, āyus, bhoga) is the hook for Phases 12 and 16, where prārabdha sets the span.
 > - *When the years run out, the life ends.* The reason, on the record: a life's length is almost entirely its snakes.
 >   Across 20,000 single lives, snakes taken by game-length quartile run 2.1 / 5.1 / 8.0 / 14.6, and 22.1 in the
 >   slowest 5%; the lives that die took 16.5 snakes on average against 6.1. Death is where a life the snakes already
@@ -817,7 +817,7 @@ candidate tail in column 7.
 >     not play on for nobody. A dead token stays where it fell, greyed in the paint only.
 >   - The account's last line names what the life was still holding: the vice taken most, the latest on a tie, in
 >     its snake's `holding` ("…on ground already walked once, still asking whether the son has eaten."). It is kept
->     as `p.holding` for Phase 15 to carry over.
+>     as `p.holding` for Phase 16 to carry over.
 > - *The account's joins* (`src/engine/account.js`, now pure and tested in node; NARRATIVE §9 has the rule). First
 >   match wins: snake (the years undone), echo, ladder, again, a gap of eight years or more, same year, then a plain
 >   join drawn from the seed. **Echo goes before ladder, against the order first proposed**: five of the ten new
@@ -999,7 +999,7 @@ age, and p95 has not risen.
 >   back on the board until the re-walk catches it up. Always-dishonest plays the Phase 9 board exactly, pinned by a
 >   test, since every least-worth option is the old snake, the old ladder or the old square at no cost.
 > - *Guardrails, the game's own computer:* median 34 → 32, p95 71 → 65, over 100 0.7% → 0.3%, two players 28/49/0.1% →
->   27/47/0.1%. **Liberation 97.5% → 96.5%**, down, not worse; Phase 16 still owns it. A square landed on four times or
+>   27/47/0.1%. **Liberation 97.5% → 96.5%**, down, not worse; Phase 17 still owns it. A square landed on four times or
 >   more 31.0% → 26.6%, the same moment told four times or more 27.4% → 23.4%: restraint keeps lives off the snake
 >   tails. Turyā 1.5% → 3.3% of sannyasins, from the sattva the honest options mix in; it still needs practice.
 
@@ -1115,7 +1115,7 @@ the ledger.
 >   joined by the recall of the moment where they were met, in words of their own (`strings.json` `CAST.returns`): the
 >   teacher "was waiting", the rival "was back", the friend "was there again" ("Tārā, who once broke a biscuit badly
 >   with Meera, was there again: "), the spouse "was still there" (present, not met again). The son and the
->   daughter take the friend's words until Phase 15. An echo
+>   daughter take the friend's words until Phase 16. An echo
 >   outranks it; a fold, a "back where" line or a tally names nobody and is not a return.
 > - *Fates*: after the end line, one per member the last life met, in order, four at most: the fourth takes the short
 >   form ("Rādhā died when Meera was seventy-two." or "Arjun outlived Meera."; "outlived" only for someone alive when
@@ -1230,7 +1230,7 @@ ordinary turns; and every mirror a first-life player can reach tells them it is 
 
 > **Shipped, in two steps, with these numbers** (`npm run sim 20000 1`, single lives, mixed policy).
 > - *Step 1, the geometry* (`822a9b7`): nothing above 105 turns back, and the throw past 110 is the fall. Against Phase 11: median 32 → 28, p95 65 → 49, over 100 0.3% → 0.0%; liberation per life 96.5% → 47.6%; the fall 7.7% → 49.2%; years ran out 3.5% → 3.2%; lives per liberation 1.04 → 2.10; turns in 106–110 mean 4.79 → 1.01 (p95 20 → 3); a square at or above 94 landed on four times or more 18.8% → 0.0%, which closes Phase 10's divine-row repeat. Golden re-pinned for the new rule; every account whose game never went above 105 byte-identical.
-> - *Step 2, the ledger* (`41cb8da`): median 29, p95 48, over 100 0.0%. Debts planted 1.45 a life; 41.1% of lives end with one never met. **The omen**: a 6 with a ripe debt 1.17 times a life, a reckoning 0.61 a life, in 45.6% of lives; the share of those 6s that fire rises toward the exit, 23% on 21–40, 31% on 41–60, 46% on 61–80, 70% on 81–100 and 88% at 105. **Severity**, of 12,136 reckonings: the floor alone 28.5%, years 35.7%, a holding 18.0%, sent back 11.4%, death 6.4% (reported only, until Phase 15); death would have fired in 3.3% of lives, nearly all past sixty (40–59: 27, 60–79: 208, 80+: 420). **The door**: 0.41 arrivals a life, a third of them refused, all for debt; 13.7% of lives refused at least once. **Liberation per life after the ledger: 27.6%** (from 47.6%), the fall 64.4%, years ran out 8.1%, lives per liberation 3.63.
+> - *Step 2, the ledger* (`41cb8da`): median 29, p95 48, over 100 0.0%. Debts planted 1.45 a life; 41.1% of lives end with one never met. **The omen**: a 6 with a ripe debt 1.17 times a life, a reckoning 0.61 a life, in 45.6% of lives; the share of those 6s that fire rises toward the exit, 23% on 21–40, 31% on 41–60, 46% on 61–80, 70% on 81–100 and 88% at 105. **Severity**, of 12,136 reckonings: the floor alone 28.5%, years 35.7%, a holding 18.0%, sent back 11.4%, death 6.4% (reported only, until Phase 16); death would have fired in 3.3% of lives, nearly all past sixty (40–59: 27, 60–79: 208, 80+: 420). **The door**: 0.41 arrivals a life, a third of them refused, all for debt; 13.7% of lives refused at least once. **Liberation per life after the ledger: 27.6%** (from 47.6%), the fall 64.4%, years ran out 8.1%, lives per liberation 3.63.
 > - *After Bhaskar's live check* (23 Oct): a life the door refused that then fell closed "with nothing in particular in hand". The fall now closes on what is still carried, in the door's own words (`carryIn`, `debtsIn` in `karma.js`), and the refusal is told in the account where it came, one line joined as a snake is (`p.refusals`, `JOINS.door`). The refused 105 card is headed "The door that did not open". `mp.roll` no longer leaves a forced roll behind when no throw can be taken. `accounts.mjs --tag` adds `door`: all 9,284 accounts without it are byte-identical to the build before; 590 of 4,000 single lives were refused for debt, none for an aim alone, and 902 more fell carrying a debt.
 
 *The ledger. Everything after this phase reads from it — the door, the curse, death, rebirth,
@@ -1267,7 +1267,7 @@ cycle. It is also, almost square for square, what Phase 7 built. So:
 - **The fall ends the life.** It does not put a sixty-year-old on square 1 — Phase 8
   rejected that as a respawn, and the two clocks forbid it. The account closes with a line
   of its own (the heaven reached, the merit spent, what was still held) and the next life
-  begins, counted in `mp-lives` like a death. This is the minimal version; Phase 15 turns
+  begins, counted in `mp-lives` like a death. This is the minimal version; Phase 16 turns
   that ending into the rebirth proper — the dream of the first life, the interlude, the
   cast crossing over.
 - **Retired:** the once-per-life Brahmā snake (108 → 1), `p.hasFallen`, Brahmā's
@@ -1280,7 +1280,7 @@ cycle. It is also, almost square for square, what Phase 7 built. So:
   rate, turns spent in the heavens, and lives per liberation. Per-life liberation will drop
   hard — from 104 the player needs a 1 on either die, about 31%, or both dice carry them
   past — and that is the thesis's first lesson ("no matter how close you are, you can still
-  miss it") made mechanical. Phase 16 restates the target to match: rare within a life,
+  miss it") made mechanical. Phase 17 restates the target to match: rare within a life,
   certain across lives.
 - **The door (Phase 14) reads from this.** At 105 with debt the player may sit and settle,
   or move on, and moving on is choosing heaven. Under Mīmāṃsā, where svarga at 101 is the
@@ -1325,7 +1325,7 @@ same shape as the bandha gate at finer resolution.
 He originally multiplied karma by a fresh roll; that stacks randomness on the one quantity
 the mechanic exists to make legible, so the cost of a player's lying would be mostly a
 coin flip wearing their choices as a coefficient. The dice decide *when*. The player's
-choices decide *how much*. **The top of the severity scale is death** — see Phase 15 —
+choices decide *how much*. **The top of the severity scale is death** — see Phase 16 —
 so the mapping from ledger to consequence must reach that far and be reported as a
 distribution before it is committed.
 
@@ -1390,7 +1390,7 @@ not an analogy; it is what the engine is, and the scholar depth may say so accur
 the voice of someone qualified to say it. **No physics on the cards.** No quantum, no
 relativity, no strings, no "the observer creates the world." Those are similarities of
 vocabulary, not of content, and they would cost the game the one audience they are meant
-to attract. The exception is the maker's note after Phase 19, which is beside the game and
+to attract. The exception is the maker's note after Phase 20, which is beside the game and
 in Bhaskar's own voice.
 
 **Done when:** no roll turns back at 110; a player who passes 105 walks 106–110 and the
@@ -1415,7 +1415,7 @@ reported alongside median, p95 and over-100, before and after.
 > - *Vignettes for the 34.* The 13 snake heads, the 11 ladder feet and 101–110, each a scene of the square's moment drawn from a parts library (`tools/vignette-parts.mjs`, `art/vignettes.mjs`, `node tools/vignettes.mjs`) into `assets/sprites.svg` under the square's own id, so a missing sheet still shows the emoji (checked: with the sheet removed every square shows its emoji). Each is composed in the part of its square the snake or ladder leaves open. 105 keeps ॐ on the board; its vignette, the open door with a lotus, is its card's alone. Spec in `docs/CONTENT.md §7`.
 > - *The first impression.* `?look=first` (the default until Bhaskar chooses), `veil` or `asrama` (`mp.look(x)` under `?debug`): `first` shows the whole cloth at full pigment through the naming and until the first throw, then ages as before. **The choice between the three is still open**, to be made with cold players as the brief says.
 > - *Cost.* The page is 803,062 bytes (`main` 781,829). `npm run perf` on the throttled phone matches `main`: walk, climb and swallow at p50 16.7 ms on both, and the climb's longest frame 104–106 ms against `main`'s 105 (both noisy, 101–150 across runs); `quality=low` the same. The scales are drawn only at high quality.
-> - *Still to do* (Phase 19): the other 67 squares keep their Phase 5 sprites. The parts already cover most of them: a single figure in profile with one object (rites, scenes, the aged figures of 60–100), the arch for the settings, sea, sun, moon, flame and lotus for the argument squares, and since 26 Oct the animals.
+> - *Still to do* (Phase 20): the other 67 squares keep their Phase 5 sprites. The parts already cover most of them: a single figure in profile with one object (rites, scenes, the aged figures of 60–100), the arch for the settings, sea, sun, moon, flame and lotus for the argument squares, and since 26 Oct the animals.
 > - *After Bhaskar's review* (26 Oct). Presentation only, except the last item.
 >   - *Ladders.* They read orange and covered the vignettes: the vermilion band was twice the width of the yellow. Now thinner, Indian yellow inside a thin vermilion line as §7 says (rails 0.14 of a square from the centre, was 0.18; the outline 0.07 wide, was 0.135). Vignette area they cover, by `drawLadder`'s own geometry over the 42 cells that carry one: **11.7% → 5.9%**; the worst, 34 Resolve and 65 Detachment, 49.6% and 49.9% → 25.8% and 26.7%.
 >   - *The fables get vignettes.* 13, 16, 22, 35, 43, 45, 64, 71 and 94, the animal in profile at the moment of the turn: the monkey on the crocodile's back pointing at the tree, the crow letting the necklace fall into the cobra's hole, the lion springing at the brother who made it, the horse, the wheel and the driver, the jackal at the bowstring, Satyakāma's cows, the deer looking back, the cat at prayer with the hare and the partridge, the two birds on one branch. The parts are new in `tools/vignette-parts.mjs`. 42 vignettes on the board.
@@ -1458,7 +1458,7 @@ pale and put the pigment into the snakes, the figures, the border and the top ro
    per snake instead of one grey, so each is the creature its vice is (the article's point:
    snakes named for flawed characters). The 1780 board's snakes are the best-drawn thing on
    it. Ladders red-outlined as on the 72 boards. The Nepalese red benign snakes are the
-   precedent if Phase 17 ever draws a ladder as a snake.
+   precedent if Phase 18 ever draws a ladder as a snake.
 3. **Figures, not pictograms.** The square's sprite becomes a small painted vignette in the
    Basohli manner — a person in profile with the one eye, a flat field, a single outline —
    of the square's *moment*, not its abstract name. Figurative illustration per square is
@@ -1479,7 +1479,7 @@ pale and put the pigment into the snakes, the figures, the border and the top ro
    the ageing beginning only beyond the next āśrama; or the whole cloth shown in full colour
    through nāmakaraṇa and the first roll, after which it begins.
 
-**Per-board look as data**, for Phase 17: a board declares its palette, its border and its
+**Per-board look as data**, for Phase 18: a board declares its palette, its border and its
 superstructure. The 72 is a cream ground with gold arches; the Jain 84 is framed by the
 lokapuruṣa; the Sufi 101 has a Persian border. Build the 110 board's look through that
 interface so the others are content, not code.
@@ -1501,58 +1501,99 @@ cold players asked "what is this?" say a painting or a cloth, not an app.
 
 ### Phase 14 — The door and the curse
 
-*`docs/NARRATIVE.md` §13.6–13.7, built on Phase 12's ledger and Phase 11's card. Its own PR.
-Liberation per life was 96.5% after Phase 11; Phase 12's geometry moves it first, and this
-phase is the second thing that does.*
+*`docs/NARRATIVE.md` §13.5–13.7, built on Phase 12's ledger and Phase 11's card. Decided by Bhaskar, 26 Oct. Its own
+PR. The cast reacting to choices has moved to Phase 15.*
 
-**The curse — a fuse with a sentence** (§13.6). One fuse per life speaks. Early, in
-childhood or brahmacharya, someone says a line the player cannot yet understand — in the
-board's own register, nothing oracular — seeded to a *family* of late squares. Land on one
-and the account closes it: *the woman at the well had said so.* Never land and it closes
-the other way: *she was right, in a way {name} never found out.* Eight curses, one drawn
-per life. Each is a Phase 12 seed with words attached; the machinery is the same.
+**1. The door is an examination** (the Yakṣa Praśna, Mahābhārata, Āraṇyaka Parvan; §13.7).
+- A life refused at 105 is asked one question per unmet debt, chosen by the debt's vice (the seed's `holds` square: 19,
+  29, 47, 55, 59, 77 today). §13.7's table where it covers the vice (greed 55, anger 59, desire 47, pride 77). For the
+  lie (19) and sloth (29) the question and answer come from the Yakṣa Praśna itself — "what is heaven's highest
+  guard? Truth", and "what is idleness? Not doing one's own duty" — and none is invented. Bhaskar reviews the wording.
+- **The life answers, not the player:** Citragupta reads the answer from the book. Each year sat at the door is one
+  question. The life **passes** if, after the debt was planted, it climbed the ladder that heals that vice, and the debt
+  clears with a line that names that ladder and the age it was climbed ("…and at thirty-one Mīrā told the truth about
+  the homework"). The healing ladders are Phase 4's pairs where a vice has one (greed 55 → Giving 44, anger 59 →
+  Compassion 51) and, for the door alone, lie → Truth 28, sloth → Resolve 34, craving → Detachment 65 (the pair of 93,
+  Clinging) and pride → Devotion 23 (the pair of 39, Pride of learning). It **fails** otherwise: the year is spent, and
+  the debt clears by penance after as many sittings as its weight (1–3). When no debt is left the door opens: that is
+  liberation.
+- Only a sannyāsin may sit at the door (`canSit` as now). Anyone else refused moves on into the heavens. Report what
+  share of refused arrivals are sannyāsins.
+- If the years pass `SPAN` at the door, the life dies there, closing on what was still owed, in the door's words.
+- **Never a number on screen.** Each sitting shows its question, the life's answer from the book, and whether the debt
+  was cleared.
+- The computer sits at the door when it can (the computer's dice ranking changes to match).
 
-**The door is an examination** (§13.7). Émerson's gate — arrive carrying debt, be held,
-work it off — in the game's idiom: the Yakṣa Praśna. Each turn at 105 is one question;
-**the life answers, not the player**, Citragupta reading it out of the book; a question
-the life fails costs a year. The player never sees a number and feels the debt as how long
-they stand there. Each turn at the door is still a Phase 9 turn — two dice, and the
-sannyāsin's option to sit the year in practice — and **practice pays the debt down**, so
-the door is a choice between moving and clearing rather than a counter emptying. That is
-the one place the allocation loop Phase 9 declined earns its complexity. And since Phase
-12 the door is not a waiting room: **moving off 105 is choosing heaven.** The player who
-will not sit walks into 106–110 and falls, and the account tells it as a choice, not a
-mishap. The door is sit, settle, or go. The door itself is attested: the Jain charts name
-concepts without their contents so that the player has to expound them, "possibly in front
-of a religious teacher presiding over the game," and Rasik Rāy's verse says that without
-the grace of god and the knowledge of Brahman "one does not see the door."
+**2. The wheel of time at the door** (Émerson's idea, named in the game simply "the wheel of time", never as the
+Buddhist Kālacakra tantra). When a life is refused, a wheel appears around 105: one spoke turns per year sat; each
+cleared debt stops a spoke; when all are still the door opens; if the years run out, the wheel takes the life. Drawn in
+Phase 13's idiom (painted, gold allowed as metal); reduced motion shows the same states without turning. One bilingual
+line in the scholar layer: the saṃsāra-cakra is the board, the kāla-cakra is time turning while the token stands still.
 
-The candidate for *what the debt is*, pending Phase 12's measurement: the count of vices
-the life is still carrying unsettled at the door, one year each. Five snakes never climbed
-back from, five years at the door. Émerson's 5×10 = 50, kept whole, with nothing shown.
+**3. The door is a public event.** Anyone's arrival at 105, refused or let through, the computer's included, shows on
+the line under the board in the door's words — an exception to Phase 11's rule that a computer's turn goes only to the
+log. A refused player's token stands at a closed door drawn on 105 while it waits. This fixes "the computer didn't
+want to win" (Émerson, 24 Oct): it had been refused, invisibly.
 
-**The faces.** Phase 12 moved the omen to the 6, so the 1 is the threshold face everywhere:
-below 94 it is how you arrived; at the door it is the question, and the admitting throw of
-Jeṭhābhāī's rules and of Harikṛṣṇa's 84 (land on Vaikuṇṭha, throw a 1 for mokṣa). Nothing
-here needs to settle a conflict; it only has to keep the rule.
+**4. Śiva's snake, 110 → 1.** Landing exactly on 110 takes Śiva's snake. Like the throw past 110 (unchanged), it is
+the fall: it ends the life with the fall's closing line, and its tail on square 1 marks where the next life begins
+(Phase 16 builds the rebirth; never a respawn now). Drawn across the board as one distinct blue-black nāga coiled round
+the trident at 110 (a pigment none of the thirteen use), tail at janma, clear of the vignettes as far as the geometry
+allows. Precedent: the 72-square boards put a snake on their last square to drop the overreacher into the world. 110's
+card already carries the fall's moment and mirror.
 
-**The cast reacts to choices, not only to squares.** Phase 10C's returns join reads where
-the player has been. From this phase a cast member who returns can also know what the
-player *chose* at a situation they witnessed — Tārā at 40 knows which option was taken at
-28. One line per situation per witnessing role, authored; the join picks it when the
-situation is in the life. This is the first time a person in the life remembers a decision.
+**5. The curse** (§13.6). Eight curses, one drawn per life, drafted in English and Hindi for Bhaskar to review in the
+PR. Spoken early (childhood or brahmacharya) by an ordinary person in the board's register — nothing oracular; if a
+line could be printed on a poster it is wrong; it names a thing, never a square; it is tied to a family of late
+squares, so most lives can close it by landing. Closed in the account either way: landed ("the woman at the well had
+said so") or not ("she was right, in a way {name} never found out"). Machinery: a Phase 12 seed with words. Hindi
+agrees with the player through `{m|f}`. `accounts.mjs --tag curse`; every account is otherwise unchanged.
 
-**Done when:** a player who reaches 105 carrying debt is examined rather than refused — the
-Yakṣa's questions, answered from the life, one a turn, a year for each the life fails,
-practice paying the debt down, and never a number on screen; a player who leaves 105
-unsettled walks into the heavens and falls as Phase 12 built, told as a choice; one curse
-per life is spoken early and closed in the account either way; at least three cast returns
-react to a choice; and liberation per life and lives per liberation are reported before and
-after.
+**Constraints:** no number on screen; every string bilingual; single file; `npm run perf` matches `main`; reduced
+motion, aria-live and Space-to-roll preserved; `?debug` helpers extended (`mp.door`, `mp.curse`, …) and none removed.
+
+**Done when:** a refused sannyāsin sits at 105 and is examined one question a year, passes or pays each debt in
+penance, and either goes through the door or dies at it; the wheel of time shows it; anyone's arrival at the door is
+visible to everyone, and a computer is seen to be refused; Śiva's snake takes a landing on 110 to the fall; one curse
+per life is spoken early and closed in the account either way, with all eight drafted for review; and before/after
+tables report median, p95, over-100, liberation per life, lives per liberation, the fall rate (split: past 110 vs Śiva's
+snake), refusals per life, the share of refused who could sit, years spent at the door, deaths at the door, and curses
+closed by landing vs not.
 
 ---
 
-### Phase 15 — Death and rebirth
+### Phase 15 — The witness
+
+*Émerson's observer (22 Oct): the player is not the token but the one watching and
+guiding it. Gītā 13.22, the self as upadraṣṭā anumantā, the witness and the one who
+consents. The moments already say {name}, never "you". This phase makes choice carry
+that. Its own PR.*
+
+1. The ego rebellion. On four or five tagged situations (those whose lower option feeds
+pride, greed or anger), the player chooses, then rolls. The ego owns some faces, set by
+the life's guṇas: only a 6 if sattva leads, 5–6 if mixed, 4–6 if rajas or tamas lead,
+none at the highest bhūmikās. On those faces the life takes the lower option instead. It
+pulls only toward the lower option (choosing it, the ego already agrees). The faces are
+shown on the card before choosing, as faces, never as a number about the player (Phase
+10A's roll.faces field). The life pays the rebelled option's move, years and seed. The
+account says it plainly ("{name} meant to give the better blanket back, and kept it").
+The book records what the witness chose, for the Mirror in Phase 16. Texts: Gītā 3.36–37
+("by what is a person impelled to wrong even unwillingly, as if by force?" desire and
+anger, born of rajas), 3.27 (the guṇas act; the ego thinks "I am the doer"), and
+Duryodhana's "jānāmi dharmaṃ na ca me pravṛttiḥ". A symmetric version (conscience
+overriding a lie) is grace and belongs to the bhakti law in Phase 17, not the default.
+
+2. The cast reacts to choices (moved from Phase 14): a cast member who returns can know
+what the player chose at a situation they witnessed; one authored line per situation per
+witnessing role; at least three.
+
+Done when: rebellion faces visibly follow the guṇas; the sim reports rebellions per life
+and per policy; a cold player who lost a choice can say why; at least three cast returns
+react to a choice; and the witness's choices are recorded for the Mirror.
+
+---
+
+### Phase 16 — Death and rebirth
 
 *This phase grew on 20 Oct. It was Yama's screen and a saved record; it is now four things,
 each of which makes the game unlike any other board game, and all four sit on Phase 12's
@@ -1606,7 +1647,7 @@ and the cast list crosses the species line.
 **Scope it hard or it is a second game.** An interlude: fifteen turns, the first two bands,
 the Panchatantra squares' mirrors promoted to moments for the duration. **A different goal:**
 an animal cannot reach 105; it can only *earn the human birth back*. That is a per-law exit,
-and Phase 16 builds the machinery; this phase builds the one law "animal" needs. A life
+and Phase 17 builds the machinery; this phase builds the one law "animal" needs. A life
 that ends the interlude well is reborn human carrying something; one that ends it badly is
 reborn animal again, once, and then human regardless — the interlude never becomes a trap.
 
@@ -1638,7 +1679,7 @@ non-trivial.
 
 ---
 
-### Phase 16 — The laws
+### Phase 17 — The laws
 
 *The payoff of the whole design, and now also the repair of its largest open number.*
 
@@ -1650,7 +1691,7 @@ non-trivial.
 lives reach mokṣa;** after Phase 10 it is 96.5%. That inverts the game's own thesis: the
 intro text says the heavens past the exit are still the wheel, and a board where liberation
 is the overwhelming default says the opposite. Phase 12's geometry moves it first (the
-overshoot now ends the life), Phases 14 and 15 move it again — the door costs years, death
+overshoot now ends the life), Phases 14 and 16 move it again — the door costs years, death
 by ledger ends lives — and this phase is where the number is finally owned, because each
 darśana's bar is a different kind of hard: Mīmāṃsā's is not reachable by board position at
 all, Advaita's is knowledge rather than arrival, Cārvāka has no liberation to offer.
@@ -1662,7 +1703,7 @@ boards: *no matter how close you are to the goal, you can still miss it and fall
 *if only you try hard enough, or play long enough, you will always reach it in the end.*
 Both are the game. So the number is not one number: **liberation within a single life is
 rare under every law; liberation across lives approaches certainty.** The 96.5% was wrong
-because it was per life. `sim.mjs` plays lives in sequence under `saṃskāra` (Phase 15) and
+because it was per life. `sim.mjs` plays lives in sequence under `saṃskāra` (Phase 16) and
 reports, per law, the share liberated by life 1, 3, 5 and 10. A law that liberates almost
 everyone in one life is decorated; a law that cannot liberate anyone in ten is broken.
 
@@ -1684,7 +1725,7 @@ Jeṭhābhāī's rules and the Jain verses). Three rules, none of them new state
   question asks after the merit the life is proud of, not only its debts.
 The Vaiṣṇava law keeps the shape of the 72-board: bhakti the one ladder to the end, jñāna's
 ladder to bliss, karmayoga with no ladder of its own because the karmic squares around it
-are its ladders. The Jain board of Phase 17 uses these rules natively; under Phase 16 they
+are its ladders. The Jain board of Phase 18 uses these rules natively; under Phase 17 they
 are the law a player chooses on the 110 board.
 
 **The door's last question is where the laws bite** (§13.7). *Which is the real path?* —
@@ -1692,7 +1733,7 @@ the Advaitin door and the Mīmāṃsaka door ask the same eight questions and ac
 answers, and the per-law answer tables are this phase's content. That is the point at which
 the schools stop being annotation and become structure.
 
-**The animal interlude's exit is a law.** Phase 15 builds the one law it needs; this phase
+**The animal interlude's exit is a law.** Phase 16 builds the one law it needs; this phase
 generalises the machinery that law runs on.
 
 **The computer plays under a law too.** A computer opponent may run a different law from the
@@ -1710,7 +1751,7 @@ computer can be set to a law other than the player's.
 
 ---
 
-### Phase 17 — Historical boards
+### Phase 18 — Historical boards
 
 Board geometry becomes data. The variants are documented, not invented; see
 `docs/REFERENCE.md §4`.
@@ -1746,8 +1787,8 @@ Board geometry becomes data. The variants are documented, not invented; see
   p = 0.5; a "1" comes up 8.7% of the time, so the threshold face is rarer there), the
   Jaina board a four-outcome stick die (1, 2, 5, 6). The shells took that board from 64.5
   turns to 100.5, so the randomizer is a real design lever and belongs with its board. The
-  *setting* for it is Phase 19's, after content is fixed.
-- The 72-square board is also the natural home for the animal interlude if Phase 15's
+  *setting* for it is Phase 20's, after content is fixed.
+- The 72-square board is also the natural home for the animal interlude if Phase 16's
   first-two-bands version proves too thin: a short board for a short life.
 
 **Done when:** board choice is a setting, the renderer handles non-10-wide grids, each
@@ -1756,7 +1797,7 @@ board's rules load with it, and the sim reports each board's distribution beside
 
 ---
 
-### Phase 18 — Parallel lives
+### Phase 19 — Parallel lives
 
 - Multiplayer becomes four lives lived side by side rather than a race. Phase 11's
   nāmakaraṇa already asks who is playing and names each in turn; this phase gives that
@@ -1775,7 +1816,7 @@ the solo default is decided on the record.
 
 ---
 
-### Phase 19 — Content to full, and balancing
+### Phase 20 — Content to full, and balancing
 
 *Last on purpose. Everything here is measurement or content that would be wasted while the
 mechanics were still moving.*
@@ -1838,7 +1879,7 @@ single life should not see most of this content. That dissolves the volume probl
 because you are authoring breadth for replay rather than a script — and the cast is what
 makes the replay wanted.
 
-**After 19, beside the game rather than in it.**
+**After 20, beside the game rather than in it.**
 - **The maker's note.** A few hundred words in Bhaskar's own voice: why a physicist built
   this, and what the karma engine is as a dynamical system — a seed, a fuse, a firing,
   severity set by state, outcomes sensitive to everything between. Linked from the title.
@@ -1883,7 +1924,7 @@ reason is the thing to re-examine, not the idea.*
   flat primaries, a single-weight outline, a profile face with one eye, and no 3D game
   looks like that. A board is a map; maps are flat. Server multiplayer is a different
   product with hosting, moderation and accounts. What adds depth without breaking any of
-  this: the board's ageing (built), the translucency at turyā (Phase 15), parallax on the
+  this: the board's ageing (built), the translucency at turyā (Phase 16), parallax on the
   sheet.
 - **Physics on the cards.** Quantum mysticism in all its forms — the observer and the
   world, entanglement and interconnection, strings and Om, holography and Indra's net (which
@@ -1894,9 +1935,9 @@ reason is the thing to re-examine, not the idea.*
 - **A teen mode or modern skin.** Doubles the content and splits the board. One board, with
   the present in it, by the gesture-not-device rule.
 - **Mirror questions as pauses during play.** Another popup, in the phase after the one that
-  removed them. Relocated to the end of the life, Phase 15.
+  removed them. Relocated to the end of the life, Phase 16.
 - **Random sudden death.** Never random. The top of the severity scale, deterministic in the
-  ledger, Phase 15.
+  ledger, Phase 16.
 - **Murder as a form of death.** Needs an agent; the game has no villains.
 - **"Move up to the roll."** Prototyped in Phase 9 and rejected on measurement: once it
   reaches the divine row the player declines to land on 108 and the rebirth snake never
@@ -1904,7 +1945,7 @@ reason is the thing to re-examine, not the idea.*
 - **Advance now, pay later.** See Phase 12, superseded.
 - **The turn-back at 110.** Built in Phase 7, found on 20 Oct to be Harikṛṣṇa's 84-square
   rule (roam 80–84 until the 1), the one the thesis names as disrupting the cycle. Replaced
-  by the fall back to the world; kept only as that historical board's own rule in Phase 17.
+  by the fall back to the world; kept only as that historical board's own rule in Phase 18.
 - **The omen on a 1.** Every surviving rule makes the 1 the admitting throw. Moved to the 6.
 - **A heaven interlude as a separate band.** Proposed 20 Oct as the mirror of the animal
   interlude; absorbed into the row above 105, which already is one.
@@ -1921,12 +1962,12 @@ reason is the thing to re-examine, not the idea.*
 - **Snake tail as fruit.** The thesis reads every snake and ladder as a karmic link —
   origin the action, terminus its ripening (hiṃsā → narak, bhakti → Vaikuṇṭha). An audit of
   our snakes: does each landing moment read as the fruit of its head's vice? Where it does
-  not, the account's "years undone" join could say what ripened. Fits Phase 12 or 19.
+  not, the account's "years undone" join could say what ripened. Fits Phase 12 or 20.
 - **Two parables as situations.** The rose-apple tree (six men want the fruit; one cuts the
   trunk, one the branch, one the twig, one the cluster, one picks what is needed, one
   gathers the fallen) is the Jain *leśyā* parable and is painted on the boards; the
   honey-drop man over the well, taken with the drop while the elephant and the snakes wait,
-  is in the Mahābhārata too. Six options and two, no caste, no device. Phase 19, or the
+  is in the Mahābhārata too. Six options and two, no caste, no device. Phase 20, or the
   interlude's mirrors.
 - **The allurement zone.** On the 72, *antarikṣ*, *nāglok* and *gandharvlok* sit together
   with no snake and no ladder: fantasy, entertainment, nullity — pleasant squares where
@@ -1998,7 +2039,7 @@ reason is the thing to re-examine, not the idea.*
   liberation 96.5%. Treat a rise in p95 or
   in over-100% as a regression that needs a reason — and note that Phase 9 cleared the
   guardrail partly by making lives shorter and safer, which is why **liberation rate now
-  needs watching alongside it** (Phase 16): turn count is no longer the only thing a
+  needs watching alongside it** (Phase 17): turn count is no longer the only thing a
   movement change can break.
 - Graceful degradation everywhere: missing situation falls back to story card, missing
   Hindi shows English and warns, missing sprite shows the old emoji. Never a blank card.
@@ -2021,7 +2062,7 @@ reason is the thing to re-examine, not the idea.*
   writing on the board. Keep it, and do not overlay the darśanas onto it.
 - `docs/BOARDCRAFT.md §1` counts the Jain board's footprints as ladders (15) and says every
   pre-modern board is balanced or ladder-heavy. Corrected in `docs/REFERENCE.md §4` on 20
-  Oct; BOARDCRAFT should follow when Phase 17 opens it.
+  Oct; BOARDCRAFT should follow when Phase 18 opens it.
 - The exit moved to 105 in Phase 7, so this item's old square number was stale. `MOKSHA`
   now carries the premise — "Nyāya, Sāṃkhya, Mīmāṃsā and three schools of Vedānta all say
   you have arrived here. They do not mean the same thing by it." — but **no school voices

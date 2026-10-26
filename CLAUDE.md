@@ -39,9 +39,10 @@ a viewer's first life (`mp-lives`) shows the moment with the story behind one ta
 contact, that it is a story and who is in it (`content/bridges.json`, `whoOf` in `src/content.js`). The naming asks who is playing and names each person in turn. `?first` plays as
 someone new. Phase 12, Karma, has shipped (below). Phase 13, The painted cloth, has shipped: the board's look is data
 (`content/boards.json`: palette, grounds, snake pigments, ladder, border, superstructure; the build writes the palette into
-`styles.css` as `--b-*` tokens), the snakes are painted nāgas, and 34 squares carry vignettes drawn by `node tools/vignettes.mjs`
-from `art/vignettes.mjs` (docs/CONTENT.md §7). `?look=first|veil|asrama` chooses the first impression (default `first`, the
-choice still open). Dark is `prefs.theme`, not the system's. Next is 14 The door and the curse (REDESIGN.md Phases 14–19).
+`styles.css` as `--b-*` tokens), the snakes are painted nāgas, and 43 squares carry vignettes (the 34 snakes, ladders and divine
+row, and the nine fables) drawn by `node tools/vignettes.mjs` from `art/vignettes.mjs` (docs/CONTENT.md §7). The first impression
+is the veil; `?look=first|asrama` only under `?debug`. A reckoning takes the throw a 6 would have given. Dark is `prefs.theme`,
+not the system's. Next is 14 The door and the curse, then 15 The witness (REDESIGN.md Phases 14–20).
 Phase 7 was The Exit (REDESIGN.md §4): Moksha is square 105 (`GOAL`), partway
 along the divine row, while the board still ends at 110 (`TOP`). Since Phase 12 nothing above the exit turns back: past 105 the
 heavens (106–110) are walked, and the throw that would pass `TOP` is the fall, which ends the life (`plan.fell`, `p.fell`;
@@ -53,7 +54,7 @@ least-worth options carry a `seed` (`content/situations.json`: `fuse` in years, 
 `reckoning` text) that is planted in `p.karma.agami`, ripens into `prarabdha` when the years reach `at + fuse`, and is fired by the
 omen: a 6 among the dice (never a 1), on 1–100 or at 105, at a chance rising toward the exit, drawn off a sequence of its own so
 the dice never change. What it costs is a fixed function of the ledger (`reckonOf`): nothing, years, a holding (`p.held`), then
-back down the board; the death tier is only reported (`wouldDie`) until Phase 15. The reckoning's card is modal. The door at 105
+back down the board; the death tier is only reported (`wouldDie`) until Phase 16. The reckoning's card is modal. The door at 105
 refuses a life carrying any unmet debt, or artha/kāma at `ATTACHED` (`refusalOf`, `plan.refused`, `p.door`), in words; the
 player stays on 105 and the next throw goes into the heavens. Each refused arrival is kept in `p.refusals` and told in the
 account, and a fall closes on the debts still carried, in the door's words (`carryIn`). Unmet debts go to `sancita` when a life ends, recorded only. The
