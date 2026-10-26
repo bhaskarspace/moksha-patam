@@ -102,17 +102,19 @@ export const fxClear = () => fx.clearRect(0, 0, S * 10, S * ROWS);
 const tokenCache = {};
 export const paint = name => (tokenCache[name] ||= getComputedStyle(document.documentElement).getPropertyValue(`--b-${name}`).trim());
 
-// Ladders red-outlined, as on the 72-square boards: a vermilion outline under rails and rungs of Indian yellow.
+// Ladders red-outlined, as on the 72-square boards: rails and rungs of Indian yellow inside a thin vermilion line, and that
+// inside the lamp-black outline. Thin, so the yellow is what reads and the vignettes under them stay seen (26 Oct: at
+// three times this the vermilion dominated, the ladders read orange, and they covered 11.7% of the vignettes, now 5.9%).
 function drawLadder(a, b) {
   const p = center(a), q = center(b);
   const dx = q.x - p.x, dy = q.y - p.y, len = Math.hypot(dx, dy);
-  const nx = -dy / len, ny = dx / len, half = S * 0.18;
+  const nx = -dy / len, ny = dx / len, half = S * 0.14;
   ctx.lineCap = "round";
   const rungs = Math.max(2, Math.floor(len / (S * 0.36)));
   for (let pass = 0; pass < 3; pass++) {
     // lamp black, the single outline; then the vermilion band; then the yellow wood
     ctx.strokeStyle = pass === 0 ? paint("black") : pass === 1 ? paint(BOARD.ladder.outline) : paint(BOARD.ladder.rail);
-    const w = [S * 0.135, S * 0.105, S * 0.05][pass];
+    const w = [S * 0.07, S * 0.056, S * 0.04][pass];
     ctx.lineWidth = w * 0.85;
     for (let i = 1; i <= rungs; i++) {
       const t = i / (rungs + 1), x = p.x + dx * t, y = p.y + dy * t;
