@@ -41,7 +41,7 @@
   --frame-red: var(--b-vermilion); --frame-dark: var(--b-lac); --frame-gold: var(--b-gold-hi);
   /* the Basohli palette, the --b-* tokens: written here by the build from the board's look in content/boards.json.
      assets/sprites.svg may use these colours and nothing else (lint-content.mjs) */
-  --b-vermilion: #C8352A; --b-ochre: #D9A441; --b-yellow: #E3A21A; --b-indigo: #2B3A67; --b-malachite: #3F7A4E; --b-black: #1A1410; --b-shell: #F4EDDC; --b-beetle: #1F7A5A; --b-gold: #B8862B; --b-gold-hi: #EDCF72; --b-cream: #F5E9C9; --b-paleochre: #EDD49B; --b-palegreen: #DCE0B4; --b-cloth: #E8D7AE; --b-lac: #5A1208;
+  --b-vermilion: #C8352A; --b-ochre: #D9A441; --b-yellow: #E3A21A; --b-indigo: #2B3A67; --b-malachite: #3F7A4E; --b-black: #1A1410; --b-shell: #F4EDDC; --b-beetle: #1F7A5A; --b-gold: #B8862B; --b-gold-hi: #EDCF72; --b-cream: #F5E9C9; --b-paleochre: #EDD49B; --b-palegreen: #DCE0B4; --b-cloth: #E8D7AE; --b-lac: #5A1208; --b-nila: #1E2740;
 }
 /* Dark is a setting (prefs.theme), never the default: the page around the board goes dark, the cloth does not. */
 :root[data-theme="dark"] {
@@ -185,6 +185,26 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
   .lab .nm, .ashramas { display: none; }
   .lab .ic { width: 4.6cqi; font-size: 2.6cqi; }
 }
+
+/* The door on 105 and the wheel of time round it (REDESIGN.md Phase 14): over the cell, under its label and the token, which stands
+   before the closed door; over the token once the years have run out there. A step of the wheel turns; a met debt's
+   spoke stops, gold. Clicks go through to the square. */
+.gate { position: absolute; width: 10%; pointer-events: none; z-index: 1; }
+.gate[hidden] { display: none; }
+.gate svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.gate .rim { fill: none; stroke: var(--b-black); stroke-width: 1.25; }
+.gate .spoke { transform-box: view-box; transform-origin: 24px 24px; transition: transform 0.9s cubic-bezier(0.4, 0, 0.3, 1); }
+.gate .spoke line { stroke: var(--b-yellow); stroke-width: 2.6; stroke-linecap: round; }
+.gate .spoke line.o { stroke: var(--b-black); stroke-width: 5; }
+.gate .spoke.gold line:not(.o) { stroke: var(--b-gold-hi); }
+.gate .arch { fill: var(--b-gold-hi); stroke: var(--b-gold-hi); stroke-width: 4; stroke-linejoin: round; }
+.gate .leaf { fill: var(--b-lac); stroke: var(--b-black); stroke-width: 1.25; transition: transform 0.9s ease-in-out; transform-box: fill-box; }
+.gate .leaf.l { transform-origin: 0 50%; }
+.gate .leaf.r { transform-origin: 100% 50%; }
+.gate .sill { stroke: var(--b-black); stroke-width: 1.25; stroke-linecap: round; }
+.gate.open .leaf { transform: scaleX(0.18); }
+.gate.shut { z-index: 3; }
+.gate.shut .leaf { fill: var(--b-black); }
 
 /* Players: pixel-art figures that walk, climb and grow. Feet sit on the square, with a shadow in the player's colour. */
 .tokens { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
@@ -657,6 +677,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
 
 @media (prefers-reduced-motion: reduce) {
   .token, .token.slide { transition: none; }
+  .gate .spoke, .gate .leaf { transition: none; }
   .cam { transition: none; transform: none !important; }
   #folio.snap, #folio.snap .leaf { transition: none; }
   .token .body, .die.rolling, .lab.goal .om, .leaf, .leaf *, .flourish *, .toast { animation: none !important; }
@@ -820,6 +841,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
             <div class="cells" id="cells"></div>
             <canvas id="art"></canvas>
             <canvas id="age"></canvas>
+            <!-- the door and the wheel of time on 105 (render/door.js): drawn, and told in words elsewhere -->
+            <div class="gate" id="door" aria-hidden="true" hidden></div>
             <div class="labels" id="labels"></div>
             <canvas id="fx"></canvas>
             <div class="tokens" id="tokens"></div>
@@ -1348,11 +1371,11 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         examTitle: "The door asks",
         examAsks: "The door asks: {q}",
         examPass: "The answer is {a}, and Citragupta finds it in the book: at {age}, {name} {answered}.",
-        examMet: "The debt of {debt} is met.",
+        examMet: "It is met: the debt of {debt}.",
         examFail: "The answer is {a}. Citragupta turns the pages, and it is not in the book. The year passes at the door, in penance.",
         examPenance: "The same question, and the book has no more to say. Another year at the door, in penance.",
-        examPaid: "With this year the debt of {debt} is paid.",
-        examOwing: "The debt of {debt} is not yet paid.",
+        examPaid: "With this year it is paid: the debt of {debt}.",
+        examOwing: "It is not yet paid: the debt of {debt}.",
         doorOpens: "Nothing is owed. The door opens.",
         doorSit: "{name} may sit here, a year at a time, and be asked; or throw on into the heavens.",
         doorThrough: "{name} comes to the door, and it opens.",
@@ -2241,7 +2264,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       iast: "Mokṣa",
       views: [{ id: "nyaya", en: "Nyāya: apavarga, the end of all suffering. Not bliss, and only after death.", hi: "न्याय: अपवर्ग, सब दुःखों का अंत। आनंद नहीं, और केवल मृत्यु के बाद।" }, { id: "samkhya", en: "Sāṃkhya and Yoga: kaivalya, the watcher alone, seeing it was never bound.", hi: "सांख्य और योग: कैवल्य, द्रष्टा अकेला, यह देखता हुआ कि वह कभी बँधा ही नहीं था।" }, { id: "mimamsa", en: "Mīmāṃsā, for centuries: there is no such square. Heaven at 101 was enough.", hi: "मीमांसा, सदियों तक: ऐसा कोई खाना नहीं। १०१ पर स्वर्ग पर्याप्त था।" }, { id: "advaita", en: "Advaita: knowing you were always Brahman. You did not arrive; you recognised.", hi: "अद्वैत: यह जानना कि आप सदा से ब्रह्म थे। आप पहुँचे नहीं; आपने पहचाना।" }, { id: "vishishtadvaita", en: "Viśiṣṭādvaita: union with Brahman in which you stay yourself. Equal to God in bliss, never one with him in number, and serving forever.", hi: "विशिष्टाद्वैत: ब्रह्म से ऐसा मिलन जिसमें आप स्वयं बने रहते हैं। आनंद में ईश्वर के समान, संख्या में कभी एक नहीं, और सदा सेवा में।" }, { id: "dvaita", en: "Dvaita: eternal service of Viṣṇu, by his grace. Even the liberated are ranked, each as blissful as its own nature allows.", hi: "द्वैत: विष्णु की कृपा से उनकी नित्य सेवा। मुक्त जीवों में भी तारतम्य है, हर एक उतना आनंदित जितना उसका स्वभाव अनुमति दे।" }],
       beyond: [{ id: "jaina", en: "Jainism: the soul, free of karmic dust, rising to the top of the universe.", hi: "जैन: कर्म की धूल से मुक्त जीव, लोक के शिखर तक उठता हुआ।" }, { id: "bauddha", en: "Buddhism: nirvāṇa, the flame blown out, with no one left who was bound.", hi: "बौद्ध: निर्वाण, लौ का बुझ जाना, बिना किसी के जो बँधा था।" }, { id: "carvaka", en: "Cārvāka: death is liberation. Live well on the way.", hi: "चार्वाक: मृत्यु ही मोक्ष है। रास्ते में अच्छे से जियो।" }],
-      scholar: { en: "They all said you had arrived, and they meant six different things. Each name opens that school in the Codex.", hi: "सबने कहा कि आप पहुँच गए, और उनके छह अलग अर्थ थे। हर नाम कोश में उस दर्शन को खोलता है।" }
+      scholar: { en: "They all said you had arrived, and they meant six different things. Each name opens that school in the Codex. The wheel drawn round a life that waits at this door is the wheel of time, kāla-cakra: the board itself is the wheel of saṃsāra, which the token walks, and time is the wheel that goes on turning while the token stands still.", hi: "सबने कहा कि आप पहुँच गए, और उनके छह अलग अर्थ थे। हर नाम कोश में उस दर्शन को खोलता है। इस द्वार पर रुके जीवन के चारों ओर जो चक्र बना है, वह काल-चक्र है: यह पट ख़ुद संसार-चक्र है, जिस पर गोटी चलती है, और काल वह चक्र है जो गोटी के रुके रहने पर भी घूमता रहता है।" }
     },
     "106": {
       line2: { en: "She is fortune, and fortune is fickle; she is also Śrī, who never leaves Viṣṇu's side.", hi: "वे भाग्य हैं, और भाग्य चंचल है; वे श्री भी हैं, जो विष्णु का साथ कभी नहीं छोड़तीं।" },
@@ -2817,7 +2840,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         paleochre: "#EDD49B",
         palegreen: "#DCE0B4",
         cloth: "#E8D7AE",
-        lac: "#5A1208"
+        lac: "#5A1208",
+        nila: "#1E2740"
       },
       grounds: [
         [
@@ -3277,6 +3301,18 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     if (refusal.aim) return [T(l, refusal.aim === "artha" ? "doorArtha" : "doorKama", who2), on2];
     return [T(l, "doorRefused", who2, { debts: debtsIn(l, refusal.debts, who2) }), on2];
   }
+  function examLinesIn(l, ex, who2) {
+    const q2 = DOOR[seedOf(ex.src, ex.opt)?.holds], debt = debtIn(l, ex, who2);
+    if (!q2) return [];
+    const out = [T(l, "examAsks", who2, { q: q2.q[l] || q2.q.en })];
+    if (ex.pass) out.push(T(l, "examPass", who2, { a: q2.a[l] || q2.a.en, age: wordsIn(l, Math.floor(ex.answer)), answered: fill(q2.answered[l] || q2.answered.en, who2) }), T(l, "examMet", who2, { debt }));
+    else {
+      out.push(T(l, ex.n === 1 ? "examFail" : "examPenance", who2, { a: q2.a[l] || q2.a.en, debt }));
+      out.push(T(l, ex.cleared ? "examPaid" : "examOwing", who2, { debt }));
+    }
+    if (ex.open) out.push(T(l, "doorOpens", who2));
+    return out;
+  }
   function debtsIn(l, debts, who2) {
     const ds = debts.map((d) => debtIn(l, d, who2)), and = tIn(l, "listAnd");
     return ds.length > 1 ? ds.slice(0, -1).join(", ") + and + ds.at(-1) : ds[0] ?? "";
@@ -3302,6 +3338,10 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const life = p.life || [], told = p.told || [];
     const k = life.findIndex((n, j) => j > p.curse.i && c.family.includes(n) && told[j] !== "stay" && told[j] !== "reckon");
     return { c, said: p.curse.i, age: p.curse.age, closedAt: k < 0 ? null : k };
+  }
+  function curseSaidIn(l, p, name) {
+    const c = curseIn(p);
+    return c ? fill(c.c.line[l] || c.c.line.en, { name, gender: p.gender, age: wordsIn(l, Math.floor(c.age)) }) : "";
   }
 
   // src/engine/turn.js
@@ -3729,6 +3769,29 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     }
     return out;
   }
+  var SIVA_TOP = 110;
+  function sivaPath(step = 0.05) {
+    const at2 = (n) => {
+      const { col, row: row2 } = colRow(n);
+      return { x: col + 0.5, y: ROWS - 1 - row2 + 0.5 };
+    };
+    const top = at2(SIVA_TOP), one = at2(1), pts = [], E = 0.1;
+    for (let x = top.x - 0.4; x < top.x - 0.3; x += step) pts.push({ x, y: top.y - 0.04 });
+    for (let a = Math.PI; a >= -Math.PI * 2; a -= step * 2) pts.push({ x: top.x + Math.cos(a) * 0.3, y: top.y + Math.sin(a) * 0.3 });
+    const run = (x0, y0, x1, y1, inward) => {
+      const len = Math.hypot(x1 - x0, y1 - y0), k = Math.ceil(len / step);
+      for (let i = 1; i <= k; i++) {
+        const t2 = i / k, o = Math.sin(t2 * len * 2.2) * 0.035;
+        pts.push({ x: x0 + (x1 - x0) * t2 + inward.x * o, y: y0 + (y1 - y0) * t2 + inward.y * o });
+      }
+    };
+    run(top.x + 0.3, top.y, 10 - E, top.y + 0.5, { x: 0, y: 0 });
+    run(10 - E, top.y + 0.5, 10 - E, ROWS - E, { x: -1, y: 0 });
+    run(10 - E, ROWS - E, one.x + 0.35, ROWS - E, { x: 0, y: -1 });
+    for (let a = Math.PI * 0.5, r = 0.4; r > 0.06; a += step * 3, r -= step * 0.11) pts.push({ x: one.x - Math.cos(a) * r, y: one.y + Math.sin(a) * r });
+    const N = pts.length - 1;
+    return pts.map((p, i) => ({ ...p, w: 0.12 - 0.085 * (i / N) }));
+  }
 
   // src/render/camera.js
   var cam = $("cam");
@@ -3791,17 +3854,17 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     return numEl;
   }
   function superstructure() {
-    const el2 = $("vimana");
-    if (!el2) return;
-    el2.hidden = BOARD.superstructure !== "vimana";
-    if (el2.hidden) return;
+    const el3 = $("vimana");
+    if (!el3) return;
+    el3.hidden = BOARD.superstructure !== "vimana";
+    if (el3.hidden) return;
     const top = ROWS - 1, f2 = (n) => +n.toFixed(2);
     let d = "";
     for (let c = 0; c < 10; c++) {
       const n = top % 2 === 0 ? top * 10 + c + 1 : top * 10 + (9 - c) + 1, x = c * 10;
       d += `<path class="dome" d="M${x + 1},9 L${x + 1},6.2 Q${x + 1},2.6 ${x + 5},1.9 Q${x + 9},2.6 ${x + 9},6.2 L${x + 9},9 Z"/><path class="door${n === GOAL ? " goal" : ""}" d="M${x + 3.4},9 L${x + 3.4},6.6 Q${x + 5},4.4 ${x + 6.6},6.6 L${x + 6.6},9 Z"/><circle class="finial" cx="${x + 5}" cy="${f2(1.3)}" r="0.75"/>`;
     }
-    el2.innerHTML = `<svg viewBox="0 0 100 9" preserveAspectRatio="none">${d}</svg>`;
+    el3.innerHTML = `<svg viewBox="0 0 100 9" preserveAspectRatio="none">${d}</svg>`;
   }
   var labEls = {};
   var focusN = 1;
@@ -3820,12 +3883,12 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       for (let c = 0; c < 10; c++) {
         const n = r % 2 === 0 ? r * 10 + c + 1 : r * 10 + (9 - c) + 1;
         const light = groundOf(n)[1], heaven = n > 100;
-        const el2 = document.createElement("div");
-        el2.className = "cell" + (heaven ? " heaven" : "") + (n === GOAL ? " goal" : "");
-        if (!heaven) el2.style.background = `var(--b-${groundToken(n)})`;
-        if (vignette(n)) el2.innerHTML = `<span class="pic vg">${art(`sq-${n}`, "", "spr vg")}</span>`;
-        else if (SQ[n]) el2.innerHTML = `<span class="pic">${art(`sq-${n}`, SQ[n].ic)}</span>`;
-        cells.appendChild(el2);
+        const el3 = document.createElement("div");
+        el3.className = "cell" + (heaven ? " heaven" : "") + (n === GOAL ? " goal" : "");
+        if (!heaven) el3.style.background = `var(--b-${groundToken(n)})`;
+        if (vignette(n)) el3.innerHTML = `<span class="pic vg">${art(`sq-${n}`, "", "spr vg")}</span>`;
+        else if (SQ[n]) el3.innerHTML = `<span class="pic">${art(`sq-${n}`, SQ[n].ic)}</span>`;
+        cells.appendChild(el3);
         const lab = document.createElement("div");
         const kind = n === GOAL ? " heaven goal" : heaven ? " heaven" : SNAKES[n] ? " vice" : LADDERS[n] ? " virtue" : "";
         lab.className = "lab" + kind + (light && !heaven ? " li" : "");
@@ -3998,6 +4061,23 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     }
     drawHood(ctx, pts[0], pts[4], cols);
   }
+  var sivaPoints = () => sivaPath().map((p) => ({ x: p.x * S, y: p.y * S, w: p.w * S }));
+  function drawSiva() {
+    const pts = sivaPoints(), N = pts.length - 1, ink = paint("black"), body = paint("nila"), belly = paint("shell");
+    ctx.lineCap = "round";
+    for (let pass = 0; pass < 3; pass++) {
+      ctx.strokeStyle = pass === 0 ? ink : pass === 1 ? body : belly;
+      for (let i = 0; i < N; i++) {
+        const a = pts[i], b = pts[i + 1];
+        ctx.lineWidth = pass === 0 ? a.w + 3 : pass === 1 ? a.w : a.w * 0.22;
+        ctx.beginPath();
+        ctx.moveTo(a.x, a.y);
+        ctx.lineTo(b.x, b.y);
+        ctx.stroke();
+      }
+    }
+    drawHood(ctx, pts[0], pts[2], [body, ink, belly, paint("vermilion")], 0.7);
+  }
   var ageCanvas = $("age");
   var agx = ageCanvas.getContext("2d");
   var tokens = null;
@@ -4060,6 +4140,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     S = W2 / 10;
     for (const [a, l] of Object.entries(LADDERS)) drawLadder(+a, l.to);
     for (const [h, s] of Object.entries(SNAKES)) drawSnake(+h, s.to);
+    drawSiva();
     drawAge();
   }
 
@@ -4535,70 +4616,70 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     $("tokens").innerHTML = "";
     $("tray").innerHTML = "";
     G.state.players.forEach((p) => {
-      const el2 = document.createElement("div");
-      el2.className = "token";
-      el2.innerHTML = `<div class="body"><div class="spr"></div></div>`;
-      el2.style.setProperty("--pc", COLORS[p.color]);
-      el2._frame = 0;
-      el2._stage = null;
-      tokenEls.push(el2);
+      const el3 = document.createElement("div");
+      el3.className = "token";
+      el3.innerHTML = `<div class="body"><div class="spr"></div></div>`;
+      el3.style.setProperty("--pc", COLORS[p.color]);
+      el3._frame = 0;
+      el3._stage = null;
+      tokenEls.push(el3);
     });
     place(true);
   }
-  function setSprite(el2, p, stage) {
-    el2.querySelector(".spr").style.backgroundImage = spriteURL(stage, p.color, el2._frame);
-    el2.classList.toggle("divine", STAGES[stage].art === "divine");
+  function setSprite(el3, p, stage) {
+    el3.querySelector(".spr").style.backgroundImage = spriteURL(stage, p.color, el3._frame);
+    el3.classList.toggle("divine", STAGES[stage].art === "divine");
   }
-  function setXY(el2, x, y) {
-    el2.style.left = x / (S * 10) * 100 + "%";
-    el2.style.top = (y + FEET * S) / (S * ROWS) * 100 + "%";
+  function setXY(el3, x, y) {
+    el3.style.left = x / (S * 10) * 100 + "%";
+    el3.style.top = (y + FEET * S) / (S * ROWS) * 100 + "%";
   }
-  function retrigger(el2, cls) {
-    el2.classList.remove(cls);
-    void el2.offsetWidth;
-    el2.classList.add(cls);
+  function retrigger(el3, cls) {
+    el3.classList.remove(cls);
+    void el3.offsetWidth;
+    el3.classList.add(cls);
   }
   function place(silent = false) {
     const at2 = {};
     G.state.players.forEach((p, i) => (at2[p.pos] ||= []).push(i));
     G.state.players.forEach((p, i) => {
-      const el2 = tokenEls[i];
-      el2.title = pname(p);
-      el2.classList.toggle("active", i === G.state.turn && !G.state.over && !G.busy);
-      el2.classList.toggle("dead", gone(p));
-      el2.classList.toggle("left", p.face === "l" && el2._frame < 2);
+      const el3 = tokenEls[i];
+      el3.title = pname(p);
+      el3.classList.toggle("active", i === G.state.turn && !G.state.over && !G.busy);
+      el3.classList.toggle("dead", gone(p));
+      el3.classList.toggle("left", p.face === "l" && el3._frame < 2);
       const stage = stageOf2(p);
-      if (el2._stage !== stage) {
-        if (el2._stage != null && !silent) {
-          retrigger(el2, "poof");
+      if (el3._stage !== stage) {
+        if (el3._stage != null && !silent) {
+          retrigger(el3, "poof");
           const v = { name: pname(p), stage: stageName(stage) }, you = !p.name && p.color === 0;
-          const key = stage > el2._stage ? "grew" : "bornAgain";
+          const key = stage > el3._stage ? "grew" : "bornAgain";
           toast(fill(t(key + (you && key !== "grew" ? "You" : ""), v), { name: v.name, gender: p.gender }));
         }
-        el2._stage = stage;
+        el3._stage = stage;
       }
-      setSprite(el2, p, stage);
+      setSprite(el3, p, stage);
       if (p.pos === 0) {
-        if (el2.parentNode !== $("tray")) $("tray").appendChild(el2);
+        if (el3.parentNode !== $("tray")) $("tray").appendChild(el3);
         return;
       }
-      if (el2.parentNode !== $("tokens")) $("tokens").appendChild(el2);
+      if (el3.parentNode !== $("tokens")) $("tokens").appendChild(el3);
       const group = at2[p.pos], k = group.indexOf(i);
       const [ox, oy] = group.length === 1 ? OFFS[0] : OFFS[k + 1];
       const { col, row: row2 } = colRow(p.pos);
-      el2.style.left = (col + 0.5) * 10 + ox + "%";
-      el2.style.top = ((ROWS - 1 - row2 + 0.5 + FEET) * 10 + oy) * (10 / ROWS) + "%";
+      el3.style.left = (col + 0.5) * 10 + ox + "%";
+      el3.style.top = ((ROWS - 1 - row2 + 0.5 + FEET) * 10 + oy) * (10 / ROWS) + "%";
     });
     renderPlayers();
   }
   function toast(text) {
     const slot = $("toastSlot");
     slot.innerHTML = "";
-    const el2 = document.createElement("div");
-    el2.className = "toast";
-    el2.textContent = text;
-    slot.appendChild(el2);
-    setTimeout(() => el2.remove(), 2500);
+    const el3 = document.createElement("div");
+    el3.className = "toast";
+    el3.textContent = text;
+    slot.appendChild(el3);
+    setTimeout(() => el3.remove(), 2500);
   }
   var animate = (ms, fn) => new Promise((res) => {
     const g3 = G.gen, t0 = performance.now(), d = reduced ? 1 : ms;
@@ -4612,20 +4693,20 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   });
   var ease = (f2) => f2 < 0.5 ? 2 * f2 * f2 : 1 - (-2 * f2 + 2) ** 2 / 2;
   async function climb(idx, a, b) {
-    const g3 = G.gen, el2 = tokenEls[idx], p = G.state.players[idx];
+    const g3 = G.gen, el3 = tokenEls[idx], p = G.state.players[idx];
     const P = center(a), Q = center(b), len = Math.hypot(Q.x - P.x, Q.y - P.y);
     const rungs = Math.max(2, Math.floor(len / (S * 0.36)));
     const trail = [], glints = [], extras2 = quality !== "low";
     let lastRung = -1;
-    el2.classList.add("free");
-    el2.classList.remove("left");
+    el3.classList.add("free");
+    el3.classList.remove("left");
     await animate(Math.min(1700, Math.max(900, len / S * 230)), (u) => {
       const r = u * rungs, k = Math.min(rungs - 1, Math.floor(r)), f2 = r - k;
       const e = (k + ease(f2)) / rungs;
       const x = P.x + (Q.x - P.x) * e, y = P.y + (Q.y - P.y) * e - Math.sin(f2 * Math.PI) * S * 0.08;
-      el2._frame = 2 + k % 2;
-      setSprite(el2, p, el2._stage);
-      setXY(el2, x, y);
+      el3._frame = 2 + k % 2;
+      setSprite(el3, p, el3._stage);
+      setXY(el3, x, y);
       trail.push({ x, y, u });
       if (extras2 && k !== lastRung) {
         lastRung = k;
@@ -4652,12 +4733,12 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     });
     fxClear();
     if (g3 !== G.gen) return;
-    el2.classList.remove("free");
-    el2._frame = 0;
+    el3.classList.remove("free");
+    el3._frame = 0;
     p.pos = b;
     place();
-    retrigger(el2, "land");
-    setTimeout(() => el2.classList.remove("land"), 340);
+    retrigger(el3, "land");
+    setTimeout(() => el3.classList.remove("land"), 340);
   }
   var bulgeMs = (pts) => {
     let len = 0;
@@ -4665,7 +4746,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     return Math.min(2e3, Math.max(1e3, len / S * 170));
   };
   async function swallow(idx, h, tail) {
-    const g3 = G.gen, el2 = tokenEls[idx], p = G.state.players[idx];
+    const g3 = G.gen, el3 = tokenEls[idx], p = G.state.players[idx];
     const pts = snakePath(h, tail), N = pts.length - 1, cols = snakeColors(h);
     await animate(450, (u) => {
       fxClear();
@@ -4677,11 +4758,11 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       drawHood(fx, pts[0], pts[4], cols, 1 + 0.35 * Math.sin(u * Math.PI));
     });
     if (g3 !== G.gen) return fxClear();
-    retrigger(el2, "gulp");
+    retrigger(el3, "gulp");
     await sleep(340);
     if (g3 !== G.gen) return fxClear();
-    el2.classList.add("hide");
-    el2.classList.remove("gulp");
+    el3.classList.add("hide");
+    el3.classList.remove("gulp");
     await animate(bulgeMs(pts), (v) => {
       const u = ease(v), i = u * N, k = Math.min(N - 1, Math.floor(i)), f2 = i - k, a = pts[k], b = pts[k + 1];
       const x = a.x + (b.x - a.x) * f2, y = a.y + (b.y - a.y) * f2, r = Math.max(S * 0.11, a.w * 0.95);
@@ -4704,11 +4785,11 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     fxClear();
     if (g3 !== G.gen) return;
     p.pos = tail;
-    el2.classList.remove("hide");
+    el3.classList.remove("hide");
     place();
-    retrigger(el2, "dizzy");
+    retrigger(el3, "dizzy");
     await sleep(700);
-    el2.classList.remove("dizzy");
+    el3.classList.remove("dizzy");
   }
 
   // src/audio/drone.js
@@ -5298,6 +5379,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var subject = null;
   var closing = false;
   var waiters = [];
+  var spoken = null;
   var expanded = false;
   var blocking = false;
   var storyOpen = false;
@@ -5479,10 +5561,12 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const sp = landing || sp0?.door ? sp0 : G.state?.players.find((q2) => q2.pos === GOAL && q2.door) ?? sp0;
     const refusal = n === GOAL && sp ? landing ? landing.refused : sp.pos === GOAL ? sp.door : null : null;
     const door = refusal ? (() => {
-      const [en, hi] = ["en", "hi"].map((x) => refusalIn(x, refusal, { name: pnameIn(sp, x), gender: sp.gender }));
+      const [en, hi] = ["en", "hi"].map((x) => refusalIn(x, refusal, { name: pnameIn(sp, x), gender: sp.gender }, canSit({ ...sp, pos: GOAL })));
       return en.map((t2, i) => texts(l, t2, hi[i], "remedy door")).join("");
     })() : "";
-    body += `<div class="story">${door}${moment}${options}${remedy}${pending ? "" : mirrorHtml(l, mirror, m)}${bi(l, r.line2, "line2")}${above}</div>`;
+    const sayer = spoken && spoken.n === n && G.state?.players[spoken.who];
+    const curse = sayer ? texts(l, curseSaidIn("en", sayer, pnameIn(sayer, "en")), curseSaidIn("hi", sayer, pnameIn(sayer, "hi")), "remedy") : "";
+    body += `<div class="story">${door}${moment}${curse}${options}${remedy}${pending ? "" : mirrorHtml(l, mirror, m)}${bi(l, r.line2, "line2")}${above}</div>`;
     let more = "";
     const metMore2 = [];
     const viewList = (vs, cls) => `<ul class="${cls}">` + vs.map((v) => `<li>${entryLink(v.id, l)}${texts(l, v.en, v.hi)}</li>`).join("") + `</ul>`;
@@ -5579,12 +5663,24 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       })
     };
   }
+  function examHtml(ex, l) {
+    const p = subjectOf(), who2 = (x) => ({ name: pnameIn(p, x), gender: p.gender });
+    const lines = (x) => {
+      const out = examLinesIn(x, ex, who2(x));
+      if (!ex.died) return out;
+      return [...out, fill(tIn(x, "doorDied", { name: who2(x).name, debts: debtsIn(x, ex.debts ?? [], who2(x)) }), who2(x))];
+    };
+    const en = lines("en"), hi = lines("hi"), q2 = squareOf(ex.src);
+    let body = `<h2 id="leafTitle">${esc(q2[l] || q2.en)}</h2>`;
+    body += `<div class="story">` + en.map((t2, i) => texts(l, t2, hi[i], i === 0 ? "remedy door" : i === 1 ? "moment" : "remedy")).join("") + `<p class="srcline"><a class="src" href="#sq/${ex.src}" data-sq="${ex.src}">${esc(tIn(l, "square", { n: numIn(l, ex.src) }))}</a></p></div>`;
+    return { kind: "exam", met: [], html: frame2(l, { kind: "exam", eb: esc(tIn(l, "examTitle")), big: "☸︎", sqn: numIn(l, GOAL), body, foot: "" }) };
+  }
   var metMore = [];
   function paint2({ landing = false } = {}) {
     const l = cardLang ?? lang;
     const fa = leaf2.contains(document.activeElement) ? document.activeElement : null;
     const again = fa?.dataset.act ? `[data-act="${fa.dataset.act}"]` : fa?.dataset.cl ? `[data-cl="${fa.dataset.cl}"]` : null;
-    const out = view.type === "square" ? squareHtml(view.n, l) : view.type === "reckon" ? reckonHtml(view.rk, l) : entryHtml(view.id, l);
+    const out = view.type === "square" ? squareHtml(view.n, l) : view.type === "reckon" ? reckonHtml(view.rk, l) : view.type === "exam" ? examHtml(view.ex, l) : entryHtml(view.id, l);
     leaf2.className = "leaf " + out.kind + (landing ? " landed" : "") + (expanded ? " open" : "");
     leaf2.innerHTML = out.html;
     metMore = out.metMore || [];
@@ -5592,9 +5688,9 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     meet2([...out.met, ...expanded ? metMore : []].filter(Boolean));
     bridged.forEach(meetWho);
     refreshRoll();
-    if (again) [...leaf2.querySelectorAll(again)].find((el2) => el2.offsetParent)?.focus({ preventScroll: true });
+    if (again) [...leaf2.querySelectorAll(again)].find((el3) => el3.offsetParent)?.focus({ preventScroll: true });
     cue();
-    history.replaceState(null, "", location.pathname + location.search + (view.type === "square" ? `#sq/${view.n}` : view.type === "reckon" ? `#sq/${view.rk.src}` : `#codex/${view.id}`));
+    history.replaceState(null, "", location.pathname + location.search + (view.type === "square" ? `#sq/${view.n}` : view.type === "reckon" ? `#sq/${view.rk.src}` : view.type === "exam" ? `#sq/${GOAL}` : `#codex/${view.id}`));
     onChange.forEach((fn) => fn());
   }
   function cue() {
@@ -5634,8 +5730,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     if (sheetOn()) setDetent(on2 ? "full" : "half");
     cue();
   }
-  var visible = (el2) => {
-    const r = el2?.getBoundingClientRect();
+  var visible = (el3) => {
+    const r = el3?.getBoundingClientRect();
     return r && r.width > 0 && r.bottom > 0 && r.top < innerHeight;
   };
   async function transition(update, label) {
@@ -5695,7 +5791,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const wasOpen = dlg2.open, was = view;
     view = next2;
     subject = who2;
-    const block = next2.type === "reckon" || next2.type === "square" && !!pendingOn(next2.n);
+    const block = next2.type === "reckon" || next2.type === "exam" || next2.type === "square" && !!pendingOn(next2.n);
     if (wasOpen) {
       setBlocking(block);
       paint2({ landing });
@@ -5720,6 +5816,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   }
   var openSquare = (n, opts) => open({ type: "square", n }, opts);
   var openReckoning = (rk, who2) => open({ type: "reckon", rk }, { landing: true, who: who2 });
+  var openExam = (ex, who2) => open({ type: "exam", ex }, { landing: true, who: who2 });
   var openEntry = (id, opts) => entryOf(id) ? open({ type: "entry", id }, opts) : Promise.resolve();
   async function closeCard({ instant = false } = {}) {
     if (!dlg2.open || closing) return;
@@ -5750,6 +5847,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     subject = null;
     expanded = false;
     blocking = false;
+    spoken = null;
     storyOpen = false;
     bridged = /* @__PURE__ */ new Set();
     place2();
@@ -5870,16 +5968,86 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       subject = keep;
     }
   }
+  function cardCurse(who2, n) {
+    spoken = { who: who2, n };
+    refreshCard();
+  }
   function refreshCard() {
     if (dlg2.open && view) paint2();
   }
 
+  // src/render/door.js
+  var el = $("door");
+  var drawn = null;
+  function wheelOf(state, i) {
+    const p = state.players[i];
+    if (!p || p.pos !== GOAL) return null;
+    const open2 = state.winner === i, ref = p.refusals?.at(-1);
+    if (!ref) return open2 ? { key: `${i}`, spokes: [], open: open2, shut: false } : null;
+    if (!p.door && !open2 && !p.dead) return null;
+    const sits = (p.sittings ?? []).filter((s) => s.at >= ref.at);
+    const spokes = (ref.debts ?? []).map((d) => {
+      const key = debtKey(d), c = sits.findIndex((s) => s.cleared && `${s.src}:${s.opt}:${s.planted}` === key);
+      if (c >= 0) return { step: c, gold: true };
+      const rk = p.reckonings?.find((r) => r.at >= ref.at && `${r.src}:${r.opt}:${r.planted}` === key);
+      return rk ? { step: sits.filter((s) => s.at < rk.at).length, gold: true } : { step: sits.length, gold: false };
+    });
+    return { key: `${i}:${ref.at}:${spokes.length}`, spokes, open: open2, shut: !!p.dead };
+  }
+  function drawDoor() {
+    const state = G.state, ps = state?.players ?? [];
+    const i = [state?.turn, ...ps.keys()].find((k) => k != null && wheelOf(state, k));
+    const w = i == null ? null : wheelOf(state, i);
+    el.hidden = !w;
+    if (!w) {
+      drawn = null;
+      return;
+    }
+    const { col, row: row2 } = colRow(GOAL);
+    el.style.left = col * 10 + "%";
+    el.style.top = (ROWS - 1 - row2) / ROWS * 100 + "%";
+    el.style.height = 100 / ROWS + "%";
+    const n = w.spokes.length;
+    if (drawn !== w.key) {
+      drawn = w.key;
+      el.innerHTML = `<svg viewBox="0 0 48 48">` + // the doorway fills the cell behind the token; the wheel is a little wider than the square, so it shows round it
+      (n ? `<circle class="rim" cx="24" cy="24" r="32"/>` + w.spokes.map(() => `<g class="spoke"><line class="o" x1="24" y1="-14" x2="24" y2="-2"/><line x1="24" y1="-14" x2="24" y2="-2"/></g>`).join("") : "") + `<path class="arch" d="M7 46V20a17 17 0 0 1 34 0V46Z"/><path class="leaf l" d="M7 46V20a17 17 0 0 1 17-17V46Z"/><path class="leaf r" d="M41 46V20a17 17 0 0 0-17-17V46Z"/><path class="sill" d="M4 46h40"/></svg>`;
+    }
+    el.querySelectorAll(".spoke").forEach((g3, k) => {
+      const s = w.spokes[k];
+      g3.style.transform = `rotate(${(k + 0.5) * 360 / n + s.step * 90 / n}deg)`;
+      g3.classList.toggle("gold", s.gold);
+    });
+    el.classList.toggle("open", w.open);
+    el.classList.toggle("shut", w.shut);
+  }
+
   // src/render/landed.js
-  var el = $("landed");
+  var el2 = $("landed");
   var last = null;
   var landHuman = (n, who2, told) => {
     last = { n, who: who2, told };
     drawLanded();
+  };
+  var landDoor = (who2, door) => {
+    last = { n: GOAL, who: who2, door };
+    drawLanded();
+  };
+  function doorLine(l, { who: who2, door }) {
+    const p = G.state.players[who2], w = { name: pnameIn(p, l), gender: p.gender };
+    if (door.kind === "refused") return { title: tIn(l, "endRefused"), text: refusalIn(l, door.refusal, w, door.sit).join(" ") };
+    if (door.kind === "through") return { title: tIn(l, "moksha"), text: fill(tIn(l, "doorThrough", w), w) };
+    if (door.kind === "died") return { title: tIn(l, "moksha"), text: fill(tIn(l, "doorDied", { name: w.name, debts: debtsIn(l, door.debts, w) }), w) };
+    const died = door.ex.died ? [fill(tIn(l, "doorDied", { name: w.name, debts: debtsIn(l, door.ex.debts, w) }), w)] : [];
+    return { title: tIn(l, "moksha"), text: [...examLinesIn(l, door.ex, w), ...died].join(" ") };
+  }
+  var landCurse = (who2, n) => {
+    last = last?.who === who2 && last.n === n ? { ...last, curse: true } : { n, who: who2, curse: true, only: true };
+    drawLanded();
+  };
+  var curseLine = (l, who2) => {
+    const p = G.state.players[who2];
+    return curseSaidIn(l, p, pnameIn(p, l));
   };
   var clearLanded = () => {
     last = null;
@@ -5887,19 +6055,20 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   };
   function drawLanded() {
     const s = G.state;
-    const { title, text } = last && s && s.players[last.who]?.pos != null ? momentLine(last.n, last.who, lang, last.told) : {};
+    let { title, text } = !last || !s ? {} : last.door ? doorLine(lang, last) : last.only ? {} : s.players[last.who]?.pos != null ? momentLine(last.n, last.who, lang, last.told) : {};
+    if (last?.curse && s) text = [text, curseLine(lang, last.who)].filter(Boolean).join(" ");
     if (!text && !title) {
-      el.dataset.empty = "";
-      el.innerHTML = "";
-      el.tabIndex = -1;
+      el2.dataset.empty = "";
+      el2.innerHTML = "";
+      el2.tabIndex = -1;
       return;
     }
-    el.innerHTML = `<span class="landed-t">${title ? `<b>${esc(title)}</b> ` : ""}${esc(text)}</span>`;
-    el.dataset.sq = last.n;
-    delete el.dataset.empty;
-    el.tabIndex = 0;
+    el2.innerHTML = `<span class="landed-t">${title ? `<b>${esc(title)}</b> ` : ""}${esc(text)}</span>`;
+    el2.dataset.sq = last.n;
+    delete el2.dataset.empty;
+    el2.tabIndex = 0;
   }
-  el.addEventListener("click", () => {
+  el2.addEventListener("click", () => {
     if (last) openSquare(last.n, { from: labEls[last.n], who: last.who });
   });
 
@@ -6392,7 +6561,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
       G.forcedRoll = null;
       return;
     }
-    const p = cur(), idx = state.turn, el2 = tokenEls[idx];
+    const p = cur(), idx = state.turn, el3 = tokenEls[idx];
     let shut = null;
     if (p.type === "human") {
       clearLanded();
@@ -6412,6 +6581,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     state.last = v || dice[0];
     setDrone(lens(state).droneStage);
     const watching = watchFrames();
+    let onCard = false;
     let plan = planTurn(state, v, dice);
     G.plan = plan;
     plan.pre.forEach(log);
@@ -6426,14 +6596,14 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
           if (dc) p.face = dc > 0 ? "r" : "l";
         }
         p.pos = n;
-        el2._frame = 1 - el2._frame;
-        retrigger(el2, "hop");
+        el3._frame = 1 - el3._frame;
+        retrigger(el3, "hop");
         place();
         setShepard(lens(state).lead);
         await sleep(200);
       }
       if (g3 !== G.gen) return;
-      el2._frame = 0;
+      el3._frame = 0;
       place();
       if (plan.fell) {
         plan.after.forEach(log);
@@ -6471,6 +6641,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
         if (!plan.sit && !full) {
           if (p.type === "human") landHuman(p.pos, idx);
         }
+        onCard = full && !plan.situation;
         plan.after.forEach(log);
         if (plan.jump) {
           if (g3 !== G.gen) return;
@@ -6500,9 +6671,27 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
             if (g3 !== G.gen) return;
           }
         }
+        if (!plan.sit && plan.final === GOAL && !plan.reckon?.to) {
+          landDoor(idx, plan.refused ? { kind: "refused", refusal: plan.refused, sit: canSit({ ...p, pos: GOAL }) } : { kind: "through" });
+        } else if (plan.sit && plan.from === GOAL && (plan.exam || plan.died)) {
+          const debts = carried(karmaOf(p)).filter((s) => !(plan.exam?.cleared && debtKey(s) === plan.exam.key));
+          const ex = plan.exam && { ...plan.exam, died: plan.died, debts };
+          landDoor(idx, ex ? { kind: "exam", ex } : { kind: "died", debts });
+          if (ex && p.type === "human") {
+            if (cardOpen() && !cardBlocking()) await closeCard({ instant: true });
+            G.waitingCard = true;
+            refreshRoll();
+            await openExam(ex, idx);
+            G.waitingCard = false;
+            refreshRoll();
+            if (g3 !== G.gen) return;
+          }
+        }
       }
     }
+    const cursed = !!p.curse;
     endTurn(state, plan);
+    if (!cursed && p.curse && p.type === "human") onCard && cardOpen() ? cardCurse(idx, plan.target) : landCurse(idx, plan.target);
     G.plan = null;
     G.face = null;
     if (p.type === "human" && (plan.died || plan.win || plan.fell) && firstLife()) {
@@ -6606,6 +6795,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     refreshRoll();
     $("seed").textContent = `${t("seed")} ${state.rng.seed}`;
     place();
+    drawDoor();
     renderLog();
     const w = state.winner, humans = state.players.filter((q2) => q2.type === "human");
     $("win").hidden = !state.over;
@@ -6653,8 +6843,8 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
   function applyStatic() {
     document.documentElement.lang = lang;
     document.title = t("title");
-    document.querySelectorAll("[data-t]").forEach((el2) => {
-      el2.textContent = t(el2.dataset.t);
+    document.querySelectorAll("[data-t]").forEach((el3) => {
+      el3.textContent = t(el3.dataset.t);
     });
     document.querySelectorAll("[data-lang]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.lang === lang)));
     renderMute();
@@ -7008,6 +7198,43 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
           render();
         }
         return s;
+      },
+      // mp.door() stands the current player at 105, refused, as a sannyāsin who may sit there and be examined (Phase 14):
+      // with the debts they carry, or, carrying none, the lie on square 12 told at ten. It returns the refusal.
+      door() {
+        const p = cur();
+        if (!carried(karmaOf(p)).length) {
+          const k = karmaOf(p);
+          p.karma = { ...k, prarabdha: [...k.prarabdha, { ...plantOf(12, situationAt(12).options.find((o) => o.id === "lie"), 10), i: 0 }] };
+        }
+        p.years = Math.max(p.years ?? 0, 80);
+        p.pos = GOAL;
+        p.door = refusalOf(p);
+        p.refusals = [...p.refusals ?? [], { at: p.life?.length ?? 0, ...p.door }];
+        render();
+        age(true);
+        return p.door;
+      },
+      // mp.examine(i) is player i's examination: the years asked so far (p.exam, p.sittings) and what the next would ask
+      examine: (i = G.state.turn) => {
+        const p = G.state.players[i];
+        return { exam: p.exam ?? {}, sittings: p.sittings ?? [], next: examineOf(p) };
+      },
+      // mp.curse(id) chooses the current life's curse (content/curses.json), before or after it is spoken
+      curse(id) {
+        const p = cur();
+        if (id) {
+          p.curseId = id;
+          if (p.curse) p.curse = { ...p.curse, id };
+        }
+        return curseOf(G.state, G.state.turn)?.id ?? null;
+      },
+      // mp.siva() makes the next throw land on 110, where Śiva's snake takes the life down; false if no die reaches it
+      siva() {
+        const v = TOP - cur().pos;
+        if (v < 1 || v > 6 || !canThrow()) return false;
+        G.forcedRoll = v;
+        return v;
       }
     };
   }

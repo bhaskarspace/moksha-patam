@@ -1414,7 +1414,7 @@ reported alongside median, p95 and over-100, before and after.
 > - *The hierarchy inverted.* Pale grounds per band (cream, pale ochre, pale green), dark ink on every label, gold on 101–110, flat indigo at 105. The snakes are nāgas: a seven-lobed hood with the spectacle mark, the one almond eye, a forked tongue and scales, each in one of five pigment pairs, with no two snakes that come within 1.6 squares sharing one (`snakeHues`). The ladders are yellow, outlined in vermilion. A floral scroll border, the vimāna arches over the divine row. The page is the cloth; dark is a setting (`prefs.theme`), no longer the system's choice. The panel is a ruled margin with rubric headings, and the introduction is a colophon.
 > - *Vignettes for the 34.* The 13 snake heads, the 11 ladder feet and 101–110, each a scene of the square's moment drawn from a parts library (`tools/vignette-parts.mjs`, `art/vignettes.mjs`, `node tools/vignettes.mjs`) into `assets/sprites.svg` under the square's own id, so a missing sheet still shows the emoji (checked: with the sheet removed every square shows its emoji). Each is composed in the part of its square the snake or ladder leaves open. 105 keeps ॐ on the board; its vignette, the open door with a lotus, is its card's alone. Spec in `docs/CONTENT.md §7`.
 > - *The first impression.* `?look=first` (the default until Bhaskar chooses), `veil` or `asrama` (`mp.look(x)` under `?debug`): `first` shows the whole cloth at full pigment through the naming and until the first throw, then ages as before. **The choice between the three is still open**, to be made with cold players as the brief says.
-> - *Cost.* The page is 803,062 bytes (`main` 781,829). `npm run perf` on the throttled phone matches `main`: walk, climb and swallow at p50 16.7 ms on both, and the climb's longest frame 104–106 ms against `main`'s 105 (both noisy, 101–150 across runs); `quality=low` the same. The scales are drawn only at high quality.
+> - *Cost.* The page is 842,455 bytes (`main` 781,829). `npm run perf` on the throttled phone matches `main`: walk, climb and swallow at p50 16.7 ms on both, and the climb's longest frame 104–106 ms against `main`'s 105 (both noisy, 101–150 across runs); `quality=low` the same. The scales are drawn only at high quality.
 > - *Still to do* (Phase 20): the other 67 squares keep their Phase 5 sprites. The parts already cover most of them: a single figure in profile with one object (rites, scenes, the aged figures of 60–100), the arch for the settings, sea, sun, moon, flame and lotus for the argument squares, and since 26 Oct the animals.
 > - *After Bhaskar's review* (26 Oct). Presentation only, except the last item.
 >   - *Ladders.* They read orange and covered the vignettes: the vermilion band was twice the width of the yellow. Now thinner, Indian yellow inside a thin vermilion line as §7 says (rails 0.14 of a square from the centre, was 0.18; the outline 0.07 wide, was 0.135). Vignette area they cover, by `drawLadder`'s own geometry over the 42 cells that carry one: **11.7% → 5.9%**; the worst, 34 Resolve and 65 Detachment, 49.6% and 49.9% → 25.8% and 26.7%.
@@ -1499,7 +1499,50 @@ cold players asked "what is this?" say a painting or a cloth, not an app.
 
 ---
 
-### Phase 14 — The door and the curse
+### Phase 14 — The door and the curse  ✅ SHIPPED
+
+> **Shipped** (26 Oct). Rules change at the door and at 110; golden re-pinned for that (Śiva's snake, the computer
+> sitting at the door, the door opening). With the curse off (`--curse=off`) every account `node tools/accounts.mjs`
+> does not tag `above`/`karma`/`door` is byte-identical to `main` (2,732 of 16,000 untagged, 0 differ); with it on, 0 of
+> 4,800 accounts differ beyond the curse's own sentences.
+> - *The examination.* `content/door.json` keys a question to each vice (19, 29, 47, 55, 59, 77) with its answer, the
+>   ladder that heals it (19 → 28, 29 → 34, 47 → 65, 55 → 44, 59 → 51, 77 → 23) and what climbing it was ("told the truth
+>   about the homework"). `examineOf(p)` (`src/engine/karma.js`, pure) asks about the oldest debt still owed: the book
+>   answers it if the life climbed that ladder after the debt was planted (seeds now keep `i`, where in the life), and the
+>   line names the ladder and the age; otherwise each year is penance and the debt is paid after its weight. The door opens
+>   when nothing is owed (`lDoorOpen`, then `lWin`); the years running out there close the account on what was still owed
+>   (`lifeEndDoor`). The computer sits whenever it may. "What is poison?" for desire (§13.7) could not be confirmed in a
+>   translation; Bhaskar reviews all six.
+> - *The door is public.* Anyone's arrival at 105 (refused or let through), each year sat there and a death there is the
+>   line under the board, a computer's too (`landDoor` in `src/render/landed.js`), the one exception to Phase 11's rule.
+>   A person's year at the door is a modal card like the reckoning's (`openExam`), and Space-to-roll and the aria-live
+>   card are as they were. A sannyāsin's refusal says they may sit (`doorSit`).
+> - *The door and the wheel of time* (`src/render/door.js`). An SVG over 105, under its label and the token: a lac door in
+>   a gold frame behind the token while it waits, and round the square a rim with a spoke per debt it was refused for.
+>   Each year the spokes still owed turn a quarter of a spoke's angle; a met or paid debt's spoke stops, gold. The door
+>   opens on liberation and closes over the token, black, if the years run out. Reduced motion shows the same states
+>   without turning. The scholar note on 105 says the board is the saṃsāra-cakra and the wheel is the kāla-cakra, time
+>   turning while the token stands still.
+> - *Śiva's snake.* A throw landing exactly on 110 is the fall too (`plan.fellBy`: `past` or `snake`, `lSiva`). One nāga
+>   in a new palette token, `nila` (#1E2740), coiled round the trident on 110, down the board's right edge and along its
+>   foot to a tail curled into square 1 (`sivaPath` in `src/render/ground.js`). It covers 1.64% of the 42 vignette cells:
+>   110 35.6% (the coil, on purpose), 71 12.5%, 51 12.0%, 6 8.9%, nothing else.
+> - *The curse.* Eight (`content/curses.json`: well, barber, bangles, temper, tuition, ration, aunt, river), one drawn per
+>   life off its own sequence (`src/engine/curse.js`), said at the first landing old enough for it, on the person's line,
+>   and closed in the account: after the first square of its family it lands on ("The barber had said so."), or at the
+>   end, the other way. Drafts for Bhaskar's review.
+> - *Balance.* `npm run sim 20000 1`, `main` → this phase: median 29 → 28, p95 48 → 48, over 100 0% → 0%, liberation per
+>   life 27.6% → 39.8%, lives per liberation 3.63 → 2.52, the fall 64.4% → 51.2% (past 110 47.9%, Śiva's snake 3.3%),
+>   years ran out 8.1% → 9.1%, refusals 0.138 → 0.141 a life, of which a sannyāsin who could sit 98.2%. Lives that sat at
+>   the door 13.4%, years there median 2, p95 5, max 15; the book answered 583 debts and 2,213 were paid in penance;
+>   through the door 12.1% of lives; deaths at the door 0.6%. Curses closed by landing 77.9%, the other way 22.1%. A square
+>   at or above 94 landed on four times or more rose from 0% to 3.6%, because the years sat at 105 count. With
+>   `--policy=dishonest` liberation rises most, 13.6% → 29.0% (lives per liberation 7.36 → 3.45, the fall 67.6% → 49.1%,
+>   years ran out 18.8% → 21.9%): a life of the least-worth choices now pays its way through the door in penance. Whether
+>   penance should cost more than a year per weight is for Phase 16, with death.
+> - *Cost.* The page is 842,455 bytes (`main` 806,240). `npm run perf` on the throttled phone matches `main`: walk, climb and
+>   swallow at p50 16.7 ms on both, the climb's longest frame 106 ms against `main`'s 108 (107 against 98 with
+>   `--query=quality=low`, inside the noise Phase 13 measured), the turn-end repaint p50 2.6 ms against 2.7.
 
 *`docs/NARRATIVE.md` §13.5–13.7, built on Phase 12's ledger and Phase 11's card. Decided by Bhaskar, 26 Oct. Its own
 PR. The cast reacting to choices has moved to Phase 15.*

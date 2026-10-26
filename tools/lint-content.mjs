@@ -526,7 +526,7 @@ export function lintSprites(svg) {
 export function lintPaint(root) {
   const errors = [], css = fs.readFileSync(path.join(root, "src/styles.css"), "utf8");
   const palette = PALETTE_HEX();
-  for (const f of ["src/render/age.js", "src/render/ground.js", "src/render/board.js", "src/render/camera.js", "src/audio/drone.js", "src/render/frame.js"]) {
+  for (const f of ["src/render/age.js", "src/render/ground.js", "src/render/board.js", "src/render/camera.js", "src/audio/drone.js", "src/render/frame.js", "src/render/door.js"]) {
     const src = fs.readFileSync(path.join(root, f), "utf8");
     // since Phase 13 the grounds are the board's palette too (content/boards.json), so no file here has an exception
     const hex = src.match(/#[0-9A-Fa-f]{6}\b/g);

@@ -7,6 +7,7 @@
 // Pure, so the page, tools/sim.mjs and the tests run it alike.
 import { CURSES } from "../content.js";
 import { makeRng, next } from "../rng.js";
+import { fill, wordsIn } from "../i18n.js";
 
 // The curse drawn for player idx in this game, or null.
 export function curseOf(state, idx) {
@@ -28,4 +29,9 @@ export function curseIn(p) {
   // a square lived again as a stay or sent back to by a reckoning is not landed on
   const k = life.findIndex((n, j) => j > p.curse.i && c.family.includes(n) && told[j] !== "stay" && told[j] !== "reckon");
   return { c, said: p.curse.i, age: p.curse.age, closedAt: k < 0 ? null : k };
+}
+// The curse as it was said, in language l, for player p named name there: empty when there is none.
+export function curseSaidIn(l, p, name) {
+  const c = curseIn(p);
+  return c ? fill(c.c.line[l] || c.c.line.en, { name, gender: p.gender, age: wordsIn(l, Math.floor(c.age)) }) : "";
 }
