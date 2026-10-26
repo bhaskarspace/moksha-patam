@@ -33,10 +33,10 @@ test("a ladder climbs and a snake swallows", () => {
 // which ends the life: no bounce, no square 1, and no landing.
 test("past 105 the heavens are walked, and the throw past 110 ends the life", () => {
   const s = game(107);
-  const plan = playTurn(s, 3);
-  assert.deepEqual(plan.path, [108, 109, 110]);
-  assert.equal(s.players[0].pos, 110);
-  assert.equal(s.log.find(e => e.k === "lHeaven").v.pos, 110);
+  const plan = playTurn(s, 2);
+  assert.deepEqual(plan.path, [108, 109]);
+  assert.equal(s.players[0].pos, 109);
+  assert.equal(s.log.find(e => e.k === "lHeaven").v.pos, 109);
   // Brahma's square is only his realm now
   const b = game(106);
   const up = playTurn(b, 2);
@@ -63,11 +63,22 @@ test("no roll from 101 to 110 ever turns back, and only landing on 105 wins", ()
     for (let v = 1; v <= 6; v++) {
       const plan = planTurn(game(pos), v);
       assert.deepEqual(plan.path, Array.from({ length: Math.min(v, 110 - pos) }, (_, i) => pos + i + 1), `from ${pos}, a ${v}`);
-      assert.equal(!!plan.fell, pos + v > 110, `from ${pos}, a ${v}`);
+      // past 110, or since Phase 14 onto it, where Śiva's snake takes the life
+      assert.equal(!!plan.fell, pos + v >= 110, `from ${pos}, a ${v}`);
+      if (plan.fell) assert.equal(plan.fellBy, pos + v === 110 ? "snake" : "past");
       if (pos > 100 && !plan.fell) assert.ok(plan.final > pos, `from ${pos}, a ${v} goes on`);
       assert.equal(plan.win, !plan.fell && plan.final === 105, `from ${pos}, a ${v}`);
     }
   }
+});
+
+test("Śiva's snake: a landing on 110 is the fall, by the snake, and the life ends with nothing landed", () => {
+  const s = game(107), plan = playTurn(s, 3), p = s.players[0];
+  assert.ok(plan.fell && plan.fellBy === "snake" && !plan.win && !plan.died && !plan.jump);
+  assert.deepEqual(plan.path, [108, 109, 110]);
+  assert.ok(p.fell && p.fellBy === "snake" && p.fellFrom === 110 && p.pos === 0);
+  assert.equal(s.log[0].k, "lSiva");
+  assert.ok(!s.log.some(e => e.k === "lHeaven" && e.v.pos === 110));
 });
 
 test("a fallen player is passed over, and the race goes on without them", () => {

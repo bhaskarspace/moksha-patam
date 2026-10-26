@@ -248,7 +248,27 @@
       "ledgerRipe": "ripe, waiting for a six · prārabdha · udīraṇā",
       "ledgerMet": "met at {age} · uday",
       "ledgerStore": "carried on, unmet, into what comes after · sañcita",
-      "ledgerNote": "This panel is the engine itself, and it is a deterministic dynamical system in the plain sense. A choice early in a life plants a seed whose fuse is measured in years lived; when the fuse runs out the seed is ripe, and waits for an event the player cannot steer, a six, whose chance rises toward the exit. What it then costs is a fixed function of the whole ledger at that moment: nothing in the cost is drawn. The die decides when and the life decides how much, and the outcome depends on everything that happened between the choice and the six. The three stores are Vedānta's sañcita (what earlier lives left, empty here until a life carries one over), āgāmi (what this life is making) and prārabdha (what has been released to fruit in this life). The Jain charts draw the same passage as sattā, karma bound and held; udīraṇā, karma stirred to ripen; and uday, karma in fruit."
+      "ledgerNote": "This panel is the engine itself, and it is a deterministic dynamical system in the plain sense. A choice early in a life plants a seed whose fuse is measured in years lived; when the fuse runs out the seed is ripe, and waits for an event the player cannot steer, a six, whose chance rises toward the exit. What it then costs is a fixed function of the whole ledger at that moment: nothing in the cost is drawn. The die decides when and the life decides how much, and the outcome depends on everything that happened between the choice and the six. The three stores are Vedānta's sañcita (what earlier lives left, empty here until a life carries one over), āgāmi (what this life is making) and prārabdha (what has been released to fruit in this life). The Jain charts draw the same passage as sattā, karma bound and held; udīraṇā, karma stirred to ripen; and uday, karma in fruit.",
+      "lExamPass": "{name} sat a year at the door and was asked about square {src}; the book had the answer, and the debt is met.",
+      "lExamFail": "{name} sat a year at the door and was asked about square {src}; the book had no answer.",
+      "lExamPenance": "{name} sat a year at the door in penance for the debt from square {src}.",
+      "lExamPaid": "{name} sat a year at the door in penance, and the debt from square {src} is paid.",
+      "lDoorOpen": "Nothing is owed, and the door opens for {name}.",
+      "lDiedDoor": "{name}'s years ran out at {age}, sitting at the door.",
+      "lSiva": "{name} rolled {v} and landed on {pos}, and Śiva's snake took {name} down to the world. The merit is spent, and the life with it.",
+      "examTitle": "The door asks",
+      "examAsks": "The door asks: {q}",
+      "examPass": "The answer is {a}, and Citragupta finds it in the book: at {age}, {name} {answered}.",
+      "examMet": "The debt of {debt} is met.",
+      "examFail": "The answer is {a}. Citragupta turns the pages, and it is not in the book. The year passes at the door, in penance.",
+      "examPenance": "The same question, and the book has no more to say. Another year at the door, in penance.",
+      "examPaid": "With this year the debt of {debt} is paid.",
+      "examOwing": "The debt of {debt} is not yet paid.",
+      "doorOpens": "Nothing is owed. The door opens.",
+      "doorSit": "{name} may sit here, a year at a time, and be asked; or throw on into the heavens.",
+      "doorThrough": "{name} comes to the door, and it opens.",
+      "doorDied": "{name}'s years ran out at the door, still owing {debts}.",
+      "lifeEndDoor": "{name}'s years ran out at {age}, sitting at the door, {carry}."
     },
     "hi": {
       "title": "मोक्ष पटम",
@@ -471,7 +491,27 @@
       "ledgerRipe": "पका हुआ, छक्के की प्रतीक्षा में · प्रारब्ध · उदीरणा",
       "ledgerMet": "{age} बरस पर फल मिला · उदय",
       "ledgerStore": "बिना भुगते, आगे जो आएगा उसमें ढोया गया · संचित",
-      "ledgerNote": "यह पटल स्वयं इंजन है, और सीधे अर्थ में एक नियतिवादी गतिशील तंत्र है। जीवन में पहले लिया गया कोई निर्णय एक बीज बोता है, जिसकी अवधि जिए गए बरसों में गिनी जाती है; अवधि पूरी होने पर बीज पक जाता है, और एक ऐसी घटना की प्रतीक्षा करता है जिसे खिलाड़ी मोड़ नहीं सकता, एक छक्का, जिसकी संभावना द्वार की ओर बढ़ती जाती है। तब उसकी कीमत उस पल के पूरे लेखे का एक निश्चित फलन होती है: कीमत में कुछ भी पासे से नहीं आता। पासा तय करता है कब, और जीवन तय करता है कितना, और परिणाम निर्णय और छक्के के बीच हुई हर बात पर निर्भर करता है। तीनों भंडार वेदांत के संचित (पिछले जन्मों का छोड़ा हुआ, जो यहाँ तब तक ख़ाली है जब तक कोई जीवन उसे आगे न ले जाए), आगामी (जो यह जीवन बना रहा है) और प्रारब्ध (जो इस जीवन में फल देने को छूट चुका है) हैं। जैन चित्रपट यही यात्रा सत्ता, बँधा और रखा हुआ कर्म; उदीरणा, पकने को उकसाया गया कर्म; और उदय, फल में आया कर्म, के रूप में दिखाते हैं।"
+      "ledgerNote": "यह पटल स्वयं इंजन है, और सीधे अर्थ में एक नियतिवादी गतिशील तंत्र है। जीवन में पहले लिया गया कोई निर्णय एक बीज बोता है, जिसकी अवधि जिए गए बरसों में गिनी जाती है; अवधि पूरी होने पर बीज पक जाता है, और एक ऐसी घटना की प्रतीक्षा करता है जिसे खिलाड़ी मोड़ नहीं सकता, एक छक्का, जिसकी संभावना द्वार की ओर बढ़ती जाती है। तब उसकी कीमत उस पल के पूरे लेखे का एक निश्चित फलन होती है: कीमत में कुछ भी पासे से नहीं आता। पासा तय करता है कब, और जीवन तय करता है कितना, और परिणाम निर्णय और छक्के के बीच हुई हर बात पर निर्भर करता है। तीनों भंडार वेदांत के संचित (पिछले जन्मों का छोड़ा हुआ, जो यहाँ तब तक ख़ाली है जब तक कोई जीवन उसे आगे न ले जाए), आगामी (जो यह जीवन बना रहा है) और प्रारब्ध (जो इस जीवन में फल देने को छूट चुका है) हैं। जैन चित्रपट यही यात्रा सत्ता, बँधा और रखा हुआ कर्म; उदीरणा, पकने को उकसाया गया कर्म; और उदय, फल में आया कर्म, के रूप में दिखाते हैं।",
+      "lExamPass": "{name} ने द्वार पर एक बरस बिताया और खाना {src} के बारे में पूछा गया; बही में उत्तर था, और क़र्ज़ उतर गया।",
+      "lExamFail": "{name} ने द्वार पर एक बरस बिताया और खाना {src} के बारे में पूछा गया; बही में कोई उत्तर नहीं था।",
+      "lExamPenance": "{name} ने खाना {src} के क़र्ज़ के प्रायश्चित में द्वार पर एक बरस बिताया।",
+      "lExamPaid": "{name} ने द्वार पर प्रायश्चित में एक बरस बिताया, और खाना {src} का क़र्ज़ चुक गया।",
+      "lDoorOpen": "कुछ बाक़ी नहीं, और {name} के लिए द्वार खुल जाता है।",
+      "lDiedDoor": "{name} के बरस {age} पर पूरे हुए, द्वार पर बैठे-बैठे।",
+      "lSiva": "{name} का {v} आया और {name} खाना {pos} पर {पहुँचा|पहुँची}, और शिव का नाग {उसे|उसे} संसार में नीचे ले गया। पुण्य क्षीण हुआ, और उसके साथ यह जीवन।",
+      "examTitle": "द्वार का प्रश्न",
+      "examAsks": "द्वार पूछता है: {q}",
+      "examPass": "उत्तर है {a}, और चित्रगुप्त उसे बही में पाते हैं: {age} बरस पर {name} {answered}।",
+      "examMet": "क़र्ज़ उतर गया: {debt}।",
+      "examFail": "उत्तर है {a}। चित्रगुप्त पन्ने पलटते हैं, और वह बही में नहीं है। बरस द्वार पर, प्रायश्चित में, बीतता है।",
+      "examPenance": "वही प्रश्न, और बही में कहने को कुछ और नहीं। द्वार पर एक और बरस, प्रायश्चित में।",
+      "examPaid": "इस बरस के साथ क़र्ज़ चुक गया: {debt}।",
+      "examOwing": "क़र्ज़ अभी चुका नहीं: {debt}।",
+      "doorOpens": "कुछ बाक़ी नहीं। द्वार खुल जाता है।",
+      "doorSit": "{name} यहाँ एक-एक बरस बैठ {सकता|सकती} है और प्रश्न सुन {सकता|सकती} है; या दाँव फेंककर आगे स्वर्गों में जा {सकता|सकती} है।",
+      "doorThrough": "{name} द्वार तक {आया|आई}, और वह खुल गया।",
+      "doorDied": "{name} के बरस द्वार पर ही पूरे हो गए, {debts} अब भी बाक़ी थे।",
+      "lifeEndDoor": "{name} के बरस {age} पर पूरे हुए, द्वार पर बैठे-बैठे, {carry}।"
     }
   },
   "JOINS": {
@@ -557,6 +597,26 @@
     "door": {
       "en": "At {age}, Moksha was reached, and ",
       "hi": "{age} बरस पर मोक्ष तक पहुँचना हुआ, और "
+    },
+    "examPass": {
+      "en": "At {age}, at the door, {name} was asked: {q} The book had the answer: at {answer}, {name} {answered}.",
+      "hi": "{age} बरस पर, द्वार पर, {name} से पूछा गया: {q} बही में उत्तर था: {answer} बरस पर {name} {answered}।"
+    },
+    "examFail": {
+      "en": "At {age}, at the door, {name} was asked: {q} The book had no answer, and {name} sat on there in penance for {debt}.",
+      "hi": "{age} बरस पर, द्वार पर, {name} से पूछा गया: {q} बही में कोई उत्तर नहीं था, और {name} प्रायश्चित में वहीं {बैठा रहा|बैठी रही}: {debt}।"
+    },
+    "examFailPaid": {
+      "en": "At {age}, at the door, {name} was asked: {q} The book had no answer, and the year spent there paid for {debt}.",
+      "hi": "{age} बरस पर, द्वार पर, {name} से पूछा गया: {q} बही में कोई उत्तर नहीं था, और वहाँ बीते बरस ने यह क़र्ज़ चुका दिया: {debt}।"
+    },
+    "examPaid": {
+      "en": "By {age} that was paid.",
+      "hi": "{age} बरस तक वह चुक गया।"
+    },
+    "curse": {
+      "en": "Around then, ",
+      "hi": "उन्हीं दिनों, "
     }
   },
   "NUM_HI": ["शून्य","एक","दो","तीन","चार","पाँच","छह","सात","आठ","नौ","दस","ग्यारह","बारह","तेरह","चौदह","पंद्रह","सोलह","सत्रह","अठारह","उन्नीस","बीस","इक्कीस","बाईस","तेईस","चौबीस","पच्चीस","छब्बीस","सत्ताईस","अट्ठाईस","उनतीस","तीस","इकतीस","बत्तीस","तैंतीस","चौंतीस","पैंतीस","छत्तीस","सैंतीस","अड़तीस","उनतालीस","चालीस","इकतालीस","बयालीस","तैंतालीस","चवालीस","पैंतालीस","छियालीस","सैंतालीस","अड़तालीस","उनचास","पचास","इक्यावन","बावन","तिरपन","चौवन","पचपन","छप्पन","सत्तावन","अट्ठावन","उनसठ","साठ","इकसठ","बासठ","तिरसठ","चौंसठ","पैंसठ","छियासठ","सड़सठ","अड़सठ","उनहत्तर","सत्तर","इकहत्तर","बहत्तर","तिहत्तर","चौहत्तर","पचहत्तर","छिहत्तर","सतहत्तर","अठहत्तर","उन्यासी","अस्सी","इक्यासी","बयासी","तिरासी","चौरासी","पचासी","छियासी","सत्तासी","अट्ठासी","नवासी","नब्बे","इक्यानवे","बानवे","तिरानवे","चौरानवे","पंचानवे","छियानवे","सत्तानवे","अट्ठानवे","निन्यानवे","सौ"],

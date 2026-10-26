@@ -22,14 +22,20 @@
 //
 // A reckoning (REDESIGN.md Phase 12) is told where it came, as what came due, after a join that says the six. The years
 // it took pass silently like a choice's, and the square it sent the life back to is lived, not told.
-import { ASHRAMAS, LADDERS, SNAKES, GOAL, JOINS, CAST_WORDS, squareOf } from "../content.js";
+//
+// The door's examination (REDESIGN.md Phase 14) is told where it came too: each debt once, by its question and what the
+// book had, and the year a penance was paid. The years sat there are those lines, not years sat out. A life whose
+// years ran out at the door ends on what it still owed, in the door's words. The curse is told where it was said, and
+// closed right after the square that bore it out, or at the end, the other way.
+import { ASHRAMAS, LADDERS, SNAKES, GOAL, JOINS, CAST_WORDS, DOOR, squareOf } from "../content.js";
 import { tIn, fill, castFill, wordsIn, ageWordsIn, CAST_ROLES } from "../i18n.js";
 import { makeRng, next } from "../rng.js";
 import { pnameIn } from "../state.js";
 import { ageOf, yearsAlong, stageOfYears, titleOf, holdingOf } from "./self.js";
 import { momentOf } from "./qbn.js";
 import { castAlong, peopleOf, introIn, calledIn, fatesIn } from "./cast.js";
-import { reckoningIn, seedOf, refusalIn, carryIn, karmaOf, carried } from "./karma.js";
+import { reckoningIn, seedOf, refusalIn, carryIn, karmaOf, carried, debtIn } from "./karma.js";
+import { curseIn } from "./curse.js";
 
 const EARTH = 100, GAP = 8;
 // An English moment that does not open with the name reads on after a joining phrase in lower case:
@@ -87,11 +93,33 @@ export function lifeOf(state, i, l) {
   // the reckonings and the door's refusals, each told before the first entry of the life that comes after it
   // (p.reckonings[].at, p.refusals[].at); at the door the refusal comes first, since it is said on arriving
   const all = yearsAlong(p.life || [], p.told || []);
-  const recks = [...(p.refusals || []).map(r => ({ ...r, door: true })), ...(p.reckonings || [])].sort((a, b) => a.at - b.at || !!b.door - !!a.door);
+  // and the years at the door, the curse said and the curse borne out, told likewise before the entry after them
+  const curse = curseIn(p);
+  const sayings = curse ? [{ at: curse.said + 1, curse: "said" }, ...(curse.closedAt != null ? [{ at: curse.closedAt + 1, curse: "landed" }] : [])] : [];
+  const recks = [...(p.refusals || []).map(r => ({ ...r, door: true })), ...(p.reckonings || []), ...(p.sittings || []).map(x => ({ ...x, exam: true })), ...sayings]
+    .sort((a, b) => a.at - b.at || !!b.door - !!a.door);
   let rq = 0;
   const reckon = upto => {
     for (; rq < recks.length && recks[rq].at <= upto; rq++) {
       const r = recks[rq];
+      if (r.curse) {
+        if (!para) continue;
+        flush();
+        const t = r.curse === "said" ? curse.c.line : curse.c.landed, raw = t[l] || t.en;
+        const text = fill(raw, { ...who, age: words(curse.age) });
+        para.parts.push(r.curse === "said" ? J(JOINS.curse) + after(raw, text, l) : text);
+        continue;
+      }
+      if (r.exam) {
+        const q = DOOR[seedOf(r.src, r.opt)?.holds];
+        if (!para || !q || (r.n > 1 && !r.cleared)) continue;
+        flush();
+        const v = { age: words(r.age), q: q.q[l] || q.q.en, debt: debtIn(l, { src: r.src, opt: r.opt, at: r.planted }, who) };
+        if (r.pass) para.parts.push(J(JOINS.examPass, { ...v, answer: words(r.answer), answered: q.answered[l] || q.answered.en }));
+        else para.parts.push(J(r.n > 1 ? JOINS.examPaid : r.cleared ? JOINS.examFailPaid : JOINS.examFail, v));
+        lastYears = r.age;
+        continue;
+      }
       if (r.door) {
         if (!para) continue;
         flush();
@@ -131,6 +159,8 @@ export function lifeOf(state, i, l) {
     if (!m && e.via !== "sit") { note(e); continue; }
     const s = stageAt(e);
     if (!para || para.s !== s) open(s);
+    // a year at the door is a question of the examination, told as one above (Phase 14)
+    if (e.via === "sit" && e.n === GOAL && p.sittings?.length) { para.ages.push(Math.floor(e.years)); note(e); lastYears = e.years; continue; }
     if (e.via === "sit") { flushFold(); sat.push(e); para.ages.push(Math.floor(e.years)); continue; }
     // a snake or ladder taken from here, and whether this square has been told already in this life
     const event = nextE && (nextE.via === "snake" || nextE.via === "ladder");
@@ -200,8 +230,11 @@ export function lifeOf(state, i, l) {
     end: state.winner === i ? winEnd(p, T, words, held)
       : p.fell ? fellEnd(p, along, T, sq, held, l, who)
       : !p.life?.length ? T("lifeUnborn")
+      : p.dead && p.pos === GOAL ? doorEnd(p, T, words, l, who)
       : p.dead ? T("lifeEndDied", { age: words(p.years), holding: held(SNAKES[p.holding]?.holding) }).replace(/, ([.।])$/, "$1")
       : T("lifeEndOpen", { n: p.pos }),
+    // a curse the life never bore out is closed after the end, the other way (Phase 14): empty with none
+    curse: curse && curse.closedAt == null && (state.winner === i || p.fell || p.dead) ? fill(curse.c.not[l] || curse.c.not.en, who) : "",
     // what the life never found out about the people in it (Phase 10C): empty with no cast
     fates: fatesIn(state, i, l, along, cc, who),
   };
@@ -228,6 +261,12 @@ function fellEnd(p, along, T, sq, held, l, who) {
   return holding ? T("lifeEndFell", { realm: sq(top), holding }) : T("lifeEndFellFree", { realm: sq(top) });
 }
 
+// A life whose years ran out at the door (REDESIGN.md Phase 14) ends on what it still owed, in the door's words.
+function doorEnd(p, T, words, l, who) {
+  const k = karmaOf(p), carry = carryIn(l, [...carried(k), ...k.sancita], null, who);
+  return T("lifeEndDoor", { age: words(p.years), carry }).replace(/, ([.।])$/, "$1");
+}
+
 // The first line knows the shape of the whole life, and says only what happened, never what it was worth.
 function opening(p, along, T, words) {
   if (!along.length) return "";
@@ -242,6 +281,6 @@ function opening(p, along, T, words) {
 
 // The same life as plain text, to copy or save.
 export function lifeText(state, i, l) {
-  const { title, sub, open, paras, end, fates } = lifeOf(state, i, l);
-  return [[title, sub].filter(Boolean).join("\n"), open, ...paras.map(p => `${p.head}\n${p.text}`), end, fates.join(" ")].filter(Boolean).join("\n\n") + "\n";
+  const { title, sub, open, paras, end, curse, fates } = lifeOf(state, i, l);
+  return [[title, sub].filter(Boolean).join("\n"), open, ...paras.map(p => `${p.head}\n${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boolean).join("\n\n") + "\n";
 }

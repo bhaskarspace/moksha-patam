@@ -1,9 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { GOAL, SITUATIONS } from "../src/content.js";
-import { createGame, planTurn, playTurn, resolveChoice, endTurn } from "../src/engine/turn.js";
-import { freshKarma, ripen, omenFor, omenChance, reckonOf, severityOf, tierOf, refusalOf, reckonLinesIn, DEATH, TIERS } from "../src/engine/karma.js";
-import { lifeText } from "../src/engine/account.js";
+import { createGame, planTurn, playTurn, resolveChoice, endTurn, moveFor } from "../src/engine/turn.js";
+import { freshKarma, ripen, omenFor, omenChance, reckonOf, severityOf, tierOf, refusalOf, reckonLinesIn, DEATH, TIERS, answerOf, questionOf, examLinesIn, carried, karmaOf } from "../src/engine/karma.js";
+const carriedOf = p => carried(karmaOf(p));
+import { lifeText, lifeOf } from "../src/engine/account.js";
 
 // A fixture situation on square 20, which has none of its own, planting a debt with a short fuse (REDESIGN.md Phase 12).
 const FIXTURE = {
@@ -135,4 +136,70 @@ test("a life refused at the door that throws on past the heavens closes on the d
   assert.equal(p.karma.sancita.length, 1);
   const text = lifeText(s, 0, "en");
   assert.match(text, /came as far as the door, and it did not open/);
+});
+
+// ---- Phase 14: the door is an examination ----
+// A sannyāsin of ninety refused at the door for one debt, sitting there by the dice [a, b] and moving by neither.
+const atDoor = (debts, life = [103]) => {
+  const s = game(103, 88), p = s.players[0];
+  p.karma = { ...freshKarma(), agami: debts };
+  p.life = [...life];
+  p.told = life.map(() => null);
+  playTurn(s, [2, 1], () => 2);
+  assert.ok(p.door && p.pos === GOAL);
+  return s;
+};
+const sit = s => playTurn(s, [3, 4], () => 0);
+
+test("the book answers a debt when the life climbed its healing ladder after it was planted", () => {
+  // the hand that fell, at 48 (59 strike holds anger), and then Compassion, 51 → 67, climbed at 37 in the authored ages
+  const anger = { src: 59, opt: "strike", at: 48, fuse: 10, weight: 3, i: 1 };
+  assert.ok(answerOf({ life: [58, 59, 50, 51, 67], told: [] }, anger), "a climb after it answers");
+  assert.equal(answerOf({ life: [51, 67, 59, 50], told: [] }, { ...anger, i: 2 }), null, "a climb before it does not");
+  assert.equal(answerOf({ life: [58, 59, 50], told: [] }, anger), null);
+  // a seed planted before Phase 14 has no place, and goes by the years
+  assert.ok(answerOf({ life: [58, 59, 50, 51, 67], told: [] }, { ...anger, i: undefined, at: 30 }));
+  // every vice a debt holds has a question and a ladder that heals it
+  for (const sit of Object.values(SITUATIONS)) for (const o of sit.options) if (o.seed) assert.ok(questionOf({ src: Object.keys(SITUATIONS).find(k => SITUATIONS[k] === sit), opt: o.id })?.heals, o.id);
+});
+
+test("a year at the door is one question: a pass meets the debt, a fail is paid in penance by its weight, then the door opens", () => {
+  // two debts: anger, answered by the climb after it; greed, weight 2, never answered
+  const s = atDoor([{ ...seed(59, "strike", 48, 10, 3), i: 1 }, { ...seed(55, "keep", 60, 15, 2), i: 4 }], [58, 59, 50, 51, 67, 103]), p = s.players[0];
+  const one = sit(s);
+  assert.ok(one.exam.pass && one.exam.cleared && one.exam.src === 59 && !one.win);
+  assert.ok(examLinesIn("en", one.exam, who).some(t => /sat up all night/.test(t)), "the pass names the climb");
+  const two = sit(s);
+  assert.ok(!two.exam.pass && !two.exam.cleared && two.exam.src === 55 && !two.win);
+  const three = sit(s);
+  assert.ok(three.exam.cleared && three.exam.n === 2 && three.win);
+  assert.equal(s.winner, 0);
+  assert.deepEqual(p.sittings.map(x => [x.src, x.pass, x.cleared]), [[59, true, true], [55, false, false], [55, false, true]]);
+  assert.equal(carriedOf(p).length, 0);
+  // never a number of the ledger's on what the player reads
+  for (const pl of [one, two, three]) for (const l of ["en", "hi"]) assert.ok(!examLinesIn(l, pl.exam, who).some(t => /\b(weight|fuse)\b|[0-9]/.test(t)), l);
+  const text = lifeText(s, 0, "en");
+  assert.match(text, /at the door, Asha was asked: Which enemy cannot be conquered\? The book had the answer/);
+});
+
+test("a life whose years run out at the door dies there, closing on what it still owed", () => {
+  const s = atDoor([seed(55, "keep", 60, 15, 3)]), p = s.players[0];
+  p.years = 110;
+  const plan = sit(s);
+  assert.ok(plan.died && !plan.win && p.dead && p.pos === GOAL);
+  assert.equal(s.log[0].k, "lDiedDoor");
+  assert.match(lifeOf(s, 0, "en").end, /ran out at a hundred and eleven, sitting at the door, still carrying the extra change pocketed at sixty\.$/);
+});
+
+test("a reckoning that meets the last debt while the life sits at the door lets it open on the next year", () => {
+  const s = atDoor([seed(55, "keep", 60, 15, 1)]), p = s.players[0];
+  p.karma = freshKarma();
+  const plan = sit(s);
+  assert.ok(plan.win && !plan.exam);
+  assert.equal(s.winner, 0);
+});
+
+test("the computer sits at a door that has refused it, wherever it may", () => {
+  const s = atDoor([seed(55, "keep", 60, 15, 2)]);
+  assert.equal(moveFor(s, [3, 4]), 0);
 });

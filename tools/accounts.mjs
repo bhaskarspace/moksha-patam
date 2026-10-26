@@ -11,6 +11,8 @@
 // within a throw of the door (where a computer would rather stand short than be refused): the ledger alone touches
 // nothing else, so every account untagged by either must be the same as the first step's. "door" marks a game whose
 // account tells the door's refusal, or whose fall still carried a debt down: every account without it must be main's.
+// Phase 14 adds --curse=off, which takes the curses away (content/curses.json), and "curse", which marks an account that
+// tells one: with the curses off, every account untagged above, karma or door must be the same as main's.
 import path from "node:path";
 import crypto from "node:crypto";
 import { pathToFileURL } from "node:url";
@@ -24,6 +26,7 @@ if (flags.cast === "off") {
   if (!content.CAST) throw new Error(`${root} has no cast to take away`);
   content.CAST.names = null;
 }
+if (flags.curse === "off" && content.CURSES) content.CURSES.list = null;
 
 const play = (players, seed) => {
   const s = createGame({ players, rules: { six: true }, seed });
@@ -38,6 +41,7 @@ const play = (players, seed) => {
   }
   // the door (Bhaskar's check of Phase 12): an account that tells a refusal, or a fall that still carried a debt down
   s.door = s.players.some(p => p.refusals?.length || (p.fell && p.karma?.sancita?.length));
+  s.curse = s.players.some(p => p.curse);
   return s;
 };
 const hash = t => crypto.createHash("sha256").update(t).digest("hex");
@@ -45,7 +49,7 @@ const tally = { intros: 0, returns: 0, fates: 0, lives: 0 };
 const out = [];
 const say = (key, s, i, l) => {
   const text = lifeText(s, i, l);
-  out.push(flags.full ? `## ${key}\n${text}` : `${key} ${hash(text)}${flags.tag ? (s.above ? " above" : "") + (s.karma ? " karma" : "") + (s.door ? " door" : "") : ""}`);
+  out.push(flags.full ? `## ${key}\n${text}` : `${key} ${hash(text)}${flags.tag ? (s.above ? " above" : "") + (s.karma ? " karma" : "") + (s.door ? " door" : "") + (s.curse ? " curse" : "") : ""}`);
   const life = lifeOf(s, i, l);
   if (l === "en" && life.fates) {
     tally.lives++;

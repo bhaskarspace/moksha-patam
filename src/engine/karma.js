@@ -13,10 +13,10 @@
 //
 // Pure, so the page, tools/sim.mjs and the tests run it alike. The Jain charts' sattā, udīraṇā and uday (karma held,
 // stirred to ripen, in fruit) are the same three steps; the scholar layer names both (src/render/ledger.js).
-import { GOAL, SITUATIONS, SNAKES } from "../content.js";
+import { GOAL, SITUATIONS, SNAKES, LADDERS, DOOR } from "../content.js";
 import { makeRng, next } from "../rng.js";
 import { tIn, fill, castFill, wordsIn } from "../i18n.js";
-import { SPAN } from "./self.js";
+import { SPAN, yearsAlong } from "./self.js";
 
 export const freshKarma = () => ({ sancita: [], agami: [], prarabdha: [] });
 // a game saved before Phase 12 has no ledger yet, and starts an empty one
@@ -88,9 +88,9 @@ export function reckonOf(k, { pos, years }) {
 }
 
 // ---- The gate at 105 (§2.3) ----
-// Reaching the exit is necessary and not sufficient. Until Phase 14 turns this into the examination, the door refuses a
-// life still carrying any debt it has not met, or still holding on hard to what it earned or wanted. The reason is
-// said in words: which debts, or which holding on. Never a number.
+// Reaching the exit is necessary and not sufficient. The door refuses a life still carrying any debt it has not met,
+// or still holding on hard to what it earned or wanted. The reason is said in words: which debts, or which holding on.
+// Never a number. A sannyāsin it refuses may sit there and be examined (below).
 export const ATTACHED = 75;
 export function refusalOf(p) {
   const debts = carried(karmaOf(p));
@@ -100,6 +100,41 @@ export function refusalOf(p) {
   if ((a.kama ?? 0) >= ATTACHED) return { aim: "kama" };
   return null;
 }
+
+// ---- The examination (REDESIGN.md Phase 14, docs/NARRATIVE.md §13.7) ----
+// The Yakṣa Praśna at the threshold. A sannyāsin the door refused may sit there a year at a time, and each year is one
+// question, put about the oldest debt still owed and chosen by the vice it holds (content/door.json). The life
+// answers, not the player: Citragupta reads the answer from the book. The book has it when, after the debt was
+// planted, the life climbed the ladder that heals that vice; then the debt is met. Otherwise the year is penance, and
+// the debt is paid after as many years as its weight. When nothing is owed the door opens. The player sees the
+// question, the answer and whether the debt was met; never a count.
+export const debtKey = s => `${s.src}:${s.opt}:${s.at}`;
+export const viceOf = s => seedOf(s.src, s.opt)?.holds ?? null;
+export const questionOf = s => DOOR[viceOf(s)] ?? null;
+// The climb that answers a debt's question, as { age }, or null: the healing ladder's foot and then its top, at or
+// after the place in the life the debt was planted (s.i; a seed planted before Phase 14 has none, and goes by years).
+export function answerOf(p, s) {
+  const foot = questionOf(s)?.heals, top = LADDERS[foot]?.to;
+  if (top == null) return null;
+  const along = yearsAlong(p.life || [], p.told || []), from = s.i ?? along.findIndex(e => e.years >= s.at);
+  const k = along.findIndex((e, j) => j >= Math.max(0, from) && e.n === foot && along[j + 1]?.n === top && along[j + 1].via === "ladder");
+  return k < 0 ? null : { age: along[k].years };
+}
+// The oldest debt the life still owes, the first made.
+export const owedOf = p => carried(karmaOf(p)).reduce((a, s) => (!a || s.at < a.at ? s : a), null);
+// What a year sat at the door does: { src, opt, at, key, n, pass, answer, cleared, weight, open }, or null when nothing
+// is owed. n is the year this is on this debt; the book can answer only the first time, since it does not change.
+// open is whether the door opens with it: nothing left owed, and no holding on to what was earned or wanted.
+export function examineOf(p) {
+  const s = owedOf(p);
+  if (!s) return null;
+  const key = debtKey(s), n = (p.exam?.[key] ?? 0) + 1, answer = n === 1 ? answerOf(p, s) : null, pass = !!answer;
+  const cleared = pass || n >= (s.weight ?? 1), left = carried(karmaOf(p)).length - (cleared ? 1 : 0);
+  return { src: s.src, opt: s.opt, at: s.at, key, n, pass, answer: answer?.age ?? null, cleared, weight: s.weight ?? 1,
+    open: cleared && !left && !refusalOf({ ...p, karma: freshKarma() }) };
+}
+// The ledger once a debt is met at the door: it leaves whichever bucket held it.
+export const meet = (k, key) => ({ ...k, agami: k.agami.filter(s => debtKey(s) !== key), prarabdha: k.prarabdha.filter(s => debtKey(s) !== key) });
 
 // ---- In words: what the card, the account and the scholar's panel say. Never a number of the ledger's. ----
 // who is { name, gender } in language l. A debt names the age it was made at, {at}, in words.
@@ -127,10 +162,26 @@ export function reckonLinesIn(l, rk, who) {
   return out;
 }
 // Why the door did not open, in one sentence, and what it means for the next throw.
-export function refusalIn(l, refusal, who) {
+// sit: whether this life may sit at the door and be examined (a sannyāsin, src/engine/turn.js canSit).
+export function refusalIn(l, refusal, who, sit = false) {
   if (!refusal) return [];
-  if (refusal.aim) return [T(l, refusal.aim === "artha" ? "doorArtha" : "doorKama", who), T(l, "doorOn", who)];
-  return [T(l, "doorRefused", who, { debts: debtsIn(l, refusal.debts, who) }), T(l, "doorOn", who)];
+  const on = T(l, sit && !refusal.aim ? "doorSit" : "doorOn", who);
+  if (refusal.aim) return [T(l, refusal.aim === "artha" ? "doorArtha" : "doorKama", who), on];
+  return [T(l, "doorRefused", who, { debts: debtsIn(l, refusal.debts, who) }), on];
+}
+// A year at the door, line by line: the question, the answer, what the book holds, and whether the debt was met; and
+// the door opening, when it does. who is { name, gender } in language l.
+export function examLinesIn(l, ex, who) {
+  const q = DOOR[seedOf(ex.src, ex.opt)?.holds], debt = debtIn(l, ex, who);
+  if (!q) return [];
+  const out = [T(l, "examAsks", who, { q: q.q[l] || q.q.en })];
+  if (ex.pass) out.push(T(l, "examPass", who, { a: q.a[l] || q.a.en, age: wordsIn(l, Math.floor(ex.answer)), answered: fill(q.answered[l] || q.answered.en, who) }), T(l, "examMet", who, { debt }));
+  else {
+    out.push(T(l, ex.n === 1 ? "examFail" : "examPenance", who, { a: q.a[l] || q.a.en, debt }));
+    out.push(T(l, ex.cleared ? "examPaid" : "examOwing", who, { debt }));
+  }
+  if (ex.open) out.push(T(l, "doorOpens", who));
+  return out;
 }
 // Several debts as one phrase, in the door's words: "a, b and c".
 export function debtsIn(l, debts, who) {

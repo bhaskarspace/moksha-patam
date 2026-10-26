@@ -3,7 +3,8 @@ import { GOAL, TOP, LADDERS, SNAKES, HEAVEN, SQ } from "../content.js";
 import { makeRng, die } from "../rng.js";
 import { SPAN, turnYears, grow, freshGunas, freshAims, holdingOf, slotsFor, stageOfPlayer, SANNYASA } from "./self.js";
 import { situationAt, optionOf, choiceFor } from "./qbn.js";
-import { freshKarma, karmaOf, carried, ripen, plantOf, omenFor, refusalOf } from "./karma.js";
+import { freshKarma, karmaOf, carried, ripen, plantOf, omenFor, refusalOf, examineOf, meet } from "./karma.js";
+import { curseOf, spokenAt } from "./curse.js";
 
 // The die shows this many random faces while it tumbles before the real roll. They come from the
 // game's own sequence, so a headless game must draw them too to stay in step with the UI.
@@ -43,7 +44,8 @@ export function toldOn(n, face, dice = [face]) {
 
 // A sannyasin on the last squares of earth may move by neither die and sit the year out in practice. Only a
 // sannyasin: practice counts for nobody else (src/engine/self.js grow). The divine row has only one slot: there
-// you walk. A sannyasin the door at 105 has refused may sit there too (REDESIGN.md Phase 12); it is still earth.
+// you walk. A sannyasin the door at 105 has refused may sit there too (REDESIGN.md Phase 12); it is still earth, and
+// since Phase 14 each year sat there is a question of the examination (src/engine/karma.js examineOf).
 export const canSit = p => p.pos >= ENDGAME && (p.pos <= 100 || p.pos === GOAL) && stageOfPlayer(p) === SANNYASA && slotsFor(p).includes("practice");
 // The moves a roll offers: each die's value once, and 0 for sitting.
 export function movesFor(state, dice) {
@@ -51,7 +53,8 @@ export function movesFor(state, dice) {
   if (dice.length > 1 && canSit(p)) out.push(0);
   return out;
 }
-// The computer's choice, the same in the page and in tools/sim.mjs: the exit if a die reaches it; otherwise a die
+// The computer's choice, the same in the page and in tools/sim.mjs: the exit if a die reaches it; at a door that has
+// refused it, sitting there to be examined, wherever it may (Phase 14); otherwise a die
 // that stops short of the exit and is not a snake, the bigger first; then the exit even if it will refuse them (Phase
 // 12); then sitting, where a sannyasin may; then a die
 // into the heavens, the smaller first, to stay there longest; then a snake; and the fall last, since it ends the life
@@ -63,13 +66,13 @@ export function moveFor(state, dice) {
   const to = pl => pl.reckon?.from ?? pl.final;
   const win = plans.find(pl => pl.win);
   if (win) return win.v;
+  if (moves.includes(0) && state.players[state.turn].pos === GOAL) return 0;
   const short = plans.filter(pl => !pl.fell && to(pl) < GOAL && pl.jump?.kind !== "snake").sort((a, b) => b.v - a.v);
   if (short.length) return short[0].v;
   // a door that will refuse it is still the door: better stood at than passed (REDESIGN.md Phase 12)
   const door = plans.find(pl => pl.refused);
   if (door) return door.v;
-  // at a door that has refused it, sitting cannot open it until Phase 14: the computer moves on
-  if (moves.includes(0) && state.players[state.turn].pos !== GOAL) return 0;
+  if (moves.includes(0)) return 0;
   const heaven = plans.filter(pl => !pl.fell && to(pl) > GOAL).sort((a, b) => a.v - b.v);
   if (heaven.length) return heaven[0].v;
   const snake = plans.filter(pl => !pl.fell).sort((a, b) => b.v - a.v);
@@ -121,20 +124,29 @@ export function planTurn(state, v, dice = [v]) {
   if (v) spare.splice(spare.indexOf(v), 1);
   if (dice.length > 1) pre.push(entry(v ? "lDice" : "lDiceSit", { a: dice[0], b: dice[1], v }, "", idx));
   if (!v) {
-    // a year sat out: no walk, no landing, and the year still passes
+    // a year sat out: no walk, no landing, and the year still passes. At a door that has refused the life it is a year
+    // of the examination (REDESIGN.md Phase 14): one question, and the door opens when nothing is owed. A life whose
+    // years run out there dies at the door.
     const years = turnYears(p.years ?? 0, { sit: true }), died = years > SPAN;
-    after.push(entry("lSit", { pos: from, sq: from }, "", idx));
-    if (died) end.push(entry("lDied", { pos: from, age: years, sq: from }, "death", idx));
-    return resolve(state, { idx, v, dice, spare, sit: true, from, path, target: from, final: from, jump: null, win: false, died, again: false, told: [null], pre, after, end }, years);
+    // a reckoning may have met what was owed while the life sat there: then there is no question, and the door opens
+    const atDoor = from === GOAL && !!p.door, exam = atDoor ? examineOf(p) : null;
+    const win = atDoor && !died && (exam ? exam.open : !refusalOf(p));
+    if (exam) after.push(entry(exam.pass ? "lExamPass" : exam.n === 1 ? (exam.cleared ? "lExamPaid" : "lExamFail") : exam.cleared ? "lExamPaid" : "lExamPenance", { pos: from, src: exam.src, sq: exam.src }, "", idx));
+    else if (!win) after.push(entry("lSit", { pos: from, sq: from }, "", idx));
+    if (died) end.push(entry(from === GOAL ? "lDiedDoor" : "lDied", { pos: from, age: years, sq: from }, "death", idx));
+    else if (win) end.push(entry("lDoorOpen", { pos: GOAL }, "", idx), entry("lWin", { pos: GOAL }, "heaven", idx));
+    return resolve(state, { idx, v, dice, spare, sit: true, from, path, target: from, final: from, jump: null, win, died, again: false, told: [null], exam, pre, after, end }, years);
   }
-  const fell = from + v > TOP;
+  // the fall (REDESIGN.md Phase 12): the throw past the top, or since Phase 14 a landing on it, where Śiva's snake
+  // takes the life down to square 1. Either way the life ends; the snake's tail only marks where the next begins.
+  const fell = from + v >= TOP, fellBy = from + v > TOP ? "past" : "snake";
   for (let n = from; n < Math.min(from + v, TOP); ) path.push(++n);
   if (fell) {
     // the walk goes to the top of the heavens and no further: what was passed, then the fall, and the life is over
-    const passed = path.filter(n => n !== from);
+    const passed = path.filter(n => n !== from && (fellBy === "past" || n !== TOP));
     if (passed.length) after.push(entry("lPassed", { passed }, "passed", idx));
-    end.push(entry("lFell", { v, pos: from }, "fall", idx));
-    return { idx, v, dice, spare, sit: false, fell: true, from, path, target: TOP, final: TOP, jump: null, win: false, died: false, again: false, told: [], cost: 0, pre, after, end };
+    end.push(fellBy === "snake" ? entry("lSiva", { v, pos: TOP, sq: TOP }, "fall", idx) : entry("lFell", { v, pos: from }, "fall", idx));
+    return { idx, v, dice, spare, sit: false, fell: true, fellBy, from, path, target: TOP, final: TOP, jump: null, win: false, died: false, again: false, told: [], cost: 0, pre, after, end };
   }
   const target = path.at(-1);
   // every square walked over and not landed on, once each, in the order they were passed
@@ -221,7 +233,8 @@ export function endTurn(state, plan) {
   p.pos = plan.final;
   // the fall ends the life: nothing is landed on and nothing more is lived, and the token leaves the board, back into
   // the world below it (Phase 15 builds what that world is)
-  if (plan.fell) { p.fell = true; p.fellFrom = plan.from; p.pos = 0; p.holding = holdingOf(p.life || [], p.held); }
+  // Śiva's snake took it from the top of the heavens, the highest a life can reach
+  if (plan.fell) { p.fell = true; p.fellBy = plan.fellBy; p.fellFrom = plan.fellBy === "snake" ? TOP : plan.from; p.pos = 0; p.holding = holdingOf(p.life || [], p.held); }
   else {
     // a snake or a ladder is two moments: the square that did it, and the one it led to
     // a year sat out is the same square again: on earth nothing else lands where it stands (src/engine/self.js)
@@ -238,7 +251,15 @@ export function endTurn(state, plan) {
     // the ledger: what fired is met, what was chosen is planted, and whatever the years have reached ripens
     let k = karmaOf(p);
     if (rk) k = { ...k, prarabdha: k.prarabdha.filter(s => !rk.seeds.some(f => f.src === s.src && f.opt === s.opt && f.at === s.at)), agami: k.agami.filter(s => !rk.seeds.some(f => f.src === s.src && f.opt === s.opt && f.at === s.at)) };
-    if (plan.plant) k = { ...k, agami: [...k.agami, plan.plant] };
+    // a seed keeps where in the life it was planted, so the door can ask whether the life climbed out of it after
+    if (plan.plant) k = { ...k, agami: [...k.agami, { ...plan.plant, i: p.life.length }] };
+    // a year at the door (REDESIGN.md Phase 14): the debt asked about, met or paid, leaves the ledger
+    const ex = plan.exam;
+    if (ex) {
+      p.exam = { ...(p.exam ?? {}), [ex.key]: ex.n };
+      if (ex.cleared) k = meet(k, ex.key);
+      p.sittings = [...(p.sittings ?? []), { at, src: ex.src, opt: ex.opt, planted: ex.at, n: ex.n, pass: ex.pass, answer: ex.answer, cleared: ex.cleared, open: plan.win, age: p.years }];
+    }
     p.karma = ripen(k, p.years);
     if (rk) {
       if (rk.holds) p.held = [...(p.held ?? []), rk.holds];
@@ -247,8 +268,10 @@ export function endTurn(state, plan) {
     // an arrival the door refused is kept for the account, where in the life it came (a refusal again while they
     // stand there is the same one)
     if (plan.refused && !p.door) p.refusals = [...(p.refusals ?? []), { at, ...plan.refused }];
-    // standing at a door that has refused them, they keep the reason; anywhere else there is none
-    p.door = plan.refused ?? (p.pos === GOAL && !plan.win ? p.door : null);
+    // standing at a door that has refused them, they keep the reason, what is still owed; anywhere else there is none
+    p.door = plan.refused ?? (p.pos === GOAL && !plan.win && p.door ? refusalOf(p) ?? p.door : null);
+    // the curse (REDESIGN.md Phase 14): spoken at the first landing old enough for it, and kept where in the life it was
+    if (!p.curse) { const c = curseOf(state, plan.idx); if (c && spokenAt(c, p.years)) p.curse = { id: c.id, i: p.life.length - 1, age: p.years }; }
     if (plan.died) { p.dead = true; p.holding = holdingOf(p.life, p.held); }
   }
   // a life over carries what it never met into the store (sañcita), for Phase 15 to draw the next life's prārabdha from

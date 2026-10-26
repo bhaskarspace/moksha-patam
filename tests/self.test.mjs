@@ -44,12 +44,14 @@ test("a life ends when its years run past the span, only on earth, and says what
     const s = live(seed), p = s.players[0];
     if (!p.dead) { assert.ok(s.winner === 0 || p.fell, `seed ${seed}`); continue; }
     deaths++;
-    assert.ok(p.years > SPAN && p.pos <= 100, `seed ${seed}`);
+    // on earth, or since Phase 14 sitting at the door, which is earth too
+    const door = p.pos === 105;
+    assert.ok(p.years > SPAN && (p.pos <= 100 || door), `seed ${seed}`);
     assert.equal(s.winner, null);
     assert.ok(s.over);
-    assert.equal(s.log[0].k, "lDied");
-    // only a life the snakes sent back over its own ground can die
-    assert.ok(SNAKES[p.holding], `seed ${seed} holds ${p.holding}`);
+    assert.equal(s.log[0].k, door ? "lDiedDoor" : "lDied");
+    // only a life the snakes sent back over its own ground can die, or one that sat out its years at the door
+    assert.ok(SNAKES[p.holding] || door, `seed ${seed} holds ${p.holding}`);
     assert.equal(p.holding, holdingOf(p.life, p.held));
   }
   // since Phase 9's two dice a life rarely dies (2.5% of 20,000), but it still can

@@ -7,6 +7,8 @@ import names from "../content/names.json" with { type: "json" };
 import situations from "../content/situations.json" with { type: "json" };
 import bridges from "../content/bridges.json" with { type: "json" };
 import boards from "../content/boards.json" with { type: "json" };
+import door from "../content/door.json" with { type: "json" };
+import curses from "../content/curses.json" with { type: "json" };
 
 // Every square is { ic, en, hi, age, moment, mirror, callsBack, src } (docs/NARRATIVE.md §11). Snakes and
 // ladders add { to, skt }. The mirror is the Phase 2 lead; the moment, when there is one, sits above it and
@@ -27,6 +29,12 @@ export const PLAYER_NAMES = names.players;
 // a test can take them away, as sim --roll=off takes the roll moments: with none, nobody is named and every account
 // reads exactly as Phase 10 wrote it.
 export const CAST = { names: names.cast || null };
+// The door at 105 as an examination (REDESIGN.md Phase 14): the Yakṣa's question for each vice a debt holds, and the
+// ladder whose climb answers it. Read through src/engine/karma.js.
+export const DOOR = door.questions;
+// The curses (REDESIGN.md Phase 14, docs/NARRATIVE.md §13.6): one is drawn per life, spoken early, and closed in the account.
+// Read live through CURSES.list so a tool or a test can take them away, as CAST.names is.
+export const CURSES = { list: curses.curses || null };
 
 // The board's look (REDESIGN.md Phase 13): its palette (the --b-* tokens, written into styles.css by the build), the
 // grounds of each band, the divine row's gold, the snakes' and the ladders' pigments, its border and its superstructure.
