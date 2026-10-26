@@ -854,9 +854,10 @@ await check("Phase 13: the first screen is the cloth under the veil, half the di
     const n = await page.evaluate(() => document.querySelectorAll("#labels .lab.ahead").length);
     assert(n > 0 && (await page.evaluate(() => mp.look())) === look, `${look}: ${n} squares dimmed after a throw`);
   }
-  // the 34 priority squares carry vignettes: 33 on the board, and Moksha's on its card alone (the board keeps ॐ)
+  // the 34 priority squares and the nine fables carry vignettes: 42 on the board, and Moksha's on its card alone (the
+  // board keeps ॐ)
   const vg = await page.evaluate(() => [...document.querySelectorAll("#cells .pic.vg")].length);
-  assert(vg === 33, `${vg} vignettes on the board`);
+  assert(vg === 42, `${vg} vignettes on the board`);
   assert(await page.evaluate(() => { mp.open(105); return !!document.querySelector('#leaf svg.ill use[href="#sq-105"]'); }), "Moksha's card has no vignette");
 });
 

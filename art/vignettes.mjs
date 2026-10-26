@@ -4,12 +4,74 @@
 // stay clear. On a snake square the hood and body cover part of it, and on a ladder square the rails do; each scene is
 // told in the part its square leaves open (`keep`, measured from the board's own geometry). The divine row's are seals,
 // more pattern than figure (docs/CONTENT.md §7). 105's is the card's alone: the board keeps ॐ.
-import { head, limb, robe, seated, arch, sea, sun, cloth, dot, poly, shape, line, lotus, flame, moon, pot, books, house, bowl, crown, lying } from "../tools/vignette-parts.mjs";
+import { head, limb, robe, seated, arch, sea, sun, cloth, dot, poly, shape, line, lotus, flame, moon, pot, books, house, bowl, crown, lying,
+  monkey, crocodile, crow, perched, lion, horse, cow, deer, cat, hare, jackal } from "../tools/vignette-parts.mjs";
 
 const bird = (x, y, s = 1, fill = "yellow") => shape("M-4,0 Q-2,-3 0,-1 Q2,-4 5,-2 Q2,0 0,1 Q-2,1 -4,0 Z", fill, { x, y, s });
+// a chariot's wheel: the rim, the hub and six spokes
+const wheel = (x, y, r) => [dot(x, y, r, "yellow"), line(`M${x - r},${y} L${x + r},${y} M${x - r / 2},${y - r * 0.87} L${x + r / 2},${y + r * 0.87} M${x + r / 2},${y - r * 0.87} L${x - r / 2},${y + r * 0.87}`), dot(x, y, r * 0.25, "vermilion")];
 const drop = (x, y) => poly([[x, y - 1.6], [x + 0.8, y + 0.4], [x - 0.8, y + 0.4]], "indigo", false);
 
 export default {
+  // ---- The fables (26 Oct): the animal in profile at the moment of the turn ----
+  // Monkey and crocodile: mid-river on the crocodile's back, the monkey points back at the tree: my heart is up there.
+  13: { keep: "bottom-right", draw: () => [
+    sea(10, 41, 37, 6),
+    crocodile(30, 42.5, { s: 0.85 }),
+    monkey(29, 37, { s: 0.85, face: -1, arm: [12, -13] }),
+  ] },
+  // The crows' plan: the crow lets the queen's necklace fall into the cobra's hole.
+  16: { keep: "bottom-left", draw: () => [
+    shape("M2,46 C3,39 15,38 18,46 Z", "ochre"), shape("M7,46 C7.4,43 12.6,43 13,46 Z", "black"),
+    dot(14, 33.5, 0.9, "yellow"), dot(13.2, 35.6, 0.9, "yellow"), dot(12.2, 37.6, 0.9, "yellow"), dot(11.2, 39.6, 0.9, "yellow"), dot(10.4, 41.6, 1.2, "vermilion"),
+    crow(20, 33, { s: 0.8, face: -1 }),
+  ] },
+  // The lion wakes: put back together, the lion springs, and the brother who did it falls back.
+  22: { keep: "bottom, left", draw: () => [
+    lion(31, 45, { s: 1 }),
+    robe(8, 33, { s: 0.45, face: -1, fill: "indigo", sash: "yellow" }),
+    limb(8.5, 34.5, 13, 29.5, { w: 2.2, end: 1.4 }),
+    head(8, 29.4, { s: 0.68, face: 1 }),
+  ] },
+  // The chariot: the horse the senses are, the wheel, and the driver with the reins.
+  35: { keep: "bottom, left", draw: () => [
+    line("M15,32 L39,29"),
+    poly([[4, 37], [16, 37], [17, 33], [4, 33]], "vermilion"),
+    ...wheel(9, 40, 5.4),
+    horse(30, 45.5, { s: 0.95 }),
+    head(10, 29.5, { s: 0.6, face: 1 }),
+  ] },
+  // The bowstring: saving the meat for later, the jackal starts on the string, and the bow springs.
+  43: { keep: "bottom, top", draw: () => [
+    line("M7.2,31.4 L7.2,46.6"),
+    shape("M6,30 C0,35 0,42 6,48 L7.6,46.8 C3,42 3,36 7.6,31.2 Z", "ochre"),
+    jackal(21, 45, { s: 0.9, face: -1 }),
+    shape("M37,46 C36,42 42,41 44,44 C45,46 40,47 37,46 Z", "vermilion"),
+  ] },
+  // A thousand cows: Satyakāma's herd come home out of the forest.
+  45: { keep: "bottom-left", draw: () => [
+    cow(10, 37, { s: 0.6, fill: "ochre" }),
+    cow(13, 46, { s: 0.8 }),
+  ] },
+  // Born a deer: the deer looks back, over its shoulder, at what it was thinking of.
+  64: { keep: "middle", draw: () => [
+    deer(25, 45.5, { s: 1, back: true }),
+  ] },
+  // Unmasked: the cat sits as if at prayer, and the hare and the partridge come to it for judgment.
+  71: { keep: "right, bottom", draw: () => [
+    cat(32, 45, { s: 1, face: -1 }),
+    hare(14, 46, { s: 0.85 }),
+    perched(44, 44, { s: 0.8, face: -1, fill: "ochre", wing: "vermilion" }),
+  ] },
+  // The watching bird: two birds on one branch, one eating the fruit, the other watching it.
+  94: { keep: "top", draw: () => [
+    line("M14,14 C24,12.6 36,12.6 47,13.6"),
+    shape("M30,13.4 C31,10.6 34,10.6 35,12.6 Z", "malachite"), shape("M17,14 C17.6,16.4 20.4,16.8 21.6,15 Z", "malachite"),
+    dot(27.6, 10.6, 1.3, "vermilion"),
+    perched(22, 9.6, { s: 0.9 }),
+    perched(40, 9.6, { s: 0.9, face: -1, fill: "shell", wing: "indigo" }),
+  ] },
+
   // ---- The snakes ----
   // Chatter: told a secret, holds it all through lunch, and tells it. A child with a hand at the mouth; the secret flies.
   14: { keep: "left, top", draw: () => [

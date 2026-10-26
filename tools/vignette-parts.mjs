@@ -133,3 +133,122 @@ export const crown = (cx, y, w, fill = "yellow") => shape("M-5,0 L-5,-3 L-3,-1.6
 export function lying(x, y, len, { fill = "vermilion", s = 1 } = {}) {
   return poly([[x + 4 * s, y - 3 * s], [x + len, y - 2.5 * s], [x + len, y + 1.5 * s], [x + 4 * s, y + 1.5 * s]], fill) + head(x + 2 * s, y - 2 * s, { s: 0.6 * s, kind: "child" });
 }
+
+// ---- The animals, for the fables (docs/CONTENT.md §7: the animal in profile at the moment of the turn) ----
+// Each stands on its baseline at (x, y), facing right at face 1, with the one large eye; s 1 is about a hand of the 48.
+const eye = (x, y, r, o) => dot(o.x + o.face * o.s * x, o.y + o.s * y, r * o.s, "black", false);
+const at = (x, y, s, face) => ({ x, y, s, face });
+// A monkey crouched, one arm free (arm: the point the free hand reaches to, from the shoulder, in its own units).
+export function monkey(x, y, { s = 1, face = 1, fill = "ochre", arm = [6, -14] } = {}) {
+  const o = at(x, y, s, face);
+  return [
+    line("M-5,-3 C-11,-3 -12,-10 -8,-12 C-6,-13 -5,-11 -6.5,-10", o),
+    shape("M-6,0 C-7,-4 -6,-9 -2,-10 C2,-11 4,-8 4,-5 L5,-1 L3,0 L2,-3 L-1,-3 L-2,0 Z", fill, o),
+    limb(o.x + face * s * 2, o.y - s * 8, o.x + face * s * arm[0], o.y + s * arm[1], { w: 1.8 * s, fill, end: 0 }),
+    shape("M0,-11 C0,-15 4,-16 6,-14.5 C8,-13 7.5,-10 5.5,-9.5 C3,-9 0,-9.5 0,-11 Z", fill, o),
+    shape("M3.6,-13.8 C5.8,-14 7.2,-12.6 6.6,-11 C6,-10 4.4,-10.2 3.8,-11 Z", "shell", o),
+    eye(5.2, -12.6, 0.7, o),
+  ];
+}
+// A crocodile swimming, the back and the long jaw above the water line at y.
+export function crocodile(x, y, { s = 1, face = 1, fill = "beetle" } = {}) {
+  const o = at(x, y, s, face);
+  return [
+    shape("M-18,0 C-15,-3 -9,-6.4 -2,-6.8 L6,-6.6 C8.6,-8.4 11.4,-7.8 12.4,-5.6 L19,-4 L19.2,-2.2 L13,-1.6 L19,-1.2 L18.4,0 Z", fill, o),
+    poly([[-10, -5.2], [-8.6, -7.8], [-7, -6], [-5.4, -8.4], [-3.6, -6.6], [-1.8, -8.8], [0, -6.8]].map(([a, b]) => [o.x + face * s * a, o.y + s * b]), fill),
+    eye(9.6, -6.6, 0.9, o),
+  ];
+}
+// A crow in flight, the wings up.
+export function crow(x, y, { s = 1, face = 1, fill = "black", wing = "indigo" } = {}) {
+  const o = at(x, y, s, face);
+  return [
+    shape("M-7,0 L-4,-1.6 C-1,-3 3,-3 5,-2 L8,-1.4 L5.4,-0.4 C3,1.6 -1,1.6 -4,0.8 Z", fill, o),
+    shape("M2,-2.2 C-1,-5 -5,-8 -10,-8.6 C-8,-5.6 -5,-2.6 -2,-1.6 Z", wing, o),
+    dot(o.x + face * s * 4.8, o.y - s * 1.9, 0.55 * s, "shell", false),
+  ];
+}
+// A bird perched, its tail down behind it.
+export function perched(x, y, { s = 1, face = 1, fill = "yellow", wing = "malachite" } = {}) {
+  const o = at(x, y, s, face);
+  return [
+    shape("M-5,2 L-3,-1 C-2,-4 1,-5 3,-4.4 C4.4,-4 5,-3 5,-2.4 L7,-2 L5,-1.2 C4.6,1 2,2.4 -1,2 Z", fill, o),
+    shape("M-2.6,-1.4 C-1,-3 2,-2.6 2.6,-0.6 C1,0.8 -1.4,0.8 -2.6,-1.4 Z", wing, o),
+    eye(3.4, -3, 0.6, o),
+    line("M0,2 L0,4 M1.6,2 L1.6,4", o),
+  ];
+}
+// A lion springing up, the forelegs off the ground; the mane round the head.
+export function lion(x, y, { s = 1, face = 1, fill = "yellow", mane = "vermilion" } = {}) {
+  const o = at(x, y, s, face);
+  return [
+    line("M-11,-6 C-15,-7 -15,-12 -12,-13", o), dot(o.x + face * s * -12, o.y - s * 13.4, 1.2 * s, mane),
+    shape("M-12,0 L-11,-5 C-11,-8 -8,-9.5 -3,-10 L4,-12 L7,-9 L5,-6 L9,-4 L10,-2 L8,-2.4 L3,-4.4 C0,-4 -4,-4 -7,-5 L-7.6,0 L-9.4,0 L-9.6,-3.8 L-10.2,0 Z", fill, o),
+    shape("M2,-12 C1,-16 4,-19 7.4,-18.4 C10.6,-17.8 12,-14.6 10.4,-11.6 C9,-9 5,-8.6 3,-10 Z", mane, o),
+    shape("M5.4,-15.6 C7.6,-16.6 10.4,-15.4 10.6,-13 L12.2,-12.2 L10.6,-11 C9.6,-9.8 7,-10 5.8,-11.4 Z", fill, o),
+    eye(8.4, -14.2, 0.75, o),
+  ];
+}
+// A horse at the trot, a foreleg raised.
+export function horse(x, y, { s = 1, face = 1, fill = "shell", mane = "vermilion" } = {}) {
+  const o = at(x, y, s, face);
+  return [
+    shape("M-10,-10 C-13,-9 -14,-5 -13,-2 C-12,-5 -11,-7 -9.6,-8 Z", mane, o),
+    shape("M-10,0 L-9.4,-6 C-10,-9 -8,-11 -4,-11 L4,-11 L7,-16 C8,-18 10,-18.6 11.4,-17.4 L13,-14 L11.6,-13 L9.6,-14 L8,-9.6 L7.6,-6.6 L9,-4.4 L8,-3.8 L6,-6 L5.2,0 L3.4,0 L3.6,-6 L-5,-6 L-6.4,0 L-8,0 L-7.8,-5.2 Z", fill, o),
+    shape("M6.6,-15.4 C7.4,-18.4 9.2,-19.6 10.4,-19 L8.4,-14 Z", mane, o),
+    eye(10, -16, 0.6, o),
+  ];
+}
+// A cow walking, the hump and the horns.
+export function cow(x, y, { s = 1, face = 1, fill = "shell", horn = "ochre" } = {}) {
+  const o = at(x, y, s, face);
+  return [
+    line("M-11,-8 C-13,-6 -13,-3 -12.4,-1.4", o),
+    shape("M-11,-8 C-11,-10 -8,-11 -4,-10.6 C-2,-12.6 1,-12.6 2,-10.6 L7,-10 L10,-9 L12,-6.6 L11.6,-5 L9,-5.4 L7.6,-6 L6.6,-4.6 L6.2,0 L4.4,0 L4.4,-4.4 L-6.6,-4.6 L-7.4,0 L-9.2,0 L-9.4,-4.8 C-10.8,-5.4 -11.2,-6.6 -11,-8 Z", fill, o),
+    shape("M8.4,-10 C8.6,-12.4 10.4,-13.6 11.8,-13 C10.4,-12.4 10,-11.4 10,-9.6 Z", horn, o),
+    eye(9.8, -7.8, 0.6, o),
+  ];
+}
+// A deer standing, spotted, the head turned back over its shoulder when back is set.
+export function deer(x, y, { s = 1, face = 1, fill = "ochre", spot = "shell", back = false } = {}) {
+  const o = at(x, y, s, face), hx = back ? -1 : 1;
+  const out = [
+    shape("M-8,-11 C-9,-12 -10,-11.4 -9.4,-10.4 L-8.2,-9.6 L-7.4,-5.4 L-8,0 L-6.4,0 L-5.6,-5 L3.8,-5 L4.6,0 L6.2,0 L5.8,-5.6 L6.6,-10.4 C4,-11.4 -4,-11.6 -8,-11 Z", fill, o),
+    shape(back ? "M-6,-10.8 C-7,-14 -8,-16 -10.6,-16.6 L-12.4,-15.2 L-10.6,-14.4 C-9.8,-13 -8.6,-11.4 -6,-10.8 Z" : "M5,-10.6 C6,-14 7,-16 9.6,-16.6 L11.4,-15.2 L9.6,-14.4 C8.8,-13 7.6,-11.4 5,-10.6 Z", fill, o),
+    line(back ? "M-9.2,-16.4 L-9.6,-19 L-11,-20.4 M-9.6,-19 L-8,-20.6" : "M8.2,-16.4 L8.6,-19 L10,-20.4 M8.6,-19 L7,-20.6", o),
+    eye(back ? -10 : 9.2, -15.6, 0.6, o),
+  ];
+  for (const [a, b] of [[-4, -8.6], [-0.6, -9], [2.6, -8.4], [-2.4, -6.8], [1, -6.6]]) out.push(dot(o.x + face * s * a, o.y + s * b, 0.7 * s, spot, false));
+  return out;
+}
+// A cat sitting up as if at prayer, eyes shut, the forepaws together.
+export function cat(x, y, { s = 1, face = 1, fill = "ochre" } = {}) {
+  const o = at(x, y, s, face);
+  return [
+    line("M-5,-1 C-10,-1 -11,-6 -8,-8", o),
+    shape("M-5,0 C-7,-5 -6,-12 -2,-14 L2,-14 C4,-12 5,-6 4,0 Z", fill, o),
+    shape("M-2.4,-13 C-3.6,-16 -2.6,-19.6 0,-20 L0.6,-22.6 L2.2,-20.2 L3.6,-21.6 L3.6,-19 C5,-17.4 4.8,-14.4 2.4,-13 Z", fill, o),
+    line("M1.4,-17.2 Q2.4,-16.4 3.4,-17.2", o),
+    limb(o.x + face * s * 1, o.y - s * 11, o.x + face * s * 4.6, o.y - s * 12.6, { w: 1.6 * s, fill, end: 0 }),
+  ];
+}
+// A hare, ears up, sitting.
+export function hare(x, y, { s = 1, face = 1, fill = "shell" } = {}) {
+  const o = at(x, y, s, face);
+  return [
+    shape("M-5,0 C-6,-4 -3,-6.6 1,-6.4 C3,-6.4 4,-5 4,-3 L5,0 Z", fill, o),
+    shape("M1.6,-6 C1.4,-8.6 3.4,-9.6 5,-8.8 C6.6,-8 6.6,-6 5.6,-5 C4.4,-4.2 2.4,-4.6 1.6,-6 Z", fill, o),
+    shape("M2.6,-8.8 C1.6,-12 1.8,-14 2.8,-14.2 C3.8,-13.4 4,-11 3.8,-9 Z", fill, o),
+    eye(4.4, -7.2, 0.5, o),
+  ];
+}
+// A jackal crouched, the head down at what it is gnawing.
+export function jackal(x, y, { s = 1, face = 1, fill = "ochre" } = {}) {
+  const o = at(x, y, s, face);
+  return [
+    shape("M-12,-5 C-14,-4 -15,-2 -14.4,-0.6 C-13,-2 -11.6,-3 -10.6,-3.4 Z", fill, o),
+    shape("M-11,0 L-10.6,-4 C-10.6,-7 -6,-8 0,-7.6 L4,-7 L8,-4 L11.4,-3 L11,-1.8 L7,-1.6 L4,-3.4 L3.6,0 L2,0 L1.6,-3.6 L-6.4,-4 L-7.4,0 L-9,0 L-9.2,-3.4 Z", fill, o),
+    poly([[o.x + face * s * 4.6, o.y - s * 6.6], [o.x + face * s * 5.4, o.y - s * 9.6], [o.x + face * s * 6.6, o.y - s * 5.6]], fill),
+    eye(7.2, -4.6, 0.55, o),
+  ];
+}

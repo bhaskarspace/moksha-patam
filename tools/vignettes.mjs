@@ -23,5 +23,5 @@ const root = path.resolve(import.meta.dirname, "..");
     done.push(n);
   }
   fs.writeFileSync(sheetPath, sheet);
-  console.log(`vignettes: ${done.length} written (${done.join(", ")}); ${Object.keys(SCENES).length} drawn of the 34 the phase ships`);
+  console.log(`vignettes: ${done.length} written (${done.join(", ")}); ${Object.keys(SCENES).length} drawn: the 34 Phase 13 shipped and the nine fables`);
 }
