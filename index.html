@@ -3917,7 +3917,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var stageAt = (pos) => pos === GOAL ? ASHRAMAS.length : ASHRAMAS.findIndex(([max]) => Math.max(pos, 1) <= max);
   var yearsOf = (p) => Math.max(p.years ?? 0, ageAt(p.pos));
   var stageOf = (p) => p.pos === GOAL ? ASHRAMAS.length : p.pos > EARTH2 ? stageAt(p.pos) : stageOfYears(yearsOf(p));
-  var LOOKS = ["first", "veil", "asrama"];
+  var LOOKS = ["veil", "first", "asrama"];
   var lookOf = (q2) => LOOKS.includes(q2) ? q2 : LOOKS[0];
   var VEIL = 0.5;
   function lens(state, i = null, look2 = null) {
@@ -6392,7 +6392,8 @@ ${p.text}`), end, fates.join(" ")].filter(Boolean).join("\n\n") + "\n";
   var aged = null;
   var ageSeq = 0;
   var mix2 = (a, b, u) => ({ sepia: a.sepia + (b.sepia - a.sepia) * u, dim: a.dim + (b.dim - a.dim) * u });
-  var look = lookOf(new URLSearchParams(location.search).get("look"));
+  var query = new URLSearchParams(location.search);
+  var look = lookOf(query.has("debug") ? query.get("look") : null);
   function age(instant = false) {
     const L2 = lens(G.state, null, look), to = Array.from({ length: TOP + 1 }, (_, n) => n ? wash(n, L2) : null);
     for (let n = 1; n <= TOP; n++) labEls[n]?.classList.toggle("ahead", to[n].dim > 0);

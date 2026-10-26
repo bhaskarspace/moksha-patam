@@ -836,11 +836,17 @@ await check("Phase 5: squares ahead are dimmed, yet every one still opens its ca
   }
 });
 
-await check("Phase 13: the first screen is the whole cloth at full pigment; the ageing begins with the first throw, under every look", async page => {
+await check("Phase 13: the first screen is the cloth under the veil, half the dimness; ?look is read only under ?debug", async page => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto(BASE + "?first&seed=1&debug");
+  await page.goto(BASE + "?first&seed=1&look=first");
+  assert((await page.evaluate(() => typeof mp)) === "undefined", "mp is exposed without ?debug");
+  const veil = await page.evaluate(() => document.querySelectorAll("#labels .lab.ahead").length);
+  assert(veil > 0, "?look=first was honoured without ?debug");
+  await page.goto(BASE + "?first&seed=1&debug&look=first");
   const before = await page.evaluate(() => document.querySelectorAll("#labels .lab.ahead").length);
-  assert(before === 0, `${before} squares dimmed before the first throw`);
+  assert(before === 0, `${before} squares dimmed before the first throw under ?look=first`);
+  await page.goto(BASE + "?first&seed=1&debug");
+  assert((await page.evaluate(() => mp.look())) === "veil", "the default look is not the veil");
   for (const look of ["first", "veil", "asrama"]) {
     await page.goto(BASE + `?seed=1&debug&look=${look}`);
     await page.evaluate(() => mp.roll(3));

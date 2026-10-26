@@ -338,8 +338,9 @@ function queueCpu() {
 // ---- The ageing board (render/age.js): repainted when a turn ends, fading over 600 ms ----
 let aged = null, ageSeq = 0;
 const mix = (a, b, u) => ({ sepia: a.sepia + (b.sepia - a.sepia) * u, dim: a.dim + (b.dim - a.dim) * u });
-// the look of the first impression (REDESIGN.md Phase 13), ?look=first|veil|asrama, until one is chosen
-let look = lookOf(new URLSearchParams(location.search).get("look"));
+// the look of the first impression (REDESIGN.md Phase 13): the veil; ?look=first|asrama only under ?debug
+const query = new URLSearchParams(location.search);
+let look = lookOf(query.has("debug") ? query.get("look") : null);
 function age(instant = false) {
   const L = lens(G.state, null, look), to = Array.from({ length: TOP + 1 }, (_, n) => (n ? wash(n, L) : null));
   for (let n = 1; n <= TOP; n++) labEls[n]?.classList.toggle("ahead", to[n].dim > 0);

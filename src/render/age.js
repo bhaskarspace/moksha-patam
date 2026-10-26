@@ -22,13 +22,13 @@ export const yearsOf = p => Math.max(p.years ?? 0, ageAt(p.pos));
 // A player's stage of life, by years: what the drone and the pixel art follow (REDESIGN.md Phase 8).
 export const stageOf = p => (p.pos === GOAL ? ASHRAMAS.length : p.pos > EARTH ? stageAt(p.pos) : stageOfYears(yearsOf(p)));
 
-// How the board looks before and through a life (REDESIGN.md Phase 13, item 6), to be chosen with cold players, by ?look=:
-//   first   the whole cloth in full pigment until the game's first throw, and then the ageing as it always was (the default
-//           until one is chosen, since it alone shows a first screen at full pigment)
+// How the board looks before and through a life (REDESIGN.md Phase 13, item 6). Bhaskar chose the veil (26 Oct); the other
+// two stay only under ?debug (?look=, mp.look):
 //   veil    the squares ahead at full pigment under a thin cream veil, half the dimness, that lifts as they are reached
+//   first   the whole cloth in full pigment until the game's first throw, and then the ageing as it always was
 //   asrama  nothing dims within the oldest player's own stage of life; the ageing begins beyond the next āśrama
 // The rule holds under all three: once the ageing begins a life never sees the whole board clearly, and it paints only the art.
-export const LOOKS = ["first", "veil", "asrama"];
+export const LOOKS = ["veil", "first", "asrama"];
 export const lookOf = q => (LOOKS.includes(q) ? q : LOOKS[0]);
 export const VEIL = 0.5;
 
