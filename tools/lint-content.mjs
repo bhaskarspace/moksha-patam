@@ -359,6 +359,34 @@ export function lintReport() {
         if (lo.cost > hi.cost) err(w, `the option worth least (${lo.id}) costs more years than the one worth most (${hi.id})`);
       }
     }
+    // Phase 15: an ego test names its lower option, the one the ego takes the life to, which plants a debt and is worth
+    // least; and says, in the moment's voice and in the account's, what the life meant and did instead
+    if (sit.ego) {
+      const ew = `${w} ego`, lower = opts.find(o => o.id === sit.ego.lower);
+      if (!lower) err(ew, `lower "${sit.ego.lower}" is not an option here`);
+      else {
+        if (!lower.seed) err(ew, `lower "${lower.id}" plants no debt: the ego pulls toward a debt`);
+        if (opts.some(o => worthOf(o) < worthOf(lower))) err(ew, `lower "${lower.id}" is not the option worth least`);
+      }
+      bilingual(`${ew} card`, sit.ego.card);
+      if (sit.ego.card?.en && sit.ego.card?.hi) momentText(`${ew} card`, sit.ego.card, q);
+      bilingual(`${ew} account`, sit.ego.account);
+      if (sit.ego.account?.en && sit.ego.account?.hi) {
+        playerText(`${ew} account`, sit.ego.account);
+        if (/\{age\}/.test(sit.ego.account.en + sit.ego.account.hi)) err(`${ew} account`, "says {age}: the moment after it says the age");
+      }
+    }
+    // and the cast who saw it (Phase 15): a returns join per option, and one for a rebellion only on an ego test
+    for (const [who, lines] of Object.entries(sit.witness || {})) {
+      const ww = `${w} witness.${who}`;
+      if (!MEMBERS.includes(who) || ["mother", "father"].includes(who)) { err(ww, `"${who}" is not a member of the cast who can return by name`); continue; }
+      for (const [k, t] of Object.entries(lines)) {
+        if (k === "rebel" ? !sit.ego : !opts.some(o => o.id === k)) err(`${ww}.${k}`, k === "rebel" ? "is a rebellion's line on a situation with no ego test" : `"${k}" is not an option here`);
+        join(`${ww}.${k}`, t);
+        for (const l of ["en", "hi"]) if (t?.[l] && !t[l].includes("{who}")) err(`${ww}.${k}`, `the ${l} does not name the ${who} with {who}`);
+        if (t?.en && t?.hi) playerText(`${ww}.${k}`, { en: t.en.replaceAll("{who}", "X"), hi: castFill(t.hi, { who: { gender: "m", name: "X" } }) });
+      }
+    }
   }
 
   // Phase 11: every mirror a card can show tells a cold reader, the first time it names someone, that it is a story and
@@ -463,6 +491,13 @@ export function lintReport() {
   const sheet = path.join(root, "assets/sprites.svg");
   if (fs.existsSync(sheet)) errors.push(...lintSprites(fs.readFileSync(sheet, "utf8")));
   errors.push(...lintPaint(root));
+
+  // a character lost in an encoding round trip comes back as U+FFFD, the replacement character: never in content
+  for (const f of fs.readdirSync(path.join(root, "content")).filter(f => f.endsWith(".json"))) {
+    fs.readFileSync(path.join(root, "content", f), "utf8").split("\n").forEach((line, i) => {
+      if (line.includes("\uFFFD")) err(`content/${f}:${i + 1}`, "has a replacement character (U+FFFD): a character was lost in an encoding round trip");
+    });
+  }
 
   // REFERENCE.md §6: the board's own history is medieval, not ancient
   const all = JSON.stringify([READINGS, CODEX, STR]);

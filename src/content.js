@@ -20,6 +20,8 @@ export const { SQ } = squares;
 export const { STR, SRC_HI, JOINS, NUM_HI } = strings;
 // What the account says about the cast: introductions, the returns join and the fate lines (src/engine/cast.js).
 export const CAST_WORDS = strings.CAST;
+// the ego rebellion's mirror and scholar note (REDESIGN.md Phase 15)
+export const EGO = strings.EGO;
 // The situations (REDESIGN.md Phase 10, §2.5): a square where the player chooses, by square number. Read through
 // src/engine/qbn.js; a square without one is its story card, as before.
 export const SITUATIONS = situations;

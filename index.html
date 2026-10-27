@@ -442,6 +442,8 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 .leaf .story p.remedy.above { color: #1E2A78; border-left-color: #1E2A78; }
 /* when the rebirth snake takes someone, in the snakes' red */
 .leaf .story p.remedy.fall { color: #9E2A1C; border-left-color: #B3261E; }
+/* the ego's faces (Phase 15), large enough to read as a die */
+.leaf .story p.ego .pip { font-size: 1.7em; line-height: 0; vertical-align: -0.14em; font-weight: 400; }
 .leaf .snake-on { margin-top: 20px; padding: 4px 14px 10px; border-radius: 8px; background: rgba(179, 38, 30, 0.08); border: 1px solid rgba(179, 38, 30, 0.35); }
 .leaf .snake-on .sub { display: flex; align-items: center; gap: 8px; color: #9E2A1C; border-top: 0; padding-top: 6px; }
 .leaf .snake-on .snake-glyph { width: 28px; height: 28px; }
@@ -1325,6 +1327,12 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         optYear: "a year",
         optYears: "{n} years",
         optWithheld: "Not open:",
+        egoFaces: "The ego takes {faces}.",
+        egoNone: "The ego takes no face here.",
+        egoDie: "The ego's die",
+        egoHeld: "The choice holds.",
+        lEgoHeld: "{name} chose on {pos}, and the ego's die let the choice stand.",
+        lEgoRebel: "{name} chose on {pos}, and the ego's die did the other thing.",
         lStayOne: "{name} spent a year on {pos}, {what}.",
         lStay: "{name} spent {n} years on {pos}, {what}.",
         lFell: "{name} rolled {v} on {pos}: past the top of the heavens. The merit is spent, and the life with it.",
@@ -1569,6 +1577,12 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         optYear: "एक बरस",
         optYears: "{n} बरस",
         optWithheld: "अभी नहीं:",
+        egoFaces: "{faces} अहंकार के हैं।",
+        egoNone: "यहाँ पासे का कोई पहलू अहंकार का नहीं।",
+        egoDie: "अहंकार का पासा",
+        egoHeld: "चुनाव टिका रहा।",
+        lEgoHeld: "{name} ने {pos} पर चुनाव किया, और अहंकार के पासे ने उसे टिका रहने दिया।",
+        lEgoRebel: "{name} ने {pos} पर चुनाव किया, और अहंकार के पासे ने उलटा ही करवाया।",
         lStayOne: "{name} ने खाना {pos}, {what}, पर एक बरस बिताया।",
         lStay: "{name} ने खाना {pos}, {what}, पर {n} बरस बिताए।",
         lFell: "{name} का {v} आया, {pos} पर: स्वर्गों के शिखर के पार। पुण्य क्षीण हुआ, और उसके साथ यह जीवन।",
@@ -1804,6 +1818,17 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         { en: "Nobody wrote.", hi: "किसी ने ख़बर नहीं दी।" },
         { en: "{name} was not told.", hi: "{name} को किसी ने नहीं बताया।" }
       ]
+    },
+    EGO: {
+      about: "The ego rebellion (REDESIGN.md Phase 15; src/engine/qbn.js egoFaces). On the five ego tests (content/situations.json `ego`), after the witness chooses the higher option the ego throws a die of its own; on its faces the life takes the lower option. mirror is the card's text for a rebellion; scholar is its note at scholar depth.",
+      mirror: {
+        en: "Arjuna asks it in the Gita (3.36): then by what is a person driven to wrong, even unwilling, as if by force? And Krishna answers (3.37): it is desire, it is anger, born of rajas.",
+        hi: "गीता (३.३६) में अर्जुन पूछते हैं: तो फिर मनुष्य न चाहते हुए भी, मानो बलपूर्वक लगाया गया, किससे प्रेरित होकर पाप करता है? और कृष्ण उत्तर देते हैं (३.३७): यह काम है, यह क्रोध है, रजोगुण से उपजा।"
+      },
+      scholar: {
+        en: "Duryodhana's confession, as the later Pāṇḍava Gītā gives it: jānāmi dharmaṃ na ca me pravṛttiḥ, jānāmy adharmaṃ na ca me nivṛttiḥ. I know what is right, and have no inclination to it; I know what is wrong, and cannot turn from it. The verse is not in the Mahābhārata's critical edition. The Gītā's own account is 3.27: the guṇas do the acting, and the self deluded by the ego thinks 'I am the doer'. The witness chose; the guṇas acted.",
+        hi: "दुर्योधन की स्वीकारोक्ति, जैसी बाद की पाण्डवगीता में मिलती है: जानामि धर्मं न च मे प्रवृत्तिः, जानाम्यधर्मं न च मे निवृत्तिः। मैं धर्म जानता हूँ, पर उसमें मेरी प्रवृत्ति नहीं; अधर्म जानता हूँ, पर उससे मेरी निवृत्ति नहीं। यह श्लोक महाभारत के समीक्षित संस्करण में नहीं है। गीता का अपना उत्तर ३.२७ में है: कर्म गुण करते हैं, और अहंकार से मोहित मन सोचता है, 'मैं कर्ता हूँ।' साक्षी ने चुना; गुणों ने किया।"
+      }
     }
   };
 
@@ -2547,7 +2572,13 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           outcome: { en: "{name} is {age} and says the homework was done and left at home, and is believed, and does it that night in a hurry, badly.", hi: "{name} {age} बरस {का|की} है। {name} ने कह दिया कि गृहकार्य हो गया था, घर पर छूट गया, और बात मान ली गई। उसी रात {name} ने जल्दी-जल्दी, आधा-अधूरा, उसे पूरा किया।", mirror: { en: "Satyakama could have named any father he liked. The teacher would have had no way to check.", hi: "सत्यकाम चाहते तो कोई भी पिता का नाम ले सकते थे। गुरु के पास जाँचने का कोई रास्ता नहीं था।" } },
           seed: { fuse: 15, weight: 1, holds: 29, debt: { en: "the homework left at home, at {at}", hi: "{at} बरस की उम्र में घर पर छूटा होमवर्क" }, reckoning: { en: "The thing {name} never learned properly, because it was done that night in a hurry, is the thing the work turns on now, in front of everyone.", hi: "जो बात {name} ने कभी ठीक से नहीं सीखी, क्योंकि वह उस रात जल्दी में निपटा दी गई थी, आज सबके सामने काम उसी पर टिका है।" } }
         }
-      ]
+      ],
+      witness: {
+        teacher: {
+          truth: { en: "{who}, who had heard {name} say in front of everyone that the homework was not done, was waiting: ", hi: "{who}, जिन्होंने {name} को सबके सामने यह कहते सुना था कि होमवर्क नहीं हुआ, {who:इंतज़ार कर रहे थे|इंतज़ार कर रही थीं}: " },
+          lie: { en: "{who}, who had believed {name} about the homework left at home, was waiting: ", hi: "{who}, जिन्होंने {name} की यह बात मान ली थी कि होमवर्क घर पर छूट गया था, {who:इंतज़ार कर रहे थे|इंतज़ार कर रही थीं}: " }
+        }
+      }
     },
     "47": {
       prompt: {
@@ -2603,7 +2634,25 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           outcome: { en: "{name} is {age} and eats first tonight, standing up in the kitchen, and the others eat after, and nobody says anything.", hi: "{name} {age} बरस {का|की} है। आज रात {name} ने रसोई में खड़े-खड़े पहले ख़ुद खा लिया, बाक़ी सबने बाद में खाया, और किसी ने कुछ नहीं कहा।" },
           seed: { fuse: 20, weight: 2, holds: 47, debt: { en: "the night of eating first, at {at}", hi: "{at} बरस की उम्र में सबसे पहले खा लेने वाली वह रात" }, reckoning: { en: "There is just enough in the house again, and this time someone else eats first, standing up in the kitchen, and {name} recognises it.", hi: "घर में फिर बस उतना ही है, और इस बार कोई और रसोई में खड़े-खड़े सबसे पहले खा लेता है, और {name} उसे {पहचान लेता|पहचान लेती} है।" } }
         }
-      ]
+      ],
+      ego: {
+        lower: "first",
+        card: {
+          en: "{name} is {age} and means to feed the others first, as every day, and is hungrier than that tonight.",
+          hi: "{name} {age} बरस {का|की} है और रोज़ की तरह पहले औरों को खिलाना {चाहता|चाहती} है, पर आज रात भूख उससे बड़ी है।"
+        },
+        account: {
+          en: "{name} meant to feed the others first, as every day, and was hungrier than that.",
+          hi: "{name} रोज़ की तरह पहले औरों को खिलाना {चाहता था|चाहती थी}, पर भूख उससे बड़ी निकली।"
+        }
+      },
+      witness: {
+        spouse: {
+          feed: { en: "{who}, who had eaten that night because {name} did not, was still there: ", hi: "{who}, जिसने उस रात इसलिए खाया था कि {name} ने नहीं खाया, अब भी साथ {who:था|थी}: " },
+          first: { en: "{who}, who had watched {name} eat first that night, standing up in the kitchen, was still there: ", hi: "{who}, जिसने उस रात {name} को रसोई में खड़े-खड़े सबसे पहले खाते देखा था, अब भी साथ {who:था|थी}: " },
+          rebel: { en: "{who}, who had seen {name} eat first that night, and never what {name} had meant to do, was still there: ", hi: "{who}, जिसने उस रात {name} को सबसे पहले खाते देखा था, और कभी नहीं जाना कि {name} क्या करना {चाहता था|चाहती थी}, अब भी साथ {who:था|थी}: " }
+        }
+      }
     },
     "51": {
       prompt: {
@@ -2655,7 +2704,18 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           outcome: { en: "{name} is {age} and brings the answer in as {name}'s own, and is praised for it, and walks the long way round the bicycle stall for weeks.", hi: "{name} {age} बरस {का|की} है। {name} ने वह हल अपना बताकर पेश किया, तारीफ़ भी मिली, और कई हफ़्ते साइकिल वाले की दुकान से कतराकर, घूमकर निकलना पड़ा।" },
           seed: { fuse: 15, weight: 2, holds: 77, debt: { en: "the answer from the bicycle stall, at {at}", hi: "{at} बरस की उम्र में साइकिल वाले से मिला वह हल" }, reckoning: { en: "Someone asks {name} to solve it again, the way {name} did at {at}, in front of the people who praised it, and {name} cannot, and the man who mends bicycles has gone.", hi: "कोई {name} से कहता है कि वह हल फिर निकालो, जैसे {at} बरस की उम्र में निकाला था, उन्हीं लोगों के सामने जिन्होंने तारीफ़ की थी, और {name} से नहीं होता, और साइकिल ठीक करने वाला जा चुका है।" } }
         }
-      ]
+      ],
+      ego: {
+        lower: "claim",
+        card: {
+          en: "{name} is {age} and means to say where the answer came from, and hears {name}'s own voice saying something else.",
+          hi: "{name} {age} बरस {का|की} है और बताना {चाहता|चाहती} है कि हल कहाँ से आया, और अपनी ही आवाज़ को कुछ और कहते {सुनता|सुनती} है।"
+        },
+        account: {
+          en: "{name} meant to say where the answer came from, and heard {name}'s own voice saying something else.",
+          hi: "{name} बताना {चाहता था|चाहती थी} कि हल कहाँ से आया, और {name} ने अपनी ही आवाज़ को कुछ और कहते सुना।"
+        }
+      }
     },
     "55": {
       prompt: {
@@ -2681,7 +2741,18 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           aims: { dharma: 5 },
           outcome: { en: "{name} is {age} and goes back to the counter with the extra change, and waits while the shopkeeper counts it twice. For years after, {name} counts the change again at every counter, and is the slowest in every queue.", hi: "{name} {age} बरस {का|की} है। {name} ज़्यादा पैसे लेकर काउंटर पर {लौट आया|लौट आई}, और दुकानदार के दो बार गिनने तक {खड़ा रहा|खड़ी रही}। उसके बाद बरसों तक {name} हर काउंटर पर पैसे दोबारा {गिनता रहा|गिनती रही}, और हर क़तार में {सबसे धीमा रहा|सबसे धीमी रही}।", mirror: { en: "The jackal could have eaten the boar and left the bowstring alone.", hi: "सियार चाहता तो सूअर खाकर धनुष की डोरी को छोड़ सकता था।" } }
         }
-      ]
+      ],
+      ego: {
+        lower: "keep",
+        card: {
+          en: "{name} is {age} and means to take the change back to the counter, and the queue moves, and {name} moves with it.",
+          hi: "{name} {age} बरस {का|की} है और छुट्टा काउंटर पर लौटाना {चाहता|चाहती} है, पर क़तार आगे बढ़ती है, और {name} भी उसके साथ आगे बढ़ {जाता|जाती} है।"
+        },
+        account: {
+          en: "{name} meant to take the change back to the counter, and the queue moved, and {name} moved with it.",
+          hi: "{name} छुट्टा काउंटर पर लौटाना {चाहता था|चाहती थी}, पर क़तार आगे बढ़ी, और {name} भी उसके साथ आगे बढ़ {गया|गई}।"
+        }
+      }
     },
     "56": {
       prompt: {
@@ -2709,7 +2780,25 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           outcome: { en: "{name} is {age} and says at the door that everyone has eaten already, and the guest says of course, and goes, and dinner goes on a little quieter than before.", hi: "{name} {age} बरस {का|की} है। {name} ने दरवाज़े पर ही कह दिया कि सब खा चुके हैं; मेहमान ने कहा, ठीक है, और चला गया, और खाना पहले से थोड़ा चुपचाप चलता रहा।" },
           seed: { fuse: 20, weight: 2, holds: 55, debt: { en: "the guest turned away at dinner, at {at}", hi: "{at} बरस की उम्र में खाने के समय लौटाया गया मेहमान" }, reckoning: { en: "{name} arrives somewhere at dinner time, tired from the road, and is told at the door that everyone has eaten already.", hi: "{name} रास्ते से {थका हुआ|थकी हुई} कहीं खाने के समय {पहुँचता|पहुँचती} है, और दरवाज़े पर ही कह दिया जाता है कि सब खा चुके हैं।" } }
         }
-      ]
+      ],
+      ego: {
+        lower: "eaten",
+        card: {
+          en: "{name} is {age} and means to give the guest {his|her|their} own plate, and at the door the words come out otherwise.",
+          hi: "{name} {age} बरस {का|की} है और मेहमान को अपनी थाली देना {चाहता|चाहती} है, पर दरवाज़े पर शब्द कुछ और ही निकलते हैं।"
+        },
+        account: {
+          en: "{name} meant to give the guest {his|her|their} own plate, and at the door the words came out otherwise.",
+          hi: "{name} मेहमान को अपनी थाली देना {चाहता था|चाहती थी}, पर दरवाज़े पर शब्द कुछ और ही निकले।"
+        }
+      },
+      witness: {
+        spouse: {
+          give: { en: "{who}, who had watched {name} hand the guest {his|her|their} own plate, was still there: ", hi: "{who}, जिसने {name} को अपनी थाली मेहमान को देते देखा था, अब भी साथ {who:था|थी}: " },
+          eaten: { en: "{who}, who had heard {name} tell the guest at the door that everyone had eaten, was still there: ", hi: "{who}, जिसने {name} को दरवाज़े पर मेहमान से यह कहते सुना था कि सब खा चुके हैं, अब भी साथ {who:था|थी}: " },
+          rebel: { en: "{who}, who had heard {name} tell the guest at the door that everyone had eaten, and never knew {name} had meant to give a plate, was still there: ", hi: "{who}, जिसने {name} को दरवाज़े पर मेहमान से यह कहते सुना था कि सब खा चुके हैं, और कभी नहीं जाना कि {name} अपनी थाली देना {चाहता था|चाहती थी}, अब भी साथ {who:था|थी}: " }
+        }
+      }
     },
     "59": {
       prompt: {
@@ -2747,7 +2836,18 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           aims: { kama: -5 },
           outcome: { en: "{name} is {age}, walks out of the room with the hand still raised, and stands outside until it comes down by itself. Nobody mentions the broken thing again, for years.", hi: "{name} {age} बरस {का|की} है। उठा हुआ हाथ लिए {name} कमरे से बाहर {चला गया|चली गई}, और तब तक बाहर {खड़ा रहा|खड़ी रही} जब तक हाथ अपने-आप नीचे नहीं आ गया। टूटी चीज़ की बात बरसों तक किसी ने नहीं की।" }
         }
-      ]
+      ],
+      ego: {
+        lower: "strike",
+        card: {
+          en: "{name} is {age} and means to stop the hand, and the hand is quicker.",
+          hi: "{name} {age} बरस {का|की} है और हाथ रोकना {चाहता|चाहती} है, पर हाथ ज़्यादा तेज़ है।"
+        },
+        account: {
+          en: "{name} meant to stop the hand, and the hand was quicker.",
+          hi: "{name} हाथ रोकना {चाहता था|चाहती थी}, पर हाथ ज़्यादा तेज़ निकला।"
+        }
+      }
     }
   };
 
@@ -2939,6 +3039,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var { SQ } = squares_default;
   var { STR, SRC_HI, JOINS, NUM_HI } = strings_default;
   var CAST_WORDS = strings_default.CAST;
+  var EGO = strings_default.EGO;
   var SITUATIONS = situations_default;
   var PLAYER_NAMES = names_default.players;
   var CAST = { names: names_default.cast || null };
@@ -3129,7 +3230,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   ];
   var slotsFor = (p) => SLOTS[stageOfPlayer(p)];
   var PRACTICE_W = 0.02;
-  var practise = (g3, pips) => pips > 0 ? mixGuna(g3, "s", Math.min(1, PRACTICE_W * pips)) : g3;
+  var practise = (g3, pips2) => pips2 > 0 ? mixGuna(g3, "s", Math.min(1, PRACTICE_W * pips2)) : g3;
   var BHUMIKA_AT = [0, 0.43, 0.52, 0.6, 0.67, 0.74, 0.8];
   var TURYA = 6;
   var bhumikaOf = (g3, practised = 0) => Math.min(BHUMIKA_AT.findLastIndex((x) => g3.s >= x), practised > 0 ? TURYA : TURYA - 1);
@@ -3190,6 +3291,16 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const rng = makeRng((state.rng.seed ^ 625341585 ^ Math.imul(state.turn + 1, 2654435761) ^ Math.imul((p.life?.length ?? 0) + 1, 2246822507)) >>> 0);
     return open2[Math.floor(next(rng) * open2.length)].id;
   }
+  var EGO_ON = true;
+  var egoOf = (n) => EGO_ON ? situationAt(n)?.ego ?? null : null;
+  var EGO_LEAD = 0.1;
+  function egoFaces(p) {
+    if ((p.bhumika ?? -1) >= 5) return [];
+    const g3 = p.gunas ?? freshGunas(), d = g3.s - Math.max(g3.r, g3.t);
+    return d >= EGO_LEAD ? [6] : d <= -EGO_LEAD ? [4, 5, 6] : [5, 6];
+  }
+  var egoFacesOn = (state, n) => egoOf(n) ? state.forceEgo ?? egoFaces(state.players[state.turn]) : null;
+  var egoThrow = (state, idx, lived) => die(makeRng((state.rng.seed ^ 461845907 ^ Math.imul(idx + 1, 3432918353) ^ Math.imul(lived + 1, 2146121005)) >>> 0));
   function momentOf(n, told) {
     const q2 = squareOf(n);
     if (told === "else" && SQ[n]?.roll) return { moment: SQ[n].roll.moment, own: false, key: `${n}:else` };
@@ -3405,7 +3516,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         held: [],
         reckonings: [],
         refusals: [],
-        door: null
+        door: null,
+        witness: []
       })),
       rules: { ...rules },
       // over: someone reached the exit, or nobody is left in the game to
@@ -3451,14 +3563,21 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     if (passed.length) after2.push(entry("lPassed", { passed }, "passed", idx));
     const plan = { idx, v, dice, spare, sit: false, from, path, target, final: target, jump: null, win: false, died: false, again: false, told: [null], cost: 0, pre, after: after2, end };
     const sit = situationAt(target);
-    if (sit) return Object.assign(plan, { situation: sit });
+    if (sit) return Object.assign(plan, { situation: sit, egoFaces: egoFacesOn(state, target) });
     return finish(state, plan, null);
   }
   function resolveChoice(state, plan, id) {
     const o = optionOf(plan.target, id);
     if (!plan.situation || !o) throw new Error(`no option ${id} on square ${plan.target}`);
     delete plan.situation;
-    return finish(state, plan, o);
+    const ego = egoOf(plan.target), faces = egoFacesOn(state, plan.target);
+    delete plan.egoFaces;
+    if (!ego || id === ego.lower) return finish(state, plan, o);
+    const p = state.players[plan.idx], face = egoThrow(state, plan.idx, p.life?.length ?? 0), rebel = faces.includes(face);
+    const took = rebel ? optionOf(plan.target, ego.lower) : o;
+    plan.ego = { chose: id, took: took.id, face, faces };
+    plan.after.push(entry(rebel ? "lEgoRebel" : "lEgoHeld", { pos: plan.target, sq: plan.target }, "", plan.idx));
+    return finish(state, plan, took);
   }
   function finish(state, plan, o) {
     const { idx, v, dice, from, target, after: after2, end } = plan, p = state.players[idx], rules = state.rules;
@@ -3512,6 +3631,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       p.pos = 0;
       p.holding = holdingOf(p.life || [], p.held);
     } else {
+      if (plan.choice) p.witness = [...p.witness ?? [], { sq: plan.target, chose: plan.ego?.chose ?? plan.choice, took: plan.choice, i: p.life?.length ?? 0, ...plan.ego ? { face: plan.ego.face, faces: plan.ego.faces } : {} }];
       (p.life ||= []).push(plan.target, ...Array(plan.cost ?? 0).fill(plan.target), ...plan.jump ? [plan.jump.to] : []);
       const rk = plan.reckon, at2 = p.life.length;
       if (rk) p.life.push(...rk.to ? [rk.to] : [], ...Array(rk.years).fill(rk.to ?? rk.from));
@@ -3548,6 +3668,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       p.karma = { sancita: [...k.sancita, ...carried(k)], agami: [], prarabdha: [] };
     }
     delete state.forceOmen;
+    if (plan.ego) delete state.forceEgo;
     if (plan.win) state.winner = plan.idx;
     else if (!plan.again) for (let k = 1; k <= state.players.length; k++) {
       const i = (plan.idx + k) % state.players.length;
@@ -5465,6 +5586,18 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     while (k > 0 && p.told[k] === "stay") k--;
     return p.life[k] === n ? p.told[k] : null;
   }
+  function egoHere(n) {
+    const p = subjectOf(), plan = G.plan;
+    if (!p || !egoOf(n)) return null;
+    if (plan && G.state.players[plan.idx] === p && plan.target === n) return plan.ego ?? null;
+    if (p.pos !== n || !p.life?.length) return null;
+    let k = p.life.length - 1;
+    while (k > 0 && p.told?.[k] === "stay") k--;
+    return p.life[k] === n && p.witness?.findLast((w) => w.i === k && w.faces) || null;
+  }
+  var FACES = ["⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
+  var facesIn = (fs) => fs.map((f2) => FACES[f2 - 1]).join(" ");
+  var pips = (html) => html.replace(/[⚀-⚅]/g, (f2) => `<span class="pip">${f2}</span>`);
   var pendingOn = (n) => {
     const plan = G.plan;
     return plan?.situation && plan.target === n && subjectOf() === G.state.players[plan.idx] ? plan.situation : null;
@@ -5557,7 +5690,10 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     let body = `<h2 id="leafTitle">${esc(info.title)}</h2>`;
     const alt = info.alt.filter(Boolean).join(" · ");
     if (alt) body += `<p class="alt" lang="${other(l)}">${esc(alt)}</p>`;
-    const moment = m ? texts(l, momentIn(m, "en", n, !pending), momentIn(m, "hi", n, !pending), n > 100 ? "moment remnant" : "moment") : "";
+    const ego = pending ? null : egoHere(n), rebel = !!ego && ego.chose !== ego.took, tumbling = !!ego && G.egoTumble != null;
+    const faces = pending && G.plan.egoFaces ? pips(texts(l, ...["en", "hi"].map((x) => G.plan.egoFaces.length ? tIn(x, "egoFaces", { faces: facesIn(G.plan.egoFaces) }) : tIn(x, "egoNone")), "remedy ego")) : "";
+    const egoTop = !ego ? "" : pips(texts(l, ...["en", "hi"].map((x) => `${tIn(x, "egoDie")} ${FACES[(tumbling ? G.egoTumble : ego.face) - 1]}` + (tumbling || rebel ? "" : ` ${tIn(x, "egoHeld")}`)), "remedy ego")) + (rebel && !tumbling ? texts(l, ...["en", "hi"].map((x) => momentIn(egoOf(n).card, x, n, false)), "moment") : "");
+    const moment = m && !tumbling ? texts(l, momentIn(m, "en", n, !pending), momentIn(m, "hi", n, !pending), n > 100 ? "moment remnant" : "moment") : "";
     const remedy = sq.remedy ? texts(l, fill(sq.remedy.en, person("en", n)), fill(sq.remedy.hi, person("hi", n)), "remedy") : "";
     const above = n > GOAL && HEAVEN[n] ? texts(l, ...["en", "hi"].map((x) => tIn(x, "aboveExit", { n: numIn(x, GOAL), top: numIn(x, TOP) })), "remedy above") : "";
     const opts = pending && G.deciding?.sit === pending ? G.deciding.opts : null;
@@ -5571,7 +5707,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     })() : "";
     const sayer = spoken && spoken.n === n && G.state?.players[spoken.who];
     const curse = sayer ? texts(l, curseSaidIn("en", sayer, pnameIn(sayer, "en")), curseSaidIn("hi", sayer, pnameIn(sayer, "hi")), "remedy") : "";
-    body += `<div class="story">${door}${moment}${curse}${options}${remedy}${pending ? "" : mirrorHtml(l, mirror, m)}${bi(l, r.line2, "line2")}${above}</div>`;
+    const mirrored = pending || tumbling ? "" : rebel ? texts(l, EGO.mirror.en, EGO.mirror.hi, "mirror") : mirrorHtml(l, mirror, m);
+    body += `<div class="story">${door}${egoTop}${moment}${faces}${curse}${options}${remedy}${mirrored}${bi(l, r.line2, "line2")}${above}</div>`;
     let more = "";
     const metMore2 = [];
     const viewList = (vs, cls) => `<ul class="${cls}">` + vs.map((v) => `<li>${entryLink(v.id, l)}${texts(l, v.en, v.hi)}</li>`).join("") + `</ul>`;
@@ -5592,6 +5729,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       more += `<h3 class="sub">${T2("argued")}</h3><ul class="chips">` + r.schools.map((s) => `<li>${entryLink(s.id, l)}${texts(l, s.en, s.hi)}</li>`).join("") + `</ul>`;
       metMore2.push(...r.schools.map((s) => s.id));
     }
+    if (rebel && deep("scholar")) more += bi(l, EGO.scholar, "note");
     if (deep("scholar") || deep("school") && !r.schools?.length && !r.views?.length) more += bi(l, r.scholar, "note");
     if (deep("scholar")) {
       if (r.figures?.length) {
@@ -5963,12 +6101,13 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       go(e.key === "ArrowLeft" ? -1 : 1);
     }
   });
-  function momentLine(n, who2, l, told) {
+  function momentLine(n, who2, l, told, ego = null) {
     const keep = subject;
     subject = who2;
     try {
       const m = momentOf(n, told !== void 0 ? told : toldHere(n)).moment ?? squareOf(n)?.moment;
-      return { title: squareInfo(n, l).title, text: m ? momentIn(m, l, n, false) : "" };
+      const meant = ego && ego.chose !== ego.took && egoOf(n) ? momentIn(egoOf(n).card, l, n, false) + " " : "";
+      return { title: squareInfo(n, l).title, text: m ? meant + momentIn(m, l, n, false) : "" };
     } finally {
       subject = keep;
     }
@@ -6030,8 +6169,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   // src/render/landed.js
   var el2 = $("landed");
   var last = null;
-  var landHuman = (n, who2, told) => {
-    last = { n, who: who2, told };
+  var landHuman = (n, who2, told, ego = null) => {
+    last = { n, who: who2, told, ego };
     drawLanded();
   };
   var landDoor = (who2, door) => {
@@ -6060,7 +6199,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   };
   function drawLanded() {
     const s = G.state;
-    let { title, text } = !last || !s ? {} : last.door ? doorLine(lang, last) : last.only ? {} : s.players[last.who]?.pos != null ? momentLine(last.n, last.who, lang, last.told) : {};
+    let { title, text } = !last || !s ? {} : last.door ? doorLine(lang, last) : last.only ? {} : s.players[last.who]?.pos != null ? momentLine(last.n, last.who, lang, last.told, last.ego) : {};
     if (last?.curse && s) text = [text, curseLine(lang, last.who)].filter(Boolean).join(" ");
     if (!text && !title) {
       el2.dataset.empty = "";
@@ -6140,6 +6279,22 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const along = yearsAlong(p.life || [], p.told || []).filter((e) => e.via !== "stay"), paras = [];
     const cc = castAlong(state, i, along);
     let toldN = 0, lastTold = {}, metAt = {};
+    const choices = p.witness ?? [], rebelAt = new Map(choices.filter((w) => w.chose !== w.took).map((w) => [w.i, w]));
+    const metI = {}, usedWit = /* @__PURE__ */ new Set();
+    let witnessed = 0;
+    const rebelLine = (e) => {
+      const w = rebelAt.get(e.i), t2 = w && SITUATIONS[w.sq]?.ego?.account;
+      return t2 ? J(t2) : "";
+    };
+    const witnessOf = (who3, e) => {
+      for (let k = choices.length - 1; k >= 0; k--) {
+        const w = choices[k], lines = SITUATIONS[w.sq]?.witness?.[who3];
+        if (!lines || w.i >= e.i || !(metI[who3] < w.i) || usedWit.has(k)) continue;
+        const t2 = w.chose !== w.took && lines.rebel || lines[w.took];
+        if (t2) return { k, t: t2 };
+      }
+      return null;
+    };
     let para = null, seen2 = /* @__PURE__ */ new Set(), lived = /* @__PURE__ */ new Map(), own = /* @__PURE__ */ new Set(), taken = /* @__PURE__ */ new Map(), lastYears = null, fold2 = [], sat = [], skip = false;
     const told = (e) => momentOf(e.n, e.told).key;
     const note = (e) => {
@@ -6260,8 +6415,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         continue;
       }
       const event = nextE && (nextE.via === "snake" || nextE.via === "ladder");
-      const repeat = seen2.has(told(e));
-      if (repeat && !e.via && !event) {
+      const repeat = seen2.has(told(e)), rebel = rebelLine(e);
+      if (repeat && !e.via && !event && !rebel) {
         flushSat();
         fold2.push(e);
         para.ages.push(Math.floor(e.years));
@@ -6274,6 +6429,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       if (times) taken.set(e.n, times);
       if (times >= 2) {
         const age3 = words(e.years);
+        if (rebel) para.parts.push(rebel);
         if (times > 2) para.tally.set(e.n, { times, years: e.years });
         else if (SNAKES[e.n]) para.parts.push(J(JOINS.snakeAgain, { age: age3, vice: sq(e.n), cost: words(ageOf(e.n) - ageOf(nextE.n)) }));
         else para.parts.push(J(JOINS.ladderAgain, { age: age3, virtue: sq(e.n) }));
@@ -6282,14 +6438,23 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         skip = true;
         continue;
       }
-      const c = cc[k], back = c.cast && c.about && !repeat && calledIn(c.cast, c.about, l) && metAt[c.about]?.recall && lastTold[c.about] != null && lastTold[c.about] < toldN - 1 ? c.about : null;
+      const c = cc[k], returning = c.cast && c.about && !repeat && calledIn(c.cast, c.about, l) && lastTold[c.about] != null && lastTold[c.about] < toldN - 1;
+      const wit = returning ? witnessOf(c.about, e) : null;
+      const back = returning && (wit || metAt[c.about]?.recall) ? c.about : null;
       let join = null;
       const gap = lastYears == null || e.n > EARTH3 ? null : e.years - lastYears;
       if (e.via === "snake") join = J(JOINS.snake, { cost: words(ageOf(e.from) - ageOf(e.n)) });
       else if (echo && own.has(q2.callsBack) && !repeat) join = echo[l] || echo.en;
       else if (back) {
-        const t2 = CAST_WORDS.returns[back] || CAST_WORDS.returns.friend, rec = metAt[back].recall;
-        join = fill(castFill((t2[l] || t2.en).replace("{recall}", rec[l] || rec.en), { who: { name: calledIn(c.cast, back, l), gender: c.cast[back].gender } }), who2);
+        const member = { who: { name: calledIn(c.cast, back, l), gender: c.cast[back].gender } };
+        if (wit) {
+          usedWit.add(wit.k);
+          witnessed++;
+          join = fill(castFill(wit.t[l] || wit.t.en, member), who2);
+        } else {
+          const t2 = CAST_WORDS.returns[back] || CAST_WORDS.returns.friend, rec = metAt[back].recall;
+          join = fill(castFill((t2[l] || t2.en).replace("{recall}", rec[l] || rec.en), member), who2);
+        }
       } else if (e.via === "ladder") join = J(JOINS.ladder);
       else if (repeat) join = J(JOINS.again);
       else if (para.parts.length && gap != null && gap >= GAP) join = J(JOINS.gap, { gap: words(gap) });
@@ -6299,12 +6464,15 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       const raw = repeat && e.via ? (JOINS.backTo[l] || JOINS.backTo.en).replace("{first}", words(lived.get(e.n))) : m[l] || m.en;
       const intro = c.meets && !repeat ? introIn(c.cast, c.about, l) : "";
       const text = fill(castFill(raw, peopleOf(c.cast, c.before, l, c.about)), { ...who2, age: age2 }) + (intro ? " " + intro : "");
-      para.parts.push(join ? join + after(raw, text, l) : text);
+      para.parts.push(rebel ? rebel + " " + text : join ? join + after(raw, text, l) : text);
       if (!(repeat && e.via)) {
         toldN++;
         if (c.about) {
           lastTold[c.about] = toldN - 1;
-          if (c.meets) metAt[c.about] = m;
+          if (c.meets) {
+            metAt[c.about] = m;
+            metI[c.about] = e.i;
+          }
         }
       }
       note(e);
@@ -6328,7 +6496,9 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       // a curse the life never bore out is closed after the end, the other way (Phase 14): empty with none
       curse: curse && curse.closedAt == null && (state.winner === i || p.fell || p.dead) ? fill(curse.c.not[l] || curse.c.not.en, who2) : "",
       // what the life never found out about the people in it (Phase 10C): empty with no cast
-      fates: fatesIn(state, i, l, along, cc, who2)
+      fates: fatesIn(state, i, l, along, cc, who2),
+      // how many cast returns were joined by what they witnessed (Phase 15), for tools/accounts.mjs
+      witnessed
     };
   }
   function winEnd(p, T2, words, held2) {
@@ -6500,8 +6670,10 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
   function drawDecide() {
     const d = G.deciding, p = G.state.players[G.plan.idx];
     $("pick").innerHTML = d.opts.map((o) => `<button type="button" data-o="${esc(o.id)}"${o.open ? "" : ` aria-disabled="true"`}>${esc(L(o.label.en, o.label.hi))}<small>${esc(o.open ? optionNote(lang, G.plan.target, o) : L(o.why.en, o.why.hi))}</small></button>`).join("");
-    $("hint").textContent = t("chooseHint", { name: pname(p) });
+    const faces = G.plan.egoFaces, ego = faces ? " " + (faces.length ? t("egoFaces", { faces: faces.map((f2) => DIE_FACES[f2 - 1]).join(" ") }) : t("egoNone")) : "";
+    $("hint").textContent = t("chooseHint", { name: pname(p) }) + ego;
   }
+  var DIE_FACES = ["⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
   function decide(sit, p) {
     const opts = optionsFor(p, sit);
     return new Promise((resolve2) => {
@@ -6631,10 +6803,25 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
           if (g3 !== G.gen) return;
           plan = resolveChoice(state, plan, id);
           G.plan = plan;
+          if (plan.ego && p.type === "human") {
+            if (!reduced) {
+              const r = makeRng(plan.ego.face * 2654435761 + plan.target >>> 0);
+              for (let k = 0; k < 6; k++) {
+                G.egoTumble = die(r);
+                refreshCard();
+                await sleep(90);
+                if (g3 !== G.gen) {
+                  G.egoTumble = null;
+                  return;
+                }
+              }
+            }
+            G.egoTumble = null;
+          }
           refreshCard();
           if (p.type === "human") {
             releaseCard();
-            landHuman(plan.target, idx, id);
+            landHuman(plan.target, idx, plan.choice, plan.ego);
           }
           G.waitingCard = false;
           refreshRoll();
@@ -6726,7 +6913,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     G.waitingCard = false;
     refreshRoll();
   }
-  var FACES = ["", "⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
+  var FACES2 = ["", "⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
   function rollInfo(l) {
     const s = G.state;
     if (!s || s.over || !s.players.some((q2) => q2.type === "human" && !gone(q2))) return null;
@@ -6739,7 +6926,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     if (G.rollQueued || G.busy && !G.waitingCard) {
       const mover = s.players[plan?.idx ?? s.turn];
       const who2 = mover.type === "cpu" ? tIn(l, "rolling", { name: pnameIn(mover, l) }) : "";
-      return { label: [G.face ? G.face.map((f2) => FACES[f2]).join(" ") : "", who2].filter(Boolean).join("  ") || FACES[s.last || 6], ready: false, dot: null };
+      return { label: [G.face ? G.face.map((f2) => FACES2[f2]).join(" ") : "", who2].filter(Boolean).join("  ") || FACES2[s.last || 6], ready: false, dot: null };
     }
     const again = plan ? plan.again : s.turn === i && s.log[0]?.k === "lSix";
     return { label: again ? tIn(l, "rollAgain") : humans > 1 ? tIn(l, "rollFor", { name: pnameIn(p, l) }) : tIn(l, "roll"), ready: true, dot };
@@ -7125,6 +7312,17 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
         return G.deciding ? G.deciding.opts.map((o) => ({ id: o.id, open: o.open })) : null;
       },
       choose: pickOption,
+      // mp.ego(faces) gives the ego these faces on the next throw it makes (Phase 15): mp.ego() every face, so the life
+      // rebels; mp.ego([]) none, so the choice holds. Shown on a situation's card if one is waiting.
+      ego(faces = [1, 2, 3, 4, 5, 6]) {
+        G.state.forceEgo = faces;
+        if (G.plan?.situation && G.plan.egoFaces) {
+          G.plan.egoFaces = faces;
+          if (G.deciding) drawDecide();
+          refreshCard();
+        }
+        return faces;
+      },
       // the situation on square n, or null (REDESIGN.md Phase 10)
       situation: (n) => situationAt(n),
       // how many dice player i (the current one by default) has spent on practice in this life

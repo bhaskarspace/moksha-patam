@@ -13,6 +13,8 @@ import { playGame } from "../tools/sim.mjs";
 const game = pos => {
   const s = createGame({ players: [{ name: "Meera", type: "cpu", gender: "f" }], rules: { six: true }, seed: 1 });
   s.players[0].pos = pos;
+  // Phase 10's rules, with the choice always holding: the ego takes no face (Phase 15's rebellion is tests/witness.test.mjs)
+  s.forceEgo = [];
   return s;
 };
 const lived = (life, told) => {

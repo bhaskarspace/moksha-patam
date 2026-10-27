@@ -4,7 +4,7 @@
 // the vices and virtues carry, applied the same way (src/engine/self.js grow). The dishonest option advances more
 // cheaply, never further; the lint holds that. Pure, so the page and tools/sim.mjs choose alike.
 import { SITUATIONS, SQ, SNAKES, LADDERS, squareOf } from "../content.js";
-import { makeRng, next } from "../rng.js";
+import { makeRng, next, die } from "../rng.js";
 import { stageOfPlayer, freshGunas, freshAims } from "./self.js";
 import { ENDGAME } from "./turn.js";
 
@@ -49,6 +49,35 @@ export function choiceFor(state, sit) {
   const rng = makeRng((state.rng.seed ^ 0x2545f491 ^ Math.imul(state.turn + 1, 0x9e3779b1) ^ Math.imul((p.life?.length ?? 0) + 1, 0x85ebca6b)) >>> 0);
   return open[Math.floor(next(rng) * open.length)].id;
 }
+
+// ---- The witness (REDESIGN.md Phase 15) ----
+// The player is the witness who chooses; the life is what acts (Gita 13.22). On the five ego tests (content/situations.json
+// `ego`: 49, 54, 55, 56, 59) a choice of anything but the lower option is followed by a throw of the ego's own die, and on
+// the faces the ego owns the life takes the lower option instead: its move, years, guna, aims and seed. Choosing the
+// lower option needs no throw: the ego already agrees. The faces follow the gunas at that moment, and are shown on the
+// card before the choice as faces, never as a number about the player.
+// tools/sim.mjs --ego=off takes the throw away, to measure what it changes; nothing in the game turns it off
+export let EGO_ON = true;
+export const setEgo = on => { EGO_ON = on; };
+export const egoOf = n => (EGO_ON ? situationAt(n)?.ego ?? null : null);
+// Sattva leads by this much over the larger of rajas and tamas, or trails by it; in between the life is mixed. Measured
+// over 20,000 lives at the higher choices (REDESIGN.md Phase 15): a smaller margin leaves the mixed band almost empty,
+// since the gunas move in quarter steps.
+export const EGO_LEAD = 0.1;
+// The faces the ego owns for player p: only a 6 if sattva leads, 5 and 6 if mixed, 4 to 6 if rajas or tamas leads, and
+// none at the highest bhumikas (the fifth and above, which only a sannyasin reaches).
+export function egoFaces(p) {
+  if ((p.bhumika ?? -1) >= 5) return [];
+  const g = p.gunas ?? freshGunas(), d = g.s - Math.max(g.r, g.t);
+  return d >= EGO_LEAD ? [6] : d <= -EGO_LEAD ? [4, 5, 6] : [5, 6];
+}
+// The ego's throw for player idx on the landing after `lived` squares of their life: one die, off a sequence of its own,
+// so the dice that move the token never change. It is never the omen and never moves the token.
+// The faces in force for the current player on square n: none without an ego test there, else egoFaces, or what ?debug's
+// mp.ego() set for the next throw (state.forceEgo).
+export const egoFacesOn = (state, n) => (egoOf(n) ? state.forceEgo ?? egoFaces(state.players[state.turn]) : null);
+export const egoThrow = (state, idx, lived) =>
+  die(makeRng((state.rng.seed ^ 0x1b873593 ^ Math.imul(idx + 1, 0xcc9e2d51) ^ Math.imul(lived + 1, 0x7feb352d)) >>> 0));
 
 // ---- What a square tells ----
 // The moment a landing on square n told, given what it told (p.told): a roll-dependent square's other moment, a

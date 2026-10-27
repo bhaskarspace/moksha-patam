@@ -20,7 +20,8 @@ let last = null; // { n, who, told }, the person's last landing, and the option 
 
 // A person's landing on square n, told by its moment. A situation's is told by the option chosen, kept here since the
 // option's ladder or snake takes the token off the square.
-export const landHuman = (n, who, told) => { last = { n, who, told }; drawLanded(); };
+// ego is the throw on a situation, when there was one (Phase 15)
+export const landHuman = (n, who, told, ego = null) => { last = { n, who, told, ego }; drawLanded(); };
 // What happened at the door to player who, for anyone: door is { kind: "refused", refusal, sit }, { kind: "through" },
 // { kind: "exam", ex } or { kind: "died", debts } (ex.debts and debts: what is still owed should the years run out there),
 // told in the door's words, in the language of the moment it is drawn.
@@ -40,7 +41,7 @@ export const clearLanded = () => { last = null; drawLanded(); };
 
 export function drawLanded() {
   const s = G.state;
-  let { title, text } = !last || !s ? {} : last.door ? doorLine(lang, last) : last.only ? {} : s.players[last.who]?.pos != null ? momentLine(last.n, last.who, lang, last.told) : {};
+  let { title, text } = !last || !s ? {} : last.door ? doorLine(lang, last) : last.only ? {} : s.players[last.who]?.pos != null ? momentLine(last.n, last.who, lang, last.told, last.ego) : {};
   if (last?.curse && s) text = [text, curseLine(lang, last.who)].filter(Boolean).join(" ");
   if (!text && !title) { el.dataset.empty = ""; el.innerHTML = ""; el.tabIndex = -1; return; }
   el.innerHTML = `<span class="landed-t">${title ? `<b>${esc(title)}</b> ` : ""}${esc(text)}</span>`;

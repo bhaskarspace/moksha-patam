@@ -84,7 +84,13 @@
         "outcome": {"en":"{name} is {age} and says the homework was done and left at home, and is believed, and does it that night in a hurry, badly.","hi":"{name} {age} बरस {का|की} है। {name} ने कह दिया कि गृहकार्य हो गया था, घर पर छूट गया, और बात मान ली गई। उसी रात {name} ने जल्दी-जल्दी, आधा-अधूरा, उसे पूरा किया।","mirror":{"en":"Satyakama could have named any father he liked. The teacher would have had no way to check.","hi":"सत्यकाम चाहते तो कोई भी पिता का नाम ले सकते थे। गुरु के पास जाँचने का कोई रास्ता नहीं था।"}},
         "seed": {"fuse":15,"weight":1,"holds":29,"debt":{"en":"the homework left at home, at {at}","hi":"{at} बरस की उम्र में घर पर छूटा होमवर्क"},"reckoning":{"en":"The thing {name} never learned properly, because it was done that night in a hurry, is the thing the work turns on now, in front of everyone.","hi":"जो बात {name} ने कभी ठीक से नहीं सीखी, क्योंकि वह उस रात जल्दी में निपटा दी गई थी, आज सबके सामने काम उसी पर टिका है।"}}
       }
-    ]
+    ],
+    "witness": {
+      "teacher": {
+        "truth": {"en":"{who}, who had heard {name} say in front of everyone that the homework was not done, was waiting: ","hi":"{who}, जिन्होंने {name} को सबके सामने यह कहते सुना था कि होमवर्क नहीं हुआ, {who:इंतज़ार कर रहे थे|इंतज़ार कर रही थीं}: "},
+        "lie": {"en":"{who}, who had believed {name} about the homework left at home, was waiting: ","hi":"{who}, जिन्होंने {name} की यह बात मान ली थी कि होमवर्क घर पर छूट गया था, {who:इंतज़ार कर रहे थे|इंतज़ार कर रही थीं}: "}
+      }
+    }
   },
   "47": {
     "prompt": {
@@ -140,7 +146,25 @@
         "outcome": {"en":"{name} is {age} and eats first tonight, standing up in the kitchen, and the others eat after, and nobody says anything.","hi":"{name} {age} बरस {का|की} है। आज रात {name} ने रसोई में खड़े-खड़े पहले ख़ुद खा लिया, बाक़ी सबने बाद में खाया, और किसी ने कुछ नहीं कहा।"},
         "seed": {"fuse":20,"weight":2,"holds":47,"debt":{"en":"the night of eating first, at {at}","hi":"{at} बरस की उम्र में सबसे पहले खा लेने वाली वह रात"},"reckoning":{"en":"There is just enough in the house again, and this time someone else eats first, standing up in the kitchen, and {name} recognises it.","hi":"घर में फिर बस उतना ही है, और इस बार कोई और रसोई में खड़े-खड़े सबसे पहले खा लेता है, और {name} उसे {पहचान लेता|पहचान लेती} है।"}}
       }
-    ]
+    ],
+    "ego": {
+      "lower": "first",
+      "card": {
+        "en": "{name} is {age} and means to feed the others first, as every day, and is hungrier than that tonight.",
+        "hi": "{name} {age} बरस {का|की} है और रोज़ की तरह पहले औरों को खिलाना {चाहता|चाहती} है, पर आज रात भूख उससे बड़ी है।"
+      },
+      "account": {
+        "en": "{name} meant to feed the others first, as every day, and was hungrier than that.",
+        "hi": "{name} रोज़ की तरह पहले औरों को खिलाना {चाहता था|चाहती थी}, पर भूख उससे बड़ी निकली।"
+      }
+    },
+    "witness": {
+      "spouse": {
+        "feed": {"en":"{who}, who had eaten that night because {name} did not, was still there: ","hi":"{who}, जिसने उस रात इसलिए खाया था कि {name} ने नहीं खाया, अब भी साथ {who:था|थी}: "},
+        "first": {"en":"{who}, who had watched {name} eat first that night, standing up in the kitchen, was still there: ","hi":"{who}, जिसने उस रात {name} को रसोई में खड़े-खड़े सबसे पहले खाते देखा था, अब भी साथ {who:था|थी}: "},
+        "rebel": {"en":"{who}, who had seen {name} eat first that night, and never what {name} had meant to do, was still there: ","hi":"{who}, जिसने उस रात {name} को सबसे पहले खाते देखा था, और कभी नहीं जाना कि {name} क्या करना {चाहता था|चाहती थी}, अब भी साथ {who:था|थी}: "}
+      }
+    }
   },
   "51": {
     "prompt": {
@@ -192,7 +216,18 @@
         "outcome": {"en":"{name} is {age} and brings the answer in as {name}'s own, and is praised for it, and walks the long way round the bicycle stall for weeks.","hi":"{name} {age} बरस {का|की} है। {name} ने वह हल अपना बताकर पेश किया, तारीफ़ भी मिली, और कई हफ़्ते साइकिल वाले की दुकान से कतराकर, घूमकर निकलना पड़ा।"},
         "seed": {"fuse":15,"weight":2,"holds":77,"debt":{"en":"the answer from the bicycle stall, at {at}","hi":"{at} बरस की उम्र में साइकिल वाले से मिला वह हल"},"reckoning":{"en":"Someone asks {name} to solve it again, the way {name} did at {at}, in front of the people who praised it, and {name} cannot, and the man who mends bicycles has gone.","hi":"कोई {name} से कहता है कि वह हल फिर निकालो, जैसे {at} बरस की उम्र में निकाला था, उन्हीं लोगों के सामने जिन्होंने तारीफ़ की थी, और {name} से नहीं होता, और साइकिल ठीक करने वाला जा चुका है।"}}
       }
-    ]
+    ],
+    "ego": {
+      "lower": "claim",
+      "card": {
+        "en": "{name} is {age} and means to say where the answer came from, and hears {name}'s own voice saying something else.",
+        "hi": "{name} {age} बरस {का|की} है और बताना {चाहता|चाहती} है कि हल कहाँ से आया, और अपनी ही आवाज़ को कुछ और कहते {सुनता|सुनती} है।"
+      },
+      "account": {
+        "en": "{name} meant to say where the answer came from, and heard {name}'s own voice saying something else.",
+        "hi": "{name} बताना {चाहता था|चाहती थी} कि हल कहाँ से आया, और {name} ने अपनी ही आवाज़ को कुछ और कहते सुना।"
+      }
+    }
   },
   "55": {
     "prompt": {
@@ -218,7 +253,18 @@
         "aims": {"dharma":5},
         "outcome": {"en":"{name} is {age} and goes back to the counter with the extra change, and waits while the shopkeeper counts it twice. For years after, {name} counts the change again at every counter, and is the slowest in every queue.","hi":"{name} {age} बरस {का|की} है। {name} ज़्यादा पैसे लेकर काउंटर पर {लौट आया|लौट आई}, और दुकानदार के दो बार गिनने तक {खड़ा रहा|खड़ी रही}। उसके बाद बरसों तक {name} हर काउंटर पर पैसे दोबारा {गिनता रहा|गिनती रही}, और हर क़तार में {सबसे धीमा रहा|सबसे धीमी रही}।","mirror":{"en":"The jackal could have eaten the boar and left the bowstring alone.","hi":"सियार चाहता तो सूअर खाकर धनुष की डोरी को छोड़ सकता था।"}}
       }
-    ]
+    ],
+    "ego": {
+      "lower": "keep",
+      "card": {
+        "en": "{name} is {age} and means to take the change back to the counter, and the queue moves, and {name} moves with it.",
+        "hi": "{name} {age} बरस {का|की} है और छुट्टा काउंटर पर लौटाना {चाहता|चाहती} है, पर क़तार आगे बढ़ती है, और {name} भी उसके साथ आगे बढ़ {जाता|जाती} है।"
+      },
+      "account": {
+        "en": "{name} meant to take the change back to the counter, and the queue moved, and {name} moved with it.",
+        "hi": "{name} छुट्टा काउंटर पर लौटाना {चाहता था|चाहती थी}, पर क़तार आगे बढ़ी, और {name} भी उसके साथ आगे बढ़ {गया|गई}।"
+      }
+    }
   },
   "56": {
     "prompt": {
@@ -246,7 +292,25 @@
         "outcome": {"en":"{name} is {age} and says at the door that everyone has eaten already, and the guest says of course, and goes, and dinner goes on a little quieter than before.","hi":"{name} {age} बरस {का|की} है। {name} ने दरवाज़े पर ही कह दिया कि सब खा चुके हैं; मेहमान ने कहा, ठीक है, और चला गया, और खाना पहले से थोड़ा चुपचाप चलता रहा।"},
         "seed": {"fuse":20,"weight":2,"holds":55,"debt":{"en":"the guest turned away at dinner, at {at}","hi":"{at} बरस की उम्र में खाने के समय लौटाया गया मेहमान"},"reckoning":{"en":"{name} arrives somewhere at dinner time, tired from the road, and is told at the door that everyone has eaten already.","hi":"{name} रास्ते से {थका हुआ|थकी हुई} कहीं खाने के समय {पहुँचता|पहुँचती} है, और दरवाज़े पर ही कह दिया जाता है कि सब खा चुके हैं।"}}
       }
-    ]
+    ],
+    "ego": {
+      "lower": "eaten",
+      "card": {
+        "en": "{name} is {age} and means to give the guest {his|her|their} own plate, and at the door the words come out otherwise.",
+        "hi": "{name} {age} बरस {का|की} है और मेहमान को अपनी थाली देना {चाहता|चाहती} है, पर दरवाज़े पर शब्द कुछ और ही निकलते हैं।"
+      },
+      "account": {
+        "en": "{name} meant to give the guest {his|her|their} own plate, and at the door the words came out otherwise.",
+        "hi": "{name} मेहमान को अपनी थाली देना {चाहता था|चाहती थी}, पर दरवाज़े पर शब्द कुछ और ही निकले।"
+      }
+    },
+    "witness": {
+      "spouse": {
+        "give": {"en":"{who}, who had watched {name} hand the guest {his|her|their} own plate, was still there: ","hi":"{who}, जिसने {name} को अपनी थाली मेहमान को देते देखा था, अब भी साथ {who:था|थी}: "},
+        "eaten": {"en":"{who}, who had heard {name} tell the guest at the door that everyone had eaten, was still there: ","hi":"{who}, जिसने {name} को दरवाज़े पर मेहमान से यह कहते सुना था कि सब खा चुके हैं, अब भी साथ {who:था|थी}: "},
+        "rebel": {"en":"{who}, who had heard {name} tell the guest at the door that everyone had eaten, and never knew {name} had meant to give a plate, was still there: ","hi":"{who}, जिसने {name} को दरवाज़े पर मेहमान से यह कहते सुना था कि सब खा चुके हैं, और कभी नहीं जाना कि {name} अपनी थाली देना {चाहता था|चाहती थी}, अब भी साथ {who:था|थी}: "}
+      }
+    }
   },
   "59": {
     "prompt": {
@@ -284,6 +348,17 @@
         "aims": {"kama":-5},
         "outcome": {"en":"{name} is {age}, walks out of the room with the hand still raised, and stands outside until it comes down by itself. Nobody mentions the broken thing again, for years.","hi":"{name} {age} बरस {का|की} है। उठा हुआ हाथ लिए {name} कमरे से बाहर {चला गया|चली गई}, और तब तक बाहर {खड़ा रहा|खड़ी रही} जब तक हाथ अपने-आप नीचे नहीं आ गया। टूटी चीज़ की बात बरसों तक किसी ने नहीं की।"}
       }
-    ]
+    ],
+    "ego": {
+      "lower": "strike",
+      "card": {
+        "en": "{name} is {age} and means to stop the hand, and the hand is quicker.",
+        "hi": "{name} {age} बरस {का|की} है और हाथ रोकना {चाहता|चाहती} है, पर हाथ ज़्यादा तेज़ है।"
+      },
+      "account": {
+        "en": "{name} meant to stop the hand, and the hand was quicker.",
+        "hi": "{name} हाथ रोकना {चाहता था|चाहती थी}, पर हाथ ज़्यादा तेज़ निकला।"
+      }
+    }
   }
 }

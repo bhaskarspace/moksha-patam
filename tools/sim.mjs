@@ -21,11 +21,13 @@
 // landing on it, refusals a life and the share of refused arrivals who could sit (sannyāsins), years spent at the door,
 // questions the book answered and debts paid in penance, deaths at the door, liberations through it, and curses closed
 // by landing or not. --curse=off takes the curses away, which must leave every other number as it was.
+// Phase 15 adds the witness: the ego's throws and rebellions a life, the share of lives that rebelled, and both by the
+// band of the gunas the faces came from (sattva, mixed, rajas or tamas, none). --ego=off takes the throw away.
 import { pathToFileURL } from "node:url";
 import { createGame, playTurn, moveFor, movesFor, planTurn, rollDice, diceFor, setEndgame, ENDGAME, canSit } from "../src/engine/turn.js";
 import { SQ, SITUATIONS, CURSES } from "../src/content.js";
 import { curseIn } from "../src/engine/curse.js";
-import { setPolicy, worthOf, optionOf } from "../src/engine/qbn.js";
+import { setPolicy, setEgo, worthOf, optionOf } from "../src/engine/qbn.js";
 import { SPAN, setSpan, yearsAlong, BHUMIKA_AT, TURYA, setPractice } from "../src/engine/self.js";
 
 // Phase 9's choice, before Phase 12 made the fall the heavens' snake: the exit, else the bigger die that is not a
@@ -90,6 +92,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   if (flags.situations === "off") for (const k of Object.keys(SITUATIONS)) delete SITUATIONS[k];
   if (flags.policy) setPolicy(flags.policy);
   if (flags.curse === "off") CURSES.list = null;
+  if (flags.ego === "off") setEgo(false);
   const pick = PICKS[flags.pick || "plain"];
   const rules = SIM_RULES;
   const pct = x => `${(x * 100).toFixed(1)}%`;
@@ -127,6 +130,9 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   // Phase 14
   let fellPast = 0, fellSnake = 0, refusedAll = 0, couldSit = 0, doorDeaths = 0, throughDoor = 0, passed = 0, penanced = 0, cursed = 0, cursedLanded = 0, cursedOpen = 0;
   const doorYears = [];
+  // Phase 15: the ego's throws, by the faces it owned: [6] sattva, [5,6] mixed, [4,5,6] rajas or tamas, [] none
+  const BANDS = ["none", "sattva", "mixed", "rajas/tamas"], egoBands = BANDS.map(() => [0, 0]);
+  let throws = 0, rebellions = 0, rebelLives = 0;
   for (let s = first; s < first + games; s++) {
     const g = playGame(s, { players, rules, pick }), { turns, heaven, karma, log, players: ps, seen } = g;
     lengths.push(Math.max(...turns));
@@ -151,6 +157,9 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       if (k.doorYears) doorYears.push(k.doorYears);
       doorDeaths += !!p.dead && p.pos === 105;
       for (const x of p.sittings ?? []) { passed += x.pass; penanced += !x.pass && x.cleared; }
+      const thrown = (p.witness ?? []).filter(w => w.faces), overruled = thrown.filter(w => w.chose !== w.took);
+      throws += thrown.length; rebellions += overruled.length; rebelLives += overruled.length > 0;
+      for (const w of thrown) { const b = egoBands[Math.min(w.faces.length, 3)]; b[0]++; b[1] += w.chose !== w.took; }
       const cu = curseIn(p);
       if (cu) { cursed++; if (cu.closedAt != null) cursedLanded++; else if (g.winner !== i && !p.dead && !p.fell) cursedOpen++; }
       const along = yearsAlong(p.life).filter(e => e.n <= 100);
@@ -201,5 +210,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   console.log(`the fall: past 110 ${pct(fellPast / lives)}, Śiva's snake on 110 ${pct(fellSnake / lives)}; refusals ${(refusedAll / lives).toFixed(3)} a life, of which a sannyāsin who could sit ${refusedAll ? pct(couldSit / refusedAll) : "—"}`);
   console.log(`the examination: lives that sat at the door ${pct(doorYears.length / lives)}, years there median ${dy.median}, p95 ${dy.p95}, max ${dy.max} (mean ${(doorYears.reduce((a, b) => a + b, 0) / lives).toFixed(3)} a life); debts the book answered ${passed}, paid in penance ${penanced}; through the door ${pct(throughDoor / lives)} of lives; deaths at the door ${pct(doorDeaths / lives)}`);
   console.log(`the curse: spoken in ${pct(cursed / lives)} of lives; closed by landing ${cursed ? pct(cursedLanded / cursed) : "—"}, the other way ${cursed ? pct((cursed - cursedLanded - cursedOpen) / cursed) : "—"}`);
+  console.log(`the witness: ego throws ${(throws / lives).toFixed(3)} a life, rebellions ${(rebellions / lives).toFixed(3)} a life (${throws ? pct(rebellions / throws) : "—"} of throws); lives that rebelled ${pct(rebelLives / lives)}`);
+  console.log(`  by the gunas: ${BANDS.map((b, k) => `${b} ${throws ? pct(egoBands[k][0] / throws) : "—"} of throws, rebelled ${egoBands[k][0] ? pct(egoBands[k][1] / egoBands[k][0]) : "—"}`).join("; ")}`);
   console.log(`through the exit by ${AT} years: ${pct(freed.filter(y => y <= AT).length / lives)}; age at the exit: p5 ${b.p5}, median ${b.median}, p95 ${b.p95}`);
 }

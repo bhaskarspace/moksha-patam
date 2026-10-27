@@ -2,7 +2,7 @@
 import { GOAL, TOP, LADDERS, SNAKES, HEAVEN, SQ } from "../content.js";
 import { makeRng, die } from "../rng.js";
 import { SPAN, turnYears, grow, freshGunas, freshAims, holdingOf, slotsFor, stageOfPlayer, SANNYASA } from "./self.js";
-import { situationAt, optionOf, choiceFor } from "./qbn.js";
+import { situationAt, optionOf, choiceFor, egoOf, egoFacesOn, egoThrow } from "./qbn.js";
 import { freshKarma, karmaOf, carried, ripen, plantOf, omenFor, refusalOf, examineOf, meet } from "./karma.js";
 import { curseOf, spokenAt } from "./curse.js";
 
@@ -88,12 +88,13 @@ export const gone = p => !!(p.dead || p.fell);
 // threw past the top of the heavens, which ends it as the years running out does, and fellFrom, the realm it fell from;
 // and the ledger (src/engine/karma.js): karma, its three buckets; held, the vices a reckoning added to what the life
 // is holding; reckonings, each one met, where in the life it came; refusals, each arrival the exit refused, and where;
-// and door, why the exit refused them while they stand at it.
+// and door, why the exit refused them while they stand at it. Phase 15 adds witness: each situation's choice, what the
+// witness chose and what the life took.
 export function createGame({ players, rules, seed }) {
   return {
     players: players.map((r, i) => ({ name: r.name.trim(), type: r.type, gender: r.gender || "m", alias: r.alias || null, color: i, pos: 0, face: "r", life: [], told: [], fell: false,
       years: 0, gunas: freshGunas(), aims: freshAims(), practised: 0, bhumika: null, peak: null, dead: false, holding: null,
-      karma: freshKarma(), held: [], reckonings: [], refusals: [], door: null })),
+      karma: freshKarma(), held: [], reckonings: [], refusals: [], door: null, witness: [] })),
     rules: { ...rules },
     // over: someone reached the exit, or nobody is left in the game to
     turn: 0, winner: null, over: false, last: null,
@@ -155,17 +156,29 @@ export function planTurn(state, v, dice = [v]) {
   const plan = { idx, v, dice, spare, sit: false, from, path, target, final: target, jump: null, win: false, died: false, again: false, told: [null], cost: 0, pre, after, end };
   // a square where the player chooses (REDESIGN.md Phase 10): the plan waits for the choice, and resolveChoice
   // finishes it. A square with no situation is resolved at once, exactly as before.
+  // On an ego test (Phase 15) the plan also carries the faces the ego owns, so the card can show them before the choice.
   const sit = situationAt(target);
-  if (sit) return Object.assign(plan, { situation: sit });
+  if (sit) return Object.assign(plan, { situation: sit, egoFaces: egoFacesOn(state, target) });
   return finish(state, plan, null);
 }
 
 // The choice made on a situation's square: the option's move, its cost in years, and its hidden guna and aims.
+// On an ego test (REDESIGN.md Phase 15), choosing anything but the lower option is followed by the ego's throw, off a
+// sequence of its own: on one of the ego's faces the life takes the lower option, and everything it does applies, since
+// the life did it. plan.ego keeps what the witness chose, what the life took, the face and the faces; plan.choice is
+// what the life took.
 export function resolveChoice(state, plan, id) {
   const o = optionOf(plan.target, id);
   if (!plan.situation || !o) throw new Error(`no option ${id} on square ${plan.target}`);
   delete plan.situation;
-  return finish(state, plan, o);
+  const ego = egoOf(plan.target), faces = egoFacesOn(state, plan.target);
+  delete plan.egoFaces;
+  if (!ego || id === ego.lower) return finish(state, plan, o);
+  const p = state.players[plan.idx], face = egoThrow(state, plan.idx, p.life?.length ?? 0), rebel = faces.includes(face);
+  const took = rebel ? optionOf(plan.target, ego.lower) : o;
+  plan.ego = { chose: id, took: took.id, face, faces };
+  plan.after.push(entry(rebel ? "lEgoRebel" : "lEgoHeld", { pos: plan.target, sq: plan.target }, "", plan.idx));
+  return finish(state, plan, took);
 }
 
 // The rest of a turn, once it is known what the square does: the snake or ladder, the years, the win or the death.
@@ -236,6 +249,9 @@ export function endTurn(state, plan) {
   // Śiva's snake took it from the top of the heavens, the highest a life can reach
   if (plan.fell) { p.fell = true; p.fellBy = plan.fellBy; p.fellFrom = plan.fellBy === "snake" ? TOP : plan.from; p.pos = 0; p.holding = holdingOf(p.life || [], p.held); }
   else {
+    // what the witness chose on a situation and what the life did (REDESIGN.md Phase 15), where in the life, for the
+    // account and for Phase 16's Mirror; on an ego test that threw, the face and the faces the ego owned
+    if (plan.choice) p.witness = [...(p.witness ?? []), { sq: plan.target, chose: plan.ego?.chose ?? plan.choice, took: plan.choice, i: p.life?.length ?? 0, ...(plan.ego ? { face: plan.ego.face, faces: plan.ego.faces } : {}) }];
     // a snake or a ladder is two moments: the square that did it, and the one it led to
     // a year sat out is the same square again: on earth nothing else lands where it stands (src/engine/self.js)
     // the years a choice cost are the square again, once a year (src/engine/self.js yearsAlong reads them as stays)
@@ -277,6 +293,7 @@ export function endTurn(state, plan) {
   // a life over carries what it never met into the store (sañcita), for Phase 15 to draw the next life's prārabdha from
   if (plan.died || plan.fell) { const k = karmaOf(p); p.karma = { sancita: [...k.sancita, ...carried(k)], agami: [], prarabdha: [] }; }
   delete state.forceOmen;
+  if (plan.ego) delete state.forceEgo;
   if (plan.win) state.winner = plan.idx;
   // the turn passes to the next player still alive; with nobody left, the game is over
   else if (!plan.again) for (let k = 1; k <= state.players.length; k++) {

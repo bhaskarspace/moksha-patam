@@ -667,8 +667,9 @@ await check("Phase 10C: the card meets the friend by name, calls them by it afte
 await check("Phase 10: a situation's card asks, takes the choice on the card, and tells what was chosen", async page => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto(BASE + "?seed=1&debug");
-  // 52 + 3 is Greed: the card opens on the prompt with its options, and nothing moves until one is taken
-  await page.evaluate(() => { Object.assign(mp.state.players[0], { pos: 52, life: [52], told: [null], years: 40 }); mp.roll(3); });
+  // 52 + 3 is Greed: the card opens on the prompt with its options, and nothing moves until one is taken. The ego takes
+  // no face, so the choice holds (Phase 15 is its own check)
+  await page.evaluate(() => { Object.assign(mp.state.players[0], { pos: 52, life: [52], told: [null], years: 40 }); mp.ego([]); mp.roll(3); });
   await page.waitForFunction(() => mp.deciding && document.querySelector("#leaf .options"), null, { timeout: 30000 });
   const asked = await page.evaluate(() => ({ moment: document.querySelector("#leaf .moment").textContent, opts: [...document.querySelectorAll("#leaf .opt")].map(b => b.textContent), mirror: !!document.querySelector("#leaf .mirror") }));
   assert(/too much change by mistake, and has already turned/.test(asked.moment), `prompt: ${asked.moment}`);
@@ -1259,7 +1260,7 @@ await check("Phase 11: the die is live under a card: a landing's card keeps the 
 await check("Phase 11: a situation waits for its choice, modal, and Space does not roll past it; then the card tells the outcome, the die live on it", async page => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto(BASE + "?seed=1&debug");
-  await page.evaluate(() => { Object.assign(mp.state.players[0], { pos: 52, life: [52], told: [null], years: 40 }); mp.roll(3); });
+  await page.evaluate(() => { Object.assign(mp.state.players[0], { pos: 52, life: [52], told: [null], years: 40 }); mp.ego([]); mp.roll(3); });
   await page.waitForFunction(() => mp.deciding && document.querySelector("#leaf .options"), null, { timeout: 30000 });
   assert(await page.evaluate(() => document.getElementById("folio").matches(":modal")), "the situation's card is not modal");
   const before = await page.evaluate(() => mp.state.log.length);
@@ -1392,6 +1393,51 @@ await check("Phase 11: on a phone the sheet does not trap: a square tapped turns
   await page.mouse.click(3, 200);
   await page.waitForFunction(() => !document.getElementById("folio").open, null, { timeout: 5000 });
 }, { phone: [375, 812] });
+
+await check("Phase 15: the ego's faces are on the card before the choice; on one of them the life takes the lower option, and says so", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=1&debug");
+  // rajas leads, so the ego owns 4, 5 and 6, shown as faces on the card and in the panel before anything is chosen
+  await page.evaluate(() => { Object.assign(mp.state.players[0], { pos: 52, life: [52], told: [null], years: 40, gunas: { s: 0.2, r: 0.6, t: 0.2 } }); mp.roll(3); });
+  await page.waitForFunction(() => mp.deciding && document.querySelector("#leaf .options"), null, { timeout: 30000 });
+  const before = await page.evaluate(() => ({ ego: document.querySelector("#leaf .ego")?.textContent, hint: document.getElementById("hint").textContent }));
+  assert(/The ego takes ⚃ ⚄ ⚅\./.test(before.ego || "") && /⚃ ⚄ ⚅/.test(before.hint), JSON.stringify(before));
+  assert(!/\d/.test(before.ego), `a number about the player: ${before.ego}`);
+  // every face the ego's: the witness gives the change back, and the life keeps it
+  await page.evaluate(() => mp.ego());
+  await page.click('#leaf .opt[data-id="return"]');
+  await page.waitForFunction(() => !mp.deciding && /The ego's die/.test(document.querySelector("#leaf .ego")?.textContent || ""), null, { timeout: 30000 });
+  const card = await page.evaluate(() => ({ text: document.getElementById("leaf").textContent, mirror: document.querySelector("#leaf .mirror")?.textContent, line: mp.landed(), live: document.getElementById("leaf").getAttribute("aria-live") }));
+  assert(card.live === "polite", "the card is no longer aria-live");
+  assert(/means to take the change back to the counter, and the queue moves/.test(card.text), `the rebellion: ${card.text.slice(0, 400)}`);
+  assert(/by what is a person driven to wrong, even unwilling/.test(card.mirror || ""), `the mirror: ${card.mirror}`);
+  assert(/means to take the change back/.test(card.line || ""), `the line under the board: ${card.line}`);
+  await page.evaluate(() => mp.close());
+  await page.waitForFunction(() => !mp.busy && mp.state.players[0].life.length > 1, null, { timeout: 30000 });
+  const p = await page.evaluate(() => ({ pos: mp.state.players[0].pos, w: mp.state.players[0].witness, rebel: mp.state.log.some(e => e.k === "lEgoRebel") }));
+  assert(p.pos === 43 && p.w.at(-1).chose === "return" && p.w.at(-1).took === "keep" && p.rebel, JSON.stringify(p));
+  // and Space still rolls
+  const turns = await page.evaluate(() => mp.state.players[0].life.length);
+  await page.keyboard.press("Space");
+  await page.waitForFunction(n => mp.state.players[0].life.length > n || mp.busy, turns, { timeout: 15000 });
+});
+
+await check("Phase 15: with no face the ego's, the choice holds, and the die is seen to tumble when motion is allowed", async page => {
+  await page.goto(BASE + "?seed=1&debug");
+  await page.evaluate(() => { Object.assign(mp.state.players[0], { pos: 52, life: [52], told: [null], years: 40 }); mp.roll(3); });
+  await page.waitForFunction(() => mp.deciding && document.querySelector("#leaf .options"), null, { timeout: 30000 });
+  await page.evaluate(() => mp.ego([]));
+  assert(/The ego takes no face here/.test(await page.evaluate(() => document.querySelector("#leaf .ego")?.textContent || "")), "the card does not show the forced faces");
+  await page.evaluate(() => {
+    window.__faces = new Set();
+    new MutationObserver(() => { const t = document.querySelector("#leaf .ego")?.textContent; if (t) window.__faces.add(t); }).observe(document.getElementById("leaf"), { childList: true, subtree: true, characterData: true });
+  });
+  await page.click('#leaf .opt[data-id="return"]');
+  await page.waitForFunction(() => /The choice holds/.test(document.querySelector("#leaf .ego")?.textContent || ""), null, { timeout: 30000 });
+  const seen = await page.evaluate(() => window.__faces.size);
+  assert(seen >= 2, `the die did not tumble: ${seen} states`);
+  assert(await page.evaluate(() => /goes back to the counter/.test(document.querySelector("#leaf .moment")?.textContent || "")), "the outcome chosen is not told");
+});
 
 await check("installable: manifest and service worker pass Chrome's check", async page => {
   await page.goto(BASE);

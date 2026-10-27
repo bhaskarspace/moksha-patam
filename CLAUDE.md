@@ -17,7 +17,7 @@ single static `index.html` at https://codebpr.com/moksha-patam/
 - `docs/REFERENCE.md`: philosophy-to-mechanics mapping and the history of the board.
 - `docs/LANDSCAPE.md`: comparable games.
 
-**State:** Phases 0 to 14 have shipped. Phase 8 was Life State (REDESIGN.md §4): years lived are a clock of their own
+**State:** Phases 0 to 15 have shipped. Phase 8 was Life State (REDESIGN.md §4): years lived are a clock of their own
 (`src/engine/self.js`) that a snake never turns back, moments say their age through `{age}`, a life ends when its years
 pass `SPAN` (110), and the life account (`src/engine/account.js`, pure) chooses each join by how a moment relates to the
 last. Gunas, aims and the bhumika are in state and never shown as numbers. Phase 9 was Dice as currency: from 94
@@ -49,8 +49,12 @@ nothing is owed (`plan.exam`, `p.sittings`). The door is public: anyone's arriva
 under the board (`landDoor` in `src/render/landed.js`), the one place a computer's turn writes it; a person's sitting is a
 modal card (`openExam`). The closed door and the wheel of time are drawn on 105 (`src/render/door.js`). Landing exactly on 110
 is Śiva's snake (`plan.fellBy`, `sivaPath` in `src/render/ground.js`), the second form of the fall. One curse per life
-(`content/curses.json`, `src/engine/curse.js`) is said early, on the person's line, and closed in the account. Next is 15 The
-witness (REDESIGN.md Phases 15–20).
+(`content/curses.json`, `src/engine/curse.js`) is said early, on the person's line, and closed in the account. Phase 15, The witness, has
+shipped: on the five ego tests (`ego` in `content/situations.json`: 49, 54, 55, 56, 59) choosing anything but the lower
+option throws the ego's die (`egoThrow`, a sequence of its own); the ego owns faces by the gunas (`egoFaces`), shown on
+the card before the choice, and on one of them the life takes the lower option, all of it. `p.witness` records what was
+chosen and taken; the account says a rebellion as its join, and a cast member who saw a situation (`witness`) returns
+knowing what the life did. Next is 16, Death and rebirth (REDESIGN.md Phases 16–20).
 Phase 7 was The Exit (REDESIGN.md §4): Moksha is square 105 (`GOAL`), partway
 along the divine row, while the board still ends at 110 (`TOP`). Since Phase 12 nothing above the exit turns back: past 105 the
 heavens (106–110) are walked, and the throw that would pass `TOP` is the fall, which ends the life (`plan.fell`, `p.fell`;
@@ -77,7 +81,8 @@ illuminated frame (`frame.js`) and a bottom sheet below 768px (`sheet.js`).
 - `npm run build`: fails on any `Math.random` outside `src/rng.js` or on any content lint error.
 - `npm test`: `node --test tests/*.test.mjs`
 - `npm run lint`: content lint (`tools/lint-content.mjs`): Hindi, dangling ids, two voices per
-  square, a name in every mirror (`content/names.json`), and the sprite palette. Phase 3 adds the
+  square, a name in every mirror (`content/names.json`), the sprite palette, and (since Phase 15) no U+FFFD replacement
+  character anywhere in `content/*.json`. Phase 3 adds the
   moments: `{name}` in both languages, Hindi agreement through `{m|f}` choices, an age on every
   earthly square, and a `moments: n/109` burn-down line.
 - `npm run format`: rewrites `content/*.json` one entry per line. Run it after editing content.
@@ -96,7 +101,8 @@ illuminated frame (`frame.js`) and a bottom sheet below 768px (`sheet.js`).
   share by band of square), the severity tiers with would-be deaths by age, and the door's arrivals and refusals. Since
   Phase 14 also the fall split (past 110, Śiva's snake), refusals per life and the share who could sit, the examination
   (lives that sat, years at the door, debts answered vs paid in penance, through the door, deaths at the door) and the
-  curse closed by landing vs not; `--curse=off` draws no curse.
+  curse closed by landing vs not; `--curse=off` draws no curse. Since Phase 15 also the ego's throws and rebellions a
+  life, the lives that rebelled, and both by guna band; `--ego=off` throws no die, and gives back the numbers before it.
   Balance against the p95, the share over 100, liberation per life and lives per liberation.
 - `npm run smoke [-- --only=text]`: Playwright checks of the built page in a real browser (needs Chrome installed).
   `--only` runs just the checks whose names contain the text, e.g. `--only="Phase 6"`.
@@ -105,7 +111,7 @@ illuminated frame (`frame.js`) and a bottom sheet below 768px (`sheet.js`).
   languages, both genders, and two unnamed computers per seed). Compare a run against a worktree of `main` with
   `--root` to prove a change leaves the prose alone; `--cast=off` takes the cast's names away. `--tag` marks each game that
   went above the exit (`above`) or that the ledger touched (`karma`: a reckoning, a refusal, or a debt carried within a throw
-  of the door), or whose account tells the door (`door`: a refusal, or a fall carrying a debt), or that carries a curse (`curse`);
+  of the door), or whose account tells the door (`door`: a refusal, or a fall carrying a debt), or that carries a curse (`curse`), or in which the ego threw or a cast return told what it witnessed (`witness`);
   every untagged account must match. With `--curse=off` the curse is never drawn.
 - `npm run perf [--rate=4] [--query=quality=low]`: frame times on a throttled phone-sized page. Reports only;
   compare against a run on `main`.
@@ -120,7 +126,8 @@ illuminated frame (`frame.js`) and a bottom sheet below 768px (`sheet.js`).
 - Keep the `?debug` helpers working (`mp.jump`, `mp.roll`, `mp.seed`, `mp.setLang`, `mp.years`, `mp.cast`, …
   in `src/main.js`) and extend them; don't remove any. Phase 12 adds `mp.fire()` (the next turn's omen fires on the
   current player's oldest debt, whatever is rolled), `mp.dumpKarma(i)` and `mp.plant(n, id)`. Phase 13 adds `mp.look(x)`. Phase 14 adds `mp.door()` (the current player at 105,
-  refused, a sannyāsin), `mp.examine(i)`, `mp.curse(id)` and `mp.siva()` (the next throw lands on 110).
+  refused, a sannyāsin), `mp.examine(i)`, `mp.curse(id)` and `mp.siva()` (the next throw lands on 110). Phase 15 adds `mp.ego(faces)` (the faces the ego owns on its next
+  throw: `mp.ego()` all six, so the life rebels; `mp.ego([])` none).
 - No physics on any card. "Debt" is the only word a player sees for a seed, and the ledger's buckets, weights, fuses
   and chances are never shown as numbers. The 1 is the threshold face and the 6 is the world's (`tests/faces.test.mjs`).
 - Never use `unshift` on anything but the log: `tools/golden.mjs` records every `unshift` of an entry as logged.

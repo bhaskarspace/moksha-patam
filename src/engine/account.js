@@ -27,7 +27,12 @@
 // book had, and the year a penance was paid. The years sat there are those lines, not years sat out. A life whose
 // years ran out at the door ends on what it still owed, in the door's words. The curse is told where it was said, and
 // closed right after the square that bore it out, or at the end, the other way.
-import { ASHRAMAS, LADDERS, SNAKES, GOAL, JOINS, CAST_WORDS, DOOR, squareOf } from "../content.js";
+//
+// The witness (REDESIGN.md Phase 15): a choice the ego overruled is told where it came, by the situation's own line
+// ("{name} meant to stop the hand, and the hand was quicker."), said before the moment the life took, as a snake's join
+// is. And a member of the cast who saw a situation, and returns after it, is joined by what they saw the life do
+// (content/situations.json `witness`): the deed, never what was meant. Each such line is said once.
+import { ASHRAMAS, LADDERS, SNAKES, GOAL, JOINS, CAST_WORDS, DOOR, SITUATIONS, squareOf } from "../content.js";
 import { tIn, fill, castFill, wordsIn, ageWordsIn, CAST_ROLES } from "../i18n.js";
 import { makeRng, next } from "../rng.js";
 import { pnameIn } from "../state.js";
@@ -62,6 +67,22 @@ export function lifeOf(state, i, l) {
   // in full in this life; lastTold is where each member was last told, metAt the moment where the life met them
   const cc = castAlong(state, i, along);
   let toldN = 0, lastTold = {}, metAt = {};
+  // the witness (Phase 15): each choice the ego overruled, by where in the life it was made; where in the life each member
+  // was met; the witness lines already said; and how many were said, which tools/accounts.mjs tags
+  const choices = p.witness ?? [], rebelAt = new Map(choices.filter(w => w.chose !== w.took).map(w => [w.i, w]));
+  const metI = {}, usedWit = new Set();
+  let witnessed = 0;
+  const rebelLine = e => { const w = rebelAt.get(e.i), t = w && SITUATIONS[w.sq]?.ego?.account; return t ? J(t) : ""; };
+  // the line for member who returning at entry e, from the latest situation they saw after the life met them, or null
+  const witnessOf = (who, e) => {
+    for (let k = choices.length - 1; k >= 0; k--) {
+      const w = choices[k], lines = SITUATIONS[w.sq]?.witness?.[who];
+      if (!lines || w.i >= e.i || !(metI[who] < w.i) || usedWit.has(k)) continue;
+      const t = (w.chose !== w.took && lines.rebel) || lines[w.took];
+      if (t) return { k, t };
+    }
+    return null;
+  };
   // lived: each square of this life, with the years it was first lived at; own: the squares that told their own
   // moment; seen: the moments told, by square and which moment; taken: how often each snake or ladder has been
   // taken in this life
@@ -164,8 +185,8 @@ export function lifeOf(state, i, l) {
     if (e.via === "sit") { flushFold(); sat.push(e); para.ages.push(Math.floor(e.years)); continue; }
     // a snake or ladder taken from here, and whether this square has been told already in this life
     const event = nextE && (nextE.via === "snake" || nextE.via === "ladder");
-    const repeat = seen.has(told(e));
-    if (repeat && !e.via && !event) { flushSat(); fold.push(e); para.ages.push(Math.floor(e.years)); note(e); continue; }
+    const repeat = seen.has(told(e)), rebel = rebelLine(e);
+    if (repeat && !e.via && !event && !rebel) { flushSat(); fold.push(e); para.ages.push(Math.floor(e.years)); note(e); continue; }
     flush();
     para.ages.push(Math.floor(e.years));
     // the same snake or ladder again: the second time in one line, and after that only counted
@@ -173,6 +194,8 @@ export function lifeOf(state, i, l) {
     if (times) taken.set(e.n, times);
     if (times >= 2) {
       const age = words(e.years);
+      // a choice the ego overruled is told even when what it led to is only counted
+      if (rebel) para.parts.push(rebel);
       if (times > 2) para.tally.set(e.n, { times, years: e.years });
       else if (SNAKES[e.n]) para.parts.push(J(JOINS.snakeAgain, { age, vice: sq(e.n), cost: words(ageOf(e.n) - ageOf(nextE.n)) }));
       else para.parts.push(J(JOINS.ladderAgain, { age, virtue: sq(e.n) }));
@@ -181,15 +204,22 @@ export function lifeOf(state, i, l) {
     }
 
     // the same person returns (Phase 10C): a member met earlier in this life, not told in the moment just before
-    const c = cc[k], back = c.cast && c.about && !repeat && calledIn(c.cast, c.about, l) && metAt[c.about]?.recall && lastTold[c.about] != null && lastTold[c.about] < toldN - 1 ? c.about : null;
+    const c = cc[k], returning = c.cast && c.about && !repeat && calledIn(c.cast, c.about, l) && lastTold[c.about] != null && lastTold[c.about] < toldN - 1;
+    // one who saw a situation is joined by what they saw (Phase 15), with or without a recall of their own
+    const wit = returning ? witnessOf(c.about, e) : null;
+    const back = returning && (wit || metAt[c.about]?.recall) ? c.about : null;
     let join = null;
     // above the world there is no more time to measure
     const gap = lastYears == null || e.n > EARTH ? null : e.years - lastYears;
     if (e.via === "snake") join = J(JOINS.snake, { cost: words(ageOf(e.from) - ageOf(e.n)) });
     else if (echo && own.has(q.callsBack) && !repeat) join = echo[l] || echo.en;
     else if (back) {
-      const t = CAST_WORDS.returns[back] || CAST_WORDS.returns.friend, rec = metAt[back].recall;
-      join = fill(castFill((t[l] || t.en).replace("{recall}", rec[l] || rec.en), { who: { name: calledIn(c.cast, back, l), gender: c.cast[back].gender } }), who);
+      const member = { who: { name: calledIn(c.cast, back, l), gender: c.cast[back].gender } };
+      if (wit) { usedWit.add(wit.k); witnessed++; join = fill(castFill(wit.t[l] || wit.t.en, member), who); }
+      else {
+        const t = CAST_WORDS.returns[back] || CAST_WORDS.returns.friend, rec = metAt[back].recall;
+        join = fill(castFill((t[l] || t.en).replace("{recall}", rec[l] || rec.en), member), who);
+      }
     }
     else if (e.via === "ladder") join = J(JOINS.ladder);
     else if (repeat) join = J(JOINS.again);
@@ -203,10 +233,11 @@ export function lifeOf(state, i, l) {
     // the moment that meets a member of the cast says their name at its end
     const intro = c.meets && !repeat ? introIn(c.cast, c.about, l) : "";
     const text = fill(castFill(raw, peopleOf(c.cast, c.before, l, c.about)), { ...who, age }) + (intro ? " " + intro : "");
-    para.parts.push(join ? join + after(raw, text, l) : text);
+    // a choice the ego overruled is said first, a sentence of its own, and takes the place of any other join
+    para.parts.push(rebel ? rebel + " " + text : join ? join + after(raw, text, l) : text);
     if (!(repeat && e.via)) {
       toldN++;
-      if (c.about) { lastTold[c.about] = toldN - 1; if (c.meets) metAt[c.about] = m; }
+      if (c.about) { lastTold[c.about] = toldN - 1; if (c.meets) { metAt[c.about] = m; metI[c.about] = e.i; } }
     }
     note(e);
     lastYears = e.years;
@@ -237,6 +268,8 @@ export function lifeOf(state, i, l) {
     curse: curse && curse.closedAt == null && (state.winner === i || p.fell || p.dead) ? fill(curse.c.not[l] || curse.c.not.en, who) : "",
     // what the life never found out about the people in it (Phase 10C): empty with no cast
     fates: fatesIn(state, i, l, along, cc, who),
+    // how many cast returns were joined by what they witnessed (Phase 15), for tools/accounts.mjs
+    witnessed,
   };
 }
 

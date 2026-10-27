@@ -522,6 +522,14 @@ independently. Wildermyth's designers name the two ways generated characters los
 breach of trust and acting out of character — and this constraint is the guard against the
 second.
 
+**What they saw** (REDESIGN.md Phase 15). A member of the cast who was there when the life chose
+can return knowing it. A situation names who witnessed it (`witness` in `content/situations.json`)
+and gives one line per option, so the returns join reads "Arjun, who had heard Meera tell the
+guest at the door that everyone had eaten, was still there:" instead of the recall. A witness
+sees the deed, never the intent: when the ego overruled the witness's choice, the line is the
+one for what the life did, and on 49 and 56 a line of its own says so ("…and never knew Meera
+had meant to give a plate"). It is said once, after the life met them, and only then.
+
 ### 13.5 Citragupta's book
 
 The life account is already the central object of the game, and the design has not said so.
