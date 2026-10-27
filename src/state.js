@@ -40,7 +40,8 @@ export function cast(rows, seed) {
   const rng = makeRng((seed ^ 0x9E3779B9) >>> 0), taken = new Set(rows.map(r => r.name.trim()).filter(Boolean));
   return rows.map(r => {
     if (r.name.trim()) return { ...r, gender: r.gender || "n" };
-    const nm = drawName(rng, r.gender, taken);
+    // a life born again (Phase 16) is not called by the last one's name, nor by any name its cast carries
+    const nm = drawName(rng, r.gender, new Set([...taken, ...(r.avoid ?? [])])) ?? drawName(rng, r.gender, taken);
     taken.add(nm.en);
     return { ...r, gender: r.gender || nm.gender, alias: { en: nm.en, hi: nm.hi } };
   });
@@ -50,6 +51,7 @@ export const pname = p => p.name || (p.alias ? L(p.alias.en, p.alias.hi) : t("de
 export const pnameIn = (p, l) => p.name || p.alias?.[l] || p.alias?.en || tIn(l, "def" + p.color);
 export const cur = () => G.state.players[G.state.turn];
 
-export function newState(seed = freshSeed()) {
-  return createGame({ players: cast(G.setup.rows.slice(0, G.setup.count), seed), rules: G.setup.rules, seed });
+// rows, by default the setup's; a life born again (Phase 16) brings its own
+export function newState(seed = freshSeed(), rows = G.setup.rows.slice(0, G.setup.count)) {
+  return createGame({ players: cast(rows, seed), rules: G.setup.rules, seed });
 }

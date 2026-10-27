@@ -1750,6 +1750,25 @@ goes with the first.*
 > localStorage unchanged), and skippable ("Back to the book"). Eight questions are drafted, EN and HI, for Bhaskar's
 > review. The Citragupta line and the mirror belong to the dialog, not to `lifeText`, so every account is byte-identical
 > to step 1's; `accounts.mjs --tag` adds `mirror` (an account whose mirror asks about a rebellion: 3,674 of 16,000).
+>
+> **Step 3, rebirth** (27 Oct). A named person's ended life is kept in `mp-samskara` (`src/engine/samskara.js` `soulOf`,
+> `storeOf`/`storeWith`; at most six names; a liberation deletes it; `?first` neither reads nor writes). **Be born again**,
+> beside Play again and in the book's footer, begins the next life from it (`bornOf`): the guṇas carry half, the heaviest
+> unmet debt becomes an āgāmi seed `prior` that ripens at the age it was made ("…at forty-two in a life before"), the
+> cast's names return in other roles (`RETURNS_AS`, the Jātaka rule) and the account says so once ("In a life before,
+> Vinod was the rival."). The account opens on the dream (`dream` on every option) and the forgotten holding (`forgot` on
+> every snake): "Mirrors make Ravi uneasy, for no reason anyone can name." Play again starts clean. The turyā fade
+> (`clearOf`) is on `#art` and `.cell .pic` alone. Every first-life account is byte-identical to step 1's (16,000);
+> `accounts.mjs --lives=2` hashes 5,056 second lives, tagged `rebirth`. `sim --lives=4`, 4,000 souls:
+>
+> | policy | liberated within 4 lives | liberation per life | lives per liberation | reborn | life 1 → 4 liberated | ledger deaths life 1 → 4 |
+> |---|---|---|---|---|---|---|
+> | honest | 87.5% | 42.7% | 2.34 | 51.2% | 45.5% → 35.6% | 1.0% → 2.8% |
+> | mixed | 74.8% | 30.9% | 3.24 | 58.7% | 36.1% → 24.5% | 7.9% → 14.6% |
+> | dishonest | 59.9% | 21.5% | 4.64 | 64.0% | 27.6% → 16.2% | 18.0% → 28.9% |
+>
+> Later lives are harder: partly selection (the lives that reach life four are the ones that kept failing), partly the
+> carried debt.
 
 **Why it was gated, and what ungates it.** After Phase 9 a life ran out of years in 2.5% of
 games (3.5% after 10B) and the rebirth snake fired in 8.2%. Everything in this phase would

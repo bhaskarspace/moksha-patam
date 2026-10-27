@@ -2,17 +2,18 @@
 import { GOAL, TOP, ROWS, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, STR, squareOf } from "./content.js";
 import { lang, urlLang, setLangValue, L, num, t, tIn } from "./i18n.js";
 import { G, defaultSetup, pname, pnameIn, cur, newState, loadSelf, saveSelf } from "./state.js";
-import { prefs, setPref, applyTheme, lifeLived, beFirst, freshViewer, firstLife } from "./prefs.js";
+import { prefs, setPref, applyTheme, lifeLived, beFirst, freshViewer, firstLife, soulStore, soulFor, keepSoul, setSoulStore } from "./prefs.js";
 import { $, COLORS, esc, reduced, sleep, quality, forcedQuality, setQuality } from "./ui.js";
 import { die, makeRng, freshSeed } from "./rng.js";
-import { TUMBLE, planTurn, resolveChoice, endTurn, addLog, diceFor, movesFor, moveFor, gone, canSit } from "./engine/turn.js";
+import { TUMBLE, planTurn, resolveChoice, endTurn, addLog, diceFor, movesFor, moveFor, gone, canSit, createGame, playTurn } from "./engine/turn.js";
 import { optionsFor, choiceFor, situationAt, momentOf } from "./engine/qbn.js";
 import { S, colRow, labEls, buildCells, draw, drawAge, fxClear, focusSquare } from "./render/board.js";
-import { lens, wash, stageOf, lookOf } from "./render/age.js";
+import { lens, wash, stageOf, lookOf, clearOf } from "./render/age.js";
 import { ageStep } from "./engine/self.js";
 import { karmaOf, carried, plantOf, debtKey, refusalOf, examineOf, FORMS, deathFormOf } from "./engine/karma.js";
 import { curseOf } from "./engine/curse.js";
-import { castOf, meetsNamed } from "./engine/cast.js";
+import { castOf, meetsNamed, nameKey } from "./engine/cast.js";
+import { soulOf, bornOf, endOf } from "./engine/samskara.js";
 import { frame, pullBack, hold, release } from "./render/camera.js";
 import { spriteURL } from "./render/sprites.js";
 import { tokenEls, buildTokens, place, retrigger, climb, swallow, animate } from "./render/tokens.js";
@@ -381,6 +382,7 @@ const query = new URLSearchParams(location.search);
 let look = lookOf(query.has("debug") ? query.get("look") : null);
 function age(instant = false) {
   const L = lens(G.state, null, look), to = Array.from({ length: TOP + 1 }, (_, n) => (n ? wash(n, L) : null));
+  document.getElementById("board")?.style.setProperty("--clear", String(clearOf(G.state)));
   for (let n = 1; n <= TOP; n++) labEls[n]?.classList.toggle("ahead", to[n].dim > 0);
   setDrone(G.state.last != null ? L.droneStage : null);
   setShepard(G.state.last != null ? L.lead : null, G.state.winner != null);
@@ -410,6 +412,10 @@ function render() {
 
   const w = state.winner, humans = state.players.filter(q => q.type === "human");
   $("win").hidden = !state.over;
+  if (state.over) keepLives(state);
+  const reborn = !!(state.over && rebornRows(state));
+  // the book's footer offers it too, so an open book is repainted when it comes or goes
+  if ($("reborn").hidden === reborn) { $("reborn").hidden = $("rebornNote").hidden = !reborn; refreshLife(); }
   if (w != null) {
     const wp = state.players[w];
     $("winTitle").textContent = t("winTitle", { name: pname(wp) });
@@ -422,6 +428,34 @@ function render() {
     $("winTitle").textContent = one ? t("lifeTitle", { name: pname(one) }) : t("raceNone");
     $("winText").textContent = one ? t(one.fell ? "fellText" : one.death?.by === "ledger" ? "ledgerText" : "diedText") : "";
   }
+}
+
+// ---- Saṃskāra (REDESIGN.md Phase 16) ----
+// The key a person's saṃskāra is kept under: the name they typed, or, for a life born again, the one it carries. A
+// computer, or a person left unnamed, keeps none.
+const soulKey = p => (p.type !== "human" ? null : p.soul ?? (p.name ? nameKey(p.name) : null));
+// When a game is over, each named person's ended life is kept for the next, and a liberated one is let go. Once a game.
+function keepLives(state) {
+  if (G.kept === state) return;
+  G.kept = state;
+  state.players.forEach((p, i) => {
+    const key = soulKey(p);
+    if (!key) return;
+    if (state.winner === i) keepSoul(key, null);
+    else { const s = soulOf(state, i); if (s) keepSoul(key, s); }
+  });
+}
+// The rows of the next game when it is born again: a person whose life here ended and was kept is born from it, not
+// called by the last name nor by any the cast carries; everyone else sits as the setup has them. Null when nobody is.
+function rebornRows(state) {
+  let any = false;
+  const rows = state.players.map((p, i) => {
+    const key = soulKey(p), soul = endOf(state, i) && soulFor(key), born = soul && bornOf(soul);
+    if (!born) return { ...G.setup.rows[i] };
+    any = true;
+    return { name: "", type: "human", gender: "", born, soul: key, avoid: [pnameIn(p, "en"), ...soul.cast.map(c => c.en)] };
+  });
+  return any ? rows : null;
 }
 
 // ---- Setup panel ----
@@ -495,7 +529,9 @@ $("count").addEventListener("click", e => {
 const urlSeed = new URLSearchParams(location.search).get("seed");
 let nextSeed = urlSeed != null && /^\d+$/.test(urlSeed) ? +urlSeed >>> 0 : null;
 
-function startGame() {
+// Play again starts clean; Be born again ({ reborn: true }) begins each kept person's next life (Phase 16).
+function startGame({ reborn = false } = {}) {
+  const rows = reborn && G.state?.over ? rebornRows(G.state) : null;
   G.gen++;
   clearTimeout(G.cpuTimer);
   // a game left after a roll was a life, as one that ended is (prefs.js)
@@ -509,7 +545,7 @@ function startGame() {
   clearLanded();
   if (S) fxClear();
   G.busy = false;
-  G.state = newState(nextSeed ?? freshSeed());
+  G.state = newState(nextSeed ?? freshSeed(), rows ?? undefined);
   nextSeed = null;
   buildTokens();
   render();
@@ -517,7 +553,8 @@ function startGame() {
   queueCpu();
 }
 $("newGame").addEventListener("click", () => { readSetup(); startGame(); });
-$("again").addEventListener("click", startGame);
+$("again").addEventListener("click", () => startGame());
+$("reborn").addEventListener("click", () => startGame({ reborn: true }));
 $("readLife").addEventListener("click", () => openLife());
 
 // ---- The naming, before the board (docs/NARRATIVE.md §3) ----
@@ -661,7 +698,8 @@ new ResizeObserver(draw).observe($("cells"));
 // ?debug exposes helpers for testing: mp.jump(n) moves the current player, mp.roll(v) rolls a fixed number
 // (mp.roll(a, b) fixes both endgame dice, and mp.pick(v) moves by one of them, 0 to sit),
 // mp.seed() reads the current game's seed and mp.seed(n) starts a new game with that seed. Phase 14 adds mp.door(),
-// mp.examine(), mp.curse(id) and mp.siva(). Phase 15 adds mp.ego(faces). Phase 16 adds mp.die(form).
+// mp.examine(), mp.curse(id) and mp.siva(). Phase 15 adds mp.ego(faces). Phase 16 adds mp.die(form), mp.samskara(obj)
+// and mp.dream().
 if (new URLSearchParams(location.search).has("debug")) {
   window.mp = {
     jump(n) { cur().pos = n; render(); age(true); },
@@ -764,6 +802,23 @@ if (new URLSearchParams(location.search).has("debug")) {
     // mp.curse(id) chooses the current life's curse (content/curses.json), before or after it is spoken
     curse(id) { const p = cur(); if (id) { p.curseId = id; if (p.curse) p.curse = { ...p.curse, id }; } return curseOf(G.state, G.state.turn)?.id ?? null; },
     // mp.siva() makes the next throw land on 110, where Śiva's snake takes the life down; false if no die reaches it
+    // mp.samskara() is what this viewer's named people have left their next lives (mp-samskara); mp.samskara(obj) replaces
+    // it, and mp.samskara(null) empties it
+    samskara(obj) { if (obj !== undefined) setSoulStore(obj); return soulStore(); },
+    // mp.dream(l) is the account of a life two of the current person, as if their life ended now (of its years): a
+    // computer plays it out on the next seed. The game on the board is not touched.
+    dream(l = lang) {
+      const s = structuredClone(G.state), i = s.turn, p = s.players[i];
+      if (!endOf(s, i)) Object.assign(p, { dead: true, death: { by: "years" } });
+      s.over = true; if (s.winner === i) s.winner = null;
+      const born = bornOf(soulOf(s, i));
+      if (!born) return null;
+      const t2 = createGame({ players: [{ name: "", alias: { en: "Ravi", hi: "रवि" }, type: "cpu", gender: "m", born }], rules: G.setup.rules, seed: (s.rng.seed + 1) >>> 0 });
+      while (!t2.over) playTurn(t2);
+      const text = lifeText(t2, 0, l);
+      console.log(text);
+      return text;
+    },
     siva() { const v = TOP - cur().pos; if (v < 1 || v > 6 || !canThrow()) return false; G.forcedRoll = v; return v; },
   };
 }

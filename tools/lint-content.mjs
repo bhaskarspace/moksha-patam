@@ -175,6 +175,14 @@ export function lintReport() {
       else bilingual(`situation ${n} ${o.id} mirror.${k}`, o.mirror[k]);
     }
   }
+  // Phase 16, rebirth (src/engine/samskara.js): any option a life took can be the deed the next one dreams of, said as a
+  // relative clause ("who gave away the better blanket"), so every option carries one in both languages, with no name
+  for (const [n, sit] of Object.entries(SITUATIONS)) for (const o of sit.options) {
+    const w = `situation ${n} ${o.id} dream`;
+    if (!o.dream) { err(w, "every option needs a dream, for the next life's account"); continue; }
+    bilingual(w, o.dream);
+    if (/\{name\}/.test(o.dream.en + o.dream.hi)) err(w, "is said of the one dreamt of, by a relative clause: no {name}");
+  }
   // Phase 14, the curses (content/curses.json): said of the player, in both languages, naming a thing and never a square,
   // tied to a family of late squares that exist; and closed both ways
   const curseIds = new Set();
@@ -321,6 +329,8 @@ export function lintReport() {
     if (LADDERS[h] && sl.guna !== "s") err(where, "a virtue is sattva");
     if (SNAKES[h]) { bilingual(`${where} holding`, sl.holding); if (sl.holding?.en && !/^still /.test(sl.holding.en)) err(`${where} holding`, 'reads on from the closing line, as "still …"'); }
     // Phase 9: and what a life let go puts down, the same vice, so a win ends with the weight a death does
+    // Phase 16: and what the next life is uneasy about without knowing why, said of it by name
+    if (SNAKES[h]) { bilingual(`${where} forgot`, sl.forgot); if (sl.forgot && !(/\{name\}/.test(sl.forgot.en) && /\{name\}/.test(sl.forgot.hi))) err(`${where} forgot`, "names the one who does not know why: {name} in both languages"); }
     if (SNAKES[h]) { bilingual(`${where} letgo`, sl.letgo); if (sl.letgo?.en && /^still /.test(sl.letgo.en)) err(`${where} letgo`, "is put down, not still held"); }
   }
 

@@ -151,6 +151,9 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 .cell .pic:has(svg), .lab .ic:has(svg), .leaf .glyph:has(svg) { filter: none; }
 /* a painted vignette fills its square (REDESIGN.md Phase 13) */
 .cell .pic.vg { padding: 0; }
+/* Phase 16: at the highest bhumikas the board's painted things lose solidity (--clear, src/render/age.js clearOf); the
+   ground and the labels never do */
+#art, .cell .pic { opacity: calc(1 - 0.6 * var(--clear, 0)); transition: opacity 1.6s ease; }
 .cell .pic.vg svg.spr { width: 100%; height: 100%; }
 .lab .ic svg.spr { width: 82%; height: 82%; }
 .lab.heaven .ic svg.spr { width: 5.6cqi; height: 5.6cqi; }
@@ -667,6 +670,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
 .codex .ent.locked { color: var(--muted); border-style: dashed; letter-spacing: 0.1em; }
 
 @media (prefers-reduced-motion: reduce) {
+  #art, .cell .pic { transition: none; }
   .token, .token.slide { transition: none; }
   .gate .spoke, .gate .leaf { transition: none; }
   .cam { transition: none; transform: none !important; }

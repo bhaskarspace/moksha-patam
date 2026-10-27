@@ -1,6 +1,6 @@
 // ---- Karma (REDESIGN.md Phase 12, §2.2, docs/REFERENCE.md §2) ----
 // The ledger. Three buckets, never shown as numbers: sañcita, the store carried from lives before (empty at birth until
-// Phase 15 carries one over); āgāmi, what this life is making; prārabdha, what has ripened and waits to fruit. A seed is
+// Phase 16 carries one over, src/engine/samskara.js); āgāmi, what this life is making; prārabdha, what has ripened and waits to fruit. A seed is
 // what a choice plants beside the guna it shifts (src/engine/qbn.js, content/situations.json "seed"): the guna is what
 // the player is becoming, the seed what is coming for them, and the lint holds that both point the same way.
 //
@@ -90,13 +90,14 @@ export function reckonOf(k, { pos, years }) {
   const rest = carried(k).filter(s => !fired.includes(s));
   const S = severityOf(fired, rest), tier = tierOf(S), wouldDie = tier >= DEATH, applied = DEATH_ON ? tier : Math.min(tier, DEATH - 1);
   // the top tier is death (Phase 16): it takes nothing else, since nothing else is left to take
-  if (applied >= DEATH) return { src: first.src, opt: first.opt, planted: first.at, seeds: fired, S, tier, applied, wouldDie, dies: true, form: deathFormOf(years), years: 0, holds: null, to: null, age: years };
+  const prior = first.prior ? { prior: true } : {};
+  if (applied >= DEATH) return { src: first.src, opt: first.opt, planted: first.at, ...prior, seeds: fired, S, tier, applied, wouldDie, dies: true, form: deathFormOf(years), years: 0, holds: null, to: null, age: years };
   const lost = applied >= 1 ? Math.min(Math.ceil(S), Math.max(0, Math.floor(SPAN - years))) : 0;
   const vice = seedOf(first.src, first.opt)?.holds ?? null, holds = applied >= 2 ? vice : null;
   // the vice's snake again, in effect: down by its length, as far as the square the debt was made on and no further
   const drop = SNAKES[vice] ? vice - SNAKES[vice].to : 0, back = Math.max(first.src, pos - drop);
   const to = applied >= 3 && back < pos ? back : null;
-  return { src: first.src, opt: first.opt, planted: first.at, seeds: fired, S, tier, applied, wouldDie, dies: false, years: lost, holds, to, age: years };
+  return { src: first.src, opt: first.opt, planted: first.at, ...prior, seeds: fired, S, tier, applied, wouldDie, dies: false, years: lost, holds, to, age: years };
 }
 
 // ---- The gate at 105 (§2.3) ----
@@ -106,7 +107,7 @@ export function reckonOf(k, { pos, years }) {
 export const ATTACHED = 75;
 export function refusalOf(p) {
   const debts = carried(karmaOf(p));
-  if (debts.length) return { debts: debts.map(({ src, opt, at }) => ({ src, opt, at })) };
+  if (debts.length) return { debts: debts.map(({ src, opt, at, prior }) => ({ src, opt, at, ...(prior ? { prior } : {}) })) };
   const a = p.aims ?? {};
   if ((a.artha ?? 0) >= ATTACHED) return { aim: "artha" };
   if ((a.kama ?? 0) >= ATTACHED) return { aim: "kama" };
@@ -152,7 +153,7 @@ export function examineOf(p) {
   const key = debtKey(s), n = (p.exam?.[key] ?? 0) + 1, answer = n === 1 ? answerOf(p, s) : null, pass = !!answer;
   const never = !pass && (s.weight ?? 1) >= UNPAID;
   const cleared = pass || (!never && n >= Math.ceil(PENANCE * (s.weight ?? 1))), left = carried(karmaOf(p)).length - (cleared ? 1 : 0);
-  return { src: s.src, opt: s.opt, at: s.at, key, n, pass, answer: answer?.age ?? null, cleared, never, weight: s.weight ?? 1,
+  return { src: s.src, opt: s.opt, at: s.at, ...(s.prior ? { prior: true } : {}), key, n, pass, answer: answer?.age ?? null, cleared, never, weight: s.weight ?? 1,
     open: cleared && !left && !refusalOf({ ...p, karma: freshKarma() }) };
 }
 // The ledger once a debt is met at the door: it leaves whichever bucket held it.
@@ -163,9 +164,10 @@ export const meet = (k, key) => ({ ...k, agami: k.agami.filter(s => debtKey(s) !
 const sayIn = (l, text, at, who) => fill(text.replaceAll("{at}", wordsIn(l, Math.floor(at ?? 0))), who);
 const T = (l, key, who, v = {}) => fill(tIn(l, key, { name: who.name, ...v }), who);
 // The debt a seed is, as a phrase: "the sea Meera described to the class at ten".
-export function debtIn(l, { src, opt, at }, who) {
-  const t = seedOf(src, opt)?.debt;
-  return t ? sayIn(l, t[l] || t.en, at, who) : "";
+// A debt carried from a life before (Phase 16, src/engine/samskara.js) says so: "…, at forty-two in a life before".
+export function debtIn(l, { src, opt, at, prior }, who) {
+  const t = seedOf(src, opt)?.debt, debt = t ? sayIn(l, t[l] || t.en, at, who) : "";
+  return debt && prior ? tIn(l, "debtBefore", { debt }) : debt;
 }
 // What came due, as content tells it.
 export function reckoningIn(l, rk, who) {
@@ -175,7 +177,7 @@ export function reckoningIn(l, rk, who) {
 // The reckoning's card, line by line: the floor, what came due, where it came from, and what it took, in that order.
 // The floor always seems to open; what follows scales.
 export function reckonLinesIn(l, rk, who) {
-  const from = T(l, "reckonFrom", who, { src: rk.src, debt: debtIn(l, { src: rk.src, opt: rk.opt, at: rk.planted }, who) });
+  const from = T(l, "reckonFrom", who, { src: rk.src, debt: debtIn(l, { src: rk.src, opt: rk.opt, at: rk.planted, prior: rk.prior }, who) });
   // death by ledger (Phase 16): this time the floor closes, and the card says how the life ended, by its age alone
   if (rk.dies) return [T(l, "reckonClose", who), reckoningIn(l, rk, who), from, T(l, "reckonDies", who, { age: wordsIn(l, Math.floor(rk.age)), form: formIn(l, rk.form, who) })];
   const out = [T(l, "reckonFloor", who), reckoningIn(l, rk, who), from];

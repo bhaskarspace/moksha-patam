@@ -1195,6 +1195,51 @@ await check("Phase 16: the end of a life is read three ways, the book, the path 
   assert((await page.evaluate(() => JSON.stringify(localStorage))) === before, "the mirror wrote something down");
 });
 
+// ---- Phase 16: rebirth ----
+await check("Phase 16: a named person's ended life is kept, Be born again begins the next on its dream, and Play again starts clean", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.addInitScript(() => {
+    const cpu = { name: "", type: "cpu", gender: "" };
+    window.claude = { hot: { data: { setup: { count: 1, rows: [{ name: "Meera", type: "human", gender: "f" }, cpu, cpu, cpu], rules: { six: true } } } } };
+  });
+  await page.goto(BASE + "?seed=1&debug");
+  const die = async () => {
+    await page.evaluate(() => { mp.jump(40); mp.years(70); mp.die("illness"); mp.roll(2); });
+    await page.waitForFunction(() => document.getElementById("folio").open, null, { timeout: 15000 });
+    await page.evaluate(() => mp.close());
+    await page.waitForFunction(() => mp.state.over && document.getElementById("lifeDlg").open, null, { timeout: 15000 });
+  };
+  assert((await page.evaluate(() => Object.keys(mp.samskara().souls).length)) === 0, "a store before any life ended");
+  await die();
+  const one = await page.evaluate(() => ({ soul: mp.samskara().souls.mira, win: !document.getElementById("reborn").hidden, foot: !!document.querySelector('#lifeDlg [data-act="reborn"]') }));
+  assert(one.soul?.lives === 1 && one.soul.last.end === "ledger" && one.soul.sancita.length >= 1, JSON.stringify(one.soul));
+  assert(one.win && one.foot, `the button: ${JSON.stringify(one)}`);
+  // kept under the name as it is compared: "Meera" is Mīrā
+  // born again from the book's own button
+  await page.click('#lifeDlg [data-act="reborn"]');
+  await page.waitForFunction(() => !mp.state.over && mp.state.players[0].prior, null, { timeout: 15000 });
+  const two = await page.evaluate(() => { const p = mp.state.players[0]; return { name: p.name, alias: p.alias, soul: p.soul, prior: p.prior.lives, carried: p.karma.agami.filter(s => s.prior).length, again: document.getElementById("win").hidden }; });
+  assert(two.name === "" && two.alias?.en && two.alias.en !== "Meera" && two.soul === "mira" && two.prior === 1 && two.carried === 1 && two.again, JSON.stringify(two));
+  await die();
+  const life = await page.evaluate(() => document.getElementById("lifeLeaf").textContent.replace(/\s+/g, " "));
+  assert(/dreams, some nights, of a woman named Meera/.test(life), `the account: ${life.slice(0, 400)}`);
+  assert(/in a life before/.test(life), `the carried debt: ${life.slice(-500)}`);
+  assert((await page.evaluate(() => mp.samskara().souls.mira?.lives)) === 2, "the second life was not kept under the same name");
+  // Play again: a first life, by the name typed
+  await page.evaluate(() => document.getElementById("lifeDlg").close());
+  await page.click("#again");
+  const clean = await page.evaluate(() => { const p = mp.state.players[0]; return { name: p.name, prior: p.prior ?? null, born: p.karma.agami.length }; });
+  assert(clean.name === "Meera" && clean.prior === null && clean.born === 0, JSON.stringify(clean));
+});
+
+await check("Phase 16: ?first neither reads nor keeps a saṃskāra", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.addInitScript(() => { try { localStorage.setItem("mp-samskara", JSON.stringify({ v: 1, souls: { x: { v: 1 } } })); } catch {} });
+  await page.goto(BASE + "?seed=1&debug&first");
+  const r = await page.evaluate(() => ({ store: mp.samskara(), kept: localStorage.getItem("mp-samskara") }));
+  assert(Object.keys(r.store.souls).length === 0 && r.kept === JSON.stringify({ v: 1, souls: { x: { v: 1 } } }), JSON.stringify(r));
+});
+
 // ---- Phase 16: a door that can never open ----
 await check("Phase 16: at a door no penance opens, a person is told plainly they may sit on or throw on, and can do either", async page => {
   await page.emulateMedia({ reducedMotion: "reduce" });

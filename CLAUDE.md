@@ -131,7 +131,8 @@ illuminated frame (`frame.js`) and a bottom sheet below 768px (`sheet.js`).
   current player's oldest debt, whatever is rolled), `mp.dumpKarma(i)` and `mp.plant(n, id)`. Phase 13 adds `mp.look(x)`. Phase 14 adds `mp.door()` (the current player at 105,
   refused, a sannyāsin), `mp.examine(i)`, `mp.curse(id)` and `mp.siva()` (the next throw lands on 110). Phase 15 adds `mp.ego(faces)` (the faces the ego owns on its next
   throw: `mp.ego()` all six, so the life rebels; `mp.ego([])` none). Phase 16 adds `mp.die(form)` (the next turn's omen is the
-  death tier for the current player, in that form: accident, calamity or illness).
+  death tier for the current player, in that form: accident, calamity or illness), `mp.samskara(obj?)` (the saṃskāra store:
+  read, replace, or `null` to empty) and `mp.dream(l)` (the account of a life two born of the current life, played by a computer).
 - No physics on any card. "Debt" is the only word a player sees for a seed, and the ledger's buckets, weights, fuses
   and chances are never shown as numbers. The 1 is the threshold face and the 6 is the world's (`tests/faces.test.mjs`).
 - Never use `unshift` on anything but the log: `tools/golden.mjs` records every `unshift` of an entry as logged.

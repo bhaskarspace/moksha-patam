@@ -161,6 +161,12 @@
       "lifeCopied": "Copied",
       "lifeSave": "Download",
       "lifeWhose": "Whose life",
+      "lifeDream": "{name} dreams, some nights, of a {man|woman|person} named {prev} who {dream}.",
+      "lifeDreamNone": "{name} dreams, some nights, of a {man|woman|person} named {prev}, and wakes before anything happens.",
+      "lifeForgot": "{forgot}, for no reason anyone can name.",
+      "debtBefore": "{debt} in a life before",
+      "reborn": "Be born again",
+      "rebornNote": "The next life carries this one, half-remembered.",
       "lifeTabs": "The life, three ways",
       "lifeBook": "The book",
       "lifePath": "The path",
@@ -441,6 +447,12 @@
       "lifeCopied": "कॉपी हो गया",
       "lifeSave": "डाउनलोड",
       "lifeWhose": "किसका जीवन",
+      "lifeDream": "{name} को कभी-कभी रात में एक {आदमी|औरत} का सपना आता है, {prev} नाम {का|की}, {dream}।",
+      "lifeDreamNone": "{name} को कभी-कभी रात में एक {आदमी|औरत} का सपना आता है, {prev} नाम {का|की}, और कुछ होने से पहले ही आँख खुल जाती है।",
+      "lifeForgot": "{forgot}, और क्यों, यह कोई नहीं बता सकता।",
+      "debtBefore": "पिछले किसी जीवन में {debt}",
+      "reborn": "फिर जन्म लें",
+      "rebornNote": "अगला जीवन इसे साथ ले जाता है, आधा याद, आधा भूला।",
       "lifeTabs": "जीवन, तीन तरह से",
       "lifeBook": "बही",
       "lifePath": "राह",
@@ -770,7 +782,19 @@
     "codas": [
       {"en":"Nobody wrote.","hi":"किसी ने ख़बर नहीं दी।"},
       {"en":"{name} was not told.","hi":"{name} को किसी ने नहीं बताया।"}
-    ]
+    ],
+    "before": {
+      "en": "In a life before, {n} was {role}.",
+      "hi": "पिछले किसी जीवन में {n} {role} {who:था|थी}।"
+    },
+    "was": {
+      "teacher": {"en":"the teacher","hi":"गुरु"},
+      "friend": {"en":"the friend","hi":"मित्र"},
+      "rival": {"en":"the rival","hi":"प्रतिद्वंद्वी"},
+      "spouse": {"en":"the {who:husband|wife}","hi":"{who:पति|पत्नी}"},
+      "son": {"en":"the son","hi":"बेटा"},
+      "daughter": {"en":"the daughter","hi":"बेटी"}
+    }
   },
   "EGO": {
     "about": "The ego rebellion (REDESIGN.md Phase 15; src/engine/qbn.js egoFaces). On the five ego tests (content/situations.json `ego`), after the witness chooses the higher option the ego throws a die of its own; on its faces the life takes the lower option. mirror is the card's text for a rebellion; scholar is its note at scholar depth.",

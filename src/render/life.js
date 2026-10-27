@@ -64,6 +64,7 @@ function paint(focusTab = false) {
       <button type="button" class="ghost" data-act="copy">${T("lifeCopy")}</button>
       <span class="ft">${numIn(l, state.rng.seed)}</span>
       <button type="button" class="ghost" data-act="save">${T("lifeSave")}</button>
+      ${$("reborn")?.hidden === false ? `<button type="button" data-act="reborn">${T("reborn")}</button>` : ""}
     </footer>`;
   if (focusTab) leaf.querySelector(`#lifeTab-${tab}`)?.focus();
 }
@@ -88,6 +89,8 @@ leaf.addEventListener("click", async e => {
   if (act === "close") return dlg.close();
   // the mirror is skippable: back to the book, and nothing kept
   if (act === "skip") return showWay("book");
+  // Be born again, from the book as from the end of the game (src/main.js)
+  if (act === "reborn") { dlg.close(); return $("reborn").click(); }
   const text = lifeText(G.state, whose);
   if (act === "copy") {
     try { await navigator.clipboard.writeText(text); b.textContent = tIn(lang, "lifeCopied"); } catch {}

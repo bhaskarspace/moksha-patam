@@ -37,8 +37,8 @@ import { tIn, fill, castFill, wordsIn, ageWordsIn, CAST_ROLES } from "../i18n.js
 import { makeRng, next } from "../rng.js";
 import { pnameIn } from "../state.js";
 import { ageOf, yearsAlong, stageOfYears, titleOf, holdingOf } from "./self.js";
-import { momentOf } from "./qbn.js";
-import { castAlong, peopleOf, introIn, calledIn, fatesIn } from "./cast.js";
+import { momentOf, optionOf } from "./qbn.js";
+import { castAlong, peopleOf, introIn, beforeIn, calledIn, fatesIn } from "./cast.js";
 import { reckoningIn, seedOf, refusalIn, carryIn, karmaOf, carried, debtIn, formIn } from "./karma.js";
 import { curseIn } from "./curse.js";
 
@@ -135,7 +135,7 @@ export function lifeOf(state, i, l) {
         const q = DOOR[seedOf(r.src, r.opt)?.holds];
         if (!para || !q || (r.n > 1 && !r.cleared)) continue;
         flush();
-        const v = { age: words(r.age), q: q.q[l] || q.q.en, debt: debtIn(l, { src: r.src, opt: r.opt, at: r.planted }, who) };
+        const v = { age: words(r.age), q: q.q[l] || q.q.en, debt: debtIn(l, { src: r.src, opt: r.opt, at: r.planted, prior: r.prior }, who) };
         if (r.pass) para.parts.push(J(JOINS.examPass, { ...v, answer: words(r.answer), answered: q.answered[l] || q.answered.en }));
         else para.parts.push(J(r.n > 1 ? JOINS.examPaid : r.cleared ? JOINS.examFailPaid : r.never ? JOINS.examNever : JOINS.examFail, v));
         lastYears = r.age;
@@ -231,7 +231,7 @@ export function lifeOf(state, i, l) {
     const age = Number.isInteger(e.years) ? ageWordsIn(l, e.years, e.via === "snake") : "";
     const raw = repeat && e.via ? (JOINS.backTo[l] || JOINS.backTo.en).replace("{first}", words(lived.get(e.n))) : m[l] || m.en;
     // the moment that meets a member of the cast says their name at its end
-    const intro = c.meets && !repeat ? introIn(c.cast, c.about, l) : "";
+    const intro = c.meets && !repeat ? [introIn(c.cast, c.about, l), beforeIn(c.cast, c.about, l)].filter(Boolean).join(" ") : "";
     const text = fill(castFill(raw, peopleOf(c.cast, c.before, l, c.about)), { ...who, age }) + (intro ? " " + intro : "");
     // a choice the ego overruled is said first, a sentence of its own, and takes the place of any other join
     para.parts.push(rebel ? rebel + " " + text : join ? join + after(raw, text, l) : text);
@@ -252,7 +252,7 @@ export function lifeOf(state, i, l) {
   return {
     title: T("lifeTitle"),
     sub: p.peak != null ? tIn(l, "title" + titleOf(p.peak)) : "",
-    open: opening(p, along, T, words),
+    open: [...dreamOf(p, l, name), opening(p, along, T, words)].filter(Boolean).join(" "),
     paras: paras.map(({ s, ages, parts }) => {
       const a = Math.min(...ages), b = Math.max(...ages);
       const head = s === 5 || !ages.length ? stage(s) : a === b ? T("lifeAt", { stage: stage(s), a }) : T("lifeSpan", { stage: stage(s), a, b });
@@ -307,6 +307,21 @@ function doorEnd(p, T, words, l, who) {
 function ledgerEnd(p, T, words, l, who, held) {
   const k = karmaOf(p), carry = carryIn(l, [...carried(k), ...k.sancita], null, who) || held(SNAKES[p.holding]?.holding);
   return T("lifeEndLedger", { age: words(p.death.age ?? p.years), form: formIn(l, p.death.form, who), carry }).replace(/, ([.।])$/, "$1");
+}
+
+// A life after the first opens on a dream of the last (REDESIGN.md Phase 16; the Yogavāsiṣṭha's Lavaṇa and Gādhi): the
+// one who was written down, by name, and the deed of most worth that life took, said of them in their own gender; and
+// the forgotten holding (docs/NARRATIVE.md §13.6), the vice it was still holding, which this one is uneasy about without
+// knowing why. Nothing for a first life.
+function dreamOf(p, l, name) {
+  const prev = p.prior?.last;
+  if (!prev) return [];
+  const them = { name, gender: prev.gender }, deed = p.prior.dream && optionOf(p.prior.dream.sq, p.prior.dream.opt)?.dream;
+  const v = { prev: prev.name?.[l] || prev.name?.en || "", dream: deed ? fill(deed[l] || deed.en, them) : "" };
+  const say = key => fill(tIn(l, key, { name, ...v }), them);
+  // the forgotten holding opens its sentence: "Mirrors make Ravi uneasy, for no reason anyone can name."
+  const forgot = SNAKES[prev.holding]?.forgot, uneasy = forgot && fill(forgot[l] || forgot.en, { name, gender: p.gender });
+  return [say(deed ? "lifeDream" : "lifeDreamNone"), uneasy ? tIn(l, "lifeForgot", { forgot: uneasy[0].toUpperCase() + uneasy.slice(1) }) : ""];
 }
 
 // The first line knows the shape of the whole life, and says only what happened, never what it was worth.

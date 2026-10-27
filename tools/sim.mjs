@@ -26,6 +26,9 @@
 // Phase 16 makes the top tier death: deaths by cause (the ledger, years on earth, years at the door), the ledger death's
 // age and form. --death=off reports the tier only, as before it; --penance=N is the years a unit of weight costs at the
 // door (2; 1 before Phase 16); --unpaid=N the weight from which only the book can answer a debt (3; 4 is none).
+// --lives=N plays each seed as one soul's lives instead (src/engine/samskara.js): a single computer, each life born of
+// the last (soulOf, bornOf) until one is liberated or N have been lived; life k > 0 plays on the seed hash(seed, k). It
+// reports liberation by life, lives per liberation, the rebirth rate and deaths by cause, and the turns of each life.
 import { pathToFileURL } from "node:url";
 import { createGame, playTurn, moveFor, movesFor, planTurn, rollDice, diceFor, setEndgame, ENDGAME, canSit } from "../src/engine/turn.js";
 import { SQ, SITUATIONS, CURSES } from "../src/content.js";
@@ -33,6 +36,7 @@ import { curseIn } from "../src/engine/curse.js";
 import { setPolicy, setEgo, worthOf, optionOf } from "../src/engine/qbn.js";
 import { SPAN, setSpan, yearsAlong, BHUMIKA_AT, TURYA, setPractice } from "../src/engine/self.js";
 import { setDeath, setPenance, setUnpaid, FORMS } from "../src/engine/karma.js";
+import { soulOf, bornOf } from "../src/engine/samskara.js";
 
 // Phase 9's choice, before Phase 12 made the fall the heavens' snake: the exit, else the bigger die that is not a
 // snake, else sitting. Kept to show what the new choice is worth.
@@ -51,8 +55,8 @@ export const SIM_RULES = { six: true, cards: "off" };
 
 // One game from a seed, every player a computer. Returns the full log, oldest entry first,
 // plus the number of turns each player took.
-export function playGame(seed, { players = 2, rules = SIM_RULES, pick = moveFor } = {}) {
-  const state = createGame({ players: Array.from({ length: players }, () => ({ name: "", type: "cpu" })), rules, seed });
+export function playGame(seed, { players = 2, rules = SIM_RULES, pick = moveFor, born = null } = {}) {
+  const state = createGame({ players: Array.from({ length: players }, (_, i) => ({ name: "", type: "cpu", ...(born && !i ? { born } : {}) })), rules, seed });
   const log = [...state.log], turns = Array(players).fill(0), heaven = Array(players).fill(0), seen = state.players.map(() => new Set());
   // Phase 12, the ledger: per player, the omens, the reckonings and the door
   const karma = state.players.map(() => ({ planted: 0, eligible: 0, fired: 0, bands: {}, tiers: [], dies: [], arrivals: 0, refused: [], couldSit: 0, doorYears: 0, throughDoor: 0 }));
@@ -75,7 +79,22 @@ export function playGame(seed, { players = 2, rules = SIM_RULES, pick = moveFor 
     if (plan.sit && plan.from === 105) { k.doorYears++; k.throughDoor += !!plan.win; }
     log.push(...state.log.slice(0, state.log.indexOf(before)).reverse());
   }
-  return { log, turns, heaven, karma, winner: state.winner, players: state.players, seen };
+  return { log, turns, heaven, karma, winner: state.winner, players: state.players, seen, state };
+}
+
+// The seed of a soul's life k: the seed itself for the first, then a hash of the two, so a chain is fixed by its seed.
+export const lifeSeed = (seed, k) => (k ? (Math.imul(seed ^ 0x85ebca6b, 0x27d4eb2d) + Math.imul(k, 0x165667b1)) >>> 0 : seed);
+// One soul's lives from a seed: each a single computer's game, born of the last, until a liberation or n lives.
+export function playLives(seed, n, { rules = SIM_RULES, pick = moveFor } = {}) {
+  const out = [];
+  let born = null;
+  for (let k = 0; k < n; k++) {
+    const g = playGame(lifeSeed(seed, k), { players: 1, rules, pick, born });
+    out.push(g);
+    if (g.winner === 0) break;
+    born = bornOf(soulOf(g.state, 0));
+  }
+  return out;
 }
 
 // Turn counts summarised the way docs/BOARDCRAFT.md §5 asks: the distribution is right-skewed, so the
@@ -103,6 +122,29 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   const pick = PICKS[flags.pick || "plain"];
   const rules = SIM_RULES;
   const pct = x => `${(x * 100).toFixed(1)}%`;
+  // --lives: one soul's lives a seed (Phase 16)
+  if (flags.lives) {
+    const n = +flags.lives, byLife = Array.from({ length: n }, () => ({ lives: 0, freed: 0, ledger: 0, years: 0, door: 0, fell: 0, turns: [] }));
+    let lived = 0, freed = 0, reborn = 0;
+    for (let s = first; s < first + games; s++) {
+      const chain = playLives(s, n, { rules, pick });
+      chain.forEach((g, k) => {
+        const p = g.players[0], b = byLife[k];
+        lived++; b.lives++; b.turns.push(g.turns[0]);
+        if (g.winner === 0) { freed++; b.freed++; } else if (k < n - 1) reborn++;
+        if (p.death) b[p.death.by]++;
+        b.fell += p.fell;
+      });
+    }
+    console.log(`${games} souls, up to ${n} lives each, seeds ${first}–${first + games - 1}${flags.policy ? `, policy ${flags.policy}` : ""}${flags.penance ? `, penance ${flags.penance}` : ""}`);
+    console.log(`lives lived ${lived}; liberated ${pct(freed / games)} of souls within ${n} lives; liberation per life ${pct(freed / lived)}; lives per liberation ${(lived / Math.max(1, freed)).toFixed(2)}; reborn ${pct(reborn / lived)} of lives`);
+    for (const [k, b] of byLife.entries()) {
+      if (!b.lives) continue;
+      const t = summarise(b.turns);
+      console.log(`  life ${k + 1}: ${b.lives} lived, liberated ${pct(b.freed / b.lives)}; died by the ledger ${pct(b.ledger / b.lives)}, years on earth ${pct(b.years / b.lives)}, at the door ${pct(b.door / b.lives)}; fell ${pct(b.fell / b.lives)}; turns median ${t.median}, p95 ${t.p95}`);
+    }
+    process.exit(0);
+  }
   // --spans: one line per span of life, the numbers the span is chosen by
   if (flags.spans) {
     console.log(`${games} games, ${players} players, seeds ${first}–${first + games - 1}`);

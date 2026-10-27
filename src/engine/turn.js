@@ -91,12 +91,15 @@ export const gone = p => !!(p.dead || p.fell);
 // and the ledger (src/engine/karma.js): karma, its three buckets; held, the vices a reckoning added to what the life
 // is holding; reckonings, each one met, where in the life it came; refusals, each arrival the exit refused, and where;
 // and door, why the exit refused them while they stand at it. Phase 15 adds witness: each situation's choice, what the
-// witness chose and what the life took.
+// witness chose and what the life took. Phase 16 adds what a row may bring from a life before (src/engine/samskara.js
+// bornOf): born is { gunas, karma, prior }, prior being the last life as the next half-remembers it; and soul, the key
+// its saṃskāra is kept under. A row without them is a first life, exactly as before.
 export function createGame({ players, rules, seed }) {
   return {
     players: players.map((r, i) => ({ name: r.name.trim(), type: r.type, gender: r.gender || "m", alias: r.alias || null, color: i, pos: 0, face: "r", life: [], told: [], fell: false,
-      years: 0, gunas: freshGunas(), aims: freshAims(), practised: 0, bhumika: null, peak: null, dead: false, holding: null,
-      karma: freshKarma(), held: [], reckonings: [], refusals: [], door: null, witness: [] })),
+      years: 0, gunas: r.born?.gunas ?? freshGunas(), aims: freshAims(), practised: 0, bhumika: null, peak: null, dead: false, holding: null,
+      karma: r.born?.karma ?? freshKarma(), held: [], reckonings: [], refusals: [], door: null, witness: [],
+      ...(r.born?.prior ? { prior: r.born.prior } : {}), ...(r.soul ? { soul: r.soul } : {}) })),
     rules: { ...rules },
     // over: someone reached the exit, or nobody is left in the game to
     turn: 0, winner: null, over: false, last: null,
@@ -287,12 +290,12 @@ export function endTurn(state, plan) {
     if (ex) {
       p.exam = { ...(p.exam ?? {}), [ex.key]: ex.n };
       if (ex.cleared) k = meet(k, ex.key);
-      p.sittings = [...(p.sittings ?? []), { at, src: ex.src, opt: ex.opt, planted: ex.at, n: ex.n, pass: ex.pass, answer: ex.answer, cleared: ex.cleared, ...(ex.never ? { never: true } : {}), open: plan.win, age: p.years }];
+      p.sittings = [...(p.sittings ?? []), { at, src: ex.src, opt: ex.opt, planted: ex.at, ...(ex.prior ? { prior: true } : {}), n: ex.n, pass: ex.pass, answer: ex.answer, cleared: ex.cleared, ...(ex.never ? { never: true } : {}), open: plan.win, age: p.years }];
     }
     p.karma = ripen(k, p.years);
     if (rk) {
       if (rk.holds) p.held = [...(p.held ?? []), rk.holds];
-      p.reckonings = [...(p.reckonings ?? []), { at, src: rk.src, opt: rk.opt, planted: rk.planted, tier: rk.tier, applied: rk.applied, wouldDie: rk.wouldDie, ...(rk.dies ? { dies: true, form: rk.form } : {}), years: rk.years, to: rk.to, age: rk.age }];
+      p.reckonings = [...(p.reckonings ?? []), { at, src: rk.src, opt: rk.opt, planted: rk.planted, ...(rk.prior ? { prior: true } : {}), tier: rk.tier, applied: rk.applied, wouldDie: rk.wouldDie, ...(rk.dies ? { dies: true, form: rk.form } : {}), years: rk.years, to: rk.to, age: rk.age }];
     }
     // an arrival the door refused is kept for the account, where in the life it came (a refusal again while they
     // stand there is the same one)

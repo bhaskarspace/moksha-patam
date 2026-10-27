@@ -19,6 +19,9 @@
 // sat at the door (penance is two years a weight, and a weight-three debt no penance pays). Every account untagged death
 // must be the same as main's. Its second step adds "mirror": an account whose mirror (src/engine/mirror.js) asks first
 // about a rebellion. The mirror is no part of the book, so every account, tagged or not, must be the same as main's.
+// Its third step adds --lives=2: each named life that ended without the door is born again (src/engine/samskara.js) as an
+// unnamed computer on the seed hash(seed, 1), and that second life's account is hashed too, tagged "rebirth". A first
+// life never reads saṃskāra, so every line without the tag must be the same as main's.
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
@@ -31,6 +34,8 @@ const load = f => import(pathToFileURL(path.join(root, f)).href);
 const [{ createGame, playTurn }, { lifeOf, lifeText }, content, { cast }] = await Promise.all(["src/engine/turn.js", "src/engine/account.js", "src/content.js", "src/state.js"].map(load));
 // the mirror, in a checkout that has one
 const { mirrorOf } = fs.existsSync(path.join(root, "src/engine/mirror.js")) ? await load("src/engine/mirror.js") : {};
+const { soulOf, bornOf } = fs.existsSync(path.join(root, "src/engine/samskara.js")) ? await load("src/engine/samskara.js") : {};
+const { lifeSeed } = flags.lives ? await load("tools/sim.mjs") : {};
 if (flags.cast === "off") {
   if (!content.CAST) throw new Error(`${root} has no cast to take away`);
   content.CAST.names = null;
@@ -60,7 +65,7 @@ const tally = { intros: 0, returns: 0, fates: 0, lives: 0 };
 const out = [];
 const say = (key, s, i, l) => {
   const text = lifeText(s, i, l), life = lifeOf(s, i, l);
-  out.push(flags.full ? `## ${key}\n${text}` : `${key} ${hash(text)}${flags.tag ? (s.above ? " above" : "") + (s.karma ? " karma" : "") + (s.door ? " door" : "") + (s.curse ? " curse" : "") + (s.witness || life.witnessed ? " witness" : "") + (s.death ? " death" : "") + (mirrorOf?.(s, i)[0]?.id === "rebel" ? " mirror" : "") : ""}`);
+  out.push(flags.full ? `## ${key}\n${text}` : `${key} ${hash(text)}${flags.tag ? (s.above ? " above" : "") + (s.karma ? " karma" : "") + (s.door ? " door" : "") + (s.curse ? " curse" : "") + (s.witness || life.witnessed ? " witness" : "") + (s.death ? " death" : "") + (mirrorOf?.(s, i)[0]?.id === "rebel" ? " mirror" : "") + (s.rebirth ? " rebirth" : "") : ""}`);
   if (l === "en" && life.fates) {
     tally.lives++;
     tally.fates += life.fates.length;
@@ -72,6 +77,13 @@ for (let seed = 1; seed <= seeds; seed++) {
   for (const gender of ["m", "f"]) {
     const s = play([{ name: "Meera", type: "cpu", gender }], seed);
     for (const l of ["en", "hi"]) say(`${seed} one ${gender} ${l}`, s, 0, l);
+    // the life after, born of this one, when it ended without the door
+    const born = +flags.lives > 1 && bornOf?.(soulOf(s, 0));
+    if (born) {
+      const t = play([{ name: "", alias: { en: "Ravi", hi: "रवि" }, type: "cpu", gender, born }], lifeSeed(seed, 1));
+      t.rebirth = true;
+      for (const l of ["en", "hi"]) say(`${seed} one ${gender} ${l} life2`, t, 0, l);
+    }
   }
   const s = play(cast([{ name: "", type: "cpu", gender: "" }, { name: "", type: "cpu", gender: "" }], seed), seed);
   for (const i of [0, 1]) for (const l of ["en", "hi"]) say(`${seed} two p${i} ${l}`, s, i, l);
