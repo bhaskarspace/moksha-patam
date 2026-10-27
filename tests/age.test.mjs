@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { ASHRAMAS, GOAL, TOP } from "../src/content.js";
-import { ageOf, lens, wash, LOOKS, VEIL } from "../src/render/age.js";
+import { ageOf, lens, wash, LOOKS, VEIL, clearOf } from "../src/render/age.js";
 
 const at = (...pos) => ({ players: pos.map(p => ({ pos: p })), winner: null });
 const board = L => Array.from({ length: TOP }, (_, i) => wash(i + 1, L));
@@ -103,4 +103,14 @@ test("asrama: nothing dims within the oldest player's own stage of life; beyond 
 });
 test("under every look, once a throw is made, some square is dimmed: no life sees the whole board clearly", () => {
   for (const look of LOOKS) for (const p of [1, 30, 70, 99]) assert.ok(board(lens(begun(p), null, look)).some(w => w.dim > 0), `${look} at ${p}`);
+});
+
+test("the board's painted things lose solidity only at the highest bhumikas, and fully at turya (Phase 16)", () => {
+  const at = (...bs) => clearOf({ players: bs.map(b => ({ bhumika: b })) });
+  assert.equal(at(null), 0);
+  for (const b of [0, 1, 2, 3, 4]) assert.equal(at(b), 0, `bhumika ${b + 1}`);
+  assert.equal(at(5), 0.5);
+  assert.equal(at(6), 1);
+  // whoever is furthest in is the board's
+  assert.equal(at(1, 6, null), 1);
 });

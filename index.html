@@ -173,6 +173,9 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 .cell .pic:has(svg), .lab .ic:has(svg), .leaf .glyph:has(svg) { filter: none; }
 /* a painted vignette fills its square (REDESIGN.md Phase 13) */
 .cell .pic.vg { padding: 0; }
+/* Phase 16: at the highest bhumikas the board's painted things lose solidity (--clear, src/render/age.js clearOf); the
+   ground and the labels never do */
+#art, .cell .pic { opacity: calc(1 - 0.6 * var(--clear, 0)); transition: opacity 1.6s ease; }
 .cell .pic.vg svg.spr { width: 100%; height: 100%; }
 .lab .ic svg.spr { width: 82%; height: 82%; }
 .lab.heaven .ic svg.spr { width: 5.6cqi; height: 5.6cqi; }
@@ -432,6 +435,16 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 /* Phase 8: the title the life earned, under its name, and a first line that knows the shape of the whole life */
 .life-leaf .leaf-text p.life-sub { margin-top: 0; font-size: 14px; letter-spacing: 0.04em; color: var(--l-ink2); }
 .life-leaf .leaf-text p.life-open { margin-top: 14px; font-style: italic; }
+/* Phase 16: the life read three ways (the book, the path, the mirror), and Citragupta, the hand that reads it */
+.life-leaf .life-tabs { margin: 10px 24px 0; gap: 20px; border-bottom-color: var(--l-line); }
+.life-leaf .life-tabs button { font-size: 12px; color: var(--l-ink2); }
+.life-leaf .life-tabs button[aria-selected="true"] { color: var(--l-ink); border-bottom-color: var(--l-rule); }
+.life-leaf .leaf-text p.life-scribe { margin-top: 0; font-size: 14px; font-style: italic; color: var(--l-ink2); }
+.life-leaf .life-path, .life-leaf .life-mirror { margin: 10px 0 0; padding-left: 1.4em; max-width: 62ch; }
+.life-leaf .life-path li { font-size: 16px; line-height: 1.5; }
+.life-leaf .life-path .pa { display: inline-block; min-width: 8ch; color: var(--l-ink2); }
+.life-leaf .life-path .pv { margin-left: 0.5em; font-style: italic; color: var(--l-ink2); }
+.life-leaf .life-mirror li { margin-top: 14px; font-size: 18px; line-height: 1.6; }
 .life-leaf .leaf-foot .ghost { color: var(--l-ink); border-color: var(--l-line); padding: 6px 14px; font-size: 14px; }
 .win > div button + button { margin-top: -4px; }
 
@@ -568,6 +581,7 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
   .leaf .age { font-size: 10.5px; }
   .leaf .story p.moment { font-size: 19px; }
   .life-who { padding: 6px 12px 0; }
+  .life-leaf .life-tabs { margin: 8px 12px 0; gap: 16px; }
   .leaf-text { padding: 4px 4px 8px 14px; border-right: 0; }
   .leaf .story p { font-size: 18px; }
   .leaf .chips p, .leaf .note { font-size: 16px; }
@@ -678,6 +692,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
 .codex .ent.locked { color: var(--muted); border-style: dashed; letter-spacing: 0.1em; }
 
 @media (prefers-reduced-motion: reduce) {
+  #art, .cell .pic { transition: none; }
   .token, .token.slide { transition: none; }
   .gate .spoke, .gate .leaf { transition: none; }
   .cam { transition: none; transform: none !important; }
@@ -856,6 +871,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
               <h2 id="winTitle"></h2>
               <p id="winText"></p>
               <button id="readLife" type="button" data-t="readLife">Read the lives</button>
+              <button id="reborn" type="button" data-t="reborn" hidden>Be born again</button>
+              <p id="rebornNote" class="note" data-t="rebornNote" hidden>The next life carries this one, half-remembered.</p>
               <button id="again" type="button" class="ghost" data-t="again">Play again</button>
             </div>
           </div>
@@ -994,19 +1011,19 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       "85": { to: 94, ic: "🌳", en: "Discernment", hi: "विवेक", skt: "Viveka", age: 73, moment: { en: "{name} is {age} and sits on the step watching {his|her|their} own hands peel an orange, as if they belonged to someone else.", hi: "{name} {age} बरस {का|की} है। {name} ने सीढ़ी पर बैठकर अपने ही हाथों को संतरा छीलते देखा, जैसे वे किसी और के हों।" }, mirror: { en: "The Muṇḍaka's two birds sit on one tree: one eats the fruit, the other only watches. Sāṃkhya, Advaita and Madhva all claim the verse, and each counts the birds differently.", hi: "मुंडक के दो पक्षी एक ही वृक्ष पर बैठे हैं: एक फल खाता है, दूसरा केवल देखता है। सांख्य, अद्वैत और मध्व तीनों इस मंत्र पर दावा करते हैं, और हर एक पक्षियों को अलग गिनता है।" }, src: "Mundaka Upanishad 3.1.1", guna: "s", aims: { dharma: 5 } }
     },
     SNAKES: {
-      "14": { to: 8, ic: "🐢", en: "Chatter", hi: "बकबक", skt: "Vachalata", age: 8, moment: { en: "{name} is {age} and has been told a secret, and holds it all through lunch, and tells it in the afternoon.", hi: "{name} {age} बरस {का|की} है। किसी ने एक राज़ बताया था। दोपहर के खाने तक उसे सँभाले रखा, और शाम होते-होते बता दिया।", mirror: { en: "The tortoise had a stick in its mouth and the whole sky beneath it, and still opened its mouth to talk.", hi: "कछुए के मुँह में डंडी थी और नीचे पूरा आकाश, फिर भी उसने बोलने को मुँह खोल दिया।" } }, mirror: { en: "Geese flew the tortoise across the sky on a stick. It opened its mouth to talk.", hi: "हंस कछुए को डंडी पर आकाश में ले उड़े। उसने बोलने के लिए मुँह खोला।" }, src: "Panchatantra", guna: "r", aims: { dharma: -5 }, holding: { en: "still telling what was told in confidence", hi: "अब भी वह कहते हुए जो भरोसे में कहा गया था" }, letgo: { en: "what was told in confidence", hi: "भरोसे में कही बात कह देने की आदत" } },
-      "19": { to: 11, ic: "🐺", en: "Fibbing", hi: "झूठ", skt: "Asatya", age: 10, moment: { en: "{name} is {age} and tells the class about a holiday by the sea that never happened, and adds a boat.", hi: "{name} {age} बरस {का|की} है। {name} ने पूरी कक्षा को समुद्र किनारे की एक छुट्टी का क़िस्सा सुनाया जो कभी हुई ही नहीं, और उसमें एक नाव भी जोड़ दी।", mirror: { en: "A jackal who fell into a vat of blue dye told the whole forest he was its king.", hi: "रंग की हौदी में गिरकर नीले हुए एक सियार ने पूरे जंगल से कह दिया कि वही उनका राजा है।" } }, mirror: { en: "A jackal fell into a vat of dye, turned blue and claimed to be king of the forest.", hi: "रंग की हौदी में गिरकर नीला हुआ सियार खुद को जंगल का राजा बताने लगा।" }, src: "Panchatantra", guna: "r", aims: { dharma: -10 }, holding: { en: "still adding a boat to the story", hi: "अब भी कहानी में एक नाव जोड़ते हुए" }, letgo: { en: "the boat added to the story", hi: "कहानी में जोड़ी गई नाव" } },
-      "29": { to: 17, ic: "💤", en: "Laziness", hi: "आलस्य", skt: "Alasya", age: 17, moment: { en: "{name} is {age}, the exam is in a week, and the books have not moved from where they were put down in March.", hi: "{name} {age} बरस {का|की} है। परीक्षा एक हफ़्ते में है, और किताबें मार्च में जहाँ रखी थीं वहीं पड़ी हैं।" }, mirror: { en: "'Idleness is the great enemy living in your own body,' runs the verse every schoolboy copies out. Patañjali files it fifth among nine obstacles, right after doubt, as if it were a symptom rather than a sin.", hi: "'आलस्य शरीर में रहने वाला सबसे बड़ा शत्रु है,' वह श्लोक कहता है जिसे हर विद्यार्थी उतारता है। पतंजलि इसे नौ विघ्नों में पाँचवाँ गिनते हैं, संशय के ठीक बाद, मानो यह पाप नहीं, एक लक्षण हो।" }, src: "Subhashita", guna: "t", aims: { artha: -5 }, holding: { en: "still meaning to start tomorrow", hi: "अब भी कल से शुरू करने की सोचते हुए" }, letgo: { en: "tomorrow", hi: "कल से शुरू करने की सोच" } },
-      "39": { to: 22, ic: "🦴", en: "Pride of learning", hi: "विद्या-मद", skt: "Vidya-mada", age: 24, moment: { en: "{name} is {age}, has read more than anyone at the table, and explains the bridge to the person who built it.", hi: "{name} {age} बरस {का|की} है। मेज़ पर किसी ने उतना नहीं पढ़ा जितना {name} ने, और {name} ने पुल बनाने वाले को ही पुल समझा दिया।" }, mirror: { en: "Three learned brothers rebuilt a lion from its bones. The fourth, who had only common sense, climbed a tree.", hi: "तीन विद्वान भाइयों ने हड्डियों से शेर बना दिया। चौथा, जिसमें बस समझ थी, पेड़ पर चढ़ गया।" }, src: "Panchatantra", guna: "r", aims: { dharma: -5 }, holding: { en: "still explaining the bridge to the one who built it", hi: "अब भी पुल बनाने वाले को पुल समझाते हुए" }, letgo: { en: "explaining the bridge to the one who built it", hi: "पुल बनाने वाले को पुल समझाने की आदत" } },
-      "47": { to: 31, ic: "💘", en: "Craving", hi: "काम", skt: "Kama", age: 32, moment: { en: "{name} is {age} and buys the thing at last, and within a week is looking at the better one.", hi: "{name} {age} बरस {का|की} है। {name} ने आख़िर वह चीज़ ख़रीद ली, और हफ़्ते भर में नज़र उससे बेहतर वाली पर है।", mirror: { en: "Yayati borrowed his son's youth for a thousand years for the same reason, and at the end of it wanted more.", hi: "ययाति ने इसी कारण अपने बेटे की जवानी हज़ार बरस के लिए उधार ली थी, और अंत में भी और चाहते रहे।" } }, mirror: { en: "Yayati borrowed his son's youth for a thousand years and found his desire still unquenched.", hi: "ययाति ने पुत्र का यौवन लेकर हज़ार वर्ष भोग किया, फिर भी इच्छा नहीं बुझी।" }, src: "Mahabharata, Adi Parva", guna: "r", aims: { kama: 10, artha: -5 }, holding: { en: "still looking at the better one", hi: "अब भी उससे अच्छी चीज़ की ओर देखते हुए" }, letgo: { en: "the better one", hi: "उससे अच्छी चीज़ की चाह" } },
-      "55": { to: 43, ic: "💰", en: "Greed", hi: "लोभ", skt: "Lobha", age: 42, moment: { en: "{name} is {age}. The shopkeeper gives back too much change by mistake. {name} pockets it quietly, and all the way home works out where else this might happen.", hi: "{name} {age} बरस {का|की} है। दुकानदार ने ग़लती से ज़्यादा पैसे लौटा दिए। {name} ने चुपचाप रख लिए, और रास्ते भर हिसाब लगाया कि ऐसा और कहाँ हो सकता है।", mirror: { en: "The jackal who found a hunter and a boar both dead made the same kind of plan: make it last for days.", hi: "शिकारी और सूअर दोनों को मरा पाकर सियार ने भी ऐसी ही योजना बनाई: दावत कई दिन चले।" } }, mirror: { en: "Finding a hunter and a boar both dead, the jackal planned to make the feast last for days.", hi: "शिकारी और सूअर को मरा देख सियार ने सोचा कि दावत कई दिन चलेगी।" }, src: "Panchatantra", guna: "r", aims: { artha: 10, dharma: -10 }, holding: { en: "still counting the change", hi: "अब भी छुट्टे गिनते हुए" }, letgo: { en: "counting the change", hi: "छुट्टे गिनने की आदत" } },
-      "59": { to: 50, ic: "🌋", en: "Anger", hi: "क्रोध", skt: "Krodha", age: 48, moment: { en: "{name} is {age}. {child={name}'s daughter} breaks something precious and {name} hits her before knowing the hand has moved. She does not cry, which is worse.", hi: "{name} {age} बरस {का|की} है। {child=बेटी} ने {name} की कोई प्यारी चीज़ तोड़ दी, और हाथ कब उठा, यह जानने से पहले ही {name} ने उसे मार दिया। वह रोई नहीं। यह और बुरा है।", mirror: { en: "The brahmin's wife saw blood on the mongoose's mouth and struck once, before looking in the cradle.", hi: "ब्राह्मणी ने नेवले के मुँह पर खून देखा और पालने में झाँकने से पहले ही एक वार कर दिया।" }, cast: "daughter", recall: { en: "whom {name} once struck before knowing the hand had moved", hi: "जिस पर कभी {name} का हाथ, जाने बिना, उठ गया था" } }, mirror: { en: "Seeing blood on the mongoose's mouth, the brahmin's wife struck it dead in a rage.", hi: "नेवले के मुँह पर खून देख ब्राह्मणी ने क्रोध में उसे मार डाला।" }, src: "Panchatantra", guna: "r", aims: { dharma: -10 }, holding: { en: "still with the hand that moved first", hi: "अब भी उसी हाथ के साथ जो पहले उठ गया था" }, letgo: { en: "the hand that moved first", hi: "पहले उठ जाने वाले हाथ" } },
-      "62": { to: 46, ic: "🙈", en: "Attachment", hi: "मोह", skt: "Moha", age: 52, moment: { en: "{name} is {age} and has never once said no to {child=the son}, and does not say it now, when it matters most.", hi: "{name} {age} बरस {का|की} है। {child=बेटे} को कभी 'ना' नहीं कहा। आज, जब कहना सबसे ज़रूरी है, तब भी {name} से नहीं कहा जाता।", mirror: { en: "Dhritarashtra was blind, and could never say it to Duryodhana either.", hi: "धृतराष्ट्र अंधे थे, और दुर्योधन से वे भी कभी यह नहीं कह पाए।" }, cast: "son", recall: { en: "to whom {name} never once said no", hi: "जिसे {name} ने कभी 'ना' नहीं कहा था" } }, mirror: { en: "Blind King Dhritarashtra could never say no to his son Duryodhana.", hi: "अंधे राजा धृतराष्ट्र अपने पुत्र दुर्योधन को कभी मना नहीं कर सके।" }, src: "Mahabharata", guna: "t", aims: { kama: 5, dharma: -5 }, holding: { en: "still unable to say no to {child=the son}", hi: "अब भी {child=बेटे} को ना न कह पाते हुए" }, letgo: { en: "the yes always owed to {child=the son}", hi: "{child=बेटे} को हर बार हाँ कहने की मजबूरी" } },
-      "69": { to: 52, ic: "👁️", en: "Envy", hi: "मत्सर", skt: "Matsarya", age: 57, moment: { en: "{name} is {age} and is shown round {rival=the rival}'s new house, praises every room, and lies awake that night counting them.", hi: "{name} {age} बरस {का|की} है। {name} ने {rival=प्रतिद्वंद्वी} के नए घर के हर कमरे की तारीफ़ की, और उस रात नींद नहीं आई: कमरे गिनते-गिनते सुबह हो गई।", mirror: { en: "Duryodhana walked round the Pandavas' hall at Indraprastha the same way, and burned.", hi: "दुर्योधन भी इंद्रप्रस्थ में पांडवों की सभा ऐसे ही घूमा था, और भीतर जलता रहा।" }, cast: "rival", recall: { en: "whose new house had {name} up all night counting the rooms", hi: "जिसके नए घर के कमरे {name} ने कभी रात भर गिने थे" } }, mirror: { en: "Seeing the Pandavas' wondrous hall at Indraprastha, Duryodhana burned with envy.", hi: "इंद्रप्रस्थ में पांडवों का अद्भुत सभाभवन देखकर दुर्योधन ईर्ष्या से जल उठा।" }, src: "Mahabharata, Sabha Parva", guna: "r", aims: { artha: 5, dharma: -5 }, holding: { en: "still counting {rival=the rival}'s rooms", hi: "अब भी {rival=प्रतिद्वंद्वी} के कमरे गिनते हुए" }, letgo: { en: "counting {rival=the rival}'s rooms", hi: "{rival=प्रतिद्वंद्वी} के कमरे गिनने की आदत" } },
-      "77": { to: 58, ic: "🦚", en: "Pride", hi: "मद", skt: "Mada", age: 65, moment: { en: "{name} is {age}, and at the wedding tells everyone who will listen that none of this would exist without {name}.", hi: "{name} {age} बरस {का|की} है। {name} ने शादी में हर सुनने वाले को बताया कि {name} के बिना यह सब होता ही नहीं।", mirror: { en: "The gods said the same after a victory: 'This greatness is ours.' Then a Yaksha appeared.", hi: "विजय के बाद देवताओं ने भी यही कहा था: 'यह महिमा हमारी है।' तभी एक यक्ष प्रकट हुआ।" } }, mirror: { en: "After a victory the gods boasted, 'This greatness is ours.' Then a mysterious Yaksha appeared.", hi: "विजय के बाद देवता बोले, 'यह महिमा हमारी है।' तभी एक रहस्यमय यक्ष प्रकट हुआ।" }, src: "Kena Upanishad 3", guna: "r", aims: { dharma: -5 }, holding: { en: "still sure that none of it would exist without {name}", hi: "अब भी इस यक़ीन के साथ कि {name} के बिना यह सब न होता" }, letgo: { en: "the certainty that none of it would exist without {name}", hi: "{name} के बिना यह सब न होने के यक़ीन" } },
-      "88": { to: 71, ic: "🎭", en: "Hypocrisy", hi: "दंभ", skt: "Dambha", age: 76, moment: { en: "{name} is {age} and prays loudly, where the neighbours can hear, and on the way out is short with the man at the gate.", hi: "{name} {age} बरस {का|की} है। इतनी ज़ोर से प्रार्थना होती है कि पड़ोसी सुन सकें, और बाहर निकलते हुए दरवाज़े पर खड़े आदमी को झिड़क दिया जाता है।", mirror: { en: "A cat once posed as a holy ascetic too. When a hare and a partridge came to it for judgment, it ate them both.", hi: "एक बिल्ली ने भी तपस्वी का ढोंग रचा था। जब खरगोश और तीतर उससे न्याय माँगने आए, तो उसने दोनों को खा लिया।" } }, mirror: { en: "A cat posed as a holy ascetic. When a hare and a partridge came for judgment, it ate them both.", hi: "बिल्ली तपस्वी होने का ढोंग करती रही। न्याय माँगने आए खरगोश और तीतर को खा गई।" }, src: "Panchatantra", guna: "r", aims: { dharma: -10 }, holding: { en: "still praying where the neighbours can hear", hi: "अब भी वहाँ प्रार्थना करते हुए जहाँ पड़ोसी सुन सकें" }, letgo: { en: "the prayers said for the neighbours", hi: "पड़ोसियों को सुनाकर की गई प्रार्थनाओं" } },
-      "93": { to: 64, ic: "🦌", en: "Clinging", hi: "आसक्ति", skt: "Asakti", age: 81, moment: { en: "{name} is {age} and has given almost everything away, but cannot stop asking whether {child=the son} has eaten.", hi: "{name} {age} बरस {का|की} है। लगभग सब कुछ दे दिया है, पर यह पूछना नहीं छूटता कि {child=बेटे} ने खाना खाया या नहीं।", mirror: { en: "Bharata had given up a kingdom, and then could not stop looking after an orphaned fawn.", hi: "भरत ने पूरा राज्य छोड़ दिया था, और फिर एक अनाथ हिरण-शावक की देखभाल नहीं छोड़ पाए।" }, cast: "son", recall: { en: "whose eating {name} could never stop asking about", hi: "जिसके खाने की फ़िक्र {name} से कभी छूटी नहीं थी" } }, mirror: { en: "The sage Bharata had given up a kingdom, yet grew attached to an orphaned fawn.", hi: "राजपाट त्याग चुके भरत मुनि एक अनाथ हिरण-शावक के मोह में बँध गए।" }, src: "Bhagavata Purana 5.8", guna: "t", aims: { kama: 5 }, holding: { en: "still asking whether {child=the son} has eaten", hi: "अब भी यह पूछते हुए कि {child=बेटे} ने खाना खाया या नहीं" }, callsBack: 62, echo: { en: "Long after the no that was never said, ", hi: "उस 'ना' के बरसों बाद जो कभी कही नहीं गई, " }, letgo: { en: "asking whether {child=the son} has eaten", hi: "{child=बेटे} ने खाना खाया या नहीं, यह पूछने की आदत" } },
-      "99": { to: 61, ic: "🪞", en: "Ego", hi: "अहंकार", skt: "Ahankara", age: 89, moment: { en: "{name} is {age} and looks in the mirror and is satisfied: the body is still there, and that seems to settle it.", hi: "{name} {age} बरस {का|की} है। आईने में देखकर तसल्ली हो जाती है: शरीर अब भी वही है, और इससे जैसे बात तय हो जाती है।", mirror: { en: "Virochana was shown his reflection too, took the body for the Self, and went home content.", hi: "विरोचन को भी उसका प्रतिबिंब दिखाया गया था। उसने शरीर को ही आत्मा मान लिया और संतुष्ट होकर घर लौट गया।" } }, mirror: { en: "Shown his reflection, Virochana took the body for the Self and went home content.", hi: "अपना प्रतिबिंब देखकर विरोचन ने शरीर को ही आत्मा मान लिया और संतुष्ट लौट गया।" }, src: "Chandogya Upanishad 8.8", guna: "t", aims: { artha: 5, dharma: -5 }, holding: { en: "still sure the body settles it", hi: "अब भी इस यक़ीन के साथ कि शरीर से ही बात तय हो जाती है" }, letgo: { en: "the body that seemed to settle it", hi: "शरीर से ही बात तय हो जाने के यक़ीन" } }
+      "14": { to: 8, ic: "🐢", en: "Chatter", hi: "बकबक", skt: "Vachalata", age: 8, moment: { en: "{name} is {age} and has been told a secret, and holds it all through lunch, and tells it in the afternoon.", hi: "{name} {age} बरस {का|की} है। किसी ने एक राज़ बताया था। दोपहर के खाने तक उसे सँभाले रखा, और शाम होते-होते बता दिया।", mirror: { en: "The tortoise had a stick in its mouth and the whole sky beneath it, and still opened its mouth to talk.", hi: "कछुए के मुँह में डंडी थी और नीचे पूरा आकाश, फिर भी उसने बोलने को मुँह खोल दिया।" } }, mirror: { en: "Geese flew the tortoise across the sky on a stick. It opened its mouth to talk.", hi: "हंस कछुए को डंडी पर आकाश में ले उड़े। उसने बोलने के लिए मुँह खोला।" }, src: "Panchatantra", guna: "r", aims: { dharma: -5 }, holding: { en: "still telling what was told in confidence", hi: "अब भी वह कहते हुए जो भरोसे में कहा गया था" }, letgo: { en: "what was told in confidence", hi: "भरोसे में कही बात कह देने की आदत" }, forgot: { en: "a secret makes {name}'s mouth go dry", hi: "कोई राज़ सुनते ही {name} का मुँह सूख जाता है" } },
+      "19": { to: 11, ic: "🐺", en: "Fibbing", hi: "झूठ", skt: "Asatya", age: 10, moment: { en: "{name} is {age} and tells the class about a holiday by the sea that never happened, and adds a boat.", hi: "{name} {age} बरस {का|की} है। {name} ने पूरी कक्षा को समुद्र किनारे की एक छुट्टी का क़िस्सा सुनाया जो कभी हुई ही नहीं, और उसमें एक नाव भी जोड़ दी।", mirror: { en: "A jackal who fell into a vat of blue dye told the whole forest he was its king.", hi: "रंग की हौदी में गिरकर नीले हुए एक सियार ने पूरे जंगल से कह दिया कि वही उनका राजा है।" } }, mirror: { en: "A jackal fell into a vat of dye, turned blue and claimed to be king of the forest.", hi: "रंग की हौदी में गिरकर नीला हुआ सियार खुद को जंगल का राजा बताने लगा।" }, src: "Panchatantra", guna: "r", aims: { dharma: -10 }, holding: { en: "still adding a boat to the story", hi: "अब भी कहानी में एक नाव जोड़ते हुए" }, letgo: { en: "the boat added to the story", hi: "कहानी में जोड़ी गई नाव" }, forgot: { en: "{name} cannot hear a holiday story without checking it", hi: "छुट्टियों का कोई किस्सा सुनते ही {name} मन ही मन उसकी जाँच करने {लगता|लगती} है" } },
+      "29": { to: 17, ic: "💤", en: "Laziness", hi: "आलस्य", skt: "Alasya", age: 17, moment: { en: "{name} is {age}, the exam is in a week, and the books have not moved from where they were put down in March.", hi: "{name} {age} बरस {का|की} है। परीक्षा एक हफ़्ते में है, और किताबें मार्च में जहाँ रखी थीं वहीं पड़ी हैं।" }, mirror: { en: "'Idleness is the great enemy living in your own body,' runs the verse every schoolboy copies out. Patañjali files it fifth among nine obstacles, right after doubt, as if it were a symptom rather than a sin.", hi: "'आलस्य शरीर में रहने वाला सबसे बड़ा शत्रु है,' वह श्लोक कहता है जिसे हर विद्यार्थी उतारता है। पतंजलि इसे नौ विघ्नों में पाँचवाँ गिनते हैं, संशय के ठीक बाद, मानो यह पाप नहीं, एक लक्षण हो।" }, src: "Subhashita", guna: "t", aims: { artha: -5 }, holding: { en: "still meaning to start tomorrow", hi: "अब भी कल से शुरू करने की सोचते हुए" }, letgo: { en: "tomorrow", hi: "कल से शुरू करने की सोच" }, forgot: { en: "the word tomorrow makes {name} uneasy", hi: "'कल' शब्द से {name} बेचैन हो {जाता|जाती} है" } },
+      "39": { to: 22, ic: "🦴", en: "Pride of learning", hi: "विद्या-मद", skt: "Vidya-mada", age: 24, moment: { en: "{name} is {age}, has read more than anyone at the table, and explains the bridge to the person who built it.", hi: "{name} {age} बरस {का|की} है। मेज़ पर किसी ने उतना नहीं पढ़ा जितना {name} ने, और {name} ने पुल बनाने वाले को ही पुल समझा दिया।" }, mirror: { en: "Three learned brothers rebuilt a lion from its bones. The fourth, who had only common sense, climbed a tree.", hi: "तीन विद्वान भाइयों ने हड्डियों से शेर बना दिया। चौथा, जिसमें बस समझ थी, पेड़ पर चढ़ गया।" }, src: "Panchatantra", guna: "r", aims: { dharma: -5 }, holding: { en: "still explaining the bridge to the one who built it", hi: "अब भी पुल बनाने वाले को पुल समझाते हुए" }, letgo: { en: "explaining the bridge to the one who built it", hi: "पुल बनाने वाले को पुल समझाने की आदत" }, forgot: { en: "{name} goes quiet near bridges", hi: "पुलों के पास {name} चुप हो {जाता|जाती} है" } },
+      "47": { to: 31, ic: "💘", en: "Craving", hi: "काम", skt: "Kama", age: 32, moment: { en: "{name} is {age} and buys the thing at last, and within a week is looking at the better one.", hi: "{name} {age} बरस {का|की} है। {name} ने आख़िर वह चीज़ ख़रीद ली, और हफ़्ते भर में नज़र उससे बेहतर वाली पर है।", mirror: { en: "Yayati borrowed his son's youth for a thousand years for the same reason, and at the end of it wanted more.", hi: "ययाति ने इसी कारण अपने बेटे की जवानी हज़ार बरस के लिए उधार ली थी, और अंत में भी और चाहते रहे।" } }, mirror: { en: "Yayati borrowed his son's youth for a thousand years and found his desire still unquenched.", hi: "ययाति ने पुत्र का यौवन लेकर हज़ार वर्ष भोग किया, फिर भी इच्छा नहीं बुझी।" }, src: "Mahabharata, Adi Parva", guna: "r", aims: { kama: 10, artha: -5 }, holding: { en: "still looking at the better one", hi: "अब भी उससे अच्छी चीज़ की ओर देखते हुए" }, letgo: { en: "the better one", hi: "उससे अच्छी चीज़ की चाह" }, forgot: { en: "{name} never looks twice into a shop window", hi: "{name} किसी दुकान की खिड़की में दोबारा नहीं {झाँकता|झाँकती}" } },
+      "55": { to: 43, ic: "💰", en: "Greed", hi: "लोभ", skt: "Lobha", age: 42, moment: { en: "{name} is {age}. The shopkeeper gives back too much change by mistake. {name} pockets it quietly, and all the way home works out where else this might happen.", hi: "{name} {age} बरस {का|की} है। दुकानदार ने ग़लती से ज़्यादा पैसे लौटा दिए। {name} ने चुपचाप रख लिए, और रास्ते भर हिसाब लगाया कि ऐसा और कहाँ हो सकता है।", mirror: { en: "The jackal who found a hunter and a boar both dead made the same kind of plan: make it last for days.", hi: "शिकारी और सूअर दोनों को मरा पाकर सियार ने भी ऐसी ही योजना बनाई: दावत कई दिन चले।" } }, mirror: { en: "Finding a hunter and a boar both dead, the jackal planned to make the feast last for days.", hi: "शिकारी और सूअर को मरा देख सियार ने सोचा कि दावत कई दिन चलेगी।" }, src: "Panchatantra", guna: "r", aims: { artha: 10, dharma: -10 }, holding: { en: "still counting the change", hi: "अब भी छुट्टे गिनते हुए" }, letgo: { en: "counting the change", hi: "छुट्टे गिनने की आदत" }, forgot: { en: "loose coins make {name} uneasy", hi: "खुले सिक्के देखकर {name} बेचैन हो {जाता|जाती} है" } },
+      "59": { to: 50, ic: "🌋", en: "Anger", hi: "क्रोध", skt: "Krodha", age: 48, moment: { en: "{name} is {age}. {child={name}'s daughter} breaks something precious and {name} hits her before knowing the hand has moved. She does not cry, which is worse.", hi: "{name} {age} बरस {का|की} है। {child=बेटी} ने {name} की कोई प्यारी चीज़ तोड़ दी, और हाथ कब उठा, यह जानने से पहले ही {name} ने उसे मार दिया। वह रोई नहीं। यह और बुरा है।", mirror: { en: "The brahmin's wife saw blood on the mongoose's mouth and struck once, before looking in the cradle.", hi: "ब्राह्मणी ने नेवले के मुँह पर खून देखा और पालने में झाँकने से पहले ही एक वार कर दिया।" }, cast: "daughter", recall: { en: "whom {name} once struck before knowing the hand had moved", hi: "जिस पर कभी {name} का हाथ, जाने बिना, उठ गया था" } }, mirror: { en: "Seeing blood on the mongoose's mouth, the brahmin's wife struck it dead in a rage.", hi: "नेवले के मुँह पर खून देख ब्राह्मणी ने क्रोध में उसे मार डाला।" }, src: "Panchatantra", guna: "r", aims: { dharma: -10 }, holding: { en: "still with the hand that moved first", hi: "अब भी उसी हाथ के साथ जो पहले उठ गया था" }, letgo: { en: "the hand that moved first", hi: "पहले उठ जाने वाले हाथ" }, forgot: { en: "{name} keeps both hands still when a child breaks something", hi: "जब कोई बच्चा कुछ तोड़ देता है, {name} अपने दोनों हाथ स्थिर {रखता|रखती} है" } },
+      "62": { to: 46, ic: "🙈", en: "Attachment", hi: "मोह", skt: "Moha", age: 52, moment: { en: "{name} is {age} and has never once said no to {child=the son}, and does not say it now, when it matters most.", hi: "{name} {age} बरस {का|की} है। {child=बेटे} को कभी 'ना' नहीं कहा। आज, जब कहना सबसे ज़रूरी है, तब भी {name} से नहीं कहा जाता।", mirror: { en: "Dhritarashtra was blind, and could never say it to Duryodhana either.", hi: "धृतराष्ट्र अंधे थे, और दुर्योधन से वे भी कभी यह नहीं कह पाए।" }, cast: "son", recall: { en: "to whom {name} never once said no", hi: "जिसे {name} ने कभी 'ना' नहीं कहा था" } }, mirror: { en: "Blind King Dhritarashtra could never say no to his son Duryodhana.", hi: "अंधे राजा धृतराष्ट्र अपने पुत्र दुर्योधन को कभी मना नहीं कर सके।" }, src: "Mahabharata", guna: "t", aims: { kama: 5, dharma: -5 }, holding: { en: "still unable to say no to {child=the son}", hi: "अब भी {child=बेटे} को ना न कह पाते हुए" }, letgo: { en: "the yes always owed to {child=the son}", hi: "{child=बेटे} को हर बार हाँ कहने की मजबूरी" }, forgot: { en: "{name} cannot refuse a boy anything", hi: "{name} किसी लड़के को किसी चीज़ के लिए मना नहीं कर {पाता|पाती}" } },
+      "69": { to: 52, ic: "👁️", en: "Envy", hi: "मत्सर", skt: "Matsarya", age: 57, moment: { en: "{name} is {age} and is shown round {rival=the rival}'s new house, praises every room, and lies awake that night counting them.", hi: "{name} {age} बरस {का|की} है। {name} ने {rival=प्रतिद्वंद्वी} के नए घर के हर कमरे की तारीफ़ की, और उस रात नींद नहीं आई: कमरे गिनते-गिनते सुबह हो गई।", mirror: { en: "Duryodhana walked round the Pandavas' hall at Indraprastha the same way, and burned.", hi: "दुर्योधन भी इंद्रप्रस्थ में पांडवों की सभा ऐसे ही घूमा था, और भीतर जलता रहा।" }, cast: "rival", recall: { en: "whose new house had {name} up all night counting the rooms", hi: "जिसके नए घर के कमरे {name} ने कभी रात भर गिने थे" } }, mirror: { en: "Seeing the Pandavas' wondrous hall at Indraprastha, Duryodhana burned with envy.", hi: "इंद्रप्रस्थ में पांडवों का अद्भुत सभाभवन देखकर दुर्योधन ईर्ष्या से जल उठा।" }, src: "Mahabharata, Sabha Parva", guna: "r", aims: { artha: 5, dharma: -5 }, holding: { en: "still counting {rival=the rival}'s rooms", hi: "अब भी {rival=प्रतिद्वंद्वी} के कमरे गिनते हुए" }, letgo: { en: "counting {rival=the rival}'s rooms", hi: "{rival=प्रतिद्वंद्वी} के कमरे गिनने की आदत" }, forgot: { en: "{name} counts the windows of every house {name} passes", hi: "{name} हर गुज़रते घर की खिड़कियाँ {गिनता|गिनती} है" } },
+      "77": { to: 58, ic: "🦚", en: "Pride", hi: "मद", skt: "Mada", age: 65, moment: { en: "{name} is {age}, and at the wedding tells everyone who will listen that none of this would exist without {name}.", hi: "{name} {age} बरस {का|की} है। {name} ने शादी में हर सुनने वाले को बताया कि {name} के बिना यह सब होता ही नहीं।", mirror: { en: "The gods said the same after a victory: 'This greatness is ours.' Then a Yaksha appeared.", hi: "विजय के बाद देवताओं ने भी यही कहा था: 'यह महिमा हमारी है।' तभी एक यक्ष प्रकट हुआ।" } }, mirror: { en: "After a victory the gods boasted, 'This greatness is ours.' Then a mysterious Yaksha appeared.", hi: "विजय के बाद देवता बोले, 'यह महिमा हमारी है।' तभी एक रहस्यमय यक्ष प्रकट हुआ।" }, src: "Kena Upanishad 3", guna: "r", aims: { dharma: -5 }, holding: { en: "still sure that none of it would exist without {name}", hi: "अब भी इस यक़ीन के साथ कि {name} के बिना यह सब न होता" }, letgo: { en: "the certainty that none of it would exist without {name}", hi: "{name} के बिना यह सब न होने के यक़ीन" }, forgot: { en: "mirrors make {name} uneasy", hi: "आईने {name} को बेचैन कर देते हैं" } },
+      "88": { to: 71, ic: "🎭", en: "Hypocrisy", hi: "दंभ", skt: "Dambha", age: 76, moment: { en: "{name} is {age} and prays loudly, where the neighbours can hear, and on the way out is short with the man at the gate.", hi: "{name} {age} बरस {का|की} है। इतनी ज़ोर से प्रार्थना होती है कि पड़ोसी सुन सकें, और बाहर निकलते हुए दरवाज़े पर खड़े आदमी को झिड़क दिया जाता है।", mirror: { en: "A cat once posed as a holy ascetic too. When a hare and a partridge came to it for judgment, it ate them both.", hi: "एक बिल्ली ने भी तपस्वी का ढोंग रचा था। जब खरगोश और तीतर उससे न्याय माँगने आए, तो उसने दोनों को खा लिया।" } }, mirror: { en: "A cat posed as a holy ascetic. When a hare and a partridge came for judgment, it ate them both.", hi: "बिल्ली तपस्वी होने का ढोंग करती रही। न्याय माँगने आए खरगोश और तीतर को खा गई।" }, src: "Panchatantra", guna: "r", aims: { dharma: -10 }, holding: { en: "still praying where the neighbours can hear", hi: "अब भी वहाँ प्रार्थना करते हुए जहाँ पड़ोसी सुन सकें" }, letgo: { en: "the prayers said for the neighbours", hi: "पड़ोसियों को सुनाकर की गई प्रार्थनाओं" }, forgot: { en: "{name} prays only with the door shut", hi: "{name} केवल दरवाज़ा बंद करके प्रार्थना {करता|करती} है" } },
+      "93": { to: 64, ic: "🦌", en: "Clinging", hi: "आसक्ति", skt: "Asakti", age: 81, moment: { en: "{name} is {age} and has given almost everything away, but cannot stop asking whether {child=the son} has eaten.", hi: "{name} {age} बरस {का|की} है। लगभग सब कुछ दे दिया है, पर यह पूछना नहीं छूटता कि {child=बेटे} ने खाना खाया या नहीं।", mirror: { en: "Bharata had given up a kingdom, and then could not stop looking after an orphaned fawn.", hi: "भरत ने पूरा राज्य छोड़ दिया था, और फिर एक अनाथ हिरण-शावक की देखभाल नहीं छोड़ पाए।" }, cast: "son", recall: { en: "whose eating {name} could never stop asking about", hi: "जिसके खाने की फ़िक्र {name} से कभी छूटी नहीं थी" } }, mirror: { en: "The sage Bharata had given up a kingdom, yet grew attached to an orphaned fawn.", hi: "राजपाट त्याग चुके भरत मुनि एक अनाथ हिरण-शावक के मोह में बँध गए।" }, src: "Bhagavata Purana 5.8", guna: "t", aims: { kama: 5 }, holding: { en: "still asking whether {child=the son} has eaten", hi: "अब भी यह पूछते हुए कि {child=बेटे} ने खाना खाया या नहीं" }, callsBack: 62, echo: { en: "Long after the no that was never said, ", hi: "उस 'ना' के बरसों बाद जो कभी कही नहीं गई, " }, letgo: { en: "asking whether {child=the son} has eaten", hi: "{child=बेटे} ने खाना खाया या नहीं, यह पूछने की आदत" }, forgot: { en: "{name} asks everyone whether they have eaten", hi: "{name} हर किसी से {पूछता|पूछती} है कि उसने खाया या नहीं" } },
+      "99": { to: 61, ic: "🪞", en: "Ego", hi: "अहंकार", skt: "Ahankara", age: 89, moment: { en: "{name} is {age} and looks in the mirror and is satisfied: the body is still there, and that seems to settle it.", hi: "{name} {age} बरस {का|की} है। आईने में देखकर तसल्ली हो जाती है: शरीर अब भी वही है, और इससे जैसे बात तय हो जाती है।", mirror: { en: "Virochana was shown his reflection too, took the body for the Self, and went home content.", hi: "विरोचन को भी उसका प्रतिबिंब दिखाया गया था। उसने शरीर को ही आत्मा मान लिया और संतुष्ट होकर घर लौट गया।" } }, mirror: { en: "Shown his reflection, Virochana took the body for the Self and went home content.", hi: "अपना प्रतिबिंब देखकर विरोचन ने शरीर को ही आत्मा मान लिया और संतुष्ट लौट गया।" }, src: "Chandogya Upanishad 8.8", guna: "t", aims: { artha: 5, dharma: -5 }, holding: { en: "still sure the body settles it", hi: "अब भी इस यक़ीन के साथ कि शरीर से ही बात तय हो जाती है" }, letgo: { en: "the body that seemed to settle it", hi: "शरीर से ही बात तय हो जाने के यक़ीन" }, forgot: { en: "an empty chair makes {name} catch {his|her|their} breath", hi: "ख़ाली कुर्सी देखकर {name} की साँस अटक जाती है" } }
     },
     SQ: {
       "1": { ic: "👶", en: "Birth", hi: "जन्म", age: 0, moment: { en: "{name} is born.", hi: "{name} का जन्म होता है।", mirror: { en: "The Aitareya counts three births, and says this is only the second.", hi: "ऐतरेय तीन जन्म गिनता है, और कहता है कि यह तो केवल दूसरा है।" } }, mirror: { en: "The Aitareya counts three births for one self, and being born is only the second of them.", hi: "ऐतरेय एक ही आत्मा के तीन जन्म गिनता है, और पैदा होना उनमें केवल दूसरा है।" }, src: "Aitareya Upanishad 2.1" },
@@ -1276,6 +1293,51 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         lifeCopied: "Copied",
         lifeSave: "Download",
         lifeWhose: "Whose life",
+        lifeDream: "{name} dreams, some nights, of a {man|woman|person} named {prev} who {dream}.",
+        lifeDreamNone: "{name} dreams, some nights, of a {man|woman|person} named {prev}, and wakes before anything happens.",
+        lifeForgot: "{forgot}, for no reason anyone can name.",
+        debtBefore: "{debt} in a life before",
+        reborn: "Be born again",
+        rebornNote: "The next life carries this one, half-remembered.",
+        a_tortoise: "tortoise",
+        a_jackal: "jackal",
+        a_mongoose: "mongoose",
+        a_cat: "cat",
+        a_lion: "lion",
+        ao_tortoise: "tortoise",
+        ao_jackal: "jackal",
+        ao_mongoose: "mongoose",
+        ao_cat: "cat",
+        ao_lion: "lion",
+        animalTitle: "{name}, the {animal}",
+        animalOpen: "{name} was born a {animal} this time, in {master}'s house.",
+        animalOpenNone: "{name} was born a {animal} this time, at the edge of a village.",
+        animalHead: "Among the animals",
+        animalOwn: "{name} knows this story without being told.",
+        animalEndHuman: "{name} reached the edge of the forest in time, and the next birth is human.",
+        animalEndShort: "The seasons turned before {name} reached the edge of the forest, and the next birth is a {animal}'s again.",
+        animalEndLast: "The seasons turned before {name} reached the edge of the forest; the next birth is human all the same.",
+        animalDream: "Some nights {name} dreams of being a {animal}.",
+        animalEarned: "The next birth is human.",
+        animalShortText: "Not this time. The next birth is an animal's again.",
+        animalLastText: "Not this time; the next birth is human all the same.",
+        animalHint: "An animal's life: reach the edge of the forest before the seasons turn.",
+        lifeTabs: "The life, three ways",
+        lifeBook: "The book",
+        lifePath: "The path",
+        lifeMirror: "The mirror",
+        citragupta: "Citragupta reads from the book.",
+        pathSnake: "down from {sq}",
+        pathLadder: "up from {sq}",
+        pathReckon: "sent back by a debt",
+        pathSat: "a year sat out",
+        pathSatN: "{n} years sat out",
+        pathStay: "a year more there",
+        pathStayN: "{n} more years there",
+        pathWin: "Through the door",
+        pathFell: "The fall",
+        pathDied: "Death",
+        mirrorSkip: "Back to the book",
         lPassed: "Passed:",
         aboveExit: "Moksha is behind you now, on {n}. Nothing up here turns back: these realms are walked, and the throw past {top} is the fall.",
         bornAgain: "{name} is born again",
@@ -1386,11 +1448,27 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         examPenance: "The same question, and the book has no more to say. Another year at the door, in penance.",
         examPaid: "With this year it is paid: the debt of {debt}.",
         examOwing: "It is not yet paid: the debt of {debt}.",
+        lExamNever: "{name} sat another year at the door; no penance pays the debt from square {src}.",
+        examFailNever: "The answer is {a}. Citragupta turns the pages, and it is not in the book. The year passes at the door.",
+        examAgainNever: "The same question, and the book has no more to say. Another year at the door.",
+        examNever: "No penance pays this one: the debt of {debt}. The door stays shut while it is owed.",
+        examNeverOn: "{name} may sit on here all the same, a year at a time, or throw on into the heavens.",
         doorOpens: "Nothing is owed. The door opens.",
         doorSit: "{name} may sit here, a year at a time, and be asked; or throw on into the heavens.",
         doorThrough: "{name} comes to the door, and it opens.",
         doorDied: "{name}'s years ran out at the door, still owing {debts}.",
-        lifeEndDoor: "{name}'s years ran out at {age}, sitting at the door, {carry}."
+        lifeEndDoor: "{name}'s years ran out at {age}, sitting at the door, {carry}.",
+        lDiedLedger: "{name} died at {age}, on square {pos}.",
+        lAnimalHuman: "{name} reaches the edge of the forest: the next birth is human.",
+        lAnimalShort: "The seasons turn, and {name} is still in the forest.",
+        reckonClose: "The six lands, and this time the floor does not open. It closes.",
+        reckonDies: "{name} dies at {age}, {form}.",
+        deathAccident: "when the roof that had leaked for years came down one night in the rains",
+        deathCalamity: "in a bad year, when the rains did not come and the grain ran out",
+        deathIllness: "of the bad chest, after a winter that did not end",
+        lifeOpenLedger: "{name} died at {age}.",
+        lifeEndLedger: "{name} died at {age}, {form}, {carry}.",
+        ledgerText: "A debt came due that the life could not pay. The life is written down."
       },
       hi: {
         title: "मोक्ष पटम",
@@ -1526,6 +1604,51 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         lifeCopied: "कॉपी हो गया",
         lifeSave: "डाउनलोड",
         lifeWhose: "किसका जीवन",
+        lifeDream: "{name} को कभी-कभी रात में एक {आदमी|औरत|इंसान} का सपना आता है, {prev} नाम {का|की|का}, {dream}।",
+        lifeDreamNone: "{name} को कभी-कभी रात में एक {आदमी|औरत|इंसान} का सपना आता है, {prev} नाम {का|की|का}, और कुछ होने से पहले ही आँख खुल जाती है।",
+        lifeForgot: "{forgot}, और क्यों, यह कोई नहीं बता सकता।",
+        debtBefore: "{debt}, जो किसी पिछले जीवन से चला आया",
+        reborn: "फिर जन्म लें",
+        rebornNote: "अगला जीवन इसे साथ ले जाता है, आधा याद, आधा भूला।",
+        a_tortoise: "कछुआ",
+        a_jackal: "सियार",
+        a_mongoose: "नेवला",
+        a_cat: "बिल्ली",
+        a_lion: "शेर",
+        ao_tortoise: "कछुए",
+        ao_jackal: "सियार",
+        ao_mongoose: "नेवले",
+        ao_cat: "बिल्ली",
+        ao_lion: "शेर",
+        animalTitle: "{animal} {name}",
+        animalOpen: "{name} का जन्म इस बार {animalO} के रूप में हुआ, {master} के घर में।",
+        animalOpenNone: "{name} का जन्म इस बार {animalO} के रूप में हुआ, एक गाँव के किनारे।",
+        animalHead: "पशुओं के बीच",
+        animalOwn: "{name} को यह कहानी बिना सुनाए ही मालूम है।",
+        animalEndHuman: "{name} के लिए जंगल का किनारा समय रहते आ गया, और अगला जन्म मनुष्य का है।",
+        animalEndShort: "{name} के जंगल के किनारे तक पहुँचने से पहले ही मौसम बदल गए, और अगला जन्म फिर {animalO} का है।",
+        animalEndLast: "{name} के जंगल के किनारे तक पहुँचने से पहले ही मौसम बदल गए; फिर भी अगला जन्म मनुष्य का है।",
+        animalDream: "कुछ रातों को {name} सपना {देखता|देखती} है कि वह एक {animal} है।",
+        animalEarned: "अगला जन्म मनुष्य का है।",
+        animalShortText: "इस बार नहीं। अगला जन्म फिर एक पशु का है।",
+        animalLastText: "इस बार नहीं; फिर भी अगला जन्म मनुष्य का है।",
+        animalHint: "एक पशु का जीवन: मौसम बदलने से पहले जंगल के किनारे तक पहुँचें।",
+        lifeTabs: "जीवन, तीन तरह से",
+        lifeBook: "बही",
+        lifePath: "राह",
+        lifeMirror: "दर्पण",
+        citragupta: "चित्रगुप्त बही से पढ़ते हैं।",
+        pathSnake: "{sq} से नीचे",
+        pathLadder: "{sq} से ऊपर",
+        pathReckon: "एक क़र्ज़ ने वापस भेजा",
+        pathSat: "एक बरस बैठकर बीता",
+        pathSatN: "{n} बरस बैठकर बीते",
+        pathStay: "वहीं एक बरस और",
+        pathStayN: "वहीं {n} बरस और",
+        pathWin: "द्वार के पार",
+        pathFell: "पतन",
+        pathDied: "मृत्यु",
+        mirrorSkip: "बही पर लौटें",
         lPassed: "रास्ते में:",
         aboveExit: "मोक्ष अब पीछे छूट गया, {n} पर। यहाँ ऊपर से कुछ नहीं लौटता: इन लोकों में आगे ही चलना है, और {top} के पार का दाँव पतन है।",
         bornAgain: "{name} का फिर से जन्म हुआ",
@@ -1636,11 +1759,27 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         examPenance: "वही प्रश्न, और बही में कहने को कुछ और नहीं। द्वार पर एक और बरस, प्रायश्चित में।",
         examPaid: "इस बरस के साथ क़र्ज़ चुक गया: {debt}।",
         examOwing: "क़र्ज़ अभी चुका नहीं: {debt}।",
+        lExamNever: "{name} ने द्वार पर एक और बरस बिताया; खाना {src} का क़र्ज़ किसी प्रायश्चित से नहीं चुकता।",
+        examFailNever: "उत्तर है {a}। चित्रगुप्त पन्ने पलटते हैं, और वह बही में नहीं है। बरस द्वार पर बीतता है।",
+        examAgainNever: "वही प्रश्न, और बही में कहने को कुछ और नहीं। द्वार पर एक और बरस।",
+        examNever: "यह क़र्ज़ किसी प्रायश्चित से नहीं चुकता: {debt}। जब तक यह बाक़ी है, द्वार बंद रहेगा।",
+        examNeverOn: "{name} फिर भी यहाँ एक-एक बरस {बैठा रह सकता|बैठी रह सकती} है, या दाँव फेंककर आगे स्वर्गों में जा {सकता|सकती} है।",
         doorOpens: "कुछ बाक़ी नहीं। द्वार खुल जाता है।",
         doorSit: "{name} यहाँ एक-एक बरस बैठ {सकता|सकती} है और प्रश्न सुन {सकता|सकती} है; या दाँव फेंककर आगे स्वर्गों में जा {सकता|सकती} है।",
         doorThrough: "{name} द्वार तक {आया|आई}, और वह खुल गया।",
         doorDied: "{name} के बरस द्वार पर ही पूरे हो गए, {debts} अब भी बाक़ी थे।",
-        lifeEndDoor: "{name} के बरस {age} पर पूरे हुए, द्वार पर बैठे-बैठे, {carry}।"
+        lifeEndDoor: "{name} के बरस {age} पर पूरे हुए, द्वार पर बैठे-बैठे, {carry}।",
+        lDiedLedger: "{name} {age} बरस की आयु में, खाना {pos} पर, {चल बसा|चल बसी}।",
+        lAnimalHuman: "{name} जंगल के किनारे तक {आ पहुँचा|आ पहुँची}: अगला जन्म मनुष्य का है।",
+        lAnimalShort: "मौसम बदल गए, और {name} अब भी जंगल में है।",
+        reckonClose: "छक्का पड़ता है, और इस बार ज़मीन खिसकती नहीं। वह लौटती ही नहीं।",
+        reckonDies: "{name} {age} बरस पर {चल बसा|चल बसी}, {form}।",
+        deathAccident: "जब बरसों से टपकती छत बरसात की एक रात बैठ गई",
+        deathCalamity: "एक बुरे बरस में, जब बारिश नहीं आई और अनाज ख़त्म हो गया",
+        deathIllness: "छाती की उसी तकलीफ़ से, एक ऐसी सर्दी के बाद जो ख़त्म ही नहीं हुई",
+        lifeOpenLedger: "{name} {age} बरस पर {चल बसा|चल बसी}।",
+        lifeEndLedger: "{name} {age} बरस पर {चल बसा|चल बसी}, {form}, {carry}।",
+        ledgerText: "एक ऐसा क़र्ज़ सामने आया जो यह जीवन चुका नहीं सका। जीवन लिखा जा चुका है।"
       }
     },
     JOINS: {
@@ -1721,27 +1860,35 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       },
       reckon: {
         en: "At {age}, on a six, the floor opened: ",
-        hi: "{age} बरस पर, एक छक्के पर, ज़मीन खिसकी: "
+        hi: "{age} बरस की उम्र में, एक छक्के पर, ज़मीन खिसकी: "
+      },
+      reckonDeath: {
+        en: "At {age}, on a six, the floor closed: ",
+        hi: "{age} बरस की उम्र में, एक छक्के पर, ज़मीन फिर नहीं लौटी: "
       },
       door: {
         en: "At {age}, Moksha was reached, and ",
-        hi: "{age} बरस पर मोक्ष तक पहुँचना हुआ, और "
+        hi: "{age} बरस की उम्र में मोक्ष तक पहुँचना हुआ, और "
       },
       examPass: {
         en: "At {age}, at the door, {name} was asked: {q} The book had the answer: at {answer}, {name} {answered}.",
-        hi: "{age} बरस पर, द्वार पर, {name} से पूछा गया: {q} बही में उत्तर था: {answer} बरस पर {name} {answered}।"
+        hi: "{age} बरस की उम्र में, द्वार पर, {name} से पूछा गया: {q} बही में उत्तर था: {answer} बरस की उम्र में {name} {answered}।"
       },
       examFail: {
         en: "At {age}, at the door, {name} was asked: {q} The book had no answer, and {name} sat on there in penance for {debt}.",
-        hi: "{age} बरस पर, द्वार पर, {name} से पूछा गया: {q} बही में कोई उत्तर नहीं था, और {name} प्रायश्चित में वहीं {बैठा रहा|बैठी रही}: {debt}।"
+        hi: "{age} बरस की उम्र में, द्वार पर, {name} से पूछा गया: {q} बही में कोई उत्तर नहीं था, और {name} प्रायश्चित में वहीं {बैठा रहा|बैठी रही}: {debt}।"
       },
       examFailPaid: {
         en: "At {age}, at the door, {name} was asked: {q} The book had no answer, and the year spent there paid for {debt}.",
-        hi: "{age} बरस पर, द्वार पर, {name} से पूछा गया: {q} बही में कोई उत्तर नहीं था, और वहाँ बीते बरस ने यह क़र्ज़ चुका दिया: {debt}।"
+        hi: "{age} बरस की उम्र में, द्वार पर, {name} से पूछा गया: {q} बही में कोई उत्तर नहीं था, और वहाँ बीते बरस ने यह क़र्ज़ चुका दिया: {debt}।"
+      },
+      examNever: {
+        en: "At {age}, at the door, {name} was asked: {q} The book had no answer, and no penance could pay for {debt}.",
+        hi: "{age} बरस की उम्र में, द्वार पर, {name} से पूछा गया: {q} बही में कोई उत्तर नहीं था, और कोई प्रायश्चित यह क़र्ज़ नहीं चुका सकता था: {debt}।"
       },
       examPaid: {
         en: "By {age} that was paid.",
-        hi: "{age} बरस तक वह चुक गया।"
+        hi: "{age} बरस की उम्र तक वह चुक गया।"
       },
       curse: {
         en: "Around then, ",
@@ -1817,7 +1964,19 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       codas: [
         { en: "Nobody wrote.", hi: "किसी ने ख़बर नहीं दी।" },
         { en: "{name} was not told.", hi: "{name} को किसी ने नहीं बताया।" }
-      ]
+      ],
+      before: {
+        en: "In a life before, {n} was {role}.",
+        hi: "पिछले किसी जीवन में {n} {role} {who:था|थी}।"
+      },
+      was: {
+        teacher: { en: "the teacher", hi: "गुरु" },
+        friend: { en: "the friend", hi: "मित्र" },
+        rival: { en: "the rival", hi: "प्रतिद्वंद्वी" },
+        spouse: { en: "the {who:husband|wife}", hi: "{who:पति|पत्नी}" },
+        son: { en: "the son", hi: "बेटा" },
+        daughter: { en: "the daughter", hi: "बेटी" }
+      }
     },
     EGO: {
       about: "The ego rebellion (REDESIGN.md Phase 15; src/engine/qbn.js egoFaces). On the five ego tests (content/situations.json `ego`), after the witness chooses the higher option the ego throws a die of its own; on its faces the life takes the lower option. mirror is the card's text for a rebellion; scholar is its note at scholar depth.",
@@ -2500,7 +2659,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           cost: 0,
           guna: "r",
           aims: { artha: 5, dharma: -5 },
-          seed: { fuse: 15, weight: 1, holds: 19, debt: { en: "the teacher who was coming, at {at}", hi: "{at} बरस की उम्र में वे मास्टरजी जो आ रहे थे" }, reckoning: { en: "The bigger child from the lunch break is grown, and sits in the office {name} needs a paper from, and remembers that the teacher never came.", hi: "टिफ़िन छीनने वाला वह बड़ा बच्चा अब बड़ा हो गया है, उसी दफ़्तर में बैठता है जहाँ से {name} को एक काग़ज़ चाहिए, और उसे याद है कि मास्टरजी कभी आए ही नहीं थे।" } }
+          seed: { fuse: 15, weight: 1, holds: 19, debt: { en: "the teacher who was coming, at {at}", hi: "{at} बरस की उम्र में वे मास्टरजी जो आ रहे थे" }, reckoning: { en: "The bigger child from the lunch break is grown, and sits in the office {name} needs a paper from, and remembers that the teacher never came.", hi: "टिफ़िन छीनने वाला वह बड़ा बच्चा अब बड़ा हो गया है, उसी दफ़्तर में बैठता है जहाँ से {name} को एक काग़ज़ चाहिए, और उसे याद है कि मास्टरजी कभी आए ही नहीं थे।" } },
+          dream: { en: "said a teacher was coming when none was", hi: "जिसने कहा था कि मास्टरजी आ रहे हैं, जबकि कोई नहीं आ रहा था" }
         },
         {
           id: "laugh",
@@ -2509,7 +2669,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           cost: 1,
           guna: "s",
           aims: { dharma: 5 },
-          outcome: { en: "{name} is {age}, cornered by a bigger child who wants the lunch, and does the headmaster's walk so well that the bigger child laughs, and sits down, and they split the lunch. It takes the whole break.", hi: "{name} {age} बरस {का|की} है। टिफ़िन छीनने को घेरे खड़े बड़े बच्चे के सामने {name} ने हेडमास्टर की चाल की ऐसी नक़ल की कि वह हँस पड़ा, बैठ गया, और दोनों ने टिफ़िन बाँट लिया। पूरी छुट्टी इसी में निकल गई।" }
+          outcome: { en: "{name} is {age}, cornered by a bigger child who wants the lunch, and does the headmaster's walk so well that the bigger child laughs, and sits down, and they split the lunch. It takes the whole break.", hi: "{name} {age} बरस {का|की} है। टिफ़िन छीनने को घेरे खड़े बड़े बच्चे के सामने {name} ने हेडमास्टर की चाल की ऐसी नक़ल की कि वह हँस पड़ा, बैठ गया, और दोनों ने टिफ़िन बाँट लिया। पूरी छुट्टी इसी में निकल गई।" },
+          dream: { en: "made a bigger child laugh instead of handing over the lunch", hi: "जिसने खाना देने के बजाय एक बड़े बच्चे को हँसा दिया था" }
         },
         {
           id: "give",
@@ -2518,7 +2679,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           cost: 0,
           guna: "t",
           aims: { kama: -5 },
-          outcome: { en: "{name} is {age} and hands over the lunch without a word, and is hungry all afternoon, and tells nobody.", hi: "{name} {age} बरस {का|की} है। {name} ने चुपचाप टिफ़िन दे दिया, दोपहर भर भूख लगती रही, और किसी से कुछ नहीं कहा।" }
+          outcome: { en: "{name} is {age} and hands over the lunch without a word, and is hungry all afternoon, and tells nobody.", hi: "{name} {age} बरस {का|की} है। {name} ने चुपचाप टिफ़िन दे दिया, दोपहर भर भूख लगती रही, और किसी से कुछ नहीं कहा।" },
+          dream: { en: "handed over the lunch and told nobody", hi: "जिसने अपना खाना दे दिया था और किसी को बताया नहीं था" }
         }
       ]
     },
@@ -2535,7 +2697,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           cost: 0,
           guna: "r",
           aims: { dharma: -10 },
-          seed: { fuse: 20, weight: 1, holds: 19, debt: { en: "the sea described to the class at {at}", hi: "{at} बरस की उम्र में कक्षा को सुनाया गया समुद्र का क़िस्सा" }, reckoning: { en: "Someone from that class turns up and asks, in front of everyone, about the sea, and {name} has to describe it again, and cannot remember which boat it was.", hi: "उस कक्षा का कोई मिल जाता है और सबके सामने समुद्र के बारे में पूछता है, और {name} को उसका क़िस्सा फिर सुनाना पड़ता है, और याद नहीं आता कि नाव कौन-सी थी।" } }
+          seed: { fuse: 20, weight: 1, holds: 19, debt: { en: "the sea described to the class at {at}", hi: "{at} बरस की उम्र में कक्षा को सुनाया गया समुद्र का क़िस्सा" }, reckoning: { en: "Someone from that class turns up and asks, in front of everyone, about the sea, and {name} has to describe it again, and cannot remember which boat it was.", hi: "उस कक्षा का कोई मिल जाता है और सबके सामने समुद्र के बारे में पूछता है, और {name} को उसका क़िस्सा फिर सुनाना पड़ता है, और याद नहीं आता कि नाव कौन-सी थी।" } },
+          dream: { en: "told a class about a sea that was never there", hi: "जिसने कक्षा को एक ऐसे समुद्र के बारे में बताया था जो था ही नहीं" }
         },
         {
           id: "home",
@@ -2544,7 +2707,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           cost: 4,
           guna: "s",
           aims: { dharma: 5 },
-          outcome: { en: "{name} is {age} and tells the class about a holiday at home where nothing happened, and somebody laughs, and {name} is the child with the boring holiday for years after.", hi: "{name} {age} बरस {का|की} है। {name} ने कक्षा को घर पर बीती उस छुट्टी के बारे में बताया जिसमें कुछ नहीं हुआ, कोई हँस पड़ा, और बरसों तक {name} {वही बच्चा रहा|वही बच्ची रही} जिसकी छुट्टियाँ फीकी थीं।", mirror: { en: "The blue jackal could have stayed a jackal, and been left alone.", hi: "नीला सियार चाहता तो सियार ही बना रह सकता था, और उसे कोई कुछ न कहता।" } }
+          outcome: { en: "{name} is {age} and tells the class about a holiday at home where nothing happened, and somebody laughs, and {name} is the child with the boring holiday for years after.", hi: "{name} {age} बरस {का|की} है। {name} ने कक्षा को घर पर बीती उस छुट्टी के बारे में बताया जिसमें कुछ नहीं हुआ, कोई हँस पड़ा, और बरसों तक {name} {वही बच्चा रहा|वही बच्ची रही} जिसकी छुट्टियाँ फीकी थीं।", mirror: { en: "The blue jackal could have stayed a jackal, and been left alone.", hi: "नीला सियार चाहता तो सियार ही बना रह सकता था, और उसे कोई कुछ न कहता।" } },
+          dream: { en: "told the class about a holiday where nothing happened", hi: "जिसने कक्षा को उन छुट्टियों के बारे में बताया था जिनमें कुछ नहीं हुआ था" }
         }
       ]
     },
@@ -2560,7 +2724,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           move: "ladder",
           cost: 1,
           guna: "s",
-          aims: { dharma: 10 }
+          aims: { dharma: 10 },
+          dream: { en: "said, in front of everyone, that the homework was not done", hi: "जिसने सबके सामने कहा था कि गृहकार्य नहीं हुआ" }
         },
         {
           id: "lie",
@@ -2570,7 +2735,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           guna: "r",
           aims: { dharma: -5 },
           outcome: { en: "{name} is {age} and says the homework was done and left at home, and is believed, and does it that night in a hurry, badly.", hi: "{name} {age} बरस {का|की} है। {name} ने कह दिया कि गृहकार्य हो गया था, घर पर छूट गया, और बात मान ली गई। उसी रात {name} ने जल्दी-जल्दी, आधा-अधूरा, उसे पूरा किया।", mirror: { en: "Satyakama could have named any father he liked. The teacher would have had no way to check.", hi: "सत्यकाम चाहते तो कोई भी पिता का नाम ले सकते थे। गुरु के पास जाँचने का कोई रास्ता नहीं था।" } },
-          seed: { fuse: 15, weight: 1, holds: 29, debt: { en: "the homework left at home, at {at}", hi: "{at} बरस की उम्र में घर पर छूटा होमवर्क" }, reckoning: { en: "The thing {name} never learned properly, because it was done that night in a hurry, is the thing the work turns on now, in front of everyone.", hi: "जो बात {name} ने कभी ठीक से नहीं सीखी, क्योंकि वह उस रात जल्दी में निपटा दी गई थी, आज सबके सामने काम उसी पर टिका है।" } }
+          seed: { fuse: 15, weight: 1, holds: 29, debt: { en: "the homework left at home, at {at}", hi: "{at} बरस की उम्र में घर पर छूटा होमवर्क" }, reckoning: { en: "The thing {name} never learned properly, because it was done that night in a hurry, is the thing the work turns on now, in front of everyone.", hi: "जो बात {name} ने कभी ठीक से नहीं सीखी, क्योंकि वह उस रात जल्दी में निपटा दी गई थी, आज सबके सामने काम उसी पर टिका है।" } },
+          dream: { en: "said the homework had been left at home", hi: "जिसने कहा था कि गृहकार्य घर पर छूट गया" }
         }
       ],
       witness: {
@@ -2593,7 +2759,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           cost: 0,
           guna: "r",
           aims: { kama: 10, artha: -5 },
-          seed: { fuse: 15, weight: 1, holds: 47, debt: { en: "the thing bought at {at}", hi: "{at} बरस की उम्र में ख़रीदी गई वह चीज़" }, reckoning: { en: "The thing {name} bought is in a cupboard somewhere, and the money it took is the money that is short now.", hi: "{name} की ख़रीदी वह चीज़ कहीं किसी अलमारी में पड़ी है, और उस पर लगा पैसा वही पैसा है जो आज कम पड़ रहा है।" } }
+          seed: { fuse: 15, weight: 1, holds: 47, debt: { en: "the thing bought at {at}", hi: "{at} बरस की उम्र में ख़रीदी गई वह चीज़" }, reckoning: { en: "The thing {name} bought is in a cupboard somewhere, and the money it took is the money that is short now.", hi: "{name} की ख़रीदी वह चीज़ कहीं किसी अलमारी में पड़ी है, और उस पर लगा पैसा वही पैसा है जो आज कम पड़ रहा है।" } },
+          dream: { en: "bought the thing wanted for a year", hi: "जिसने साल भर से चाही हुई चीज़ ख़रीद ली थी" }
         },
         {
           id: "wait",
@@ -2604,7 +2771,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           aims: {},
           require: { guna: { r: { max: 0.6 } } },
           why: { en: "Too restless to wait for anything.", hi: "किसी चीज़ का इंतज़ार करने लायक़ धीरज नहीं बचा।" },
-          outcome: { en: "{name} is {age} and decides to wait a month, and then another, and another, and somewhere in those years stops wanting it, and cannot say when.", hi: "{name} {age} बरस {का|की} है। {name} ने एक महीना रुकने का फ़ैसला किया, फिर एक और, फिर एक और, और उन्हीं बरसों में कहीं वह चाह छूट गई। कब, यह {name} {बता नहीं सकता|बता नहीं सकती}।", mirror: { en: "Yayati never once tried waiting.", hi: "ययाति ने एक बार भी रुककर नहीं देखा।" } }
+          outcome: { en: "{name} is {age} and decides to wait a month, and then another, and another, and somewhere in those years stops wanting it, and cannot say when.", hi: "{name} {age} बरस {का|की} है। {name} ने एक महीना रुकने का फ़ैसला किया, फिर एक और, फिर एक और, और उन्हीं बरसों में कहीं वह चाह छूट गई। कब, यह {name} {बता नहीं सकता|बता नहीं सकती}।", mirror: { en: "Yayati never once tried waiting.", hi: "ययाति ने एक बार भी रुककर नहीं देखा।" } },
+          dream: { en: "waited a month, and then another, until the wanting stopped", hi: "जिसने एक महीना इंतज़ार किया, फिर एक और, जब तक चाह ख़त्म नहीं हो गई" }
         }
       ]
     },
@@ -2622,7 +2790,9 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           guna: "s",
           aims: { dharma: 5, artha: -5 },
           require: { aims: { artha: { min: 15 } } },
-          why: { en: "There is not enough in the house for it.", hi: "घर में इतना है ही नहीं।" }
+          why: { en: "There is not enough in the house for it.", hi: "घर में इतना है ही नहीं।" },
+          mirror: { chose: { en: "to feed the others first", hi: "पहले औरों को खिलाना" } },
+          dream: { en: "fed the others first", hi: "जिसने पहले औरों को खिलाया था" }
         },
         {
           id: "first",
@@ -2632,7 +2802,9 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           guna: "r",
           aims: { kama: 5 },
           outcome: { en: "{name} is {age} and eats first tonight, standing up in the kitchen, and the others eat after, and nobody says anything.", hi: "{name} {age} बरस {का|की} है। आज रात {name} ने रसोई में खड़े-खड़े पहले ख़ुद खा लिया, बाक़ी सबने बाद में खाया, और किसी ने कुछ नहीं कहा।" },
-          seed: { fuse: 20, weight: 2, holds: 47, debt: { en: "the night of eating first, at {at}", hi: "{at} बरस की उम्र में सबसे पहले खा लेने वाली वह रात" }, reckoning: { en: "There is just enough in the house again, and this time someone else eats first, standing up in the kitchen, and {name} recognises it.", hi: "घर में फिर बस उतना ही है, और इस बार कोई और रसोई में खड़े-खड़े सबसे पहले खा लेता है, और {name} उसे {पहचान लेता|पहचान लेती} है।" } }
+          seed: { fuse: 20, weight: 2, holds: 47, debt: { en: "the night of eating first, at {at}", hi: "{at} बरस की उम्र में सबसे पहले खा लेने वाली वह रात" }, reckoning: { en: "There is just enough in the house again, and this time someone else eats first, standing up in the kitchen, and {name} recognises it.", hi: "घर में फिर बस उतना ही है, और इस बार कोई और रसोई में खड़े-खड़े सबसे पहले खा लेता है, और {name} उसे {पहचान लेता|पहचान लेती} है।" } },
+          mirror: { took: { en: "ate first", hi: "पहले ख़ुद खा लिया" } },
+          dream: { en: "ate first one night, standing up in the kitchen", hi: "जिसने एक रात रसोई में खड़े-खड़े पहले ख़ुद खा लिया था" }
         }
       ],
       ego: {
@@ -2666,7 +2838,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           move: "ladder",
           cost: 1,
           guna: "s",
-          aims: { dharma: 10 }
+          aims: { dharma: 10 },
+          dream: { en: "sat up all night with a neighbour's sick child", hi: "जो पड़ोसी के बीमार बच्चे के पास रात भर {जागता रहा था|जागती रही थी}" }
         },
         {
           id: "send",
@@ -2675,7 +2848,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           cost: 0,
           guna: "r",
           aims: { artha: -5 },
-          outcome: { en: "{name} is {age} and pays the woman two streets over to sit up with the neighbour's sick child, and is thanked at the door for days.", hi: "{name} {age} बरस {का|की} है। {name} ने दो गली दूर वाली एक औरत को पैसे देकर पड़ोसी के बीमार बच्चे के पास बिठा दिया, और कई दिन तक दरवाज़े पर धन्यवाद मिलता रहा।" }
+          outcome: { en: "{name} is {age} and pays the woman two streets over to sit up with the neighbour's sick child, and is thanked at the door for days.", hi: "{name} {age} बरस {का|की} है। {name} ने दो गली दूर वाली एक औरत को पैसे देकर पड़ोसी के बीमार बच्चे के पास बिठा दिया, और कई दिन तक दरवाज़े पर धन्यवाद मिलता रहा।" },
+          dream: { en: "paid someone to sit up with a neighbour's sick child", hi: "जिसने पड़ोसी के बीमार बच्चे के पास बैठने के लिए किसी को पैसे दिए थे" }
         }
       ]
     },
@@ -2692,7 +2866,9 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           cost: 1,
           guna: "s",
           aims: { dharma: 5 },
-          outcome: { en: "{name} is {age} and tells everyone the answer came from the man who mends bicycles, and has to explain it twice, and is believed the second time.", hi: "{name} {age} बरस {का|की} है। {name} ने सबको बताया कि हल साइकिल ठीक करने वाले से मिला, दो बार समझाना पड़ा, और दूसरी बार में बात मानी गई।", mirror: { en: "King Janashruti went looking for Raikva under his cart, and asked.", hi: "राजा जानश्रुति रैक्व को उनकी गाड़ी के नीचे ढूँढते हुए पहुँचे, और पूछा।" } }
+          outcome: { en: "{name} is {age} and tells everyone the answer came from the man who mends bicycles, and has to explain it twice, and is believed the second time.", hi: "{name} {age} बरस {का|की} है। {name} ने सबको बताया कि हल साइकिल ठीक करने वाले से मिला, दो बार समझाना पड़ा, और दूसरी बार में बात मानी गई।", mirror: { en: "King Janashruti went looking for Raikva under his cart, and asked.", hi: "राजा जानश्रुति रैक्व को उनकी गाड़ी के नीचे ढूँढते हुए पहुँचे, और पूछा।" } },
+          mirror: { chose: { en: "to say where the answer came from", hi: "यह बताना कि हल कहाँ से आया" } },
+          dream: { en: "said the answer came from the man who mends bicycles", hi: "जिसने कहा था कि हल साइकिल ठीक करने वाले से आया था" }
         },
         {
           id: "claim",
@@ -2702,7 +2878,9 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           guna: "r",
           aims: { artha: 5, dharma: -5 },
           outcome: { en: "{name} is {age} and brings the answer in as {name}'s own, and is praised for it, and walks the long way round the bicycle stall for weeks.", hi: "{name} {age} बरस {का|की} है। {name} ने वह हल अपना बताकर पेश किया, तारीफ़ भी मिली, और कई हफ़्ते साइकिल वाले की दुकान से कतराकर, घूमकर निकलना पड़ा।" },
-          seed: { fuse: 15, weight: 2, holds: 77, debt: { en: "the answer from the bicycle stall, at {at}", hi: "{at} बरस की उम्र में साइकिल वाले से मिला वह हल" }, reckoning: { en: "Someone asks {name} to solve it again, the way {name} did at {at}, in front of the people who praised it, and {name} cannot, and the man who mends bicycles has gone.", hi: "कोई {name} से कहता है कि वह हल फिर निकालो, जैसे {at} बरस की उम्र में निकाला था, उन्हीं लोगों के सामने जिन्होंने तारीफ़ की थी, और {name} से नहीं होता, और साइकिल ठीक करने वाला जा चुका है।" } }
+          seed: { fuse: 15, weight: 2, holds: 77, debt: { en: "the answer from the bicycle stall, at {at}", hi: "{at} बरस की उम्र में साइकिल वाले से मिला वह हल" }, reckoning: { en: "Someone asks {name} to solve it again, the way {name} did at {at}, in front of the people who praised it, and {name} cannot, and the man who mends bicycles has gone.", hi: "कोई {name} से कहता है कि वह हल फिर निकालो, जैसे {at} बरस की उम्र में निकाला था, उन्हीं लोगों के सामने जिन्होंने तारीफ़ की थी, और {name} से नहीं होता, और साइकिल ठीक करने वाला जा चुका है।" } },
+          mirror: { took: { en: "presented it as its own", hi: "उसे अपना बताकर पेश कर दिया" } },
+          dream: { en: "passed off the bicycle man's answer as {his|her|their} own", hi: "जिसने साइकिल वाले का हल अपना बता दिया था" }
         }
       ],
       ego: {
@@ -2730,7 +2908,9 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           cost: 0,
           guna: "r",
           aims: { artha: 10, dharma: -10 },
-          seed: { fuse: 15, weight: 2, holds: 55, debt: { en: "the extra change pocketed at {at}", hi: "{at} बरस की उम्र में जेब में रखा फ़ालतू छुट्टा" }, reckoning: { en: "A shopkeeper gives {name} too little change and has already turned to the next customer, and {name} knows exactly how it was done.", hi: "एक दुकानदार {name} को कम छुट्टा लौटाता है और अगले ग्राहक की ओर मुड़ चुका है, और {name} ठीक-ठीक {जानता|जानती} है कि यह कैसे हुआ।" } }
+          seed: { fuse: 15, weight: 2, holds: 55, debt: { en: "the extra change pocketed at {at}", hi: "{at} बरस की उम्र में जेब में रखा फ़ालतू छुट्टा" }, reckoning: { en: "A shopkeeper gives {name} too little change and has already turned to the next customer, and {name} knows exactly how it was done.", hi: "एक दुकानदार {name} को कम छुट्टा लौटाता है और अगले ग्राहक की ओर मुड़ चुका है, और {name} ठीक-ठीक {जानता|जानती} है कि यह कैसे हुआ।" } },
+          mirror: { took: { en: "kept it", hi: "उसे रख लिया" } },
+          dream: { en: "pocketed the extra change", hi: "जिसने ज़्यादा लौटाया गया छुट्टा जेब में रख लिया था" }
         },
         {
           id: "return",
@@ -2739,7 +2919,9 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           cost: 7,
           guna: "s",
           aims: { dharma: 5 },
-          outcome: { en: "{name} is {age} and goes back to the counter with the extra change, and waits while the shopkeeper counts it twice. For years after, {name} counts the change again at every counter, and is the slowest in every queue.", hi: "{name} {age} बरस {का|की} है। {name} ज़्यादा पैसे लेकर काउंटर पर {लौट आया|लौट आई}, और दुकानदार के दो बार गिनने तक {खड़ा रहा|खड़ी रही}। उसके बाद बरसों तक {name} हर काउंटर पर पैसे दोबारा {गिनता रहा|गिनती रही}, और हर क़तार में {सबसे धीमा रहा|सबसे धीमी रही}।", mirror: { en: "The jackal could have eaten the boar and left the bowstring alone.", hi: "सियार चाहता तो सूअर खाकर धनुष की डोरी को छोड़ सकता था।" } }
+          outcome: { en: "{name} is {age} and goes back to the counter with the extra change, and waits while the shopkeeper counts it twice. For years after, {name} counts the change again at every counter, and is the slowest in every queue.", hi: "{name} {age} बरस {का|की} है। {name} ज़्यादा पैसे लेकर काउंटर पर {लौट आया|लौट आई}, और दुकानदार के दो बार गिनने तक {खड़ा रहा|खड़ी रही}। उसके बाद बरसों तक {name} हर काउंटर पर पैसे दोबारा {गिनता रहा|गिनती रही}, और हर क़तार में {सबसे धीमा रहा|सबसे धीमी रही}।", mirror: { en: "The jackal could have eaten the boar and left the bowstring alone.", hi: "सियार चाहता तो सूअर खाकर धनुष की डोरी को छोड़ सकता था।" } },
+          mirror: { chose: { en: "to give the change back", hi: "छुट्टा लौटाना" } },
+          dream: { en: "went back to the counter with the extra change", hi: "जो ज़्यादा छुट्टा लेकर काउंटर पर {लौटा था|लौटी थी}" }
         }
       ],
       ego: {
@@ -2768,7 +2950,9 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           guna: "s",
           aims: { dharma: 10, kama: -5 },
           require: { guna: { t: { max: 0.55 } } },
-          why: { en: "Too tired tonight to go without.", hi: "आज भूखे रहने की हिम्मत नहीं बची।" }
+          why: { en: "Too tired tonight to go without.", hi: "आज भूखे रहने की हिम्मत नहीं बची।" },
+          mirror: { chose: { en: "to give the guest your plate", hi: "मेहमान को अपनी थाली देना" } },
+          dream: { en: "gave a guest {his|her|their} own plate", hi: "जिसने एक मेहमान को अपनी थाली दे दी थी" }
         },
         {
           id: "eaten",
@@ -2778,7 +2962,9 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           guna: "r",
           aims: { dharma: -5 },
           outcome: { en: "{name} is {age} and says at the door that everyone has eaten already, and the guest says of course, and goes, and dinner goes on a little quieter than before.", hi: "{name} {age} बरस {का|की} है। {name} ने दरवाज़े पर ही कह दिया कि सब खा चुके हैं; मेहमान ने कहा, ठीक है, और चला गया, और खाना पहले से थोड़ा चुपचाप चलता रहा।" },
-          seed: { fuse: 20, weight: 2, holds: 55, debt: { en: "the guest turned away at dinner, at {at}", hi: "{at} बरस की उम्र में खाने के समय लौटाया गया मेहमान" }, reckoning: { en: "{name} arrives somewhere at dinner time, tired from the road, and is told at the door that everyone has eaten already.", hi: "{name} रास्ते से {थका हुआ|थकी हुई} कहीं खाने के समय {पहुँचता|पहुँचती} है, और दरवाज़े पर ही कह दिया जाता है कि सब खा चुके हैं।" } }
+          seed: { fuse: 20, weight: 2, holds: 55, debt: { en: "the guest turned away at dinner, at {at}", hi: "{at} बरस की उम्र में खाने के समय लौटाया गया मेहमान" }, reckoning: { en: "{name} arrives somewhere at dinner time, tired from the road, and is told at the door that everyone has eaten already.", hi: "{name} रास्ते से {थका हुआ|थकी हुई} कहीं खाने के समय {पहुँचता|पहुँचती} है, और दरवाज़े पर ही कह दिया जाता है कि सब खा चुके हैं।" } },
+          mirror: { took: { en: "said everyone had eaten", hi: "कह दिया कि सब खा चुके हैं" } },
+          dream: { en: "told a guest at the door that everyone had eaten", hi: "जिसने दरवाज़े पर मेहमान से कह दिया था कि सब खा चुके हैं" }
         }
       ],
       ego: {
@@ -2814,7 +3000,9 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           cost: 0,
           guna: "r",
           aims: { dharma: -10 },
-          seed: { fuse: 10, weight: 3, holds: 59, debt: { en: "the hand that fell, at {at}", hi: "{at} बरस की उम्र में उठकर गिरा वह हाथ" }, reckoning: { en: "Something breaks in a house {name} is visiting, and a child flinches before anyone has moved, and {name} knows where that is learned.", hi: "जिस घर में {name} मेहमान है, वहाँ कुछ टूटता है, और किसी के हिलने से पहले ही एक बच्चा सहम जाता है, और {name} {जानता|जानती} है कि यह कहाँ सीखा जाता है।" } }
+          seed: { fuse: 10, weight: 3, holds: 59, debt: { en: "the hand that fell, at {at}", hi: "{at} बरस की उम्र में उठकर गिरा वह हाथ" }, reckoning: { en: "Something breaks in a house {name} is visiting, and a child flinches before anyone has moved, and {name} knows where that is learned.", hi: "जिस घर में {name} मेहमान है, वहाँ कुछ टूटता है, और किसी के हिलने से पहले ही एक बच्चा सहम जाता है, और {name} {जानता|जानती} है कि यह कहाँ सीखा जाता है।" } },
+          mirror: { took: { en: "let the hand fall", hi: "हाथ गिर जाने दिया" } },
+          dream: { en: "struck a child over something broken", hi: "जिसने कुछ टूट जाने पर एक बच्ची को मारा था" }
         },
         {
           id: "look",
@@ -2825,7 +3013,9 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           aims: { dharma: 5 },
           require: { guna: { r: { max: 0.5 } } },
           why: { en: "Too restless to stop the hand in time.", hi: "इतनी बेचैनी है कि हाथ समय पर नहीं रुकेगा।" },
-          outcome: { en: "{name} is {age}, and with the hand already up looks at {child=the daughter} first, and sees that she is more frightened of the broken thing than of {name}. The hand comes down onto her head, and stays there. It takes years before looking first is quicker than the hand.", hi: "{name} {age} बरस {का|की} है। हाथ उठ चुका था, पर {name} ने पहले {child=बेटी} की ओर देखा, और दिखा कि वह {name} से ज़्यादा उस टूटी चीज़ से डरी हुई है। हाथ उसके सिर पर आकर रुक गया, और वहीं रहा। पहले देखना हाथ से तेज़ होने में बरसों लगे।", mirror: { en: "The brahmin's wife looked in the cradle only after the mongoose was dead.", hi: "ब्राह्मणी ने पालने में तब झाँका जब नेवला मर चुका था।" }, cast: "daughter", recall: { en: "at whom {name} once looked first, with the hand already up", hi: "जिसकी ओर कभी {name} ने उठे हाथ के साथ पहले देखा था" } }
+          outcome: { en: "{name} is {age}, and with the hand already up looks at {child=the daughter} first, and sees that she is more frightened of the broken thing than of {name}. The hand comes down onto her head, and stays there. It takes years before looking first is quicker than the hand.", hi: "{name} {age} बरस {का|की} है। हाथ उठ चुका था, पर {name} ने पहले {child=बेटी} की ओर देखा, और दिखा कि वह {name} से ज़्यादा उस टूटी चीज़ से डरी हुई है। हाथ उसके सिर पर आकर रुक गया, और वहीं रहा। पहले देखना हाथ से तेज़ होने में बरसों लगे।", mirror: { en: "The brahmin's wife looked in the cradle only after the mongoose was dead.", hi: "ब्राह्मणी ने पालने में तब झाँका जब नेवला मर चुका था।" }, cast: "daughter", recall: { en: "at whom {name} once looked first, with the hand already up", hi: "जिसकी ओर कभी {name} ने उठे हाथ के साथ पहले देखा था" } },
+          mirror: { chose: { en: "to look at her first", hi: "पहले उसकी ओर देखना" } },
+          dream: { en: "looked at a frightened child before the hand came down", hi: "जिसने हाथ नीचे आने से पहले डरी हुई बच्ची की ओर देखा था" }
         },
         {
           id: "leave",
@@ -2834,7 +3024,9 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           cost: 4,
           guna: "t",
           aims: { kama: -5 },
-          outcome: { en: "{name} is {age}, walks out of the room with the hand still raised, and stands outside until it comes down by itself. Nobody mentions the broken thing again, for years.", hi: "{name} {age} बरस {का|की} है। उठा हुआ हाथ लिए {name} कमरे से बाहर {चला गया|चली गई}, और तब तक बाहर {खड़ा रहा|खड़ी रही} जब तक हाथ अपने-आप नीचे नहीं आ गया। टूटी चीज़ की बात बरसों तक किसी ने नहीं की।" }
+          outcome: { en: "{name} is {age}, walks out of the room with the hand still raised, and stands outside until it comes down by itself. Nobody mentions the broken thing again, for years.", hi: "{name} {age} बरस {का|की} है। उठा हुआ हाथ लिए {name} कमरे से बाहर {चला गया|चली गई}, और तब तक बाहर {खड़ा रहा|खड़ी रही} जब तक हाथ अपने-आप नीचे नहीं आ गया। टूटी चीज़ की बात बरसों तक किसी ने नहीं की।" },
+          mirror: { chose: { en: "to walk out of the room", hi: "कमरे से बाहर चले जाना" } },
+          dream: { en: "walked out of a room with the hand still raised", hi: "जो उठे हुए हाथ के साथ कमरे से बाहर {चला गया था|चली गई थी}" }
         }
       ],
       ego: {
@@ -3034,6 +3226,25 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     ]
   };
 
+  // content/mirror.json
+  var mirror_default = {
+    about: "The Mirror (REDESIGN.md Phase 16): the Yakṣa's questions put to the player, not the book, after the book has been read. Three a life, chosen by src/engine/mirror.js from what the life did (`when`); a rebellion in p.witness always takes the first. Unanswered, unrecorded, skippable. Register: if a line could be printed on a poster it is wrong. {age} is the age of the choice, {chose} and {took} the `mirror` phrases on the ego tests' options (content/situations.json), {who} a name from the cast. Drafts for Bhaskar's review (27 Oct).",
+    intro: {
+      en: "These are for you, not for the book. Nothing you think here is written down.",
+      hi: "ये प्रश्न आपसे हैं, बही से नहीं। यहाँ आप जो सोचें, वह कहीं लिखा नहीं जाता।"
+    },
+    questions: [
+      { id: "rebel", when: "rebel", q: { en: "At {age} you chose {chose}, and the life {took}. Which of you was it?", hi: "{age} बरस की उम्र में आपने {chose} चुना था, और जीवन ने {took}। इन दोनों में आप कौन हैं?" } },
+      { id: "helped", when: "helped", q: { en: "When you helped, did you want the other person to be free, or to need you?", hi: "मदद करते समय आपकी चाह क्या थी: कि सामने वाला आज़ाद हो जाए, या आप पर निर्भर रहे?" } },
+      { id: "held", when: "held", q: { en: "Which was harder to put down: the thing, or being the one who had it?", hi: "छोड़ना किसे ज़्यादा मुश्किल था: उस चीज़ को, या उसे रखने वाला होने को?" } },
+      { id: "unseen", when: "least", q: { en: "Would you have made the same choice if nobody knew?", hi: "अगर किसी को पता न चलता, तो क्या चुनाव फिर भी वही होता?" } },
+      { id: "door", when: "refused", q: { en: "When the door named the debt, had you forgotten it, or only stopped looking at it?", hi: "जब द्वार ने क़र्ज़ का नाम लिया, तो क्या वह आपकी याद से उतर चुका था, या आपने बस उसकी ओर देखना छोड़ दिया था?" } },
+      { id: "unwritten", when: "unwritten", q: { en: "{who} died and nobody wrote. Were you waiting for {who} to?", hi: "{who} चल बसे और किसी ने ख़बर नहीं भेजी। क्या आपको {who} के लिखने का इंतज़ार था?" } },
+      { id: "still", when: "still", q: { en: "When you sat still, what were you waiting for?", hi: "स्थिर बैठे हुए, आपको किसकी प्रतीक्षा थी?" } },
+      { id: "year", when: "always", q: { en: "Is there a year you would live again exactly as it was?", hi: "क्या कोई ऐसा बरस है जिसे आप ठीक वैसा ही फिर से जीना चाहें?" } }
+    ]
+  };
+
   // src/content.js
   var { GOAL, TOP, ROWS, ASHRAMAS, LADDERS, SNAKES, HEAVEN, MOKSHA, FALL } = squares_default;
   var { SQ } = squares_default;
@@ -3045,6 +3256,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var CAST = { names: names_default.cast || null };
   var DOOR = door_default.questions;
   var CURSES = { list: curses_default.curses || null };
+  var MIRROR = mirror_default;
   var BOARD = boards_default["110"];
   var READINGS = readings_default;
   var CODEX = codex_default;
@@ -3340,6 +3552,12 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     return (w(fired) + w(rest) / 2) ** SEVERITY_POW;
   }
   var tierOf = (S2) => TIERS.filter((t2) => S2 >= t2).length;
+  var DEATH_ON = true;
+  var FORMS = ["accident", "calamity", "illness"];
+  var deathFormOf = (years) => {
+    const st = stageOfYears(years);
+    return st <= 2 ? "accident" : st === 3 ? "calamity" : "illness";
+  };
   function omenFor(state, idx, { dice, pos, years, lived, force = false }) {
     const p = state.players[idx];
     let k = karmaOf(p);
@@ -3353,22 +3571,26 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   function reckonOf(k, { pos, years }) {
     const first = k.prarabdha[0], fired = k.prarabdha.filter((s) => s.src === first.src && s.opt === first.opt);
     const rest = carried(k).filter((s) => !fired.includes(s));
-    const S2 = severityOf(fired, rest), tier = tierOf(S2), wouldDie = tier >= DEATH, applied = Math.min(tier, DEATH - 1);
+    const S2 = severityOf(fired, rest), tier = tierOf(S2), wouldDie = tier >= DEATH, applied = DEATH_ON ? tier : Math.min(tier, DEATH - 1);
+    const prior = first.prior ? { prior: true } : {};
+    if (applied >= DEATH) return { src: first.src, opt: first.opt, planted: first.at, ...prior, seeds: fired, S: S2, tier, applied, wouldDie, dies: true, form: deathFormOf(years), years: 0, holds: null, to: null, age: years };
     const lost = applied >= 1 ? Math.min(Math.ceil(S2), Math.max(0, Math.floor(SPAN - years))) : 0;
     const vice = seedOf(first.src, first.opt)?.holds ?? null, holds = applied >= 2 ? vice : null;
     const drop = SNAKES[vice] ? vice - SNAKES[vice].to : 0, back = Math.max(first.src, pos - drop);
     const to = applied >= 3 && back < pos ? back : null;
-    return { src: first.src, opt: first.opt, planted: first.at, seeds: fired, S: S2, tier, applied, wouldDie, years: lost, holds, to, age: years };
+    return { src: first.src, opt: first.opt, planted: first.at, ...prior, seeds: fired, S: S2, tier, applied, wouldDie, dies: false, years: lost, holds, to, age: years };
   }
   var ATTACHED = 75;
   function refusalOf(p) {
     const debts = carried(karmaOf(p));
-    if (debts.length) return { debts: debts.map(({ src, opt, at: at2 }) => ({ src, opt, at: at2 })) };
+    if (debts.length) return { debts: debts.map(({ src, opt, at: at2, prior }) => ({ src, opt, at: at2, ...prior ? { prior } : {} })) };
     const a = p.aims ?? {};
     if ((a.artha ?? 0) >= ATTACHED) return { aim: "artha" };
     if ((a.kama ?? 0) >= ATTACHED) return { aim: "kama" };
     return null;
   }
+  var PENANCE = 2;
+  var UNPAID = 3;
   var debtKey = (s) => `${s.src}:${s.opt}:${s.at}`;
   var viceOf = (s) => seedOf(s.src, s.opt)?.holds ?? null;
   var questionOf = (s) => DOOR[viceOf(s)] ?? null;
@@ -3384,16 +3606,19 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const s = owedOf(p);
     if (!s) return null;
     const key = debtKey(s), n = (p.exam?.[key] ?? 0) + 1, answer = n === 1 ? answerOf(p, s) : null, pass = !!answer;
-    const cleared = pass || n >= (s.weight ?? 1), left = carried(karmaOf(p)).length - (cleared ? 1 : 0);
+    const never = !pass && (s.weight ?? 1) >= UNPAID;
+    const cleared = pass || !never && n >= Math.ceil(PENANCE * (s.weight ?? 1)), left = carried(karmaOf(p)).length - (cleared ? 1 : 0);
     return {
       src: s.src,
       opt: s.opt,
       at: s.at,
+      ...s.prior ? { prior: true } : {},
       key,
       n,
       pass,
       answer: answer?.age ?? null,
       cleared,
+      never,
       weight: s.weight ?? 1,
       open: cleared && !left && !refusalOf({ ...p, karma: freshKarma() })
     };
@@ -3401,16 +3626,18 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var meet = (k, key) => ({ ...k, agami: k.agami.filter((s) => debtKey(s) !== key), prarabdha: k.prarabdha.filter((s) => debtKey(s) !== key) });
   var sayIn = (l, text, at2, who2) => fill(text.replaceAll("{at}", wordsIn(l, Math.floor(at2 ?? 0))), who2);
   var T = (l, key, who2, v = {}) => fill(tIn(l, key, { name: who2.name, ...v }), who2);
-  function debtIn(l, { src, opt, at: at2 }, who2) {
-    const t2 = seedOf(src, opt)?.debt;
-    return t2 ? sayIn(l, t2[l] || t2.en, at2, who2) : "";
+  function debtIn(l, { src, opt, at: at2, prior }, who2) {
+    const t2 = seedOf(src, opt)?.debt, debt = t2 ? sayIn(l, t2[l] || t2.en, at2, who2) : "";
+    return debt && prior ? tIn(l, "debtBefore", { debt }) : debt;
   }
   function reckoningIn(l, rk, who2) {
     const t2 = seedOf(rk.src, rk.opt)?.reckoning;
     return t2 ? sayIn(l, t2[l] || t2.en, rk.planted, who2) : "";
   }
   function reckonLinesIn(l, rk, who2) {
-    const out = [T(l, "reckonFloor", who2), reckoningIn(l, rk, who2), T(l, "reckonFrom", who2, { src: rk.src, debt: debtIn(l, { src: rk.src, opt: rk.opt, at: rk.planted }, who2) })];
+    const from = T(l, "reckonFrom", who2, { src: rk.src, debt: debtIn(l, { src: rk.src, opt: rk.opt, at: rk.planted, prior: rk.prior }, who2) });
+    if (rk.dies) return [T(l, "reckonClose", who2), reckoningIn(l, rk, who2), from, T(l, "reckonDies", who2, { age: wordsIn(l, Math.floor(rk.age)), form: formIn(l, rk.form, who2) })];
+    const out = [T(l, "reckonFloor", who2), reckoningIn(l, rk, who2), from];
     if (!rk.applied) out.push(T(l, "reckonNone", who2));
     if (rk.years) out.push(rk.years === 1 ? T(l, "reckonYear", who2) : T(l, "reckonYears", who2, { years: wordsIn(l, rk.years) }));
     const held2 = rk.holds && SNAKES[rk.holds]?.holding;
@@ -3418,6 +3645,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     if (rk.to) out.push(T(l, "reckonBack", who2, { to: rk.to }));
     return out;
   }
+  var formIn = (l, form, who2) => T(l, "death" + form[0].toUpperCase() + form.slice(1), who2);
   function refusalIn(l, refusal, who2, sit = false) {
     if (!refusal) return [];
     const on2 = T(l, sit && !refusal.aim ? "doorSit" : "doorOn", who2);
@@ -3430,8 +3658,11 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const out = [T(l, "examAsks", who2, { q: q2.q[l] || q2.q.en })];
     if (ex.pass) out.push(T(l, "examPass", who2, { a: q2.a[l] || q2.a.en, age: wordsIn(l, Math.floor(ex.answer)), answered: fill(q2.answered[l] || q2.answered.en, who2) }), T(l, "examMet", who2, { debt }));
     else {
-      out.push(T(l, ex.n === 1 ? "examFail" : "examPenance", who2, { a: q2.a[l] || q2.a.en, debt }));
-      out.push(T(l, ex.cleared ? "examPaid" : "examOwing", who2, { debt }));
+      if (ex.never) out.push(T(l, ex.n === 1 ? "examFailNever" : "examAgainNever", who2, { a: q2.a[l] || q2.a.en, debt }), T(l, "examNever", who2, { debt }), ...ex.died ? [] : [T(l, "examNeverOn", who2)]);
+      else {
+        out.push(T(l, ex.n === 1 ? "examFail" : "examPenance", who2, { a: q2.a[l] || q2.a.en, debt }));
+        out.push(T(l, ex.cleared ? "examPaid" : "examOwing", who2, { debt }));
+      }
     }
     if (ex.open) out.push(T(l, "doorOpens", who2));
     return out;
@@ -3467,10 +3698,62 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     return c ? fill(c.c.line[l] || c.c.line.en, { name, gender: p.gender, age: wordsIn(l, Math.floor(c.age)) }) : "";
   }
 
+  // src/engine/animal.js
+  var ANIMAL_TOP = 40;
+  var ANIMAL_TURNS = 15;
+  var KINDS = ["tortoise", "jackal", "mongoose", "cat", "lion"];
+  var BY_HOLDING = { 14: "tortoise", 19: "jackal", 55: "jackal", 59: "mongoose", 88: "cat", 39: "lion" };
+  var animalOf = (holding) => BY_HOLDING[holding] ?? "tortoise";
+  var TALES = [6, 8, 9, 11, 12, 13, 14, 15, 16, 19, 22, 24, 39];
+  var OWN = { tortoise: [6, 8, 14, 15], jackal: [11, 19], lion: [12, 22, 24, 39] };
+  var ownTale = (kind, n) => !!OWN[kind]?.includes(n);
+  var masterOf = (cast2) => (cast2 ?? []).find((c) => c.role === "rival") ?? (cast2 ?? []).find((c) => c.role === "friend") ?? null;
+  var interludeFor = (holding, cast2) => ({ kind: animalOf(holding), master: masterOf(cast2), round: 1 });
+  var animalRules = (animal, rules = {}) => ({ ...rules, six: false, law: "animal", animal });
+  var isAnimal = (state) => state?.rules?.law === "animal";
+  function afterAnimal(soul, earned) {
+    const a = soul?.animal;
+    if (!a) return soul;
+    if (!earned && a.round < 2) return { ...soul, animal: { ...a, round: 2 } };
+    return { ...soul, animal: null, was: a.kind, ...earned ? { nudge: true } : {} };
+  }
+  var animalEndOf = (p) => p.earned ? "human" : p.short ? "short" : null;
+  function animalLifeOf(state, i, l) {
+    const p = state.players[i], a = state.rules.animal ?? {}, kind = a.kind ?? "tortoise", name = pnameIn(p, l);
+    const T2 = (k, v = {}) => fill(tIn(l, k, { name, animal: tIn(l, "a_" + kind), animalO: tIn(l, "ao_" + kind), ...v }), { name, gender: p.gender });
+    const master2 = a.master?.[l] || a.master?.en;
+    const told = [], seen2 = /* @__PURE__ */ new Set();
+    let known = false;
+    for (const n of p.life ?? []) {
+      if (!TALES.includes(n) || seen2.has(n)) continue;
+      seen2.add(n);
+      const m = squareOf(n)?.mirror ?? SQ[n]?.mirror;
+      if (m) told.push(m[l] || m.en);
+      if (ownTale(kind, n) && !known) {
+        known = true;
+        told.push(T2("animalOwn"));
+      }
+    }
+    const end = animalEndOf(p);
+    return {
+      title: T2("animalTitle"),
+      sub: "",
+      open: master2 ? T2("animalOpen", { master: master2 }) : T2("animalOpenNone"),
+      paras: told.length ? [{ head: T2("animalHead"), text: told.join(" ") }] : [],
+      end: end === "human" ? T2("animalEndHuman") : end === "short" ? T2(a.round >= 2 ? "animalEndLast" : "animalEndShort") : "",
+      curse: "",
+      fates: []
+    };
+  }
+
   // src/engine/turn.js
   var TUMBLE = 7;
   var ENDGAME = 94;
   var diceFor = (p) => p.pos >= ENDGAME ? 2 : 1;
+  function rollDice(rng, n) {
+    for (let i = 0; i < TUMBLE; i++) for (let k = 0; k < n; k++) die(rng);
+    return Array.from({ length: n }, () => die(rng));
+  }
   function toldOn(n, face, dice = [face]) {
     const r = SQ[n]?.roll;
     if (!r || dice.length !== 1 || !face || n >= ENDGAME) return null;
@@ -3488,18 +3771,19 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const to = (pl) => pl.reckon?.from ?? pl.final;
     const win = plans.find((pl) => pl.win);
     if (win) return win.v;
-    if (moves.includes(0) && state.players[state.turn].pos === GOAL) return 0;
+    const p = state.players[state.turn], ex = p.pos === GOAL ? examineOf(p) : null, stay = moves.includes(0) && !(ex?.never && ex.n > 1);
+    if (stay && p.pos === GOAL) return 0;
     const short = plans.filter((pl) => !pl.fell && to(pl) < GOAL && pl.jump?.kind !== "snake").sort((a, b) => b.v - a.v);
     if (short.length) return short[0].v;
     const door = plans.find((pl) => pl.refused);
     if (door) return door.v;
-    if (moves.includes(0)) return 0;
+    if (stay) return 0;
     const heaven = plans.filter((pl) => !pl.fell && to(pl) > GOAL).sort((a, b) => a.v - b.v);
     if (heaven.length) return heaven[0].v;
     const snake = plans.filter((pl) => !pl.fell).sort((a, b) => b.v - a.v);
     return snake.length ? snake[0].v : Math.max(...dice);
   }
-  var gone = (p) => !!(p.dead || p.fell);
+  var gone = (p) => !!(p.dead || p.fell || p.earned || p.short);
   function createGame({ players, rules, seed }) {
     return {
       players: players.map((r, i) => ({
@@ -3514,19 +3798,21 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         told: [],
         fell: false,
         years: 0,
-        gunas: freshGunas(),
+        gunas: r.born?.gunas ?? freshGunas(),
         aims: freshAims(),
         practised: 0,
         bhumika: null,
         peak: null,
         dead: false,
         holding: null,
-        karma: freshKarma(),
+        karma: r.born?.karma ?? freshKarma(),
         held: [],
         reckonings: [],
         refusals: [],
         door: null,
-        witness: []
+        witness: [],
+        ...r.born?.prior ? { prior: r.born.prior } : {},
+        ...r.soul ? { soul: r.soul } : {}
       })),
       rules: { ...rules },
       // over: someone reached the exit, or nobody is left in the game to
@@ -3553,11 +3839,17 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       const years = turnYears(p.years ?? 0, { sit: true }), died = years > SPAN;
       const atDoor = from === GOAL && !!p.door, exam = atDoor ? examineOf(p) : null;
       const win = atDoor && !died && (exam ? exam.open : !refusalOf(p));
-      if (exam) after2.push(entry(exam.pass ? "lExamPass" : exam.n === 1 ? exam.cleared ? "lExamPaid" : "lExamFail" : exam.cleared ? "lExamPaid" : "lExamPenance", { pos: from, src: exam.src, sq: exam.src }, "", idx));
+      if (exam) after2.push(entry(exam.pass ? "lExamPass" : exam.n === 1 ? exam.cleared ? "lExamPaid" : "lExamFail" : exam.cleared ? "lExamPaid" : exam.never ? "lExamNever" : "lExamPenance", { pos: from, src: exam.src, sq: exam.src }, "", idx));
       else if (!win) after2.push(entry("lSit", { pos: from, sq: from }, "", idx));
       if (died) end.push(entry(from === GOAL ? "lDiedDoor" : "lDied", { pos: from, age: years, sq: from }, "death", idx));
       else if (win) end.push(entry("lDoorOpen", { pos: GOAL }, "", idx), entry("lWin", { pos: GOAL }, "heaven", idx));
       return resolve(state, { idx, v, dice, spare, sit: true, from, path, target: from, final: from, jump: null, win, died, again: false, told: [null], exam, pre, after: after2, end }, years);
+    }
+    if (rules.law === "animal" && from + v >= ANIMAL_TOP) {
+      for (let n = from; n < ANIMAL_TOP; ) path.push(++n);
+      if (path.length > 1) after2.push(entry("lPassed", { passed: path.slice(0, -1) }, "passed", idx));
+      end.push(entry("lAnimalHuman", { pos: ANIMAL_TOP }, "heaven", idx));
+      return { idx, v, dice, spare, sit: false, from, path, target: ANIMAL_TOP, final: ANIMAL_TOP, jump: null, win: false, earned: true, died: false, again: false, told: [null], cost: 0, pre, after: after2, end };
     }
     const fell = from + v >= TOP, fellBy = from + v > TOP ? "past" : "snake";
     for (let n = from; n < Math.min(from + v, TOP); ) path.push(++n);
@@ -3571,7 +3863,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const passed = path.slice(0, -1);
     if (passed.length) after2.push(entry("lPassed", { passed }, "passed", idx));
     const plan = { idx, v, dice, spare, sit: false, from, path, target, final: target, jump: null, win: false, died: false, again: false, told: [null], cost: 0, pre, after: after2, end };
-    const sit = situationAt(target);
+    const sit = rules.law === "animal" ? null : situationAt(target);
     if (sit) return Object.assign(plan, { situation: sit, egoFaces: egoFacesOn(state, target) });
     return finish(state, plan, null);
   }
@@ -3604,6 +3896,11 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     } else if (target !== GOAL) {
       after2.push(entry(from === 0 ? "lBorn" : "lMove", { v, pos: target, sq: target }, "", idx));
     }
+    if (rules.law === "animal" && final >= ANIMAL_TOP) {
+      plan.end.push(entry("lAnimalHuman", { pos: ANIMAL_TOP }, "heaven", idx));
+      Object.assign(plan, { final, jump, earned: true, told: [toldOn(target, v, dice), ...jump ? [null] : []], cost: 0 });
+      return plan;
+    }
     const refused = final === GOAL ? refusalOf(p) : null;
     if (refused) after2.push(entry("lRefused", { pos: GOAL, sq: GOAL }, "", idx));
     const win = final === GOAL && !refused;
@@ -3620,10 +3917,18 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   }
   function resolve(state, plan, years) {
     const { idx } = plan, p = state.players[idx];
-    const omen = plan.win || plan.died ? null : omenFor(state, idx, { dice: plan.dice, pos: plan.final, years, lived: p.life?.length ?? 0, force: !!state.forceOmen });
+    const omen = plan.win || plan.died || state.rules.law === "animal" ? null : omenFor(state, idx, { dice: plan.dice, pos: plan.final, years, lived: p.life?.length ?? 0, force: !!(state.forceOmen || state.forceDeath) });
+    if (omen?.reckon && state.forceDeath) Object.assign(omen.reckon, { dies: true, applied: DEATH, form: state.forceDeath, years: 0, holds: null, to: null });
     const rk = omen?.reckon ?? null;
     Object.assign(plan, { omen, reckon: rk && { ...rk, from: plan.final } });
     if (!rk) return plan;
+    if (rk.dies) {
+      plan.died = true;
+      plan.death = { by: "ledger", form: rk.form, age: years, src: rk.src, opt: rk.opt };
+      plan.end = [entry("lReckon", { src: rk.src, sq: rk.src }, "reckon", idx), entry("lDiedLedger", { pos: plan.final, age: years, sq: plan.final }, "death", idx)];
+      plan.again = false;
+      return plan;
+    }
     if (rk.to) plan.final = rk.to;
     plan.told.push(...rk.to ? ["reckon"] : [], ...Array(rk.years).fill("stay"));
     plan.end = [entry("lReckon", { src: rk.src, sq: rk.src }, "reckon", idx), ...plan.end.filter((e) => e.k !== "lSix")];
@@ -3648,28 +3953,37 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       p.told = [...kept, ...Array(before - kept.length).fill(null), ...plan.told];
       Object.assign(p, grow(p, plan));
       let k = karmaOf(p);
-      if (rk) k = { ...k, prarabdha: k.prarabdha.filter((s) => !rk.seeds.some((f2) => f2.src === s.src && f2.opt === s.opt && f2.at === s.at)), agami: k.agami.filter((s) => !rk.seeds.some((f2) => f2.src === s.src && f2.opt === s.opt && f2.at === s.at)) };
+      if (rk && !rk.dies) k = { ...k, prarabdha: k.prarabdha.filter((s) => !rk.seeds.some((f2) => f2.src === s.src && f2.opt === s.opt && f2.at === s.at)), agami: k.agami.filter((s) => !rk.seeds.some((f2) => f2.src === s.src && f2.opt === s.opt && f2.at === s.at)) };
       if (plan.plant) k = { ...k, agami: [...k.agami, { ...plan.plant, i: p.life.length }] };
       const ex = plan.exam;
       if (ex) {
         p.exam = { ...p.exam ?? {}, [ex.key]: ex.n };
         if (ex.cleared) k = meet(k, ex.key);
-        p.sittings = [...p.sittings ?? [], { at: at2, src: ex.src, opt: ex.opt, planted: ex.at, n: ex.n, pass: ex.pass, answer: ex.answer, cleared: ex.cleared, open: plan.win, age: p.years }];
+        p.sittings = [...p.sittings ?? [], { at: at2, src: ex.src, opt: ex.opt, planted: ex.at, ...ex.prior ? { prior: true } : {}, n: ex.n, pass: ex.pass, answer: ex.answer, cleared: ex.cleared, ...ex.never ? { never: true } : {}, open: plan.win, age: p.years }];
       }
       p.karma = ripen(k, p.years);
       if (rk) {
         if (rk.holds) p.held = [...p.held ?? [], rk.holds];
-        p.reckonings = [...p.reckonings ?? [], { at: at2, src: rk.src, opt: rk.opt, planted: rk.planted, tier: rk.tier, applied: rk.applied, wouldDie: rk.wouldDie, years: rk.years, to: rk.to, age: rk.age }];
+        p.reckonings = [...p.reckonings ?? [], { at: at2, src: rk.src, opt: rk.opt, planted: rk.planted, ...rk.prior ? { prior: true } : {}, tier: rk.tier, applied: rk.applied, wouldDie: rk.wouldDie, ...rk.dies ? { dies: true, form: rk.form } : {}, years: rk.years, to: rk.to, age: rk.age }];
       }
       if (plan.refused && !p.door) p.refusals = [...p.refusals ?? [], { at: at2, ...plan.refused }];
       p.door = plan.refused ?? (p.pos === GOAL && !plan.win && p.door ? refusalOf(p) ?? p.door : null);
-      if (!p.curse) {
+      if (!p.curse && state.rules.law !== "animal") {
         const c = curseOf(state, plan.idx);
         if (c && spokenAt(c, p.years)) p.curse = { id: c.id, i: p.life.length - 1, age: p.years };
       }
       if (plan.died) {
         p.dead = true;
         p.holding = holdingOf(p.life, p.held);
+        p.death = plan.death ?? { by: plan.sit && plan.from === GOAL ? "door" : "years", age: p.years };
+      }
+    }
+    if (state.rules.law === "animal") {
+      p.throws = (p.throws ?? 0) + 1;
+      if (plan.earned) p.earned = true;
+      else if (p.throws >= ANIMAL_TURNS) {
+        p.short = true;
+        plan.end.push(entry("lAnimalShort", {}, "", plan.idx));
       }
     }
     if (plan.died || plan.fell) {
@@ -3677,6 +3991,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       p.karma = { sancita: [...k.sancita, ...carried(k)], agami: [], prarabdha: [] };
     }
     delete state.forceOmen;
+    delete state.forceDeath;
     if (plan.ego) delete state.forceEgo;
     if (plan.win) state.winner = plan.idx;
     else if (!plan.again) for (let k = 1; k <= state.players.length; k++) {
@@ -3689,6 +4004,15 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const alive = state.players.filter((q2) => !gone(q2)), humans = state.players.some((q2) => q2.type === "human");
     state.over = state.winner != null || !alive.length || humans && !alive.some((q2) => q2.type === "human");
     plan.end.forEach((e) => addLog(state, e));
+  }
+  function playTurn(state, roll2 = rollDice(state.rng, diceFor(state.players[state.turn])), pick3 = moveFor, choose2 = choiceFor) {
+    const dice = typeof roll2 === "number" ? [roll2] : roll2, v = dice.length > 1 ? pick3(state, dice) : dice[0];
+    state.last = v || dice[0];
+    let plan = planTurn(state, v, dice);
+    if (plan.situation) plan = resolveChoice(state, plan, choose2(state, plan.situation));
+    [...plan.pre, ...plan.after].forEach((e) => addLog(state, e));
+    endTurn(state, plan);
+    return plan;
   }
 
   // src/state.js
@@ -3724,7 +4048,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const rng = makeRng((seed ^ 2654435769) >>> 0), taken = new Set(rows.map((r) => r.name.trim()).filter(Boolean));
     return rows.map((r) => {
       if (r.name.trim()) return { ...r, gender: r.gender || "n" };
-      const nm = drawName(rng, r.gender, taken);
+      const nm = drawName(rng, r.gender, /* @__PURE__ */ new Set([...taken, ...r.avoid ?? []])) ?? drawName(rng, r.gender, taken);
       taken.add(nm.en);
       return { ...r, gender: r.gender || nm.gender, alias: { en: nm.en, hi: nm.hi } };
     });
@@ -3732,8 +4056,248 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var pname = (p) => p.name || (p.alias ? L(p.alias.en, p.alias.hi) : t("def" + p.color));
   var pnameIn = (p, l) => p.name || p.alias?.[l] || p.alias?.en || tIn(l, "def" + p.color);
   var cur = () => G.state.players[G.state.turn];
-  function newState(seed = freshSeed()) {
-    return createGame({ players: cast(G.setup.rows.slice(0, G.setup.count), seed), rules: G.setup.rules, seed });
+  function newState(seed = freshSeed(), rows = G.setup.rows.slice(0, G.setup.count), rules = G.setup.rules) {
+    return createGame({ players: cast(rows, seed), rules, seed });
+  }
+
+  // src/engine/cast.js
+  var MEMBERS = ["mother", "father", "teacher", "friend", "spouse", "son", "daughter", "rival"];
+  var tokenOf = (who2) => who2 === "son" || who2 === "daughter" ? "child" : who2;
+  var PARENTS = /* @__PURE__ */ new Set(["mother", "father"]);
+  var CHILDREN = /* @__PURE__ */ new Set(["son", "daughter"]);
+  var MOMENTS = [];
+  for (let n = 1; n <= TOP; n++) {
+    const q2 = squareOf(n);
+    if (!q2) continue;
+    for (const m of [q2.moment, SQ[n]?.roll?.moment, ...(SITUATIONS[n]?.options || []).map((o) => o.outcome)]) if (m) MOMENTS.push({ n, m });
+  }
+  var SQUARES = {};
+  var FLOOR = {};
+  var DIES = {};
+  for (const { n, m } of MOMENTS) {
+    if (!m.cast) continue;
+    (SQUARES[m.cast] ||= /* @__PURE__ */ new Set()).add(n);
+    FLOOR[m.cast] = Math.max(FLOOR[m.cast] ?? 0, ageOf(n) ?? 0);
+    if (m.dies) DIES[m.cast] = ageOf(n);
+  }
+  var latin = (s) => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().replace(/sh/g, "s").replace(/ee/g, "i").replace(/aa/g, "a").replace(/oo/g, "u");
+  var nameKey = (s) => /\p{Script=Latin}/u.test(s) ? latin(s.trim()) : s.trim().normalize("NFC");
+  var RETURNS_AS = { friend: "teacher", teacher: "rival", rival: "friend", spouse: "friend", son: "teacher", daughter: "teacher" };
+  function castOf(state, i, life = 0) {
+    const list = CAST.names;
+    if (!list) return null;
+    const p = state.players[i];
+    const rng = makeRng((state.rng.seed ^ 739982445 ^ Math.imul(i + 1, 2246822507) ^ Math.imul(life + 1, 3266489909)) >>> 0);
+    const taken = new Set(state.players.flatMap((q2) => [q2.name, q2.alias?.en, q2.alias?.hi]).filter(Boolean).map(nameKey));
+    const pool = (gd) => [...list[gd], ...list.either || []].filter(([en, hi]) => !taken.has(nameKey(en)) && !taken.has(nameKey(hi)));
+    const coin = () => next(rng) < 0.5 ? "m" : "f", span = (a, b) => a + Math.floor(next(rng) * (b - a + 1));
+    const carry = life > 0 ? p.prior?.cast ?? [] : [], used = /* @__PURE__ */ new Set();
+    const cast2 = { mother: { gender: "f", en: null, hi: null }, father: { gender: "m", en: null, hi: null } };
+    const draw2 = (who2, gender, either = false) => {
+      const u = next(rng);
+      const back = carry.find((c) => RETURNS_AS[c.role] === who2 && !used.has(c) && (c.gender === gender || either) && !taken.has(nameKey(c.en)) && !taken.has(nameKey(c.hi)));
+      if (back) {
+        used.add(back);
+        [back.en, back.hi].forEach((x) => taken.add(nameKey(x)));
+        cast2[who2] = { gender: back.gender, en: back.en, hi: back.hi, before: back.role };
+        return;
+      }
+      let gd = gender, names = pool(gd);
+      if (!names.length && either) names = pool(gd = gd === "m" ? "f" : "m");
+      const nm = names.length ? names[Math.floor(u * names.length)] : null;
+      if (nm) nm.forEach((x) => taken.add(nameKey(x)));
+      cast2[who2] = { gender: nm ? gd : gender, en: nm?.[0] ?? null, hi: nm?.[1] ?? null };
+    };
+    draw2("son", "m");
+    draw2("daughter", "f");
+    draw2("spouse", p.gender === "m" ? "f" : p.gender === "f" ? "m" : coin());
+    for (const who2 of ["teacher", "friend", "rival"]) draw2(who2, coin(), true);
+    cast2.mother.older = span(20, 38);
+    cast2.father.older = span(20, 38);
+    cast2.teacher.older = span(20, 35);
+    cast2.friend.older = 0;
+    cast2.rival.older = span(-2, 2);
+    cast2.spouse.older = span(-4, 4);
+    cast2.son.gap = span(1, 4);
+    cast2.daughter.gap = span(1, 4);
+    for (const who2 of MEMBERS) cast2[who2].fate = [next(rng), next(rng)];
+    return cast2;
+  }
+  function calledIn(cast2, who2, l) {
+    const c = cast2?.[who2];
+    if (!c?.en) return null;
+    const call = CAST_WORDS.call[who2];
+    return (call ? call[l] || call.en : "{n}").replace("{n}", c[l] || c.en);
+  }
+  function peopleOf(cast2, met, l, about = null) {
+    if (!cast2) return {};
+    const out = {}, child = about === "daughter" ? "daughter" : "son";
+    for (const who2 of MEMBERS) {
+      if (CHILDREN.has(who2) && who2 !== child) continue;
+      out[tokenOf(who2)] = { gender: cast2[who2].gender, name: met.has(who2) ? calledIn(cast2, who2, l) : null };
+    }
+    return out;
+  }
+  function introIn(cast2, who2, l) {
+    const c = cast2?.[who2], t2 = CAST_WORDS.intro[who2];
+    if (!c?.en || !t2) return "";
+    return castFill((t2[l] || t2.en).replace("{n}", c[l] || c.en), { who: { gender: c.gender } });
+  }
+  function beforeIn(cast2, who2, l) {
+    const c = cast2?.[who2], t2 = CAST_WORDS.before, role = CAST_WORDS.was?.[c?.before];
+    if (!c?.en || !t2 || !role) return "";
+    return castFill((t2[l] || t2.en).replace("{n}", c[l] || c.en).replace("{role}", role[l] || role.en), { who: { gender: c.gender } });
+  }
+  function meetsNamed(state, i, m) {
+    if (!m?.cast || m.introduces === false || !CAST_WORDS.intro[m.cast]) return false;
+    const p = state.players[i], along = yearsAlong(p.life || [], p.told || []).filter((e) => e.via !== "stay");
+    const last2 = castAlong(state, i, along).at(-1);
+    return !(last2 && (last2.before.has(m.cast) || last2.meets && last2.about === m.cast));
+  }
+  function castAlong(state, i, along) {
+    const life = state.players[i].prior?.lives ?? 0, cast2 = castOf(state, i, life), met = /* @__PURE__ */ new Set();
+    return along.map((e) => {
+      const m = e.via === "sit" || e.via === "reckon" ? null : momentOf(e.n, e.told).moment, about = m?.cast ?? null, before = new Set(met);
+      const meets = !!about && !met.has(about) && m.introduces !== false;
+      if (meets) met.add(about);
+      return { about, meets, before, cast: cast2, life };
+    });
+  }
+  function castArcs(state, i, along, cc = castAlong(state, i, along)) {
+    const p = state.players[i];
+    if (!cc.length || !cc.at(-1).cast || !(p.dead || p.fell || state.winner === i)) return [];
+    const { life, cast: cast2 } = cc.at(-1), from = cc.findIndex((c) => c.life === life);
+    const order = [], seen2 = {}, landed = {}, told = /* @__PURE__ */ new Set();
+    let gone2 = null;
+    for (let k = from; k < along.length; k++) {
+      const e = along[k], c = cc[k];
+      if (e.via === "reckon") continue;
+      if (c.meets) order.push(c.about);
+      if (c.about) {
+        seen2[c.about] = Math.max(seen2[c.about] ?? 0, e.years);
+        told.add(e.via === "sit" ? null : momentOf(e.n, e.told).moment);
+      }
+      for (const who2 of MEMBERS) if (SQUARES[who2]?.has(e.n)) landed[who2] = Math.max(landed[who2] ?? 0, e.years);
+      const m = e.via === "sit" ? null : momentOf(e.n, e.told).moment;
+      if (m?.gone && gone2 == null) gone2 = { years: e.years, who: new Set(m.gone) };
+    }
+    const end = p.years ?? 0;
+    return order.map((who2) => {
+      const c = cast2[who2], older = c.older ?? 0, floor = Math.max(FLOOR[who2] ?? 0, landed[who2] ?? 0), ceil = gone2?.who.has(who2) ? gone2.years : null;
+      const arc = { who: who2, seen: seen2[who2], floor, ceil, end, older, coda: c.fate[1] };
+      if (CHILDREN.has(who2)) return { ...arc, death: null, kind: "outlived" };
+      if (DIES[who2] != null) {
+        const saw = MOMENTS.some(({ m }) => m.dies && m.cast === who2 && told.has(m));
+        return { ...arc, death: DIES[who2], kind: saw ? "seen" : DIES[who2] > end ? "outlived" : "died" };
+      }
+      const lo = Math.floor(floor) + 1, hi = ceil == null ? Infinity : Math.ceil(ceil) - 1;
+      let a = Math.max(lo, 60 - older), b = Math.min(hi, 95 - older);
+      if (a > b) {
+        a = lo;
+        b = Math.max(lo, Number.isFinite(hi) ? hi : lo);
+      }
+      const death = a + Math.floor(c.fate[0] * (b - a + 1));
+      return { ...arc, death, kind: death > end ? "outlived" : "died" };
+    });
+  }
+  var FATES = 4;
+  var FULL = 3;
+  function fatesIn(state, i, l, along, cc, who2) {
+    const cast2 = cc.at(-1)?.cast, W2 = CAST_WORDS, words = (n) => wordsIn(l, Math.floor(n)), pick3 = (t2) => t2[l] || t2.en;
+    let coded = false;
+    const say = (t2, member, v) => fill(castFill(pick3(t2), { who: member }).replace(/\{(seen|at|by|pos)\}/g, (_, k) => v[k] ?? ""), who2);
+    const arcs = castArcs(state, i, along, cc).filter((a) => a.kind !== "seen" && (PARENTS.has(a.who) || calledIn(cast2, a.who, l)));
+    return arcs.slice(0, FATES).map((a, at2) => {
+      const c = cast2[a.who], family = PARENTS.has(a.who) || a.who === "spouse" || CHILDREN.has(a.who);
+      const name = PARENTS.has(a.who) ? fill(pick3(W2.family[a.who]), who2) : calledIn(cast2, a.who, l);
+      const member = { name, gender: c.gender }, n = a.death - a.end;
+      const by = n === 1 ? pick3(W2.year) : pick3(W2.years).replace("{n}", words(n));
+      if (at2 >= FULL) return a.kind === "outlived" ? say(W2.childOutlived, member, {}) : say(W2.familyDied, member, { at: words(a.death) });
+      if (CHILDREN.has(a.who)) return say(W2.childOutlived, member, {});
+      if (family) return a.kind === "died" ? say(W2.familyDied, member, { at: words(a.death) }) : say(W2.familyOutlived, member, { by });
+      if (a.kind === "outlived") return say(a.who === "teacher" ? W2.outlivedHon : W2.outlived, member, { seen: words(a.seen), by });
+      const k = Math.floor(a.coda * (W2.codas.length + 2)), coda = k < W2.codas.length && !coded ? " " + fill(pick3(W2.codas[k]), who2) : "";
+      if (coda) coded = true;
+      return say(W2.died, member, { seen: words(a.seen), at: words(a.death + a.older), pos: pick3(a.who === "teacher" ? W2.posHon : W2.pos) }) + coda;
+    });
+  }
+
+  // src/engine/samskara.js
+  var SOUL_V = 1;
+  var KEEP_DEBTS = 6;
+  var NAMED = MEMBERS.filter((w) => w !== "mother" && w !== "father");
+  var endOf = (state, i) => {
+    const p = state.players[i];
+    if (isAnimal(state)) return animalEndOf(p) && "animal";
+    if (state.winner === i) return null;
+    if (p.dead) return p.death?.by ?? "years";
+    if (p.fell) return p.fellBy === "snake" ? "siva" : "fell";
+    return null;
+  };
+  function soulOf(state, i) {
+    const p = state.players[i], end = endOf(state, i);
+    if (!end || end === "animal") return null;
+    const k = karmaOf(p), cast2 = castOf(state, i, p.prior?.lives ?? 0) ?? {};
+    const sancita = [...k.sancita, ...carried(k)].filter((s) => seedOf(s.src, s.opt)).sort((a, b) => b.weight - a.weight || a.at - b.at).slice(0, KEEP_DEBTS).map(({ src, opt, at: at2, fuse, weight }) => ({ src, opt, at: at2, fuse, weight }));
+    const dream = (p.witness ?? []).reduce((best, w) => {
+      const o = optionOf(w.sq, w.took);
+      return o?.dream && (!best || worthOf(o) >= best.worth) ? { sq: w.sq, opt: w.took, worth: worthOf(o) } : best;
+    }, null);
+    const rec = {
+      v: SOUL_V,
+      lives: (p.prior?.lives ?? 0) + 1,
+      last: {
+        name: { en: pnameIn(p, "en"), hi: pnameIn(p, "hi") },
+        gender: p.gender,
+        end,
+        age: Math.floor(p.years ?? 0),
+        gunas: { ...p.gunas ?? freshGunas() },
+        peak: p.peak ?? null,
+        holding: SNAKES[p.holding] ? p.holding : null
+      },
+      sancita,
+      cast: NAMED.filter((w) => cast2[w]?.en).map((w) => ({ role: w, gender: cast2[w].gender, en: cast2[w].en, hi: cast2[w].hi })),
+      dream: dream && { sq: dream.sq, opt: dream.opt },
+      animal: null
+    };
+    if (end === "ledger") rec.animal = interludeFor(rec.last.holding, rec.cast);
+    return rec;
+  }
+  var num2 = (x) => typeof x === "number" && Number.isFinite(x);
+  function validSoul(s) {
+    if (!s || s.v !== SOUL_V || !(s.lives >= 1) || !s.last || typeof s.last.name?.en !== "string") return false;
+    const g3 = s.last.gunas;
+    if (!g3 || !["s", "r", "t"].every((x) => num2(g3[x]) && g3[x] >= 0)) return false;
+    if (s.animal != null && !(KINDS.includes(s.animal.kind) && (s.animal.round === 1 || s.animal.round === 2))) return false;
+    return Array.isArray(s.sancita) && Array.isArray(s.cast);
+  }
+  function bornOf(soul) {
+    if (!validSoul(soul)) return null;
+    const f2 = freshGunas(), g3 = soul.last.gunas, sum = g3.s + g3.r + g3.t || 1;
+    const half = Object.fromEntries(["s", "r", "t"].map((x) => [x, f2[x] + (g3[x] / sum - f2[x]) / 2]));
+    const gunas = soul.nudge ? Object.fromEntries(["s", "r", "t"].map((x) => [x, half[x] * 0.9 + (x === "s" ? 0.1 : 0)])) : half;
+    const debts = soul.sancita.filter((s) => seedOf(s.src, s.opt) && num2(s.at) && num2(s.fuse) && num2(s.weight));
+    const [slice, ...rest] = debts;
+    const cast2 = soul.cast.filter((c) => NAMED.includes(c.role) && typeof c.en === "string" && typeof c.hi === "string");
+    const holding = SNAKES[soul.last.holding] ? soul.last.holding : null;
+    const dream = soul.dream && optionOf(soul.dream.sq, soul.dream.opt)?.dream ? soul.dream : null;
+    return {
+      gunas,
+      karma: { sancita: rest, agami: slice ? [{ ...slice, i: 0, prior: true }] : [], prarabdha: [] },
+      prior: { lives: soul.lives, last: { ...soul.last, holding }, cast: cast2, dream, ...KINDS.includes(soul.was) ? { was: soul.was } : {} }
+    };
+  }
+  var STORE_V = 1;
+  var KEEP_SOULS = 6;
+  function storeOf(raw) {
+    if (!raw || raw.v !== STORE_V || !raw.souls || typeof raw.souls !== "object" || Array.isArray(raw.souls)) return { v: STORE_V, souls: {} };
+    const keys = Object.keys(raw.souls).filter((k) => k && validSoul(raw.souls[k])).slice(-KEEP_SOULS);
+    return { v: STORE_V, souls: Object.fromEntries(keys.map((k) => [k, raw.souls[k]])) };
+  }
+  function storeWith(store, key, soul) {
+    const souls = Object.entries(storeOf(store).souls).filter(([k]) => k !== key);
+    if (soul && key) souls.push([key, soul]);
+    return { v: STORE_V, souls: Object.fromEntries(souls.slice(-KEEP_SOULS)) };
   }
 
   // src/prefs.js
@@ -3827,6 +4391,11 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     who.add(id);
     write(WHO, [...who]);
   };
+  var SAMSKARA = "mp-samskara";
+  var soulStore = () => storeOf(read(SAMSKARA, null));
+  var soulFor = (key) => key && soulStore().souls[key] || null;
+  var keepSoul = (key, soul) => write(SAMSKARA, storeWith(soulStore(), key, soul));
+  var setSoulStore = (raw) => write(SAMSKARA, storeOf(raw));
   var beFirst = () => {
     lives = 0;
     opened = "moment";
@@ -3870,7 +4439,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     if (n > 100) return [mix(hex(BOARD.divine.ground[0]), hex(BOARD.divine.ground[1])), false];
     return [hex(groundToken(n)), false];
   }
-  var SQUARES = ROWS * 10;
+  var SQUARES2 = ROWS * 10;
   var WASH = { ochre: 0.42, deepen: 0.22, dim: 0.5, edge: 0.14 };
   function fills(n, { sepia, dim }) {
     const light = groundOf(n)[1], out = [];
@@ -4307,6 +4876,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     };
   }
   var clamp3 = (x) => Math.max(0, Math.min(1, x));
+  var CLEAR_FROM = 4;
+  var clearOf = (state) => clamp3(Math.max(0, ...state.players.map((p) => (p.bhumika ?? -1) - CLEAR_FROM)) / 2);
   function wash(n, { fadeAge, dimAge, lead, look: look2 = null, begun = true }) {
     if (look2 === "first" && !begun) return { sepia: 0, dim: 0 };
     const k = look2 === "veil" ? VEIL : 1, a = ageOf2(n);
@@ -4315,154 +4886,6 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       sepia: a < fadeAge ? clamp3((fadeAge - a) / FADE_YEARS) : 0,
       dim: a > dimAge ? k * clamp3(0.2 + 0.8 * (a - dimAge) / DIM_YEARS) : 0
     };
-  }
-
-  // src/engine/cast.js
-  var MEMBERS = ["mother", "father", "teacher", "friend", "spouse", "son", "daughter", "rival"];
-  var tokenOf = (who2) => who2 === "son" || who2 === "daughter" ? "child" : who2;
-  var PARENTS = /* @__PURE__ */ new Set(["mother", "father"]);
-  var CHILDREN = /* @__PURE__ */ new Set(["son", "daughter"]);
-  var MOMENTS = [];
-  for (let n = 1; n <= TOP; n++) {
-    const q2 = squareOf(n);
-    if (!q2) continue;
-    for (const m of [q2.moment, SQ[n]?.roll?.moment, ...(SITUATIONS[n]?.options || []).map((o) => o.outcome)]) if (m) MOMENTS.push({ n, m });
-  }
-  var SQUARES2 = {};
-  var FLOOR = {};
-  var DIES = {};
-  for (const { n, m } of MOMENTS) {
-    if (!m.cast) continue;
-    (SQUARES2[m.cast] ||= /* @__PURE__ */ new Set()).add(n);
-    FLOOR[m.cast] = Math.max(FLOOR[m.cast] ?? 0, ageOf(n) ?? 0);
-    if (m.dies) DIES[m.cast] = ageOf(n);
-  }
-  var latin = (s) => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().replace(/sh/g, "s").replace(/ee/g, "i").replace(/aa/g, "a").replace(/oo/g, "u");
-  var nameKey = (s) => /\p{Script=Latin}/u.test(s) ? latin(s.trim()) : s.trim().normalize("NFC");
-  function castOf(state, i, life = 0) {
-    const list = CAST.names;
-    if (!list) return null;
-    const p = state.players[i];
-    const rng = makeRng((state.rng.seed ^ 739982445 ^ Math.imul(i + 1, 2246822507) ^ Math.imul(life + 1, 3266489909)) >>> 0);
-    const taken = new Set(state.players.flatMap((q2) => [q2.name, q2.alias?.en, q2.alias?.hi]).filter(Boolean).map(nameKey));
-    const pool = (gd) => [...list[gd], ...list.either || []].filter(([en, hi]) => !taken.has(nameKey(en)) && !taken.has(nameKey(hi)));
-    const coin = () => next(rng) < 0.5 ? "m" : "f", span = (a, b) => a + Math.floor(next(rng) * (b - a + 1));
-    const cast2 = { mother: { gender: "f", en: null, hi: null }, father: { gender: "m", en: null, hi: null } };
-    const draw2 = (who2, gender, either = false) => {
-      const u = next(rng);
-      let gd = gender, names = pool(gd);
-      if (!names.length && either) names = pool(gd = gd === "m" ? "f" : "m");
-      const nm = names.length ? names[Math.floor(u * names.length)] : null;
-      if (nm) nm.forEach((x) => taken.add(nameKey(x)));
-      cast2[who2] = { gender: nm ? gd : gender, en: nm?.[0] ?? null, hi: nm?.[1] ?? null };
-    };
-    draw2("son", "m");
-    draw2("daughter", "f");
-    draw2("spouse", p.gender === "m" ? "f" : p.gender === "f" ? "m" : coin());
-    for (const who2 of ["teacher", "friend", "rival"]) draw2(who2, coin(), true);
-    cast2.mother.older = span(20, 38);
-    cast2.father.older = span(20, 38);
-    cast2.teacher.older = span(20, 35);
-    cast2.friend.older = 0;
-    cast2.rival.older = span(-2, 2);
-    cast2.spouse.older = span(-4, 4);
-    cast2.son.gap = span(1, 4);
-    cast2.daughter.gap = span(1, 4);
-    for (const who2 of MEMBERS) cast2[who2].fate = [next(rng), next(rng)];
-    return cast2;
-  }
-  function calledIn(cast2, who2, l) {
-    const c = cast2?.[who2];
-    if (!c?.en) return null;
-    const call = CAST_WORDS.call[who2];
-    return (call ? call[l] || call.en : "{n}").replace("{n}", c[l] || c.en);
-  }
-  function peopleOf(cast2, met, l, about = null) {
-    if (!cast2) return {};
-    const out = {}, child = about === "daughter" ? "daughter" : "son";
-    for (const who2 of MEMBERS) {
-      if (CHILDREN.has(who2) && who2 !== child) continue;
-      out[tokenOf(who2)] = { gender: cast2[who2].gender, name: met.has(who2) ? calledIn(cast2, who2, l) : null };
-    }
-    return out;
-  }
-  function introIn(cast2, who2, l) {
-    const c = cast2?.[who2], t2 = CAST_WORDS.intro[who2];
-    if (!c?.en || !t2) return "";
-    return castFill((t2[l] || t2.en).replace("{n}", c[l] || c.en), { who: { gender: c.gender } });
-  }
-  function meetsNamed(state, i, m) {
-    if (!m?.cast || m.introduces === false || !CAST_WORDS.intro[m.cast]) return false;
-    const p = state.players[i], along = yearsAlong(p.life || [], p.told || []).filter((e) => e.via !== "stay");
-    const last2 = castAlong(state, i, along).at(-1);
-    return !(last2 && (last2.before.has(m.cast) || last2.meets && last2.about === m.cast));
-  }
-  function castAlong(state, i, along) {
-    const cast2 = castOf(state, i, 0), met = /* @__PURE__ */ new Set();
-    return along.map((e) => {
-      const m = e.via === "sit" || e.via === "reckon" ? null : momentOf(e.n, e.told).moment, about = m?.cast ?? null, before = new Set(met);
-      const meets = !!about && !met.has(about) && m.introduces !== false;
-      if (meets) met.add(about);
-      return { about, meets, before, cast: cast2, life: 0 };
-    });
-  }
-  function castArcs(state, i, along, cc = castAlong(state, i, along)) {
-    const p = state.players[i];
-    if (!cc.length || !cc.at(-1).cast || !(p.dead || p.fell || state.winner === i)) return [];
-    const { life, cast: cast2 } = cc.at(-1), from = cc.findIndex((c) => c.life === life);
-    const order = [], seen2 = {}, landed = {}, told = /* @__PURE__ */ new Set();
-    let gone2 = null;
-    for (let k = from; k < along.length; k++) {
-      const e = along[k], c = cc[k];
-      if (e.via === "reckon") continue;
-      if (c.meets) order.push(c.about);
-      if (c.about) {
-        seen2[c.about] = Math.max(seen2[c.about] ?? 0, e.years);
-        told.add(e.via === "sit" ? null : momentOf(e.n, e.told).moment);
-      }
-      for (const who2 of MEMBERS) if (SQUARES2[who2]?.has(e.n)) landed[who2] = Math.max(landed[who2] ?? 0, e.years);
-      const m = e.via === "sit" ? null : momentOf(e.n, e.told).moment;
-      if (m?.gone && gone2 == null) gone2 = { years: e.years, who: new Set(m.gone) };
-    }
-    const end = p.years ?? 0;
-    return order.map((who2) => {
-      const c = cast2[who2], older = c.older ?? 0, floor = Math.max(FLOOR[who2] ?? 0, landed[who2] ?? 0), ceil = gone2?.who.has(who2) ? gone2.years : null;
-      const arc = { who: who2, seen: seen2[who2], floor, ceil, end, older, coda: c.fate[1] };
-      if (CHILDREN.has(who2)) return { ...arc, death: null, kind: "outlived" };
-      if (DIES[who2] != null) {
-        const saw = MOMENTS.some(({ m }) => m.dies && m.cast === who2 && told.has(m));
-        return { ...arc, death: DIES[who2], kind: saw ? "seen" : DIES[who2] > end ? "outlived" : "died" };
-      }
-      const lo = Math.floor(floor) + 1, hi = ceil == null ? Infinity : Math.ceil(ceil) - 1;
-      let a = Math.max(lo, 60 - older), b = Math.min(hi, 95 - older);
-      if (a > b) {
-        a = lo;
-        b = Math.max(lo, Number.isFinite(hi) ? hi : lo);
-      }
-      const death = a + Math.floor(c.fate[0] * (b - a + 1));
-      return { ...arc, death, kind: death > end ? "outlived" : "died" };
-    });
-  }
-  var FATES = 4;
-  var FULL = 3;
-  function fatesIn(state, i, l, along, cc, who2) {
-    const cast2 = cc.at(-1)?.cast, W2 = CAST_WORDS, words = (n) => wordsIn(l, Math.floor(n)), pick3 = (t2) => t2[l] || t2.en;
-    let coded = false;
-    const say = (t2, member, v) => fill(castFill(pick3(t2), { who: member }).replace(/\{(seen|at|by|pos)\}/g, (_, k) => v[k] ?? ""), who2);
-    const arcs = castArcs(state, i, along, cc).filter((a) => a.kind !== "seen" && (PARENTS.has(a.who) || calledIn(cast2, a.who, l)));
-    return arcs.slice(0, FATES).map((a, at2) => {
-      const c = cast2[a.who], family = PARENTS.has(a.who) || a.who === "spouse" || CHILDREN.has(a.who);
-      const name = PARENTS.has(a.who) ? fill(pick3(W2.family[a.who]), who2) : calledIn(cast2, a.who, l);
-      const member = { name, gender: c.gender }, n = a.death - a.end;
-      const by = n === 1 ? pick3(W2.year) : pick3(W2.years).replace("{n}", words(n));
-      if (at2 >= FULL) return a.kind === "outlived" ? say(W2.childOutlived, member, {}) : say(W2.familyDied, member, { at: words(a.death) });
-      if (CHILDREN.has(a.who)) return say(W2.childOutlived, member, {});
-      if (family) return a.kind === "died" ? say(W2.familyDied, member, { at: words(a.death) }) : say(W2.familyOutlived, member, { by });
-      if (a.kind === "outlived") return say(a.who === "teacher" ? W2.outlivedHon : W2.outlived, member, { seen: words(a.seen), by });
-      const k = Math.floor(a.coda * (W2.codas.length + 2)), coda = k < W2.codas.length && !coded ? " " + fill(pick3(W2.codas[k]), who2) : "";
-      if (coda) coded = true;
-      return say(W2.died, member, { seen: words(a.seen), at: words(a.death + a.older), pos: pick3(a.who === "teacher" ? W2.posHon : W2.pos) }) + coda;
-    });
   }
 
   // src/render/sprites.js
@@ -4680,7 +5103,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   function ledgerOf(p) {
     const who2 = { name: pname(p), gender: p.gender }, k = karmaOf(p);
     const debt = (s) => debtIn(lang, s, who2);
-    const met = (p.reckonings ?? []).map((r) => row(debt({ src: r.src, opt: r.opt, at: r.planted }), t("ledgerMet", { age: wordsIn(lang, Math.floor(r.age ?? 0)) })));
+    const met = (p.reckonings ?? []).filter((r) => !r.dies).map((r) => row(debt({ src: r.src, opt: r.opt, at: r.planted }), t("ledgerMet", { age: wordsIn(lang, Math.floor(r.age ?? 0)) })));
     const lines = [
       ...k.agami.map((s) => row(debt(s), t("ledgerHeld"))),
       ...k.prarabdha.map((s) => row(debt(s), t("ledgerRipe"))),
@@ -6208,7 +6631,11 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   };
   function drawLanded() {
     const s = G.state;
-    let { title, text } = !last || !s ? {} : last.door ? doorLine(lang, last) : last.only ? {} : s.players[last.who]?.pos != null ? momentLine(last.n, last.who, lang, last.told, last.ego) : {};
+    const animalLine = (n) => {
+      const q2 = squareOf(n);
+      return { title: q2?.[lang] || q2?.en || "", text: TALES.includes(n) ? q2?.mirror?.[lang] || q2?.mirror?.en || "" : "" };
+    };
+    let { title, text } = !last || !s ? {} : isAnimal(s) && !last.door ? animalLine(last.n) : last.door ? doorLine(lang, last) : last.only ? {} : s.players[last.who]?.pos != null ? momentLine(last.n, last.who, lang, last.told, last.ego) : {};
     if (last?.curse && s) text = [text, curseLine(lang, last.who)].filter(Boolean).join(" ");
     if (!text && !title) {
       el2.dataset.empty = "";
@@ -6266,10 +6693,11 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   // src/engine/account.js
   var EARTH3 = 100;
   var GAP = 8;
-  var NAMED = new RegExp(`^\\{(?:name|${CAST_ROLES.join("|")})[}=]`);
-  var after = (raw, text, l) => l === "en" && !NAMED.test(raw) && /^(?:\p{Lu}\p{Ll}|(?!I\s)\p{Lu}\s)/u.test(text) ? text[0].toLowerCase() + text.slice(1) : text;
+  var NAMED2 = new RegExp(`^\\{(?:name|${CAST_ROLES.join("|")})[}=]`);
+  var after = (raw, text, l) => l === "en" && !NAMED2.test(raw) && /^(?:\p{Lu}\p{Ll}|(?!I\s)\p{Lu}\s)/u.test(text) ? text[0].toLowerCase() + text.slice(1) : text;
   var stageAt2 = (e) => e.n > EARTH3 ? 5 : stageOfYears(e.years);
   function lifeOf(state, i, l) {
+    if (isAnimal(state)) return animalLifeOf(state, i, l);
     const p = state.players[i], name = pnameIn(p, l), who2 = { name, gender: p.gender };
     const T2 = (key, v = {}) => fill(tIn(l, key, { name, ...v }), who2);
     const J = (j, v = {}) => {
@@ -6356,9 +6784,9 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           const q2 = DOOR[seedOf(r.src, r.opt)?.holds];
           if (!para || !q2 || r.n > 1 && !r.cleared) continue;
           flush();
-          const v = { age: words(r.age), q: q2.q[l] || q2.q.en, debt: debtIn(l, { src: r.src, opt: r.opt, at: r.planted }, who2) };
+          const v = { age: words(r.age), q: q2.q[l] || q2.q.en, debt: debtIn(l, { src: r.src, opt: r.opt, at: r.planted, prior: r.prior }, who2) };
           if (r.pass) para.parts.push(J(JOINS.examPass, { ...v, answer: words(r.answer), answered: q2.answered[l] || q2.answered.en }));
-          else para.parts.push(J(r.n > 1 ? JOINS.examPaid : r.cleared ? JOINS.examFailPaid : JOINS.examFail, v));
+          else para.parts.push(J(r.n > 1 ? JOINS.examPaid : r.cleared ? JOINS.examFailPaid : r.never ? JOINS.examNever : JOINS.examFail, v));
           lastYears = r.age;
           continue;
         }
@@ -6373,7 +6801,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         const t2 = seedOf(r.src, r.opt)?.reckoning;
         if (!para || !t2) continue;
         flush();
-        para.parts.push(J(JOINS.reckon, { age: words(r.age) }) + after(t2[l] || t2.en, reckoningIn(l, r, who2), l));
+        para.parts.push(J(r.dies ? JOINS.reckonDeath : JOINS.reckon, { age: words(r.age) }) + after(t2[l] || t2.en, reckoningIn(l, r, who2), l));
         lastYears = r.age + r.years;
       }
     };
@@ -6471,7 +6899,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       else if (para.parts.length) join = J(then());
       const age2 = Number.isInteger(e.years) ? ageWordsIn(l, e.years, e.via === "snake") : "";
       const raw = repeat && e.via ? (JOINS.backTo[l] || JOINS.backTo.en).replace("{first}", words(lived.get(e.n))) : m[l] || m.en;
-      const intro = c.meets && !repeat ? introIn(c.cast, c.about, l) : "";
+      const intro = c.meets && !repeat ? [introIn(c.cast, c.about, l), beforeIn(c.cast, c.about, l)].filter(Boolean).join(" ") : "";
       const text = fill(castFill(raw, peopleOf(c.cast, c.before, l, c.about)), { ...who2, age: age2 }) + (intro ? " " + intro : "");
       para.parts.push(rebel ? rebel + " " + text : join ? join + after(raw, text, l) : text);
       if (!(repeat && e.via)) {
@@ -6495,13 +6923,13 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     return {
       title: T2("lifeTitle"),
       sub: p.peak != null ? tIn(l, "title" + titleOf(p.peak)) : "",
-      open: opening(p, along, T2, words),
+      open: [...dreamOf(p, l, name), opening(p, along, T2, words)].filter(Boolean).join(" "),
       paras: paras.map(({ s, ages, parts }) => {
         const a = Math.min(...ages), b = Math.max(...ages);
         const head = s === 5 || !ages.length ? stage(s) : a === b ? T2("lifeAt", { stage: stage(s), a }) : T2("lifeSpan", { stage: stage(s), a, b });
         return { head, text: parts.join(" ") };
       }),
-      end: state.winner === i ? winEnd(p, T2, words, held2) : p.fell ? fellEnd(p, along, T2, sq, held2, l, who2) : !p.life?.length ? T2("lifeUnborn") : p.dead && p.pos === GOAL ? doorEnd(p, T2, words, l, who2) : p.dead ? T2("lifeEndDied", { age: words(p.years), holding: held2(SNAKES[p.holding]?.holding) }).replace(/, ([.।])$/, "$1") : T2("lifeEndOpen", { n: p.pos }),
+      end: state.winner === i ? winEnd(p, T2, words, held2) : p.fell ? fellEnd(p, along, T2, sq, held2, l, who2) : !p.life?.length ? T2("lifeUnborn") : p.death?.by === "ledger" ? ledgerEnd(p, T2, words, l, who2, held2) : p.dead && p.pos === GOAL ? doorEnd(p, T2, words, l, who2) : p.dead ? T2("lifeEndDied", { age: words(p.years), holding: held2(SNAKES[p.holding]?.holding) }).replace(/, ([.।])$/, "$1") : T2("lifeEndOpen", { n: p.pos }),
       // a curse the life never bore out is closed after the end, the other way (Phase 14): empty with none
       curse: curse && curse.closedAt == null && (state.winner === i || p.fell || p.dead) ? fill(curse.c.not[l] || curse.c.not.en, who2) : "",
       // what the life never found out about the people in it (Phase 10C): empty with no cast
@@ -6526,8 +6954,23 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const k = karmaOf(p), carry = carryIn(l, [...carried(k), ...k.sancita], null, who2);
     return T2("lifeEndDoor", { age: words(p.years), carry }).replace(/, ([.।])$/, "$1");
   }
+  function ledgerEnd(p, T2, words, l, who2, held2) {
+    const k = karmaOf(p), carry = carryIn(l, [...carried(k), ...k.sancita], null, who2) || held2(SNAKES[p.holding]?.holding);
+    return T2("lifeEndLedger", { age: words(p.death.age ?? p.years), form: formIn(l, p.death.form, who2), carry }).replace(/, ([.।])$/, "$1");
+  }
+  function dreamOf(p, l, name) {
+    const prev = p.prior?.last;
+    if (!prev) return [];
+    const them = { name, gender: prev.gender }, deed = p.prior.dream && optionOf(p.prior.dream.sq, p.prior.dream.opt)?.dream;
+    const v = { prev: prev.name?.[l] || prev.name?.en || "", dream: deed ? fill(deed[l] || deed.en, them) : "" };
+    const say = (key) => fill(tIn(l, key, { name, ...v }), them);
+    const forgot = SNAKES[prev.holding]?.forgot, uneasy = forgot && fill(forgot[l] || forgot.en, { name, gender: p.gender });
+    const was = p.prior.was ? fill(tIn(l, "animalDream", { name, animal: tIn(l, "a_" + p.prior.was) }), { name, gender: p.gender }) : "";
+    return [say(deed ? "lifeDream" : "lifeDreamNone"), was, uneasy ? tIn(l, "lifeForgot", { forgot: uneasy[0].toUpperCase() + uneasy.slice(1) }) : ""];
+  }
   function opening(p, along, T2, words) {
     if (!along.length) return "";
+    if (p.death?.by === "ledger") return T2("lifeOpenLedger", { age: words(p.death.age ?? p.years) });
     if (p.dead) return T2("lifeOpenDied", { age: words(p.years) });
     const earthly = along.filter((e) => e.n <= EARTH3), to = Math.max(...earthly.map((e) => e.years));
     const snakes = along.filter((e) => e.via === "snake");
@@ -6536,45 +6979,139 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     if (!snakes.length) return T2("lifeOpenSteady");
     return T2("lifeOpenLived", { age: words(to) });
   }
+  function pathOf(state, i, l) {
+    const p = state.players[i], T2 = (k, v = {}) => fill(tIn(l, k, { name: pnameIn(p, l), ...v }), { name: pnameIn(p, l), gender: p.gender });
+    const words = (n) => wordsIn(l, Math.floor(n)), nameOf = (n) => n === GOAL ? tIn(l, "moksha") : squareOf(n)?.[l] || squareOf(n)?.en || "";
+    const rows = [];
+    for (const e of yearsAlong(p.life || [], p.told || [])) {
+      const last2 = rows.at(-1);
+      if ((e.via === "sit" || e.via === "stay") && last2 && last2.n === e.n && last2.kind === e.via) {
+        last2.count++;
+        continue;
+      }
+      if (e.via === "sit" || e.via === "stay") {
+        rows.push({ n: e.n, years: e.years, kind: e.via, count: 1 });
+        continue;
+      }
+      rows.push({ n: e.n, years: e.years, kind: e.via, from: e.from });
+    }
+    const viaOf = (r) => r.kind === "snake" ? T2("pathSnake", { sq: nameOf(r.from) }) : r.kind === "ladder" ? T2("pathLadder", { sq: nameOf(r.from) }) : r.kind === "reckon" ? T2("pathReckon") : r.kind === "sit" ? r.count === 1 ? T2("pathSat") : T2("pathSatN", { n: words(r.count) }) : r.kind === "stay" ? r.count === 1 ? T2("pathStay") : T2("pathStayN", { n: words(r.count) }) : "";
+    const end = state.winner === i ? T2("pathWin") : p.fell ? T2("pathFell") : p.dead ? T2("pathDied") : p.earned ? T2("animalEarned") : p.short ? T2(state.rules.animal?.round >= 2 ? "animalLastText" : "animalShortText") : "";
+    return { rows: rows.map((r) => ({ age: isAnimal(state) ? "" : words(r.years), sq: nameOf(r.n), via: viaOf(r) })), end };
+  }
   function lifeText(state, i, l) {
     const { title, sub, open: open2, paras, end, curse, fates } = lifeOf(state, i, l);
     return [[title, sub].filter(Boolean).join("\n"), open2, ...paras.map((p) => `${p.head}
 ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boolean).join("\n\n") + "\n";
   }
 
+  // src/engine/mirror.js
+  var ASKED = 3;
+  var HELP = /* @__PURE__ */ new Set([49, 51, 56]);
+  var least = (n, id) => {
+    const o = optionOf(n, id);
+    return !!o && SITUATIONS[n].options.every((x) => worthOf(x) >= worthOf(o));
+  };
+  function deeds(state, i) {
+    const p = state.players[i], w = p.witness ?? [], along = yearsAlong(p.life || [], p.told || []);
+    const rebel = w.findLast((x) => x.chose !== x.took) ?? null;
+    const arcs = castArcs(state, i, along), cc = castAlong(state, i, along), cast2 = cc.at(-1)?.cast ?? {};
+    const unwritten = arcs.find((a) => a.kind === "died" && cast2[a.who]?.en) ?? null;
+    return {
+      rebel: rebel && { ...rebel, age: along[rebel.i]?.years ?? p.years },
+      helped: w.some((x) => HELP.has(x.sq) && !least(x.sq, x.chose)),
+      held: p.holding != null || !!p.held?.length,
+      least: w.some((x) => least(x.sq, x.took)),
+      refused: !!p.refusals?.length,
+      unwritten: unwritten && cast2[unwritten.who],
+      still: (p.practised ?? 0) > 0 || (p.peak ?? -1) >= 3,
+      always: true
+    };
+  }
+  var FALLBACK = ["year", "held", "still"];
+  function mirrorOf(state, i) {
+    const qs = MIRROR.questions ?? [], d = deeds(state, i), out = [];
+    const add = (q2) => {
+      if (q2 && out.length < ASKED && !out.some((x) => x.id === q2.id)) out.push({ id: q2.id, ...q2.when === "rebel" ? { rebel: d.rebel } : {}, ...q2.when === "unwritten" ? { who: d.unwritten } : {} });
+    };
+    if (d.rebel) add(qs.find((q2) => q2.when === "rebel"));
+    const fits = qs.filter((q2) => q2.when !== "rebel" && d[q2.when]);
+    const r = makeRng((state.rng.seed ^ 1831565813 ^ Math.imul(i + 1, 668265261)) >>> 0);
+    const order = fits.map((q2) => [next(r), q2]).sort((a, b) => a[0] - b[0]).map(([, q2]) => q2);
+    order.forEach(add);
+    for (const id of FALLBACK) add(qs.find((q2) => q2.id === id && q2.when !== "unwritten"));
+    return out;
+  }
+  function mirrorIn(l, m) {
+    const q2 = MIRROR.questions.find((x) => x.id === m.id);
+    if (!q2) return "";
+    const t2 = q2.q[l] || q2.q.en, v = {};
+    if (m.rebel) {
+      const chose = optionOf(m.rebel.sq, m.rebel.chose)?.mirror?.chose, took = optionOf(m.rebel.sq, m.rebel.took)?.mirror?.took;
+      Object.assign(v, { age: wordsIn(l, Math.floor(m.rebel.age)), chose: chose?.[l] || chose?.en || "", took: took?.[l] || took?.en || "" });
+    }
+    if (m.who) v.who = m.who[l] || m.who.en;
+    return t2.replace(/\{(age|chose|took|who)\}/g, (_, k) => v[k] ?? "");
+  }
+  var mirrorIntroIn = (l) => MIRROR.intro?.[l] || MIRROR.intro?.en || "";
+
   // src/render/life.js
   var dlg3 = $("lifeDlg");
   var leaf3 = $("lifeLeaf");
   var whose = 0;
+  var tab = "book";
+  var TABS = ["book", "path", "mirror"];
+  var TAB_KEY = { book: "lifeBook", path: "lifePath", mirror: "lifeMirror" };
   var lifeText2 = (state, i, l = lang) => lifeText(state, i, l);
-  function paint3() {
+  function panel(state, l, T2) {
+    if (tab === "path") {
+      const { rows, end: end2 } = pathOf(state, whose, l);
+      return `<ol class="life-path">${rows.map((r) => `<li><span class="pa">${esc(r.age)}</span><span class="ps">${esc(r.sq)}</span>${r.via ? `<span class="pv">${esc(r.via)}</span>` : ""}</li>`).join("")}</ol>` + (end2 ? `<p class="life-end">${esc(end2)}</p>` : "");
+    }
+    if (tab === "mirror") {
+      return `<p class="life-open">${esc(mirrorIntroIn(l))}</p><ol class="life-mirror">${mirrorOf(state, whose).map((m) => `<li>${esc(mirrorIn(l, m))}</li>`).join("")}</ol><p><button type="button" class="ghost" data-act="skip">${T2("mirrorSkip")}</button></p>`;
+    }
+    const { sub, open: open2, paras, end, curse, fates } = lifeOf(state, whose, l);
+    return `<p class="life-scribe">${esc(T2("citragupta"))}</p>
+        ${sub ? `<p class="life-sub">${esc(sub)}</p>` : ""}
+        ${open2 ? `<p class="life-open">${esc(open2)}</p>` : ""}
+        ${paras.map((p) => `<h3 class="sub">${esc(p.head)}</h3><p>${esc(p.text)}</p>`).join("")}
+        <p class="life-end">${esc([end, curse].filter(Boolean).join(" "))}</p>
+        ${fates.length ? `<p class="life-fates">${esc(fates.join(" "))}</p>` : ""}`;
+  }
+  function paint3(focusTab = false) {
     const state = G.state, l = lang, T2 = (k, v) => tIn(l, k, v);
-    const { title, sub, open: open2, paras, end, curse, fates } = lifeOf(state, whose, l);
+    const { title } = lifeOf(state, whose, l);
     const tabs = state.players.length > 1 ? `<div class="life-who" role="group" aria-label="${T2("lifeWhose")}">` + state.players.map((p, i) => `<button type="button" data-who="${i}" aria-pressed="${i === whose}"><span class="dot" style="background:${COLORS[p.color]}"></span>${esc(pnameIn(p, l))}</button>`).join("") + `</div>` : "";
+    const ways = `<div class="life-tabs tabs" role="tablist" aria-label="${T2("lifeTabs")}">` + TABS.map((k) => `<button type="button" role="tab" id="lifeTab-${k}" data-tab="${k}" aria-controls="lifePanel" aria-selected="${k === tab}" tabindex="${k === tab ? 0 : -1}">${T2(TAB_KEY[k])}</button>`).join("") + `</div>`;
     leaf3.innerHTML = `
     <header class="leaf-top">
       <span class="eb">${T2("readLife")}</span>
       <div class="leaf-tools"><button type="button" class="x" data-act="close" aria-label="${T2("close")}" autofocus>×</button></div>
     </header>
     ${tabs}
+    ${ways}
     <div class="leaf-main life-main">
-      <div class="leaf-text" lang="${l}">
+      <div class="leaf-text" lang="${l}" id="lifePanel" role="tabpanel" aria-labelledby="lifeTab-${tab}">
         <h2 id="lifeTitle">${esc(title)}</h2>
-        ${sub ? `<p class="life-sub">${esc(sub)}</p>` : ""}
-        ${open2 ? `<p class="life-open">${esc(open2)}</p>` : ""}
-        ${paras.map((p) => `<h3 class="sub">${esc(p.head)}</h3><p>${esc(p.text)}</p>`).join("")}
-        <p class="life-end">${esc([end, curse].filter(Boolean).join(" "))}</p>
-        ${fates.length ? `<p class="life-fates">${esc(fates.join(" "))}</p>` : ""}
+        ${panel(state, l, T2)}
       </div>
     </div>
     <footer class="leaf-foot">
       <button type="button" class="ghost" data-act="copy">${T2("lifeCopy")}</button>
       <span class="ft">${numIn(l, state.rng.seed)}</span>
       <button type="button" class="ghost" data-act="save">${T2("lifeSave")}</button>
+      ${$("reborn")?.hidden === false ? `<button type="button" data-act="reborn">${T2("reborn")}</button>` : ""}
     </footer>`;
+    if (focusTab) leaf3.querySelector(`#lifeTab-${tab}`)?.focus();
   }
+  var showWay = (k, focus = true) => {
+    tab = k;
+    paint3(focus);
+  };
   function openLife(i = G.state.winner ?? Math.max(0, G.state.players.findIndex((p) => p.type === "human"))) {
     whose = i;
+    tab = "book";
     paint3();
     if (!dlg3.open) dlg3.showModal();
   }
@@ -6591,8 +7128,14 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
       whose = +b.dataset.who;
       return paint3();
     }
+    if (b.dataset.tab) return showWay(b.dataset.tab);
     const act = b.dataset.act;
     if (act === "close") return dlg3.close();
+    if (act === "skip") return showWay("book");
+    if (act === "reborn") {
+      dlg3.close();
+      return $("reborn").click();
+    }
     const text = lifeText2(G.state, whose);
     if (act === "copy") {
       try {
@@ -6611,6 +7154,13 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
   dlg3.addEventListener("click", (e) => {
     if (e.target === dlg3) dlg3.close();
   });
+  leaf3.addEventListener("keydown", (e) => {
+    if (!e.target.closest?.(".life-tabs")) return;
+    const k = TABS.indexOf(tab), to = { ArrowRight: k + 1, ArrowLeft: k - 1, Home: 0, End: TABS.length - 1 }[e.key];
+    if (to == null) return;
+    e.preventDefault();
+    showWay(TABS[(to + TABS.length) % TABS.length]);
+  });
 
   // src/main.js
   var PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
@@ -6628,7 +7178,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     G.face = dice;
     refreshRoll();
   };
-  async function rollDice(n) {
+  async function rollDice2(n) {
     const rng = G.state.rng;
     dieEls[1].hidden = n < 2;
     for (const d of dieEls.slice(0, n)) {
@@ -6755,7 +7305,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
       if (cardOpen() && diceFor(p) < 2) shut = closeCard();
     }
     release();
-    const dice = await rollDice(diceFor(p));
+    const dice = await rollDice2(diceFor(p));
     await shut;
     if (g3 !== G.gen) return;
     state.dice = dice;
@@ -6909,6 +7459,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     pump();
   }
   function fullCard(state, plan, idx) {
+    if (isAnimal(state)) return false;
     if (prefs.everyCard || plan.jump || plan.target === GOAL) return true;
     const p = state.players[idx], n = plan.target;
     if (HEAVEN[n]) return !p.life?.includes(n);
@@ -6973,6 +7524,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
   var look = lookOf(query.has("debug") ? query.get("look") : null);
   function age(instant = false) {
     const L2 = lens(G.state, null, look), to = Array.from({ length: TOP + 1 }, (_, n) => n ? wash(n, L2) : null);
+    document.getElementById("board")?.style.setProperty("--clear", String(clearOf(G.state)));
     for (let n = 1; n <= TOP; n++) labEls[n]?.classList.toggle("ahead", to[n].dim > 0);
     setDrone(G.state.last != null ? L2.droneStage : null);
     setShepard(G.state.last != null ? L2.lead : null, G.state.winner != null);
@@ -6990,7 +7542,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     const human = p.type === "human";
     $("roll").disabled = G.busy || state.over || !human;
     $("roll").textContent = human ? t("roll") : t("rolling", { name: pname(p) });
-    $("hint").textContent = state.over ? t("hintOver") : human ? t("hintHuman") : t("hintCpu");
+    $("hint").textContent = state.over ? t("hintOver") : isAnimal(state) ? t("animalHint") : human ? t("hintHuman") : t("hintCpu");
     if (G.deciding) drawDecide();
     showDice(state.dice?.length ? state.dice : [state.last || 6]);
     refreshRoll();
@@ -7000,6 +7552,12 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     renderLog();
     const w = state.winner, humans = state.players.filter((q2) => q2.type === "human");
     $("win").hidden = !state.over;
+    if (state.over) keepLives(state);
+    const reborn = !!(state.over && rebornRows(state));
+    if ($("reborn").hidden === reborn) {
+      $("reborn").hidden = $("rebornNote").hidden = !reborn;
+      refreshLife();
+    }
     if (w != null) {
       const wp = state.players[w];
       $("winTitle").textContent = t("winTitle", { name: pname(wp) });
@@ -7007,8 +7565,45 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     } else if (state.over) {
       const one = humans.length === 1 ? humans[0] : null;
       $("winTitle").textContent = one ? t("lifeTitle", { name: pname(one) }) : t("raceNone");
-      $("winText").textContent = one ? t(one.fell ? "fellText" : "diedText") : "";
+      $("winText").textContent = one ? t(one.fell ? "fellText" : one.death?.by === "ledger" ? "ledgerText" : "diedText") : "";
+      if (isAnimal(state)) {
+        const a = state.rules.animal, q2 = state.players[0];
+        $("winTitle").textContent = t("animalTitle", { name: pname(q2), animal: t("a_" + a.kind) });
+        $("winText").textContent = t(q2.earned ? "animalEarned" : a.round >= 2 ? "animalLastText" : "animalShortText");
+      }
     }
+  }
+  var soulKey = (p) => p.type !== "human" ? null : p.soul ?? (p.name ? nameKey(p.name) : null);
+  function keepLives(state) {
+    if (G.kept === state) return;
+    G.kept = state;
+    state.players.forEach((p, i) => {
+      const key = soulKey(p);
+      if (!key) return;
+      if (isAnimal(state)) {
+        const s = soulFor(key);
+        if (s?.animal) keepSoul(key, afterAnimal(s, !!p.earned));
+        return;
+      }
+      if (state.winner === i) keepSoul(key, null);
+      else {
+        const s = soulOf(state, i);
+        if (s) keepSoul(key, s);
+      }
+    });
+  }
+  function rebornRows(state) {
+    let any = false, animal = null;
+    const rows = state.players.map((p, i) => {
+      const key = soulKey(p), soul = endOf(state, i) && soulFor(key), born = soul && bornOf(soul);
+      if (!born) return { ...G.setup.rows[i] };
+      any = true;
+      const row2 = { name: "", type: "human", gender: "", born, soul: key, avoid: [pnameIn(p, "en"), ...soul.cast.map((c) => c.en)] };
+      if (soul.animal && !animal) animal = { row: { ...row2, born: null }, interlude: soul.animal };
+      return row2;
+    });
+    if (animal) return { rows: [animal.row], rules: animalRules(animal.interlude, G.setup.rules) };
+    return any ? { rows, rules: G.setup.rules } : null;
   }
   function renderSetup() {
     const setup = G.setup;
@@ -7080,7 +7675,8 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
   });
   var urlSeed = new URLSearchParams(location.search).get("seed");
   var nextSeed = urlSeed != null && /^\d+$/.test(urlSeed) ? +urlSeed >>> 0 : null;
-  function startGame() {
+  function startGame({ reborn = false, next: next2 = null } = {}) {
+    const born = next2 ?? (reborn && G.state?.over ? rebornRows(G.state) : null);
     G.gen++;
     clearTimeout(G.cpuTimer);
     if (G.humanRolled && firstLife()) lifeLived();
@@ -7100,7 +7696,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     clearLanded();
     if (S) fxClear();
     G.busy = false;
-    G.state = newState(nextSeed ?? freshSeed());
+    G.state = newState(nextSeed ?? freshSeed(), born?.rows, born?.rules);
     nextSeed = null;
     buildTokens();
     render();
@@ -7111,7 +7707,8 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     readSetup();
     startGame();
   });
-  $("again").addEventListener("click", startGame);
+  $("again").addEventListener("click", () => startGame());
+  $("reborn").addEventListener("click", () => startGame({ reborn: true }));
   $("readLife").addEventListener("click", () => openLife());
   var WHO2 = ["1", "cpu", "2", "3", "4"];
   var naming = null;
@@ -7395,6 +7992,14 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
         G.state.forceOmen = true;
         return true;
       },
+      // mp.die(form) makes the next turn's omen the death tier for the current player, in that form (accident, calamity or
+      // illness; by default the one their years would bring), planting the anger on 59 if they carry no debt (Phase 16)
+      die(form) {
+        const p = cur();
+        if (!carried(karmaOf(p)).length) this.plant(59, "strike");
+        G.state.forceDeath = FORMS.includes(form) ? form : deathFormOf(p.years ?? 0);
+        return G.state.forceDeath;
+      },
       // mp.dumpKarma(i) logs and returns player i's ledger: the three buckets, the vices added, the reckonings met, the door
       dumpKarma(i = G.state.turn) {
         const p = G.state.players[i], out = { karma: karmaOf(p), held: p.held ?? [], reckonings: p.reckonings ?? [], door: p.door ?? null };
@@ -7442,6 +8047,36 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
         return curseOf(G.state, G.state.turn)?.id ?? null;
       },
       // mp.siva() makes the next throw land on 110, where Śiva's snake takes the life down; false if no die reaches it
+      // mp.samskara() is what this viewer's named people have left their next lives (mp-samskara); mp.samskara(obj) replaces
+      // it, and mp.samskara(null) empties it
+      samskara(obj) {
+        if (obj !== void 0) setSoulStore(obj);
+        return soulStore();
+      },
+      // mp.animal(kind) starts an animal interlude (Phase 16) for the current person at once: a tortoise by default, in the
+      // house of their rival or friend from this life's cast; it returns the interlude
+      animal(kind = "tortoise") {
+        const p = cur(), c = castOf(G.state, G.state.turn, p.prior?.lives ?? 0) ?? {};
+        const cast2 = ["rival", "friend"].filter((w) => c[w]?.en).map((w) => ({ role: w, gender: c[w].gender, en: c[w].en, hi: c[w].hi }));
+        const interlude = { kind: KINDS.includes(kind) ? kind : "tortoise", master: masterOf(cast2), round: 1 };
+        startGame({ next: { rows: [{ name: "", type: "human", gender: p.gender, soul: soulKey(p) ?? void 0 }], rules: animalRules(interlude, G.setup.rules) } });
+        return interlude;
+      },
+      // mp.dream(l) is the account of a life two of the current person, as if their life ended now (of its years): a
+      // computer plays it out on the next seed. The game on the board is not touched.
+      dream(l = lang) {
+        const s = structuredClone(G.state), i = s.turn, p = s.players[i];
+        if (!endOf(s, i)) Object.assign(p, { dead: true, death: { by: "years" } });
+        s.over = true;
+        if (s.winner === i) s.winner = null;
+        const born = bornOf(soulOf(s, i));
+        if (!born) return null;
+        const t2 = createGame({ players: [{ name: "", alias: { en: "Ravi", hi: "रवि" }, type: "cpu", gender: "m", born }], rules: G.setup.rules, seed: s.rng.seed + 1 >>> 0 });
+        while (!t2.over) playTurn(t2);
+        const text = lifeText2(t2, 0, l);
+        console.log(text);
+        return text;
+      },
       siva() {
         const v = TOP - cur().pos;
         if (v < 1 || v > 6 || !canThrow()) return false;

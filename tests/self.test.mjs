@@ -43,7 +43,10 @@ test("a life ends when its years run past the span, only on earth, and says what
   for (let seed = 1; seed <= 400; seed++) {
     const s = live(seed), p = s.players[0];
     if (!p.dead) { assert.ok(s.winner === 0 || p.fell, `seed ${seed}`); continue; }
+    // a death by ledger (Phase 16) is the omen's, within the years: tests/karma.test.mjs
+    if (p.death?.by === "ledger") { assert.ok(p.years <= SPAN && s.log[0].k === "lDiedLedger", `seed ${seed}`); continue; }
     deaths++;
+    assert.equal(p.death.by, p.pos === 105 ? "door" : "years");
     // on earth, or since Phase 14 sitting at the door, which is earth too
     const door = p.pos === 105;
     assert.ok(p.years > SPAN && (p.pos <= 100 || door), `seed ${seed}`);

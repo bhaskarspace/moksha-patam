@@ -41,9 +41,16 @@ for (const { n, m } of MOMENTS) {
 const latin = s => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase().replace(/sh/g, "s").replace(/ee/g, "i").replace(/aa/g, "a").replace(/oo/g, "u");
 export const nameKey = s => (/\p{Script=Latin}/u.test(s) ? latin(s.trim()) : s.trim().normalize("NFC"));
 
-// Player i's cast for a life (the first, or the one after a fall from Brahma), or null when there are no names to give.
+// The Jātaka rule (REDESIGN.md Phase 16, docs/NARRATIVE.md §13): in a life after the first, the same souls return in
+// other roles. A name the last life's cast carried (p.prior.cast, src/engine/samskara.js) is offered first to the role
+// its old one turns into, never to the role it held: the friend of one life is the teacher of the next.
+export const RETURNS_AS = { friend: "teacher", teacher: "rival", rival: "friend", spouse: "friend", son: "teacher", daughter: "teacher" };
+
+// Player i's cast for a life (the first, or one after it), or null when there are no names to give.
 // Each named member is { gender, en, hi }, en null when the names ran out; everyone has `older`, how many years older
-// than the player they are (a child's is its gap after the marriage), and two draws for its fate.
+// than the player they are (a child's is its gap after the marriage), and two draws for its fate. A member who returns
+// from a life before also has before, the role they held then. Every draw is made whether a name returns or not, so the
+// rest of the cast is drawn as it would have been.
 export function castOf(state, i, life = 0) {
   const list = CAST.names;
   if (!list) return null;
@@ -53,10 +60,18 @@ export function castOf(state, i, life = 0) {
   const taken = new Set(state.players.flatMap(q => [q.name, q.alias?.en, q.alias?.hi]).filter(Boolean).map(nameKey));
   const pool = gd => [...list[gd], ...(list.either || [])].filter(([en, hi]) => !taken.has(nameKey(en)) && !taken.has(nameKey(hi)));
   const coin = () => (next(rng) < 0.5 ? "m" : "f"), span = (a, b) => a + Math.floor(next(rng) * (b - a + 1));
+  const carry = life > 0 ? p.prior?.cast ?? [] : [], used = new Set();
   const cast = { mother: { gender: "f", en: null, hi: null }, father: { gender: "m", en: null, hi: null } };
   // a member whose gender is seeded takes the other one when its own has no names left; a son or a spouse stays unnamed
   const draw = (who, gender, either = false) => {
     const u = next(rng);
+    const back = carry.find(c => RETURNS_AS[c.role] === who && !used.has(c) && (c.gender === gender || either) && !taken.has(nameKey(c.en)) && !taken.has(nameKey(c.hi)));
+    if (back) {
+      used.add(back);
+      [back.en, back.hi].forEach(x => taken.add(nameKey(x)));
+      cast[who] = { gender: back.gender, en: back.en, hi: back.hi, before: back.role };
+      return;
+    }
     let gd = gender, names = pool(gd);
     if (!names.length && either) names = pool((gd = gd === "m" ? "f" : "m"));
     const nm = names.length ? names[Math.floor(u * names.length)] : null;
@@ -106,6 +121,14 @@ export function introIn(cast, who, l) {
   return castFill((t[l] || t.en).replace("{n}", c[l] || c.en), { who: { gender: c.gender } });
 }
 
+// What the book says, after a member is introduced, of one who returns from a life before (Phase 16): "In a life before,
+// Tārā was the friend." Said only in the account, where Citragupta knows; the card never says it. Empty for anyone new.
+export function beforeIn(cast, who, l) {
+  const c = cast?.[who], t = CAST_WORDS.before, role = CAST_WORDS.was?.[c?.before];
+  if (!c?.en || !t || !role) return "";
+  return castFill((t[l] || t.en).replace("{n}", c[l] || c.en).replace("{role}", role[l] || role.en), { who: { gender: c.gender } });
+}
+
 // Whether moment m, told on player i's next landing, is where their life meets a member of the cast by name: the card
 // then says "Her name is …" at its end (src/render/card.js momentIn), and is worth opening whole (REDESIGN.md Phase 11).
 // The parents are met but never named, so they are not an introduction.
@@ -119,14 +142,14 @@ export function meetsNamed(state, i, m) {
 // For each entry of a life (yearsAlong, without the years a choice cost): the member its moment is about, whether this
 // is where the life meets them, who it had met before, and the cast of the life it is in.
 export function castAlong(state, i, along) {
-  // one life, so one cast: a second life's cast (castOf's third argument) waits for Phase 15
-  const cast = castOf(state, i, 0), met = new Set();
+  // one cast a life; a life after the first draws its own, with names from the last (Phase 16)
+  const life = state.players[i].prior?.lives ?? 0, cast = castOf(state, i, life), met = new Set();
   return along.map(e => {
     // a year sat out tells nothing, and nor does the square a reckoning sent the life back to (REDESIGN.md Phase 12)
     const m = e.via === "sit" || e.via === "reckon" ? null : momentOf(e.n, e.told).moment, about = m?.cast ?? null, before = new Set(met);
     const meets = !!about && !met.has(about) && m.introduces !== false;
     if (meets) met.add(about);
-    return { about, meets, before, cast, life: 0 };
+    return { about, meets, before, cast, life };
   });
 }
 

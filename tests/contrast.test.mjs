@@ -26,3 +26,12 @@ for (const [name, w] of [["full sepia", { sepia: 1, dim: 0 }], ["half sepia", { 
     }
   });
 }
+
+test("the fade at turya (Phase 16) is on the art alone: no label, card or token is in its rule", async () => {
+  const css = (await import("node:fs")).readFileSync(new URL("../src/styles.css", import.meta.url), "utf8");
+  const rules = [...css.matchAll(/([^{}]+)\{[^}]*var\(--clear/g)].map(m => m[1].replace(/\/\*[\s\S]*?\*\//g, "").trim());
+  assert.ok(rules.length >= 1);
+  for (const sel of rules.flatMap(r => r.split(",").map(x => x.trim()))) {
+    assert.ok(["#art", ".cell .pic"].includes(sel), `--clear is on ${sel}`);
+  }
+});

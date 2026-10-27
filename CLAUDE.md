@@ -17,7 +17,7 @@ single static `index.html` at https://codebpr.com/moksha-patam/
 - `docs/REFERENCE.md`: philosophy-to-mechanics mapping and the history of the board.
 - `docs/LANDSCAPE.md`: comparable games.
 
-**State:** Phases 0 to 15 have shipped. Phase 8 was Life State (REDESIGN.md §4): years lived are a clock of their own
+**State:** Phases 0 to 16 have shipped. Phase 8 was Life State (REDESIGN.md §4): years lived are a clock of their own
 (`src/engine/self.js`) that a snake never turns back, moments say their age through `{age}`, a life ends when its years
 pass `SPAN` (110), and the life account (`src/engine/account.js`, pure) chooses each join by how a moment relates to the
 last. Gunas, aims and the bhumika are in state and never shown as numbers. Phase 9 was Dice as currency: from 94
@@ -54,7 +54,12 @@ shipped: on the five ego tests (`ego` in `content/situations.json`: 49, 54, 55, 
 option throws the ego's die (`egoThrow`, a sequence of its own); the ego owns faces by the gunas (`egoFaces`), shown on
 the card before the choice, and on one of them the life takes the lower option, all of it. `p.witness` records what was
 chosen and taken; the account says a rebellion as its join, and a cast member who saw a situation (`witness`) returns
-knowing what the life did. Next is 16, Death and rebirth (REDESIGN.md Phases 16–20).
+knowing what the life did. Phase 16, Death and rebirth: the ledger's top tier kills (`p.death`: ledger, years or door;
+the form by age, never by the vice), penance is two years a weight and a weight-three debt no penance pays; the end of a
+life is read three ways, the book, the path and the mirror (`src/render/life.js`, `src/engine/mirror.js`); a named
+person's ended life is kept (`mp-samskara`, `src/engine/samskara.js`) and Be born again begins the next from it, which
+dreams of the last; a death by ledger is first born an animal (`rules.law = "animal"`, `src/engine/animal.js`). Play
+again starts clean. Next is 17, The laws (REDESIGN.md Phases 17–20).
 Phase 7 was The Exit (REDESIGN.md §4): Moksha is square 105 (`GOAL`), partway
 along the divine row, while the board still ends at 110 (`TOP`). Since Phase 12 nothing above the exit turns back: past 105 the
 heavens (106–110) are walked, and the throw that would pass `TOP` is the fall, which ends the life (`plan.fell`, `p.fell`;
@@ -103,6 +108,11 @@ illuminated frame (`frame.js`) and a bottom sheet below 768px (`sheet.js`).
   (lives that sat, years at the door, debts answered vs paid in penance, through the door, deaths at the door) and the
   curse closed by landing vs not; `--curse=off` draws no curse. Since Phase 15 also the ego's throws and rebellions a
   life, the lives that rebelled, and both by guna band; `--ego=off` throws no die, and gives back the numbers before it.
+  Since Phase 16 also deaths by cause (ledger, years on earth, years at the door) and the ledger's by age and form;
+  `--death=off` reports the death tier only, `--penance=N` is the years a unit of weight costs at the door (2), and
+  `--unpaid=N` the weight from which only the book answers a debt (3). `--lives=N` plays each seed as one soul's lives
+  instead (born of the last through `soulOf`/`bornOf`, a death by ledger's animal interlude between), and reports
+  liberation by life, lives per liberation, the rebirth rate and the interludes per hundred lives.
   Balance against the p95, the share over 100, liberation per life and lives per liberation.
 - `npm run smoke [-- --only=text]`: Playwright checks of the built page in a real browser (needs Chrome installed).
   `--only` runs just the checks whose names contain the text, e.g. `--only="Phase 6"`.
@@ -111,8 +121,10 @@ illuminated frame (`frame.js`) and a bottom sheet below 768px (`sheet.js`).
   languages, both genders, and two unnamed computers per seed). Compare a run against a worktree of `main` with
   `--root` to prove a change leaves the prose alone; `--cast=off` takes the cast's names away. `--tag` marks each game that
   went above the exit (`above`) or that the ledger touched (`karma`: a reckoning, a refusal, or a debt carried within a throw
-  of the door), or whose account tells the door (`door`: a refusal, or a fall carrying a debt), or that carries a curse (`curse`), or in which the ego threw or a cast return told what it witnessed (`witness`);
-  every untagged account must match. With `--curse=off` the curse is never drawn.
+  of the door), or whose account tells the door (`door`: a refusal, or a fall carrying a debt), or that carries a curse (`curse`), or in which the ego threw or a cast return told what it witnessed (`witness`), or in which the death tier came or someone sat at the door (`death`), or whose mirror asks first about a rebellion (`mirror`, which never changes the account);
+  every untagged account must match. With `--curse=off` the curse is never drawn. `--lives=2` also hashes each named life's
+  next one (`rebirth`), and before it the animal interlude a death by ledger is owed (`animal`): a first life never reads
+  saṃskāra, so every line without `rebirth` must match.
 - `npm run perf [--rate=4] [--query=quality=low]`: frame times on a throttled phone-sized page. Reports only;
   compare against a run on `main`.
 - `node tools/icons.mjs`: regenerates `icons/`. Only needed when the emblem changes.
@@ -127,7 +139,10 @@ illuminated frame (`frame.js`) and a bottom sheet below 768px (`sheet.js`).
   in `src/main.js`) and extend them; don't remove any. Phase 12 adds `mp.fire()` (the next turn's omen fires on the
   current player's oldest debt, whatever is rolled), `mp.dumpKarma(i)` and `mp.plant(n, id)`. Phase 13 adds `mp.look(x)`. Phase 14 adds `mp.door()` (the current player at 105,
   refused, a sannyāsin), `mp.examine(i)`, `mp.curse(id)` and `mp.siva()` (the next throw lands on 110). Phase 15 adds `mp.ego(faces)` (the faces the ego owns on its next
-  throw: `mp.ego()` all six, so the life rebels; `mp.ego([])` none).
+  throw: `mp.ego()` all six, so the life rebels; `mp.ego([])` none). Phase 16 adds `mp.die(form)` (the next turn's omen is the
+  death tier for the current player, in that form: accident, calamity or illness), `mp.samskara(obj?)` (the saṃskāra store:
+  read, replace, or `null` to empty), `mp.dream(l)` (the account of a life two born of the current life, played by a computer)
+  and `mp.animal(kind)` (an animal interlude for the current person, at once: tortoise, jackal, mongoose, cat or lion).
 - No physics on any card. "Debt" is the only word a player sees for a seed, and the ledger's buckets, weights, fuses
   and chances are never shown as numbers. The 1 is the threshold face and the 6 is the world's (`tests/faces.test.mjs`).
 - Never use `unshift` on anything but the log: `tools/golden.mjs` records every `unshift` of an entry as logged.

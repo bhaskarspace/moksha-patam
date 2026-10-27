@@ -6,6 +6,8 @@
 //   mute    no sound
 //   theme   "light" | "dark": the page around the board. Light is the cloth and the default, whatever the device
 //           prefers (REDESIGN.md Phase 13); dark is a setting. The board itself is painted cloth in both.
+import { storeOf, storeWith } from "./engine/samskara.js";
+
 const KEY = "mp-prefs";
 const DEFAULTS = { depth: "school", everyCard: false, both: false, mute: false, theme: "light" };
 
@@ -62,4 +64,14 @@ export const openFirst = d => { opened = d; write(FIRST, d); };
 export const knowsWho = id => who.has(id);
 export const meetWho = id => { if (!id || who.has(id)) return; who.add(id); write(WHO, [...who]); };
 // mp.first(): this page treats the viewer as new from here on, as ?first does
+// ---- Saṃskāra (REDESIGN.md Phase 16, src/engine/samskara.js) ----
+// What a named person's ended life leaves the next, kept under the name as it is compared (nameKey). ?first neither reads
+// nor writes it, so a first-time player watched on a used device is born fresh.
+const SAMSKARA = "mp-samskara";
+export const soulStore = () => storeOf(read(SAMSKARA, null));
+export const soulFor = key => (key && soulStore().souls[key]) || null;
+// put key's record, or take it away with null
+export const keepSoul = (key, soul) => write(SAMSKARA, storeWith(soulStore(), key, soul));
+export const setSoulStore = raw => write(SAMSKARA, storeOf(raw));
+
 export const beFirst = () => { lives = 0; opened = "moment"; who = new Set(); };

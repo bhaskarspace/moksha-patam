@@ -54,6 +54,12 @@ export function lens(state, i = null, look = null) {
 }
 
 const clamp = x => Math.max(0, Math.min(1, x));
+// The board losing solidity (REDESIGN.md Phase 16): at the highest bhūmikās the painted things on the cloth, the snakes,
+// the ladders and the vignettes, grow translucent, so turyā is seen and never named. 0 below the fifth bhūmikā (index 4),
+// half at the sixth, whole at turyā; the highest any player at the table is in now. Paint only: the ground and every
+// label stay as they are (styles.css #art, .cell .pic), so no label's contrast can change.
+export const CLEAR_FROM = 4;
+export const clearOf = state => clamp(Math.max(0, ...state.players.map(p => (p.bhumika ?? -1) - CLEAR_FROM)) / 2);
 // How aged square n looks through a lens, as { sepia, dim } from 0 to 1. The divine row never fades and
 // stays fully dim until someone reaches it. Ahead, the next years are barely dimmed and the far future most.
 export function wash(n, { fadeAge, dimAge, lead, look = null, begun = true }) {

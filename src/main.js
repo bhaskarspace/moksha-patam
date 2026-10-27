@@ -2,17 +2,19 @@
 import { GOAL, TOP, ROWS, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, STR, squareOf } from "./content.js";
 import { lang, urlLang, setLangValue, L, num, t, tIn } from "./i18n.js";
 import { G, defaultSetup, pname, pnameIn, cur, newState, loadSelf, saveSelf } from "./state.js";
-import { prefs, setPref, applyTheme, lifeLived, beFirst, freshViewer, firstLife } from "./prefs.js";
+import { prefs, setPref, applyTheme, lifeLived, beFirst, freshViewer, firstLife, soulStore, soulFor, keepSoul, setSoulStore } from "./prefs.js";
 import { $, COLORS, esc, reduced, sleep, quality, forcedQuality, setQuality } from "./ui.js";
 import { die, makeRng, freshSeed } from "./rng.js";
-import { TUMBLE, planTurn, resolveChoice, endTurn, addLog, diceFor, movesFor, moveFor, gone, canSit } from "./engine/turn.js";
+import { TUMBLE, planTurn, resolveChoice, endTurn, addLog, diceFor, movesFor, moveFor, gone, canSit, createGame, playTurn } from "./engine/turn.js";
 import { optionsFor, choiceFor, situationAt, momentOf } from "./engine/qbn.js";
 import { S, colRow, labEls, buildCells, draw, drawAge, fxClear, focusSquare } from "./render/board.js";
-import { lens, wash, stageOf, lookOf } from "./render/age.js";
+import { lens, wash, stageOf, lookOf, clearOf } from "./render/age.js";
 import { ageStep } from "./engine/self.js";
-import { karmaOf, carried, plantOf, debtKey, refusalOf, examineOf } from "./engine/karma.js";
+import { karmaOf, carried, plantOf, debtKey, refusalOf, examineOf, FORMS, deathFormOf } from "./engine/karma.js";
 import { curseOf } from "./engine/curse.js";
-import { castOf, meetsNamed } from "./engine/cast.js";
+import { castOf, meetsNamed, nameKey } from "./engine/cast.js";
+import { soulOf, bornOf, endOf } from "./engine/samskara.js";
+import { isAnimal, animalRules, afterAnimal, KINDS, masterOf } from "./engine/animal.js";
 import { frame, pullBack, hold, release } from "./render/camera.js";
 import { spriteURL } from "./render/sprites.js";
 import { tokenEls, buildTokens, place, retrigger, climb, swallow, animate } from "./render/tokens.js";
@@ -319,6 +321,8 @@ async function takeTurn() {
 // Whether a person's landing opens the full card: everything that changes a life, or every landing when the reader
 // has asked for that. plan has not been ended yet, so p.life is the life before this landing.
 function fullCard(state, plan, idx) {
+  // an animal's landings are the line under the board alone: the squares' moments are a person's (Phase 16)
+  if (isAnimal(state)) return false;
   if (prefs.everyCard || plan.jump || plan.target === GOAL) return true;
   const p = state.players[idx], n = plan.target;
   if (HEAVEN[n]) return !p.life?.includes(n);
@@ -381,6 +385,7 @@ const query = new URLSearchParams(location.search);
 let look = lookOf(query.has("debug") ? query.get("look") : null);
 function age(instant = false) {
   const L = lens(G.state, null, look), to = Array.from({ length: TOP + 1 }, (_, n) => (n ? wash(n, L) : null));
+  document.getElementById("board")?.style.setProperty("--clear", String(clearOf(G.state)));
   for (let n = 1; n <= TOP; n++) labEls[n]?.classList.toggle("ahead", to[n].dim > 0);
   setDrone(G.state.last != null ? L.droneStage : null);
   setShepard(G.state.last != null ? L.lead : null, G.state.winner != null);
@@ -398,7 +403,7 @@ function render() {
   const human = p.type === "human";
   $("roll").disabled = G.busy || state.over || !human;
   $("roll").textContent = human ? t("roll") : t("rolling", { name: pname(p) });
-  $("hint").textContent = state.over ? t("hintOver") : human ? t("hintHuman") : t("hintCpu");
+  $("hint").textContent = state.over ? t("hintOver") : isAnimal(state) ? t("animalHint") : human ? t("hintHuman") : t("hintCpu");
   if (G.deciding) drawDecide();
   showDice(state.dice?.length ? state.dice : [state.last || 6]);
   refreshRoll();
@@ -410,6 +415,10 @@ function render() {
 
   const w = state.winner, humans = state.players.filter(q => q.type === "human");
   $("win").hidden = !state.over;
+  if (state.over) keepLives(state);
+  const reborn = !!(state.over && rebornRows(state));
+  // the book's footer offers it too, so an open book is repainted when it comes or goes
+  if ($("reborn").hidden === reborn) { $("reborn").hidden = $("rebornNote").hidden = !reborn; refreshLife(); }
   if (w != null) {
     const wp = state.players[w];
     $("winTitle").textContent = t("winTitle", { name: pname(wp) });
@@ -420,8 +429,49 @@ function render() {
     // Only a game of several people has a race to report.
     const one = humans.length === 1 ? humans[0] : null;
     $("winTitle").textContent = one ? t("lifeTitle", { name: pname(one) }) : t("raceNone");
-    $("winText").textContent = one ? t(one.fell ? "fellText" : "diedText") : "";
+    $("winText").textContent = one ? t(one.fell ? "fellText" : one.death?.by === "ledger" ? "ledgerText" : "diedText") : "";
+    // an animal interlude (Phase 16): its own title, and whether the next birth is human
+    if (isAnimal(state)) {
+      const a = state.rules.animal, q = state.players[0];
+      $("winTitle").textContent = t("animalTitle", { name: pname(q), animal: t("a_" + a.kind) });
+      $("winText").textContent = t(q.earned ? "animalEarned" : a.round >= 2 ? "animalLastText" : "animalShortText");
+    }
   }
+}
+
+// ---- Saṃskāra (REDESIGN.md Phase 16) ----
+// The key a person's saṃskāra is kept under: the name they typed, or, for a life born again, the one it carries. A
+// computer, or a person left unnamed, keeps none.
+const soulKey = p => (p.type !== "human" ? null : p.soul ?? (p.name ? nameKey(p.name) : null));
+// When a game is over, each named person's ended life is kept for the next, and a liberated one is let go. Once a game.
+function keepLives(state) {
+  if (G.kept === state) return;
+  G.kept = state;
+  state.players.forEach((p, i) => {
+    const key = soulKey(p);
+    if (!key) return;
+    // an interlude ended (src/engine/animal.js): the soul it was owed to goes on, human or an animal once more
+    if (isAnimal(state)) { const s = soulFor(key); if (s?.animal) keepSoul(key, afterAnimal(s, !!p.earned)); return; }
+    if (state.winner === i) keepSoul(key, null);
+    else { const s = soulOf(state, i); if (s) keepSoul(key, s); }
+  });
+}
+// The rows of the next game when it is born again: a person whose life here ended and was kept is born from it, not
+// called by the last name nor by any the cast carries; everyone else sits as the setup has them. A person owed an animal
+// interlude (src/engine/animal.js) is born into it alone, before anyone else's next life. { rows, rules }, or null when
+// nobody is born again.
+function rebornRows(state) {
+  let any = false, animal = null;
+  const rows = state.players.map((p, i) => {
+    const key = soulKey(p), soul = endOf(state, i) && soulFor(key), born = soul && bornOf(soul);
+    if (!born) return { ...G.setup.rows[i] };
+    any = true;
+    const row = { name: "", type: "human", gender: "", born, soul: key, avoid: [pnameIn(p, "en"), ...soul.cast.map(c => c.en)] };
+    if (soul.animal && !animal) animal = { row: { ...row, born: null }, interlude: soul.animal };
+    return row;
+  });
+  if (animal) return { rows: [animal.row], rules: animalRules(animal.interlude, G.setup.rules) };
+  return any ? { rows, rules: G.setup.rules } : null;
 }
 
 // ---- Setup panel ----
@@ -495,7 +545,10 @@ $("count").addEventListener("click", e => {
 const urlSeed = new URLSearchParams(location.search).get("seed");
 let nextSeed = urlSeed != null && /^\d+$/.test(urlSeed) ? +urlSeed >>> 0 : null;
 
-function startGame() {
+// Play again starts clean; Be born again ({ reborn: true }) begins each kept person's next life (Phase 16), and next
+// ({ rows, rules }) is a game given outright (mp.animal).
+function startGame({ reborn = false, next = null } = {}) {
+  const born = next ?? (reborn && G.state?.over ? rebornRows(G.state) : null);
   G.gen++;
   clearTimeout(G.cpuTimer);
   // a game left after a roll was a life, as one that ended is (prefs.js)
@@ -509,7 +562,7 @@ function startGame() {
   clearLanded();
   if (S) fxClear();
   G.busy = false;
-  G.state = newState(nextSeed ?? freshSeed());
+  G.state = newState(nextSeed ?? freshSeed(), born?.rows, born?.rules);
   nextSeed = null;
   buildTokens();
   render();
@@ -517,7 +570,8 @@ function startGame() {
   queueCpu();
 }
 $("newGame").addEventListener("click", () => { readSetup(); startGame(); });
-$("again").addEventListener("click", startGame);
+$("again").addEventListener("click", () => startGame());
+$("reborn").addEventListener("click", () => startGame({ reborn: true }));
 $("readLife").addEventListener("click", () => openLife());
 
 // ---- The naming, before the board (docs/NARRATIVE.md §3) ----
@@ -661,7 +715,8 @@ new ResizeObserver(draw).observe($("cells"));
 // ?debug exposes helpers for testing: mp.jump(n) moves the current player, mp.roll(v) rolls a fixed number
 // (mp.roll(a, b) fixes both endgame dice, and mp.pick(v) moves by one of them, 0 to sit),
 // mp.seed() reads the current game's seed and mp.seed(n) starts a new game with that seed. Phase 14 adds mp.door(),
-// mp.examine(), mp.curse(id) and mp.siva(). Phase 15 adds mp.ego(faces).
+// mp.examine(), mp.curse(id) and mp.siva(). Phase 15 adds mp.ego(faces). Phase 16 adds mp.die(form), mp.samskara(obj),
+// mp.dream() and mp.animal(kind).
 if (new URLSearchParams(location.search).has("debug")) {
   window.mp = {
     jump(n) { cur().pos = n; render(); age(true); },
@@ -729,6 +784,14 @@ if (new URLSearchParams(location.search).has("debug")) {
     // mp.fire() makes the next turn's omen fire on whatever is rolled, on the current player's oldest ripe debt
     // (ripening the oldest held one if nothing is ripe yet); false when the ledger is empty (REDESIGN.md Phase 12)
     fire() { const k = karmaOf(cur()); if (!carried(k).length) return false; G.state.forceOmen = true; return true; },
+    // mp.die(form) makes the next turn's omen the death tier for the current player, in that form (accident, calamity or
+    // illness; by default the one their years would bring), planting the anger on 59 if they carry no debt (Phase 16)
+    die(form) {
+      const p = cur();
+      if (!carried(karmaOf(p)).length) this.plant(59, "strike");
+      G.state.forceDeath = FORMS.includes(form) ? form : deathFormOf(p.years ?? 0);
+      return G.state.forceDeath;
+    },
     // mp.dumpKarma(i) logs and returns player i's ledger: the three buckets, the vices added, the reckonings met, the door
     dumpKarma(i = G.state.turn) {
       const p = G.state.players[i], out = { karma: karmaOf(p), held: p.held ?? [], reckonings: p.reckonings ?? [], door: p.door ?? null };
@@ -756,6 +819,32 @@ if (new URLSearchParams(location.search).has("debug")) {
     // mp.curse(id) chooses the current life's curse (content/curses.json), before or after it is spoken
     curse(id) { const p = cur(); if (id) { p.curseId = id; if (p.curse) p.curse = { ...p.curse, id }; } return curseOf(G.state, G.state.turn)?.id ?? null; },
     // mp.siva() makes the next throw land on 110, where Śiva's snake takes the life down; false if no die reaches it
+    // mp.samskara() is what this viewer's named people have left their next lives (mp-samskara); mp.samskara(obj) replaces
+    // it, and mp.samskara(null) empties it
+    samskara(obj) { if (obj !== undefined) setSoulStore(obj); return soulStore(); },
+    // mp.animal(kind) starts an animal interlude (Phase 16) for the current person at once: a tortoise by default, in the
+    // house of their rival or friend from this life's cast; it returns the interlude
+    animal(kind = "tortoise") {
+      const p = cur(), c = castOf(G.state, G.state.turn, p.prior?.lives ?? 0) ?? {};
+      const cast = ["rival", "friend"].filter(w => c[w]?.en).map(w => ({ role: w, gender: c[w].gender, en: c[w].en, hi: c[w].hi }));
+      const interlude = { kind: KINDS.includes(kind) ? kind : "tortoise", master: masterOf(cast), round: 1 };
+      startGame({ next: { rows: [{ name: "", type: "human", gender: p.gender, soul: soulKey(p) ?? undefined }], rules: animalRules(interlude, G.setup.rules) } });
+      return interlude;
+    },
+    // mp.dream(l) is the account of a life two of the current person, as if their life ended now (of its years): a
+    // computer plays it out on the next seed. The game on the board is not touched.
+    dream(l = lang) {
+      const s = structuredClone(G.state), i = s.turn, p = s.players[i];
+      if (!endOf(s, i)) Object.assign(p, { dead: true, death: { by: "years" } });
+      s.over = true; if (s.winner === i) s.winner = null;
+      const born = bornOf(soulOf(s, i));
+      if (!born) return null;
+      const t2 = createGame({ players: [{ name: "", alias: { en: "Ravi", hi: "रवि" }, type: "cpu", gender: "m", born }], rules: G.setup.rules, seed: (s.rng.seed + 1) >>> 0 });
+      while (!t2.over) playTurn(t2);
+      const text = lifeText(t2, 0, l);
+      console.log(text);
+      return text;
+    },
     siva() { const v = TOP - cur().pos; if (v < 1 || v > 6 || !canThrow()) return false; G.forcedRoll = v; return v; },
   };
 }

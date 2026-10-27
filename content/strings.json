@@ -161,6 +161,51 @@
       "lifeCopied": "Copied",
       "lifeSave": "Download",
       "lifeWhose": "Whose life",
+      "lifeDream": "{name} dreams, some nights, of a {man|woman|person} named {prev} who {dream}.",
+      "lifeDreamNone": "{name} dreams, some nights, of a {man|woman|person} named {prev}, and wakes before anything happens.",
+      "lifeForgot": "{forgot}, for no reason anyone can name.",
+      "debtBefore": "{debt} in a life before",
+      "reborn": "Be born again",
+      "rebornNote": "The next life carries this one, half-remembered.",
+      "a_tortoise": "tortoise",
+      "a_jackal": "jackal",
+      "a_mongoose": "mongoose",
+      "a_cat": "cat",
+      "a_lion": "lion",
+      "ao_tortoise": "tortoise",
+      "ao_jackal": "jackal",
+      "ao_mongoose": "mongoose",
+      "ao_cat": "cat",
+      "ao_lion": "lion",
+      "animalTitle": "{name}, the {animal}",
+      "animalOpen": "{name} was born a {animal} this time, in {master}'s house.",
+      "animalOpenNone": "{name} was born a {animal} this time, at the edge of a village.",
+      "animalHead": "Among the animals",
+      "animalOwn": "{name} knows this story without being told.",
+      "animalEndHuman": "{name} reached the edge of the forest in time, and the next birth is human.",
+      "animalEndShort": "The seasons turned before {name} reached the edge of the forest, and the next birth is a {animal}'s again.",
+      "animalEndLast": "The seasons turned before {name} reached the edge of the forest; the next birth is human all the same.",
+      "animalDream": "Some nights {name} dreams of being a {animal}.",
+      "animalEarned": "The next birth is human.",
+      "animalShortText": "Not this time. The next birth is an animal's again.",
+      "animalLastText": "Not this time; the next birth is human all the same.",
+      "animalHint": "An animal's life: reach the edge of the forest before the seasons turn.",
+      "lifeTabs": "The life, three ways",
+      "lifeBook": "The book",
+      "lifePath": "The path",
+      "lifeMirror": "The mirror",
+      "citragupta": "Citragupta reads from the book.",
+      "pathSnake": "down from {sq}",
+      "pathLadder": "up from {sq}",
+      "pathReckon": "sent back by a debt",
+      "pathSat": "a year sat out",
+      "pathSatN": "{n} years sat out",
+      "pathStay": "a year more there",
+      "pathStayN": "{n} more years there",
+      "pathWin": "Through the door",
+      "pathFell": "The fall",
+      "pathDied": "Death",
+      "mirrorSkip": "Back to the book",
       "lPassed": "Passed:",
       "aboveExit": "Moksha is behind you now, on {n}. Nothing up here turns back: these realms are walked, and the throw past {top} is the fall.",
       "bornAgain": "{name} is born again",
@@ -271,11 +316,27 @@
       "examPenance": "The same question, and the book has no more to say. Another year at the door, in penance.",
       "examPaid": "With this year it is paid: the debt of {debt}.",
       "examOwing": "It is not yet paid: the debt of {debt}.",
+      "lExamNever": "{name} sat another year at the door; no penance pays the debt from square {src}.",
+      "examFailNever": "The answer is {a}. Citragupta turns the pages, and it is not in the book. The year passes at the door.",
+      "examAgainNever": "The same question, and the book has no more to say. Another year at the door.",
+      "examNever": "No penance pays this one: the debt of {debt}. The door stays shut while it is owed.",
+      "examNeverOn": "{name} may sit on here all the same, a year at a time, or throw on into the heavens.",
       "doorOpens": "Nothing is owed. The door opens.",
       "doorSit": "{name} may sit here, a year at a time, and be asked; or throw on into the heavens.",
       "doorThrough": "{name} comes to the door, and it opens.",
       "doorDied": "{name}'s years ran out at the door, still owing {debts}.",
-      "lifeEndDoor": "{name}'s years ran out at {age}, sitting at the door, {carry}."
+      "lifeEndDoor": "{name}'s years ran out at {age}, sitting at the door, {carry}.",
+      "lDiedLedger": "{name} died at {age}, on square {pos}.",
+      "lAnimalHuman": "{name} reaches the edge of the forest: the next birth is human.",
+      "lAnimalShort": "The seasons turn, and {name} is still in the forest.",
+      "reckonClose": "The six lands, and this time the floor does not open. It closes.",
+      "reckonDies": "{name} dies at {age}, {form}.",
+      "deathAccident": "when the roof that had leaked for years came down one night in the rains",
+      "deathCalamity": "in a bad year, when the rains did not come and the grain ran out",
+      "deathIllness": "of the bad chest, after a winter that did not end",
+      "lifeOpenLedger": "{name} died at {age}.",
+      "lifeEndLedger": "{name} died at {age}, {form}, {carry}.",
+      "ledgerText": "A debt came due that the life could not pay. The life is written down."
     },
     "hi": {
       "title": "मोक्ष पटम",
@@ -411,6 +472,51 @@
       "lifeCopied": "कॉपी हो गया",
       "lifeSave": "डाउनलोड",
       "lifeWhose": "किसका जीवन",
+      "lifeDream": "{name} को कभी-कभी रात में एक {आदमी|औरत|इंसान} का सपना आता है, {prev} नाम {का|की|का}, {dream}।",
+      "lifeDreamNone": "{name} को कभी-कभी रात में एक {आदमी|औरत|इंसान} का सपना आता है, {prev} नाम {का|की|का}, और कुछ होने से पहले ही आँख खुल जाती है।",
+      "lifeForgot": "{forgot}, और क्यों, यह कोई नहीं बता सकता।",
+      "debtBefore": "{debt}, जो किसी पिछले जीवन से चला आया",
+      "reborn": "फिर जन्म लें",
+      "rebornNote": "अगला जीवन इसे साथ ले जाता है, आधा याद, आधा भूला।",
+      "a_tortoise": "कछुआ",
+      "a_jackal": "सियार",
+      "a_mongoose": "नेवला",
+      "a_cat": "बिल्ली",
+      "a_lion": "शेर",
+      "ao_tortoise": "कछुए",
+      "ao_jackal": "सियार",
+      "ao_mongoose": "नेवले",
+      "ao_cat": "बिल्ली",
+      "ao_lion": "शेर",
+      "animalTitle": "{animal} {name}",
+      "animalOpen": "{name} का जन्म इस बार {animalO} के रूप में हुआ, {master} के घर में।",
+      "animalOpenNone": "{name} का जन्म इस बार {animalO} के रूप में हुआ, एक गाँव के किनारे।",
+      "animalHead": "पशुओं के बीच",
+      "animalOwn": "{name} को यह कहानी बिना सुनाए ही मालूम है।",
+      "animalEndHuman": "{name} के लिए जंगल का किनारा समय रहते आ गया, और अगला जन्म मनुष्य का है।",
+      "animalEndShort": "{name} के जंगल के किनारे तक पहुँचने से पहले ही मौसम बदल गए, और अगला जन्म फिर {animalO} का है।",
+      "animalEndLast": "{name} के जंगल के किनारे तक पहुँचने से पहले ही मौसम बदल गए; फिर भी अगला जन्म मनुष्य का है।",
+      "animalDream": "कुछ रातों को {name} सपना {देखता|देखती} है कि वह एक {animal} है।",
+      "animalEarned": "अगला जन्म मनुष्य का है।",
+      "animalShortText": "इस बार नहीं। अगला जन्म फिर एक पशु का है।",
+      "animalLastText": "इस बार नहीं; फिर भी अगला जन्म मनुष्य का है।",
+      "animalHint": "एक पशु का जीवन: मौसम बदलने से पहले जंगल के किनारे तक पहुँचें।",
+      "lifeTabs": "जीवन, तीन तरह से",
+      "lifeBook": "बही",
+      "lifePath": "राह",
+      "lifeMirror": "दर्पण",
+      "citragupta": "चित्रगुप्त बही से पढ़ते हैं।",
+      "pathSnake": "{sq} से नीचे",
+      "pathLadder": "{sq} से ऊपर",
+      "pathReckon": "एक क़र्ज़ ने वापस भेजा",
+      "pathSat": "एक बरस बैठकर बीता",
+      "pathSatN": "{n} बरस बैठकर बीते",
+      "pathStay": "वहीं एक बरस और",
+      "pathStayN": "वहीं {n} बरस और",
+      "pathWin": "द्वार के पार",
+      "pathFell": "पतन",
+      "pathDied": "मृत्यु",
+      "mirrorSkip": "बही पर लौटें",
       "lPassed": "रास्ते में:",
       "aboveExit": "मोक्ष अब पीछे छूट गया, {n} पर। यहाँ ऊपर से कुछ नहीं लौटता: इन लोकों में आगे ही चलना है, और {top} के पार का दाँव पतन है।",
       "bornAgain": "{name} का फिर से जन्म हुआ",
@@ -521,11 +627,27 @@
       "examPenance": "वही प्रश्न, और बही में कहने को कुछ और नहीं। द्वार पर एक और बरस, प्रायश्चित में।",
       "examPaid": "इस बरस के साथ क़र्ज़ चुक गया: {debt}।",
       "examOwing": "क़र्ज़ अभी चुका नहीं: {debt}।",
+      "lExamNever": "{name} ने द्वार पर एक और बरस बिताया; खाना {src} का क़र्ज़ किसी प्रायश्चित से नहीं चुकता।",
+      "examFailNever": "उत्तर है {a}। चित्रगुप्त पन्ने पलटते हैं, और वह बही में नहीं है। बरस द्वार पर बीतता है।",
+      "examAgainNever": "वही प्रश्न, और बही में कहने को कुछ और नहीं। द्वार पर एक और बरस।",
+      "examNever": "यह क़र्ज़ किसी प्रायश्चित से नहीं चुकता: {debt}। जब तक यह बाक़ी है, द्वार बंद रहेगा।",
+      "examNeverOn": "{name} फिर भी यहाँ एक-एक बरस {बैठा रह सकता|बैठी रह सकती} है, या दाँव फेंककर आगे स्वर्गों में जा {सकता|सकती} है।",
       "doorOpens": "कुछ बाक़ी नहीं। द्वार खुल जाता है।",
       "doorSit": "{name} यहाँ एक-एक बरस बैठ {सकता|सकती} है और प्रश्न सुन {सकता|सकती} है; या दाँव फेंककर आगे स्वर्गों में जा {सकता|सकती} है।",
       "doorThrough": "{name} द्वार तक {आया|आई}, और वह खुल गया।",
       "doorDied": "{name} के बरस द्वार पर ही पूरे हो गए, {debts} अब भी बाक़ी थे।",
-      "lifeEndDoor": "{name} के बरस {age} पर पूरे हुए, द्वार पर बैठे-बैठे, {carry}।"
+      "lifeEndDoor": "{name} के बरस {age} पर पूरे हुए, द्वार पर बैठे-बैठे, {carry}।",
+      "lDiedLedger": "{name} {age} बरस की आयु में, खाना {pos} पर, {चल बसा|चल बसी}।",
+      "lAnimalHuman": "{name} जंगल के किनारे तक {आ पहुँचा|आ पहुँची}: अगला जन्म मनुष्य का है।",
+      "lAnimalShort": "मौसम बदल गए, और {name} अब भी जंगल में है।",
+      "reckonClose": "छक्का पड़ता है, और इस बार ज़मीन खिसकती नहीं। वह लौटती ही नहीं।",
+      "reckonDies": "{name} {age} बरस पर {चल बसा|चल बसी}, {form}।",
+      "deathAccident": "जब बरसों से टपकती छत बरसात की एक रात बैठ गई",
+      "deathCalamity": "एक बुरे बरस में, जब बारिश नहीं आई और अनाज ख़त्म हो गया",
+      "deathIllness": "छाती की उसी तकलीफ़ से, एक ऐसी सर्दी के बाद जो ख़त्म ही नहीं हुई",
+      "lifeOpenLedger": "{name} {age} बरस पर {चल बसा|चल बसी}।",
+      "lifeEndLedger": "{name} {age} बरस पर {चल बसा|चल बसी}, {form}, {carry}।",
+      "ledgerText": "एक ऐसा क़र्ज़ सामने आया जो यह जीवन चुका नहीं सका। जीवन लिखा जा चुका है।"
     }
   },
   "JOINS": {
@@ -606,27 +728,35 @@
     },
     "reckon": {
       "en": "At {age}, on a six, the floor opened: ",
-      "hi": "{age} बरस पर, एक छक्के पर, ज़मीन खिसकी: "
+      "hi": "{age} बरस की उम्र में, एक छक्के पर, ज़मीन खिसकी: "
+    },
+    "reckonDeath": {
+      "en": "At {age}, on a six, the floor closed: ",
+      "hi": "{age} बरस की उम्र में, एक छक्के पर, ज़मीन फिर नहीं लौटी: "
     },
     "door": {
       "en": "At {age}, Moksha was reached, and ",
-      "hi": "{age} बरस पर मोक्ष तक पहुँचना हुआ, और "
+      "hi": "{age} बरस की उम्र में मोक्ष तक पहुँचना हुआ, और "
     },
     "examPass": {
       "en": "At {age}, at the door, {name} was asked: {q} The book had the answer: at {answer}, {name} {answered}.",
-      "hi": "{age} बरस पर, द्वार पर, {name} से पूछा गया: {q} बही में उत्तर था: {answer} बरस पर {name} {answered}।"
+      "hi": "{age} बरस की उम्र में, द्वार पर, {name} से पूछा गया: {q} बही में उत्तर था: {answer} बरस की उम्र में {name} {answered}।"
     },
     "examFail": {
       "en": "At {age}, at the door, {name} was asked: {q} The book had no answer, and {name} sat on there in penance for {debt}.",
-      "hi": "{age} बरस पर, द्वार पर, {name} से पूछा गया: {q} बही में कोई उत्तर नहीं था, और {name} प्रायश्चित में वहीं {बैठा रहा|बैठी रही}: {debt}।"
+      "hi": "{age} बरस की उम्र में, द्वार पर, {name} से पूछा गया: {q} बही में कोई उत्तर नहीं था, और {name} प्रायश्चित में वहीं {बैठा रहा|बैठी रही}: {debt}।"
     },
     "examFailPaid": {
       "en": "At {age}, at the door, {name} was asked: {q} The book had no answer, and the year spent there paid for {debt}.",
-      "hi": "{age} बरस पर, द्वार पर, {name} से पूछा गया: {q} बही में कोई उत्तर नहीं था, और वहाँ बीते बरस ने यह क़र्ज़ चुका दिया: {debt}।"
+      "hi": "{age} बरस की उम्र में, द्वार पर, {name} से पूछा गया: {q} बही में कोई उत्तर नहीं था, और वहाँ बीते बरस ने यह क़र्ज़ चुका दिया: {debt}।"
+    },
+    "examNever": {
+      "en": "At {age}, at the door, {name} was asked: {q} The book had no answer, and no penance could pay for {debt}.",
+      "hi": "{age} बरस की उम्र में, द्वार पर, {name} से पूछा गया: {q} बही में कोई उत्तर नहीं था, और कोई प्रायश्चित यह क़र्ज़ नहीं चुका सकता था: {debt}।"
     },
     "examPaid": {
       "en": "By {age} that was paid.",
-      "hi": "{age} बरस तक वह चुक गया।"
+      "hi": "{age} बरस की उम्र तक वह चुक गया।"
     },
     "curse": {
       "en": "Around then, ",
@@ -702,7 +832,19 @@
     "codas": [
       {"en":"Nobody wrote.","hi":"किसी ने ख़बर नहीं दी।"},
       {"en":"{name} was not told.","hi":"{name} को किसी ने नहीं बताया।"}
-    ]
+    ],
+    "before": {
+      "en": "In a life before, {n} was {role}.",
+      "hi": "पिछले किसी जीवन में {n} {role} {who:था|थी}।"
+    },
+    "was": {
+      "teacher": {"en":"the teacher","hi":"गुरु"},
+      "friend": {"en":"the friend","hi":"मित्र"},
+      "rival": {"en":"the rival","hi":"प्रतिद्वंद्वी"},
+      "spouse": {"en":"the {who:husband|wife}","hi":"{who:पति|पत्नी}"},
+      "son": {"en":"the son","hi":"बेटा"},
+      "daughter": {"en":"the daughter","hi":"बेटी"}
+    }
   },
   "EGO": {
     "about": "The ego rebellion (REDESIGN.md Phase 15; src/engine/qbn.js egoFaces). On the five ego tests (content/situations.json `ego`), after the witness chooses the higher option the ego throws a die of its own; on its faces the life takes the lower option. mirror is the card's text for a rebellion; scholar is its note at scholar depth.",

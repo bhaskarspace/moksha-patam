@@ -14,7 +14,7 @@ const row = (text, state) => `<span class="stage">${esc(text)}<br>${esc(state)}<
 function ledgerOf(p) {
   const who = { name: pname(p), gender: p.gender }, k = karmaOf(p);
   const debt = s => debtIn(lang, s, who);
-  const met = (p.reckonings ?? []).map(r => row(debt({ src: r.src, opt: r.opt, at: r.planted }), t("ledgerMet", { age: wordsIn(lang, Math.floor(r.age ?? 0)) })));
+  const met = (p.reckonings ?? []).filter(r => !r.dies).map(r => row(debt({ src: r.src, opt: r.opt, at: r.planted }), t("ledgerMet", { age: wordsIn(lang, Math.floor(r.age ?? 0)) })));
   const lines = [
     ...k.agami.map(s => row(debt(s), t("ledgerHeld"))),
     ...k.prarabdha.map(s => row(debt(s), t("ledgerRipe"))),

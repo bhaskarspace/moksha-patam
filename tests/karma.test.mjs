@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { GOAL, SITUATIONS } from "../src/content.js";
 import { createGame, planTurn, playTurn, resolveChoice, endTurn, moveFor } from "../src/engine/turn.js";
-import { freshKarma, ripen, omenFor, omenChance, reckonOf, severityOf, tierOf, refusalOf, reckonLinesIn, DEATH, TIERS, answerOf, questionOf, examLinesIn, carried, karmaOf } from "../src/engine/karma.js";
+import { freshKarma, ripen, omenFor, omenChance, reckonOf, severityOf, tierOf, refusalOf, reckonLinesIn, DEATH, TIERS, answerOf, questionOf, examLinesIn, carried, karmaOf, setDeath, deathFormOf, examineOf } from "../src/engine/karma.js";
 const carriedOf = p => carried(karmaOf(p));
 import { lifeText, lifeOf } from "../src/engine/account.js";
 
@@ -92,21 +92,50 @@ test("severity is the ledger's alone: the same ledger, the same reckoning", () =
   for (let w = 1; w < 12; w++) assert.ok(severityOf([seed(1, "x", 0, 1, 1)], Array(w + 1).fill(seed(2, "y", 0, 1, 1))) > severityOf([seed(1, "x", 0, 1, 1)], Array(w).fill(seed(2, "y", 0, 1, 1))));
 });
 
-test("the death tier is recorded and does not kill", () => {
-  const heavy = Array.from({ length: 8 }, (_, i) => seed(59, "strike", 20 + i, 10, 3));
-  const k = { sancita: [], agami: [], prarabdha: heavy };
-  const rk = reckonOf(k, { pos: 80, years: 60 });
-  assert.ok(rk.S >= TIERS[DEATH - 1]);
-  assert.equal(rk.wouldDie, true);
-  assert.equal(rk.applied, DEATH - 1);
+// REDESIGN.md Phase 16: the top tier is death. The ledger decides; the six says when; the age says how, never the vice.
+const heavy = () => ({ sancita: [], agami: [], prarabdha: Array.from({ length: 8 }, (_, i) => seed(59, "strike", 20 + i, 10, 3)) });
+test("the death tier kills: the life ends where it stands, and the debt that came due is not met", () => {
+  const rk = reckonOf(heavy(), { pos: 80, years: 60 });
+  assert.ok(rk.S >= TIERS[DEATH - 1] && rk.wouldDie && rk.dies);
+  assert.deepEqual([rk.applied, rk.years, rk.holds, rk.to, rk.form], [DEATH, 0, null, null, "calamity"]);
   const s = game(78, 60), p = s.players[0];
-  p.karma = k;
+  p.karma = heavy();
   s.forceOmen = true;
   const plan = playTurn(s, 2);
-  assert.equal(plan.reckon.wouldDie, true);
-  assert.ok(!p.dead);
-  assert.equal(plan.died, false);
-  assert.ok(p.pos < 80);
+  assert.ok(plan.died && p.dead && s.over && s.winner == null);
+  assert.equal(p.pos, 80);
+  assert.deepEqual(p.death, { by: "ledger", form: "calamity", age: p.years, src: 59, opt: "strike" });
+  assert.deepEqual(s.log.slice(0, 2).map(e => e.k), ["lDiedLedger", "lReckon"]);
+  // dying of it did not pay it: every debt goes into the store, the one that came due among them
+  assert.equal(p.karma.sancita.length, 8);
+  // the card says the floor closes, and how, and never a number
+  for (const l of ["en", "hi"]) assert.doesNotMatch(reckonLinesIn(l, plan.reckon, who).at(-1), /[0-9]/, l);
+  assert.match(reckonLinesIn("en", plan.reckon, who).join(" "), /does not open\. It closes[\s\S]*Asha dies at sixty-eight, in a bad year/);
+  // the account ends on how, then on what the life still carried, in the door's words
+  const a = lifeOf(s, 0, "en");
+  assert.match(a.open, /^Asha died at sixty-eight\.$/);
+  assert.match(a.end, /^Asha died at sixty-eight, in a bad year, when the rains did not come and the grain ran out, still carrying /);
+  assert.doesNotMatch(lifeOf(s, 0, "hi").end, /\{|\}/);
+});
+
+test("the form of a death is the age's and the stage's, never the vice's", () => {
+  assert.deepEqual([20, 45, 50, 51, 68, 69, 95].map(deathFormOf), ["accident", "accident", "accident", "calamity", "calamity", "illness", "illness"]);
+  // the same ledger, the same tier, at three ages: three forms
+  const forms = [40, 60, 80].map(years => reckonOf(heavy(), { pos: 80, years }).form);
+  assert.deepEqual(forms, ["accident", "calamity", "illness"]);
+});
+
+test("--death=off reports the tier only, as before Phase 16", () => {
+  setDeath(false);
+  try {
+    const rk = reckonOf(heavy(), { pos: 80, years: 60 });
+    assert.ok(rk.wouldDie && !rk.dies && rk.applied === DEATH - 1);
+    const s = game(78, 60), p = s.players[0];
+    p.karma = heavy();
+    s.forceOmen = true;
+    const plan = playTurn(s, 2);
+    assert.ok(!plan.died && !p.dead && p.pos < 80);
+  } finally { setDeath(true); }
 });
 
 test("the door refuses a debt, keeps the player on 105, and says why in words", () => {
@@ -163,7 +192,7 @@ test("the book answers a debt when the life climbed its healing ladder after it 
   for (const sit of Object.values(SITUATIONS)) for (const o of sit.options) if (o.seed) assert.ok(questionOf({ src: Object.keys(SITUATIONS).find(k => SITUATIONS[k] === sit), opt: o.id })?.heals, o.id);
 });
 
-test("a year at the door is one question: a pass meets the debt, a fail is paid in penance by its weight, then the door opens", () => {
+test("a year at the door is one question: a pass meets the debt, a fail is paid in penance, two years a weight, then the door opens", () => {
   // two debts: anger, answered by the climb after it; greed, weight 2, never answered
   const s = atDoor([{ ...seed(59, "strike", 48, 10, 3), i: 1 }, { ...seed(55, "keep", 60, 15, 2), i: 4 }], [58, 59, 50, 51, 67, 103]), p = s.players[0];
   const one = sit(s);
@@ -171,13 +200,16 @@ test("a year at the door is one question: a pass meets the debt, a fail is paid 
   assert.ok(examLinesIn("en", one.exam, who).some(t => /sat up all night/.test(t)), "the pass names the climb");
   const two = sit(s);
   assert.ok(!two.exam.pass && !two.exam.cleared && two.exam.src === 55 && !two.win);
-  const three = sit(s);
-  assert.ok(three.exam.cleared && three.exam.n === 2 && three.win);
+  // weight 2: four years of penance in all (Phase 16)
+  const three = sit(s), four = sit(s);
+  assert.ok(!three.exam.cleared && !four.win);
+  const five = sit(s);
+  assert.ok(five.exam.cleared && five.exam.n === 4 && five.win);
   assert.equal(s.winner, 0);
-  assert.deepEqual(p.sittings.map(x => [x.src, x.pass, x.cleared]), [[59, true, true], [55, false, false], [55, false, true]]);
+  assert.deepEqual(p.sittings.map(x => [x.src, x.pass, x.cleared]), [[59, true, true], [55, false, false], [55, false, false], [55, false, false], [55, false, true]]);
   assert.equal(carriedOf(p).length, 0);
   // never a number of the ledger's on what the player reads
-  for (const pl of [one, two, three]) for (const l of ["en", "hi"]) assert.ok(!examLinesIn(l, pl.exam, who).some(t => /\b(weight|fuse)\b|[0-9]/.test(t)), l);
+  for (const pl of [one, two, three, five]) for (const l of ["en", "hi"]) assert.ok(!examLinesIn(l, pl.exam, who).some(t => /\b(weight|fuse)\b|[0-9]/.test(t)), l);
   const text = lifeText(s, 0, "en");
   assert.match(text, /at the door, Asha was asked: Which enemy cannot be conquered\? The book had the answer/);
 });
@@ -202,4 +234,50 @@ test("a reckoning that meets the last debt while the life sits at the door lets 
 test("the computer sits at a door that has refused it, wherever it may", () => {
   const s = atDoor([seed(55, "keep", 60, 15, 2)]);
   assert.equal(moveFor(s, [3, 4]), 0);
+});
+
+// Bhaskar, 27 Oct: a debt of the heaviest weight only the book can answer. No penance pays it, and the door stays shut.
+test("a weight-three debt the book does not answer is never paid in penance, and says so", () => {
+  const s = atDoor([seed(55, "keep", 60, 15, 3)]), p = s.players[0];
+  for (let y = 0; y < 8; y++) {
+    const plan = sit(s);
+    assert.ok(plan.exam.never && !plan.exam.cleared && !plan.win, `year ${y}`);
+  }
+  assert.equal(carriedOf(p).length, 1);
+  const first = examLinesIn("en", { ...examineOf(p), n: 1 }, who).join(" ");
+  assert.match(first, /No penance pays this one: the debt of the extra change pocketed at sixty\. The door stays shut/);
+  assert.doesNotMatch(first, /in penance/);
+  for (const l of ["en", "hi"]) assert.ok(!examLinesIn(l, examineOf(p), who).some(t => /[0-9]/.test(t)), l);
+  assert.match(lifeText(s, 0, "en"), /no penance could pay for the extra change pocketed at sixty/);
+  // the computer sits for the first question, and once told, throws on into the heavens
+  const c = atDoor([seed(55, "keep", 60, 15, 3)]);
+  assert.equal(moveFor(c, [3, 4]), 0);
+  sit(c);
+  assert.notEqual(moveFor(c, [3, 4]), 0);
+  // a weight-three debt the book does answer is met as any other
+  const a = atDoor([{ ...seed(59, "strike", 48, 10, 3), i: 1 }], [58, 59, 50, 51, 67, 103]);
+  assert.ok(sit(a).win);
+});
+
+// Both paths from a door that can never open, for a person: told plainly that they may sit or go on, and either works.
+test("at a door that can never open a person is told they may sit on or throw on, and both paths end the life well-formed", () => {
+  const told = s => examLinesIn("en", examineOf(s.players[0]), who).join(" ");
+  // sitting on: the years pass a question at a time, until they run out at the door, which closes on the debt
+  const a = atDoor([seed(59, "strike", 48, 10, 3)]), pa = a.players[0];
+  assert.match(told(a), /Asha may sit on here all the same, a year at a time, or throw on into the heavens\./);
+  for (const l of ["en", "hi"]) assert.doesNotMatch(examLinesIn(l, examineOf(pa), who).join(" "), /[{}0-9]/, l);
+  let plan;
+  for (let y = 0; y < 40 && !a.over; y++) plan = sit(a);
+  assert.ok(a.over && pa.dead && pa.death.by === "door" && pa.pos === GOAL && plan.exam.never);
+  // the last year says no more that the life may sit on
+  assert.doesNotMatch(examLinesIn("en", { ...plan.exam, died: true }, who).join(" "), /may sit on/);
+  assert.match(lifeOf(a, 0, "en").end, /sitting at the door, still carrying the hand that fell, at forty-eight\.$/);
+  // going on: after the question, a die carries the life into the heavens, where the walk goes on to the fall
+  const b = atDoor([seed(59, "strike", 48, 10, 3)]), pb = b.players[0];
+  sit(b);
+  playTurn(b, [3, 4], () => 3);
+  assert.ok(pb.pos === 108 && !b.over && !pb.door);
+  while (!b.over) playTurn(b, [6, 6], () => 6);
+  assert.ok(pb.fell && !pb.dead);
+  assert.match(lifeOf(b, 0, "en").end, /the hand that fell, at forty-eight/);
 });

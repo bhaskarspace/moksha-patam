@@ -8,7 +8,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { GOAL, TOP, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, FALL, STR, SRC_HI, JOINS, NUM_HI, READINGS, CODEX, REFS, ENTRY_IDS, srcOfSquare, sourceOf, leadOf, squareOf, SITUATIONS, CAST, CAST_WORDS, BRIDGES, BRIDGE_SAME, whoOf, bridgeOf, BOARDS, DOOR, CURSES } from "../src/content.js";
+import { GOAL, TOP, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, FALL, STR, SRC_HI, JOINS, NUM_HI, READINGS, CODEX, REFS, ENTRY_IDS, srcOfSquare, sourceOf, leadOf, squareOf, SITUATIONS, CAST, CAST_WORDS, BRIDGES, BRIDGE_SAME, whoOf, bridgeOf, BOARDS, DOOR, CURSES, MIRROR } from "../src/content.js";
 import NAMES from "../content/names.json" with { type: "json" };
 import { ENDGAME, createGame, playTurn } from "../src/engine/turn.js";
 import { destOf, worthOf } from "../src/engine/qbn.js";
@@ -81,6 +81,26 @@ const badSlots = text => [...castFill(text).matchAll(/\{([^{}]*)\}/g)].map(m => 
 const SPOKEN_AGE = /^\{name\} is (one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety)\b(?! months)/;
 
 // The lint in full: errors fail the build, warnings print, and moments counts the burn-down.
+// The mirror (content/mirror.json) speaks to the player, whose gender the game does not know: in Hindi a clause whose
+// subject is आप must not take a past or future form that agrees with a gender (थे/थीं, चाहेंगे/चाहेंगी, -ते थे). आपने,
+// आपको and आपकी are not the subject the verb agrees with, so "आपने … चुना था" is fine. Returns the forms found.
+const GENDERED = new Set(["था", "थी", "थे", "थीं", "गया", "गई", "गए", "गईं"]), FUTURE = /(?:ेंगे|ेंगी|ेगा|ेगी|ोगे|ोगी|ूँगा|ूँगी)$/u;
+export function genderedYou(hi) {
+  const out = [];
+  for (const clause of hi.split(/[।?!,:;]/)) {
+    const ws = clause.trim().split(/\s+/);
+    if (!ws.includes("आप")) continue;
+    out.push(...ws.filter(w => GENDERED.has(w) || FUTURE.test(w)));
+  }
+  return out;
+}
+
+// Phase 16's animal interlude is the Chāndogya's animal births (5.10.8), never a ranking of human ones: a phrase that
+// ranks births, or calls a birth low or high, is flagged wherever the game speaks of birth and the life after.
+export function birthRanking(text) {
+  return (text.match(/\b(?:lower|higher|lowly|low|high|base|noble|better|worse|lesser|superior|inferior)[- ](?:birth|births|caste|castes|born|womb)\b|\bborn (?:low|high|base|noble)\b|नीच (?:योनि|जन्म|जाति|कुल)|ऊँची (?:योनि|जाति)|ऊँच(?:े)? कुल|उच्च (?:जन्म|जाति|कुल)|अधम (?:योनि|जन्म)|शूद्र|ब्राह्मण (?:जन्म|कुल)/gi) || []);
+}
+
 export function lintReport() {
   const errors = [], warnings = [];
   const err = (where, msg) => errors.push(`${where}: ${msg}`);
@@ -136,6 +156,42 @@ export function lintReport() {
     bilingual(`${w} q`, q.q); bilingual(`${w} a`, q.a); bilingual(`${w} answered`, q.answered);
     if (q.answered?.en && q.answered?.hi) playerText(`${w} answered`, { en: "{name} " + q.answered.en, hi: "{name} " + q.answered.hi });
   }
+  // Phase 16, the Mirror (content/mirror.json): every question in both languages, each with a `when` the chooser knows
+  // (src/engine/mirror.js), and no number; the rebellion's question needs a phrase for each option on every ego test,
+  // what was chosen for the options above the lower, and what the life took for the lower
+  const WHENS = ["rebel", "helped", "held", "least", "refused", "unwritten", "still", "always"], mirrorIds = new Set();
+  bilingual("mirror intro", MIRROR?.intro);
+  if (genderedYou(MIRROR?.intro?.hi ?? "").length) warn("mirror intro", "the Hindi addresses आप with a gendered form");
+  for (const q of MIRROR?.questions || []) {
+    const w = `mirror ${q.id}`;
+    if (mirrorIds.has(q.id)) err(w, "has the id of another question");
+    mirrorIds.add(q.id);
+    if (!WHENS.includes(q.when)) err(w, `when "${q.when}" is not one the chooser knows (${WHENS.join(", ")})`);
+    bilingual(w, q.q);
+    for (const l of ["en", "hi"]) if (/\d/.test(q.q?.[l] ?? "")) err(w, "has a number in it");
+    const g = genderedYou(q.q?.hi ?? "");
+    if (g.length) warn(w, `the Hindi addresses आप with a gendered form (${g.join(", ")}): the player's gender is not known`);
+  }
+  if (!(MIRROR?.questions?.length >= 3) || !MIRROR.questions.some(q => q.when === "always")) err("mirror", "needs three questions or more, and one that fits every life");
+  for (const [n, sit] of Object.entries(SITUATIONS)) {
+    if (!sit.ego) continue;
+    for (const o of sit.options) {
+      const k = o.id === sit.ego.lower ? "took" : "chose";
+      if (!o.mirror?.[k]) err(`situation ${n} ${o.id}`, `an ego test's option needs mirror.${k}, for the rebellion's question`);
+      else bilingual(`situation ${n} ${o.id} mirror.${k}`, o.mirror[k]);
+    }
+  }
+  // Phase 16, rebirth (src/engine/samskara.js): any option a life took can be the deed the next one dreams of, said as a
+  // relative clause ("who gave away the better blanket"), so every option carries one in both languages, with no name
+  for (const [n, sit] of Object.entries(SITUATIONS)) for (const o of sit.options) {
+    const w = `situation ${n} ${o.id} dream`;
+    if (!o.dream) { err(w, "every option needs a dream, for the next life's account"); continue; }
+    bilingual(w, o.dream);
+    if (/\{name\}/.test(o.dream.en + o.dream.hi)) err(w, "is said of the one dreamt of, by a relative clause: no {name}");
+  }
+  // Phase 16, the animal interlude: nothing the game says of birth ranks one above another (the mirror, the strings)
+  const ranks = [["mirror intro", MIRROR?.intro], ...(MIRROR?.questions ?? []).map(q => [`mirror ${q.id}`, q.q]), ...Object.keys(STR.en).map(k => [`string ${k}`, { en: STR.en[k], hi: STR.hi?.[k] }])];
+  for (const [w, t] of ranks) for (const s of [t?.en, t?.hi]) if (typeof s === "string" && birthRanking(s).length) warn(w, `ranks a birth: "${birthRanking(s).join('", "')}" (Chāndogya 5.10.8: animal births, never a ladder of human ones)`);
   // Phase 14, the curses (content/curses.json): said of the player, in both languages, naming a thing and never a square,
   // tied to a family of late squares that exist; and closed both ways
   const curseIds = new Set();
@@ -282,6 +338,8 @@ export function lintReport() {
     if (LADDERS[h] && sl.guna !== "s") err(where, "a virtue is sattva");
     if (SNAKES[h]) { bilingual(`${where} holding`, sl.holding); if (sl.holding?.en && !/^still /.test(sl.holding.en)) err(`${where} holding`, 'reads on from the closing line, as "still …"'); }
     // Phase 9: and what a life let go puts down, the same vice, so a win ends with the weight a death does
+    // Phase 16: and what the next life is uneasy about without knowing why, said of it by name
+    if (SNAKES[h]) { bilingual(`${where} forgot`, sl.forgot); if (sl.forgot && !(/\{name\}/.test(sl.forgot.en) && /\{name\}/.test(sl.forgot.hi))) err(`${where} forgot`, "names the one who does not know why: {name} in both languages"); }
     if (SNAKES[h]) { bilingual(`${where} letgo`, sl.letgo); if (sl.letgo?.en && /^still /.test(sl.letgo.en)) err(`${where} letgo`, "is put down, not still held"); }
   }
 

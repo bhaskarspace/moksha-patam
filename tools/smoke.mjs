@@ -1129,14 +1129,180 @@ await check("Phase 14: a refused sannyāsin sits at the door, is asked on a card
   await page.waitForFunction(() => document.getElementById("folio").open && /The door asks/.test(document.getElementById("leaf").textContent), null, { timeout: 15000 });
   const card = await page.evaluate(() => ({ text: document.getElementById("leaf").textContent, busy: mp.busy, hash: location.hash, line: mp.landed() }));
   assert(/heaven's highest refuge/.test(card.text) && /The answer is truth/.test(card.text) && /the teacher who was coming, at ten/.test(card.text), `the card: ${card.text.slice(0, 400)}`);
-  assert(/The door opens/.test(card.text), `the door did not open on the card: ${card.text.slice(0, 400)}`);
+  // since Phase 16 penance is two years a weight: the lie is not yet paid after the first
+  assert(/It is not yet paid/.test(card.text) && !/The door opens/.test(card.text), `the first year: ${card.text.slice(0, 400)}`);
   assert(card.busy && card.hash === "#sq/105", `the examination does not hold the game: ${JSON.stringify({ busy: card.busy, hash: card.hash })}`);
   assert(/heaven's highest refuge/.test(card.line || ""), `the line under the board: ${card.line}`);
   assert(!/\b(weight|penance count|prārabdha|āgāmi)\b/i.test(card.text), "the card shows the ledger's workings");
   await page.evaluate(() => mp.close());
+  await until(page, () => !mp.busy && mp.state.turn === 0);
+  await page.evaluate(() => { mp.roll(2, 3); });
+  await page.waitForFunction(() => mp.choosing, null, { timeout: 15000 });
+  await page.evaluate(() => mp.pick(0));
+  await page.waitForFunction(() => document.getElementById("folio").open && /The door opens/.test(document.getElementById("leaf").textContent), null, { timeout: 15000 });
+  await page.evaluate(() => mp.close());
   await page.waitForFunction(() => !mp.busy && mp.state.over, null, { timeout: 15000 });
   const r = await page.evaluate(() => ({ winner: mp.state.winner, open: mp.state.log.some(e => e.k === "lDoorOpen"), gate: document.getElementById("door").className, sittings: mp.examine(0).sittings.length }));
-  assert(r.winner === 0 && r.open && /\bopen\b/.test(r.gate) && r.sittings === 1, JSON.stringify(r));
+  assert(r.winner === 0 && r.open && /\bopen\b/.test(r.gate) && r.sittings === 2, JSON.stringify(r));
+});
+
+// ---- Phase 16: death by ledger ----
+await check("Phase 16: mp.die(form) ends the life on the reckoning's card, in that form, and the account ends on what was carried", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=1&debug");
+  await page.evaluate(() => { mp.jump(40); mp.years(70); mp.die("illness"); mp.roll(2); });
+  await page.waitForFunction(() => document.getElementById("folio").open && /It closes/.test(document.getElementById("leaf").textContent), null, { timeout: 15000 });
+  const text = await page.evaluate(() => document.getElementById("leaf").textContent);
+  assert(/of the bad chest, after a winter that did not end/.test(text), `the card: ${text.slice(0, 500)}`);
+  await page.evaluate(() => mp.close());
+  await page.waitForFunction(() => mp.state.over && document.getElementById("lifeDlg").open, null, { timeout: 15000 });
+  const r = await page.evaluate(() => ({ death: mp.state.players[0].death, life: document.getElementById("lifeLeaf").textContent, win: document.getElementById("winText").textContent }));
+  assert(r.death?.by === "ledger" && r.death.form === "illness", JSON.stringify(r.death));
+  assert(/died at seventy-one, of the bad chest, after a winter that did not end, still carrying the hand that fell/.test(r.life), `the account: ${r.life.slice(-400)}`);
+  assert(/A debt came due that the life could not pay/.test(r.win), r.win);
+});
+
+await check("Phase 16: the end of a life is read three ways, the book, the path and the mirror, as tabs the keys move between", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=1&debug");
+  await page.evaluate(() => { mp.jump(40); mp.years(70); mp.die(); mp.roll(2); });
+  await page.waitForFunction(() => document.getElementById("folio").open, null, { timeout: 15000 });
+  await page.evaluate(() => mp.close());
+  await page.waitForFunction(() => document.getElementById("lifeDlg").open, null, { timeout: 15000 });
+  const tabs = () => page.evaluate(() => {
+    const d = document.getElementById("lifeDlg"), list = d.querySelector('[role="tablist"]'), panel = d.querySelector('[role="tabpanel"]');
+    return { modal: d.matches(":modal"), tabs: [...list.querySelectorAll('[role="tab"]')].map(b => [b.textContent, b.getAttribute("aria-selected"), b.tabIndex]),
+      labelled: panel.getAttribute("aria-labelledby"), focus: document.activeElement?.id, text: panel.textContent.replace(/\s+/g, " "), items: panel.querySelectorAll("li").length };
+  });
+  const book = await tabs();
+  assert(book.modal && book.tabs.map(t => t[0]).join() === "The book,The path,The mirror" && book.tabs[0][1] === "true" && book.labelled === "lifeTab-book", JSON.stringify(book));
+  assert(/Citragupta reads from the book\./.test(book.text) && /died at seventy-one/.test(book.text), book.text.slice(0, 300));
+  // the arrow key moves to the path, and focus goes with it
+  await page.focus("#lifeTab-book");
+  await page.keyboard.press("ArrowRight");
+  const path = await tabs();
+  assert(path.tabs[1][1] === "true" && path.focus === "lifeTab-path" && path.labelled === "lifeTab-path" && path.items >= 1 && /Death/.test(path.text), JSON.stringify({ ...path, text: path.text.slice(0, 300) }));
+  assert(!/\d/.test(path.text.replace(/Read the lives|×/g, "")), `a number on the path: ${path.text.slice(0, 300)}`);
+  // End goes to the mirror: three questions, put to the player
+  await page.keyboard.press("End");
+  const mirror = await tabs();
+  assert(mirror.tabs[2][1] === "true" && mirror.items === 3 && /These are for you, not for the book/.test(mirror.text), JSON.stringify({ ...mirror, text: mirror.text.slice(0, 400) }));
+  // skippable: back to the book, and nothing kept
+  const before = await page.evaluate(() => JSON.stringify(localStorage));
+  await page.click('#lifeDlg [data-act="skip"]');
+  const back = await tabs();
+  assert(back.tabs[0][1] === "true" && /Citragupta/.test(back.text), JSON.stringify(back.tabs));
+  assert((await page.evaluate(() => JSON.stringify(localStorage))) === before, "the mirror wrote something down");
+});
+
+// ---- Phase 16: rebirth ----
+await check("Phase 16: a named person's ended life is kept, Be born again begins the next on its dream, and Play again starts clean", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.addInitScript(() => {
+    const cpu = { name: "", type: "cpu", gender: "" };
+    window.claude = { hot: { data: { setup: { count: 1, rows: [{ name: "Meera", type: "human", gender: "f" }, cpu, cpu, cpu], rules: { six: true } } } } };
+  });
+  await page.goto(BASE + "?seed=1&debug");
+  const die = async () => {
+    await page.evaluate(() => { mp.jump(40); mp.years(70); mp.die("illness"); mp.roll(2); });
+    await page.waitForFunction(() => document.getElementById("folio").open, null, { timeout: 15000 });
+    await page.evaluate(() => mp.close());
+    await page.waitForFunction(() => mp.state.over && document.getElementById("lifeDlg").open, null, { timeout: 15000 });
+  };
+  assert((await page.evaluate(() => Object.keys(mp.samskara().souls).length)) === 0, "a store before any life ended");
+  await die();
+  const one = await page.evaluate(() => ({ soul: mp.samskara().souls.mira, win: !document.getElementById("reborn").hidden, foot: !!document.querySelector('#lifeDlg [data-act="reborn"]') }));
+  assert(one.soul?.lives === 1 && one.soul.last.end === "ledger" && one.soul.sancita.length >= 1, JSON.stringify(one.soul));
+  assert(one.win && one.foot, `the button: ${JSON.stringify(one)}`);
+  // kept under the name as it is compared: "Meera" is Mīrā
+  // a death by ledger is owed an animal interlude first (checked below); here it is let go, to be born human at once
+  await page.evaluate(() => { const s = mp.samskara(); s.souls.mira.animal = null; mp.samskara(s); });
+  // born again from the book's own button
+  await page.click('#lifeDlg [data-act="reborn"]');
+  await page.waitForFunction(() => !mp.state.over && mp.state.players[0].prior, null, { timeout: 15000 });
+  const two = await page.evaluate(() => { const p = mp.state.players[0]; return { name: p.name, alias: p.alias, soul: p.soul, prior: p.prior.lives, carried: p.karma.agami.filter(s => s.prior).length, again: document.getElementById("win").hidden }; });
+  assert(two.name === "" && two.alias?.en && two.alias.en !== "Meera" && two.soul === "mira" && two.prior === 1 && two.carried === 1 && two.again, JSON.stringify(two));
+  await die();
+  const life = await page.evaluate(() => document.getElementById("lifeLeaf").textContent.replace(/\s+/g, " "));
+  assert(/dreams, some nights, of a woman named Meera/.test(life), `the account: ${life.slice(0, 400)}`);
+  assert(/in a life before/.test(life), `the carried debt: ${life.slice(-500)}`);
+  assert((await page.evaluate(() => mp.samskara().souls.mira?.lives)) === 2, "the second life was not kept under the same name");
+  // Play again: a first life, by the name typed
+  await page.evaluate(() => document.getElementById("lifeDlg").close());
+  await page.click("#again");
+  const clean = await page.evaluate(() => { const p = mp.state.players[0]; return { name: p.name, prior: p.prior ?? null, born: p.karma.agami.length }; });
+  assert(clean.name === "Meera" && clean.prior === null && clean.born === 0, JSON.stringify(clean));
+});
+
+await check("Phase 16: a death by ledger is born an animal first, plays to the forest's edge, and the human birth after dreams of it", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.addInitScript(() => {
+    const cpu = { name: "", type: "cpu", gender: "" };
+    window.claude = { hot: { data: { setup: { count: 1, rows: [{ name: "Meera", type: "human", gender: "f" }, cpu, cpu, cpu], rules: { six: true } } } } };
+  });
+  await page.goto(BASE + "?seed=1&debug");
+  await page.evaluate(() => { mp.jump(40); mp.years(70); mp.die("illness"); mp.roll(2); });
+  await page.waitForFunction(() => document.getElementById("folio").open, null, { timeout: 15000 });
+  await page.evaluate(() => mp.close());
+  await page.waitForFunction(() => mp.state.over && document.getElementById("lifeDlg").open, null, { timeout: 15000 });
+  const owed = await page.evaluate(() => mp.samskara().souls.mira?.animal);
+  assert(owed?.kind && owed.round === 1, JSON.stringify(owed));
+  await page.click('#lifeDlg [data-act="reborn"]');
+  await page.waitForFunction(() => !mp.state.over && mp.state.rules.law === "animal", null, { timeout: 15000 });
+  const hint = await page.evaluate(() => document.getElementById("hint").textContent);
+  assert(/reach the edge of the forest/.test(hint), hint);
+  // sixes walk it out of the forest in a handful of throws; no card opens on the way
+  for (let k = 0; k < 15; k++) {
+    await until(page, () => !mp.busy && (mp.state.over || document.getElementById("roll").disabled === false));
+    if (await page.evaluate(() => mp.state.over)) break;
+    assert(!(await folioOpen(page)), "a card opened in the interlude");
+    await page.evaluate(() => { mp.roll(6); });
+  }
+  await page.waitForFunction(() => mp.state.over, null, { timeout: 15000 });
+  const end = await page.evaluate(() => ({ p: mp.state.players[0], win: document.getElementById("winText").textContent, soul: mp.samskara().souls.mira, reborn: !document.getElementById("reborn").hidden }));
+  assert(end.p.earned && end.p.throws <= 15 && /The next birth is human/.test(end.win), JSON.stringify({ win: end.win, throws: end.p.throws }));
+  assert(end.soul.animal === null && end.soul.was === owed.kind && end.reborn, JSON.stringify(end.soul));
+  await page.click("#reborn");
+  await page.waitForFunction(() => !mp.state.over && !mp.state.rules.law && mp.state.players[0].prior, null, { timeout: 15000 });
+  const was = await page.evaluate(() => mp.state.players[0].prior.was);
+  assert(was === owed.kind, was);
+  // and mp.animal(kind) starts one at once
+  const lion = await page.evaluate(() => { mp.animal("lion"); return { law: mp.state.rules.law, kind: mp.state.rules.animal.kind, pos: mp.state.players[0].pos }; });
+  assert(lion.law === "animal" && lion.kind === "lion" && lion.pos === 0, JSON.stringify(lion));
+});
+
+await check("Phase 16: ?first neither reads nor keeps a saṃskāra", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.addInitScript(() => { try { localStorage.setItem("mp-samskara", JSON.stringify({ v: 1, souls: { x: { v: 1 } } })); } catch {} });
+  await page.goto(BASE + "?seed=1&debug&first");
+  const r = await page.evaluate(() => ({ store: mp.samskara(), kept: localStorage.getItem("mp-samskara") }));
+  assert(Object.keys(r.store.souls).length === 0 && r.kept === JSON.stringify({ v: 1, souls: { x: { v: 1 } } }), JSON.stringify(r));
+});
+
+// ---- Phase 16: a door that can never open ----
+await check("Phase 16: at a door no penance opens, a person is told plainly they may sit on or throw on, and can do either", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=1&debug");
+  // the anger struck at forty-eight, weight three, never climbed out of: only the book could answer it
+  await page.evaluate(() => { mp.plant(59, "strike"); mp.door(); mp.roll(2, 3); });
+  await page.waitForFunction(() => mp.choosing, null, { timeout: 15000 });
+  await page.evaluate(() => mp.pick(0));
+  await page.waitForFunction(() => document.getElementById("folio").open && /The door asks/.test(document.getElementById("leaf").textContent), null, { timeout: 15000 });
+  const text = await page.evaluate(() => document.getElementById("leaf").textContent);
+  assert(/No penance pays this one/.test(text) && /may sit on here all the same, a year at a time, or throw on into the heavens/.test(text), `the card: ${text.slice(0, 500)}`);
+  assert(!/The door opens/.test(text), "a door no penance opens opened");
+  await page.evaluate(() => mp.close());
+  // the computer at the table takes its turn; then the person's next year offers both, sitting and the dice
+  await until(page, () => !mp.busy && mp.state.turn === 0);
+  await page.evaluate(() => { mp.roll(2, 3); });
+  await page.waitForFunction(() => mp.choosing, null, { timeout: 15000 });
+  const offered = await page.evaluate(() => JSON.stringify(mp.choosing));
+  assert(/0/.test(offered) && /2/.test(offered), `both are offered: ${offered}`);
+  // and a die goes on into the heavens
+  await page.evaluate(() => mp.pick(2));
+  await until(page, () => !mp.busy && mp.state.players[0].pos !== 105);
+  const r = await page.evaluate(() => ({ pos: mp.state.players[0].pos, over: mp.state.over }));
+  assert(r.pos === 107 && !r.over, `going on: ${JSON.stringify(r)}`);
 });
 
 await check("Phase 14: a computer refused at the door is told on the line under the board, and the door is drawn", async page => {
@@ -1173,8 +1339,16 @@ await check("Phase 14: the wheel of time turns a step a year at the door, and un
   await page.evaluate(() => mp.pick(0));
   await until(page, () => !mp.busy && mp.examine(0).sittings.length === 1);
   const after = await turning();
-  // the oldest debt, the lie, is paid in the year (its weight is one) and stops, gold; the other turned
-  assert(after[0].gold && after[0].t === before[0].t && after.slice(1).every((s, k) => !s.gold && s.t !== before[k + 1].t), JSON.stringify({ before, after }));
+  // a year turns every spoke still owed: since Phase 16 the lie (weight one) takes two years, the anger no penance pays
+  assert(after.every((s, k) => !s.gold && s.t !== before[k].t), JSON.stringify({ before, after }));
+  // the second year pays the lie, which stops, gold; the anger turns on
+  await until(page, () => !mp.busy && mp.state.turn === 0);
+  await page.evaluate(() => { mp.roll(2, 3); });
+  await page.waitForFunction(() => mp.choosing, null, { timeout: 15000 });
+  await page.evaluate(() => mp.pick(0));
+  await until(page, () => !mp.busy && mp.examine(0).sittings.length === 2);
+  const paid = await turning();
+  assert(paid[0].gold && paid[0].t === after[0].t && !paid[1].gold && paid[1].t !== after[1].t, JSON.stringify({ after, paid }));
   await page.emulateMedia({ reducedMotion: "reduce" });
   assert((await turning()).every(s => s.dur === "0s"), "the wheel turns under reduced motion");
 });

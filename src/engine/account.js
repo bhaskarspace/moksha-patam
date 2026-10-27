@@ -37,10 +37,11 @@ import { tIn, fill, castFill, wordsIn, ageWordsIn, CAST_ROLES } from "../i18n.js
 import { makeRng, next } from "../rng.js";
 import { pnameIn } from "../state.js";
 import { ageOf, yearsAlong, stageOfYears, titleOf, holdingOf } from "./self.js";
-import { momentOf } from "./qbn.js";
-import { castAlong, peopleOf, introIn, calledIn, fatesIn } from "./cast.js";
-import { reckoningIn, seedOf, refusalIn, carryIn, karmaOf, carried, debtIn } from "./karma.js";
+import { momentOf, optionOf } from "./qbn.js";
+import { castAlong, peopleOf, introIn, beforeIn, calledIn, fatesIn } from "./cast.js";
+import { reckoningIn, seedOf, refusalIn, carryIn, karmaOf, carried, debtIn, formIn } from "./karma.js";
 import { curseIn } from "./curse.js";
+import { isAnimal, animalLifeOf } from "./animal.js";
 
 const EARTH = 100, GAP = 8;
 // An English moment that does not open with the name reads on after a joining phrase in lower case:
@@ -52,6 +53,8 @@ const stageAt = e => (e.n > EARTH ? 5 : stageOfYears(e.years));
 
 // Player i's life in language l: { title, sub, open, paras: [{ head, text }], end }.
 export function lifeOf(state, i, l) {
+  // an animal interlude has an account of its own (Phase 16, src/engine/animal.js)
+  if (isAnimal(state)) return animalLifeOf(state, i, l);
   const p = state.players[i], name = pnameIn(p, l), who = { name, gender: p.gender };
   const T = (key, v = {}) => fill(tIn(l, key, { name, ...v }), who);
   // a join begins a sentence, even when it begins with a number: "Nine quiet years later, "
@@ -135,9 +138,9 @@ export function lifeOf(state, i, l) {
         const q = DOOR[seedOf(r.src, r.opt)?.holds];
         if (!para || !q || (r.n > 1 && !r.cleared)) continue;
         flush();
-        const v = { age: words(r.age), q: q.q[l] || q.q.en, debt: debtIn(l, { src: r.src, opt: r.opt, at: r.planted }, who) };
+        const v = { age: words(r.age), q: q.q[l] || q.q.en, debt: debtIn(l, { src: r.src, opt: r.opt, at: r.planted, prior: r.prior }, who) };
         if (r.pass) para.parts.push(J(JOINS.examPass, { ...v, answer: words(r.answer), answered: q.answered[l] || q.answered.en }));
-        else para.parts.push(J(r.n > 1 ? JOINS.examPaid : r.cleared ? JOINS.examFailPaid : JOINS.examFail, v));
+        else para.parts.push(J(r.n > 1 ? JOINS.examPaid : r.cleared ? JOINS.examFailPaid : r.never ? JOINS.examNever : JOINS.examFail, v));
         lastYears = r.age;
         continue;
       }
@@ -152,7 +155,7 @@ export function lifeOf(state, i, l) {
       const t = seedOf(r.src, r.opt)?.reckoning;
       if (!para || !t) continue;
       flush();
-      para.parts.push(J(JOINS.reckon, { age: words(r.age) }) + after(t[l] || t.en, reckoningIn(l, r, who), l));
+      para.parts.push(J(r.dies ? JOINS.reckonDeath : JOINS.reckon, { age: words(r.age) }) + after(t[l] || t.en, reckoningIn(l, r, who), l));
       lastYears = r.age + r.years;
     }
   };
@@ -231,7 +234,7 @@ export function lifeOf(state, i, l) {
     const age = Number.isInteger(e.years) ? ageWordsIn(l, e.years, e.via === "snake") : "";
     const raw = repeat && e.via ? (JOINS.backTo[l] || JOINS.backTo.en).replace("{first}", words(lived.get(e.n))) : m[l] || m.en;
     // the moment that meets a member of the cast says their name at its end
-    const intro = c.meets && !repeat ? introIn(c.cast, c.about, l) : "";
+    const intro = c.meets && !repeat ? [introIn(c.cast, c.about, l), beforeIn(c.cast, c.about, l)].filter(Boolean).join(" ") : "";
     const text = fill(castFill(raw, peopleOf(c.cast, c.before, l, c.about)), { ...who, age }) + (intro ? " " + intro : "");
     // a choice the ego overruled is said first, a sentence of its own, and takes the place of any other join
     para.parts.push(rebel ? rebel + " " + text : join ? join + after(raw, text, l) : text);
@@ -252,7 +255,7 @@ export function lifeOf(state, i, l) {
   return {
     title: T("lifeTitle"),
     sub: p.peak != null ? tIn(l, "title" + titleOf(p.peak)) : "",
-    open: opening(p, along, T, words),
+    open: [...dreamOf(p, l, name), opening(p, along, T, words)].filter(Boolean).join(" "),
     paras: paras.map(({ s, ages, parts }) => {
       const a = Math.min(...ages), b = Math.max(...ages);
       const head = s === 5 || !ages.length ? stage(s) : a === b ? T("lifeAt", { stage: stage(s), a }) : T("lifeSpan", { stage: stage(s), a, b });
@@ -261,6 +264,7 @@ export function lifeOf(state, i, l) {
     end: state.winner === i ? winEnd(p, T, words, held)
       : p.fell ? fellEnd(p, along, T, sq, held, l, who)
       : !p.life?.length ? T("lifeUnborn")
+      : p.death?.by === "ledger" ? ledgerEnd(p, T, words, l, who, held)
       : p.dead && p.pos === GOAL ? doorEnd(p, T, words, l, who)
       : p.dead ? T("lifeEndDied", { age: words(p.years), holding: held(SNAKES[p.holding]?.holding) }).replace(/, ([.।])$/, "$1")
       : T("lifeEndOpen", { n: p.pos }),
@@ -300,9 +304,34 @@ function doorEnd(p, T, words, l, who) {
   return T("lifeEndDoor", { age: words(p.years), carry }).replace(/, ([.।])$/, "$1");
 }
 
+// A death by ledger (REDESIGN.md Phase 16) ends on how, by the life's age, and then on what it was still carrying, in the
+// door's words: the debt that came due is among them, since dying of it did not pay it. With nothing carried, the vice
+// it was still holding, as a death by years says it.
+function ledgerEnd(p, T, words, l, who, held) {
+  const k = karmaOf(p), carry = carryIn(l, [...carried(k), ...k.sancita], null, who) || held(SNAKES[p.holding]?.holding);
+  return T("lifeEndLedger", { age: words(p.death.age ?? p.years), form: formIn(l, p.death.form, who), carry }).replace(/, ([.।])$/, "$1");
+}
+
+// A life after the first opens on a dream of the last (REDESIGN.md Phase 16; the Yogavāsiṣṭha's Lavaṇa and Gādhi): the
+// one who was written down, by name, and the deed of most worth that life took, said of them in their own gender; and
+// the forgotten holding (docs/NARRATIVE.md §13.6), the vice it was still holding, which this one is uneasy about without
+// knowing why. Nothing for a first life.
+function dreamOf(p, l, name) {
+  const prev = p.prior?.last;
+  if (!prev) return [];
+  const them = { name, gender: prev.gender }, deed = p.prior.dream && optionOf(p.prior.dream.sq, p.prior.dream.opt)?.dream;
+  const v = { prev: prev.name?.[l] || prev.name?.en || "", dream: deed ? fill(deed[l] || deed.en, them) : "" };
+  const say = key => fill(tIn(l, key, { name, ...v }), them);
+  // the forgotten holding opens its sentence: "Mirrors make Ravi uneasy, for no reason anyone can name."
+  const forgot = SNAKES[prev.holding]?.forgot, uneasy = forgot && fill(forgot[l] || forgot.en, { name, gender: p.gender });
+  const was = p.prior.was ? fill(tIn(l, "animalDream", { name, animal: tIn(l, "a_" + p.prior.was) }), { name, gender: p.gender }) : "";
+  return [say(deed ? "lifeDream" : "lifeDreamNone"), was, uneasy ? tIn(l, "lifeForgot", { forgot: uneasy[0].toUpperCase() + uneasy.slice(1) }) : ""];
+}
+
 // The first line knows the shape of the whole life, and says only what happened, never what it was worth.
 function opening(p, along, T, words) {
   if (!along.length) return "";
+  if (p.death?.by === "ledger") return T("lifeOpenLedger", { age: words(p.death.age ?? p.years) });
   if (p.dead) return T("lifeOpenDied", { age: words(p.years) });
   const earthly = along.filter(e => e.n <= EARTH), to = Math.max(...earthly.map(e => e.years));
   const snakes = along.filter(e => e.via === "snake");
@@ -310,6 +339,28 @@ function opening(p, along, T, words) {
   if (worst && ageOf(worst.from) - ageOf(worst.n) >= 20) return T("lifeOpenFall", { age: words(to), at: words(worst.years) });
   if (!snakes.length) return T("lifeOpenSteady");
   return T("lifeOpenLived", { age: words(to) });
+}
+
+// The path (REDESIGN.md Phase 16): the same life as its moves, one row per square landed on, in words: the age, the
+// square's name and how it was reached. Years sat out or stayed on one square are one row. It ends on how the life ended.
+// Player i's path in language l: { rows: [{ age, sq, via }], end }.
+export function pathOf(state, i, l) {
+  const p = state.players[i], T = (k, v = {}) => fill(tIn(l, k, { name: pnameIn(p, l), ...v }), { name: pnameIn(p, l), gender: p.gender });
+  // the exit has no name of its own in the board's data, only on the board
+  const words = n => wordsIn(l, Math.floor(n)), nameOf = n => (n === GOAL ? tIn(l, "moksha") : squareOf(n)?.[l] || squareOf(n)?.en || "");
+  const rows = [];
+  for (const e of yearsAlong(p.life || [], p.told || [])) {
+    const last = rows.at(-1);
+    if ((e.via === "sit" || e.via === "stay") && last && last.n === e.n && last.kind === e.via) { last.count++; continue; }
+    if (e.via === "sit" || e.via === "stay") { rows.push({ n: e.n, years: e.years, kind: e.via, count: 1 }); continue; }
+    rows.push({ n: e.n, years: e.years, kind: e.via, from: e.from });
+  }
+  const viaOf = r => r.kind === "snake" ? T("pathSnake", { sq: nameOf(r.from) }) : r.kind === "ladder" ? T("pathLadder", { sq: nameOf(r.from) })
+    : r.kind === "reckon" ? T("pathReckon") : r.kind === "sit" ? (r.count === 1 ? T("pathSat") : T("pathSatN", { n: words(r.count) }))
+    : r.kind === "stay" ? (r.count === 1 ? T("pathStay") : T("pathStayN", { n: words(r.count) })) : "";
+  const end = state.winner === i ? T("pathWin") : p.fell ? T("pathFell") : p.dead ? T("pathDied") : p.earned ? T("animalEarned") : p.short ? T(state.rules.animal?.round >= 2 ? "animalLastText" : "animalShortText") : "";
+  // an animal does not count years, so its path has none
+  return { rows: rows.map(r => ({ age: isAnimal(state) ? "" : words(r.years), sq: nameOf(r.n), via: viaOf(r) })), end };
 }
 
 // The same life as plain text, to copy or save.

@@ -1700,13 +1700,120 @@ react to a choice; and the witness's choices are recorded for the Mirror.
 
 ---
 
-### Phase 16 — Death and rebirth
+### Phase 16 — Death and rebirth  ✅ SHIPPED
+
+> **Shipped** (27 Oct, PR #24), in four steps after a fix on `main` (step 0: the outcome's age, the curse heard only
+> young). The ledger's top tier kills, and penance is two years a weight; the end of a life is read as the book, the path
+> and the mirror; a named person's ended life is kept and born again, dreaming of the last; a death by ledger is first an
+> animal interlude. The interlude rate follows death by ledger, and so follows play: intended, not to be tuned. Bhaskar's
+> Hindi review changed the dream to agree with a "child" life before (`{आदमी|औरत|इंसान}`, `{का|की|का}`), the debt from a
+> past life to a suffix ("…, जो किसी पिछले जीवन से चला आया"), the ledger's and the door's joins to "{age} बरस की उम्र में"
+> as the debts say it, and the animal's dream to "कुछ रातों को {name} सपना {देखता|देखती} है…"; every account it changed is
+> a Hindi one tagged `karma`, `door`, `death` or `rebirth`. 10,000 souls a policy, up to ten lives each:
+>
+> | policy | liberation per life | lives per liberation | died a life: ledger · years · door | reborn | interludes per 100 lives | turns median · p95 |
+> |---|---|---|---|---|---|---|
+> | honest | 40.3% | 2.48 | 1.2% · 4.7% · 0.3% | 59.0% | 1.8 | 27 · 45 |
+> | mixed | 28.0% | 3.57 | 8.1% · 5.8% · 0.8% | 70.1% | 13.2 | 28 · 47 |
+> | dishonest | 18.4% | 5.43 | 17.8% · 6.0% · 1.3% | 77.9% | 28.6 | 29 · 47 |
+>
+> The steps, as they landed, follow.
 
 *This phase grew on 20 Oct. It was Yama's screen and a saved record; it is now four things,
 each of which makes the game unlike any other board game, and all four sit on Phase 12's
 ledger and Phase 14's door. Its own PR, and probably the largest remaining. If it must be
 split, split by the four headings below, each its own number; the fifth, what penance costs (added from Phase 14),
 goes with the first.*
+
+> **Step 1, death and penance** (branch `phase-16-death-rebirth`, 27 Oct). The top tier of Phase 12's scale is death
+> (`reckonOf`: `dies`, `deathFormOf` in `src/engine/karma.js`). Its form is the age's and the stage's, never the vice's:
+> an accident up to fifty (the roof that gives way over the trunk, 75), a calamity in vānaprastha (the bad year, Uṣasti's
+> famine, 48), an illness in sannyāsa (the bad chest, 73). The debt that came due is not met, and goes with the rest into
+> sañcita; the account closes "{name} died at {age}, {form}, {carry}", the debts in the door's words, or else the holding.
+> Every death records its cause (`p.death.by`: ledger, years, door). Penance is two years a unit of weight (`PENANCE`),
+> and a weight-three debt the book does not answer no penance pays (`UNPAID`): the door stays shut while it is owed, and
+> the card tells a person plainly that they may sit on or throw on (`examNeverOn`); a computer, once told, throws on.
+> `npm run sim` adds `--death=off`, `--penance=N`, `--unpaid=N`, and deaths by cause, age and form.
+>
+> **The 20% target for dishonest liberation was dropped (Bhaskar, 27 Oct).** Penance reaches only the lives that sit at
+> the door, about 15% of dishonest lives; as many again walk through on arrival owing nothing, and most of the rest fall.
+> No multiplier came near: 1× 28.9%, 1.5× 28.1%, 2× 27.8%, 3× 27.0%, 6× 26.0%. Making weight 2 book-only as well reached
+> 22.0%, but the weight-2 debts are 49, 54, 55 and 56, the ego tests, so it would mostly punish honest lives for the
+> ego's rebellions (mixed through the door 11.2% → 6.5%). Kept: 2× and weight 3 only. 20,000 single lives each:
+>
+> | policy | liberated | lives per liberation | died: ledger · years · door | fell | median · p95 |
+> |---|---|---|---|---|---|
+> | honest, before | 44.2% | 2.26 | 0 · 5.8% · 0.2% | 49.9% | 27 · 45 |
+> | honest, after | 43.5% | 2.30 | 1.2% · 4.7% · 0.3% | 50.2% | 27 · 45 |
+> | mixed, before | 36.5% | 2.74 | 0 · 12.5% · 0.8% | 50.2% | 29 · 48 |
+> | mixed, after | 35.4% | 2.82 | 8.1% · 5.8% · 0.8% | 49.9% | 28 · 48 |
+> | dishonest, before | 29.0% | 3.45 | 0 · 20.7% · 1.2% | 49.1% | 30 · 50 |
+> | dishonest, after | 27.5% | 3.64 | 17.8% · 6.0% · 1.3% | 47.4% | 29 · 49 |
+>
+> Honest > mixed > dishonest holds. The ledger's deaths are mostly lives that a sent-back reckoning used to run out of
+> years: deaths overall move 13.3% → 14.6% (mixed). By age (mixed): 40–59 78, 60–79 473, 80+ 1,065; by form: accident 9,
+> calamity 200, illness 1,407. The death tier comes in 8.1% of mixed lives, not Phase 12's 3.3%: Phases 14 and 15 grew
+> the ledger. `accounts.mjs --tag` adds `death`; the 11,804 accounts without it are byte-identical to main's. Golden
+> identical on all 20 seeds; perf matches main.
+>
+> **Step 2, the book, the path and the mirror** (27 Oct). The end of a life is read three ways, as an ARIA tablist in
+> `#lifeDlg` (`src/render/life.js`; arrow keys, Home and End): **the book**, the account, opened by one line, "Citragupta
+> reads from the book." (he is the hand, with no lineage and no other sentence); **the path**, the moves in words
+> (`pathOf` in `src/engine/account.js`: the age, the square's name, how it was reached, years sat or stayed on one square
+> as one row, and how the life ended); and **the mirror**, three questions put to the player (`content/mirror.json`,
+> `mirrorOf` in `src/engine/mirror.js`), chosen by what the life did, drawn off a sequence of their own. A rebellion in
+> `p.witness` is always asked first, by the `mirror` phrases on the ego tests' options ("At forty-two you chose to give
+> the change back, and the life kept it. Which of you was it?"). Unanswered, unrecorded (the test holds the state and
+> localStorage unchanged), and skippable ("Back to the book"). Eight questions are drafted, EN and HI, for Bhaskar's
+> review. The Citragupta line and the mirror belong to the dialog, not to `lifeText`, so every account is byte-identical
+> to step 1's; `accounts.mjs --tag` adds `mirror` (an account whose mirror asks about a rebellion: 3,674 of 16,000).
+>
+> **Step 3, rebirth** (27 Oct). A named person's ended life is kept in `mp-samskara` (`src/engine/samskara.js` `soulOf`,
+> `storeOf`/`storeWith`; at most six names; a liberation deletes it; `?first` neither reads nor writes). **Be born again**,
+> beside Play again and in the book's footer, begins the next life from it (`bornOf`): the guṇas carry half, the heaviest
+> unmet debt becomes an āgāmi seed `prior` that ripens at the age it was made ("…at forty-two in a life before"), the
+> cast's names return in other roles (`RETURNS_AS`, the Jātaka rule) and the account says so once ("In a life before,
+> Vinod was the rival."). The account opens on the dream (`dream` on every option) and the forgotten holding (`forgot` on
+> every snake): "Mirrors make Ravi uneasy, for no reason anyone can name." Play again starts clean. The turyā fade
+> (`clearOf`) is on `#art` and `.cell .pic` alone. Every first-life account is byte-identical to step 1's (16,000);
+> `accounts.mjs --lives=2` hashes 5,056 second lives, tagged `rebirth`. `sim --lives=4`, 4,000 souls:
+>
+> | policy | liberated within 4 lives | liberation per life | lives per liberation | reborn | life 1 → 4 liberated | ledger deaths life 1 → 4 |
+> |---|---|---|---|---|---|---|
+> | honest | 87.5% | 42.7% | 2.34 | 51.2% | 45.5% → 35.6% | 1.0% → 2.8% |
+> | mixed | 74.8% | 30.9% | 3.24 | 58.7% | 36.1% → 24.5% | 7.9% → 14.6% |
+> | dishonest | 59.9% | 21.5% | 4.64 | 64.0% | 27.6% → 16.2% | 18.0% → 28.9% |
+>
+> Later lives are harder: partly selection (the lives that reach life four are the ones that kept failing), partly the
+> carried debt.
+>
+> **Step 4, the animal interlude** (27 Oct). A death by ledger, and only that, is owed one (`soul.animal`,
+> `src/engine/animal.js`): Be born again begins it before anyone's next human life. The animal is the Panchatantra creature
+> of the vice held (14 tortoise, 19 and 55 jackal, 59 mongoose, 88 cat, 39 lion; else the tortoise), born into the house of
+> the last life's rival, or else its friend. One law, `rules.law = "animal"` in `src/engine/turn.js`: squares 1 to 40, one
+> die, no six again, at most 15 throws; no omen, situation, seed, ego or curse; no card opens, and the line under the board
+> names the square and, on 6, 8, 9, 11–16, 19, 22, 24 and 39, tells its Panchatantra mirror as the moment. Reaching 40, or a
+> ladder out of the forest, earns the human birth back, nudged a tenth toward sattva and dreaming of the animal ("Some
+> nights Ravi dreams of being a jackal."); falling short is an animal once more, and then human regardless. Its account
+> names no years. The lint warns on any phrase that ranks a birth (`birthRanking`). `mp.animal(kind)`; `sim --lives`
+> plays the interludes in the chain; `accounts --lives=2` hashes them, tagged `animal` (728 of 2,000 seeds' named lives).
+> Every first-life account is still byte-identical to step 1's.
+>
+> **The interlude rate follows death by ledger, and so follows play: this is intended, and not to be tuned (Bhaskar, 27
+> Oct).** Interludes are 1.8 per hundred lives (honest), 13.2 (mixed) and 28.6 (dishonest), far from the three per hundred
+> the plan guessed, because the death tier is common in a careless life and rare in an honest one. That spread is the
+> point: the animal birth is what a life's own choices bring about. An interlude takes 9 throws at the median, 15 at p95;
+> 87–90% earn the human birth, about 9–11% go to a second round.
+>
+> **The report**, 10,000 souls a policy, up to ten lives each (`sim --lives=10`); single-life deaths from step 1's table:
+>
+> | policy | liberation per life | lives per liberation | died a life: ledger · years · door | reborn | interludes per 100 lives | turns median · p95 |
+> |---|---|---|---|---|---|---|
+> | honest | 40.3% | 2.48 | 1.2% · 4.7% · 0.3% | 59.0% | 1.8 | 27 · 45 |
+> | mixed | 28.0% | 3.57 | 8.1% · 5.8% · 0.8% | 70.1% | 13.2 | 28 · 47 |
+> | dishonest | 18.4% | 5.43 | 17.8% · 6.0% · 1.3% | 77.9% | 28.6 | 29 · 47 |
+>
+> Within ten lives 98.2%, 93.6% and 83.3% of souls are liberated. Honest > mixed > dishonest holds at every life.
 
 **Why it was gated, and what ungates it.** After Phase 9 a life ran out of years in 2.5% of
 games (3.5% after 10B) and the rebirth snake fired in 8.2%. Everything in this phase would
