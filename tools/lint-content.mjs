@@ -81,6 +81,20 @@ const badSlots = text => [...castFill(text).matchAll(/\{([^{}]*)\}/g)].map(m => 
 const SPOKEN_AGE = /^\{name\} is (one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety)\b(?! months)/;
 
 // The lint in full: errors fail the build, warnings print, and moments counts the burn-down.
+// The mirror (content/mirror.json) speaks to the player, whose gender the game does not know: in Hindi a clause whose
+// subject is आप must not take a past or future form that agrees with a gender (थे/थीं, चाहेंगे/चाहेंगी, -ते थे). आपने,
+// आपको and आपकी are not the subject the verb agrees with, so "आपने … चुना था" is fine. Returns the forms found.
+const GENDERED = new Set(["था", "थी", "थे", "थीं", "गया", "गई", "गए", "गईं"]), FUTURE = /(?:ेंगे|ेंगी|ेगा|ेगी|ोगे|ोगी|ूँगा|ूँगी)$/u;
+export function genderedYou(hi) {
+  const out = [];
+  for (const clause of hi.split(/[।?!,:;]/)) {
+    const ws = clause.trim().split(/\s+/);
+    if (!ws.includes("आप")) continue;
+    out.push(...ws.filter(w => GENDERED.has(w) || FUTURE.test(w)));
+  }
+  return out;
+}
+
 export function lintReport() {
   const errors = [], warnings = [];
   const err = (where, msg) => errors.push(`${where}: ${msg}`);
@@ -141,6 +155,7 @@ export function lintReport() {
   // what was chosen for the options above the lower, and what the life took for the lower
   const WHENS = ["rebel", "helped", "held", "least", "refused", "unwritten", "still", "always"], mirrorIds = new Set();
   bilingual("mirror intro", MIRROR?.intro);
+  if (genderedYou(MIRROR?.intro?.hi ?? "").length) warn("mirror intro", "the Hindi addresses आप with a gendered form");
   for (const q of MIRROR?.questions || []) {
     const w = `mirror ${q.id}`;
     if (mirrorIds.has(q.id)) err(w, "has the id of another question");
@@ -148,6 +163,8 @@ export function lintReport() {
     if (!WHENS.includes(q.when)) err(w, `when "${q.when}" is not one the chooser knows (${WHENS.join(", ")})`);
     bilingual(w, q.q);
     for (const l of ["en", "hi"]) if (/\d/.test(q.q?.[l] ?? "")) err(w, "has a number in it");
+    const g = genderedYou(q.q?.hi ?? "");
+    if (g.length) warn(w, `the Hindi addresses आप with a gendered form (${g.join(", ")}): the player's gender is not known`);
   }
   if (!(MIRROR?.questions?.length >= 3) || !MIRROR.questions.some(q => q.when === "always")) err("mirror", "needs three questions or more, and one that fits every life");
   for (const [n, sit] of Object.entries(SITUATIONS)) {

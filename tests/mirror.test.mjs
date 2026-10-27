@@ -6,6 +6,7 @@ import { createGame, playTurn, planTurn, resolveChoice, endTurn } from "../src/e
 import { mirrorOf, mirrorIn, mirrorIntroIn, ASKED } from "../src/engine/mirror.js";
 import { pathOf, lifeText } from "../src/engine/account.js";
 import { MIRROR } from "../src/content.js";
+import { genderedYou } from "../tools/lint-content.mjs";
 
 const life = (seed, gender = "f") => {
   const s = createGame({ players: [{ name: "Meera", type: "cpu", gender }], rules: { six: true }, seed });
@@ -43,7 +44,7 @@ test("a rebellion is always asked about first, by what was chosen and what the l
   const m = mirrorOf(s, 0);
   assert.equal(m[0].id, "rebel");
   assert.equal(mirrorIn("en", m[0]), "At forty-two you chose to give the change back, and the life kept it. Which of you was it?");
-  assert.equal(mirrorIn("hi", m[0]), "बयालीस बरस पर आपने छुट्टा लौटाना चुना था, और जीवन ने उसे रख लिया। उन दोनों में आप कौन थे?");
+  assert.equal(mirrorIn("hi", m[0]), "बयालीस बरस की उम्र में आपने छुट्टा लौटाना चुना था, और जीवन ने उसे रख लिया। इन दोनों में आप कौन हैं?");
   // and in lives where the ego rebelled on its own
   let rebels = 0;
   for (let seed = 1; seed <= 300; seed++) {
@@ -69,4 +70,16 @@ test("the path is the life's moves in words, and ends on how the life ended", ()
   }
   // the book is unchanged by either: the Citragupta line belongs to the dialog, not to the account
   assert.doesNotMatch(lifeText(life(3), 0, "en"), /Citragupta reads/);
+});
+
+test("the mirror's Hindi never gives आप a gender, and the lint says so when it does", () => {
+  for (const q of MIRROR.questions) assert.deepEqual(genderedYou(q.q.hi), [], q.id);
+  assert.deepEqual(genderedYou(MIRROR.intro.hi), []);
+  // what it catches: the drafts before Bhaskar's fix
+  assert.deepEqual(genderedYou("उन दोनों में आप कौन थे?"), ["थे"]);
+  assert.deepEqual(genderedYou("जब आप स्थिर बैठे थे, तो किसकी प्रतीक्षा कर रहे थे?"), ["थे"]);
+  assert.deepEqual(genderedYou("क्या कोई ऐसा बरस है जिसे आप ठीक वैसा ही फिर से जीना चाहेंगे?"), ["चाहेंगे"]);
+  // and what it leaves alone: आपने, आपको, आपकी are not what the verb agrees with
+  assert.deepEqual(genderedYou("आपने छुट्टा लौटाना चुना था"), []);
+  assert.deepEqual(genderedYou("क्या आपको उनके लिखने का इंतज़ार था?"), []);
 });
