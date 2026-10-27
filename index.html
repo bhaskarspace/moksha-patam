@@ -1604,10 +1604,10 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         lifeCopied: "कॉपी हो गया",
         lifeSave: "डाउनलोड",
         lifeWhose: "किसका जीवन",
-        lifeDream: "{name} को कभी-कभी रात में एक {आदमी|औरत} का सपना आता है, {prev} नाम {का|की}, {dream}।",
-        lifeDreamNone: "{name} को कभी-कभी रात में एक {आदमी|औरत} का सपना आता है, {prev} नाम {का|की}, और कुछ होने से पहले ही आँख खुल जाती है।",
+        lifeDream: "{name} को कभी-कभी रात में एक {आदमी|औरत|इंसान} का सपना आता है, {prev} नाम {का|की|का}, {dream}।",
+        lifeDreamNone: "{name} को कभी-कभी रात में एक {आदमी|औरत|इंसान} का सपना आता है, {prev} नाम {का|की|का}, और कुछ होने से पहले ही आँख खुल जाती है।",
         lifeForgot: "{forgot}, और क्यों, यह कोई नहीं बता सकता।",
-        debtBefore: "पिछले किसी जीवन में {debt}",
+        debtBefore: "{debt}, जो किसी पिछले जीवन से चला आया",
         reborn: "फिर जन्म लें",
         rebornNote: "अगला जीवन इसे साथ ले जाता है, आधा याद, आधा भूला।",
         a_tortoise: "कछुआ",
@@ -1628,7 +1628,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         animalEndHuman: "{name} के लिए जंगल का किनारा समय रहते आ गया, और अगला जन्म मनुष्य का है।",
         animalEndShort: "{name} के जंगल के किनारे तक पहुँचने से पहले ही मौसम बदल गए, और अगला जन्म फिर {animalO} का है।",
         animalEndLast: "{name} के जंगल के किनारे तक पहुँचने से पहले ही मौसम बदल गए; फिर भी अगला जन्म मनुष्य का है।",
-        animalDream: "कुछ रातों {name} को सपना आता है कि वह एक {animal} है।",
+        animalDream: "कुछ रातों को {name} सपना {देखता|देखती} है कि वह एक {animal} है।",
         animalEarned: "अगला जन्म मनुष्य का है।",
         animalShortText: "इस बार नहीं। अगला जन्म फिर एक पशु का है।",
         animalLastText: "इस बार नहीं; फिर भी अगला जन्म मनुष्य का है।",
@@ -1860,35 +1860,35 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       },
       reckon: {
         en: "At {age}, on a six, the floor opened: ",
-        hi: "{age} बरस पर, एक छक्के पर, ज़मीन खिसकी: "
+        hi: "{age} बरस की उम्र में, एक छक्के पर, ज़मीन खिसकी: "
       },
       reckonDeath: {
         en: "At {age}, on a six, the floor closed: ",
-        hi: "{age} बरस पर, एक छक्के पर, ज़मीन फिर नहीं लौटी: "
+        hi: "{age} बरस की उम्र में, एक छक्के पर, ज़मीन फिर नहीं लौटी: "
       },
       door: {
         en: "At {age}, Moksha was reached, and ",
-        hi: "{age} बरस पर मोक्ष तक पहुँचना हुआ, और "
+        hi: "{age} बरस की उम्र में मोक्ष तक पहुँचना हुआ, और "
       },
       examPass: {
         en: "At {age}, at the door, {name} was asked: {q} The book had the answer: at {answer}, {name} {answered}.",
-        hi: "{age} बरस पर, द्वार पर, {name} से पूछा गया: {q} बही में उत्तर था: {answer} बरस पर {name} {answered}।"
+        hi: "{age} बरस की उम्र में, द्वार पर, {name} से पूछा गया: {q} बही में उत्तर था: {answer} बरस की उम्र में {name} {answered}।"
       },
       examFail: {
         en: "At {age}, at the door, {name} was asked: {q} The book had no answer, and {name} sat on there in penance for {debt}.",
-        hi: "{age} बरस पर, द्वार पर, {name} से पूछा गया: {q} बही में कोई उत्तर नहीं था, और {name} प्रायश्चित में वहीं {बैठा रहा|बैठी रही}: {debt}।"
+        hi: "{age} बरस की उम्र में, द्वार पर, {name} से पूछा गया: {q} बही में कोई उत्तर नहीं था, और {name} प्रायश्चित में वहीं {बैठा रहा|बैठी रही}: {debt}।"
       },
       examFailPaid: {
         en: "At {age}, at the door, {name} was asked: {q} The book had no answer, and the year spent there paid for {debt}.",
-        hi: "{age} बरस पर, द्वार पर, {name} से पूछा गया: {q} बही में कोई उत्तर नहीं था, और वहाँ बीते बरस ने यह क़र्ज़ चुका दिया: {debt}।"
+        hi: "{age} बरस की उम्र में, द्वार पर, {name} से पूछा गया: {q} बही में कोई उत्तर नहीं था, और वहाँ बीते बरस ने यह क़र्ज़ चुका दिया: {debt}।"
       },
       examNever: {
         en: "At {age}, at the door, {name} was asked: {q} The book had no answer, and no penance could pay for {debt}.",
-        hi: "{age} बरस पर, द्वार पर, {name} से पूछा गया: {q} बही में कोई उत्तर नहीं था, और कोई प्रायश्चित यह क़र्ज़ नहीं चुका सकता था: {debt}।"
+        hi: "{age} बरस की उम्र में, द्वार पर, {name} से पूछा गया: {q} बही में कोई उत्तर नहीं था, और कोई प्रायश्चित यह क़र्ज़ नहीं चुका सकता था: {debt}।"
       },
       examPaid: {
         en: "By {age} that was paid.",
-        hi: "{age} बरस तक वह चुक गया।"
+        hi: "{age} बरस की उम्र तक वह चुक गया।"
       },
       curse: {
         en: "Around then, ",

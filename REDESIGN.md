@@ -1700,7 +1700,24 @@ react to a choice; and the witness's choices are recorded for the Mirror.
 
 ---
 
-### Phase 16 — Death and rebirth
+### Phase 16 — Death and rebirth  ✅ SHIPPED
+
+> **Shipped** (27 Oct, PR #24), in four steps after a fix on `main` (step 0: the outcome's age, the curse heard only
+> young). The ledger's top tier kills, and penance is two years a weight; the end of a life is read as the book, the path
+> and the mirror; a named person's ended life is kept and born again, dreaming of the last; a death by ledger is first an
+> animal interlude. The interlude rate follows death by ledger, and so follows play: intended, not to be tuned. Bhaskar's
+> Hindi review changed the dream to agree with a "child" life before (`{आदमी|औरत|इंसान}`, `{का|की|का}`), the debt from a
+> past life to a suffix ("…, जो किसी पिछले जीवन से चला आया"), the ledger's and the door's joins to "{age} बरस की उम्र में"
+> as the debts say it, and the animal's dream to "कुछ रातों को {name} सपना {देखता|देखती} है…"; every account it changed is
+> a Hindi one tagged `karma`, `door`, `death` or `rebirth`. 10,000 souls a policy, up to ten lives each:
+>
+> | policy | liberation per life | lives per liberation | died a life: ledger · years · door | reborn | interludes per 100 lives | turns median · p95 |
+> |---|---|---|---|---|---|---|
+> | honest | 40.3% | 2.48 | 1.2% · 4.7% · 0.3% | 59.0% | 1.8 | 27 · 45 |
+> | mixed | 28.0% | 3.57 | 8.1% · 5.8% · 0.8% | 70.1% | 13.2 | 28 · 47 |
+> | dishonest | 18.4% | 5.43 | 17.8% · 6.0% · 1.3% | 77.9% | 28.6 | 29 · 47 |
+>
+> The steps, as they landed, follow.
 
 *This phase grew on 20 Oct. It was Yama's screen and a saved record; it is now four things,
 each of which makes the game unlike any other board game, and all four sit on Phase 12's

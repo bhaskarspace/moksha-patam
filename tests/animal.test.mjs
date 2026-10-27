@@ -89,7 +89,7 @@ test("two short rounds give a human birth regardless; earned nudges the next lif
   const s = createGame({ players: [{ name: "", alias: { en: "Ravi", hi: "रवि" }, type: "cpu", gender: "m", born: bornOf(won) }], rules: { six: true }, seed: 3 });
   while (!s.over) playTurn(s);
   assert.match(lifeOf(s, 0, "en").open, /Some nights Ravi dreams of being a jackal\./);
-  assert.match(lifeOf(s, 0, "hi").open, /कुछ रातों रवि को सपना आता है कि वह एक सियार है।/);
+  assert.match(lifeOf(s, 0, "hi").open, /कुछ रातों को रवि सपना देखता है कि वह एक सियार है।/);
 });
 
 test("the interlude's account names the animal and its master, tells its fables as the moment, and has no years", () => {
