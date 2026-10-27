@@ -1782,9 +1782,11 @@ goes with the first.*
 > plays the interludes in the chain; `accounts --lives=2` hashes them, tagged `animal` (728 of 2,000 seeds' named lives).
 > Every first-life account is still byte-identical to step 1's.
 >
-> **The rate is far from the three per hundred the plan expected, and is reported, not tuned:** the death tier is common in
-> a careless life, so interludes are 1.8 per hundred lives (honest), 13.2 (mixed) and 28.6 (dishonest). An interlude takes
-> 9 throws at the median, 15 at p95; 87–90% earn the human birth, about 9–11% go to a second round.
+> **The interlude rate follows death by ledger, and so follows play: this is intended, and not to be tuned (Bhaskar, 27
+> Oct).** Interludes are 1.8 per hundred lives (honest), 13.2 (mixed) and 28.6 (dishonest), far from the three per hundred
+> the plan guessed, because the death tier is common in a careless life and rare in an honest one. That spread is the
+> point: the animal birth is what a life's own choices bring about. An interlude takes 9 throws at the median, 15 at p95;
+> 87–90% earn the human birth, about 9–11% go to a second round.
 >
 > **The report**, 10,000 souls a policy, up to ten lives each (`sim --lives=10`); single-life deaths from step 1's table:
 >
