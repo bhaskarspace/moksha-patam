@@ -4,7 +4,7 @@
 // 12), until it is read: a choice's result arriving, the one other thing a turn waits on.
 import { GOAL, TOP, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, READINGS, CODEX, ENTRY_IDS, REFS, entryOf, sourceOf, srcOfSquare, squareOf, fallOn, bridgeOf, EGO } from "../content.js";
 import { lang, tIn, numIn, srcIn, pick, fill, castFill, ageWordsIn } from "../i18n.js";
-import { ageStep, stageOfYears, bhumikaOf, freshGunas, SANNYASA, yearsAlong } from "../engine/self.js";
+import { ageStep, stageOfYears, bhumikaOf, freshGunas, SANNYASA, yearsAlong, landedYears } from "../engine/self.js";
 import { castOf, castAlong, peopleOf, introIn } from "../engine/cast.js";
 import { momentOf, destOf, egoOf } from "../engine/qbn.js";
 import { reckonLinesIn, refusalIn, examLinesIn, debtsIn } from "../engine/karma.js";
@@ -96,8 +96,9 @@ function livedOn(n) {
   if (plan && G.state.players[plan.idx] === p && plan.target === n) return { p, years: ageStep(p.years ?? 0, n), still: false };
   if (!p.life?.length) return null;
   const head = SNAKES[p.life.at(-2)];
-  // never younger than the square: only a token moved by hand (mp.jump) can be
-  return { p, years: Math.max(p.years ?? 0, squareOf(n)?.age ?? 0), still: !!head && head.to === n && p.life.at(-1) === n };
+  // the age it landed at, before the years a choice there cost (a situation's outcome is said at the age of choosing),
+  // and never younger than the square: only a token moved by hand (mp.jump) can be
+  return { p, years: Math.max(landedYears(p), squareOf(n)?.age ?? 0), still: !!head && head.to === n && p.life.at(-1) === n };
 }
 // Which of square n's moments its subject's landing there told (REDESIGN.md Phase 10): the other one, or a situation's
 // chosen outcome, only on the square they are standing on, during the landing or after it. A square browsed tells

@@ -3,10 +3,10 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { createGame, planTurn, playTurn, endTurn, resolveChoice } from "../src/engine/turn.js";
 import { situationAt, optionsFor, choiceFor, setPolicy, worthOf, momentOf, passes } from "../src/engine/qbn.js";
-import { yearsAlong, freshGunas } from "../src/engine/self.js";
+import { yearsAlong, freshGunas, landedYears } from "../src/engine/self.js";
 import { lifeOf } from "../src/engine/account.js";
 import { SITUATIONS, SQ, squareOf } from "../src/content.js";
-import { fill, castFill } from "../src/i18n.js";
+import { fill, castFill, wordsIn } from "../src/i18n.js";
 import { lintContent } from "../tools/lint-content.mjs";
 import { playGame } from "../tools/sim.mjs";
 
@@ -107,6 +107,21 @@ test("the dishonest player plays the board as it was: every least-worth option i
     for (const k of Object.keys(SITUATIONS)) delete SITUATIONS[k];
     assert.deepEqual(run(), crooked);
   } finally { Object.assign(SITUATIONS, saved); seeds.forEach(([o, sd]) => { o.seed = sd; }); }
+});
+
+// Bhaskar's live check of Phase 15: the outcome is said at the age of choosing, as the account says it, never after the
+// years the option cost. The card fills {age} with landedYears once the turn is over (src/render/card.js livedOn).
+test("a situation's outcome and its account line state the same age", () => {
+  const s = game(52), p = s.players[0];
+  p.years = 40;
+  endTurn(s, resolveChoice(s, planTurn(s, 3), "return"));
+  assert.equal(p.years, 49);
+  assert.equal(landedYears(p), 42);
+  for (const l of ["en", "hi"]) {
+    const outcome = fill(castFill(SITUATIONS[55].options.find(o => o.id === "return").outcome[l]), { name: "Meera", gender: "f", age: wordsIn(l, landedYears(p)) });
+    assert.ok(outcome.includes(wordsIn(l, 42)) && !outcome.includes(wordsIn(l, 49)), outcome);
+    assert.ok(all(s, l).includes(wordsIn(l, 42)) && !all(s, l).includes(wordsIn(l, 49)), l);
+  }
 });
 
 test("the account tells the outcome chosen, passes the years silently, and keeps callbacks to the moment named", () => {

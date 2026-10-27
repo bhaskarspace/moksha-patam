@@ -49,6 +49,15 @@ export function yearsAlong(life, told = []) {
   }
   return out;
 }
+// The years a life had when it landed where it stands: its years now, less the years a choice or a reckoning cost there
+// afterwards, which are the square again told "stay" (yearsAlong). A situation's outcome is said at these, the age of
+// choosing, as the account says it; never younger than the square, since only a token moved by hand can be.
+export function landedYears(p) {
+  const life = p.life || [], told = p.told || [];
+  let k = life.length - 1, stays = 0;
+  if (told.length === life.length) while (k > 0 && told[k] === "stay") { k--; stays++; }
+  return Math.max((p.years ?? 0) - stays, ageOf(life[k]) ?? 0);
+}
 // What a turn does to the years: the square landed on, the years a choice there cost, then where a snake or ladder led,
 // and last the years a reckoning took (REDESIGN.md Phase 12).
 export function turnYears(years, plan) {

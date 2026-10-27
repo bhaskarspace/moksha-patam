@@ -8,6 +8,7 @@
 import { CURSES } from "../content.js";
 import { makeRng, next } from "../rng.js";
 import { fill, wordsIn } from "../i18n.js";
+import { stageOfYears } from "./self.js";
 
 // The curse drawn for player idx in this game, or null.
 export function curseOf(state, idx) {
@@ -18,8 +19,9 @@ export function curseOf(state, idx) {
   const r = makeRng((state.rng.seed ^ 0x2c1b3c6d ^ Math.imul(idx + 1, 0x297a2d39)) >>> 0);
   return list[Math.floor(next(r) * list.length)];
 }
-// Whether a landing at these years is the one it is said at: the first old enough for it.
-export const spokenAt = (c, years) => years >= c.from;
+// Whether a landing at these years is the one it is said at: the first old enough for it, in childhood or brahmacharya.
+// A life that never lands there young enough never hears it, and the account never closes it (curseIn is null).
+export const spokenAt = (c, years) => years >= c.from && stageOfYears(years) <= 1;
 // The curse a finished or unfinished life carries, as { c, said, closedAt }: said is where in the life it was spoken
 // (p.curse.i), closedAt where it came true, the first square of its family landed on after it, or null.
 export function curseIn(p) {

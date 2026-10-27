@@ -3184,6 +3184,15 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     }
     return out;
   }
+  function landedYears(p) {
+    const life = p.life || [], told = p.told || [];
+    let k = life.length - 1, stays = 0;
+    if (told.length === life.length) while (k > 0 && told[k] === "stay") {
+      k--;
+      stays++;
+    }
+    return Math.max((p.years ?? 0) - stays, ageOf(life[k]) ?? 0);
+  }
   function turnYears(years, plan) {
     const lost = plan.reckon?.years ?? 0;
     if (plan.sit) return years + 1 + lost;
@@ -3445,7 +3454,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const r = makeRng((state.rng.seed ^ 739982445 ^ Math.imul(idx + 1, 695872825)) >>> 0);
     return list[Math.floor(next(r) * list.length)];
   }
-  var spokenAt = (c, years) => years >= c.from;
+  var spokenAt = (c, years) => years >= c.from && stageOfYears(years) <= 1;
   function curseIn(p) {
     const c = p.curse && CURSES.list?.find((x) => x.id === p.curse.id);
     if (!c) return null;
@@ -5575,7 +5584,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     if (plan && G.state.players[plan.idx] === p && plan.target === n) return { p, years: ageStep(p.years ?? 0, n), still: false };
     if (!p.life?.length) return null;
     const head = SNAKES[p.life.at(-2)];
-    return { p, years: Math.max(p.years ?? 0, squareOf(n)?.age ?? 0), still: !!head && head.to === n && p.life.at(-1) === n };
+    return { p, years: Math.max(landedYears(p), squareOf(n)?.age ?? 0), still: !!head && head.to === n && p.life.at(-1) === n };
   }
   function toldHere(n) {
     const p = subjectOf(), plan = G.plan;

@@ -59,3 +59,15 @@ test("with the curses taken away nothing is drawn, and the account has no curse 
     assert.equal(lifeOf(s, 0, "en").curse, "");
   } finally { CURSES.list = saved; }
 });
+
+// Bhaskar's live check of Phase 15: a curse is said only in childhood or brahmacharya. A life that never lands there young
+// enough (here, a token moved by hand to 52, as mp.jump does) never hears it, and the account never closes it.
+test("a curse is never spoken late, and an unspoken curse is never closed", () => {
+  for (let seed = 1; seed <= 20; seed++) {
+    const s = createGame({ players: [{ name: "Meera", type: "cpu", gender: "f" }], rules: { six: true }, seed });
+    s.players[0].pos = 52;
+    while (!s.over) playTurn(s);
+    assert.equal(s.players[0].curse, undefined, `seed ${seed}`);
+    for (const l of ["en", "hi"]) assert.equal(lifeOf(s, 0, l).curse, "");
+  }
+});
