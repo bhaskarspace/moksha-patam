@@ -432,6 +432,16 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 /* Phase 8: the title the life earned, under its name, and a first line that knows the shape of the whole life */
 .life-leaf .leaf-text p.life-sub { margin-top: 0; font-size: 14px; letter-spacing: 0.04em; color: var(--l-ink2); }
 .life-leaf .leaf-text p.life-open { margin-top: 14px; font-style: italic; }
+/* Phase 16: the life read three ways (the book, the path, the mirror), and Citragupta, the hand that reads it */
+.life-leaf .life-tabs { margin: 10px 24px 0; gap: 20px; border-bottom-color: var(--l-line); }
+.life-leaf .life-tabs button { font-size: 12px; color: var(--l-ink2); }
+.life-leaf .life-tabs button[aria-selected="true"] { color: var(--l-ink); border-bottom-color: var(--l-rule); }
+.life-leaf .leaf-text p.life-scribe { margin-top: 0; font-size: 14px; font-style: italic; color: var(--l-ink2); }
+.life-leaf .life-path, .life-leaf .life-mirror { margin: 10px 0 0; padding-left: 1.4em; max-width: 62ch; }
+.life-leaf .life-path li { font-size: 16px; line-height: 1.5; }
+.life-leaf .life-path .pa { display: inline-block; min-width: 8ch; color: var(--l-ink2); }
+.life-leaf .life-path .pv { margin-left: 0.5em; font-style: italic; color: var(--l-ink2); }
+.life-leaf .life-mirror li { margin-top: 14px; font-size: 18px; line-height: 1.6; }
 .life-leaf .leaf-foot .ghost { color: var(--l-ink); border-color: var(--l-line); padding: 6px 14px; font-size: 14px; }
 .win > div button + button { margin-top: -4px; }
 
@@ -568,6 +578,7 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
   .leaf .age { font-size: 10.5px; }
   .leaf .story p.moment { font-size: 19px; }
   .life-who { padding: 6px 12px 0; }
+  .life-leaf .life-tabs { margin: 8px 12px 0; gap: 16px; }
   .leaf-text { padding: 4px 4px 8px 14px; border-right: 0; }
   .leaf .story p { font-size: 18px; }
   .leaf .chips p, .leaf .note { font-size: 16px; }
@@ -1276,6 +1287,22 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         lifeCopied: "Copied",
         lifeSave: "Download",
         lifeWhose: "Whose life",
+        lifeTabs: "The life, three ways",
+        lifeBook: "The book",
+        lifePath: "The path",
+        lifeMirror: "The mirror",
+        citragupta: "Citragupta reads from the book.",
+        pathSnake: "down from {sq}",
+        pathLadder: "up from {sq}",
+        pathReckon: "sent back by a debt",
+        pathSat: "a year sat out",
+        pathSatN: "{n} years sat out",
+        pathStay: "a year more there",
+        pathStayN: "{n} more years there",
+        pathWin: "Through the door",
+        pathFell: "The fall",
+        pathDied: "Death",
+        mirrorSkip: "Back to the book",
         lPassed: "Passed:",
         aboveExit: "Moksha is behind you now, on {n}. Nothing up here turns back: these realms are walked, and the throw past {top} is the fall.",
         bornAgain: "{name} is born again",
@@ -1540,6 +1567,22 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         lifeCopied: "कॉपी हो गया",
         lifeSave: "डाउनलोड",
         lifeWhose: "किसका जीवन",
+        lifeTabs: "जीवन, तीन तरह से",
+        lifeBook: "बही",
+        lifePath: "राह",
+        lifeMirror: "दर्पण",
+        citragupta: "चित्रगुप्त बही से पढ़ते हैं।",
+        pathSnake: "{sq} से नीचे",
+        pathLadder: "{sq} से ऊपर",
+        pathReckon: "एक क़र्ज़ ने वापस भेजा",
+        pathSat: "एक बरस बैठकर बीता",
+        pathSatN: "{n} बरस बैठकर बीते",
+        pathStay: "वहीं एक बरस और",
+        pathStayN: "वहीं {n} बरस और",
+        pathWin: "द्वार के पार",
+        pathFell: "पतन",
+        pathDied: "मृत्यु",
+        mirrorSkip: "बही पर लौटें",
         lPassed: "रास्ते में:",
         aboveExit: "मोक्ष अब पीछे छूट गया, {n} पर। यहाँ ऊपर से कुछ नहीं लौटता: इन लोकों में आगे ही चलना है, और {top} के पार का दाँव पतन है।",
         bornAgain: "{name} का फिर से जन्म हुआ",
@@ -2658,7 +2701,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           guna: "s",
           aims: { dharma: 5, artha: -5 },
           require: { aims: { artha: { min: 15 } } },
-          why: { en: "There is not enough in the house for it.", hi: "घर में इतना है ही नहीं।" }
+          why: { en: "There is not enough in the house for it.", hi: "घर में इतना है ही नहीं।" },
+          mirror: { chose: { en: "to feed the others first", hi: "पहले औरों को खिलाना" } }
         },
         {
           id: "first",
@@ -2668,7 +2712,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           guna: "r",
           aims: { kama: 5 },
           outcome: { en: "{name} is {age} and eats first tonight, standing up in the kitchen, and the others eat after, and nobody says anything.", hi: "{name} {age} बरस {का|की} है। आज रात {name} ने रसोई में खड़े-खड़े पहले ख़ुद खा लिया, बाक़ी सबने बाद में खाया, और किसी ने कुछ नहीं कहा।" },
-          seed: { fuse: 20, weight: 2, holds: 47, debt: { en: "the night of eating first, at {at}", hi: "{at} बरस की उम्र में सबसे पहले खा लेने वाली वह रात" }, reckoning: { en: "There is just enough in the house again, and this time someone else eats first, standing up in the kitchen, and {name} recognises it.", hi: "घर में फिर बस उतना ही है, और इस बार कोई और रसोई में खड़े-खड़े सबसे पहले खा लेता है, और {name} उसे {पहचान लेता|पहचान लेती} है।" } }
+          seed: { fuse: 20, weight: 2, holds: 47, debt: { en: "the night of eating first, at {at}", hi: "{at} बरस की उम्र में सबसे पहले खा लेने वाली वह रात" }, reckoning: { en: "There is just enough in the house again, and this time someone else eats first, standing up in the kitchen, and {name} recognises it.", hi: "घर में फिर बस उतना ही है, और इस बार कोई और रसोई में खड़े-खड़े सबसे पहले खा लेता है, और {name} उसे {पहचान लेता|पहचान लेती} है।" } },
+          mirror: { took: { en: "ate first", hi: "पहले ख़ुद खा लिया" } }
         }
       ],
       ego: {
@@ -2728,7 +2773,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           cost: 1,
           guna: "s",
           aims: { dharma: 5 },
-          outcome: { en: "{name} is {age} and tells everyone the answer came from the man who mends bicycles, and has to explain it twice, and is believed the second time.", hi: "{name} {age} बरस {का|की} है। {name} ने सबको बताया कि हल साइकिल ठीक करने वाले से मिला, दो बार समझाना पड़ा, और दूसरी बार में बात मानी गई।", mirror: { en: "King Janashruti went looking for Raikva under his cart, and asked.", hi: "राजा जानश्रुति रैक्व को उनकी गाड़ी के नीचे ढूँढते हुए पहुँचे, और पूछा।" } }
+          outcome: { en: "{name} is {age} and tells everyone the answer came from the man who mends bicycles, and has to explain it twice, and is believed the second time.", hi: "{name} {age} बरस {का|की} है। {name} ने सबको बताया कि हल साइकिल ठीक करने वाले से मिला, दो बार समझाना पड़ा, और दूसरी बार में बात मानी गई।", mirror: { en: "King Janashruti went looking for Raikva under his cart, and asked.", hi: "राजा जानश्रुति रैक्व को उनकी गाड़ी के नीचे ढूँढते हुए पहुँचे, और पूछा।" } },
+          mirror: { chose: { en: "to say where the answer came from", hi: "यह बताना कि हल कहाँ से आया" } }
         },
         {
           id: "claim",
@@ -2738,7 +2784,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           guna: "r",
           aims: { artha: 5, dharma: -5 },
           outcome: { en: "{name} is {age} and brings the answer in as {name}'s own, and is praised for it, and walks the long way round the bicycle stall for weeks.", hi: "{name} {age} बरस {का|की} है। {name} ने वह हल अपना बताकर पेश किया, तारीफ़ भी मिली, और कई हफ़्ते साइकिल वाले की दुकान से कतराकर, घूमकर निकलना पड़ा।" },
-          seed: { fuse: 15, weight: 2, holds: 77, debt: { en: "the answer from the bicycle stall, at {at}", hi: "{at} बरस की उम्र में साइकिल वाले से मिला वह हल" }, reckoning: { en: "Someone asks {name} to solve it again, the way {name} did at {at}, in front of the people who praised it, and {name} cannot, and the man who mends bicycles has gone.", hi: "कोई {name} से कहता है कि वह हल फिर निकालो, जैसे {at} बरस की उम्र में निकाला था, उन्हीं लोगों के सामने जिन्होंने तारीफ़ की थी, और {name} से नहीं होता, और साइकिल ठीक करने वाला जा चुका है।" } }
+          seed: { fuse: 15, weight: 2, holds: 77, debt: { en: "the answer from the bicycle stall, at {at}", hi: "{at} बरस की उम्र में साइकिल वाले से मिला वह हल" }, reckoning: { en: "Someone asks {name} to solve it again, the way {name} did at {at}, in front of the people who praised it, and {name} cannot, and the man who mends bicycles has gone.", hi: "कोई {name} से कहता है कि वह हल फिर निकालो, जैसे {at} बरस की उम्र में निकाला था, उन्हीं लोगों के सामने जिन्होंने तारीफ़ की थी, और {name} से नहीं होता, और साइकिल ठीक करने वाला जा चुका है।" } },
+          mirror: { took: { en: "presented it as its own", hi: "उसे अपना बताकर पेश कर दिया" } }
         }
       ],
       ego: {
@@ -2766,7 +2813,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           cost: 0,
           guna: "r",
           aims: { artha: 10, dharma: -10 },
-          seed: { fuse: 15, weight: 2, holds: 55, debt: { en: "the extra change pocketed at {at}", hi: "{at} बरस की उम्र में जेब में रखा फ़ालतू छुट्टा" }, reckoning: { en: "A shopkeeper gives {name} too little change and has already turned to the next customer, and {name} knows exactly how it was done.", hi: "एक दुकानदार {name} को कम छुट्टा लौटाता है और अगले ग्राहक की ओर मुड़ चुका है, और {name} ठीक-ठीक {जानता|जानती} है कि यह कैसे हुआ।" } }
+          seed: { fuse: 15, weight: 2, holds: 55, debt: { en: "the extra change pocketed at {at}", hi: "{at} बरस की उम्र में जेब में रखा फ़ालतू छुट्टा" }, reckoning: { en: "A shopkeeper gives {name} too little change and has already turned to the next customer, and {name} knows exactly how it was done.", hi: "एक दुकानदार {name} को कम छुट्टा लौटाता है और अगले ग्राहक की ओर मुड़ चुका है, और {name} ठीक-ठीक {जानता|जानती} है कि यह कैसे हुआ।" } },
+          mirror: { took: { en: "kept it", hi: "उसे रख लिया" } }
         },
         {
           id: "return",
@@ -2775,7 +2823,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           cost: 7,
           guna: "s",
           aims: { dharma: 5 },
-          outcome: { en: "{name} is {age} and goes back to the counter with the extra change, and waits while the shopkeeper counts it twice. For years after, {name} counts the change again at every counter, and is the slowest in every queue.", hi: "{name} {age} बरस {का|की} है। {name} ज़्यादा पैसे लेकर काउंटर पर {लौट आया|लौट आई}, और दुकानदार के दो बार गिनने तक {खड़ा रहा|खड़ी रही}। उसके बाद बरसों तक {name} हर काउंटर पर पैसे दोबारा {गिनता रहा|गिनती रही}, और हर क़तार में {सबसे धीमा रहा|सबसे धीमी रही}।", mirror: { en: "The jackal could have eaten the boar and left the bowstring alone.", hi: "सियार चाहता तो सूअर खाकर धनुष की डोरी को छोड़ सकता था।" } }
+          outcome: { en: "{name} is {age} and goes back to the counter with the extra change, and waits while the shopkeeper counts it twice. For years after, {name} counts the change again at every counter, and is the slowest in every queue.", hi: "{name} {age} बरस {का|की} है। {name} ज़्यादा पैसे लेकर काउंटर पर {लौट आया|लौट आई}, और दुकानदार के दो बार गिनने तक {खड़ा रहा|खड़ी रही}। उसके बाद बरसों तक {name} हर काउंटर पर पैसे दोबारा {गिनता रहा|गिनती रही}, और हर क़तार में {सबसे धीमा रहा|सबसे धीमी रही}।", mirror: { en: "The jackal could have eaten the boar and left the bowstring alone.", hi: "सियार चाहता तो सूअर खाकर धनुष की डोरी को छोड़ सकता था।" } },
+          mirror: { chose: { en: "to give the change back", hi: "छुट्टा लौटाना" } }
         }
       ],
       ego: {
@@ -2804,7 +2853,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           guna: "s",
           aims: { dharma: 10, kama: -5 },
           require: { guna: { t: { max: 0.55 } } },
-          why: { en: "Too tired tonight to go without.", hi: "आज भूखे रहने की हिम्मत नहीं बची।" }
+          why: { en: "Too tired tonight to go without.", hi: "आज भूखे रहने की हिम्मत नहीं बची।" },
+          mirror: { chose: { en: "to give the guest your plate", hi: "मेहमान को अपनी थाली देना" } }
         },
         {
           id: "eaten",
@@ -2814,7 +2864,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           guna: "r",
           aims: { dharma: -5 },
           outcome: { en: "{name} is {age} and says at the door that everyone has eaten already, and the guest says of course, and goes, and dinner goes on a little quieter than before.", hi: "{name} {age} बरस {का|की} है। {name} ने दरवाज़े पर ही कह दिया कि सब खा चुके हैं; मेहमान ने कहा, ठीक है, और चला गया, और खाना पहले से थोड़ा चुपचाप चलता रहा।" },
-          seed: { fuse: 20, weight: 2, holds: 55, debt: { en: "the guest turned away at dinner, at {at}", hi: "{at} बरस की उम्र में खाने के समय लौटाया गया मेहमान" }, reckoning: { en: "{name} arrives somewhere at dinner time, tired from the road, and is told at the door that everyone has eaten already.", hi: "{name} रास्ते से {थका हुआ|थकी हुई} कहीं खाने के समय {पहुँचता|पहुँचती} है, और दरवाज़े पर ही कह दिया जाता है कि सब खा चुके हैं।" } }
+          seed: { fuse: 20, weight: 2, holds: 55, debt: { en: "the guest turned away at dinner, at {at}", hi: "{at} बरस की उम्र में खाने के समय लौटाया गया मेहमान" }, reckoning: { en: "{name} arrives somewhere at dinner time, tired from the road, and is told at the door that everyone has eaten already.", hi: "{name} रास्ते से {थका हुआ|थकी हुई} कहीं खाने के समय {पहुँचता|पहुँचती} है, और दरवाज़े पर ही कह दिया जाता है कि सब खा चुके हैं।" } },
+          mirror: { took: { en: "said everyone had eaten", hi: "कह दिया कि सब खा चुके हैं" } }
         }
       ],
       ego: {
@@ -2850,7 +2901,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           cost: 0,
           guna: "r",
           aims: { dharma: -10 },
-          seed: { fuse: 10, weight: 3, holds: 59, debt: { en: "the hand that fell, at {at}", hi: "{at} बरस की उम्र में उठकर गिरा वह हाथ" }, reckoning: { en: "Something breaks in a house {name} is visiting, and a child flinches before anyone has moved, and {name} knows where that is learned.", hi: "जिस घर में {name} मेहमान है, वहाँ कुछ टूटता है, और किसी के हिलने से पहले ही एक बच्चा सहम जाता है, और {name} {जानता|जानती} है कि यह कहाँ सीखा जाता है।" } }
+          seed: { fuse: 10, weight: 3, holds: 59, debt: { en: "the hand that fell, at {at}", hi: "{at} बरस की उम्र में उठकर गिरा वह हाथ" }, reckoning: { en: "Something breaks in a house {name} is visiting, and a child flinches before anyone has moved, and {name} knows where that is learned.", hi: "जिस घर में {name} मेहमान है, वहाँ कुछ टूटता है, और किसी के हिलने से पहले ही एक बच्चा सहम जाता है, और {name} {जानता|जानती} है कि यह कहाँ सीखा जाता है।" } },
+          mirror: { took: { en: "let the hand fall", hi: "हाथ गिर जाने दिया" } }
         },
         {
           id: "look",
@@ -2861,7 +2913,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           aims: { dharma: 5 },
           require: { guna: { r: { max: 0.5 } } },
           why: { en: "Too restless to stop the hand in time.", hi: "इतनी बेचैनी है कि हाथ समय पर नहीं रुकेगा।" },
-          outcome: { en: "{name} is {age}, and with the hand already up looks at {child=the daughter} first, and sees that she is more frightened of the broken thing than of {name}. The hand comes down onto her head, and stays there. It takes years before looking first is quicker than the hand.", hi: "{name} {age} बरस {का|की} है। हाथ उठ चुका था, पर {name} ने पहले {child=बेटी} की ओर देखा, और दिखा कि वह {name} से ज़्यादा उस टूटी चीज़ से डरी हुई है। हाथ उसके सिर पर आकर रुक गया, और वहीं रहा। पहले देखना हाथ से तेज़ होने में बरसों लगे।", mirror: { en: "The brahmin's wife looked in the cradle only after the mongoose was dead.", hi: "ब्राह्मणी ने पालने में तब झाँका जब नेवला मर चुका था।" }, cast: "daughter", recall: { en: "at whom {name} once looked first, with the hand already up", hi: "जिसकी ओर कभी {name} ने उठे हाथ के साथ पहले देखा था" } }
+          outcome: { en: "{name} is {age}, and with the hand already up looks at {child=the daughter} first, and sees that she is more frightened of the broken thing than of {name}. The hand comes down onto her head, and stays there. It takes years before looking first is quicker than the hand.", hi: "{name} {age} बरस {का|की} है। हाथ उठ चुका था, पर {name} ने पहले {child=बेटी} की ओर देखा, और दिखा कि वह {name} से ज़्यादा उस टूटी चीज़ से डरी हुई है। हाथ उसके सिर पर आकर रुक गया, और वहीं रहा। पहले देखना हाथ से तेज़ होने में बरसों लगे।", mirror: { en: "The brahmin's wife looked in the cradle only after the mongoose was dead.", hi: "ब्राह्मणी ने पालने में तब झाँका जब नेवला मर चुका था।" }, cast: "daughter", recall: { en: "at whom {name} once looked first, with the hand already up", hi: "जिसकी ओर कभी {name} ने उठे हाथ के साथ पहले देखा था" } },
+          mirror: { chose: { en: "to look at her first", hi: "पहले उसकी ओर देखना" } }
         },
         {
           id: "leave",
@@ -2870,7 +2923,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           cost: 4,
           guna: "t",
           aims: { kama: -5 },
-          outcome: { en: "{name} is {age}, walks out of the room with the hand still raised, and stands outside until it comes down by itself. Nobody mentions the broken thing again, for years.", hi: "{name} {age} बरस {का|की} है। उठा हुआ हाथ लिए {name} कमरे से बाहर {चला गया|चली गई}, और तब तक बाहर {खड़ा रहा|खड़ी रही} जब तक हाथ अपने-आप नीचे नहीं आ गया। टूटी चीज़ की बात बरसों तक किसी ने नहीं की।" }
+          outcome: { en: "{name} is {age}, walks out of the room with the hand still raised, and stands outside until it comes down by itself. Nobody mentions the broken thing again, for years.", hi: "{name} {age} बरस {का|की} है। उठा हुआ हाथ लिए {name} कमरे से बाहर {चला गया|चली गई}, और तब तक बाहर {खड़ा रहा|खड़ी रही} जब तक हाथ अपने-आप नीचे नहीं आ गया। टूटी चीज़ की बात बरसों तक किसी ने नहीं की।" },
+          mirror: { chose: { en: "to walk out of the room", hi: "कमरे से बाहर चले जाना" } }
         }
       ],
       ego: {
@@ -3070,6 +3124,25 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     ]
   };
 
+  // content/mirror.json
+  var mirror_default = {
+    about: "The Mirror (REDESIGN.md Phase 16): the Yakṣa's questions put to the player, not the book, after the book has been read. Three a life, chosen by src/engine/mirror.js from what the life did (`when`); a rebellion in p.witness always takes the first. Unanswered, unrecorded, skippable. Register: if a line could be printed on a poster it is wrong. {age} is the age of the choice, {chose} and {took} the `mirror` phrases on the ego tests' options (content/situations.json), {who} a name from the cast. Drafts for Bhaskar's review (27 Oct).",
+    intro: {
+      en: "These are for you, not for the book. Nothing you think here is written down.",
+      hi: "ये प्रश्न आपसे हैं, बही से नहीं। यहाँ आप जो सोचें, वह कहीं लिखा नहीं जाता।"
+    },
+    questions: [
+      { id: "rebel", when: "rebel", q: { en: "At {age} you chose {chose}, and the life {took}. Which of you was it?", hi: "{age} बरस पर आपने {chose} चुना था, और जीवन ने {took}। उन दोनों में आप कौन थे?" } },
+      { id: "helped", when: "helped", q: { en: "When you helped, did you want the other person to be free, or to need you?", hi: "जब आपने मदद की, तो आप चाहते थे कि सामने वाला आज़ाद हो, या आप पर निर्भर रहे?" } },
+      { id: "held", when: "held", q: { en: "Which was harder to put down: the thing, or being the one who had it?", hi: "छोड़ना किसे ज़्यादा मुश्किल था: उस चीज़ को, या उसे रखने वाला होने को?" } },
+      { id: "unseen", when: "least", q: { en: "Would you have made the same choice if nobody knew?", hi: "अगर किसी को पता न चलता, तो क्या आप फिर भी वही चुनते?" } },
+      { id: "door", when: "refused", q: { en: "When the door named the debt, had you forgotten it, or only stopped looking at it?", hi: "जब द्वार ने क़र्ज़ का नाम लिया, तो क्या आप उसे भूल चुके थे, या बस उसकी ओर देखना छोड़ दिया था?" } },
+      { id: "unwritten", when: "unwritten", q: { en: "{who} died and nobody wrote. Were you waiting for {who} to?", hi: "{who} चल बसे और किसी ने ख़बर नहीं भेजी। क्या आप {who} के लिखने की राह देख रहे थे?" } },
+      { id: "still", when: "still", q: { en: "When you sat still, what were you waiting for?", hi: "जब आप स्थिर बैठे थे, तो किसकी प्रतीक्षा कर रहे थे?" } },
+      { id: "year", when: "always", q: { en: "Is there a year you would live again exactly as it was?", hi: "क्या कोई ऐसा बरस है जिसे आप ठीक वैसा ही फिर से जीना चाहेंगे?" } }
+    ]
+  };
+
   // src/content.js
   var { GOAL, TOP, ROWS, ASHRAMAS, LADDERS, SNAKES, HEAVEN, MOKSHA, FALL } = squares_default;
   var { SQ } = squares_default;
@@ -3081,6 +3154,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var CAST = { names: names_default.cast || null };
   var DOOR = door_default.questions;
   var CURSES = { list: curses_default.curses || null };
+  var MIRROR = mirror_default;
   var BOARD = boards_default["110"];
   var READINGS = readings_default;
   var CODEX = codex_default;
@@ -6605,35 +6679,122 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     if (!snakes.length) return T2("lifeOpenSteady");
     return T2("lifeOpenLived", { age: words(to) });
   }
+  function pathOf(state, i, l) {
+    const p = state.players[i], T2 = (k, v = {}) => fill(tIn(l, k, { name: pnameIn(p, l), ...v }), { name: pnameIn(p, l), gender: p.gender });
+    const words = (n) => wordsIn(l, Math.floor(n)), nameOf = (n) => n === GOAL ? tIn(l, "moksha") : squareOf(n)?.[l] || squareOf(n)?.en || "";
+    const rows = [];
+    for (const e of yearsAlong(p.life || [], p.told || [])) {
+      const last2 = rows.at(-1);
+      if ((e.via === "sit" || e.via === "stay") && last2 && last2.n === e.n && last2.kind === e.via) {
+        last2.count++;
+        continue;
+      }
+      if (e.via === "sit" || e.via === "stay") {
+        rows.push({ n: e.n, years: e.years, kind: e.via, count: 1 });
+        continue;
+      }
+      rows.push({ n: e.n, years: e.years, kind: e.via, from: e.from });
+    }
+    const viaOf = (r) => r.kind === "snake" ? T2("pathSnake", { sq: nameOf(r.from) }) : r.kind === "ladder" ? T2("pathLadder", { sq: nameOf(r.from) }) : r.kind === "reckon" ? T2("pathReckon") : r.kind === "sit" ? r.count === 1 ? T2("pathSat") : T2("pathSatN", { n: words(r.count) }) : r.kind === "stay" ? r.count === 1 ? T2("pathStay") : T2("pathStayN", { n: words(r.count) }) : "";
+    const end = state.winner === i ? T2("pathWin") : p.fell ? T2("pathFell") : p.dead ? T2("pathDied") : "";
+    return { rows: rows.map((r) => ({ age: words(r.years), sq: nameOf(r.n), via: viaOf(r) })), end };
+  }
   function lifeText(state, i, l) {
     const { title, sub, open: open2, paras, end, curse, fates } = lifeOf(state, i, l);
     return [[title, sub].filter(Boolean).join("\n"), open2, ...paras.map((p) => `${p.head}
 ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boolean).join("\n\n") + "\n";
   }
 
+  // src/engine/mirror.js
+  var ASKED = 3;
+  var HELP = /* @__PURE__ */ new Set([49, 51, 56]);
+  var least = (n, id) => {
+    const o = optionOf(n, id);
+    return !!o && SITUATIONS[n].options.every((x) => worthOf(x) >= worthOf(o));
+  };
+  function deeds(state, i) {
+    const p = state.players[i], w = p.witness ?? [], along = yearsAlong(p.life || [], p.told || []);
+    const rebel = w.findLast((x) => x.chose !== x.took) ?? null;
+    const arcs = castArcs(state, i, along), cc = castAlong(state, i, along), cast2 = cc.at(-1)?.cast ?? {};
+    const unwritten = arcs.find((a) => a.kind === "died" && cast2[a.who]?.en) ?? null;
+    return {
+      rebel: rebel && { ...rebel, age: along[rebel.i]?.years ?? p.years },
+      helped: w.some((x) => HELP.has(x.sq) && !least(x.sq, x.chose)),
+      held: p.holding != null || !!p.held?.length,
+      least: w.some((x) => least(x.sq, x.took)),
+      refused: !!p.refusals?.length,
+      unwritten: unwritten && cast2[unwritten.who],
+      still: (p.practised ?? 0) > 0 || (p.peak ?? -1) >= 3,
+      always: true
+    };
+  }
+  var FALLBACK = ["year", "held", "still"];
+  function mirrorOf(state, i) {
+    const qs = MIRROR.questions ?? [], d = deeds(state, i), out = [];
+    const add = (q2) => {
+      if (q2 && out.length < ASKED && !out.some((x) => x.id === q2.id)) out.push({ id: q2.id, ...q2.when === "rebel" ? { rebel: d.rebel } : {}, ...q2.when === "unwritten" ? { who: d.unwritten } : {} });
+    };
+    if (d.rebel) add(qs.find((q2) => q2.when === "rebel"));
+    const fits = qs.filter((q2) => q2.when !== "rebel" && d[q2.when]);
+    const r = makeRng((state.rng.seed ^ 1831565813 ^ Math.imul(i + 1, 668265261)) >>> 0);
+    const order = fits.map((q2) => [next(r), q2]).sort((a, b) => a[0] - b[0]).map(([, q2]) => q2);
+    order.forEach(add);
+    for (const id of FALLBACK) add(qs.find((q2) => q2.id === id && q2.when !== "unwritten"));
+    return out;
+  }
+  function mirrorIn(l, m) {
+    const q2 = MIRROR.questions.find((x) => x.id === m.id);
+    if (!q2) return "";
+    const t2 = q2.q[l] || q2.q.en, v = {};
+    if (m.rebel) {
+      const chose = optionOf(m.rebel.sq, m.rebel.chose)?.mirror?.chose, took = optionOf(m.rebel.sq, m.rebel.took)?.mirror?.took;
+      Object.assign(v, { age: wordsIn(l, Math.floor(m.rebel.age)), chose: chose?.[l] || chose?.en || "", took: took?.[l] || took?.en || "" });
+    }
+    if (m.who) v.who = m.who[l] || m.who.en;
+    return t2.replace(/\{(age|chose|took|who)\}/g, (_, k) => v[k] ?? "");
+  }
+  var mirrorIntroIn = (l) => MIRROR.intro?.[l] || MIRROR.intro?.en || "";
+
   // src/render/life.js
   var dlg3 = $("lifeDlg");
   var leaf3 = $("lifeLeaf");
   var whose = 0;
+  var tab = "book";
+  var TABS = ["book", "path", "mirror"];
+  var TAB_KEY = { book: "lifeBook", path: "lifePath", mirror: "lifeMirror" };
   var lifeText2 = (state, i, l = lang) => lifeText(state, i, l);
-  function paint3() {
+  function panel(state, l, T2) {
+    if (tab === "path") {
+      const { rows, end: end2 } = pathOf(state, whose, l);
+      return `<ol class="life-path">${rows.map((r) => `<li><span class="pa">${esc(r.age)}</span><span class="ps">${esc(r.sq)}</span>${r.via ? `<span class="pv">${esc(r.via)}</span>` : ""}</li>`).join("")}</ol>` + (end2 ? `<p class="life-end">${esc(end2)}</p>` : "");
+    }
+    if (tab === "mirror") {
+      return `<p class="life-open">${esc(mirrorIntroIn(l))}</p><ol class="life-mirror">${mirrorOf(state, whose).map((m) => `<li>${esc(mirrorIn(l, m))}</li>`).join("")}</ol><p><button type="button" class="ghost" data-act="skip">${T2("mirrorSkip")}</button></p>`;
+    }
+    const { sub, open: open2, paras, end, curse, fates } = lifeOf(state, whose, l);
+    return `<p class="life-scribe">${esc(T2("citragupta"))}</p>
+        ${sub ? `<p class="life-sub">${esc(sub)}</p>` : ""}
+        ${open2 ? `<p class="life-open">${esc(open2)}</p>` : ""}
+        ${paras.map((p) => `<h3 class="sub">${esc(p.head)}</h3><p>${esc(p.text)}</p>`).join("")}
+        <p class="life-end">${esc([end, curse].filter(Boolean).join(" "))}</p>
+        ${fates.length ? `<p class="life-fates">${esc(fates.join(" "))}</p>` : ""}`;
+  }
+  function paint3(focusTab = false) {
     const state = G.state, l = lang, T2 = (k, v) => tIn(l, k, v);
-    const { title, sub, open: open2, paras, end, curse, fates } = lifeOf(state, whose, l);
+    const { title } = lifeOf(state, whose, l);
     const tabs = state.players.length > 1 ? `<div class="life-who" role="group" aria-label="${T2("lifeWhose")}">` + state.players.map((p, i) => `<button type="button" data-who="${i}" aria-pressed="${i === whose}"><span class="dot" style="background:${COLORS[p.color]}"></span>${esc(pnameIn(p, l))}</button>`).join("") + `</div>` : "";
+    const ways = `<div class="life-tabs tabs" role="tablist" aria-label="${T2("lifeTabs")}">` + TABS.map((k) => `<button type="button" role="tab" id="lifeTab-${k}" data-tab="${k}" aria-controls="lifePanel" aria-selected="${k === tab}" tabindex="${k === tab ? 0 : -1}">${T2(TAB_KEY[k])}</button>`).join("") + `</div>`;
     leaf3.innerHTML = `
     <header class="leaf-top">
       <span class="eb">${T2("readLife")}</span>
       <div class="leaf-tools"><button type="button" class="x" data-act="close" aria-label="${T2("close")}" autofocus>×</button></div>
     </header>
     ${tabs}
+    ${ways}
     <div class="leaf-main life-main">
-      <div class="leaf-text" lang="${l}">
+      <div class="leaf-text" lang="${l}" id="lifePanel" role="tabpanel" aria-labelledby="lifeTab-${tab}">
         <h2 id="lifeTitle">${esc(title)}</h2>
-        ${sub ? `<p class="life-sub">${esc(sub)}</p>` : ""}
-        ${open2 ? `<p class="life-open">${esc(open2)}</p>` : ""}
-        ${paras.map((p) => `<h3 class="sub">${esc(p.head)}</h3><p>${esc(p.text)}</p>`).join("")}
-        <p class="life-end">${esc([end, curse].filter(Boolean).join(" "))}</p>
-        ${fates.length ? `<p class="life-fates">${esc(fates.join(" "))}</p>` : ""}
+        ${panel(state, l, T2)}
       </div>
     </div>
     <footer class="leaf-foot">
@@ -6641,9 +6802,15 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
       <span class="ft">${numIn(l, state.rng.seed)}</span>
       <button type="button" class="ghost" data-act="save">${T2("lifeSave")}</button>
     </footer>`;
+    if (focusTab) leaf3.querySelector(`#lifeTab-${tab}`)?.focus();
   }
+  var showWay = (k, focus = true) => {
+    tab = k;
+    paint3(focus);
+  };
   function openLife(i = G.state.winner ?? Math.max(0, G.state.players.findIndex((p) => p.type === "human"))) {
     whose = i;
+    tab = "book";
     paint3();
     if (!dlg3.open) dlg3.showModal();
   }
@@ -6660,8 +6827,10 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
       whose = +b.dataset.who;
       return paint3();
     }
+    if (b.dataset.tab) return showWay(b.dataset.tab);
     const act = b.dataset.act;
     if (act === "close") return dlg3.close();
+    if (act === "skip") return showWay("book");
     const text = lifeText2(G.state, whose);
     if (act === "copy") {
       try {
@@ -6679,6 +6848,13 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
   });
   dlg3.addEventListener("click", (e) => {
     if (e.target === dlg3) dlg3.close();
+  });
+  leaf3.addEventListener("keydown", (e) => {
+    if (!e.target.closest?.(".life-tabs")) return;
+    const k = TABS.indexOf(tab), to = { ArrowRight: k + 1, ArrowLeft: k - 1, Home: 0, End: TABS.length - 1 }[e.key];
+    if (to == null) return;
+    e.preventDefault();
+    showWay(TABS[(to + TABS.length) % TABS.length]);
   });
 
   // src/main.js

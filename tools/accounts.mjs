@@ -17,7 +17,9 @@
 // joins a cast return by what they witnessed. Every account untagged witness must be the same as main's.
 // Phase 16 adds "death": a game in which the death tier came (it kills now, and before it sent the life back), or someone
 // sat at the door (penance is two years a weight, and a weight-three debt no penance pays). Every account untagged death
-// must be the same as main's.
+// must be the same as main's. Its second step adds "mirror": an account whose mirror (src/engine/mirror.js) asks first
+// about a rebellion. The mirror is no part of the book, so every account, tagged or not, must be the same as main's.
+import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
 import { pathToFileURL } from "node:url";
@@ -27,6 +29,8 @@ const seeds = +(args.find(a => !a.startsWith("--")) ?? 2000);
 const root = path.resolve(flags.root ?? path.join(import.meta.dirname, ".."));
 const load = f => import(pathToFileURL(path.join(root, f)).href);
 const [{ createGame, playTurn }, { lifeOf, lifeText }, content, { cast }] = await Promise.all(["src/engine/turn.js", "src/engine/account.js", "src/content.js", "src/state.js"].map(load));
+// the mirror, in a checkout that has one
+const { mirrorOf } = fs.existsSync(path.join(root, "src/engine/mirror.js")) ? await load("src/engine/mirror.js") : {};
 if (flags.cast === "off") {
   if (!content.CAST) throw new Error(`${root} has no cast to take away`);
   content.CAST.names = null;
@@ -56,7 +60,7 @@ const tally = { intros: 0, returns: 0, fates: 0, lives: 0 };
 const out = [];
 const say = (key, s, i, l) => {
   const text = lifeText(s, i, l), life = lifeOf(s, i, l);
-  out.push(flags.full ? `## ${key}\n${text}` : `${key} ${hash(text)}${flags.tag ? (s.above ? " above" : "") + (s.karma ? " karma" : "") + (s.door ? " door" : "") + (s.curse ? " curse" : "") + (s.witness || life.witnessed ? " witness" : "") + (s.death ? " death" : "") : ""}`);
+  out.push(flags.full ? `## ${key}\n${text}` : `${key} ${hash(text)}${flags.tag ? (s.above ? " above" : "") + (s.karma ? " karma" : "") + (s.door ? " door" : "") + (s.curse ? " curse" : "") + (s.witness || life.witnessed ? " witness" : "") + (s.death ? " death" : "") + (mirrorOf?.(s, i)[0]?.id === "rebel" ? " mirror" : "") : ""}`);
   if (l === "en" && life.fates) {
     tally.lives++;
     tally.fates += life.fates.length;

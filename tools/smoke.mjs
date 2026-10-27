@@ -1162,6 +1162,39 @@ await check("Phase 16: mp.die(form) ends the life on the reckoning's card, in th
   assert(/A debt came due that the life could not pay/.test(r.win), r.win);
 });
 
+await check("Phase 16: the end of a life is read three ways, the book, the path and the mirror, as tabs the keys move between", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=1&debug");
+  await page.evaluate(() => { mp.jump(40); mp.years(70); mp.die(); mp.roll(2); });
+  await page.waitForFunction(() => document.getElementById("folio").open, null, { timeout: 15000 });
+  await page.evaluate(() => mp.close());
+  await page.waitForFunction(() => document.getElementById("lifeDlg").open, null, { timeout: 15000 });
+  const tabs = () => page.evaluate(() => {
+    const d = document.getElementById("lifeDlg"), list = d.querySelector('[role="tablist"]'), panel = d.querySelector('[role="tabpanel"]');
+    return { modal: d.matches(":modal"), tabs: [...list.querySelectorAll('[role="tab"]')].map(b => [b.textContent, b.getAttribute("aria-selected"), b.tabIndex]),
+      labelled: panel.getAttribute("aria-labelledby"), focus: document.activeElement?.id, text: panel.textContent.replace(/\s+/g, " "), items: panel.querySelectorAll("li").length };
+  });
+  const book = await tabs();
+  assert(book.modal && book.tabs.map(t => t[0]).join() === "The book,The path,The mirror" && book.tabs[0][1] === "true" && book.labelled === "lifeTab-book", JSON.stringify(book));
+  assert(/Citragupta reads from the book\./.test(book.text) && /died at seventy-one/.test(book.text), book.text.slice(0, 300));
+  // the arrow key moves to the path, and focus goes with it
+  await page.focus("#lifeTab-book");
+  await page.keyboard.press("ArrowRight");
+  const path = await tabs();
+  assert(path.tabs[1][1] === "true" && path.focus === "lifeTab-path" && path.labelled === "lifeTab-path" && path.items >= 1 && /Death/.test(path.text), JSON.stringify({ ...path, text: path.text.slice(0, 300) }));
+  assert(!/\d/.test(path.text.replace(/Read the lives|×/g, "")), `a number on the path: ${path.text.slice(0, 300)}`);
+  // End goes to the mirror: three questions, put to the player
+  await page.keyboard.press("End");
+  const mirror = await tabs();
+  assert(mirror.tabs[2][1] === "true" && mirror.items === 3 && /These are for you, not for the book/.test(mirror.text), JSON.stringify({ ...mirror, text: mirror.text.slice(0, 400) }));
+  // skippable: back to the book, and nothing kept
+  const before = await page.evaluate(() => JSON.stringify(localStorage));
+  await page.click('#lifeDlg [data-act="skip"]');
+  const back = await tabs();
+  assert(back.tabs[0][1] === "true" && /Citragupta/.test(back.text), JSON.stringify(back.tabs));
+  assert((await page.evaluate(() => JSON.stringify(localStorage))) === before, "the mirror wrote something down");
+});
+
 // ---- Phase 16: a door that can never open ----
 await check("Phase 16: at a door no penance opens, a person is told plainly they may sit on or throw on, and can do either", async page => {
   await page.emulateMedia({ reducedMotion: "reduce" });

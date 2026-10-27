@@ -114,7 +114,7 @@ illuminated frame (`frame.js`) and a bottom sheet below 768px (`sheet.js`).
   languages, both genders, and two unnamed computers per seed). Compare a run against a worktree of `main` with
   `--root` to prove a change leaves the prose alone; `--cast=off` takes the cast's names away. `--tag` marks each game that
   went above the exit (`above`) or that the ledger touched (`karma`: a reckoning, a refusal, or a debt carried within a throw
-  of the door), or whose account tells the door (`door`: a refusal, or a fall carrying a debt), or that carries a curse (`curse`), or in which the ego threw or a cast return told what it witnessed (`witness`), or in which the death tier came or someone sat at the door (`death`);
+  of the door), or whose account tells the door (`door`: a refusal, or a fall carrying a debt), or that carries a curse (`curse`), or in which the ego threw or a cast return told what it witnessed (`witness`), or in which the death tier came or someone sat at the door (`death`), or whose mirror asks first about a rebellion (`mirror`, which never changes the account);
   every untagged account must match. With `--curse=off` the curse is never drawn.
 - `npm run perf [--rate=4] [--query=quality=low]`: frame times on a throttled phone-sized page. Reports only;
   compare against a run on `main`.

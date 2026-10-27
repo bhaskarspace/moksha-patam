@@ -1,0 +1,17 @@
+{
+  "about": "The Mirror (REDESIGN.md Phase 16): the Yakṣa's questions put to the player, not the book, after the book has been read. Three a life, chosen by src/engine/mirror.js from what the life did (`when`); a rebellion in p.witness always takes the first. Unanswered, unrecorded, skippable. Register: if a line could be printed on a poster it is wrong. {age} is the age of the choice, {chose} and {took} the `mirror` phrases on the ego tests' options (content/situations.json), {who} a name from the cast. Drafts for Bhaskar's review (27 Oct).",
+  "intro": {
+    "en": "These are for you, not for the book. Nothing you think here is written down.",
+    "hi": "ये प्रश्न आपसे हैं, बही से नहीं। यहाँ आप जो सोचें, वह कहीं लिखा नहीं जाता।"
+  },
+  "questions": [
+    {"id":"rebel","when":"rebel","q":{"en":"At {age} you chose {chose}, and the life {took}. Which of you was it?","hi":"{age} बरस पर आपने {chose} चुना था, और जीवन ने {took}। उन दोनों में आप कौन थे?"}},
+    {"id":"helped","when":"helped","q":{"en":"When you helped, did you want the other person to be free, or to need you?","hi":"जब आपने मदद की, तो आप चाहते थे कि सामने वाला आज़ाद हो, या आप पर निर्भर रहे?"}},
+    {"id":"held","when":"held","q":{"en":"Which was harder to put down: the thing, or being the one who had it?","hi":"छोड़ना किसे ज़्यादा मुश्किल था: उस चीज़ को, या उसे रखने वाला होने को?"}},
+    {"id":"unseen","when":"least","q":{"en":"Would you have made the same choice if nobody knew?","hi":"अगर किसी को पता न चलता, तो क्या आप फिर भी वही चुनते?"}},
+    {"id":"door","when":"refused","q":{"en":"When the door named the debt, had you forgotten it, or only stopped looking at it?","hi":"जब द्वार ने क़र्ज़ का नाम लिया, तो क्या आप उसे भूल चुके थे, या बस उसकी ओर देखना छोड़ दिया था?"}},
+    {"id":"unwritten","when":"unwritten","q":{"en":"{who} died and nobody wrote. Were you waiting for {who} to?","hi":"{who} चल बसे और किसी ने ख़बर नहीं भेजी। क्या आप {who} के लिखने की राह देख रहे थे?"}},
+    {"id":"still","when":"still","q":{"en":"When you sat still, what were you waiting for?","hi":"जब आप स्थिर बैठे थे, तो किसकी प्रतीक्षा कर रहे थे?"}},
+    {"id":"year","when":"always","q":{"en":"Is there a year you would live again exactly as it was?","hi":"क्या कोई ऐसा बरस है जिसे आप ठीक वैसा ही फिर से जीना चाहेंगे?"}}
+  ]
+}

@@ -8,7 +8,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { GOAL, TOP, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, FALL, STR, SRC_HI, JOINS, NUM_HI, READINGS, CODEX, REFS, ENTRY_IDS, srcOfSquare, sourceOf, leadOf, squareOf, SITUATIONS, CAST, CAST_WORDS, BRIDGES, BRIDGE_SAME, whoOf, bridgeOf, BOARDS, DOOR, CURSES } from "../src/content.js";
+import { GOAL, TOP, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, FALL, STR, SRC_HI, JOINS, NUM_HI, READINGS, CODEX, REFS, ENTRY_IDS, srcOfSquare, sourceOf, leadOf, squareOf, SITUATIONS, CAST, CAST_WORDS, BRIDGES, BRIDGE_SAME, whoOf, bridgeOf, BOARDS, DOOR, CURSES, MIRROR } from "../src/content.js";
 import NAMES from "../content/names.json" with { type: "json" };
 import { ENDGAME, createGame, playTurn } from "../src/engine/turn.js";
 import { destOf, worthOf } from "../src/engine/qbn.js";
@@ -135,6 +135,28 @@ export function lintReport() {
     if (!LADDERS[q.heals]) err(w, `heals ${q.heals}, which is not a ladder's foot`);
     bilingual(`${w} q`, q.q); bilingual(`${w} a`, q.a); bilingual(`${w} answered`, q.answered);
     if (q.answered?.en && q.answered?.hi) playerText(`${w} answered`, { en: "{name} " + q.answered.en, hi: "{name} " + q.answered.hi });
+  }
+  // Phase 16, the Mirror (content/mirror.json): every question in both languages, each with a `when` the chooser knows
+  // (src/engine/mirror.js), and no number; the rebellion's question needs a phrase for each option on every ego test,
+  // what was chosen for the options above the lower, and what the life took for the lower
+  const WHENS = ["rebel", "helped", "held", "least", "refused", "unwritten", "still", "always"], mirrorIds = new Set();
+  bilingual("mirror intro", MIRROR?.intro);
+  for (const q of MIRROR?.questions || []) {
+    const w = `mirror ${q.id}`;
+    if (mirrorIds.has(q.id)) err(w, "has the id of another question");
+    mirrorIds.add(q.id);
+    if (!WHENS.includes(q.when)) err(w, `when "${q.when}" is not one the chooser knows (${WHENS.join(", ")})`);
+    bilingual(w, q.q);
+    for (const l of ["en", "hi"]) if (/\d/.test(q.q?.[l] ?? "")) err(w, "has a number in it");
+  }
+  if (!(MIRROR?.questions?.length >= 3) || !MIRROR.questions.some(q => q.when === "always")) err("mirror", "needs three questions or more, and one that fits every life");
+  for (const [n, sit] of Object.entries(SITUATIONS)) {
+    if (!sit.ego) continue;
+    for (const o of sit.options) {
+      const k = o.id === sit.ego.lower ? "took" : "chose";
+      if (!o.mirror?.[k]) err(`situation ${n} ${o.id}`, `an ego test's option needs mirror.${k}, for the rebellion's question`);
+      else bilingual(`situation ${n} ${o.id} mirror.${k}`, o.mirror[k]);
+    }
   }
   // Phase 14, the curses (content/curses.json): said of the player, in both languages, naming a thing and never a square,
   // tied to a family of late squares that exist; and closed both ways

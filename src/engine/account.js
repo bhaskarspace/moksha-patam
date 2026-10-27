@@ -322,6 +322,27 @@ function opening(p, along, T, words) {
   return T("lifeOpenLived", { age: words(to) });
 }
 
+// The path (REDESIGN.md Phase 16): the same life as its moves, one row per square landed on, in words: the age, the
+// square's name and how it was reached. Years sat out or stayed on one square are one row. It ends on how the life ended.
+// Player i's path in language l: { rows: [{ age, sq, via }], end }.
+export function pathOf(state, i, l) {
+  const p = state.players[i], T = (k, v = {}) => fill(tIn(l, k, { name: pnameIn(p, l), ...v }), { name: pnameIn(p, l), gender: p.gender });
+  // the exit has no name of its own in the board's data, only on the board
+  const words = n => wordsIn(l, Math.floor(n)), nameOf = n => (n === GOAL ? tIn(l, "moksha") : squareOf(n)?.[l] || squareOf(n)?.en || "");
+  const rows = [];
+  for (const e of yearsAlong(p.life || [], p.told || [])) {
+    const last = rows.at(-1);
+    if ((e.via === "sit" || e.via === "stay") && last && last.n === e.n && last.kind === e.via) { last.count++; continue; }
+    if (e.via === "sit" || e.via === "stay") { rows.push({ n: e.n, years: e.years, kind: e.via, count: 1 }); continue; }
+    rows.push({ n: e.n, years: e.years, kind: e.via, from: e.from });
+  }
+  const viaOf = r => r.kind === "snake" ? T("pathSnake", { sq: nameOf(r.from) }) : r.kind === "ladder" ? T("pathLadder", { sq: nameOf(r.from) })
+    : r.kind === "reckon" ? T("pathReckon") : r.kind === "sit" ? (r.count === 1 ? T("pathSat") : T("pathSatN", { n: words(r.count) }))
+    : r.kind === "stay" ? (r.count === 1 ? T("pathStay") : T("pathStayN", { n: words(r.count) })) : "";
+  const end = state.winner === i ? T("pathWin") : p.fell ? T("pathFell") : p.dead ? T("pathDied") : "";
+  return { rows: rows.map(r => ({ age: words(r.years), sq: nameOf(r.n), via: viaOf(r) })), end };
+}
+
 // The same life as plain text, to copy or save.
 export function lifeText(state, i, l) {
   const { title, sub, open, paras, end, curse, fates } = lifeOf(state, i, l);

@@ -1738,6 +1738,18 @@ goes with the first.*
 > calamity 200, illness 1,407. The death tier comes in 8.1% of mixed lives, not Phase 12's 3.3%: Phases 14 and 15 grew
 > the ledger. `accounts.mjs --tag` adds `death`; the 11,804 accounts without it are byte-identical to main's. Golden
 > identical on all 20 seeds; perf matches main.
+>
+> **Step 2, the book, the path and the mirror** (27 Oct). The end of a life is read three ways, as an ARIA tablist in
+> `#lifeDlg` (`src/render/life.js`; arrow keys, Home and End): **the book**, the account, opened by one line, "Citragupta
+> reads from the book." (he is the hand, with no lineage and no other sentence); **the path**, the moves in words
+> (`pathOf` in `src/engine/account.js`: the age, the square's name, how it was reached, years sat or stayed on one square
+> as one row, and how the life ended); and **the mirror**, three questions put to the player (`content/mirror.json`,
+> `mirrorOf` in `src/engine/mirror.js`), chosen by what the life did, drawn off a sequence of their own. A rebellion in
+> `p.witness` is always asked first, by the `mirror` phrases on the ego tests' options ("At forty-two you chose to give
+> the change back, and the life kept it. Which of you was it?"). Unanswered, unrecorded (the test holds the state and
+> localStorage unchanged), and skippable ("Back to the book"). Eight questions are drafted, EN and HI, for Bhaskar's
+> review. The Citragupta line and the mirror belong to the dialog, not to `lifeText`, so every account is byte-identical
+> to step 1's; `accounts.mjs --tag` adds `mirror` (an account whose mirror asks about a rebellion: 3,674 of 16,000).
 
 **Why it was gated, and what ungates it.** After Phase 9 a life ran out of years in 2.5% of
 games (3.5% after 10B) and the rebirth snake fired in 8.2%. Everything in this phase would
