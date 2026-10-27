@@ -492,6 +492,13 @@ export function lintReport() {
   if (fs.existsSync(sheet)) errors.push(...lintSprites(fs.readFileSync(sheet, "utf8")));
   errors.push(...lintPaint(root));
 
+  // a character lost in an encoding round trip comes back as U+FFFD, the replacement character: never in content
+  for (const f of fs.readdirSync(path.join(root, "content")).filter(f => f.endsWith(".json"))) {
+    fs.readFileSync(path.join(root, "content", f), "utf8").split("\n").forEach((line, i) => {
+      if (line.includes("\uFFFD")) err(`content/${f}:${i + 1}`, "has a replacement character (U+FFFD): a character was lost in an encoding round trip");
+    });
+  }
+
   // REFERENCE.md §6: the board's own history is medieval, not ancient
   const all = JSON.stringify([READINGS, CODEX, STR]);
   if (/\bancient\b/i.test(all)) err("content", 'says "ancient"; the board\'s history is medieval');

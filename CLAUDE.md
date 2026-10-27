@@ -81,7 +81,8 @@ illuminated frame (`frame.js`) and a bottom sheet below 768px (`sheet.js`).
 - `npm run build`: fails on any `Math.random` outside `src/rng.js` or on any content lint error.
 - `npm test`: `node --test tests/*.test.mjs`
 - `npm run lint`: content lint (`tools/lint-content.mjs`): Hindi, dangling ids, two voices per
-  square, a name in every mirror (`content/names.json`), and the sprite palette. Phase 3 adds the
+  square, a name in every mirror (`content/names.json`), the sprite palette, and (since Phase 15) no U+FFFD replacement
+  character anywhere in `content/*.json`. Phase 3 adds the
   moments: `{name}` in both languages, Hindi agreement through `{m|f}` choices, an age on every
   earthly square, and a `moments: n/109` burn-down line.
 - `npm run format`: rewrites `content/*.json` one entry per line. Run it after editing content.

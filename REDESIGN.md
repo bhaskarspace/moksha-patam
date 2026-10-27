@@ -1661,6 +1661,13 @@ closed by landing vs not.
 >   still orders honest > mixed > dishonest (`tests/balance.test.mjs`). An honest life now plants debts: the ego's.
 > - *Accounts.* `accounts.mjs 2000 --tag`: 5,982 of 16,000 accounts are untagged `witness`, and 0 differ from `main`; the
 >   4,620 whose game threw the die without a rebellion or a witness line also match byte for byte.
+> - *Decided by Bhaskar in review (27 Oct).* The four calls the PR raised stand as built: the `witness` tag also marks a
+>   life whose account changes only by the teacher's line at 28; *jānāmi dharmaṃ* is credited to the later Pāṇḍava Gītā,
+>   not the Mahābhārata; Phase 10 and 11's tests that choose the higher option on 55 pin the ego to no face
+>   (`forceEgo = []`, `mp.ego([])`), and the rebellion is tested on its own; and the Hindi drafts are his to keep or change.
+>   The two log lines lose "खाना" (it reads as food): `lEgoHeld` "…ने {pos} पर चुनाव किया, और अहंकार के पासे ने उसे टिका
+>   रहने दिया", `lEgoRebel` "…ने उलटा ही करवाया". The content lint now fails on U+FFFD, the replacement character, in any
+>   `content/*.json`.
 > - *Cost.* The page is 859,951 bytes (`main` 843,122). `npm run perf` matches `main`: walk, climb and swallow p50 16.7 ms on
 >   both, the climb's longest frame 109 ms against 105, turn-end repaint p50 2.8 ms against 2.5.
 
