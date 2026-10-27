@@ -13,7 +13,7 @@
 //
 // Pure, so the page, tools/sim.mjs and the tests run it alike. The Jain charts' sattā, udīraṇā and uday (karma held,
 // stirred to ripen, in fruit) are the same three steps; the scholar layer names both (src/render/ledger.js).
-import { GOAL, SITUATIONS, SNAKES, LADDERS, DOOR } from "../content.js";
+import { GOAL, SITUATIONS, SNAKES, LADDERS, DOOR, STR } from "../content.js";
 import { makeRng, next } from "../rng.js";
 import { tIn, fill, castFill, wordsIn } from "../i18n.js";
 import { SPAN, yearsAlong, stageOfYears } from "./self.js";
@@ -164,10 +164,13 @@ export const meet = (k, key) => ({ ...k, agami: k.agami.filter(s => debtKey(s) !
 const sayIn = (l, text, at, who) => fill(text.replaceAll("{at}", wordsIn(l, Math.floor(at ?? 0))), who);
 const T = (l, key, who, v = {}) => fill(tIn(l, key, { name: who.name, ...v }), who);
 // The debt a seed is, as a phrase: "the sea Meera described to the class at ten".
-// A debt carried from a life before (Phase 16, src/engine/samskara.js) says so: "…, at forty-two in a life before".
+// A debt carried from a life before (Phase 16, src/engine/samskara.js) has no age in this life: its age phrase (debtAt,
+// "at {at}" / "{at} बरस की उम्र में") is said as debtBefore instead, "the hand that fell, in a life before" / "किसी
+// पिछले जीवन में उठकर गिरा वह हाथ". The lint holds that every seed's debt has the phrase, so the swap never misses.
+export const debtAtIn = l => STR[l]?.debtAt ?? STR.en.debtAt;
 export function debtIn(l, { src, opt, at, prior }, who) {
-  const t = seedOf(src, opt)?.debt, debt = t ? sayIn(l, t[l] || t.en, at, who) : "";
-  return debt && prior ? tIn(l, "debtBefore", { debt }) : debt;
+  const t = seedOf(src, opt)?.debt, raw = t ? t[l] || t.en : "", lang = t?.[l] ? l : "en";
+  return raw ? sayIn(lang, prior ? raw.replace(debtAtIn(lang), STR[lang]?.debtBefore ?? STR.en.debtBefore) : raw, at, who) : "";
 }
 // What came due, as content tells it.
 export function reckoningIn(l, rk, who) {

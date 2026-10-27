@@ -400,6 +400,9 @@ export function lintReport() {
         if (sd.debt?.en && sd.debt?.hi) {
           for (const l of ["en", "hi"]) {
             if (!sd.debt[l].includes("{at}")) err(`${sw} debt`, `the ${l === "en" ? "English" : "Hindi"} does not say when with {at}`);
+            // Phase 16: a debt carried from a life before says its age phrase as "in a life before" (debtIn), so the
+            // phrase must be there exactly as strings.json has it, once
+            else if (sd.debt[l].split(STR[l].debtAt).length !== 2) err(`${sw} debt`, `the ${l === "en" ? "English" : "Hindi"} must say when as "${STR[l].debtAt}", once, for a debt carried from a life before`);
             for (const x of badSlots(atless(sd.debt)[l])) err(`${sw} debt`, `unknown placeholder {${x}}`);
           }
           const agree = hindiAgreement(castFill(atless(sd.debt).hi));

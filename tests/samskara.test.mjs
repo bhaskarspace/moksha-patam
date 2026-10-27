@@ -98,6 +98,14 @@ test("the next life's account opens on the dream, says the carried debt as from 
   assert.doesNotMatch(lifeOf(ended[0][1], 0, "en").open, /dreams/);
 });
 
+test("a debt from a life before says its age phrase as a life before, in both languages, and only then", () => {
+  const who = { name: "Ravi", gender: "m" }, s = { src: 59, opt: "strike", at: 42 };
+  assert.equal(debtIn("en", s, who), "the hand that fell, at forty-two");
+  assert.equal(debtIn("en", { ...s, prior: true }, who), "the hand that fell, in a life before");
+  assert.equal(debtIn("hi", s, who), "बयालीस बरस की उम्र में उठकर गिरा वह हाथ");
+  assert.equal(debtIn("hi", { ...s, prior: true }, who), "किसी पिछले जीवन में उठकर गिरा वह हाथ");
+});
+
 test("no saṃskāra is the game as before: born null, or a record that does not resolve, plays the same dice", () => {
   for (let seed = 1; seed <= 60; seed++) {
     const a = play(seed), b = play(seed, { born: null }), c = play(seed, { born: bornOf({ v: 0 }) });

@@ -1296,7 +1296,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         lifeDream: "{name} dreams, some nights, of a {man|woman|person} named {prev} who {dream}.",
         lifeDreamNone: "{name} dreams, some nights, of a {man|woman|person} named {prev}, and wakes before anything happens.",
         lifeForgot: "{forgot}, for no reason anyone can name.",
-        debtBefore: "{debt} in a life before",
+        debtAt: "at {at}",
+        debtBefore: "in a life before",
         reborn: "Be born again",
         rebornNote: "The next life carries this one, half-remembered.",
         a_tortoise: "tortoise",
@@ -1607,7 +1608,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         lifeDream: "{name} को कभी-कभी रात में एक {आदमी|औरत|इंसान} का सपना आता है, {prev} नाम {का|की|का}, {dream}।",
         lifeDreamNone: "{name} को कभी-कभी रात में एक {आदमी|औरत|इंसान} का सपना आता है, {prev} नाम {का|की|का}, और कुछ होने से पहले ही आँख खुल जाती है।",
         lifeForgot: "{forgot}, और क्यों, यह कोई नहीं बता सकता।",
-        debtBefore: "{debt}, जो किसी पिछले जीवन से चला आया",
+        debtAt: "{at} बरस की उम्र में",
+        debtBefore: "किसी पिछले जीवन में",
         reborn: "फिर जन्म लें",
         rebornNote: "अगला जीवन इसे साथ ले जाता है, आधा याद, आधा भूला।",
         a_tortoise: "कछुआ",
@@ -3626,9 +3628,10 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var meet = (k, key) => ({ ...k, agami: k.agami.filter((s) => debtKey(s) !== key), prarabdha: k.prarabdha.filter((s) => debtKey(s) !== key) });
   var sayIn = (l, text, at2, who2) => fill(text.replaceAll("{at}", wordsIn(l, Math.floor(at2 ?? 0))), who2);
   var T = (l, key, who2, v = {}) => fill(tIn(l, key, { name: who2.name, ...v }), who2);
+  var debtAtIn = (l) => STR[l]?.debtAt ?? STR.en.debtAt;
   function debtIn(l, { src, opt, at: at2, prior }, who2) {
-    const t2 = seedOf(src, opt)?.debt, debt = t2 ? sayIn(l, t2[l] || t2.en, at2, who2) : "";
-    return debt && prior ? tIn(l, "debtBefore", { debt }) : debt;
+    const t2 = seedOf(src, opt)?.debt, raw = t2 ? t2[l] || t2.en : "", lang2 = t2?.[l] ? l : "en";
+    return raw ? sayIn(lang2, prior ? raw.replace(debtAtIn(lang2), STR[lang2]?.debtBefore ?? STR.en.debtBefore) : raw, at2, who2) : "";
   }
   function reckoningIn(l, rk, who2) {
     const t2 = seedOf(rk.src, rk.opt)?.reckoning;

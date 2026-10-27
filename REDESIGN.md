@@ -1707,9 +1707,11 @@ react to a choice; and the witness's choices are recorded for the Mirror.
 > and the mirror; a named person's ended life is kept and born again, dreaming of the last; a death by ledger is first an
 > animal interlude. The interlude rate follows death by ledger, and so follows play: intended, not to be tuned. Bhaskar's
 > Hindi review changed the dream to agree with a "child" life before (`{आदमी|औरत|इंसान}`, `{का|की|का}`), the debt from a
-> past life to a suffix ("…, जो किसी पिछले जीवन से चला आया"), the ledger's and the door's joins to "{age} बरस की उम्र में"
-> as the debts say it, and the animal's dream to "कुछ रातों को {name} सपना {देखता|देखती} है…"; every account it changed is
-> a Hindi one tagged `karma`, `door`, `death` or `rebirth`. 10,000 souls a policy, up to ten lives each:
+> past life to its own age phrase said as a life before (`debtAt` → `debtBefore` in `debtIn`: "किसी पिछले जीवन में उठकर
+> गिरा वह हाथ" / "the hand that fell, in a life before", which agrees with any debt; the lint holds every seed's debt to
+> the phrase, once), the ledger's and the door's joins to "{age} बरस की उम्र में" as the debts say it, and the animal's
+> dream to "कुछ रातों को {name} सपना {देखता|देखती} है…". Every account the review changed is tagged `karma`, `door`,
+> `death` or `rebirth`. 10,000 souls a policy, up to ten lives each:
 >
 > | policy | liberation per life | lives per liberation | died a life: ledger · years · door | reborn | interludes per 100 lives | turns median · p95 |
 > |---|---|---|---|---|---|---|
@@ -1771,7 +1773,7 @@ goes with the first.*
 > **Step 3, rebirth** (27 Oct). A named person's ended life is kept in `mp-samskara` (`src/engine/samskara.js` `soulOf`,
 > `storeOf`/`storeWith`; at most six names; a liberation deletes it; `?first` neither reads nor writes). **Be born again**,
 > beside Play again and in the book's footer, begins the next life from it (`bornOf`): the guṇas carry half, the heaviest
-> unmet debt becomes an āgāmi seed `prior` that ripens at the age it was made ("…at forty-two in a life before"), the
+> unmet debt becomes an āgāmi seed `prior` that ripens at the age it was made ("the hand that fell, in a life before"), the
 > cast's names return in other roles (`RETURNS_AS`, the Jātaka rule) and the account says so once ("In a life before,
 > Vinod was the rival."). The account opens on the dream (`dream` on every option) and the forgotten holding (`forgot` on
 > every snake): "Mirrors make Ravi uneasy, for no reason anyone can name." Play again starts clean. The turyā fade
