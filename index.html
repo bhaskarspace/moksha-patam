@@ -1386,11 +1386,25 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         examPenance: "The same question, and the book has no more to say. Another year at the door, in penance.",
         examPaid: "With this year it is paid: the debt of {debt}.",
         examOwing: "It is not yet paid: the debt of {debt}.",
+        lExamNever: "{name} sat another year at the door; no penance pays the debt from square {src}.",
+        examFailNever: "The answer is {a}. Citragupta turns the pages, and it is not in the book. The year passes at the door.",
+        examAgainNever: "The same question, and the book has no more to say. Another year at the door.",
+        examNever: "No penance pays this one: the debt of {debt}. The door stays shut while it is owed.",
+        examNeverOn: "{name} may sit on here all the same, a year at a time, or throw on into the heavens.",
         doorOpens: "Nothing is owed. The door opens.",
         doorSit: "{name} may sit here, a year at a time, and be asked; or throw on into the heavens.",
         doorThrough: "{name} comes to the door, and it opens.",
         doorDied: "{name}'s years ran out at the door, still owing {debts}.",
-        lifeEndDoor: "{name}'s years ran out at {age}, sitting at the door, {carry}."
+        lifeEndDoor: "{name}'s years ran out at {age}, sitting at the door, {carry}.",
+        lDiedLedger: "{name} died at {age}, on square {pos}.",
+        reckonClose: "The six lands, and this time the floor does not open. It closes.",
+        reckonDies: "{name} dies at {age}, {form}.",
+        deathAccident: "when the roof that had leaked for years came down one night in the rains",
+        deathCalamity: "in a bad year, when the rains did not come and the grain ran out",
+        deathIllness: "of the bad chest, after a winter that did not end",
+        lifeOpenLedger: "{name} died at {age}.",
+        lifeEndLedger: "{name} died at {age}, {form}, {carry}.",
+        ledgerText: "A debt came due that the life could not pay. The life is written down."
       },
       hi: {
         title: "मोक्ष पटम",
@@ -1636,11 +1650,25 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         examPenance: "वही प्रश्न, और बही में कहने को कुछ और नहीं। द्वार पर एक और बरस, प्रायश्चित में।",
         examPaid: "इस बरस के साथ क़र्ज़ चुक गया: {debt}।",
         examOwing: "क़र्ज़ अभी चुका नहीं: {debt}।",
+        lExamNever: "{name} ने द्वार पर एक और बरस बिताया; खाना {src} का क़र्ज़ किसी प्रायश्चित से नहीं चुकता।",
+        examFailNever: "उत्तर है {a}। चित्रगुप्त पन्ने पलटते हैं, और वह बही में नहीं है। बरस द्वार पर बीतता है।",
+        examAgainNever: "वही प्रश्न, और बही में कहने को कुछ और नहीं। द्वार पर एक और बरस।",
+        examNever: "यह क़र्ज़ किसी प्रायश्चित से नहीं चुकता: {debt}। जब तक यह बाक़ी है, द्वार बंद रहेगा।",
+        examNeverOn: "{name} फिर भी यहाँ एक-एक बरस {बैठा रह सकता|बैठी रह सकती} है, या दाँव फेंककर आगे स्वर्गों में जा {सकता|सकती} है।",
         doorOpens: "कुछ बाक़ी नहीं। द्वार खुल जाता है।",
         doorSit: "{name} यहाँ एक-एक बरस बैठ {सकता|सकती} है और प्रश्न सुन {सकता|सकती} है; या दाँव फेंककर आगे स्वर्गों में जा {सकता|सकती} है।",
         doorThrough: "{name} द्वार तक {आया|आई}, और वह खुल गया।",
         doorDied: "{name} के बरस द्वार पर ही पूरे हो गए, {debts} अब भी बाक़ी थे।",
-        lifeEndDoor: "{name} के बरस {age} पर पूरे हुए, द्वार पर बैठे-बैठे, {carry}।"
+        lifeEndDoor: "{name} के बरस {age} पर पूरे हुए, द्वार पर बैठे-बैठे, {carry}।",
+        lDiedLedger: "{name} {age} बरस की आयु में, खाना {pos} पर, {चल बसा|चल बसी}।",
+        reckonClose: "छक्का पड़ता है, और इस बार ज़मीन खिसकती नहीं। वह लौटती ही नहीं।",
+        reckonDies: "{name} {age} बरस पर {चल बसा|चल बसी}, {form}।",
+        deathAccident: "जब बरसों से टपकती छत बरसात की एक रात बैठ गई",
+        deathCalamity: "एक बुरे बरस में, जब बारिश नहीं आई और अनाज ख़त्म हो गया",
+        deathIllness: "छाती की उसी तकलीफ़ से, एक ऐसी सर्दी के बाद जो ख़त्म ही नहीं हुई",
+        lifeOpenLedger: "{name} {age} बरस पर {चल बसा|चल बसी}।",
+        lifeEndLedger: "{name} {age} बरस पर {चल बसा|चल बसी}, {form}, {carry}।",
+        ledgerText: "एक ऐसा क़र्ज़ सामने आया जो यह जीवन चुका नहीं सका। जीवन लिखा जा चुका है।"
       }
     },
     JOINS: {
@@ -1723,6 +1751,10 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         en: "At {age}, on a six, the floor opened: ",
         hi: "{age} बरस पर, एक छक्के पर, ज़मीन खिसकी: "
       },
+      reckonDeath: {
+        en: "At {age}, on a six, the floor closed: ",
+        hi: "{age} बरस पर, एक छक्के पर, ज़मीन फिर नहीं लौटी: "
+      },
       door: {
         en: "At {age}, Moksha was reached, and ",
         hi: "{age} बरस पर मोक्ष तक पहुँचना हुआ, और "
@@ -1738,6 +1770,10 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       examFailPaid: {
         en: "At {age}, at the door, {name} was asked: {q} The book had no answer, and the year spent there paid for {debt}.",
         hi: "{age} बरस पर, द्वार पर, {name} से पूछा गया: {q} बही में कोई उत्तर नहीं था, और वहाँ बीते बरस ने यह क़र्ज़ चुका दिया: {debt}।"
+      },
+      examNever: {
+        en: "At {age}, at the door, {name} was asked: {q} The book had no answer, and no penance could pay for {debt}.",
+        hi: "{age} बरस पर, द्वार पर, {name} से पूछा गया: {q} बही में कोई उत्तर नहीं था, और कोई प्रायश्चित यह क़र्ज़ नहीं चुका सकता था: {debt}।"
       },
       examPaid: {
         en: "By {age} that was paid.",
@@ -3340,6 +3376,12 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     return (w(fired) + w(rest) / 2) ** SEVERITY_POW;
   }
   var tierOf = (S2) => TIERS.filter((t2) => S2 >= t2).length;
+  var DEATH_ON = true;
+  var FORMS = ["accident", "calamity", "illness"];
+  var deathFormOf = (years) => {
+    const st = stageOfYears(years);
+    return st <= 2 ? "accident" : st === 3 ? "calamity" : "illness";
+  };
   function omenFor(state, idx, { dice, pos, years, lived, force = false }) {
     const p = state.players[idx];
     let k = karmaOf(p);
@@ -3353,12 +3395,13 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   function reckonOf(k, { pos, years }) {
     const first = k.prarabdha[0], fired = k.prarabdha.filter((s) => s.src === first.src && s.opt === first.opt);
     const rest = carried(k).filter((s) => !fired.includes(s));
-    const S2 = severityOf(fired, rest), tier = tierOf(S2), wouldDie = tier >= DEATH, applied = Math.min(tier, DEATH - 1);
+    const S2 = severityOf(fired, rest), tier = tierOf(S2), wouldDie = tier >= DEATH, applied = DEATH_ON ? tier : Math.min(tier, DEATH - 1);
+    if (applied >= DEATH) return { src: first.src, opt: first.opt, planted: first.at, seeds: fired, S: S2, tier, applied, wouldDie, dies: true, form: deathFormOf(years), years: 0, holds: null, to: null, age: years };
     const lost = applied >= 1 ? Math.min(Math.ceil(S2), Math.max(0, Math.floor(SPAN - years))) : 0;
     const vice = seedOf(first.src, first.opt)?.holds ?? null, holds = applied >= 2 ? vice : null;
     const drop = SNAKES[vice] ? vice - SNAKES[vice].to : 0, back = Math.max(first.src, pos - drop);
     const to = applied >= 3 && back < pos ? back : null;
-    return { src: first.src, opt: first.opt, planted: first.at, seeds: fired, S: S2, tier, applied, wouldDie, years: lost, holds, to, age: years };
+    return { src: first.src, opt: first.opt, planted: first.at, seeds: fired, S: S2, tier, applied, wouldDie, dies: false, years: lost, holds, to, age: years };
   }
   var ATTACHED = 75;
   function refusalOf(p) {
@@ -3369,6 +3412,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     if ((a.kama ?? 0) >= ATTACHED) return { aim: "kama" };
     return null;
   }
+  var PENANCE = 2;
+  var UNPAID = 3;
   var debtKey = (s) => `${s.src}:${s.opt}:${s.at}`;
   var viceOf = (s) => seedOf(s.src, s.opt)?.holds ?? null;
   var questionOf = (s) => DOOR[viceOf(s)] ?? null;
@@ -3384,7 +3429,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const s = owedOf(p);
     if (!s) return null;
     const key = debtKey(s), n = (p.exam?.[key] ?? 0) + 1, answer = n === 1 ? answerOf(p, s) : null, pass = !!answer;
-    const cleared = pass || n >= (s.weight ?? 1), left = carried(karmaOf(p)).length - (cleared ? 1 : 0);
+    const never = !pass && (s.weight ?? 1) >= UNPAID;
+    const cleared = pass || !never && n >= Math.ceil(PENANCE * (s.weight ?? 1)), left = carried(karmaOf(p)).length - (cleared ? 1 : 0);
     return {
       src: s.src,
       opt: s.opt,
@@ -3394,6 +3440,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       pass,
       answer: answer?.age ?? null,
       cleared,
+      never,
       weight: s.weight ?? 1,
       open: cleared && !left && !refusalOf({ ...p, karma: freshKarma() })
     };
@@ -3410,7 +3457,9 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     return t2 ? sayIn(l, t2[l] || t2.en, rk.planted, who2) : "";
   }
   function reckonLinesIn(l, rk, who2) {
-    const out = [T(l, "reckonFloor", who2), reckoningIn(l, rk, who2), T(l, "reckonFrom", who2, { src: rk.src, debt: debtIn(l, { src: rk.src, opt: rk.opt, at: rk.planted }, who2) })];
+    const from = T(l, "reckonFrom", who2, { src: rk.src, debt: debtIn(l, { src: rk.src, opt: rk.opt, at: rk.planted }, who2) });
+    if (rk.dies) return [T(l, "reckonClose", who2), reckoningIn(l, rk, who2), from, T(l, "reckonDies", who2, { age: wordsIn(l, Math.floor(rk.age)), form: formIn(l, rk.form, who2) })];
+    const out = [T(l, "reckonFloor", who2), reckoningIn(l, rk, who2), from];
     if (!rk.applied) out.push(T(l, "reckonNone", who2));
     if (rk.years) out.push(rk.years === 1 ? T(l, "reckonYear", who2) : T(l, "reckonYears", who2, { years: wordsIn(l, rk.years) }));
     const held2 = rk.holds && SNAKES[rk.holds]?.holding;
@@ -3418,6 +3467,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     if (rk.to) out.push(T(l, "reckonBack", who2, { to: rk.to }));
     return out;
   }
+  var formIn = (l, form, who2) => T(l, "death" + form[0].toUpperCase() + form.slice(1), who2);
   function refusalIn(l, refusal, who2, sit = false) {
     if (!refusal) return [];
     const on2 = T(l, sit && !refusal.aim ? "doorSit" : "doorOn", who2);
@@ -3430,8 +3480,11 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const out = [T(l, "examAsks", who2, { q: q2.q[l] || q2.q.en })];
     if (ex.pass) out.push(T(l, "examPass", who2, { a: q2.a[l] || q2.a.en, age: wordsIn(l, Math.floor(ex.answer)), answered: fill(q2.answered[l] || q2.answered.en, who2) }), T(l, "examMet", who2, { debt }));
     else {
-      out.push(T(l, ex.n === 1 ? "examFail" : "examPenance", who2, { a: q2.a[l] || q2.a.en, debt }));
-      out.push(T(l, ex.cleared ? "examPaid" : "examOwing", who2, { debt }));
+      if (ex.never) out.push(T(l, ex.n === 1 ? "examFailNever" : "examAgainNever", who2, { a: q2.a[l] || q2.a.en, debt }), T(l, "examNever", who2, { debt }), ...ex.died ? [] : [T(l, "examNeverOn", who2)]);
+      else {
+        out.push(T(l, ex.n === 1 ? "examFail" : "examPenance", who2, { a: q2.a[l] || q2.a.en, debt }));
+        out.push(T(l, ex.cleared ? "examPaid" : "examOwing", who2, { debt }));
+      }
     }
     if (ex.open) out.push(T(l, "doorOpens", who2));
     return out;
@@ -3488,12 +3541,13 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const to = (pl) => pl.reckon?.from ?? pl.final;
     const win = plans.find((pl) => pl.win);
     if (win) return win.v;
-    if (moves.includes(0) && state.players[state.turn].pos === GOAL) return 0;
+    const p = state.players[state.turn], ex = p.pos === GOAL ? examineOf(p) : null, stay = moves.includes(0) && !(ex?.never && ex.n > 1);
+    if (stay && p.pos === GOAL) return 0;
     const short = plans.filter((pl) => !pl.fell && to(pl) < GOAL && pl.jump?.kind !== "snake").sort((a, b) => b.v - a.v);
     if (short.length) return short[0].v;
     const door = plans.find((pl) => pl.refused);
     if (door) return door.v;
-    if (moves.includes(0)) return 0;
+    if (stay) return 0;
     const heaven = plans.filter((pl) => !pl.fell && to(pl) > GOAL).sort((a, b) => a.v - b.v);
     if (heaven.length) return heaven[0].v;
     const snake = plans.filter((pl) => !pl.fell).sort((a, b) => b.v - a.v);
@@ -3553,7 +3607,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       const years = turnYears(p.years ?? 0, { sit: true }), died = years > SPAN;
       const atDoor = from === GOAL && !!p.door, exam = atDoor ? examineOf(p) : null;
       const win = atDoor && !died && (exam ? exam.open : !refusalOf(p));
-      if (exam) after2.push(entry(exam.pass ? "lExamPass" : exam.n === 1 ? exam.cleared ? "lExamPaid" : "lExamFail" : exam.cleared ? "lExamPaid" : "lExamPenance", { pos: from, src: exam.src, sq: exam.src }, "", idx));
+      if (exam) after2.push(entry(exam.pass ? "lExamPass" : exam.n === 1 ? exam.cleared ? "lExamPaid" : "lExamFail" : exam.cleared ? "lExamPaid" : exam.never ? "lExamNever" : "lExamPenance", { pos: from, src: exam.src, sq: exam.src }, "", idx));
       else if (!win) after2.push(entry("lSit", { pos: from, sq: from }, "", idx));
       if (died) end.push(entry(from === GOAL ? "lDiedDoor" : "lDied", { pos: from, age: years, sq: from }, "death", idx));
       else if (win) end.push(entry("lDoorOpen", { pos: GOAL }, "", idx), entry("lWin", { pos: GOAL }, "heaven", idx));
@@ -3620,10 +3674,18 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   }
   function resolve(state, plan, years) {
     const { idx } = plan, p = state.players[idx];
-    const omen = plan.win || plan.died ? null : omenFor(state, idx, { dice: plan.dice, pos: plan.final, years, lived: p.life?.length ?? 0, force: !!state.forceOmen });
+    const omen = plan.win || plan.died ? null : omenFor(state, idx, { dice: plan.dice, pos: plan.final, years, lived: p.life?.length ?? 0, force: !!(state.forceOmen || state.forceDeath) });
+    if (omen?.reckon && state.forceDeath) Object.assign(omen.reckon, { dies: true, applied: DEATH, form: state.forceDeath, years: 0, holds: null, to: null });
     const rk = omen?.reckon ?? null;
     Object.assign(plan, { omen, reckon: rk && { ...rk, from: plan.final } });
     if (!rk) return plan;
+    if (rk.dies) {
+      plan.died = true;
+      plan.death = { by: "ledger", form: rk.form, age: years, src: rk.src, opt: rk.opt };
+      plan.end = [entry("lReckon", { src: rk.src, sq: rk.src }, "reckon", idx), entry("lDiedLedger", { pos: plan.final, age: years, sq: plan.final }, "death", idx)];
+      plan.again = false;
+      return plan;
+    }
     if (rk.to) plan.final = rk.to;
     plan.told.push(...rk.to ? ["reckon"] : [], ...Array(rk.years).fill("stay"));
     plan.end = [entry("lReckon", { src: rk.src, sq: rk.src }, "reckon", idx), ...plan.end.filter((e) => e.k !== "lSix")];
@@ -3648,18 +3710,18 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       p.told = [...kept, ...Array(before - kept.length).fill(null), ...plan.told];
       Object.assign(p, grow(p, plan));
       let k = karmaOf(p);
-      if (rk) k = { ...k, prarabdha: k.prarabdha.filter((s) => !rk.seeds.some((f2) => f2.src === s.src && f2.opt === s.opt && f2.at === s.at)), agami: k.agami.filter((s) => !rk.seeds.some((f2) => f2.src === s.src && f2.opt === s.opt && f2.at === s.at)) };
+      if (rk && !rk.dies) k = { ...k, prarabdha: k.prarabdha.filter((s) => !rk.seeds.some((f2) => f2.src === s.src && f2.opt === s.opt && f2.at === s.at)), agami: k.agami.filter((s) => !rk.seeds.some((f2) => f2.src === s.src && f2.opt === s.opt && f2.at === s.at)) };
       if (plan.plant) k = { ...k, agami: [...k.agami, { ...plan.plant, i: p.life.length }] };
       const ex = plan.exam;
       if (ex) {
         p.exam = { ...p.exam ?? {}, [ex.key]: ex.n };
         if (ex.cleared) k = meet(k, ex.key);
-        p.sittings = [...p.sittings ?? [], { at: at2, src: ex.src, opt: ex.opt, planted: ex.at, n: ex.n, pass: ex.pass, answer: ex.answer, cleared: ex.cleared, open: plan.win, age: p.years }];
+        p.sittings = [...p.sittings ?? [], { at: at2, src: ex.src, opt: ex.opt, planted: ex.at, n: ex.n, pass: ex.pass, answer: ex.answer, cleared: ex.cleared, ...ex.never ? { never: true } : {}, open: plan.win, age: p.years }];
       }
       p.karma = ripen(k, p.years);
       if (rk) {
         if (rk.holds) p.held = [...p.held ?? [], rk.holds];
-        p.reckonings = [...p.reckonings ?? [], { at: at2, src: rk.src, opt: rk.opt, planted: rk.planted, tier: rk.tier, applied: rk.applied, wouldDie: rk.wouldDie, years: rk.years, to: rk.to, age: rk.age }];
+        p.reckonings = [...p.reckonings ?? [], { at: at2, src: rk.src, opt: rk.opt, planted: rk.planted, tier: rk.tier, applied: rk.applied, wouldDie: rk.wouldDie, ...rk.dies ? { dies: true, form: rk.form } : {}, years: rk.years, to: rk.to, age: rk.age }];
       }
       if (plan.refused && !p.door) p.refusals = [...p.refusals ?? [], { at: at2, ...plan.refused }];
       p.door = plan.refused ?? (p.pos === GOAL && !plan.win && p.door ? refusalOf(p) ?? p.door : null);
@@ -3670,6 +3732,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       if (plan.died) {
         p.dead = true;
         p.holding = holdingOf(p.life, p.held);
+        p.death = plan.death ?? { by: plan.sit && plan.from === GOAL ? "door" : "years", age: p.years };
       }
     }
     if (plan.died || plan.fell) {
@@ -3677,6 +3740,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       p.karma = { sancita: [...k.sancita, ...carried(k)], agami: [], prarabdha: [] };
     }
     delete state.forceOmen;
+    delete state.forceDeath;
     if (plan.ego) delete state.forceEgo;
     if (plan.win) state.winner = plan.idx;
     else if (!plan.again) for (let k = 1; k <= state.players.length; k++) {
@@ -4680,7 +4744,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   function ledgerOf(p) {
     const who2 = { name: pname(p), gender: p.gender }, k = karmaOf(p);
     const debt = (s) => debtIn(lang, s, who2);
-    const met = (p.reckonings ?? []).map((r) => row(debt({ src: r.src, opt: r.opt, at: r.planted }), t("ledgerMet", { age: wordsIn(lang, Math.floor(r.age ?? 0)) })));
+    const met = (p.reckonings ?? []).filter((r) => !r.dies).map((r) => row(debt({ src: r.src, opt: r.opt, at: r.planted }), t("ledgerMet", { age: wordsIn(lang, Math.floor(r.age ?? 0)) })));
     const lines = [
       ...k.agami.map((s) => row(debt(s), t("ledgerHeld"))),
       ...k.prarabdha.map((s) => row(debt(s), t("ledgerRipe"))),
@@ -6358,7 +6422,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           flush();
           const v = { age: words(r.age), q: q2.q[l] || q2.q.en, debt: debtIn(l, { src: r.src, opt: r.opt, at: r.planted }, who2) };
           if (r.pass) para.parts.push(J(JOINS.examPass, { ...v, answer: words(r.answer), answered: q2.answered[l] || q2.answered.en }));
-          else para.parts.push(J(r.n > 1 ? JOINS.examPaid : r.cleared ? JOINS.examFailPaid : JOINS.examFail, v));
+          else para.parts.push(J(r.n > 1 ? JOINS.examPaid : r.cleared ? JOINS.examFailPaid : r.never ? JOINS.examNever : JOINS.examFail, v));
           lastYears = r.age;
           continue;
         }
@@ -6373,7 +6437,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         const t2 = seedOf(r.src, r.opt)?.reckoning;
         if (!para || !t2) continue;
         flush();
-        para.parts.push(J(JOINS.reckon, { age: words(r.age) }) + after(t2[l] || t2.en, reckoningIn(l, r, who2), l));
+        para.parts.push(J(r.dies ? JOINS.reckonDeath : JOINS.reckon, { age: words(r.age) }) + after(t2[l] || t2.en, reckoningIn(l, r, who2), l));
         lastYears = r.age + r.years;
       }
     };
@@ -6501,7 +6565,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         const head = s === 5 || !ages.length ? stage(s) : a === b ? T2("lifeAt", { stage: stage(s), a }) : T2("lifeSpan", { stage: stage(s), a, b });
         return { head, text: parts.join(" ") };
       }),
-      end: state.winner === i ? winEnd(p, T2, words, held2) : p.fell ? fellEnd(p, along, T2, sq, held2, l, who2) : !p.life?.length ? T2("lifeUnborn") : p.dead && p.pos === GOAL ? doorEnd(p, T2, words, l, who2) : p.dead ? T2("lifeEndDied", { age: words(p.years), holding: held2(SNAKES[p.holding]?.holding) }).replace(/, ([.।])$/, "$1") : T2("lifeEndOpen", { n: p.pos }),
+      end: state.winner === i ? winEnd(p, T2, words, held2) : p.fell ? fellEnd(p, along, T2, sq, held2, l, who2) : !p.life?.length ? T2("lifeUnborn") : p.death?.by === "ledger" ? ledgerEnd(p, T2, words, l, who2, held2) : p.dead && p.pos === GOAL ? doorEnd(p, T2, words, l, who2) : p.dead ? T2("lifeEndDied", { age: words(p.years), holding: held2(SNAKES[p.holding]?.holding) }).replace(/, ([.।])$/, "$1") : T2("lifeEndOpen", { n: p.pos }),
       // a curse the life never bore out is closed after the end, the other way (Phase 14): empty with none
       curse: curse && curse.closedAt == null && (state.winner === i || p.fell || p.dead) ? fill(curse.c.not[l] || curse.c.not.en, who2) : "",
       // what the life never found out about the people in it (Phase 10C): empty with no cast
@@ -6526,8 +6590,13 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const k = karmaOf(p), carry = carryIn(l, [...carried(k), ...k.sancita], null, who2);
     return T2("lifeEndDoor", { age: words(p.years), carry }).replace(/, ([.।])$/, "$1");
   }
+  function ledgerEnd(p, T2, words, l, who2, held2) {
+    const k = karmaOf(p), carry = carryIn(l, [...carried(k), ...k.sancita], null, who2) || held2(SNAKES[p.holding]?.holding);
+    return T2("lifeEndLedger", { age: words(p.death.age ?? p.years), form: formIn(l, p.death.form, who2), carry }).replace(/, ([.।])$/, "$1");
+  }
   function opening(p, along, T2, words) {
     if (!along.length) return "";
+    if (p.death?.by === "ledger") return T2("lifeOpenLedger", { age: words(p.death.age ?? p.years) });
     if (p.dead) return T2("lifeOpenDied", { age: words(p.years) });
     const earthly = along.filter((e) => e.n <= EARTH3), to = Math.max(...earthly.map((e) => e.years));
     const snakes = along.filter((e) => e.via === "snake");
@@ -7007,7 +7076,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     } else if (state.over) {
       const one = humans.length === 1 ? humans[0] : null;
       $("winTitle").textContent = one ? t("lifeTitle", { name: pname(one) }) : t("raceNone");
-      $("winText").textContent = one ? t(one.fell ? "fellText" : "diedText") : "";
+      $("winText").textContent = one ? t(one.fell ? "fellText" : one.death?.by === "ledger" ? "ledgerText" : "diedText") : "";
     }
   }
   function renderSetup() {
@@ -7394,6 +7463,14 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
         if (!carried(k).length) return false;
         G.state.forceOmen = true;
         return true;
+      },
+      // mp.die(form) makes the next turn's omen the death tier for the current player, in that form (accident, calamity or
+      // illness; by default the one their years would bring), planting the anger on 59 if they carry no debt (Phase 16)
+      die(form) {
+        const p = cur();
+        if (!carried(karmaOf(p)).length) this.plant(59, "strike");
+        G.state.forceDeath = FORMS.includes(form) ? form : deathFormOf(p.years ?? 0);
+        return G.state.forceDeath;
       },
       // mp.dumpKarma(i) logs and returns player i's ledger: the three buckets, the vices added, the reckonings met, the door
       dumpKarma(i = G.state.turn) {

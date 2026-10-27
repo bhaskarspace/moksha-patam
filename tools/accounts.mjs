@@ -15,6 +15,9 @@
 // tells one: with the curses off, every account untagged above, karma or door must be the same as main's.
 // Phase 15 adds "witness": a game in which the ego threw on someone's choice (REDESIGN.md Phase 15), or an account that
 // joins a cast return by what they witnessed. Every account untagged witness must be the same as main's.
+// Phase 16 adds "death": a game in which the death tier came (it kills now, and before it sent the life back), or someone
+// sat at the door (penance is two years a weight, and a weight-three debt no penance pays). Every account untagged death
+// must be the same as main's.
 import path from "node:path";
 import crypto from "node:crypto";
 import { pathToFileURL } from "node:url";
@@ -32,7 +35,7 @@ if (flags.curse === "off" && content.CURSES) content.CURSES.list = null;
 
 const play = (players, seed) => {
   const s = createGame({ players, rules: { six: true }, seed });
-  s.above = s.karma = s.witness = false;
+  s.above = s.karma = s.witness = s.death = false;
   while (!s.over) {
     // a debt carried within a throw of the door changes how a computer moves there, even when the door is never reached
     const p = s.players[s.turn], k = p.karma;
@@ -41,6 +44,7 @@ const play = (players, seed) => {
     if (plan.fell || plan.path.some(n => n > content.GOAL)) s.above = true;
     if (plan.reckon || plan.refused) s.karma = true;
     if (plan.ego) s.witness = true;
+    if (plan.reckon?.wouldDie || (plan.sit && plan.from === content.GOAL)) s.death = true;
   }
   // the door (Bhaskar's check of Phase 12): an account that tells a refusal, or a fall that still carried a debt down
   s.door = s.players.some(p => p.refusals?.length || (p.fell && p.karma?.sancita?.length));
@@ -52,7 +56,7 @@ const tally = { intros: 0, returns: 0, fates: 0, lives: 0 };
 const out = [];
 const say = (key, s, i, l) => {
   const text = lifeText(s, i, l), life = lifeOf(s, i, l);
-  out.push(flags.full ? `## ${key}\n${text}` : `${key} ${hash(text)}${flags.tag ? (s.above ? " above" : "") + (s.karma ? " karma" : "") + (s.door ? " door" : "") + (s.curse ? " curse" : "") + (s.witness || life.witnessed ? " witness" : "") : ""}`);
+  out.push(flags.full ? `## ${key}\n${text}` : `${key} ${hash(text)}${flags.tag ? (s.above ? " above" : "") + (s.karma ? " karma" : "") + (s.door ? " door" : "") + (s.curse ? " curse" : "") + (s.witness || life.witnessed ? " witness" : "") + (s.death ? " death" : "") : ""}`);
   if (l === "en" && life.fates) {
     tally.lives++;
     tally.fates += life.fates.length;

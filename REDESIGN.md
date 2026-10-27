@@ -1708,6 +1708,37 @@ ledger and Phase 14's door. Its own PR, and probably the largest remaining. If i
 split, split by the four headings below, each its own number; the fifth, what penance costs (added from Phase 14),
 goes with the first.*
 
+> **Step 1, death and penance** (branch `phase-16-death-rebirth`, 27 Oct). The top tier of Phase 12's scale is death
+> (`reckonOf`: `dies`, `deathFormOf` in `src/engine/karma.js`). Its form is the age's and the stage's, never the vice's:
+> an accident up to fifty (the roof that gives way over the trunk, 75), a calamity in vānaprastha (the bad year, Uṣasti's
+> famine, 48), an illness in sannyāsa (the bad chest, 73). The debt that came due is not met, and goes with the rest into
+> sañcita; the account closes "{name} died at {age}, {form}, {carry}", the debts in the door's words, or else the holding.
+> Every death records its cause (`p.death.by`: ledger, years, door). Penance is two years a unit of weight (`PENANCE`),
+> and a weight-three debt the book does not answer no penance pays (`UNPAID`): the door stays shut while it is owed, and
+> the card tells a person plainly that they may sit on or throw on (`examNeverOn`); a computer, once told, throws on.
+> `npm run sim` adds `--death=off`, `--penance=N`, `--unpaid=N`, and deaths by cause, age and form.
+>
+> **The 20% target for dishonest liberation was dropped (Bhaskar, 27 Oct).** Penance reaches only the lives that sit at
+> the door, about 15% of dishonest lives; as many again walk through on arrival owing nothing, and most of the rest fall.
+> No multiplier came near: 1× 28.9%, 1.5× 28.1%, 2× 27.8%, 3× 27.0%, 6× 26.0%. Making weight 2 book-only as well reached
+> 22.0%, but the weight-2 debts are 49, 54, 55 and 56, the ego tests, so it would mostly punish honest lives for the
+> ego's rebellions (mixed through the door 11.2% → 6.5%). Kept: 2× and weight 3 only. 20,000 single lives each:
+>
+> | policy | liberated | lives per liberation | died: ledger · years · door | fell | median · p95 |
+> |---|---|---|---|---|---|
+> | honest, before | 44.2% | 2.26 | 0 · 5.8% · 0.2% | 49.9% | 27 · 45 |
+> | honest, after | 43.5% | 2.30 | 1.2% · 4.7% · 0.3% | 50.2% | 27 · 45 |
+> | mixed, before | 36.5% | 2.74 | 0 · 12.5% · 0.8% | 50.2% | 29 · 48 |
+> | mixed, after | 35.4% | 2.82 | 8.1% · 5.8% · 0.8% | 49.9% | 28 · 48 |
+> | dishonest, before | 29.0% | 3.45 | 0 · 20.7% · 1.2% | 49.1% | 30 · 50 |
+> | dishonest, after | 27.5% | 3.64 | 17.8% · 6.0% · 1.3% | 47.4% | 29 · 49 |
+>
+> Honest > mixed > dishonest holds. The ledger's deaths are mostly lives that a sent-back reckoning used to run out of
+> years: deaths overall move 13.3% → 14.6% (mixed). By age (mixed): 40–59 78, 60–79 473, 80+ 1,065; by form: accident 9,
+> calamity 200, illness 1,407. The death tier comes in 8.1% of mixed lives, not Phase 12's 3.3%: Phases 14 and 15 grew
+> the ledger. `accounts.mjs --tag` adds `death`; the 11,804 accounts without it are byte-identical to main's. Golden
+> identical on all 20 seeds; perf matches main.
+
 **Why it was gated, and what ungates it.** After Phase 9 a life ran out of years in 2.5% of
 games (3.5% after 10B) and the rebirth snake fired in 8.2%. Everything in this phase would
 have been built for one player in forty. Phase 12's geometry changed that first: the fall

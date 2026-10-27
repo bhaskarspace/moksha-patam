@@ -3,7 +3,7 @@ import { GOAL, TOP, LADDERS, SNAKES, HEAVEN, SQ } from "../content.js";
 import { makeRng, die } from "../rng.js";
 import { SPAN, turnYears, grow, freshGunas, freshAims, holdingOf, slotsFor, stageOfPlayer, SANNYASA } from "./self.js";
 import { situationAt, optionOf, choiceFor, egoOf, egoFacesOn, egoThrow } from "./qbn.js";
-import { freshKarma, karmaOf, carried, ripen, plantOf, omenFor, refusalOf, examineOf, meet } from "./karma.js";
+import { freshKarma, karmaOf, carried, ripen, plantOf, omenFor, refusalOf, examineOf, meet, DEATH } from "./karma.js";
 import { curseOf, spokenAt } from "./curse.js";
 
 // The die shows this many random faces while it tumbles before the real roll. They come from the
@@ -66,13 +66,15 @@ export function moveFor(state, dice) {
   const to = pl => pl.reckon?.from ?? pl.final;
   const win = plans.find(pl => pl.win);
   if (win) return win.v;
-  if (moves.includes(0) && state.players[state.turn].pos === GOAL) return 0;
+  // ...unless the door has already said that no penance pays what it owes (Phase 16): then it throws on
+  const p = state.players[state.turn], ex = p.pos === GOAL ? examineOf(p) : null, stay = moves.includes(0) && !(ex?.never && ex.n > 1);
+  if (stay && p.pos === GOAL) return 0;
   const short = plans.filter(pl => !pl.fell && to(pl) < GOAL && pl.jump?.kind !== "snake").sort((a, b) => b.v - a.v);
   if (short.length) return short[0].v;
   // a door that will refuse it is still the door: better stood at than passed (REDESIGN.md Phase 12)
   const door = plans.find(pl => pl.refused);
   if (door) return door.v;
-  if (moves.includes(0)) return 0;
+  if (stay) return 0;
   const heaven = plans.filter(pl => !pl.fell && to(pl) > GOAL).sort((a, b) => a.v - b.v);
   if (heaven.length) return heaven[0].v;
   const snake = plans.filter(pl => !pl.fell).sort((a, b) => b.v - a.v);
@@ -132,7 +134,7 @@ export function planTurn(state, v, dice = [v]) {
     // a reckoning may have met what was owed while the life sat there: then there is no question, and the door opens
     const atDoor = from === GOAL && !!p.door, exam = atDoor ? examineOf(p) : null;
     const win = atDoor && !died && (exam ? exam.open : !refusalOf(p));
-    if (exam) after.push(entry(exam.pass ? "lExamPass" : exam.n === 1 ? (exam.cleared ? "lExamPaid" : "lExamFail") : exam.cleared ? "lExamPaid" : "lExamPenance", { pos: from, src: exam.src, sq: exam.src }, "", idx));
+    if (exam) after.push(entry(exam.pass ? "lExamPass" : exam.n === 1 ? (exam.cleared ? "lExamPaid" : "lExamFail") : exam.cleared ? "lExamPaid" : exam.never ? "lExamNever" : "lExamPenance", { pos: from, src: exam.src, sq: exam.src }, "", idx));
     else if (!win) after.push(entry("lSit", { pos: from, sq: from }, "", idx));
     if (died) end.push(entry(from === GOAL ? "lDiedDoor" : "lDied", { pos: from, age: years, sq: from }, "death", idx));
     else if (win) end.push(entry("lDoorOpen", { pos: GOAL }, "", idx), entry("lWin", { pos: GOAL }, "heaven", idx));
@@ -228,10 +230,21 @@ function finish(state, plan, o) {
 // the third tier the square the debt was made on, reached as a snake reaches its tail, taking no time.
 function resolve(state, plan, years) {
   const { idx } = plan, p = state.players[idx];
-  const omen = plan.win || plan.died ? null : omenFor(state, idx, { dice: plan.dice, pos: plan.final, years, lived: p.life?.length ?? 0, force: !!state.forceOmen });
+  const omen = plan.win || plan.died ? null : omenFor(state, idx, { dice: plan.dice, pos: plan.final, years, lived: p.life?.length ?? 0, force: !!(state.forceOmen || state.forceDeath) });
+  // mp.die(form) (Phase 16): the omen that fires is the death tier, in that form, whatever the ledger weighs
+  if (omen?.reckon && state.forceDeath) Object.assign(omen.reckon, { dies: true, applied: DEATH, form: state.forceDeath, years: 0, holds: null, to: null });
   const rk = omen?.reckon ?? null;
   Object.assign(plan, { omen, reckon: rk && { ...rk, from: plan.final } });
   if (!rk) return plan;
+  // death by ledger (REDESIGN.md Phase 16): the floor closes. The life ends where it stands, at the years it had; the
+  // debt that came due is not met, and goes with the rest into the store
+  if (rk.dies) {
+    plan.died = true;
+    plan.death = { by: "ledger", form: rk.form, age: years, src: rk.src, opt: rk.opt };
+    plan.end = [entry("lReckon", { src: rk.src, sq: rk.src }, "reckon", idx), entry("lDiedLedger", { pos: plan.final, age: years, sq: plan.final }, "death", idx)];
+    plan.again = false;
+    return plan;
+  }
   if (rk.to) plan.final = rk.to;
   plan.told.push(...(rk.to ? ["reckon"] : []), ...Array(rk.years).fill("stay"));
   // first among the turn's ends; a new array, since the log alone is built by unshift (tools/golden.mjs listens for it).
@@ -266,7 +279,7 @@ export function endTurn(state, plan) {
     Object.assign(p, grow(p, plan));
     // the ledger: what fired is met, what was chosen is planted, and whatever the years have reached ripens
     let k = karmaOf(p);
-    if (rk) k = { ...k, prarabdha: k.prarabdha.filter(s => !rk.seeds.some(f => f.src === s.src && f.opt === s.opt && f.at === s.at)), agami: k.agami.filter(s => !rk.seeds.some(f => f.src === s.src && f.opt === s.opt && f.at === s.at)) };
+    if (rk && !rk.dies) k = { ...k, prarabdha: k.prarabdha.filter(s => !rk.seeds.some(f => f.src === s.src && f.opt === s.opt && f.at === s.at)), agami: k.agami.filter(s => !rk.seeds.some(f => f.src === s.src && f.opt === s.opt && f.at === s.at)) };
     // a seed keeps where in the life it was planted, so the door can ask whether the life climbed out of it after
     if (plan.plant) k = { ...k, agami: [...k.agami, { ...plan.plant, i: p.life.length }] };
     // a year at the door (REDESIGN.md Phase 14): the debt asked about, met or paid, leaves the ledger
@@ -274,12 +287,12 @@ export function endTurn(state, plan) {
     if (ex) {
       p.exam = { ...(p.exam ?? {}), [ex.key]: ex.n };
       if (ex.cleared) k = meet(k, ex.key);
-      p.sittings = [...(p.sittings ?? []), { at, src: ex.src, opt: ex.opt, planted: ex.at, n: ex.n, pass: ex.pass, answer: ex.answer, cleared: ex.cleared, open: plan.win, age: p.years }];
+      p.sittings = [...(p.sittings ?? []), { at, src: ex.src, opt: ex.opt, planted: ex.at, n: ex.n, pass: ex.pass, answer: ex.answer, cleared: ex.cleared, ...(ex.never ? { never: true } : {}), open: plan.win, age: p.years }];
     }
     p.karma = ripen(k, p.years);
     if (rk) {
       if (rk.holds) p.held = [...(p.held ?? []), rk.holds];
-      p.reckonings = [...(p.reckonings ?? []), { at, src: rk.src, opt: rk.opt, planted: rk.planted, tier: rk.tier, applied: rk.applied, wouldDie: rk.wouldDie, years: rk.years, to: rk.to, age: rk.age }];
+      p.reckonings = [...(p.reckonings ?? []), { at, src: rk.src, opt: rk.opt, planted: rk.planted, tier: rk.tier, applied: rk.applied, wouldDie: rk.wouldDie, ...(rk.dies ? { dies: true, form: rk.form } : {}), years: rk.years, to: rk.to, age: rk.age }];
     }
     // an arrival the door refused is kept for the account, where in the life it came (a refusal again while they
     // stand there is the same one)
@@ -288,11 +301,13 @@ export function endTurn(state, plan) {
     p.door = plan.refused ?? (p.pos === GOAL && !plan.win && p.door ? refusalOf(p) ?? p.door : null);
     // the curse (REDESIGN.md Phase 14): spoken at the first landing old enough for it, and kept where in the life it was
     if (!p.curse) { const c = curseOf(state, plan.idx); if (c && spokenAt(c, p.years)) p.curse = { id: c.id, i: p.life.length - 1, age: p.years }; }
-    if (plan.died) { p.dead = true; p.holding = holdingOf(p.life, p.held); }
+    // how the life ended (Phase 16): its ledger, its years on earth, or its years at the door
+    if (plan.died) { p.dead = true; p.holding = holdingOf(p.life, p.held); p.death = plan.death ?? { by: plan.sit && plan.from === GOAL ? "door" : "years", age: p.years }; }
   }
   // a life over carries what it never met into the store (sañcita), for Phase 15 to draw the next life's prārabdha from
   if (plan.died || plan.fell) { const k = karmaOf(p); p.karma = { sancita: [...k.sancita, ...carried(k)], agami: [], prarabdha: [] }; }
   delete state.forceOmen;
+  delete state.forceDeath;
   if (plan.ego) delete state.forceEgo;
   if (plan.win) state.winner = plan.idx;
   // the turn passes to the next player still alive; with nobody left, the game is over

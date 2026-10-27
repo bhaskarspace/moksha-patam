@@ -16,7 +16,7 @@
 import { GOAL, SITUATIONS, SNAKES, LADDERS, DOOR } from "../content.js";
 import { makeRng, next } from "../rng.js";
 import { tIn, fill, castFill, wordsIn } from "../i18n.js";
-import { SPAN, yearsAlong } from "./self.js";
+import { SPAN, yearsAlong, stageOfYears } from "./self.js";
 
 export const freshKarma = () => ({ sancita: [], agami: [], prarabdha: [] });
 // a game saved before Phase 12 has no ledger yet, and starts an empty one
@@ -58,6 +58,17 @@ export function severityOf(fired, rest) {
   return (w(fired) + w(rest) / 2) ** SEVERITY_POW;
 }
 export const tierOf = S => TIERS.filter(t => S >= t).length;
+// Since Phase 16 the top tier is death. tools/sim.mjs --death=off reports it only, as Phases 12 to 15 did.
+export let DEATH_ON = true;
+export const setDeath = on => { DEATH_ON = on; };
+
+// ---- Death by ledger (REDESIGN.md Phase 16) ----
+// The ledger decides that a life ends; the six only says when. How it ends is the life's age and stage, never the vice:
+// the game never says a vice caused an illness. The three forms are the board's own: the roof that leaks onto forty
+// years in a trunk (75), the bad year of Uṣasti's famine (48), the bad chest all winter (73). None has an agent: there
+// are no villains here, so there is no murder. The vice is named only in the closing line, in the door's words.
+export const FORMS = ["accident", "calamity", "illness"];
+export const deathFormOf = years => { const st = stageOfYears(years); return st <= 2 ? "accident" : st === 3 ? "calamity" : "illness"; };
 
 // What the omen does on this turn, or null when there is no omen to speak of: { chance, fired, reckon }. pos is where the
 // player stands once the move is made, years their years by then, dice everything rolled. force (mp.fire) fires it on
@@ -77,14 +88,15 @@ export function omenFor(state, idx, { dice, pos, years, lived, force = false }) 
 export function reckonOf(k, { pos, years }) {
   const first = k.prarabdha[0], fired = k.prarabdha.filter(s => s.src === first.src && s.opt === first.opt);
   const rest = carried(k).filter(s => !fired.includes(s));
-  const S = severityOf(fired, rest), tier = tierOf(S), wouldDie = tier >= DEATH, applied = Math.min(tier, DEATH - 1);
-  // until Phase 15 the death tier only reports: what it would have been, then the tier below it
+  const S = severityOf(fired, rest), tier = tierOf(S), wouldDie = tier >= DEATH, applied = DEATH_ON ? tier : Math.min(tier, DEATH - 1);
+  // the top tier is death (Phase 16): it takes nothing else, since nothing else is left to take
+  if (applied >= DEATH) return { src: first.src, opt: first.opt, planted: first.at, seeds: fired, S, tier, applied, wouldDie, dies: true, form: deathFormOf(years), years: 0, holds: null, to: null, age: years };
   const lost = applied >= 1 ? Math.min(Math.ceil(S), Math.max(0, Math.floor(SPAN - years))) : 0;
   const vice = seedOf(first.src, first.opt)?.holds ?? null, holds = applied >= 2 ? vice : null;
   // the vice's snake again, in effect: down by its length, as far as the square the debt was made on and no further
   const drop = SNAKES[vice] ? vice - SNAKES[vice].to : 0, back = Math.max(first.src, pos - drop);
   const to = applied >= 3 && back < pos ? back : null;
-  return { src: first.src, opt: first.opt, planted: first.at, seeds: fired, S, tier, applied, wouldDie, years: lost, holds, to, age: years };
+  return { src: first.src, opt: first.opt, planted: first.at, seeds: fired, S, tier, applied, wouldDie, dies: false, years: lost, holds, to, age: years };
 }
 
 // ---- The gate at 105 (§2.3) ----
@@ -106,8 +118,17 @@ export function refusalOf(p) {
 // question, put about the oldest debt still owed and chosen by the vice it holds (content/door.json). The life
 // answers, not the player: Citragupta reads the answer from the book. The book has it when, after the debt was
 // planted, the life climbed the ladder that heals that vice; then the debt is met. Otherwise the year is penance, and
-// the debt is paid after as many years as its weight. When nothing is owed the door opens. The player sees the
+// the debt is paid after PENANCE years for each unit of its weight (Phase 16: two, so the worst debt costs six). A long
+// penance can outlast the years, and then the life dies at the door (src/engine/turn.js planTurn). A debt of the heaviest
+// weight (UNPAID) no penance pays (Bhaskar, 27 Oct): only the book can answer it, and while it is owed the door stays
+// shut. The life may sit on until its years run out, or throw on into the heavens. When nothing is owed the door opens. The player sees the
 // question, the answer and whether the debt was met; never a count.
+export let PENANCE = 2;
+export let UNPAID = 3;
+// tools/sim.mjs --unpaid sweeps it; nothing in the game changes it
+export const setUnpaid = n => { UNPAID = n; };
+// tools/sim.mjs --penance sweeps it; nothing in the game changes it
+export const setPenance = n => { PENANCE = n; };
 export const debtKey = s => `${s.src}:${s.opt}:${s.at}`;
 export const viceOf = s => seedOf(s.src, s.opt)?.holds ?? null;
 export const questionOf = s => DOOR[viceOf(s)] ?? null;
@@ -129,8 +150,9 @@ export function examineOf(p) {
   const s = owedOf(p);
   if (!s) return null;
   const key = debtKey(s), n = (p.exam?.[key] ?? 0) + 1, answer = n === 1 ? answerOf(p, s) : null, pass = !!answer;
-  const cleared = pass || n >= (s.weight ?? 1), left = carried(karmaOf(p)).length - (cleared ? 1 : 0);
-  return { src: s.src, opt: s.opt, at: s.at, key, n, pass, answer: answer?.age ?? null, cleared, weight: s.weight ?? 1,
+  const never = !pass && (s.weight ?? 1) >= UNPAID;
+  const cleared = pass || (!never && n >= Math.ceil(PENANCE * (s.weight ?? 1))), left = carried(karmaOf(p)).length - (cleared ? 1 : 0);
+  return { src: s.src, opt: s.opt, at: s.at, key, n, pass, answer: answer?.age ?? null, cleared, never, weight: s.weight ?? 1,
     open: cleared && !left && !refusalOf({ ...p, karma: freshKarma() }) };
 }
 // The ledger once a debt is met at the door: it leaves whichever bucket held it.
@@ -153,7 +175,10 @@ export function reckoningIn(l, rk, who) {
 // The reckoning's card, line by line: the floor, what came due, where it came from, and what it took, in that order.
 // The floor always seems to open; what follows scales.
 export function reckonLinesIn(l, rk, who) {
-  const out = [T(l, "reckonFloor", who), reckoningIn(l, rk, who), T(l, "reckonFrom", who, { src: rk.src, debt: debtIn(l, { src: rk.src, opt: rk.opt, at: rk.planted }, who) })];
+  const from = T(l, "reckonFrom", who, { src: rk.src, debt: debtIn(l, { src: rk.src, opt: rk.opt, at: rk.planted }, who) });
+  // death by ledger (Phase 16): this time the floor closes, and the card says how the life ended, by its age alone
+  if (rk.dies) return [T(l, "reckonClose", who), reckoningIn(l, rk, who), from, T(l, "reckonDies", who, { age: wordsIn(l, Math.floor(rk.age)), form: formIn(l, rk.form, who) })];
+  const out = [T(l, "reckonFloor", who), reckoningIn(l, rk, who), from];
   if (!rk.applied) out.push(T(l, "reckonNone", who));
   if (rk.years) out.push(rk.years === 1 ? T(l, "reckonYear", who) : T(l, "reckonYears", who, { years: wordsIn(l, rk.years) }));
   const held = rk.holds && SNAKES[rk.holds]?.holding;
@@ -161,6 +186,8 @@ export function reckonLinesIn(l, rk, who) {
   if (rk.to) out.push(T(l, "reckonBack", who, { to: rk.to }));
   return out;
 }
+// How a life ended by its ledger, as a phrase: "when the roof gave way one night in the rains".
+export const formIn = (l, form, who) => T(l, "death" + form[0].toUpperCase() + form.slice(1), who);
 // Why the door did not open, in one sentence, and what it means for the next throw.
 // sit: whether this life may sit at the door and be examined (a sannyāsin, src/engine/turn.js canSit).
 export function refusalIn(l, refusal, who, sit = false) {
@@ -177,8 +204,13 @@ export function examLinesIn(l, ex, who) {
   const out = [T(l, "examAsks", who, { q: q.q[l] || q.q.en })];
   if (ex.pass) out.push(T(l, "examPass", who, { a: q.a[l] || q.a.en, age: wordsIn(l, Math.floor(ex.answer)), answered: fill(q.answered[l] || q.answered.en, who) }), T(l, "examMet", who, { debt }));
   else {
-    out.push(T(l, ex.n === 1 ? "examFail" : "examPenance", who, { a: q.a[l] || q.a.en, debt }));
-    out.push(T(l, ex.cleared ? "examPaid" : "examOwing", who, { debt }));
+    // a debt no penance pays (UNPAID): the year passes, and pays nothing
+    // and the person is told plainly what is left to them, unless the years have run out there
+    if (ex.never) out.push(T(l, ex.n === 1 ? "examFailNever" : "examAgainNever", who, { a: q.a[l] || q.a.en, debt }), T(l, "examNever", who, { debt }), ...(ex.died ? [] : [T(l, "examNeverOn", who)]));
+    else {
+      out.push(T(l, ex.n === 1 ? "examFail" : "examPenance", who, { a: q.a[l] || q.a.en, debt }));
+      out.push(T(l, ex.cleared ? "examPaid" : "examOwing", who, { debt }));
+    }
   }
   if (ex.open) out.push(T(l, "doorOpens", who));
   return out;

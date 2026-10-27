@@ -1129,14 +1129,63 @@ await check("Phase 14: a refused sannyāsin sits at the door, is asked on a card
   await page.waitForFunction(() => document.getElementById("folio").open && /The door asks/.test(document.getElementById("leaf").textContent), null, { timeout: 15000 });
   const card = await page.evaluate(() => ({ text: document.getElementById("leaf").textContent, busy: mp.busy, hash: location.hash, line: mp.landed() }));
   assert(/heaven's highest refuge/.test(card.text) && /The answer is truth/.test(card.text) && /the teacher who was coming, at ten/.test(card.text), `the card: ${card.text.slice(0, 400)}`);
-  assert(/The door opens/.test(card.text), `the door did not open on the card: ${card.text.slice(0, 400)}`);
+  // since Phase 16 penance is two years a weight: the lie is not yet paid after the first
+  assert(/It is not yet paid/.test(card.text) && !/The door opens/.test(card.text), `the first year: ${card.text.slice(0, 400)}`);
   assert(card.busy && card.hash === "#sq/105", `the examination does not hold the game: ${JSON.stringify({ busy: card.busy, hash: card.hash })}`);
   assert(/heaven's highest refuge/.test(card.line || ""), `the line under the board: ${card.line}`);
   assert(!/\b(weight|penance count|prārabdha|āgāmi)\b/i.test(card.text), "the card shows the ledger's workings");
   await page.evaluate(() => mp.close());
+  await until(page, () => !mp.busy && mp.state.turn === 0);
+  await page.evaluate(() => { mp.roll(2, 3); });
+  await page.waitForFunction(() => mp.choosing, null, { timeout: 15000 });
+  await page.evaluate(() => mp.pick(0));
+  await page.waitForFunction(() => document.getElementById("folio").open && /The door opens/.test(document.getElementById("leaf").textContent), null, { timeout: 15000 });
+  await page.evaluate(() => mp.close());
   await page.waitForFunction(() => !mp.busy && mp.state.over, null, { timeout: 15000 });
   const r = await page.evaluate(() => ({ winner: mp.state.winner, open: mp.state.log.some(e => e.k === "lDoorOpen"), gate: document.getElementById("door").className, sittings: mp.examine(0).sittings.length }));
-  assert(r.winner === 0 && r.open && /\bopen\b/.test(r.gate) && r.sittings === 1, JSON.stringify(r));
+  assert(r.winner === 0 && r.open && /\bopen\b/.test(r.gate) && r.sittings === 2, JSON.stringify(r));
+});
+
+// ---- Phase 16: death by ledger ----
+await check("Phase 16: mp.die(form) ends the life on the reckoning's card, in that form, and the account ends on what was carried", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=1&debug");
+  await page.evaluate(() => { mp.jump(40); mp.years(70); mp.die("illness"); mp.roll(2); });
+  await page.waitForFunction(() => document.getElementById("folio").open && /It closes/.test(document.getElementById("leaf").textContent), null, { timeout: 15000 });
+  const text = await page.evaluate(() => document.getElementById("leaf").textContent);
+  assert(/of the bad chest, after a winter that did not end/.test(text), `the card: ${text.slice(0, 500)}`);
+  await page.evaluate(() => mp.close());
+  await page.waitForFunction(() => mp.state.over && document.getElementById("lifeDlg").open, null, { timeout: 15000 });
+  const r = await page.evaluate(() => ({ death: mp.state.players[0].death, life: document.getElementById("lifeLeaf").textContent, win: document.getElementById("winText").textContent }));
+  assert(r.death?.by === "ledger" && r.death.form === "illness", JSON.stringify(r.death));
+  assert(/died at seventy-one, of the bad chest, after a winter that did not end, still carrying the hand that fell/.test(r.life), `the account: ${r.life.slice(-400)}`);
+  assert(/A debt came due that the life could not pay/.test(r.win), r.win);
+});
+
+// ---- Phase 16: a door that can never open ----
+await check("Phase 16: at a door no penance opens, a person is told plainly they may sit on or throw on, and can do either", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=1&debug");
+  // the anger struck at forty-eight, weight three, never climbed out of: only the book could answer it
+  await page.evaluate(() => { mp.plant(59, "strike"); mp.door(); mp.roll(2, 3); });
+  await page.waitForFunction(() => mp.choosing, null, { timeout: 15000 });
+  await page.evaluate(() => mp.pick(0));
+  await page.waitForFunction(() => document.getElementById("folio").open && /The door asks/.test(document.getElementById("leaf").textContent), null, { timeout: 15000 });
+  const text = await page.evaluate(() => document.getElementById("leaf").textContent);
+  assert(/No penance pays this one/.test(text) && /may sit on here all the same, a year at a time, or throw on into the heavens/.test(text), `the card: ${text.slice(0, 500)}`);
+  assert(!/The door opens/.test(text), "a door no penance opens opened");
+  await page.evaluate(() => mp.close());
+  // the computer at the table takes its turn; then the person's next year offers both, sitting and the dice
+  await until(page, () => !mp.busy && mp.state.turn === 0);
+  await page.evaluate(() => { mp.roll(2, 3); });
+  await page.waitForFunction(() => mp.choosing, null, { timeout: 15000 });
+  const offered = await page.evaluate(() => JSON.stringify(mp.choosing));
+  assert(/0/.test(offered) && /2/.test(offered), `both are offered: ${offered}`);
+  // and a die goes on into the heavens
+  await page.evaluate(() => mp.pick(2));
+  await until(page, () => !mp.busy && mp.state.players[0].pos !== 105);
+  const r = await page.evaluate(() => ({ pos: mp.state.players[0].pos, over: mp.state.over }));
+  assert(r.pos === 107 && !r.over, `going on: ${JSON.stringify(r)}`);
 });
 
 await check("Phase 14: a computer refused at the door is told on the line under the board, and the door is drawn", async page => {
@@ -1173,8 +1222,16 @@ await check("Phase 14: the wheel of time turns a step a year at the door, and un
   await page.evaluate(() => mp.pick(0));
   await until(page, () => !mp.busy && mp.examine(0).sittings.length === 1);
   const after = await turning();
-  // the oldest debt, the lie, is paid in the year (its weight is one) and stops, gold; the other turned
-  assert(after[0].gold && after[0].t === before[0].t && after.slice(1).every((s, k) => !s.gold && s.t !== before[k + 1].t), JSON.stringify({ before, after }));
+  // a year turns every spoke still owed: since Phase 16 the lie (weight one) takes two years, the anger no penance pays
+  assert(after.every((s, k) => !s.gold && s.t !== before[k].t), JSON.stringify({ before, after }));
+  // the second year pays the lie, which stops, gold; the anger turns on
+  await until(page, () => !mp.busy && mp.state.turn === 0);
+  await page.evaluate(() => { mp.roll(2, 3); });
+  await page.waitForFunction(() => mp.choosing, null, { timeout: 15000 });
+  await page.evaluate(() => mp.pick(0));
+  await until(page, () => !mp.busy && mp.examine(0).sittings.length === 2);
+  const paid = await turning();
+  assert(paid[0].gold && paid[0].t === after[0].t && !paid[1].gold && paid[1].t !== after[1].t, JSON.stringify({ after, paid }));
   await page.emulateMedia({ reducedMotion: "reduce" });
   assert((await turning()).every(s => s.dur === "0s"), "the wheel turns under reduced motion");
 });

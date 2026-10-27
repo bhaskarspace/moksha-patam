@@ -23,12 +23,16 @@
 // by landing or not. --curse=off takes the curses away, which must leave every other number as it was.
 // Phase 15 adds the witness: the ego's throws and rebellions a life, the share of lives that rebelled, and both by the
 // band of the gunas the faces came from (sattva, mixed, rajas or tamas, none). --ego=off takes the throw away.
+// Phase 16 makes the top tier death: deaths by cause (the ledger, years on earth, years at the door), the ledger death's
+// age and form. --death=off reports the tier only, as before it; --penance=N is the years a unit of weight costs at the
+// door (2; 1 before Phase 16); --unpaid=N the weight from which only the book can answer a debt (3; 4 is none).
 import { pathToFileURL } from "node:url";
 import { createGame, playTurn, moveFor, movesFor, planTurn, rollDice, diceFor, setEndgame, ENDGAME, canSit } from "../src/engine/turn.js";
 import { SQ, SITUATIONS, CURSES } from "../src/content.js";
 import { curseIn } from "../src/engine/curse.js";
 import { setPolicy, setEgo, worthOf, optionOf } from "../src/engine/qbn.js";
 import { SPAN, setSpan, yearsAlong, BHUMIKA_AT, TURYA, setPractice } from "../src/engine/self.js";
+import { setDeath, setPenance, setUnpaid, FORMS } from "../src/engine/karma.js";
 
 // Phase 9's choice, before Phase 12 made the fall the heavens' snake: the exit, else the bigger die that is not a
 // snake, else sitting. Kept to show what the new choice is worth.
@@ -93,6 +97,9 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   if (flags.policy) setPolicy(flags.policy);
   if (flags.curse === "off") CURSES.list = null;
   if (flags.ego === "off") setEgo(false);
+  if (flags.death === "off") setDeath(false);
+  if (flags.penance) setPenance(+flags.penance);
+  if (flags.unpaid) setUnpaid(+flags.unpaid);
   const pick = PICKS[flags.pick || "plain"];
   const rules = SIM_RULES;
   const pct = x => `${(x * 100).toFixed(1)}%`;
@@ -133,6 +140,8 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   // Phase 15: the ego's throws, by the faces it owned: [6] sattva, [5,6] mixed, [4,5,6] rajas or tamas, [] none
   const BANDS = ["none", "sattva", "mixed", "rajas/tamas"], egoBands = BANDS.map(() => [0, 0]);
   let throws = 0, rebellions = 0, rebelLives = 0;
+  // Phase 16: deaths by cause, and the ledger's by age and form
+  const causes = { ledger: 0, years: 0, door: 0 }, ledgerAges = {}, forms = Object.fromEntries(FORMS.map(f => [f, 0]));
   for (let s = first; s < first + games; s++) {
     const g = playGame(s, { players, rules, pick }), { turns, heaven, karma, log, players: ps, seen } = g;
     lengths.push(Math.max(...turns));
@@ -156,6 +165,10 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       refusedAll += k.refused.length; couldSit += k.couldSit; throughDoor += k.throughDoor;
       if (k.doorYears) doorYears.push(k.doorYears);
       doorDeaths += !!p.dead && p.pos === 105;
+      if (p.death) {
+        causes[p.death.by]++;
+        if (p.death.by === "ledger") { const a = p.death.age, band = a < 40 ? "under 40" : a < 60 ? "40–59" : a < 80 ? "60–79" : "80+"; ledgerAges[band] = (ledgerAges[band] || 0) + 1; forms[p.death.form]++; }
+      }
       for (const x of p.sittings ?? []) { passed += x.pass; penanced += !x.pass && x.cleared; }
       const thrown = (p.witness ?? []).filter(w => w.faces), overruled = thrown.filter(w => w.chose !== w.took);
       throws += thrown.length; rebellions += overruled.length; rebelLives += overruled.length > 0;
@@ -186,10 +199,10 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     }
   }
   const r = summarise(lengths), y = summarise(spans);
-  console.log(`${games} games, ${players} players, seeds ${first}–${first + games - 1}, span ${SPAN}, two dice from ${ENDGAME}${flags.pick ? `, pick ${flags.pick}` : ""}${flags.practice ? `, practice ${flags.practice}` : ""}${flags.roll ? `, roll ${flags.roll}` : ""}${flags.policy ? `, policy ${flags.policy}` : ""}${flags.situations ? `, situations ${flags.situations}` : ""}`);
+  console.log(`${games} games, ${players} players, seeds ${first}–${first + games - 1}, span ${SPAN}, two dice from ${ENDGAME}${flags.pick ? `, pick ${flags.pick}` : ""}${flags.practice ? `, practice ${flags.practice}` : ""}${flags.roll ? `, roll ${flags.roll}` : ""}${flags.policy ? `, policy ${flags.policy}` : ""}${flags.situations ? `, situations ${flags.situations}` : ""}${flags.death ? `, death ${flags.death}` : ""}${flags.penance ? `, penance ${flags.penance}` : ""}${flags.unpaid ? `, unpaid from weight ${flags.unpaid}` : ""}`);
   console.log(`turns per player until the game ends: median ${r.median}, p5 ${r.p5}, p95 ${r.p95}, mean ${r.mean.toFixed(1)}, max ${r.max}, over 100: ${pct(r.over100)}`);
   console.log(`rolls per game: mean ${(rolls / games).toFixed(1)}`);
-  console.log(`lives that run out of years: ${pct(died / lives)}; years lived: median ${y.median}, p5 ${y.p5}, p95 ${y.p95}, max ${y.max}`);
+  console.log(`lives that end in death: ${pct(died / lives)}; years lived: median ${y.median}, p5 ${y.p5}, p95 ${y.p95}, max ${y.max}`);
   console.log(`highest bhumika reached, of ${sannyasins} sannyasins: ${finals.map((c, b) => `${b + 1}: ${pct(c / sannyasins)}`).join(" · ")} (turya ${pct(finals[TURYA] / sannyasins)})`);
   console.log(`bhumikas a sannyasin is shown: ${Object.entries(shown).map(([k, c]) => `${k}: ${pct(c / sannyasins)}`).join(" · ")}`);
   const b = summarise(freed);
@@ -199,12 +212,13 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   console.log(`on the board: square at fifty median ${med(at50)} (mean ${mean(at50).toFixed(1)}), at seventy median ${med(at70)} (mean ${mean(at70).toFixed(1)})`);
   console.log(`the ledger at the end: sattva ${mean(sat).toFixed(3)}, tamas ${mean(tam).toFixed(3)}, dharma ${mean(dharma).toFixed(1)}, highest bhumika ${mean(peaks.filter(x => x >= 0)).toFixed(2)}`);
   const h = summarise(heavenTurns);
-  console.log(`how lives end: liberated ${pct(freed.length / lives)}, years ran out ${pct(died / lives)}, fell from the heavens ${pct(falls12 / lives)}, still playing when the game ended ${pct(open / lives)}; lives per liberation ${(lives / freed.length).toFixed(2)}`);
+  console.log(`how lives end: liberated ${pct(freed.length / lives)}, died ${pct(died / lives)}, fell from the heavens ${pct(falls12 / lives)}, still playing when the game ended ${pct(open / lives)}; lives per liberation ${(lives / freed.length).toFixed(2)}`);
   console.log(`turns in 106–110: mean ${h.mean.toFixed(2)}, median ${h.median}, p95 ${h.p95}, max ${h.max}; in those that went there ${(heavenTurns.reduce((a, b) => a + b, 0) / Math.max(1, heavenTurns.filter(Boolean).length)).toFixed(2)}; a square at or above 94 landed on four times or more: ${pct(divine4 / lives)}`);
   const all = tiers.reduce((a, b) => a + b, 0) || 1, nref = Object.values(refusals).reduce((a, b) => a + b, 0);
   console.log(`the ledger: debts planted ${(planted / lives).toFixed(2)} a life; lives ending with a debt never met ${pct(carriedEnd / lives)}`);
   console.log(`the omen: a 6 with a ripe debt ${(eligible / lives).toFixed(2)} a life, a reckoning ${(fired / lives).toFixed(2)} a life, in ${pct(reckoned / lives)} of lives; fired, by where it fell: ${Object.keys(bands).sort((a, b) => parseInt(a) - parseInt(b)).map(b => `${b} ${bands[b][0] ? pct(bands[b][1] / bands[b][0]) : "—"} of ${bands[b][0]}`).join(" · ")}`);
-  console.log(`severity of ${fired} reckonings: ${tiers.map((c, t) => `${["floor only", "years", "+ holding", "+ sent back", "death (reported only)"][t]} ${pct(c / all)}`).join(" · ")}; lives in which death would have fired ${pct(dyingLives / lives)}${dyingLives ? ` (at ${Object.entries(dieAges).map(([b, c]) => `${b}: ${c}`).join(", ")})` : ""}`);
+  console.log(`severity of ${fired} reckonings: ${tiers.map((c, t) => `${["floor only", "years", "+ holding", "+ sent back", flags.death === "off" ? "death (reported only)" : "death"][t]} ${pct(c / all)}`).join(" · ")}; lives in which the death tier came ${pct(dyingLives / lives)}${dyingLives ? ` (at ${Object.entries(dieAges).map(([b, c]) => `${b}: ${c}`).join(", ")})` : ""}`);
+  console.log(`death: ${pct((causes.ledger + causes.years + causes.door) / lives)} of lives, by the ledger ${pct(causes.ledger / lives)}, years on earth ${pct(causes.years / lives)}, years at the door ${pct(causes.door / lives)}; the ledger's by age ${Object.entries(ledgerAges).map(([b, c]) => `${b}: ${c}`).join(", ") || "none"}; by form ${FORMS.map(f => `${f} ${forms[f]}`).join(", ")}`);
   console.log(`the door: arrivals at 105 ${(arrivals / lives).toFixed(2)} a life, refused ${arrivals ? pct(nref / arrivals) : "—"} of them (${Object.entries(refusals).map(([r, c]) => `${r} ${c}`).join(", ") || "none"}); lives refused at least once ${pct(refusedLives / lives)}`);
   const dy = summarise(doorYears.length ? doorYears : [0]);
   console.log(`the fall: past 110 ${pct(fellPast / lives)}, Śiva's snake on 110 ${pct(fellSnake / lives)}; refusals ${(refusedAll / lives).toFixed(3)} a life, of which a sannyāsin who could sit ${refusedAll ? pct(couldSit / refusedAll) : "—"}`);

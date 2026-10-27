@@ -271,11 +271,25 @@
       "examPenance": "The same question, and the book has no more to say. Another year at the door, in penance.",
       "examPaid": "With this year it is paid: the debt of {debt}.",
       "examOwing": "It is not yet paid: the debt of {debt}.",
+      "lExamNever": "{name} sat another year at the door; no penance pays the debt from square {src}.",
+      "examFailNever": "The answer is {a}. Citragupta turns the pages, and it is not in the book. The year passes at the door.",
+      "examAgainNever": "The same question, and the book has no more to say. Another year at the door.",
+      "examNever": "No penance pays this one: the debt of {debt}. The door stays shut while it is owed.",
+      "examNeverOn": "{name} may sit on here all the same, a year at a time, or throw on into the heavens.",
       "doorOpens": "Nothing is owed. The door opens.",
       "doorSit": "{name} may sit here, a year at a time, and be asked; or throw on into the heavens.",
       "doorThrough": "{name} comes to the door, and it opens.",
       "doorDied": "{name}'s years ran out at the door, still owing {debts}.",
-      "lifeEndDoor": "{name}'s years ran out at {age}, sitting at the door, {carry}."
+      "lifeEndDoor": "{name}'s years ran out at {age}, sitting at the door, {carry}.",
+      "lDiedLedger": "{name} died at {age}, on square {pos}.",
+      "reckonClose": "The six lands, and this time the floor does not open. It closes.",
+      "reckonDies": "{name} dies at {age}, {form}.",
+      "deathAccident": "when the roof that had leaked for years came down one night in the rains",
+      "deathCalamity": "in a bad year, when the rains did not come and the grain ran out",
+      "deathIllness": "of the bad chest, after a winter that did not end",
+      "lifeOpenLedger": "{name} died at {age}.",
+      "lifeEndLedger": "{name} died at {age}, {form}, {carry}.",
+      "ledgerText": "A debt came due that the life could not pay. The life is written down."
     },
     "hi": {
       "title": "मोक्ष पटम",
@@ -521,11 +535,25 @@
       "examPenance": "वही प्रश्न, और बही में कहने को कुछ और नहीं। द्वार पर एक और बरस, प्रायश्चित में।",
       "examPaid": "इस बरस के साथ क़र्ज़ चुक गया: {debt}।",
       "examOwing": "क़र्ज़ अभी चुका नहीं: {debt}।",
+      "lExamNever": "{name} ने द्वार पर एक और बरस बिताया; खाना {src} का क़र्ज़ किसी प्रायश्चित से नहीं चुकता।",
+      "examFailNever": "उत्तर है {a}। चित्रगुप्त पन्ने पलटते हैं, और वह बही में नहीं है। बरस द्वार पर बीतता है।",
+      "examAgainNever": "वही प्रश्न, और बही में कहने को कुछ और नहीं। द्वार पर एक और बरस।",
+      "examNever": "यह क़र्ज़ किसी प्रायश्चित से नहीं चुकता: {debt}। जब तक यह बाक़ी है, द्वार बंद रहेगा।",
+      "examNeverOn": "{name} फिर भी यहाँ एक-एक बरस {बैठा रह सकता|बैठी रह सकती} है, या दाँव फेंककर आगे स्वर्गों में जा {सकता|सकती} है।",
       "doorOpens": "कुछ बाक़ी नहीं। द्वार खुल जाता है।",
       "doorSit": "{name} यहाँ एक-एक बरस बैठ {सकता|सकती} है और प्रश्न सुन {सकता|सकती} है; या दाँव फेंककर आगे स्वर्गों में जा {सकता|सकती} है।",
       "doorThrough": "{name} द्वार तक {आया|आई}, और वह खुल गया।",
       "doorDied": "{name} के बरस द्वार पर ही पूरे हो गए, {debts} अब भी बाक़ी थे।",
-      "lifeEndDoor": "{name} के बरस {age} पर पूरे हुए, द्वार पर बैठे-बैठे, {carry}।"
+      "lifeEndDoor": "{name} के बरस {age} पर पूरे हुए, द्वार पर बैठे-बैठे, {carry}।",
+      "lDiedLedger": "{name} {age} बरस की आयु में, खाना {pos} पर, {चल बसा|चल बसी}।",
+      "reckonClose": "छक्का पड़ता है, और इस बार ज़मीन खिसकती नहीं। वह लौटती ही नहीं।",
+      "reckonDies": "{name} {age} बरस पर {चल बसा|चल बसी}, {form}।",
+      "deathAccident": "जब बरसों से टपकती छत बरसात की एक रात बैठ गई",
+      "deathCalamity": "एक बुरे बरस में, जब बारिश नहीं आई और अनाज ख़त्म हो गया",
+      "deathIllness": "छाती की उसी तकलीफ़ से, एक ऐसी सर्दी के बाद जो ख़त्म ही नहीं हुई",
+      "lifeOpenLedger": "{name} {age} बरस पर {चल बसा|चल बसी}।",
+      "lifeEndLedger": "{name} {age} बरस पर {चल बसा|चल बसी}, {form}, {carry}।",
+      "ledgerText": "एक ऐसा क़र्ज़ सामने आया जो यह जीवन चुका नहीं सका। जीवन लिखा जा चुका है।"
     }
   },
   "JOINS": {
@@ -608,6 +636,10 @@
       "en": "At {age}, on a six, the floor opened: ",
       "hi": "{age} बरस पर, एक छक्के पर, ज़मीन खिसकी: "
     },
+    "reckonDeath": {
+      "en": "At {age}, on a six, the floor closed: ",
+      "hi": "{age} बरस पर, एक छक्के पर, ज़मीन फिर नहीं लौटी: "
+    },
     "door": {
       "en": "At {age}, Moksha was reached, and ",
       "hi": "{age} बरस पर मोक्ष तक पहुँचना हुआ, और "
@@ -623,6 +655,10 @@
     "examFailPaid": {
       "en": "At {age}, at the door, {name} was asked: {q} The book had no answer, and the year spent there paid for {debt}.",
       "hi": "{age} बरस पर, द्वार पर, {name} से पूछा गया: {q} बही में कोई उत्तर नहीं था, और वहाँ बीते बरस ने यह क़र्ज़ चुका दिया: {debt}।"
+    },
+    "examNever": {
+      "en": "At {age}, at the door, {name} was asked: {q} The book had no answer, and no penance could pay for {debt}.",
+      "hi": "{age} बरस पर, द्वार पर, {name} से पूछा गया: {q} बही में कोई उत्तर नहीं था, और कोई प्रायश्चित यह क़र्ज़ नहीं चुका सकता था: {debt}।"
     },
     "examPaid": {
       "en": "By {age} that was paid.",

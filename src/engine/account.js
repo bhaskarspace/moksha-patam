@@ -39,7 +39,7 @@ import { pnameIn } from "../state.js";
 import { ageOf, yearsAlong, stageOfYears, titleOf, holdingOf } from "./self.js";
 import { momentOf } from "./qbn.js";
 import { castAlong, peopleOf, introIn, calledIn, fatesIn } from "./cast.js";
-import { reckoningIn, seedOf, refusalIn, carryIn, karmaOf, carried, debtIn } from "./karma.js";
+import { reckoningIn, seedOf, refusalIn, carryIn, karmaOf, carried, debtIn, formIn } from "./karma.js";
 import { curseIn } from "./curse.js";
 
 const EARTH = 100, GAP = 8;
@@ -137,7 +137,7 @@ export function lifeOf(state, i, l) {
         flush();
         const v = { age: words(r.age), q: q.q[l] || q.q.en, debt: debtIn(l, { src: r.src, opt: r.opt, at: r.planted }, who) };
         if (r.pass) para.parts.push(J(JOINS.examPass, { ...v, answer: words(r.answer), answered: q.answered[l] || q.answered.en }));
-        else para.parts.push(J(r.n > 1 ? JOINS.examPaid : r.cleared ? JOINS.examFailPaid : JOINS.examFail, v));
+        else para.parts.push(J(r.n > 1 ? JOINS.examPaid : r.cleared ? JOINS.examFailPaid : r.never ? JOINS.examNever : JOINS.examFail, v));
         lastYears = r.age;
         continue;
       }
@@ -152,7 +152,7 @@ export function lifeOf(state, i, l) {
       const t = seedOf(r.src, r.opt)?.reckoning;
       if (!para || !t) continue;
       flush();
-      para.parts.push(J(JOINS.reckon, { age: words(r.age) }) + after(t[l] || t.en, reckoningIn(l, r, who), l));
+      para.parts.push(J(r.dies ? JOINS.reckonDeath : JOINS.reckon, { age: words(r.age) }) + after(t[l] || t.en, reckoningIn(l, r, who), l));
       lastYears = r.age + r.years;
     }
   };
@@ -261,6 +261,7 @@ export function lifeOf(state, i, l) {
     end: state.winner === i ? winEnd(p, T, words, held)
       : p.fell ? fellEnd(p, along, T, sq, held, l, who)
       : !p.life?.length ? T("lifeUnborn")
+      : p.death?.by === "ledger" ? ledgerEnd(p, T, words, l, who, held)
       : p.dead && p.pos === GOAL ? doorEnd(p, T, words, l, who)
       : p.dead ? T("lifeEndDied", { age: words(p.years), holding: held(SNAKES[p.holding]?.holding) }).replace(/, ([.।])$/, "$1")
       : T("lifeEndOpen", { n: p.pos }),
@@ -300,9 +301,18 @@ function doorEnd(p, T, words, l, who) {
   return T("lifeEndDoor", { age: words(p.years), carry }).replace(/, ([.।])$/, "$1");
 }
 
+// A death by ledger (REDESIGN.md Phase 16) ends on how, by the life's age, and then on what it was still carrying, in the
+// door's words: the debt that came due is among them, since dying of it did not pay it. With nothing carried, the vice
+// it was still holding, as a death by years says it.
+function ledgerEnd(p, T, words, l, who, held) {
+  const k = karmaOf(p), carry = carryIn(l, [...carried(k), ...k.sancita], null, who) || held(SNAKES[p.holding]?.holding);
+  return T("lifeEndLedger", { age: words(p.death.age ?? p.years), form: formIn(l, p.death.form, who), carry }).replace(/, ([.।])$/, "$1");
+}
+
 // The first line knows the shape of the whole life, and says only what happened, never what it was worth.
 function opening(p, along, T, words) {
   if (!along.length) return "";
+  if (p.death?.by === "ledger") return T("lifeOpenLedger", { age: words(p.death.age ?? p.years) });
   if (p.dead) return T("lifeOpenDied", { age: words(p.years) });
   const earthly = along.filter(e => e.n <= EARTH), to = Math.max(...earthly.map(e => e.years));
   const snakes = along.filter(e => e.via === "snake");

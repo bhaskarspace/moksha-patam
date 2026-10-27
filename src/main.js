@@ -10,7 +10,7 @@ import { optionsFor, choiceFor, situationAt, momentOf } from "./engine/qbn.js";
 import { S, colRow, labEls, buildCells, draw, drawAge, fxClear, focusSquare } from "./render/board.js";
 import { lens, wash, stageOf, lookOf } from "./render/age.js";
 import { ageStep } from "./engine/self.js";
-import { karmaOf, carried, plantOf, debtKey, refusalOf, examineOf } from "./engine/karma.js";
+import { karmaOf, carried, plantOf, debtKey, refusalOf, examineOf, FORMS, deathFormOf } from "./engine/karma.js";
 import { curseOf } from "./engine/curse.js";
 import { castOf, meetsNamed } from "./engine/cast.js";
 import { frame, pullBack, hold, release } from "./render/camera.js";
@@ -420,7 +420,7 @@ function render() {
     // Only a game of several people has a race to report.
     const one = humans.length === 1 ? humans[0] : null;
     $("winTitle").textContent = one ? t("lifeTitle", { name: pname(one) }) : t("raceNone");
-    $("winText").textContent = one ? t(one.fell ? "fellText" : "diedText") : "";
+    $("winText").textContent = one ? t(one.fell ? "fellText" : one.death?.by === "ledger" ? "ledgerText" : "diedText") : "";
   }
 }
 
@@ -661,7 +661,7 @@ new ResizeObserver(draw).observe($("cells"));
 // ?debug exposes helpers for testing: mp.jump(n) moves the current player, mp.roll(v) rolls a fixed number
 // (mp.roll(a, b) fixes both endgame dice, and mp.pick(v) moves by one of them, 0 to sit),
 // mp.seed() reads the current game's seed and mp.seed(n) starts a new game with that seed. Phase 14 adds mp.door(),
-// mp.examine(), mp.curse(id) and mp.siva(). Phase 15 adds mp.ego(faces).
+// mp.examine(), mp.curse(id) and mp.siva(). Phase 15 adds mp.ego(faces). Phase 16 adds mp.die(form).
 if (new URLSearchParams(location.search).has("debug")) {
   window.mp = {
     jump(n) { cur().pos = n; render(); age(true); },
@@ -729,6 +729,14 @@ if (new URLSearchParams(location.search).has("debug")) {
     // mp.fire() makes the next turn's omen fire on whatever is rolled, on the current player's oldest ripe debt
     // (ripening the oldest held one if nothing is ripe yet); false when the ledger is empty (REDESIGN.md Phase 12)
     fire() { const k = karmaOf(cur()); if (!carried(k).length) return false; G.state.forceOmen = true; return true; },
+    // mp.die(form) makes the next turn's omen the death tier for the current player, in that form (accident, calamity or
+    // illness; by default the one their years would bring), planting the anger on 59 if they carry no debt (Phase 16)
+    die(form) {
+      const p = cur();
+      if (!carried(karmaOf(p)).length) this.plant(59, "strike");
+      G.state.forceDeath = FORMS.includes(form) ? form : deathFormOf(p.years ?? 0);
+      return G.state.forceDeath;
+    },
     // mp.dumpKarma(i) logs and returns player i's ledger: the three buckets, the vices added, the reckonings met, the door
     dumpKarma(i = G.state.turn) {
       const p = G.state.players[i], out = { karma: karmaOf(p), held: p.held ?? [], reckonings: p.reckonings ?? [], door: p.door ?? null };

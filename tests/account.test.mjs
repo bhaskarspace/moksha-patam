@@ -77,7 +77,7 @@ test("the plain joins are drawn per life from the seed, not by position in a cyc
 
 test("every join reads on into its moment, and nothing is left unfilled in either language", () => {
   // the joins that are whole sentences, or a part of one, stand alone
-  const whole = ["foldRun", "foldOne", "foldHeights", "snakeAgain", "ladderAgain", "tallySnake", "tallyLadder", "times", "sitOne", "sitRun", "backTo", "examPass", "examFail", "examFailPaid", "examPaid"];
+  const whole = ["foldRun", "foldOne", "foldHeights", "snakeAgain", "ladderAgain", "tallySnake", "tallyLadder", "times", "sitOne", "sitRun", "backTo", "examPass", "examFail", "examFailPaid", "examNever", "examPaid"];
   for (const [k, j] of Object.entries(JOINS)) if (k !== "about" && !whole.includes(k)) for (const x of [j].flat()) for (const l of ["en", "hi"]) assert.ok(x[l].endsWith(" "), `${k} ${l}`);
   for (let seed = 1; seed <= 150; seed++) for (const l of ["en", "hi"]) for (const g of ["m", "f", "n"]) {
     const text = lifeText(meera(seed, g), 0, l);

@@ -103,6 +103,9 @@ illuminated frame (`frame.js`) and a bottom sheet below 768px (`sheet.js`).
   (lives that sat, years at the door, debts answered vs paid in penance, through the door, deaths at the door) and the
   curse closed by landing vs not; `--curse=off` draws no curse. Since Phase 15 also the ego's throws and rebellions a
   life, the lives that rebelled, and both by guna band; `--ego=off` throws no die, and gives back the numbers before it.
+  Since Phase 16 also deaths by cause (ledger, years on earth, years at the door) and the ledger's by age and form;
+  `--death=off` reports the death tier only, `--penance=N` is the years a unit of weight costs at the door (2), and
+  `--unpaid=N` the weight from which only the book answers a debt (3).
   Balance against the p95, the share over 100, liberation per life and lives per liberation.
 - `npm run smoke [-- --only=text]`: Playwright checks of the built page in a real browser (needs Chrome installed).
   `--only` runs just the checks whose names contain the text, e.g. `--only="Phase 6"`.
@@ -111,7 +114,7 @@ illuminated frame (`frame.js`) and a bottom sheet below 768px (`sheet.js`).
   languages, both genders, and two unnamed computers per seed). Compare a run against a worktree of `main` with
   `--root` to prove a change leaves the prose alone; `--cast=off` takes the cast's names away. `--tag` marks each game that
   went above the exit (`above`) or that the ledger touched (`karma`: a reckoning, a refusal, or a debt carried within a throw
-  of the door), or whose account tells the door (`door`: a refusal, or a fall carrying a debt), or that carries a curse (`curse`), or in which the ego threw or a cast return told what it witnessed (`witness`);
+  of the door), or whose account tells the door (`door`: a refusal, or a fall carrying a debt), or that carries a curse (`curse`), or in which the ego threw or a cast return told what it witnessed (`witness`), or in which the death tier came or someone sat at the door (`death`);
   every untagged account must match. With `--curse=off` the curse is never drawn.
 - `npm run perf [--rate=4] [--query=quality=low]`: frame times on a throttled phone-sized page. Reports only;
   compare against a run on `main`.
@@ -127,7 +130,8 @@ illuminated frame (`frame.js`) and a bottom sheet below 768px (`sheet.js`).
   in `src/main.js`) and extend them; don't remove any. Phase 12 adds `mp.fire()` (the next turn's omen fires on the
   current player's oldest debt, whatever is rolled), `mp.dumpKarma(i)` and `mp.plant(n, id)`. Phase 13 adds `mp.look(x)`. Phase 14 adds `mp.door()` (the current player at 105,
   refused, a sannyāsin), `mp.examine(i)`, `mp.curse(id)` and `mp.siva()` (the next throw lands on 110). Phase 15 adds `mp.ego(faces)` (the faces the ego owns on its next
-  throw: `mp.ego()` all six, so the life rebels; `mp.ego([])` none).
+  throw: `mp.ego()` all six, so the life rebels; `mp.ego([])` none). Phase 16 adds `mp.die(form)` (the next turn's omen is the
+  death tier for the current player, in that form: accident, calamity or illness).
 - No physics on any card. "Debt" is the only word a player sees for a seed, and the ledger's buckets, weights, fuses
   and chances are never shown as numbers. The 1 is the threshold face and the 6 is the world's (`tests/faces.test.mjs`).
 - Never use `unshift` on anything but the log: `tools/golden.mjs` records every `unshift` of an entry as logged.
