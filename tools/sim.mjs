@@ -37,6 +37,7 @@ import { setPolicy, setEgo, worthOf, optionOf } from "../src/engine/qbn.js";
 import { SPAN, setSpan, yearsAlong, BHUMIKA_AT, TURYA, setPractice } from "../src/engine/self.js";
 import { setDeath, setPenance, setUnpaid, FORMS } from "../src/engine/karma.js";
 import { soulOf, bornOf } from "../src/engine/samskara.js";
+import { animalRules, afterAnimal } from "../src/engine/animal.js";
 
 // Phase 9's choice, before Phase 12 made the fall the heavens' snake: the exit, else the bigger die that is not a
 // snake, else sitting. Kept to show what the new choice is worth.
@@ -85,6 +86,8 @@ export function playGame(seed, { players = 2, rules = SIM_RULES, pick = moveFor,
 // The seed of a soul's life k: the seed itself for the first, then a hash of the two, so a chain is fixed by its seed.
 export const lifeSeed = (seed, k) => (k ? (Math.imul(seed ^ 0x85ebca6b, 0x27d4eb2d) + Math.imul(k, 0x165667b1)) >>> 0 : seed);
 // One soul's lives from a seed: each a single computer's game, born of the last, until a liberation or n lives.
+// A death by ledger is followed by its animal interlude (src/engine/animal.js) before the next human life: each is kept
+// on the life it follows, as interludes [{ kind, round, earned, throws }].
 export function playLives(seed, n, { rules = SIM_RULES, pick = moveFor } = {}) {
   const out = [];
   let born = null;
@@ -92,7 +95,15 @@ export function playLives(seed, n, { rules = SIM_RULES, pick = moveFor } = {}) {
     const g = playGame(lifeSeed(seed, k), { players: 1, rules, pick, born });
     out.push(g);
     if (g.winner === 0) break;
-    born = bornOf(soulOf(g.state, 0));
+    let soul = soulOf(g.state, 0);
+    g.interludes = [];
+    for (let r = 0; soul?.animal; r++) {
+      const a = playGame((lifeSeed(seed, k + 1) ^ Math.imul(r + 1, 0x9e3779b1)) >>> 0, { players: 1, rules: animalRules(soul.animal, rules), pick });
+      const p = a.players[0];
+      g.interludes.push({ kind: soul.animal.kind, round: soul.animal.round, earned: !!p.earned, throws: p.throws });
+      soul = afterAnimal(soul, !!p.earned);
+    }
+    born = bornOf(soul);
   }
   return out;
 }
@@ -126,10 +137,15 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   if (flags.lives) {
     const n = +flags.lives, byLife = Array.from({ length: n }, () => ({ lives: 0, freed: 0, ledger: 0, years: 0, door: 0, fell: 0, turns: [] }));
     let lived = 0, freed = 0, reborn = 0;
+    // the animal interludes: how many, by round, earned, their throws, and by kind
+    const beasts = { n: 0, earned: 0, second: 0, throws: [], kinds: {} };
+    const all = [];
     for (let s = first; s < first + games; s++) {
       const chain = playLives(s, n, { rules, pick });
       chain.forEach((g, k) => {
         const p = g.players[0], b = byLife[k];
+        for (const x of g.interludes ?? []) { beasts.n++; beasts.earned += x.earned; beasts.second += x.round === 2; beasts.throws.push(x.throws); beasts.kinds[x.kind] = (beasts.kinds[x.kind] || 0) + 1; }
+        all.push(g.turns[0]);
         lived++; b.lives++; b.turns.push(g.turns[0]);
         if (g.winner === 0) { freed++; b.freed++; } else if (k < n - 1) reborn++;
         if (p.death) b[p.death.by]++;
@@ -138,6 +154,8 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     }
     console.log(`${games} souls, up to ${n} lives each, seeds ${first}–${first + games - 1}${flags.policy ? `, policy ${flags.policy}` : ""}${flags.penance ? `, penance ${flags.penance}` : ""}`);
     console.log(`lives lived ${lived}; liberated ${pct(freed / games)} of souls within ${n} lives; liberation per life ${pct(freed / lived)}; lives per liberation ${(lived / Math.max(1, freed)).toFixed(2)}; reborn ${pct(reborn / lived)} of lives`);
+    const at = summarise(all), bt = summarise(beasts.throws.length ? beasts.throws : [0]);
+    console.log(`turns a life: median ${at.median}, p95 ${at.p95}; animal interludes ${(100 * beasts.n / lived).toFixed(1)} per hundred lives, a second round in ${beasts.n ? pct(beasts.second / beasts.n) : "—"}, the human birth earned in ${beasts.n ? pct(beasts.earned / beasts.n) : "—"}, throws median ${bt.median}, p95 ${bt.p95}; by kind ${Object.entries(beasts.kinds).map(([k, c]) => `${k} ${c}`).join(", ") || "none"}`);
     for (const [k, b] of byLife.entries()) {
       if (!b.lives) continue;
       const t = summarise(b.turns);

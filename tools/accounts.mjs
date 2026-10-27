@@ -21,7 +21,9 @@
 // about a rebellion. The mirror is no part of the book, so every account, tagged or not, must be the same as main's.
 // Its third step adds --lives=2: each named life that ended without the door is born again (src/engine/samskara.js) as an
 // unnamed computer on the seed hash(seed, 1), and that second life's account is hashed too, tagged "rebirth". A first
-// life never reads saṃskāra, so every line without the tag must be the same as main's.
+// life never reads saṃskāra, so every line without the tag must be the same as main's. Its fourth step plays the animal
+// interlude a death by ledger is owed before that second life (src/engine/animal.js), each round's account hashed and
+// tagged "animal" as well as "rebirth".
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
@@ -36,14 +38,15 @@ const [{ createGame, playTurn }, { lifeOf, lifeText }, content, { cast }] = awai
 const { mirrorOf } = fs.existsSync(path.join(root, "src/engine/mirror.js")) ? await load("src/engine/mirror.js") : {};
 const { soulOf, bornOf } = fs.existsSync(path.join(root, "src/engine/samskara.js")) ? await load("src/engine/samskara.js") : {};
 const { lifeSeed } = flags.lives ? await load("tools/sim.mjs") : {};
+const { animalRules, afterAnimal } = flags.lives ? await load("src/engine/animal.js") : {};
 if (flags.cast === "off") {
   if (!content.CAST) throw new Error(`${root} has no cast to take away`);
   content.CAST.names = null;
 }
 if (flags.curse === "off" && content.CURSES) content.CURSES.list = null;
 
-const play = (players, seed) => {
-  const s = createGame({ players, rules: { six: true }, seed });
+const play = (players, seed, rules = { six: true }) => {
+  const s = createGame({ players, rules, seed });
   s.above = s.karma = s.witness = s.death = false;
   while (!s.over) {
     // a debt carried within a throw of the door changes how a computer moves there, even when the door is never reached
@@ -65,7 +68,7 @@ const tally = { intros: 0, returns: 0, fates: 0, lives: 0 };
 const out = [];
 const say = (key, s, i, l) => {
   const text = lifeText(s, i, l), life = lifeOf(s, i, l);
-  out.push(flags.full ? `## ${key}\n${text}` : `${key} ${hash(text)}${flags.tag ? (s.above ? " above" : "") + (s.karma ? " karma" : "") + (s.door ? " door" : "") + (s.curse ? " curse" : "") + (s.witness || life.witnessed ? " witness" : "") + (s.death ? " death" : "") + (mirrorOf?.(s, i)[0]?.id === "rebel" ? " mirror" : "") + (s.rebirth ? " rebirth" : "") : ""}`);
+  out.push(flags.full ? `## ${key}\n${text}` : `${key} ${hash(text)}${flags.tag ? (s.above ? " above" : "") + (s.karma ? " karma" : "") + (s.door ? " door" : "") + (s.curse ? " curse" : "") + (s.witness || life.witnessed ? " witness" : "") + (s.death ? " death" : "") + (mirrorOf?.(s, i)[0]?.id === "rebel" ? " mirror" : "") + (s.rebirth ? " rebirth" : "") + (s.animal ? " animal" : "") : ""}`);
   if (l === "en" && life.fates) {
     tally.lives++;
     tally.fates += life.fates.length;
@@ -78,7 +81,15 @@ for (let seed = 1; seed <= seeds; seed++) {
     const s = play([{ name: "Meera", type: "cpu", gender }], seed);
     for (const l of ["en", "hi"]) say(`${seed} one ${gender} ${l}`, s, 0, l);
     // the life after, born of this one, when it ended without the door
-    const born = +flags.lives > 1 && bornOf?.(soulOf(s, 0));
+    // after a death by ledger, the animal interlude first, each round hashed and tagged "animal"
+    let soul = +flags.lives > 1 ? soulOf?.(s, 0) : null;
+    for (let r = 0; soul?.animal; r++) {
+      const a = play([{ name: "", alias: { en: "Ravi", hi: "रवि" }, type: "cpu", gender }], (lifeSeed(seed, 1) ^ Math.imul(r + 1, 0x9e3779b1)) >>> 0, animalRules(soul.animal, { six: true }));
+      a.rebirth = a.animal = true;
+      for (const l of ["en", "hi"]) say(`${seed} one ${gender} ${l} animal${r + 1}`, a, 0, l);
+      soul = afterAnimal(soul, !!a.players[0].earned);
+    }
+    const born = soul && bornOf?.(soul);
     if (born) {
       const t = play([{ name: "", alias: { en: "Ravi", hi: "रवि" }, type: "cpu", gender, born }], lifeSeed(seed, 1));
       t.rebirth = true;

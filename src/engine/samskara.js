@@ -13,6 +13,7 @@ import { karmaOf, carried, seedOf } from "./karma.js";
 import { worthOf, optionOf } from "./qbn.js";
 import { castOf, MEMBERS } from "./cast.js";
 import { pnameIn } from "../state.js";
+import { interludeFor, animalEndOf, isAnimal, KINDS } from "./animal.js";
 
 export const SOUL_V = 1, KEEP_DEBTS = 6;
 // the roles whose names can return: the parents are never named
@@ -21,6 +22,8 @@ const NAMED = MEMBERS.filter(w => w !== "mother" && w !== "father");
 // How a life ended, as the record keeps it, or null for one still going or let go.
 export const endOf = (state, i) => {
   const p = state.players[i];
+  // an animal interlude (src/engine/animal.js) ends at the forest's edge or short of it, and is never "let go"
+  if (isAnimal(state)) return animalEndOf(p) && "animal";
   if (state.winner === i) return null;
   if (p.dead) return p.death?.by ?? "years";
   if (p.fell) return p.fellBy === "snake" ? "siva" : "fell";
@@ -30,7 +33,7 @@ export const endOf = (state, i) => {
 // The record player i's ended life leaves, or null when it was let go or has not ended.
 export function soulOf(state, i) {
   const p = state.players[i], end = endOf(state, i);
-  if (!end) return null;
+  if (!end || end === "animal") return null;
   const k = karmaOf(p), cast = castOf(state, i, p.prior?.lives ?? 0) ?? {};
   // the unmet debts, heaviest first, then the oldest; a few are enough to draw from
   const sancita = [...k.sancita, ...carried(k)].filter(s => seedOf(s.src, s.opt))
@@ -41,7 +44,7 @@ export function soulOf(state, i) {
     const o = optionOf(w.sq, w.took);
     return o?.dream && (!best || worthOf(o) >= best.worth) ? { sq: w.sq, opt: w.took, worth: worthOf(o) } : best;
   }, null);
-  return {
+  const rec = {
     v: SOUL_V,
     lives: (p.prior?.lives ?? 0) + 1,
     last: { name: { en: pnameIn(p, "en"), hi: pnameIn(p, "hi") }, gender: p.gender, end, age: Math.floor(p.years ?? 0),
@@ -51,6 +54,9 @@ export function soulOf(state, i) {
     dream: dream && { sq: dream.sq, opt: dream.opt },
     animal: null,
   };
+  // a life the ledger ended is born an animal first (Phase 16's interlude), in the house of its rival or its friend
+  if (end === "ledger") rec.animal = interludeFor(rec.last.holding, rec.cast);
+  return rec;
 }
 
 const num = x => typeof x === "number" && Number.isFinite(x);
@@ -59,6 +65,7 @@ export function validSoul(s) {
   if (!s || s.v !== SOUL_V || !(s.lives >= 1) || !s.last || typeof s.last.name?.en !== "string") return false;
   const g = s.last.gunas;
   if (!g || !["s", "r", "t"].every(x => num(g[x]) && g[x] >= 0)) return false;
+  if (s.animal != null && !(KINDS.includes(s.animal.kind) && (s.animal.round === 1 || s.animal.round === 2))) return false;
   return Array.isArray(s.sancita) && Array.isArray(s.cast);
 }
 
@@ -67,7 +74,9 @@ export function bornOf(soul) {
   if (!validSoul(soul)) return null;
   // the guṇas carry half: halfway from where every life begins toward where the last one ended
   const f = freshGunas(), g = soul.last.gunas, sum = g.s + g.r + g.t || 1;
-  const gunas = Object.fromEntries(["s", "r", "t"].map(x => [x, f[x] + (g[x] / sum - f[x]) / 2]));
+  const half = Object.fromEntries(["s", "r", "t"].map(x => [x, f[x] + (g[x] / sum - f[x]) / 2]));
+  // an interlude earned (src/engine/animal.js) nudges the next life a tenth of the way toward sattva
+  const gunas = soul.nudge ? Object.fromEntries(["s", "r", "t"].map(x => [x, half[x] * 0.9 + (x === "s" ? 0.1 : 0)])) : half;
   const debts = soul.sancita.filter(s => seedOf(s.src, s.opt) && num(s.at) && num(s.fuse) && num(s.weight));
   // the slice of the store drawn as this life's prārabdha: the heaviest, made at the same age in the life before
   const [slice, ...rest] = debts;
@@ -77,7 +86,7 @@ export function bornOf(soul) {
   return {
     gunas,
     karma: { sancita: rest, agami: slice ? [{ ...slice, i: 0, prior: true }] : [], prarabdha: [] },
-    prior: { lives: soul.lives, last: { ...soul.last, holding }, cast, dream },
+    prior: { lives: soul.lives, last: { ...soul.last, holding }, cast, dream, ...(KINDS.includes(soul.was) ? { was: soul.was } : {}) },
   };
 }
 

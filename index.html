@@ -1299,6 +1299,29 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         debtBefore: "{debt} in a life before",
         reborn: "Be born again",
         rebornNote: "The next life carries this one, half-remembered.",
+        a_tortoise: "tortoise",
+        a_jackal: "jackal",
+        a_mongoose: "mongoose",
+        a_cat: "cat",
+        a_lion: "lion",
+        ao_tortoise: "tortoise",
+        ao_jackal: "jackal",
+        ao_mongoose: "mongoose",
+        ao_cat: "cat",
+        ao_lion: "lion",
+        animalTitle: "{name}, the {animal}",
+        animalOpen: "{name} was born a {animal} this time, in {master}'s house.",
+        animalOpenNone: "{name} was born a {animal} this time, at the edge of a village.",
+        animalHead: "Among the animals",
+        animalOwn: "{name} knows this story without being told.",
+        animalEndHuman: "{name} reached the edge of the forest in time, and the next birth is human.",
+        animalEndShort: "The seasons turned before {name} reached the edge of the forest, and the next birth is a {animal}'s again.",
+        animalEndLast: "The seasons turned before {name} reached the edge of the forest; the next birth is human all the same.",
+        animalDream: "Some nights {name} dreams of being a {animal}.",
+        animalEarned: "The next birth is human.",
+        animalShortText: "Not this time. The next birth is an animal's again.",
+        animalLastText: "Not this time; the next birth is human all the same.",
+        animalHint: "An animal's life: reach the edge of the forest before the seasons turn.",
         lifeTabs: "The life, three ways",
         lifeBook: "The book",
         lifePath: "The path",
@@ -1436,6 +1459,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         doorDied: "{name}'s years ran out at the door, still owing {debts}.",
         lifeEndDoor: "{name}'s years ran out at {age}, sitting at the door, {carry}.",
         lDiedLedger: "{name} died at {age}, on square {pos}.",
+        lAnimalHuman: "{name} reaches the edge of the forest: the next birth is human.",
+        lAnimalShort: "The seasons turn, and {name} is still in the forest.",
         reckonClose: "The six lands, and this time the floor does not open. It closes.",
         reckonDies: "{name} dies at {age}, {form}.",
         deathAccident: "when the roof that had leaked for years came down one night in the rains",
@@ -1585,6 +1610,29 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         debtBefore: "पिछले किसी जीवन में {debt}",
         reborn: "फिर जन्म लें",
         rebornNote: "अगला जीवन इसे साथ ले जाता है, आधा याद, आधा भूला।",
+        a_tortoise: "कछुआ",
+        a_jackal: "सियार",
+        a_mongoose: "नेवला",
+        a_cat: "बिल्ली",
+        a_lion: "शेर",
+        ao_tortoise: "कछुए",
+        ao_jackal: "सियार",
+        ao_mongoose: "नेवले",
+        ao_cat: "बिल्ली",
+        ao_lion: "शेर",
+        animalTitle: "{animal} {name}",
+        animalOpen: "{name} का जन्म इस बार {animalO} के रूप में हुआ, {master} के घर में।",
+        animalOpenNone: "{name} का जन्म इस बार {animalO} के रूप में हुआ, एक गाँव के किनारे।",
+        animalHead: "पशुओं के बीच",
+        animalOwn: "{name} को यह कहानी बिना सुनाए ही मालूम है।",
+        animalEndHuman: "{name} के लिए जंगल का किनारा समय रहते आ गया, और अगला जन्म मनुष्य का है।",
+        animalEndShort: "{name} के जंगल के किनारे तक पहुँचने से पहले ही मौसम बदल गए, और अगला जन्म फिर {animalO} का है।",
+        animalEndLast: "{name} के जंगल के किनारे तक पहुँचने से पहले ही मौसम बदल गए; फिर भी अगला जन्म मनुष्य का है।",
+        animalDream: "कुछ रातों {name} को सपना आता है कि वह एक {animal} है।",
+        animalEarned: "अगला जन्म मनुष्य का है।",
+        animalShortText: "इस बार नहीं। अगला जन्म फिर एक पशु का है।",
+        animalLastText: "इस बार नहीं; फिर भी अगला जन्म मनुष्य का है।",
+        animalHint: "एक पशु का जीवन: मौसम बदलने से पहले जंगल के किनारे तक पहुँचें।",
         lifeTabs: "जीवन, तीन तरह से",
         lifeBook: "बही",
         lifePath: "राह",
@@ -1722,6 +1770,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         doorDied: "{name} के बरस द्वार पर ही पूरे हो गए, {debts} अब भी बाक़ी थे।",
         lifeEndDoor: "{name} के बरस {age} पर पूरे हुए, द्वार पर बैठे-बैठे, {carry}।",
         lDiedLedger: "{name} {age} बरस की आयु में, खाना {pos} पर, {चल बसा|चल बसी}।",
+        lAnimalHuman: "{name} जंगल के किनारे तक {आ पहुँचा|आ पहुँची}: अगला जन्म मनुष्य का है।",
+        lAnimalShort: "मौसम बदल गए, और {name} अब भी जंगल में है।",
         reckonClose: "छक्का पड़ता है, और इस बार ज़मीन खिसकती नहीं। वह लौटती ही नहीं।",
         reckonDies: "{name} {age} बरस पर {चल बसा|चल बसी}, {form}।",
         deathAccident: "जब बरसों से टपकती छत बरसात की एक रात बैठ गई",
@@ -3648,6 +3698,54 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     return c ? fill(c.c.line[l] || c.c.line.en, { name, gender: p.gender, age: wordsIn(l, Math.floor(c.age)) }) : "";
   }
 
+  // src/engine/animal.js
+  var ANIMAL_TOP = 40;
+  var ANIMAL_TURNS = 15;
+  var KINDS = ["tortoise", "jackal", "mongoose", "cat", "lion"];
+  var BY_HOLDING = { 14: "tortoise", 19: "jackal", 55: "jackal", 59: "mongoose", 88: "cat", 39: "lion" };
+  var animalOf = (holding) => BY_HOLDING[holding] ?? "tortoise";
+  var TALES = [6, 8, 9, 11, 12, 13, 14, 15, 16, 19, 22, 24, 39];
+  var OWN = { tortoise: [6, 8, 14, 15], jackal: [11, 19], lion: [12, 22, 24, 39] };
+  var ownTale = (kind, n) => !!OWN[kind]?.includes(n);
+  var masterOf = (cast2) => (cast2 ?? []).find((c) => c.role === "rival") ?? (cast2 ?? []).find((c) => c.role === "friend") ?? null;
+  var interludeFor = (holding, cast2) => ({ kind: animalOf(holding), master: masterOf(cast2), round: 1 });
+  var animalRules = (animal, rules = {}) => ({ ...rules, six: false, law: "animal", animal });
+  var isAnimal = (state) => state?.rules?.law === "animal";
+  function afterAnimal(soul, earned) {
+    const a = soul?.animal;
+    if (!a) return soul;
+    if (!earned && a.round < 2) return { ...soul, animal: { ...a, round: 2 } };
+    return { ...soul, animal: null, was: a.kind, ...earned ? { nudge: true } : {} };
+  }
+  var animalEndOf = (p) => p.earned ? "human" : p.short ? "short" : null;
+  function animalLifeOf(state, i, l) {
+    const p = state.players[i], a = state.rules.animal ?? {}, kind = a.kind ?? "tortoise", name = pnameIn(p, l);
+    const T2 = (k, v = {}) => fill(tIn(l, k, { name, animal: tIn(l, "a_" + kind), animalO: tIn(l, "ao_" + kind), ...v }), { name, gender: p.gender });
+    const master2 = a.master?.[l] || a.master?.en;
+    const told = [], seen2 = /* @__PURE__ */ new Set();
+    let known = false;
+    for (const n of p.life ?? []) {
+      if (!TALES.includes(n) || seen2.has(n)) continue;
+      seen2.add(n);
+      const m = squareOf(n)?.mirror ?? SQ[n]?.mirror;
+      if (m) told.push(m[l] || m.en);
+      if (ownTale(kind, n) && !known) {
+        known = true;
+        told.push(T2("animalOwn"));
+      }
+    }
+    const end = animalEndOf(p);
+    return {
+      title: T2("animalTitle"),
+      sub: "",
+      open: master2 ? T2("animalOpen", { master: master2 }) : T2("animalOpenNone"),
+      paras: told.length ? [{ head: T2("animalHead"), text: told.join(" ") }] : [],
+      end: end === "human" ? T2("animalEndHuman") : end === "short" ? T2(a.round >= 2 ? "animalEndLast" : "animalEndShort") : "",
+      curse: "",
+      fates: []
+    };
+  }
+
   // src/engine/turn.js
   var TUMBLE = 7;
   var ENDGAME = 94;
@@ -3685,7 +3783,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const snake = plans.filter((pl) => !pl.fell).sort((a, b) => b.v - a.v);
     return snake.length ? snake[0].v : Math.max(...dice);
   }
-  var gone = (p) => !!(p.dead || p.fell);
+  var gone = (p) => !!(p.dead || p.fell || p.earned || p.short);
   function createGame({ players, rules, seed }) {
     return {
       players: players.map((r, i) => ({
@@ -3747,6 +3845,12 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       else if (win) end.push(entry("lDoorOpen", { pos: GOAL }, "", idx), entry("lWin", { pos: GOAL }, "heaven", idx));
       return resolve(state, { idx, v, dice, spare, sit: true, from, path, target: from, final: from, jump: null, win, died, again: false, told: [null], exam, pre, after: after2, end }, years);
     }
+    if (rules.law === "animal" && from + v >= ANIMAL_TOP) {
+      for (let n = from; n < ANIMAL_TOP; ) path.push(++n);
+      if (path.length > 1) after2.push(entry("lPassed", { passed: path.slice(0, -1) }, "passed", idx));
+      end.push(entry("lAnimalHuman", { pos: ANIMAL_TOP }, "heaven", idx));
+      return { idx, v, dice, spare, sit: false, from, path, target: ANIMAL_TOP, final: ANIMAL_TOP, jump: null, win: false, earned: true, died: false, again: false, told: [null], cost: 0, pre, after: after2, end };
+    }
     const fell = from + v >= TOP, fellBy = from + v > TOP ? "past" : "snake";
     for (let n = from; n < Math.min(from + v, TOP); ) path.push(++n);
     if (fell) {
@@ -3759,7 +3863,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const passed = path.slice(0, -1);
     if (passed.length) after2.push(entry("lPassed", { passed }, "passed", idx));
     const plan = { idx, v, dice, spare, sit: false, from, path, target, final: target, jump: null, win: false, died: false, again: false, told: [null], cost: 0, pre, after: after2, end };
-    const sit = situationAt(target);
+    const sit = rules.law === "animal" ? null : situationAt(target);
     if (sit) return Object.assign(plan, { situation: sit, egoFaces: egoFacesOn(state, target) });
     return finish(state, plan, null);
   }
@@ -3792,6 +3896,11 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     } else if (target !== GOAL) {
       after2.push(entry(from === 0 ? "lBorn" : "lMove", { v, pos: target, sq: target }, "", idx));
     }
+    if (rules.law === "animal" && final >= ANIMAL_TOP) {
+      plan.end.push(entry("lAnimalHuman", { pos: ANIMAL_TOP }, "heaven", idx));
+      Object.assign(plan, { final, jump, earned: true, told: [toldOn(target, v, dice), ...jump ? [null] : []], cost: 0 });
+      return plan;
+    }
     const refused = final === GOAL ? refusalOf(p) : null;
     if (refused) after2.push(entry("lRefused", { pos: GOAL, sq: GOAL }, "", idx));
     const win = final === GOAL && !refused;
@@ -3808,7 +3917,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   }
   function resolve(state, plan, years) {
     const { idx } = plan, p = state.players[idx];
-    const omen = plan.win || plan.died ? null : omenFor(state, idx, { dice: plan.dice, pos: plan.final, years, lived: p.life?.length ?? 0, force: !!(state.forceOmen || state.forceDeath) });
+    const omen = plan.win || plan.died || state.rules.law === "animal" ? null : omenFor(state, idx, { dice: plan.dice, pos: plan.final, years, lived: p.life?.length ?? 0, force: !!(state.forceOmen || state.forceDeath) });
     if (omen?.reckon && state.forceDeath) Object.assign(omen.reckon, { dies: true, applied: DEATH, form: state.forceDeath, years: 0, holds: null, to: null });
     const rk = omen?.reckon ?? null;
     Object.assign(plan, { omen, reckon: rk && { ...rk, from: plan.final } });
@@ -3859,7 +3968,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       }
       if (plan.refused && !p.door) p.refusals = [...p.refusals ?? [], { at: at2, ...plan.refused }];
       p.door = plan.refused ?? (p.pos === GOAL && !plan.win && p.door ? refusalOf(p) ?? p.door : null);
-      if (!p.curse) {
+      if (!p.curse && state.rules.law !== "animal") {
         const c = curseOf(state, plan.idx);
         if (c && spokenAt(c, p.years)) p.curse = { id: c.id, i: p.life.length - 1, age: p.years };
       }
@@ -3867,6 +3976,14 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         p.dead = true;
         p.holding = holdingOf(p.life, p.held);
         p.death = plan.death ?? { by: plan.sit && plan.from === GOAL ? "door" : "years", age: p.years };
+      }
+    }
+    if (state.rules.law === "animal") {
+      p.throws = (p.throws ?? 0) + 1;
+      if (plan.earned) p.earned = true;
+      else if (p.throws >= ANIMAL_TURNS) {
+        p.short = true;
+        plan.end.push(entry("lAnimalShort", {}, "", plan.idx));
       }
     }
     if (plan.died || plan.fell) {
@@ -3939,8 +4056,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var pname = (p) => p.name || (p.alias ? L(p.alias.en, p.alias.hi) : t("def" + p.color));
   var pnameIn = (p, l) => p.name || p.alias?.[l] || p.alias?.en || tIn(l, "def" + p.color);
   var cur = () => G.state.players[G.state.turn];
-  function newState(seed = freshSeed(), rows = G.setup.rows.slice(0, G.setup.count)) {
-    return createGame({ players: cast(rows, seed), rules: G.setup.rules, seed });
+  function newState(seed = freshSeed(), rows = G.setup.rows.slice(0, G.setup.count), rules = G.setup.rules) {
+    return createGame({ players: cast(rows, seed), rules, seed });
   }
 
   // src/engine/cast.js
@@ -4111,6 +4228,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var NAMED = MEMBERS.filter((w) => w !== "mother" && w !== "father");
   var endOf = (state, i) => {
     const p = state.players[i];
+    if (isAnimal(state)) return animalEndOf(p) && "animal";
     if (state.winner === i) return null;
     if (p.dead) return p.death?.by ?? "years";
     if (p.fell) return p.fellBy === "snake" ? "siva" : "fell";
@@ -4118,14 +4236,14 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   };
   function soulOf(state, i) {
     const p = state.players[i], end = endOf(state, i);
-    if (!end) return null;
+    if (!end || end === "animal") return null;
     const k = karmaOf(p), cast2 = castOf(state, i, p.prior?.lives ?? 0) ?? {};
     const sancita = [...k.sancita, ...carried(k)].filter((s) => seedOf(s.src, s.opt)).sort((a, b) => b.weight - a.weight || a.at - b.at).slice(0, KEEP_DEBTS).map(({ src, opt, at: at2, fuse, weight }) => ({ src, opt, at: at2, fuse, weight }));
     const dream = (p.witness ?? []).reduce((best, w) => {
       const o = optionOf(w.sq, w.took);
       return o?.dream && (!best || worthOf(o) >= best.worth) ? { sq: w.sq, opt: w.took, worth: worthOf(o) } : best;
     }, null);
-    return {
+    const rec = {
       v: SOUL_V,
       lives: (p.prior?.lives ?? 0) + 1,
       last: {
@@ -4142,18 +4260,22 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       dream: dream && { sq: dream.sq, opt: dream.opt },
       animal: null
     };
+    if (end === "ledger") rec.animal = interludeFor(rec.last.holding, rec.cast);
+    return rec;
   }
   var num2 = (x) => typeof x === "number" && Number.isFinite(x);
   function validSoul(s) {
     if (!s || s.v !== SOUL_V || !(s.lives >= 1) || !s.last || typeof s.last.name?.en !== "string") return false;
     const g3 = s.last.gunas;
     if (!g3 || !["s", "r", "t"].every((x) => num2(g3[x]) && g3[x] >= 0)) return false;
+    if (s.animal != null && !(KINDS.includes(s.animal.kind) && (s.animal.round === 1 || s.animal.round === 2))) return false;
     return Array.isArray(s.sancita) && Array.isArray(s.cast);
   }
   function bornOf(soul) {
     if (!validSoul(soul)) return null;
     const f2 = freshGunas(), g3 = soul.last.gunas, sum = g3.s + g3.r + g3.t || 1;
-    const gunas = Object.fromEntries(["s", "r", "t"].map((x) => [x, f2[x] + (g3[x] / sum - f2[x]) / 2]));
+    const half = Object.fromEntries(["s", "r", "t"].map((x) => [x, f2[x] + (g3[x] / sum - f2[x]) / 2]));
+    const gunas = soul.nudge ? Object.fromEntries(["s", "r", "t"].map((x) => [x, half[x] * 0.9 + (x === "s" ? 0.1 : 0)])) : half;
     const debts = soul.sancita.filter((s) => seedOf(s.src, s.opt) && num2(s.at) && num2(s.fuse) && num2(s.weight));
     const [slice, ...rest] = debts;
     const cast2 = soul.cast.filter((c) => NAMED.includes(c.role) && typeof c.en === "string" && typeof c.hi === "string");
@@ -4162,7 +4284,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     return {
       gunas,
       karma: { sancita: rest, agami: slice ? [{ ...slice, i: 0, prior: true }] : [], prarabdha: [] },
-      prior: { lives: soul.lives, last: { ...soul.last, holding }, cast: cast2, dream }
+      prior: { lives: soul.lives, last: { ...soul.last, holding }, cast: cast2, dream, ...KINDS.includes(soul.was) ? { was: soul.was } : {} }
     };
   }
   var STORE_V = 1;
@@ -6509,7 +6631,11 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   };
   function drawLanded() {
     const s = G.state;
-    let { title, text } = !last || !s ? {} : last.door ? doorLine(lang, last) : last.only ? {} : s.players[last.who]?.pos != null ? momentLine(last.n, last.who, lang, last.told, last.ego) : {};
+    const animalLine = (n) => {
+      const q2 = squareOf(n);
+      return { title: q2?.[lang] || q2?.en || "", text: TALES.includes(n) ? q2?.mirror?.[lang] || q2?.mirror?.en || "" : "" };
+    };
+    let { title, text } = !last || !s ? {} : isAnimal(s) && !last.door ? animalLine(last.n) : last.door ? doorLine(lang, last) : last.only ? {} : s.players[last.who]?.pos != null ? momentLine(last.n, last.who, lang, last.told, last.ego) : {};
     if (last?.curse && s) text = [text, curseLine(lang, last.who)].filter(Boolean).join(" ");
     if (!text && !title) {
       el2.dataset.empty = "";
@@ -6571,6 +6697,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var after = (raw, text, l) => l === "en" && !NAMED2.test(raw) && /^(?:\p{Lu}\p{Ll}|(?!I\s)\p{Lu}\s)/u.test(text) ? text[0].toLowerCase() + text.slice(1) : text;
   var stageAt2 = (e) => e.n > EARTH3 ? 5 : stageOfYears(e.years);
   function lifeOf(state, i, l) {
+    if (isAnimal(state)) return animalLifeOf(state, i, l);
     const p = state.players[i], name = pnameIn(p, l), who2 = { name, gender: p.gender };
     const T2 = (key, v = {}) => fill(tIn(l, key, { name, ...v }), who2);
     const J = (j, v = {}) => {
@@ -6838,7 +6965,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const v = { prev: prev.name?.[l] || prev.name?.en || "", dream: deed ? fill(deed[l] || deed.en, them) : "" };
     const say = (key) => fill(tIn(l, key, { name, ...v }), them);
     const forgot = SNAKES[prev.holding]?.forgot, uneasy = forgot && fill(forgot[l] || forgot.en, { name, gender: p.gender });
-    return [say(deed ? "lifeDream" : "lifeDreamNone"), uneasy ? tIn(l, "lifeForgot", { forgot: uneasy[0].toUpperCase() + uneasy.slice(1) }) : ""];
+    const was = p.prior.was ? fill(tIn(l, "animalDream", { name, animal: tIn(l, "a_" + p.prior.was) }), { name, gender: p.gender }) : "";
+    return [say(deed ? "lifeDream" : "lifeDreamNone"), was, uneasy ? tIn(l, "lifeForgot", { forgot: uneasy[0].toUpperCase() + uneasy.slice(1) }) : ""];
   }
   function opening(p, along, T2, words) {
     if (!along.length) return "";
@@ -6868,8 +6996,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       rows.push({ n: e.n, years: e.years, kind: e.via, from: e.from });
     }
     const viaOf = (r) => r.kind === "snake" ? T2("pathSnake", { sq: nameOf(r.from) }) : r.kind === "ladder" ? T2("pathLadder", { sq: nameOf(r.from) }) : r.kind === "reckon" ? T2("pathReckon") : r.kind === "sit" ? r.count === 1 ? T2("pathSat") : T2("pathSatN", { n: words(r.count) }) : r.kind === "stay" ? r.count === 1 ? T2("pathStay") : T2("pathStayN", { n: words(r.count) }) : "";
-    const end = state.winner === i ? T2("pathWin") : p.fell ? T2("pathFell") : p.dead ? T2("pathDied") : "";
-    return { rows: rows.map((r) => ({ age: words(r.years), sq: nameOf(r.n), via: viaOf(r) })), end };
+    const end = state.winner === i ? T2("pathWin") : p.fell ? T2("pathFell") : p.dead ? T2("pathDied") : p.earned ? T2("animalEarned") : p.short ? T2(state.rules.animal?.round >= 2 ? "animalLastText" : "animalShortText") : "";
+    return { rows: rows.map((r) => ({ age: isAnimal(state) ? "" : words(r.years), sq: nameOf(r.n), via: viaOf(r) })), end };
   }
   function lifeText(state, i, l) {
     const { title, sub, open: open2, paras, end, curse, fates } = lifeOf(state, i, l);
@@ -7331,6 +7459,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     pump();
   }
   function fullCard(state, plan, idx) {
+    if (isAnimal(state)) return false;
     if (prefs.everyCard || plan.jump || plan.target === GOAL) return true;
     const p = state.players[idx], n = plan.target;
     if (HEAVEN[n]) return !p.life?.includes(n);
@@ -7413,7 +7542,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     const human = p.type === "human";
     $("roll").disabled = G.busy || state.over || !human;
     $("roll").textContent = human ? t("roll") : t("rolling", { name: pname(p) });
-    $("hint").textContent = state.over ? t("hintOver") : human ? t("hintHuman") : t("hintCpu");
+    $("hint").textContent = state.over ? t("hintOver") : isAnimal(state) ? t("animalHint") : human ? t("hintHuman") : t("hintCpu");
     if (G.deciding) drawDecide();
     showDice(state.dice?.length ? state.dice : [state.last || 6]);
     refreshRoll();
@@ -7437,6 +7566,11 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
       const one = humans.length === 1 ? humans[0] : null;
       $("winTitle").textContent = one ? t("lifeTitle", { name: pname(one) }) : t("raceNone");
       $("winText").textContent = one ? t(one.fell ? "fellText" : one.death?.by === "ledger" ? "ledgerText" : "diedText") : "";
+      if (isAnimal(state)) {
+        const a = state.rules.animal, q2 = state.players[0];
+        $("winTitle").textContent = t("animalTitle", { name: pname(q2), animal: t("a_" + a.kind) });
+        $("winText").textContent = t(q2.earned ? "animalEarned" : a.round >= 2 ? "animalLastText" : "animalShortText");
+      }
     }
   }
   var soulKey = (p) => p.type !== "human" ? null : p.soul ?? (p.name ? nameKey(p.name) : null);
@@ -7446,6 +7580,11 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     state.players.forEach((p, i) => {
       const key = soulKey(p);
       if (!key) return;
+      if (isAnimal(state)) {
+        const s = soulFor(key);
+        if (s?.animal) keepSoul(key, afterAnimal(s, !!p.earned));
+        return;
+      }
       if (state.winner === i) keepSoul(key, null);
       else {
         const s = soulOf(state, i);
@@ -7454,14 +7593,17 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     });
   }
   function rebornRows(state) {
-    let any = false;
+    let any = false, animal = null;
     const rows = state.players.map((p, i) => {
       const key = soulKey(p), soul = endOf(state, i) && soulFor(key), born = soul && bornOf(soul);
       if (!born) return { ...G.setup.rows[i] };
       any = true;
-      return { name: "", type: "human", gender: "", born, soul: key, avoid: [pnameIn(p, "en"), ...soul.cast.map((c) => c.en)] };
+      const row2 = { name: "", type: "human", gender: "", born, soul: key, avoid: [pnameIn(p, "en"), ...soul.cast.map((c) => c.en)] };
+      if (soul.animal && !animal) animal = { row: { ...row2, born: null }, interlude: soul.animal };
+      return row2;
     });
-    return any ? rows : null;
+    if (animal) return { rows: [animal.row], rules: animalRules(animal.interlude, G.setup.rules) };
+    return any ? { rows, rules: G.setup.rules } : null;
   }
   function renderSetup() {
     const setup = G.setup;
@@ -7533,8 +7675,8 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
   });
   var urlSeed = new URLSearchParams(location.search).get("seed");
   var nextSeed = urlSeed != null && /^\d+$/.test(urlSeed) ? +urlSeed >>> 0 : null;
-  function startGame({ reborn = false } = {}) {
-    const rows = reborn && G.state?.over ? rebornRows(G.state) : null;
+  function startGame({ reborn = false, next: next2 = null } = {}) {
+    const born = next2 ?? (reborn && G.state?.over ? rebornRows(G.state) : null);
     G.gen++;
     clearTimeout(G.cpuTimer);
     if (G.humanRolled && firstLife()) lifeLived();
@@ -7554,7 +7696,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     clearLanded();
     if (S) fxClear();
     G.busy = false;
-    G.state = newState(nextSeed ?? freshSeed(), rows ?? void 0);
+    G.state = newState(nextSeed ?? freshSeed(), born?.rows, born?.rules);
     nextSeed = null;
     buildTokens();
     render();
@@ -7910,6 +8052,15 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
       samskara(obj) {
         if (obj !== void 0) setSoulStore(obj);
         return soulStore();
+      },
+      // mp.animal(kind) starts an animal interlude (Phase 16) for the current person at once: a tortoise by default, in the
+      // house of their rival or friend from this life's cast; it returns the interlude
+      animal(kind = "tortoise") {
+        const p = cur(), c = castOf(G.state, G.state.turn, p.prior?.lives ?? 0) ?? {};
+        const cast2 = ["rival", "friend"].filter((w) => c[w]?.en).map((w) => ({ role: w, gender: c[w].gender, en: c[w].en, hi: c[w].hi }));
+        const interlude = { kind: KINDS.includes(kind) ? kind : "tortoise", master: masterOf(cast2), round: 1 };
+        startGame({ next: { rows: [{ name: "", type: "human", gender: p.gender, soul: soulKey(p) ?? void 0 }], rules: animalRules(interlude, G.setup.rules) } });
+        return interlude;
       },
       // mp.dream(l) is the account of a life two of the current person, as if their life ended now (of its years): a
       // computer plays it out on the next seed. The game on the board is not touched.

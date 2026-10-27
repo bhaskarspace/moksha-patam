@@ -6,7 +6,8 @@
 // The one exception is the door (REDESIGN.md Phase 14): whoever comes to 105, a computer too, is told here, refused, let
 // through, examined a year at a time, or dying there, so nobody's refusal is invisible.
 // Its height is kept when empty, so the turn panel and the Roll under it never move.
-import { GOAL } from "../content.js";
+import { GOAL, squareOf } from "../content.js";
+import { isAnimal, TALES } from "../engine/animal.js";
 import { lang, tIn, fill } from "../i18n.js";
 import { G, pnameIn } from "../state.js";
 import { refusalIn, examLinesIn, debtsIn } from "../engine/karma.js";
@@ -41,7 +42,9 @@ export const clearLanded = () => { last = null; drawLanded(); };
 
 export function drawLanded() {
   const s = G.state;
-  let { title, text } = !last || !s ? {} : last.door ? doorLine(lang, last) : last.only ? {} : s.players[last.who]?.pos != null ? momentLine(last.n, last.who, lang, last.told, last.ego) : {};
+  // an animal's landing (Phase 16): the square's name, and on a fable its Panchatantra mirror, told as the moment
+  const animalLine = n => { const q = squareOf(n); return { title: q?.[lang] || q?.en || "", text: TALES.includes(n) ? q?.mirror?.[lang] || q?.mirror?.en || "" : "" }; };
+  let { title, text } = !last || !s ? {} : isAnimal(s) && !last.door ? animalLine(last.n) : last.door ? doorLine(lang, last) : last.only ? {} : s.players[last.who]?.pos != null ? momentLine(last.n, last.who, lang, last.told, last.ego) : {};
   if (last?.curse && s) text = [text, curseLine(lang, last.who)].filter(Boolean).join(" ");
   if (!text && !title) { el.dataset.empty = ""; el.innerHTML = ""; el.tabIndex = -1; return; }
   el.innerHTML = `<span class="landed-t">${title ? `<b>${esc(title)}</b> ` : ""}${esc(text)}</span>`;

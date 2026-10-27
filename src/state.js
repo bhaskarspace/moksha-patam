@@ -52,6 +52,6 @@ export const pnameIn = (p, l) => p.name || p.alias?.[l] || p.alias?.en || tIn(l,
 export const cur = () => G.state.players[G.state.turn];
 
 // rows, by default the setup's; a life born again (Phase 16) brings its own
-export function newState(seed = freshSeed(), rows = G.setup.rows.slice(0, G.setup.count)) {
-  return createGame({ players: cast(rows, seed), rules: G.setup.rules, seed });
+export function newState(seed = freshSeed(), rows = G.setup.rows.slice(0, G.setup.count), rules = G.setup.rules) {
+  return createGame({ players: cast(rows, seed), rules, seed });
 }

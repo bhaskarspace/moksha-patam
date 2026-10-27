@@ -95,6 +95,12 @@ export function genderedYou(hi) {
   return out;
 }
 
+// Phase 16's animal interlude is the Chāndogya's animal births (5.10.8), never a ranking of human ones: a phrase that
+// ranks births, or calls a birth low or high, is flagged wherever the game speaks of birth and the life after.
+export function birthRanking(text) {
+  return (text.match(/\b(?:lower|higher|lowly|low|high|base|noble|better|worse|lesser|superior|inferior)[- ](?:birth|births|caste|castes|born|womb)\b|\bborn (?:low|high|base|noble)\b|नीच (?:योनि|जन्म|जाति|कुल)|ऊँची (?:योनि|जाति)|ऊँच(?:े)? कुल|उच्च (?:जन्म|जाति|कुल)|अधम (?:योनि|जन्म)|शूद्र|ब्राह्मण (?:जन्म|कुल)/gi) || []);
+}
+
 export function lintReport() {
   const errors = [], warnings = [];
   const err = (where, msg) => errors.push(`${where}: ${msg}`);
@@ -183,6 +189,9 @@ export function lintReport() {
     bilingual(w, o.dream);
     if (/\{name\}/.test(o.dream.en + o.dream.hi)) err(w, "is said of the one dreamt of, by a relative clause: no {name}");
   }
+  // Phase 16, the animal interlude: nothing the game says of birth ranks one above another (the mirror, the strings)
+  const ranks = [["mirror intro", MIRROR?.intro], ...(MIRROR?.questions ?? []).map(q => [`mirror ${q.id}`, q.q]), ...Object.keys(STR.en).map(k => [`string ${k}`, { en: STR.en[k], hi: STR.hi?.[k] }])];
+  for (const [w, t] of ranks) for (const s of [t?.en, t?.hi]) if (typeof s === "string" && birthRanking(s).length) warn(w, `ranks a birth: "${birthRanking(s).join('", "')}" (Chāndogya 5.10.8: animal births, never a ladder of human ones)`);
   // Phase 14, the curses (content/curses.json): said of the player, in both languages, naming a thing and never a square,
   // tied to a family of late squares that exist; and closed both ways
   const curseIds = new Set();

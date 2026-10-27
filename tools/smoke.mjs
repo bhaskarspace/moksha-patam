@@ -1215,6 +1215,8 @@ await check("Phase 16: a named person's ended life is kept, Be born again begins
   assert(one.soul?.lives === 1 && one.soul.last.end === "ledger" && one.soul.sancita.length >= 1, JSON.stringify(one.soul));
   assert(one.win && one.foot, `the button: ${JSON.stringify(one)}`);
   // kept under the name as it is compared: "Meera" is Mīrā
+  // a death by ledger is owed an animal interlude first (checked below); here it is let go, to be born human at once
+  await page.evaluate(() => { const s = mp.samskara(); s.souls.mira.animal = null; mp.samskara(s); });
   // born again from the book's own button
   await page.click('#lifeDlg [data-act="reborn"]');
   await page.waitForFunction(() => !mp.state.over && mp.state.players[0].prior, null, { timeout: 15000 });
@@ -1230,6 +1232,43 @@ await check("Phase 16: a named person's ended life is kept, Be born again begins
   await page.click("#again");
   const clean = await page.evaluate(() => { const p = mp.state.players[0]; return { name: p.name, prior: p.prior ?? null, born: p.karma.agami.length }; });
   assert(clean.name === "Meera" && clean.prior === null && clean.born === 0, JSON.stringify(clean));
+});
+
+await check("Phase 16: a death by ledger is born an animal first, plays to the forest's edge, and the human birth after dreams of it", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.addInitScript(() => {
+    const cpu = { name: "", type: "cpu", gender: "" };
+    window.claude = { hot: { data: { setup: { count: 1, rows: [{ name: "Meera", type: "human", gender: "f" }, cpu, cpu, cpu], rules: { six: true } } } } };
+  });
+  await page.goto(BASE + "?seed=1&debug");
+  await page.evaluate(() => { mp.jump(40); mp.years(70); mp.die("illness"); mp.roll(2); });
+  await page.waitForFunction(() => document.getElementById("folio").open, null, { timeout: 15000 });
+  await page.evaluate(() => mp.close());
+  await page.waitForFunction(() => mp.state.over && document.getElementById("lifeDlg").open, null, { timeout: 15000 });
+  const owed = await page.evaluate(() => mp.samskara().souls.mira?.animal);
+  assert(owed?.kind && owed.round === 1, JSON.stringify(owed));
+  await page.click('#lifeDlg [data-act="reborn"]');
+  await page.waitForFunction(() => !mp.state.over && mp.state.rules.law === "animal", null, { timeout: 15000 });
+  const hint = await page.evaluate(() => document.getElementById("hint").textContent);
+  assert(/reach the edge of the forest/.test(hint), hint);
+  // sixes walk it out of the forest in a handful of throws; no card opens on the way
+  for (let k = 0; k < 15; k++) {
+    await until(page, () => !mp.busy && (mp.state.over || document.getElementById("roll").disabled === false));
+    if (await page.evaluate(() => mp.state.over)) break;
+    assert(!(await folioOpen(page)), "a card opened in the interlude");
+    await page.evaluate(() => { mp.roll(6); });
+  }
+  await page.waitForFunction(() => mp.state.over, null, { timeout: 15000 });
+  const end = await page.evaluate(() => ({ p: mp.state.players[0], win: document.getElementById("winText").textContent, soul: mp.samskara().souls.mira, reborn: !document.getElementById("reborn").hidden }));
+  assert(end.p.earned && end.p.throws <= 15 && /The next birth is human/.test(end.win), JSON.stringify({ win: end.win, throws: end.p.throws }));
+  assert(end.soul.animal === null && end.soul.was === owed.kind && end.reborn, JSON.stringify(end.soul));
+  await page.click("#reborn");
+  await page.waitForFunction(() => !mp.state.over && !mp.state.rules.law && mp.state.players[0].prior, null, { timeout: 15000 });
+  const was = await page.evaluate(() => mp.state.players[0].prior.was);
+  assert(was === owed.kind, was);
+  // and mp.animal(kind) starts one at once
+  const lion = await page.evaluate(() => { mp.animal("lion"); return { law: mp.state.rules.law, kind: mp.state.rules.animal.kind, pos: mp.state.players[0].pos }; });
+  assert(lion.law === "animal" && lion.kind === "lion" && lion.pos === 0, JSON.stringify(lion));
 });
 
 await check("Phase 16: ?first neither reads nor keeps a saṃskāra", async page => {

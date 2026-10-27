@@ -41,6 +41,7 @@ import { momentOf, optionOf } from "./qbn.js";
 import { castAlong, peopleOf, introIn, beforeIn, calledIn, fatesIn } from "./cast.js";
 import { reckoningIn, seedOf, refusalIn, carryIn, karmaOf, carried, debtIn, formIn } from "./karma.js";
 import { curseIn } from "./curse.js";
+import { isAnimal, animalLifeOf } from "./animal.js";
 
 const EARTH = 100, GAP = 8;
 // An English moment that does not open with the name reads on after a joining phrase in lower case:
@@ -52,6 +53,8 @@ const stageAt = e => (e.n > EARTH ? 5 : stageOfYears(e.years));
 
 // Player i's life in language l: { title, sub, open, paras: [{ head, text }], end }.
 export function lifeOf(state, i, l) {
+  // an animal interlude has an account of its own (Phase 16, src/engine/animal.js)
+  if (isAnimal(state)) return animalLifeOf(state, i, l);
   const p = state.players[i], name = pnameIn(p, l), who = { name, gender: p.gender };
   const T = (key, v = {}) => fill(tIn(l, key, { name, ...v }), who);
   // a join begins a sentence, even when it begins with a number: "Nine quiet years later, "
@@ -321,7 +324,8 @@ function dreamOf(p, l, name) {
   const say = key => fill(tIn(l, key, { name, ...v }), them);
   // the forgotten holding opens its sentence: "Mirrors make Ravi uneasy, for no reason anyone can name."
   const forgot = SNAKES[prev.holding]?.forgot, uneasy = forgot && fill(forgot[l] || forgot.en, { name, gender: p.gender });
-  return [say(deed ? "lifeDream" : "lifeDreamNone"), uneasy ? tIn(l, "lifeForgot", { forgot: uneasy[0].toUpperCase() + uneasy.slice(1) }) : ""];
+  const was = p.prior.was ? fill(tIn(l, "animalDream", { name, animal: tIn(l, "a_" + p.prior.was) }), { name, gender: p.gender }) : "";
+  return [say(deed ? "lifeDream" : "lifeDreamNone"), was, uneasy ? tIn(l, "lifeForgot", { forgot: uneasy[0].toUpperCase() + uneasy.slice(1) }) : ""];
 }
 
 // The first line knows the shape of the whole life, and says only what happened, never what it was worth.
@@ -354,8 +358,9 @@ export function pathOf(state, i, l) {
   const viaOf = r => r.kind === "snake" ? T("pathSnake", { sq: nameOf(r.from) }) : r.kind === "ladder" ? T("pathLadder", { sq: nameOf(r.from) })
     : r.kind === "reckon" ? T("pathReckon") : r.kind === "sit" ? (r.count === 1 ? T("pathSat") : T("pathSatN", { n: words(r.count) }))
     : r.kind === "stay" ? (r.count === 1 ? T("pathStay") : T("pathStayN", { n: words(r.count) })) : "";
-  const end = state.winner === i ? T("pathWin") : p.fell ? T("pathFell") : p.dead ? T("pathDied") : "";
-  return { rows: rows.map(r => ({ age: words(r.years), sq: nameOf(r.n), via: viaOf(r) })), end };
+  const end = state.winner === i ? T("pathWin") : p.fell ? T("pathFell") : p.dead ? T("pathDied") : p.earned ? T("animalEarned") : p.short ? T(state.rules.animal?.round >= 2 ? "animalLastText" : "animalShortText") : "";
+  // an animal does not count years, so its path has none
+  return { rows: rows.map(r => ({ age: isAnimal(state) ? "" : words(r.years), sq: nameOf(r.n), via: viaOf(r) })), end };
 }
 
 // The same life as plain text, to copy or save.

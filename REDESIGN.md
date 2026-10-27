@@ -1769,6 +1769,32 @@ goes with the first.*
 >
 > Later lives are harder: partly selection (the lives that reach life four are the ones that kept failing), partly the
 > carried debt.
+>
+> **Step 4, the animal interlude** (27 Oct). A death by ledger, and only that, is owed one (`soul.animal`,
+> `src/engine/animal.js`): Be born again begins it before anyone's next human life. The animal is the Panchatantra creature
+> of the vice held (14 tortoise, 19 and 55 jackal, 59 mongoose, 88 cat, 39 lion; else the tortoise), born into the house of
+> the last life's rival, or else its friend. One law, `rules.law = "animal"` in `src/engine/turn.js`: squares 1 to 40, one
+> die, no six again, at most 15 throws; no omen, situation, seed, ego or curse; no card opens, and the line under the board
+> names the square and, on 6, 8, 9, 11–16, 19, 22, 24 and 39, tells its Panchatantra mirror as the moment. Reaching 40, or a
+> ladder out of the forest, earns the human birth back, nudged a tenth toward sattva and dreaming of the animal ("Some
+> nights Ravi dreams of being a jackal."); falling short is an animal once more, and then human regardless. Its account
+> names no years. The lint warns on any phrase that ranks a birth (`birthRanking`). `mp.animal(kind)`; `sim --lives`
+> plays the interludes in the chain; `accounts --lives=2` hashes them, tagged `animal` (728 of 2,000 seeds' named lives).
+> Every first-life account is still byte-identical to step 1's.
+>
+> **The rate is far from the three per hundred the plan expected, and is reported, not tuned:** the death tier is common in
+> a careless life, so interludes are 1.8 per hundred lives (honest), 13.2 (mixed) and 28.6 (dishonest). An interlude takes
+> 9 throws at the median, 15 at p95; 87–90% earn the human birth, about 9–11% go to a second round.
+>
+> **The report**, 10,000 souls a policy, up to ten lives each (`sim --lives=10`); single-life deaths from step 1's table:
+>
+> | policy | liberation per life | lives per liberation | died a life: ledger · years · door | reborn | interludes per 100 lives | turns median · p95 |
+> |---|---|---|---|---|---|---|
+> | honest | 40.3% | 2.48 | 1.2% · 4.7% · 0.3% | 59.0% | 1.8 | 27 · 45 |
+> | mixed | 28.0% | 3.57 | 8.1% · 5.8% · 0.8% | 70.1% | 13.2 | 28 · 47 |
+> | dishonest | 18.4% | 5.43 | 17.8% · 6.0% · 1.3% | 77.9% | 28.6 | 29 · 47 |
+>
+> Within ten lives 98.2%, 93.6% and 83.3% of souls are liberated. Honest > mixed > dishonest holds at every life.
 
 **Why it was gated, and what ungates it.** After Phase 9 a life ran out of years in 2.5% of
 games (3.5% after 10B) and the rebirth snake fired in 8.2%. Everything in this phase would
