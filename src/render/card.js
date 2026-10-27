@@ -348,11 +348,12 @@ function examHtml(ex, l) {
     if (!ex.died) return out;
     return [...out, fill(tIn(x, "doorDied", { name: who(x).name, debts: debtsIn(x, ex.debts ?? [], who(x)) }), who(x))];
   };
-  const en = lines("en"), hi = lines("hi"), q = squareOf(ex.src);
-  let body = `<h2 id="leafTitle">${esc(q[l] || q.en)}</h2>`;
+  // titled for the door, not for the square the debt was made on, which the line under it links to (Phase 15, step 0)
+  const en = lines("en"), hi = lines("hi");
+  let body = `<h2 id="leafTitle">${esc(tIn(l, "examHead"))}</h2>`;
   body += `<div class="story">` + en.map((t, i) => texts(l, t, hi[i], i === 0 ? "remedy door" : i === 1 ? "moment" : "remedy")).join("") +
     `<p class="srcline"><a class="src" href="#sq/${ex.src}" data-sq="${ex.src}">${esc(tIn(l, "square", { n: numIn(l, ex.src) }))}</a></p></div>`;
-  return { kind: "exam", met: [], html: frame(l, { kind: "exam", eb: esc(tIn(l, "examTitle")), big: "☸\uFE0E", sqn: numIn(l, GOAL), body, foot: "" }) };
+  return { kind: "exam", met: [], html: frame(l, { kind: "exam", eb: esc(tIn(l, "examTitle")), big: illumined(document.getElementById(`sq-${GOAL}`) ? `sq-${GOAL}` : null, "☸\uFE0E"), sqn: numIn(l, GOAL), body, foot: "" }) };
 }
 // Draws the current view into the leaf. Entries met here are added to the Codex after the
 // leaf is drawn, so "new" marks show on the card that introduced them. Whatever control had focus has it again

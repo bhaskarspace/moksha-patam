@@ -1164,7 +1164,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         moksha: "Moksha",
         wins: "{name} wins",
         winTitle: "{name} reached Moksha",
-        winHuman: "From birth through every ashrama and past the realms of the gods: liberated. Well played.",
+        winHuman: "From birth through every āśrama to the door, and through it: liberated. Well played.",
         winCpu: "The computer got there first this time.",
         def0: "You",
         def1: "Computer",
@@ -1370,6 +1370,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         lDiedDoor: "{name}'s years ran out at {age}, sitting at the door.",
         lSiva: "{name} rolled {v} and landed on {pos}, and Śiva's snake took {name} down to the world. The merit is spent, and the life with it.",
         examTitle: "The door asks",
+        examHead: "The door",
         examAsks: "The door asks: {q}",
         examPass: "The answer is {a}, and Citragupta finds it in the book: at {age}, {name} {answered}.",
         examMet: "It is met: the debt of {debt}.",
@@ -1407,7 +1408,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         moksha: "मोक्ष",
         wins: "{name} जीते",
         winTitle: "{name} को मोक्ष मिला",
-        winHuman: "जन्म से हर आश्रम और देवलोकों के पार: मुक्ति। बहुत बढ़िया।",
+        winHuman: "जन्म से हर आश्रम से होते हुए द्वार तक, और उसके पार: मुक्ति। बहुत बढ़िया।",
         winCpu: "इस बार कंप्यूटर पहले पहुँच गया।",
         def0: "आप",
         def1: "कंप्यूटर",
@@ -1613,6 +1614,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         lDiedDoor: "{name} के बरस {age} पर पूरे हुए, द्वार पर बैठे-बैठे।",
         lSiva: "{name} का {v} आया और {name} खाना {pos} पर {पहुँचा|पहुँची}, और शिव का नाग {उसे|उसे} संसार में नीचे ले गया। पुण्य क्षीण हुआ, और उसके साथ यह जीवन।",
         examTitle: "द्वार का प्रश्न",
+        examHead: "द्वार",
         examAsks: "द्वार पूछता है: {q}",
         examPass: "उत्तर है {a}, और चित्रगुप्त उसे बही में पाते हैं: {age} बरस पर {name} {answered}।",
         examMet: "क़र्ज़ उतर गया: {debt}।",
@@ -2921,14 +2923,14 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var curses_default = {
     about: "The curses (REDESIGN.md Phase 14, docs/NARRATIVE.md §13.6): a fuse with a sentence. One is drawn per life off a sequence of its own, spoken at the first landing whose years reach `from` (childhood or brahmacharya), by an ordinary person in the board's own register; it names a thing, never a square. It is closed in the account: right after the first square of its family the life lands on after it was spoken, or at the end, the other way. Drafts for Bhaskar's review (26 Oct).",
     curses: [
-      { id: "well", from: 8, family: [44, 66, 80, 84, 97], line: { en: "An old woman at the well tells {name}, who is {age}, that {name} will give away the thing {name} loves most and not notice.", hi: "कुएँ पर एक बूढ़ी औरत {name} से, जो {age} बरस {का|की} है, कहती है कि {name} अपनी सबसे प्यारी चीज़ दे {देगा|देगी} और पता भी नहीं चलेगा।" }, landed: { en: "The woman at the well had said so.", hi: "कुएँ वाली बूढ़ी औरत ने यही कहा था।" }, not: { en: "She was right, in a way {name} never found out.", hi: "वह सही थी, उस तरह से जो {name} कभी जान नहीं {पाया|पाई}।" } },
-      { id: "barber", from: 7, family: [81, 82, 90, 92, 110], line: { en: "The barber, cutting {name}'s hair, says {name} has the kind of head that will one day forget its own name.", hi: "बाल काटते हुए नाई कहता है कि {name} का सिर ऐसा है जो एक दिन अपना ही नाम भूल जाएगा।" }, landed: { en: "The barber had said so.", hi: "नाई ने यही कहा था।" }, not: { en: "He was right, in a way {name} never found out.", hi: "वह सही था, उस तरह से जो {name} कभी जान नहीं {पाया|पाई}।" } },
-      { id: "bangles", from: 7, family: [72, 74, 76, 85, 96], line: { en: "A woman selling bangles tells {name}'s mother, over {name}'s head, that this one will sit very still one day and like it.", hi: "चूड़ियाँ बेचने वाली एक औरत {name} के सिर के ऊपर से {name} की माँ से कहती है कि {यह लड़का|यह लड़की} एक दिन बिलकुल स्थिर {बैठेगा|बैठेगी}, और उसे अच्छा लगेगा।" }, landed: { en: "The woman selling bangles had said so.", hi: "चूड़ी वाली ने यही कहा था।" }, not: { en: "She was right, in a way {name} never found out.", hi: "वह सही थी, उस तरह से जो {name} कभी जान नहीं {पाया|पाई}।" } },
-      { id: "temper", from: 9, family: [50, 57, 59, 67], line: { en: "The neighbour's grandfather says {name} has his brother's temper, and his brother lost a house over it.", hi: "पड़ोस के दादाजी कहते हैं कि {name} में उनके भाई जैसा गुस्सा है, और उनके भाई ने उसी में एक घर गँवा दिया था।" }, landed: { en: "The neighbour's grandfather had said so.", hi: "पड़ोस के दादाजी ने यही कहा था।" }, not: { en: "He was right, in a way {name} never found out.", hi: "वे सही थे, उस तरह से जो {name} कभी जान नहीं {पाया|पाई}।" } },
-      { id: "tuition", from: 10, family: [61, 79, 81, 83], line: { en: "The man who gives tuition next door tells {name}, not unkindly, that {name} will end up teaching the very thing {name} hates learning.", hi: "पड़ोस में ट्यूशन पढ़ाने वाले मास्टरजी {name} से, बिना कड़वाहट के, कहते हैं कि {name} एक दिन वही चीज़ {सिखाएगा|सिखाएगी} जिसे सीखने से अभी {चिढ़ता|चिढ़ती} है।" }, landed: { en: "The man who gave tuition next door had said so.", hi: "ट्यूशन वाले मास्टरजी ने यही कहा था।" }, not: { en: "He was right, in a way {name} never found out.", hi: "वे सही थे, उस तरह से जो {name} कभी जान नहीं {पाया|पाई}।" } },
-      { id: "ration", from: 9, family: [55, 66, 69, 75], line: { en: "The man at the ration shop watches {name} count the change and says {name} counts like someone who will one day lose count of something that matters.", hi: "राशन की दुकान वाला {name} को रेज़गारी गिनते देखकर कहता है कि {name} ऐसे {गिनता|गिनती} है जैसे कोई जो एक दिन किसी ज़रूरी चीज़ की गिनती भूल जाएगा।" }, landed: { en: "The man at the ration shop had said so.", hi: "राशन वाले ने यही कहा था।" }, not: { en: "He was right, in a way {name} never found out.", hi: "वह सही था, उस तरह से जो {name} कभी जान नहीं {पाया|पाई}।" } },
-      { id: "aunt", from: 10, family: [53, 67, 98, 100], line: { en: "An aunt at a wedding says {name} will be the last of them all, and that the quiet will suit {him|her|them}.", hi: "एक शादी में एक बुआ कहती हैं कि {name} उन सबमें आख़िरी {रहेगा|रहेगी}, और वह सन्नाटा रास आएगा।" }, landed: { en: "The aunt at the wedding had said so.", hi: "शादी वाली बुआ ने यही कहा था।" }, not: { en: "She was right, in a way {name} never found out.", hi: "वे सही थीं, उस तरह से जो {name} कभी जान नहीं {पाया|पाई}।" } },
-      { id: "river", from: 8, family: [73, 75, 90, 94], line: { en: "A boy at the river says {name} will be afraid of water one day for no reason, and then one day stop.", hi: "नदी पर एक लड़का कहता है कि {name} को एक दिन बिना किसी वजह के पानी से डर लगेगा, और फिर एक दिन नहीं लगेगा।" }, landed: { en: "The boy at the river had said so.", hi: "नदी वाले लड़के ने यही कहा था।" }, not: { en: "He was right, in a way {name} never found out.", hi: "वह सही था, उस तरह से जो {name} कभी जान नहीं {पाया|पाई}।" } }
+      { id: "well", from: 8, family: [44, 66, 80, 84, 97], line: { en: "An old woman at the well tells {name}, who is {age}, that {name} will give away the thing {name} loves most and not notice.", hi: "कुएँ पर एक बूढ़ी औरत {name} से, जो {age} बरस {का|की} है, कहती है कि {name} अपनी सबसे प्यारी चीज़ दे {देगा|देगी} और पता भी नहीं चलेगा।" }, landed: { en: "The woman at the well had said so.", hi: "कुएँ वाली बूढ़ी औरत ने यही कहा था।" }, not: { en: "She was right, in a way {name} never found out.", hi: "वह सही थी, पर किस तरह, यह {name} कभी जान नहीं {पाया|पाई}।" } },
+      { id: "barber", from: 7, family: [81, 82, 90, 92, 110], line: { en: "The barber, cutting {name}'s hair, says {name} has the kind of head that will one day forget its own name.", hi: "बाल काटते हुए नाई कहता है कि {name} का सिर ऐसा है जो एक दिन अपना ही नाम भूल जाएगा।" }, landed: { en: "The barber had said so.", hi: "नाई ने यही कहा था।" }, not: { en: "He was right, in a way {name} never found out.", hi: "वह सही था, पर किस तरह, यह {name} कभी जान नहीं {पाया|पाई}।" } },
+      { id: "bangles", from: 7, family: [72, 74, 76, 85, 96], line: { en: "A woman selling bangles tells {name}'s mother, over {name}'s head, that this one will sit very still one day and like it.", hi: "चूड़ियाँ बेचने वाली एक औरत {name} के सिर के ऊपर से {name} की माँ से कहती है कि {यह लड़का|यह लड़की} एक दिन बिलकुल स्थिर {बैठेगा|बैठेगी}, और उसे अच्छा लगेगा।" }, landed: { en: "The woman selling bangles had said so.", hi: "चूड़ी वाली ने यही कहा था।" }, not: { en: "She was right, in a way {name} never found out.", hi: "वह सही थी, पर किस तरह, यह {name} कभी जान नहीं {पाया|पाई}।" } },
+      { id: "temper", from: 9, family: [50, 57, 59, 67], line: { en: "The neighbour's grandfather says {name} has his brother's temper, and his brother lost a house over it.", hi: "पड़ोस के दादाजी कहते हैं कि {name} में उनके भाई जैसा गुस्सा है, और उनके भाई ने उसी में एक घर गँवा दिया था।" }, landed: { en: "The neighbour's grandfather had said so.", hi: "पड़ोस के दादाजी ने यही कहा था।" }, not: { en: "He was right, in a way {name} never found out.", hi: "वे सही थे, पर किस तरह, यह {name} कभी जान नहीं {पाया|पाई}।" } },
+      { id: "tuition", from: 10, family: [61, 79, 81, 83], line: { en: "The man who gives tuition next door tells {name}, not unkindly, that {name} will end up teaching the very thing {name} hates learning.", hi: "पड़ोस में ट्यूशन पढ़ाने वाले मास्टरजी {name} से, बिना कड़वाहट के, कहते हैं कि {name} एक दिन वही चीज़ {सिखाएगा|सिखाएगी} जिसे सीखने से अभी {चिढ़ता|चिढ़ती} है।" }, landed: { en: "The man who gave tuition next door had said so.", hi: "ट्यूशन वाले मास्टरजी ने यही कहा था।" }, not: { en: "He was right, in a way {name} never found out.", hi: "वे सही थे, पर किस तरह, यह {name} कभी जान नहीं {पाया|पाई}।" } },
+      { id: "ration", from: 9, family: [55, 66, 69, 75], line: { en: "The man at the ration shop watches {name} count the change and says {name} counts like someone who will one day lose count of something that matters.", hi: "राशन की दुकान वाला {name} को रेज़गारी गिनते देखकर कहता है कि {name} ऐसे {गिनता|गिनती} है जैसे कोई एक दिन किसी ज़रूरी चीज़ का हिसाब भूल जाएगा।" }, landed: { en: "The man at the ration shop had said so.", hi: "राशन वाले ने यही कहा था।" }, not: { en: "He was right, in a way {name} never found out.", hi: "वह सही था, पर किस तरह, यह {name} कभी जान नहीं {पाया|पाई}।" } },
+      { id: "aunt", from: 10, family: [53, 67, 98, 100], line: { en: "An aunt at a wedding says {name} will be the last of them all, and that the quiet will suit {him|her|them}.", hi: "एक शादी में एक बुआ कहती हैं कि {name} उन सबमें आख़िरी {रहेगा|रहेगी}, और उसे वह सन्नाटा रास आएगा।" }, landed: { en: "The aunt at the wedding had said so.", hi: "शादी वाली बुआ ने यही कहा था।" }, not: { en: "She was right, in a way {name} never found out.", hi: "वे सही थीं, पर किस तरह, यह {name} कभी जान नहीं {पाया|पाई}।" } },
+      { id: "river", from: 8, family: [73, 75, 90, 94], line: { en: "A boy at the river says {name} will be afraid of water one day for no reason, and then one day stop.", hi: "नदी पर एक लड़का कहता है कि {name} को एक दिन बिना किसी वजह के पानी से डर लगेगा, और फिर एक दिन नहीं लगेगा।" }, landed: { en: "The boy at the river had said so.", hi: "नदी वाले लड़के ने यही कहा था।" }, not: { en: "He was right, in a way {name} never found out.", hi: "वह सही था, पर किस तरह, यह {name} कभी जान नहीं {पाया|पाई}।" } }
     ]
   };
 
@@ -5673,10 +5675,10 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       if (!ex.died) return out;
       return [...out, fill(tIn(x, "doorDied", { name: who2(x).name, debts: debtsIn(x, ex.debts ?? [], who2(x)) }), who2(x))];
     };
-    const en = lines("en"), hi = lines("hi"), q2 = squareOf(ex.src);
-    let body = `<h2 id="leafTitle">${esc(q2[l] || q2.en)}</h2>`;
+    const en = lines("en"), hi = lines("hi");
+    let body = `<h2 id="leafTitle">${esc(tIn(l, "examHead"))}</h2>`;
     body += `<div class="story">` + en.map((t2, i) => texts(l, t2, hi[i], i === 0 ? "remedy door" : i === 1 ? "moment" : "remedy")).join("") + `<p class="srcline"><a class="src" href="#sq/${ex.src}" data-sq="${ex.src}">${esc(tIn(l, "square", { n: numIn(l, ex.src) }))}</a></p></div>`;
-    return { kind: "exam", met: [], html: frame2(l, { kind: "exam", eb: esc(tIn(l, "examTitle")), big: "☸︎", sqn: numIn(l, GOAL), body, foot: "" }) };
+    return { kind: "exam", met: [], html: frame2(l, { kind: "exam", eb: esc(tIn(l, "examTitle")), big: illumined(document.getElementById(`sq-${GOAL}`) ? `sq-${GOAL}` : null, "☸︎"), sqn: numIn(l, GOAL), body, foot: "" }) };
   }
   var metMore = [];
   function paint2({ landing = false } = {}) {
