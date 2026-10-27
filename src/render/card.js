@@ -2,11 +2,11 @@
 // It no longer holds the game up (REDESIGN.md Phase 11): the dice stay live while it is open, and the next roll takes
 // it away. Only a situation waiting on a choice is modal, until the choice is made, and a reckoning (REDESIGN.md Phase
 // 12), until it is read: a choice's result arriving, the one other thing a turn waits on.
-import { GOAL, TOP, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, READINGS, CODEX, ENTRY_IDS, REFS, entryOf, sourceOf, srcOfSquare, squareOf, fallOn, bridgeOf } from "../content.js";
+import { GOAL, TOP, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, READINGS, CODEX, ENTRY_IDS, REFS, entryOf, sourceOf, srcOfSquare, squareOf, fallOn, bridgeOf, EGO } from "../content.js";
 import { lang, tIn, numIn, srcIn, pick, fill, castFill, ageWordsIn } from "../i18n.js";
 import { ageStep, stageOfYears, bhumikaOf, freshGunas, SANNYASA, yearsAlong } from "../engine/self.js";
 import { castOf, castAlong, peopleOf, introIn } from "../engine/cast.js";
-import { momentOf, destOf } from "../engine/qbn.js";
+import { momentOf, destOf, egoOf } from "../engine/qbn.js";
 import { reckonLinesIn, refusalIn, examLinesIn, debtsIn } from "../engine/karma.js";
 import { canSit } from "../engine/turn.js";
 import { curseSaidIn } from "../engine/curse.js";
@@ -111,6 +111,20 @@ function toldHere(n) {
   while (k > 0 && p.told[k] === "stay") k--;
   return p.life[k] === n ? p.told[k] : null;
 }
+// The ego's throw on square n for its subject (REDESIGN.md Phase 15): during the landing the plan's, after it the record
+// of the choice made where they stand. { chose, took, face, faces }, or null.
+function egoHere(n) {
+  const p = subjectOf(), plan = G.plan;
+  if (!p || !egoOf(n)) return null;
+  if (plan && G.state.players[plan.idx] === p && plan.target === n) return plan.ego ?? null;
+  if (p.pos !== n || !p.life?.length) return null;
+  let k = p.life.length - 1;
+  while (k > 0 && p.told?.[k] === "stay") k--;
+  return (p.life[k] === n && p.witness?.findLast(w => w.i === k && w.faces)) || null;
+}
+// The faces of a die, as the ego's are shown: never a number about the player.
+const FACES = ["⚀", "⚁", "⚂", "⚃", "⚄", "⚅"], facesIn = fs => fs.map(f => FACES[f - 1]).join(" ");
+const pips = html => html.replace(/[⚀-⚅]/g, f => `<span class="pip">${f}</span>`);
 // The situation waiting on square n for its subject's choice, if one is.
 const pendingOn = n => { const plan = G.plan; return plan?.situation && plan.target === n && subjectOf() === G.state.players[plan.idx] ? plan.situation : null; };
 function person(l, n) {
@@ -230,7 +244,12 @@ function squareHtml(n, l) {
   let body = `<h2 id="leafTitle">${esc(info.title)}</h2>`;
   const alt = info.alt.filter(Boolean).join(" · ");
   if (alt) body += `<p class="alt" lang="${other(l)}">${esc(alt)}</p>`;
-  const moment = m ? texts(l, momentIn(m, "en", n, !pending), momentIn(m, "hi", n, !pending), n > 100 ? "moment remnant" : "moment") : "";
+  // the ego (Phase 15): before the choice, the faces it owns; after it, its throw, tumbling for a moment, and what it did
+  const ego = pending ? null : egoHere(n), rebel = !!ego && ego.chose !== ego.took, tumbling = !!ego && G.egoTumble != null;
+  const faces = pending && G.plan.egoFaces ? pips(texts(l, ...["en", "hi"].map(x => G.plan.egoFaces.length ? tIn(x, "egoFaces", { faces: facesIn(G.plan.egoFaces) }) : tIn(x, "egoNone")), "remedy ego")) : "";
+  const egoTop = !ego ? "" : pips(texts(l, ...["en", "hi"].map(x => `${tIn(x, "egoDie")} ${FACES[(tumbling ? G.egoTumble : ego.face) - 1]}` + (tumbling || rebel ? "" : ` ${tIn(x, "egoHeld")}`)), "remedy ego")) +
+    (rebel && !tumbling ? texts(l, ...["en", "hi"].map(x => momentIn(egoOf(n).card, x, n, false)), "moment") : "");
+  const moment = m && !tumbling ? texts(l, momentIn(m, "en", n, !pending), momentIn(m, "hi", n, !pending), n > 100 ? "moment remnant" : "moment") : "";
   // a snake tail one square below its remedy says so (REDESIGN.md Phase 4, item 3)
   const remedy = sq.remedy ? texts(l, fill(sq.remedy.en, person("en", n)), fill(sq.remedy.hi, person("hi", n)), "remedy") : "";
   // past the exit, the card says the way out is behind and below (REDESIGN.md Phase 7, item 3)
@@ -251,7 +270,9 @@ function squareHtml(n, l) {
   // the curse, said at this landing, when the landing's card is open rather than the line (Phase 14)
   const sayer = spoken && spoken.n === n && G.state?.players[spoken.who];
   const curse = sayer ? texts(l, curseSaidIn("en", sayer, pnameIn(sayer, "en")), curseSaidIn("hi", sayer, pnameIn(sayer, "hi")), "remedy") : "";
-  body += `<div class="story">${door}${moment}${curse}${options}${remedy}${pending ? "" : mirrorHtml(l, mirror, m)}${bi(l, r.line2, "line2")}${above}</div>`;
+  // a rebellion's mirror is the Gita's question of what drives a person to wrong unwilling (3.36–37)
+  const mirrored = pending || tumbling ? "" : rebel ? texts(l, EGO.mirror.en, EGO.mirror.hi, "mirror") : mirrorHtml(l, mirror, m);
+  body += `<div class="story">${door}${egoTop}${moment}${faces}${curse}${options}${remedy}${mirrored}${bi(l, r.line2, "line2")}${above}</div>`;
   // what the toggle opens: the voices, and the notes, at the reader's depth
   // Codex entries in it count as met only once the reader opens it
   let more = "";
@@ -276,6 +297,8 @@ function squareHtml(n, l) {
     metMore.push(...r.schools.map(s => s.id));
   }
   // a square with no voices shows its scholar note at school depth rather than a bare lead
+  // and Duryodhana's confession, beside 3.27, in the scholar layer
+  if (rebel && deep("scholar")) more += bi(l, EGO.scholar, "note");
   if (deep("scholar") || (deep("school") && !r.schools?.length && !r.views?.length)) more += bi(l, r.scholar, "note");
   if (deep("scholar")) {
     if (r.figures?.length) {
@@ -622,12 +645,14 @@ dlg.addEventListener("keydown", e => {
 
 // What a landing told, as { title, text } in language l, for the line under the board when the card does not open
 // (REDESIGN.md Phase 11): the square's name and the moment, as the card would say it, without the mirror.
-export function momentLine(n, who, l, told) {
+// ego is the throw on a situation (Phase 15): a rebellion's line goes first.
+export function momentLine(n, who, l, told, ego = null) {
   const keep = subject;
   subject = who;
   try {
     const m = momentOf(n, told !== undefined ? told : toldHere(n)).moment ?? squareOf(n)?.moment;
-    return { title: squareInfo(n, l).title, text: m ? momentIn(m, l, n, false) : "" };
+    const meant = ego && ego.chose !== ego.took && egoOf(n) ? momentIn(egoOf(n).card, l, n, false) + " " : "";
+    return { title: squareInfo(n, l).title, text: m ? meant + momentIn(m, l, n, false) : "" };
   } finally { subject = keep; }
 }
 

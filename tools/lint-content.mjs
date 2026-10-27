@@ -359,6 +359,34 @@ export function lintReport() {
         if (lo.cost > hi.cost) err(w, `the option worth least (${lo.id}) costs more years than the one worth most (${hi.id})`);
       }
     }
+    // Phase 15: an ego test names its lower option, the one the ego takes the life to, which plants a debt and is worth
+    // least; and says, in the moment's voice and in the account's, what the life meant and did instead
+    if (sit.ego) {
+      const ew = `${w} ego`, lower = opts.find(o => o.id === sit.ego.lower);
+      if (!lower) err(ew, `lower "${sit.ego.lower}" is not an option here`);
+      else {
+        if (!lower.seed) err(ew, `lower "${lower.id}" plants no debt: the ego pulls toward a debt`);
+        if (opts.some(o => worthOf(o) < worthOf(lower))) err(ew, `lower "${lower.id}" is not the option worth least`);
+      }
+      bilingual(`${ew} card`, sit.ego.card);
+      if (sit.ego.card?.en && sit.ego.card?.hi) momentText(`${ew} card`, sit.ego.card, q);
+      bilingual(`${ew} account`, sit.ego.account);
+      if (sit.ego.account?.en && sit.ego.account?.hi) {
+        playerText(`${ew} account`, sit.ego.account);
+        if (/\{age\}/.test(sit.ego.account.en + sit.ego.account.hi)) err(`${ew} account`, "says {age}: the moment after it says the age");
+      }
+    }
+    // and the cast who saw it (Phase 15): a returns join per option, and one for a rebellion only on an ego test
+    for (const [who, lines] of Object.entries(sit.witness || {})) {
+      const ww = `${w} witness.${who}`;
+      if (!MEMBERS.includes(who) || ["mother", "father"].includes(who)) { err(ww, `"${who}" is not a member of the cast who can return by name`); continue; }
+      for (const [k, t] of Object.entries(lines)) {
+        if (k === "rebel" ? !sit.ego : !opts.some(o => o.id === k)) err(`${ww}.${k}`, k === "rebel" ? "is a rebellion's line on a situation with no ego test" : `"${k}" is not an option here`);
+        join(`${ww}.${k}`, t);
+        for (const l of ["en", "hi"]) if (t?.[l] && !t[l].includes("{who}")) err(`${ww}.${k}`, `the ${l} does not name the ${who} with {who}`);
+        if (t?.en && t?.hi) playerText(`${ww}.${k}`, { en: t.en.replaceAll("{who}", "X"), hi: castFill(t.hi, { who: { gender: "m", name: "X" } }) });
+      }
+    }
   }
 
   // Phase 11: every mirror a card can show tells a cold reader, the first time it names someone, that it is a story and

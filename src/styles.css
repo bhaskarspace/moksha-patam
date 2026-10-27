@@ -420,6 +420,8 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 .leaf .story p.remedy.above { color: #1E2A78; border-left-color: #1E2A78; }
 /* when the rebirth snake takes someone, in the snakes' red */
 .leaf .story p.remedy.fall { color: #9E2A1C; border-left-color: #B3261E; }
+/* the ego's faces (Phase 15), large enough to read as a die */
+.leaf .story p.ego .pip { font-size: 1.7em; line-height: 0; vertical-align: -0.14em; font-weight: 400; }
 .leaf .snake-on { margin-top: 20px; padding: 4px 14px 10px; border-radius: 8px; background: rgba(179, 38, 30, 0.08); border: 1px solid rgba(179, 38, 30, 0.35); }
 .leaf .snake-on .sub { display: flex; align-items: center; gap: 8px; color: #9E2A1C; border-top: 0; padding-top: 6px; }
 .leaf .snake-on .snake-glyph { width: 28px; height: 28px; }

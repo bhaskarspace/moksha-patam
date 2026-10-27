@@ -94,8 +94,11 @@ $("pick").addEventListener("click", e => {
 function drawDecide() {
   const d = G.deciding, p = G.state.players[G.plan.idx];
   $("pick").innerHTML = d.opts.map(o => `<button type="button" data-o="${esc(o.id)}"${o.open ? "" : ` aria-disabled="true"`}>${esc(L(o.label.en, o.label.hi))}<small>${esc(o.open ? optionNote(lang, G.plan.target, o) : L(o.why.en, o.why.hi))}</small></button>`).join("");
-  $("hint").textContent = t("chooseHint", { name: pname(p) });
+  // on an ego test, the faces the ego owns, before the choice (REDESIGN.md Phase 15)
+  const faces = G.plan.egoFaces, ego = faces ? " " + (faces.length ? t("egoFaces", { faces: faces.map(f => DIE_FACES[f - 1]).join(" ") }) : t("egoNone")) : "";
+  $("hint").textContent = t("chooseHint", { name: pname(p) }) + ego;
 }
+const DIE_FACES = ["⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
 function decide(sit, p) {
   const opts = optionsFor(p, sit);
   return new Promise(resolve => {
@@ -220,10 +223,19 @@ async function takeTurn() {
         if (g !== G.gen) return;
         plan = resolveChoice(state, plan, id);
         G.plan = plan;
+        // the ego's throw on the card (Phase 15): the die tumbles a moment, then lands on its face. The faces it tumbles
+        // through are drawn from the throw itself, never the game's dice; under reduced motion it lands at once.
+        if (plan.ego && p.type === "human") {
+          if (!reduced) {
+            const r = makeRng((plan.ego.face * 0x9e3779b1 + plan.target) >>> 0);
+            for (let k = 0; k < 6; k++) { G.egoTumble = die(r); refreshCard(); await sleep(90); if (g !== G.gen) { G.egoTumble = null; return; } }
+          }
+          G.egoTumble = null;
+        }
         refreshCard();
         // the card is for a choice and for its result: it turns to the outcome and stops holding the game, with the die
         // live on it, and a roll takes it away. The outcome is the line under the board too, for after the card is gone.
-        if (p.type === "human") { releaseCard(); landHuman(plan.target, idx, id); }
+        if (p.type === "human") { releaseCard(); landHuman(plan.target, idx, plan.choice, plan.ego); }
         G.waitingCard = false; refreshRoll();
       } else if (!plan.sit && p.type === "human" && fullCard(state, plan, idx)) {
         // a year sat out lands nowhere new, so nothing opens for it
@@ -649,7 +661,7 @@ new ResizeObserver(draw).observe($("cells"));
 // ?debug exposes helpers for testing: mp.jump(n) moves the current player, mp.roll(v) rolls a fixed number
 // (mp.roll(a, b) fixes both endgame dice, and mp.pick(v) moves by one of them, 0 to sit),
 // mp.seed() reads the current game's seed and mp.seed(n) starts a new game with that seed. Phase 14 adds mp.door(),
-// mp.examine(), mp.curse(id) and mp.siva().
+// mp.examine(), mp.curse(id) and mp.siva(). Phase 15 adds mp.ego(faces).
 if (new URLSearchParams(location.search).has("debug")) {
   window.mp = {
     jump(n) { cur().pos = n; render(); age(true); },
@@ -671,6 +683,13 @@ if (new URLSearchParams(location.search).has("debug")) {
     // the options a situation offers, with whether each is open, or null when nothing is waiting on one
     get deciding() { return G.deciding ? G.deciding.opts.map(o => ({ id: o.id, open: o.open })) : null; },
     choose: pickOption,
+    // mp.ego(faces) gives the ego these faces on the next throw it makes (Phase 15): mp.ego() every face, so the life
+    // rebels; mp.ego([]) none, so the choice holds. Shown on a situation's card if one is waiting.
+    ego(faces = [1, 2, 3, 4, 5, 6]) {
+      G.state.forceEgo = faces;
+      if (G.plan?.situation && G.plan.egoFaces) { G.plan.egoFaces = faces; if (G.deciding) drawDecide(); refreshCard(); }
+      return faces;
+    },
     // the situation on square n, or null (REDESIGN.md Phase 10)
     situation: n => situationAt(n),
     // how many dice player i (the current one by default) has spent on practice in this life

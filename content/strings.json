@@ -212,6 +212,12 @@
       "optYear": "a year",
       "optYears": "{n} years",
       "optWithheld": "Not open:",
+      "egoFaces": "The ego takes {faces}.",
+      "egoNone": "The ego takes no face here.",
+      "egoDie": "The ego's die",
+      "egoHeld": "The choice holds.",
+      "lEgoHeld": "{name} chose on {pos}, and the ego's die let the choice stand.",
+      "lEgoRebel": "{name} chose on {pos}, and the ego's die did the other thing.",
       "lStayOne": "{name} spent a year on {pos}, {what}.",
       "lStay": "{name} spent {n} years on {pos}, {what}.",
       "lFell": "{name} rolled {v} on {pos}: past the top of the heavens. The merit is spent, and the life with it.",
@@ -456,6 +462,12 @@
       "optYear": "एक बरस",
       "optYears": "{n} बरस",
       "optWithheld": "अभी नहीं:",
+      "egoFaces": "{faces} अहंकार के हैं।",
+      "egoNone": "यहाँ पासे का कोई पहलू अहंकार का नहीं।",
+      "egoDie": "अहंकार का पासा",
+      "egoHeld": "चुनाव टिका रहा।",
+      "lEgoHeld": "{name} ने खाना {pos} पर चुना, और अहंकार के पासे ने वह चुनाव रहने दिया।",
+      "lEgoRebel": "{name} ने खाना {pos} पर चुना, और अहंकार के पासे ने उल्टा करवा दिया।",
       "lStayOne": "{name} ने खाना {pos}, {what}, पर एक बरस बिताया।",
       "lStay": "{name} ने खाना {pos}, {what}, पर {n} बरस बिताए।",
       "lFell": "{name} का {v} आया, {pos} पर: स्वर्गों के शिखर के पार। पुण्य क्षीण हुआ, और उसके साथ यह जीवन।",
@@ -691,5 +703,16 @@
       {"en":"Nobody wrote.","hi":"किसी ने ख़बर नहीं दी।"},
       {"en":"{name} was not told.","hi":"{name} को किसी ने नहीं बताया।"}
     ]
+  },
+  "EGO": {
+    "about": "The ego rebellion (REDESIGN.md Phase 15; src/engine/qbn.js egoFaces). On the five ego tests (content/situations.json `ego`), after the witness chooses the higher option the ego throws a die of its own; on its faces the life takes the lower option. mirror is the card's text for a rebellion; scholar is its note at scholar depth.",
+    "mirror": {
+      "en": "Arjuna asks it in the Gita (3.36): then by what is a person driven to wrong, even unwilling, as if by force? And Krishna answers (3.37): it is desire, it is anger, born of rajas.",
+      "hi": "गीता (३.३६) में अर्जुन पूछते हैं: तो फिर मनुष्य न चाहते हुए भी, मानो बलपूर्वक लगाया गया, किससे प्रेरित होकर पाप करता है? और कृष्ण उत्तर देते हैं (३.३७): यह काम है, यह क्रोध है, रजोगुण से उपजा।"
+    },
+    "scholar": {
+      "en": "Duryodhana's confession, as the later Pāṇḍava Gītā gives it: jānāmi dharmaṃ na ca me pravṛttiḥ, jānāmy adharmaṃ na ca me nivṛttiḥ. I know what is right, and have no inclination to it; I know what is wrong, and cannot turn from it. The verse is not in the Mahābhārata's critical edition. The Gītā's own account is 3.27: the guṇas do the acting, and the self deluded by the ego thinks 'I am the doer'. The witness chose; the guṇas acted.",
+      "hi": "दुर्योधन की स्वीकारोक्ति, जैसी बाद की पाण्डवगीता में मिलती है: जानामि धर्मं न च मे प्रवृत्तिः, जानाम्यधर्मं न च मे निवृत्तिः। मैं धर्म जानता हूँ, पर उसमें मेरी प्रवृत्ति नहीं; अधर्म जानता हूँ, पर उससे मेरी निवृत्ति नहीं। यह श्लोक महाभारत के समीक्षित संस्करण में नहीं है। गीता का अपना उत्तर ३.२७ में है: कर्म गुण करते हैं, और अहंकार से मोहित मन सोचता है, 'मैं कर्ता हूँ।' साक्षी ने चुना; गुणों ने किया।"
+    }
   }
 }

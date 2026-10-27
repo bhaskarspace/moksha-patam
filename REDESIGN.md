@@ -1624,7 +1624,45 @@ closed by landing vs not.
 
 ---
 
-### Phase 15 — The witness
+### Phase 15 — The witness  ✅ SHIPPED
+
+> **Shipped** (27 Oct). Step 0, on `main` first, from Bhaskar's check of Phase 14: the door's card is titled "The door" and
+> shows 105's vignette, the liberation dialog goes "to the door, and through it", and every curse's Hindi `not` line says
+> "…सही था/थी/थे/थीं, पर किस तरह, यह {name} कभी जान नहीं {पाया|पाई}" by the speaker's number and honorific.
+> - *The ego rebellion.* 49, 54, 55, 56 and 59 carry `ego` (`content/situations.json`): the lower option (first, claim,
+>   keep, eaten, strike), a line in the moment's voice for the card and one for the account. Choosing anything else throws
+>   the ego's die (`egoThrow` in `src/engine/qbn.js`, a sequence of its own: the movement dice never change, and
+>   `--ego=off` gives back `main`'s sim to the last digit). Its faces (`egoFaces`): with d = sattva − max(rajas, tamas), a 6
+>   if d ≥ 0.10, 4–6 if d ≤ −0.10, 5–6 between, none at bhūmikā 5 and above. They are on the card and in the panel before
+>   the choice, as die faces. On an ego face `resolveChoice` finishes with the lower option: move, years, guṇa, aims and
+>   seed. The card tumbles the die (from the throw itself; at once under reduced motion), then says "The choice holds", or
+>   gives the rebellion's line before the lower outcome under Gītā 3.36–37, with Duryodhana's *jānāmi dharmaṃ* (credited
+>   to the later Pāṇḍava Gītā) beside 3.27 in the scholar layer. The account says the rebellion's line as the join
+>   ("Meera meant to stop the hand, and the hand was quicker."), even where the snake is only counted. `p.witness` keeps
+>   `{ sq, chose, took, i }` for every situation, with `face` and `faces` where the ego threw, for the Mirror.
+>   `?debug`: `mp.ego(faces)`. The computer throws by the same rule.
+> - *The cast reacts.* `witness` lines on 28 (the teacher), 49 and 56 (the spouse), one per option and, on 49 and 56, one
+>   for a rebellion. The returns join uses the latest the member saw after the life met them, once (`account.js`). Lives
+>   with such a line: mixed 3.5%, honest 2.5%, dishonest 4.2%; reacting to a rebellion 0.26% / 0.68% / 0. Drafts for review.
+> - *Balance.* `npm run sim 20000 1`, `main` → this phase:
+>
+>   | | mixed | honest | dishonest |
+>   |---|---|---|---|
+>   | median, p95 | 28, 48 → 29, 48 | 26, 44 → 27, 45 | 30, 50 → same |
+>   | liberation per life | 39.8% → 36.5% | 46.9% → 44.2% | 29.0% → same |
+>   | lives per liberation | 2.52 → 2.74 | 2.13 → 2.26 | 3.45 → same |
+>   | seeds planted per life | 1.45 → 1.92 | 0.01 → 0.46 | 3.51 → same |
+>   | door refusals per life | 0.141 → 0.155 | 0.003 → 0.054 | 0.216 → same |
+>   | ego throws / rebellions per life | 0.961 / 0.362 | 1.671 / 0.432 | 0 / 0 |
+>   | lives that rebelled | 25.0% | 27.1% | 0 |
+>
+>   By the guṇas (share of throws, then the share rebelled): mixed policy sattva 25.4% / 16.9%, mixed 22.5% / 32.9%,
+>   rajas-tamas 52.1% / 49.7%, none 0.0%; honest 62.1% / 16.8%, 19.9% / 32.2%, 17.8% / 50.5%, none 0.2% / 0. Liberation
+>   still orders honest > mixed > dishonest (`tests/balance.test.mjs`). An honest life now plants debts: the ego's.
+> - *Accounts.* `accounts.mjs 2000 --tag`: 5,982 of 16,000 accounts are untagged `witness`, and 0 differ from `main`; the
+>   4,620 whose game threw the die without a rebellion or a witness line also match byte for byte.
+> - *Cost.* The page is 859,951 bytes (`main` 843,122). `npm run perf` matches `main`: walk, climb and swallow p50 16.7 ms on
+>   both, the climb's longest frame 109 ms against 105, turn-end repaint p50 2.8 ms against 2.5.
 
 *Émerson's observer (22 Oct): the player is not the token but the one watching and
 guiding it. Gītā 13.22, the self as upadraṣṭā anumantā, the witness and the one who
