@@ -227,7 +227,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       doorDeaths += !!p.dead && p.pos === 105;
       if (p.death) {
         causes[p.death.by]++;
-        if (p.death.by === "ledger") { const a = p.death.age, band = a < 40 ? "under 40" : a < 60 ? "40–59" : a < 80 ? "60–79" : "80+"; ledgerAges[band] = (ledgerAges[band] || 0) + 1; forms[p.death.form]++; }
+        if (p.death.by === "ledger") { const a = p.death.age, band = a <= 50 ? "to 50" : a <= 68 ? "51–68" : "69+"; ledgerAges[band] = (ledgerAges[band] || 0) + 1; forms[p.death.form]++; }
       }
       for (const x of p.sittings ?? []) { passed += x.pass; penanced += !x.pass && x.cleared; }
       const thrown = (p.witness ?? []).filter(w => w.faces), overruled = thrown.filter(w => w.chose !== w.took);

@@ -67,6 +67,9 @@ export const setDeath = on => { DEATH_ON = on; };
 // the game never says a vice caused an illness. The three forms are the board's own: the roof that leaks onto forty
 // years in a trunk (75), the bad year of Uṣasti's famine (48), the bad chest all winter (73). None has an agent: there
 // are no villains here, so there is no murder. The vice is named only in the closing line, in the door's words.
+// By years, through stageOfYears (the same stage the sprite, the panel and the door use): an accident to 50 (childhood,
+// brahmacarya, gṛhastha), a calamity at 51–68 (vānaprastha) and an illness from 69 (sannyāsa). The bands are the squares'
+// ages, ageOf(60) = 50 and ageOf(80) = 68, not decades: a death at 71 is a sannyāsin's, of illness.
 export const FORMS = ["accident", "calamity", "illness"];
 export const deathFormOf = years => { const st = stageOfYears(years); return st <= 2 ? "accident" : st === 3 ? "calamity" : "illness"; };
 

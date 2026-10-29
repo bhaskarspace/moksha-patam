@@ -59,7 +59,9 @@ the form by age, never by the vice), penance is two years a weight and a weight-
 life is read three ways, the book, the path and the mirror (`src/render/life.js`, `src/engine/mirror.js`); a named
 person's ended life is kept (`mp-samskara`, `src/engine/samskara.js`) and Be born again begins the next from it, which
 dreams of the last; a death by ledger is first born an animal (`rules.law = "animal"`, `src/engine/animal.js`). Play
-again starts clean. Next is 17, The laws (REDESIGN.md Phases 17–20).
+again starts clean. The death's form is by years: accident to 50, calamity 51–68, illness from 69. Its follow-up
+gives every stage past the child a female and a neutral figure by `p.gender` (`src/render/art.js`, pure), Hindi stage
+names that agree (`hiF`), and the interlude its animal's own sprite; under ?first the saṃskāra is kept in memory only. Next is 17, The laws (REDESIGN.md Phases 17–20).
 Phase 7 was The Exit (REDESIGN.md §4): Moksha is square 105 (`GOAL`), partway
 along the divine row, while the board still ends at 110 (`TOP`). Since Phase 12 nothing above the exit turns back: past 105 the
 heavens (106–110) are walked, and the throw that would pass `TOP` is the fall, which ends the life (`plan.fell`, `p.fell`;
@@ -143,6 +145,8 @@ illuminated frame (`frame.js`) and a bottom sheet below 768px (`sheet.js`).
   death tier for the current player, in that form: accident, calamity or illness), `mp.samskara(obj?)` (the saṃskāra store:
   read, replace, or `null` to empty), `mp.dream(l)` (the account of a life two born of the current life, played by a computer)
   and `mp.animal(kind)` (an animal interlude for the current person, at once: tortoise, jackal, mongoose, cat or lion).
+  Its follow-up adds `mp.sprites()` (every figure, by gender, and the animals, side by side on every band's ground) and
+  extends `mp.sprite(stage, color, frame, gender, animal)`.
 - No physics on any card. "Debt" is the only word a player sees for a seed, and the ledger's buckets, weights, fuses
   and chances are never shown as numbers. The 1 is the threshold face and the 6 is the world's (`tests/faces.test.mjs`).
 - Never use `unshift` on anything but the log: `tools/golden.mjs` records every `unshift` of an entry as logged.

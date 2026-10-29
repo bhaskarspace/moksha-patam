@@ -65,13 +65,16 @@ export const knowsWho = id => who.has(id);
 export const meetWho = id => { if (!id || who.has(id)) return; who.add(id); write(WHO, [...who]); };
 // mp.first(): this page treats the viewer as new from here on, as ?first does
 // ---- Saṃskāra (REDESIGN.md Phase 16, src/engine/samskara.js) ----
-// What a named person's ended life leaves the next, kept under the name as it is compared (nameKey). ?first neither reads
-// nor writes it, so a first-time player watched on a used device is born fresh.
+// What a named person's ended life leaves the next, kept under the name as it is compared (nameKey). ?first never reads
+// the stored one and writes nothing, so a first-time player watched on a used device is born fresh; it keeps its own in
+// memory for the page instead, so Be born again still dreams of the last life and a death by ledger reaches the interlude.
 const SAMSKARA = "mp-samskara";
-export const soulStore = () => storeOf(read(SAMSKARA, null));
+let mem = null;
+export const soulStore = () => storeOf(freshViewer ? mem : read(SAMSKARA, null));
 export const soulFor = key => (key && soulStore().souls[key]) || null;
+const keep = store => (freshViewer ? (mem = store) : write(SAMSKARA, store));
 // put key's record, or take it away with null
-export const keepSoul = (key, soul) => write(SAMSKARA, storeWith(soulStore(), key, soul));
-export const setSoulStore = raw => write(SAMSKARA, storeOf(raw));
+export const keepSoul = (key, soul) => keep(storeWith(soulStore(), key, soul));
+export const setSoulStore = raw => keep(storeOf(raw));
 
 export const beFirst = () => { lives = 0; opened = "moment"; who = new Set(); };

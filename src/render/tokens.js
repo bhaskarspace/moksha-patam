@@ -7,6 +7,7 @@ import { S, colRow, center, fx, fxClear, snakePath, snakeColors, drawHood, paint
 import { STAGES, stageOf, stageName, spriteURL } from "./sprites.js";
 import { renderPlayers } from "./log.js";
 import { gone } from "../engine/turn.js";
+import { isAnimal } from "../engine/animal.js";
 
 export const tokenEls = [];
 const OFFS = [[0, 0], [-2.2, -1.2], [2.2, -1.2], [-2.2, 1.2], [2.2, 1.2]];
@@ -26,9 +27,11 @@ export function buildTokens() {
   place(true);
 }
 
+// A person is drawn by their gender; during an animal interlude (Phase 16) as the creature they were born.
 export function setSprite(el, p, stage) {
-  el.querySelector(".spr").style.backgroundImage = spriteURL(stage, p.color, el._frame);
-  el.classList.toggle("divine", STAGES[stage].art === "divine");
+  const animal = isAnimal(G.state) ? G.state.rules.animal?.kind ?? "tortoise" : null;
+  el.querySelector(".spr").style.backgroundImage = spriteURL(stage, p.color, el._frame, p.gender, animal);
+  el.classList.toggle("divine", !animal && STAGES[stage].art === "divine");
 }
 
 function setXY(el, x, y) {
@@ -49,10 +52,11 @@ export function place(silent = false) {
     el.classList.toggle("left", p.face === "l" && el._frame < 2);
     const stage = stageOf(p);
     if (el._stage !== stage) {
-      if (el._stage != null && !silent) {
+      // an animal does not grow through the stages of a person's life, so its interlude is told no stage
+      if (el._stage != null && !silent && !isAnimal(G.state)) {
         retrigger(el, "poof");
         // growing up, or, on the Brahmā fall alone, being born again: a snake no longer makes anyone younger
-        const v = { name: pname(p), stage: stageName(stage) }, you = !p.name && p.color === 0;
+        const v = { name: pname(p), stage: stageName(stage, p.gender) }, you = !p.name && p.color === 0;
         const key = stage > el._stage ? "grew" : "bornAgain";
         toast(fill(t(key + (you && key !== "grew" ? "You" : ""), v), { name: v.name, gender: p.gender }));
       }
