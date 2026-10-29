@@ -1960,10 +1960,37 @@ non-trivial.
 > | rebirths a game | — → 1.05 | — → 1.03 | — → 0.89 |
 > | a game ends liberated | 43.5% → 86.3% | 35.4% → 65.2% | 27.5% → 45.5% |
 >
+> **Step 1's follow-up (Bhaskar, 29 Oct).** *Heaven lasts as long as the merit:* a life entering 106–109 may begin one
+> to four turns there, by sattva's share of its guṇas as it enters (`meritOf`: under 0.45 one, 0.6 two, 0.75 three, then
+> four), a stay counting as a turn; then nothing is thrown, and Śiva's snake takes it from the realm it is in, told as the
+> merit spent (`plan.spent`, `lSpent`, `fellBy: "spent"`; the account closes on that realm). The exact throw onto 110 is
+> still the snake. *Save and resume:* the game in progress is kept after every turn (`mp-game`, `saveGame`/`loadGame` in
+> `src/prefs.js`, wrapped, and anything unreadable is a new game) and resumed on reload; `?seed` starts its seed instead,
+> and `?first` reads and writes nothing. *A cast member gone at 100 does not return:* once a moment says someone is gone,
+> a life sent back down the board neither names them nor lives beside their squares (`castAlong`, `castArcs`), and the
+> fate lint runs over every life. The log now agrees Hindi with the life a line is about. Turns in 106–109 after it,
+> mean / p95 / max: honest 1.43 / 5 / 5, mixed 1.24 / 4 / 5, dishonest 1.03 / 3 / 5 (step 1 alone: 1.96 / 8 / 32, 1.95
+> / 8 / 27, 1.80 / 8 / 27). Liberated a life 41.9%, 32.2%, 24.2%; lives per liberation 2.39, 3.10, 4.14; turns a life
+> median 27, 29, 29 and p95 46, 48, 48. The fall splits into the exact throw 28.5%, 23.0%, 16.7% of lives and the merit
+> spent 22.9%, 27.7%, 30.3%. Merit on entering, mixed: one turn 20%, two 36%, three 33%, four 11%; honest leans to four,
+> dishonest to one. Accounts against step 1: every change is in a game that went above the exit.
+>
 > The turn cap (5000) was never hit. Per-life liberation falls a little because a life born through Śiva carries the
 > heaviest unmet debt as prārabdha, and the door refuses it more (refused arrivals 11.8% → 19.0% honest). Accounts against
 > `main` (2000 seeds, `--tag --lives=2`): every changed account went above the exit, or is a second life born of one that
 > did; each later life of a seat is hashed under `sivaN`, tagged `siva`. Golden: page and sim identical through rebirths.
+>
+> **Step 2, the law machinery (29 Oct).** A law is a module (`src/engine/laws/`): `board.js` is the game as step 1
+> left it, `animal.js` the animal interlude's rules that `turn.js` used to branch on, and `index.js` the registry
+> (`LAWS`, `choosable()`) and `lawOf(state, i)`: the player's `p.law`, else `rules.law`, else the board's. The engine
+> asks the law and never its id (a test reads `turn.js` for `.law ===`). The hooks so far, each the board's behaviour in
+> `board.js`: `movesFor(state, dice, base)`, `edge`, `situation`, `choose` (every computer's policy), `omen`, `curse`,
+> `merit`, `siva` (`"reborn"` or `"out"`), `afterTurn`, and `text` (`name`, `about`); the rest of §3.2's list (`climbs`,
+> `grace`, `winAt`, `door`, `rebirth`) arrives with the laws that need them. A law is chosen on the between-lives card and
+> per row in Players & rules, never in a viewer's first life and only when more than one is choosable, so the picker
+> stays hidden until step 3; the saṃskāra record keeps the choice (`soulOf`, `bornOf`). `?debug` adds `mp.law(id[,
+> "all"])`, the sim `--law=id`. Accounts byte-identical to step 1's follow-up (2000 seeds, `--lives=2`), the mixed sim
+> identical, golden identical.
 
 - Mīmāṃsā first (default), then Cārvāka, then the rest.
 - A law-select screen that explains each in the player's own terms before they commit.

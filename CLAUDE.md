@@ -65,7 +65,13 @@ names that agree (`hiF`), and the interlude its animal's own sprite; under ?firs
 offered and with none the life stays (`plan.stay`), and makes Śiva's snake rebirth in the seat (`bornAgain` in
 `src/engine/turn.js`): the closed life goes to `p.past`, the newborn is the same object at square 1 with a new name, and
 `p.rebirths` salts every sequence of a life's own. A seat's past life is read through `pastOf(state, i, k)`
-(`src/engine/samskara.js`); tests read first lives through `tests/lives.mjs`.
+(`src/engine/samskara.js`); tests read first lives through `tests/lives.mjs`. The heavens last as long as the merit:
+one to four turns begun in 106–109 by sattva as the life enters (`meritOf`, `p.merit`, `p.heavenTurns`), then nothing is
+thrown and Śiva's snake takes it (`spentOf`, `plan.spent`). A game in progress is kept after every turn and resumed on
+reload (`mp-game`, `saveGame`/`loadGame` in `src/prefs.js`); `?seed` starts fresh and `?first` keeps nothing. Its step 2 makes
+the rules a law (`src/engine/laws/`: `board.js`, `animal.js`, `lawOf(state, i)` in `index.js`, from `p.law`, then
+`rules.law`, then the board's). `turn.js` never branches on a law's id (`tests/laws.test.mjs` reads it); a difference is
+a hook in the law, defaulting to the board's.
 Phase 7 was The Exit (REDESIGN.md §4): Moksha is square 105 (`GOAL`), partway
 along the divine row, while the board still ends at 110 (`TOP`). Since Phase 12 nothing above the exit turns back: past 105 the
 heavens (106–110) are walked. Since Phase 17 no throw passes `TOP`, and the exact throw onto it is Śiva's snake, the fall
@@ -120,7 +126,8 @@ illuminated frame (`frame.js`) and a bottom sheet below 768px (`sheet.js`).
   instead (born of the last through `soulOf`/`bornOf`, a death by ledger's animal interlude between), and reports
   liberation by life, lives per liberation, the rebirth rate and the interludes per hundred lives. Since Phase 17 every
   number is per life (each `p.past` and the last; `livesOf` in `tools/sim.mjs`), plus turns per life, rebirths through
-  Śiva's snake a game and games that hit the turn cap (`CAP`, expected never); the heavens are 106–109.
+  Śiva's snake a game and games that hit the turn cap (`CAP`, expected never); the heavens are 106–109. `--law=id` plays
+  every seat under that law.
   Balance against the p95, the share over 100, liberation per life and lives per liberation.
 - `npm run smoke [-- --only=text]`: Playwright checks of the built page in a real browser (needs Chrome installed).
   `--only` runs just the checks whose names contain the text, e.g. `--only="Phase 6"`.
@@ -152,7 +159,7 @@ illuminated frame (`frame.js`) and a bottom sheet below 768px (`sheet.js`).
   read, replace, or `null` to empty), `mp.dream(l)` (the account of a life two born of the current life, played by a computer)
   and `mp.animal(kind)` (an animal interlude for the current person, at once: tortoise, jackal, mongoose, cat or lion).
   Its follow-up adds `mp.sprites()` (every figure, by gender, and the animals, side by side on every band's ground) and
-  extends `mp.sprite(stage, color, frame, gender, animal)`.
+  extends `mp.sprite(stage, color, frame, gender, animal)`. Phase 17 adds `mp.law(id[, "all"])` (the current player's law, or the whole game's).
 - No physics on any card. "Debt" is the only word a player sees for a seed, and the ledger's buckets, weights, fuses
   and chances are never shown as numbers. The 1 is the threshold face and the 6 is the world's (`tests/faces.test.mjs`).
 - Never use `unshift` on anything but the log: `tools/golden.mjs` records every `unshift` of an entry as logged.

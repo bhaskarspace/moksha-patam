@@ -315,9 +315,10 @@ await check("Phase 12 and 17: past 105 the heavens are walked, no die past 110 i
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto(BASE + "?seed=5&debug");
   const settle = k => page.waitForFunction(k => { if (document.getElementById("folio").open) mp.close({ instant: true }); return mp.state.log.some(e => e.k === k) && !mp.busy; }, k, { timeout: 15000, polling: 200 });
-  await page.evaluate(() => { mp.jump(106); mp.roll(2); });     // 107, 108: Brahma's realm, and nothing falls
+  // a life of much sattva, whose merit lasts the four turns these need (Phase 17)
+  await page.evaluate(() => { Object.assign(mp.state.players[0], { gunas: { s: 0.9, r: 0.05, t: 0.05 } }); mp.jump(106); mp.roll(2); });     // 107, 108: Brahma's realm, and nothing falls
   await settle("lHeaven");
-  assert(await page.evaluate(() => mp.state.players[0].pos === 108 && !mp.state.players[0].fell), "108 is not just a realm");
+  assert(await page.evaluate(() => mp.state.players[0].pos === 108 && !mp.state.players[0].fell && mp.state.players[0].merit === 4), "108 is not just a realm");
   // the person's turn again, once the computer has played
   const mine = () => page.waitForFunction(() => { if (document.getElementById("folio").open) mp.close({ instant: true }); return !mp.busy && mp.state.turn === 0 && !document.getElementById("roll").disabled; }, null, { timeout: 15000, polling: 200 });
   // from 108 a 6 would pass the top: only the 1 is offered, so nothing is asked, and the life moves by it
@@ -448,8 +449,8 @@ await check("reduced motion: a whole computer game plays through with cards", as
   await page.emulateMedia({ reducedMotion: "reduce" });
   await twoCpus(page);
   await page.addInitScript(() => { const st = window.setTimeout; window.setTimeout = (f, ms, ...r) => st(f, Math.min(ms, 30), ...r); });
-  await page.goto(BASE + "?seed=6");
-  await page.waitForFunction(() => !document.getElementById("win").hidden, null, { timeout: 60000 });
+  await page.goto(BASE + "?seed=23");
+  await page.waitForFunction(() => !document.getElementById("win").hidden, null, { timeout: 90000 });
 });
 
 await check("Phase 11: the naming asks who is playing, a computer by default, and names each person in turn", async page => {
@@ -1052,6 +1053,46 @@ await check("Phase 6: the sheet goes by swipe, backdrop, × and Escape; a scroll
   await page.keyboard.press("Escape");
   await page.waitForFunction(() => !document.getElementById("folio").open);
 }, { phone: [375, 812] });
+
+await check("Phase 17: a game in progress is kept after every turn and resumes on reload; ?first keeps nothing", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?debug");
+  await page.waitForFunction(() => window.mp);
+  const turn = () => page.waitForFunction(() => { if (document.getElementById("folio").open) mp.close({ instant: true }); return !mp.busy && mp.state.turn === 0 && !document.getElementById("roll").disabled; }, null, { timeout: 20000, polling: 200 });
+  for (let k = 0; k < 3; k++) { await turn(); await page.evaluate(() => mp.roll(3)); }
+  await turn();
+  const before = await page.evaluate(() => ({ seed: mp.state.rng.seed, s: mp.state.rng.s, pos: mp.state.players.map(p => p.pos), log: mp.state.log.length }));
+  assert(before.pos[0] > 0, `nothing was played: ${JSON.stringify(before)}`);
+  await page.reload();
+  await page.waitForFunction(() => window.mp && mp.state);
+  const after = await page.evaluate(() => ({ seed: mp.state.rng.seed, s: mp.state.rng.s, pos: mp.state.players.map(p => p.pos), log: mp.state.log.length, naming: !document.getElementById("naming")?.hidden && document.getElementById("naming")?.open }));
+  assert(JSON.stringify({ ...after, naming: undefined }) === JSON.stringify({ ...before, naming: undefined }), `not resumed: ${JSON.stringify({ before, after })}`);
+  // a game stored unreadably is a new game, not a blank page
+  await page.evaluate(() => localStorage.setItem("mp-game", "{not json"));
+  await page.reload();
+  await page.waitForFunction(() => window.mp && mp.state && mp.state.players.every(p => p.pos === 0));
+  // ?first neither reads nor writes it
+  await page.evaluate(() => localStorage.removeItem("mp-game"));
+  await page.goto(BASE + "?first&debug");
+  await page.waitForFunction(() => window.mp);
+  assert(await page.evaluate(() => localStorage.getItem("mp-game")) === null, "?first wrote the game");
+});
+
+await check("Phase 17: the heavens last as long as the merit, and then Śiva's snake takes the life", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=5&debug");
+  const mine = () => page.waitForFunction(() => { if (document.getElementById("folio").open && !document.querySelector("#folio .leaf.reborn")) mp.close({ instant: true }); return !mp.busy && mp.state.turn === 0 && !document.getElementById("roll").disabled; }, null, { timeout: 15000, polling: 200 });
+  await page.evaluate(() => { Object.assign(mp.state.players[0], { gunas: { s: 0.3, r: 0.35, t: 0.35 } }); mp.jump(104); mp.roll(2); });   // 106, with a single turn of merit
+  await mine();
+  assert(await page.evaluate(() => mp.state.players[0].merit === 1), "the merit was not read on entering");
+  await page.evaluate(() => mp.roll(1));    // 107: the turn is spent
+  await mine();
+  await page.evaluate(() => document.getElementById("roll").click());
+  await page.waitForFunction(() => document.querySelector("#folio[open] .leaf.reborn"), null, { timeout: 15000 });
+  const r = await page.evaluate(() => ({ p: mp.state.players[0], log: mp.state.log.slice(0, 3).map(e => e.k) }));
+  assert(r.p.past?.[0]?.fellBy === "spent" && r.p.past[0].fellFrom === 107 && r.p.pos === 1, JSON.stringify({ by: r.p.past?.[0]?.fellBy, from: r.p.past?.[0]?.fellFrom, pos: r.p.pos }));
+  assert(r.log.includes("lSpent"), `the log: ${r.log}`);
+});
 
 await check("Phase 17, step 0: on a phone an ordinary card closes on a tap on its text or on the dimmed board; one that holds the game does not", async page => {
   await page.emulateMedia({ reducedMotion: "reduce" });

@@ -14,6 +14,7 @@ import { worthOf, optionOf } from "./qbn.js";
 import { castOf, MEMBERS } from "./cast.js";
 import { pnameIn } from "../state.js";
 import { interludeFor, animalEndOf, isAnimal, KINDS } from "./animal.js";
+import { LAWS } from "./laws/index.js";
 
 export const SOUL_V = 1, KEEP_DEBTS = 6;
 // the roles whose names can return: the parents are never named
@@ -57,6 +58,8 @@ export function soulOf(state, i) {
     cast: NAMED.filter(w => cast[w]?.en).map(w => ({ role: w, gender: cast[w].gender, en: cast[w].en, hi: cast[w].hi })),
     dream: dream && { sq: dream.sq, opt: dream.opt },
     animal: null,
+    // the law it lived under, offered first to the next (Phase 17)
+    ...(p.law ? { law: p.law } : {}),
   };
   // a life the ledger ended is born an animal first (Phase 16's interlude), in the house of its rival or its friend
   if (end === "ledger") rec.animal = interludeFor(rec.last.holding, rec.cast);
@@ -89,6 +92,7 @@ export function bornOf(soul) {
   const dream = soul.dream && optionOf(soul.dream.sq, soul.dream.opt)?.dream ? soul.dream : null;
   return {
     gunas,
+    ...(typeof soul.law === "string" && LAWS[soul.law]?.choosable ? { law: soul.law } : {}),
     karma: { sancita: rest, agami: slice ? [{ ...slice, i: 0, prior: true }] : [], prarabdha: [] },
     prior: { lives: soul.lives, last: { ...soul.last, holding }, cast, dream, ...(KINDS.includes(soul.was) ? { was: soul.was } : {}) },
   };

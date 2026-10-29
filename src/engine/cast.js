@@ -145,12 +145,16 @@ export function meetsNamed(state, i, m) {
 // is where the life meets them, who it had met before, and the cast of the life it is in.
 export function castAlong(state, i, along) {
   // one cast a life; a life after the first draws its own, with names from the last (Phase 16)
-  const life = state.players[i].prior?.lives ?? 0, cast = castOf(state, i, life), met = new Set();
+  const life = state.players[i].prior?.lives ?? 0, cast = castOf(state, i, life), met = new Set(), gone = new Set();
   return along.map(e => {
     // a year sat out tells nothing, and nor does the square a reckoning sent the life back to (REDESIGN.md Phase 12)
-    const m = e.via === "sit" || e.via === "reckon" ? null : momentOf(e.n, e.told).moment, about = m?.cast ?? null, before = new Set(met);
+    const m = e.via === "sit" || e.via === "reckon" ? null : momentOf(e.n, e.told).moment;
+    // once a moment has said a member is gone (100), a life sent back down the board does not meet them again: a moment
+    // about them is told without them, and they are no longer called by name (Phase 17)
+    const about = m?.cast && !gone.has(m.cast) ? m.cast : null, before = new Set([...met].filter(w => !gone.has(w)));
     const meets = !!about && !met.has(about) && m.introduces !== false;
     if (meets) met.add(about);
+    for (const w of m?.gone ?? []) gone.add(w);
     return { about, meets, before, cast, life };
   });
 }
@@ -170,7 +174,8 @@ export function castArcs(state, i, along, cc = castAlong(state, i, along)) {
     if (e.via === "reckon") continue;
     if (c.meets) order.push(c.about);
     if (c.about) { seen[c.about] = Math.max(seen[c.about] ?? 0, e.years); told.add(e.via === "sit" ? null : momentOf(e.n, e.told).moment); }
-    for (const who of MEMBERS) if (SQUARES[who]?.has(e.n)) landed[who] = Math.max(landed[who] ?? 0, e.years);
+    // a square of theirs landed on after 100 has said they are gone is not lived beside them (Phase 17)
+    for (const who of MEMBERS) if (SQUARES[who]?.has(e.n) && !gone?.who.has(who)) landed[who] = Math.max(landed[who] ?? 0, e.years);
     const m = e.via === "sit" ? null : momentOf(e.n, e.told).moment;
     if (m?.gone && gone == null) gone = { years: e.years, who: new Set(m.gone) };
   }

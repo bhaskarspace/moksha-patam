@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createGame, planTurn, playTurn, rollDice, rollValue, diceFor, movesFor, moveFor, canSit, ENDGAME } from "../src/engine/turn.js";
+import { createGame, planTurn, playTurn, rollDice, rollValue, diceFor, movesFor, moveFor, canSit, ENDGAME, meritOf, spentOf } from "../src/engine/turn.js";
 import { makeRng } from "../src/rng.js";
 import { playGame } from "../tools/sim.mjs";
 
@@ -91,6 +91,28 @@ test("Śiva's snake: a landing on 110 ends the life, and the same soul is born a
   assert.equal(s.log[0].life, 1);
   assert.ok(!s.log.some(e => e.k === "lHeaven" && e.v.pos === 110));
   assert.ok(!s.over);
+});
+
+// Phase 17 (Bhaskar, 29 Oct): the heavens last as long as the merit, one to four turns begun there by the guṇas as the
+// life enters them; then nothing is thrown, and Śiva's snake takes the life from where it is.
+test("the heavens last one to four turns, by sattva, and then the merit is spent", () => {
+  const g = s => ({ gunas: { s, r: (1 - s) / 2, t: (1 - s) / 2 } });
+  assert.deepEqual([0.3, 0.5, 0.65, 0.9].map(s => meritOf(g(s))), [1, 2, 3, 4]);
+  const s = game(104), p = s.players[0];
+  p.gunas = g(0.5).gunas;
+  playTurn(s, 2);                       // into 106: two turns of merit
+  assert.equal(p.merit, 2);
+  s.turn = 0; playTurn(s, [6, 6], () => null);   // a stay is a turn in the heavens
+  s.turn = 0; playTurn(s, [1, 1], () => 1);      // 107
+  assert.ok(spentOf(p) && p.pos === 107 && p.heavenTurns === 2);
+  s.turn = 0;
+  const years = p.years, fall = playTurn(s);     // nothing is thrown
+  assert.ok(fall.spent && fall.fell && fall.fellBy === "spent" && fall.v === null);
+  assert.deepEqual(fall.path, [108, 109, 110]);
+  const was = p.past[0];
+  assert.ok(was.fell && was.fellFrom === 107 && was.years === years);
+  assert.ok(p.pos === 1 && p.rebirths === 1 && p.merit === undefined && !spentOf(p));
+  assert.deepEqual(s.log.slice(0, 2).map(e => e.k), ["lReborn", "lSpent"]);
 });
 
 test("a player born again through Śiva's snake keeps their seat, and their turn", () => {

@@ -2,11 +2,12 @@
 import { GOAL, TOP, ROWS, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, STR, squareOf } from "./content.js";
 import { lang, urlLang, setLangValue, L, num, t, tIn } from "./i18n.js";
 import { G, defaultSetup, pname, pnameIn, cur, newState, loadSelf, saveSelf } from "./state.js";
-import { prefs, setPref, applyTheme, lifeLived, beFirst, freshViewer, firstLife, soulStore, soulFor, keepSoul, setSoulStore } from "./prefs.js";
+import { prefs, setPref, applyTheme, lifeLived, beFirst, freshViewer, firstLife, soulStore, soulFor, keepSoul, setSoulStore, saveGame, loadGame } from "./prefs.js";
 import { $, COLORS, esc, reduced, sleep, quality, forcedQuality, setQuality } from "./ui.js";
 import { die, makeRng, freshSeed } from "./rng.js";
-import { TUMBLE, planTurn, resolveChoice, endTurn, addLog, diceFor, movesFor, moveFor, gone, canSit, createGame, playTurn } from "./engine/turn.js";
-import { optionsFor, choiceFor, situationAt, momentOf } from "./engine/qbn.js";
+import { TUMBLE, planTurn, resolveChoice, endTurn, addLog, diceFor, movesFor, moveFor, gone, canSit, createGame, playTurn, spentOf } from "./engine/turn.js";
+import { optionsFor, situationAt, momentOf } from "./engine/qbn.js";
+import { LAWS, lawOf, choosable } from "./engine/laws/index.js";
 import { S, colRow, labEls, buildCells, draw, drawAge, fxClear, focusSquare } from "./render/board.js";
 import { lens, wash, stageOf, lookOf, clearOf } from "./render/age.js";
 import { ageStep } from "./engine/self.js";
@@ -162,13 +163,15 @@ async function takeTurn() {
   let shut = null;
   if (p.type === "human") { clearLanded(); G.humanRolled = true; if (cardOpen() && diceFor(p) < 2) shut = closeCard(); }
   release();
-  const dice = await rollDice(diceFor(p));
+  // the merit spent in the heavens (Phase 17): nothing is thrown, and Śiva's snake takes the life
+  const spent = spentOf(p);
+  const dice = spent ? [] : await rollDice(diceFor(p));
   await shut;
   if (g !== G.gen) return;
   state.dice = dice;
   // a choice with only one move in it (a double, where there is no sitting, or in the heavens a die that would pass the
   // top) is not asked; with none, the life stays where it is (Phase 17)
-  const moves = dice.length > 1 ? movesFor(state, dice) : [dice[0]];
+  const moves = spent ? [] : dice.length > 1 ? movesFor(state, dice) : [dice[0]];
   const v = moves.length < 2 ? moves[0] ?? null : p.type === "human" ? await choose(dice) : moveFor(state, dice);
   if (g !== G.gen) return;
   if (p.type === "human" && !shut && cardOpen()) await closeCard();
@@ -226,7 +229,7 @@ async function takeTurn() {
           G.waitingCard = true; refreshRoll();
           openSquare(p.pos, { landing: true, who: idx });
         }
-        const id = p.type === "human" ? await decide(plan.situation, p) : choiceFor(state, plan.situation);
+        const id = p.type === "human" ? await decide(plan.situation, p) : lawOf(state, idx).choose(state, plan.situation);
         if (g !== G.gen) return;
         plan = resolveChoice(state, plan, id);
         G.plan = plan;
@@ -334,6 +337,8 @@ async function takeTurn() {
   G.busy = false;
   render();
   age();
+  // kept after every turn, so a reload resumes here (Phase 17)
+  saveGame(G.setup, state);
   queueCpu();
   pump();
 }
@@ -489,13 +494,18 @@ function rebornRows(state) {
     const key = soulKey(p), soul = (endOf(state, i) || p.past?.length) && soulFor(key), born = soul && bornOf(soul);
     if (!born) return { ...G.setup.rows[i] };
     any = true;
-    const row = { name: "", type: "human", gender: "", born, soul: key, avoid: [pnameIn(p, "en"), ...soul.cast.map(c => c.en)] };
+    // the law: the one the setup now asks for in that seat, or else the one the last life lived under
+    const row = { name: "", type: "human", gender: "", born, soul: key, avoid: [pnameIn(p, "en"), ...soul.cast.map(c => c.en)], law: G.setup.rows[i]?.law ?? born.law };
     if (soul.animal && !animal) animal = { row: { ...row, born: null }, interlude: soul.animal };
     return row;
   });
   if (animal) return { rows: [animal.row], rules: animalRules(animal.interlude, G.setup.rules) };
   return any ? { rows, rules: G.setup.rules } : null;
 }
+
+// ---- The laws (Phase 17) ----
+// A law is offered only once there is more than one to choose, and never in a viewer's first life.
+const lawsOffered = () => choosable().length > 1 && !firstLife();
 
 // ---- Setup panel ----
 function renderSetup() {
@@ -513,6 +523,7 @@ function renderSetup() {
       <select id="pgender${i}" aria-label="${t("namingAs")} · ${t("colour" + i)}">
         ${[["", "genderAny"], ["f", "genderF"], ["m", "genderM"], ["n", "genderN"]].map(([v, k]) => `<option value="${v}"${(r.gender || "") === v ? " selected" : ""}>${t(k)}</option>`).join("")}
       </select>
+      ${lawsOffered() ? `<select id="plaw${i}" aria-label="${t("lawPick")} · ${t("colour" + i)}">${choosable().map(w => `<option value="${w.id}"${(r.law || "board") === w.id ? " selected" : ""}>${t(w.text.name)}</option>`).join("")}</select>` : ""}
     </div>`).join("");
   $("ruleSix").checked = setup.rules.six;
   $("prefDepth").innerHTML = [["story", "depthStory"], ["school", "depthSchool"], ["scholar", "depthScholar"]]
@@ -526,6 +537,7 @@ function readSetup() {
   const setup = G.setup;
   setup.rows.slice(0, setup.count).forEach((r, i) => {
     r.name = $("pname" + i).value; r.type = $("ptype" + i).value; r.gender = $("pgender" + i).value;
+    if ($("plaw" + i)) r.law = $("plaw" + i).value === "board" ? undefined : $("plaw" + i).value;
   });
   setup.rules = { six: $("ruleSix").checked };
 }
@@ -587,6 +599,7 @@ function startGame({ reborn = false, next = null } = {}) {
   G.busy = false;
   G.state = newState(nextSeed ?? freshSeed(), born?.rows, born?.rules);
   nextSeed = null;
+  saveGame(G.setup, G.state);
   buildTokens();
   render();
   age(true);
@@ -871,10 +884,21 @@ if (new URLSearchParams(location.search).has("debug")) {
       return text;
     },
     siva() { const v = TOP - cur().pos; if (v < 1 || v > 6 || !canThrow()) return false; G.forcedRoll = v; return v; },
+    // Phase 17: mp.law(id) sets the current player's law, mp.law(id, "all") the whole game's; mp.law() reads it
+    law(id, all) {
+      if (id == null) return lawOf(G.state).id;
+      if (!LAWS[id]) return false;
+      if (all === "all") { G.state.rules.law = id === "board" ? undefined : id; G.state.players.forEach(q => { delete q.law; }); }
+      else if (id === "board") delete cur().law; else cur().law = id;
+      render(); saveGame(G.setup, G.state);
+      return lawOf(G.state).id;
+    },
   };
 }
 
 function start(data) {
+  // a game left in progress resumes (Phase 17), unless a seed was asked for or the host brought its own
+  if (!data?.state && urlSeed == null) { const g = loadGame(); if (g) data = { ...data, setup: data?.setup ?? g.setup, state: g.state }; }
   G.setup = data?.setup || defaultSetup();
   if (data?.setup?.lang && !urlLang) setLangValue(data.setup.lang);
   applyStatic();

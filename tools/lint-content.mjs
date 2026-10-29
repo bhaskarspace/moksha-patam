@@ -578,16 +578,17 @@ export function lintFates(seeds = 500) {
   for (let seed = 1; seed <= seeds; seed++) for (const gender of ["m", "f"]) {
     const s = createGame({ players: [{ name: "", type: "cpu", gender }], rules: { six: true }, seed });
     while (!s.over) playTurn(s);
-    // the seat's first life (Phase 17: one Śiva's snake closed is kept in p.past)
-    const v = pastOf(s, 0, s.players[0].past?.length ? 0 : null);
+    // every life the seat lived (Phase 17: those Śiva's snake closed, in p.past, then the last)
+    for (const [k, v] of [...(s.players[0].past ?? []).map((_, k) => [k, pastOf(s, 0, k)]), [null, s]]) {
     const p = v.players[0], along = yearsAlong(p.life || [], p.told || []).filter(e => e.via !== "stay");
     for (const a of castArcs(v, 0, along)) {
-      const w = `fates: seed ${seed} ${gender}, the ${a.who}`;
+      const w = `fates: seed ${seed} ${gender}${k == null ? "" : `, life ${k + 1}`}, the ${a.who}`;
       if (a.death == null) { if (a.kind !== "outlived") errors.push(`${w} has no death and does not outlive`); continue; }
       if (a.seen != null && a.death <= a.seen && a.kind !== "seen") errors.push(`${w} dies at ${a.death}, not after the life last saw them at ${a.seen}`);
       if (a.death < a.floor && a.kind !== "seen") errors.push(`${w} dies at ${a.death}, before the board's last word on them at ${a.floor}`);
       if (a.ceil != null && a.death >= a.ceil) errors.push(`${w} dies at ${a.death}, but square 100 said they were gone at ${a.ceil}`);
       if ((a.kind === "outlived") !== (a.death > a.end) && a.kind !== "seen") errors.push(`${w} is "${a.kind}" with death ${a.death} and the life over at ${a.end}`);
+    }
     }
   }
   return errors;

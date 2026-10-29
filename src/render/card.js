@@ -9,6 +9,7 @@ import { castOf, castAlong, peopleOf, introIn } from "../engine/cast.js";
 import { momentOf, destOf, egoOf } from "../engine/qbn.js";
 import { reckonLinesIn, refusalIn, examLinesIn, debtsIn } from "../engine/karma.js";
 import { canSit } from "../engine/turn.js";
+import { LAWS, lawOf, choosable } from "../engine/laws/index.js";
 import { curseSaidIn } from "../engine/curse.js";
 import { prefs, hasMet, meet, firstLife, firstOpened, openFirst, knowsWho, meetWho } from "../prefs.js";
 import { G, pnameIn } from "../state.js";
@@ -387,6 +388,11 @@ function rebornHtml(was, l) {
   const line = (x, k) => fill(tIn(x, k, { name: pnameIn(p, x), was: pnameIn(q, x) }), k === "bornAgainCard" ? { gender: q.gender } : who(x));
   let body = `<h2 id="leafTitle">${esc(tIn(l, "bornAgainHead"))}</h2>`;
   body += `<div class="story">` + texts(l, line("en", "bornAgainCard"), line("hi", "bornAgainCard"), "moment") + texts(l, line("en", "bornAgainNew"), line("hi", "bornAgainNew"), "remedy") + `</div>`;
+  // the law the new life plays under, once there is more than one to choose and this is not the viewer's first life
+  if (choosable().length > 1 && !firstLife()) {
+    const now = lawOf(G.state, subject).id;
+    body += `<div class="laws" role="group" aria-label="${esc(tIn(l, "lawPick"))}">` + choosable().map(w => `<button type="button" class="law" data-act="law" data-law="${w.id}" aria-pressed="${w.id === now}"><b>${esc(tIn(l, w.text.name))}</b> <span>${esc(tIn(l, w.text.about))}</span></button>`).join("") + `</div>`;
+  }
   body += `<p class="reborn-acts"><button type="button" class="ghost" data-act="pastLife">${esc(tIn(l, "readPast"))}</button> <button type="button" data-act="close">${esc(tIn(l, "goOn"))}</button></p>`;
   return { kind: "reborn", met: [], html: frame(l, { kind: "reborn", eb: esc(tIn(l, "bornAgainHead")), big: art("fall", "🔱", "spr snake-glyph"), sqn: numIn(l, TOP), body, foot: "" }) };
 }
@@ -650,6 +656,7 @@ dlg.addEventListener("click", e => {
   const act = e.target.closest("[data-act]")?.dataset.act;
   if (act === "close") return closeCard();
   if (act === "pastLife") { readPast = true; return closeCard(); }
+  if (act === "law") { const p = subjectOf(), id = e.target.closest("[data-law]").dataset.law; if (p && LAWS[id]) { if (id === "board") delete p.law; else p.law = id; paint(); } return; }
   if (act === "roll") return roll();
   if (act === "pick") return pickFn(+e.target.closest("[data-v]").dataset.v);
   if (act === "opt") { const b = e.target.closest("[data-id]"); if (b.getAttribute("aria-disabled") !== "true") decideFn(b.dataset.id); return; }

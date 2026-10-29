@@ -32,9 +32,10 @@
 // Phase 17 ends the throw past 110 (no die is offered that would pass it; with none the life stays) and makes Śiva's
 // snake rebirth in the seat: a game is now one or more lives a seat (p.past, then the life in it), and every number a
 // life is per life. The report adds rebirths a game, and a safety net on the turns of a game (CAP), with how often it
-// was hit, which should be never.
+// was hit, which should be never. --law=id plays every computer under that law. The heavens last as long as the merit (p.merit, one to four turns by the guṇas): the
+// fall is split into the exact throw onto 110 and the merit spent, with the merit lives entered the heavens with.
 import { pathToFileURL } from "node:url";
-import { createGame, playTurn, moveFor, movesFor, planTurn, rollDice, diceFor, setEndgame, ENDGAME, canSit } from "../src/engine/turn.js";
+import { createGame, playTurn, moveFor, movesFor, planTurn, rollDice, diceFor, setEndgame, ENDGAME, canSit, spentOf } from "../src/engine/turn.js";
 import { SQ, SITUATIONS, CURSES } from "../src/content.js";
 import { curseIn } from "../src/engine/curse.js";
 import { setPolicy, setEgo, worthOf, optionOf } from "../src/engine/qbn.js";
@@ -42,6 +43,7 @@ import { SPAN, setSpan, yearsAlong, BHUMIKA_AT, TURYA, setPractice } from "../sr
 import { setDeath, setPenance, setUnpaid, FORMS } from "../src/engine/karma.js";
 import { soulOf, bornOf } from "../src/engine/samskara.js";
 import { animalRules, afterAnimal } from "../src/engine/animal.js";
+import { LAWS } from "../src/engine/laws/index.js";
 
 // Phase 9's choice, before Phase 12 made the fall the heavens' snake: the exit, else the bigger die that is not a
 // snake, else sitting. Kept to show what the new choice is worth.
@@ -81,7 +83,7 @@ export function playGame(seed, { players = 2, rules = SIM_RULES, pick = moveFor,
     // a turn begun above the exit is a turn spent in the heavens (REDESIGN.md Phase 12): since Phase 17, 106–109
     if (state.players[state.turn].pos > 105) w.heaven++;
     const before = state.log[0];
-    const plan = playTurn(state, rollDice(state.rng, diceFor(state.players[state.turn])), pick), p = state.players[plan.idx];
+    const q = state.players[state.turn], plan = playTurn(state, spentOf(q) ? [] : rollDice(state.rng, diceFor(q)), pick), p = state.players[plan.idx];
     if (p.bhumika != null && !plan.fell) w.seen.add(p.bhumika);
     const k = w.karma;
     if (plan.plant) k.planted++;
@@ -146,7 +148,9 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   if (flags.penance) setPenance(+flags.penance);
   if (flags.unpaid) setUnpaid(+flags.unpaid);
   const pick = PICKS[flags.pick || "plain"];
-  const rules = SIM_RULES;
+  // --law: every computer plays under that law (Phase 17, src/engine/laws/index.js); --policy still says how it chooses
+  if (flags.law && !LAWS[flags.law]) throw new Error(`no law ${flags.law}: ${Object.keys(LAWS).join(", ")}`);
+  const rules = flags.law ? { ...SIM_RULES, law: flags.law } : SIM_RULES;
   const pct = x => `${(x * 100).toFixed(1)}%`;
   // --lives: one soul's lives a seed (Phase 16)
   if (flags.lives) {
@@ -214,7 +218,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   let planted = 0, eligible = 0, fired = 0, reckoned = 0, arrivals = 0, refusedLives = 0, dyingLives = 0, carriedEnd = 0;
   const bands = {}, tiers = Array(5).fill(0), refusals = {}, dieAges = {};
   // Phase 14
-  let fellSnake = 0, refusedAll = 0, couldSit = 0, doorDeaths = 0, throughDoor = 0, passed = 0, penanced = 0, cursed = 0, cursedLanded = 0, cursedOpen = 0;
+  let fellSnake = 0, fellSpent = 0, refusedAll = 0, couldSit = 0, doorDeaths = 0, throughDoor = 0, passed = 0, penanced = 0, cursed = 0, cursedLanded = 0, cursedOpen = 0;
   const doorYears = [];
   // Phase 15: the ego's throws, by the faces it owned: [6] sattva, [5,6] mixed, [4,5,6] rajas or tamas, [] none
   const BANDS = ["none", "sattva", "mixed", "rajas/tamas"], egoBands = BANDS.map(() => [0, 0]);
@@ -222,7 +226,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   // Phase 16: deaths by cause, and the ledger's by age and form
   const causes = { ledger: 0, years: 0, door: 0 }, ledgerAges = {}, forms = Object.fromEntries(FORMS.map(f => [f, 0]));
   // Phase 17: the turns of each life, rebirths through Śiva's snake a game, and games that hit the cap
-  const lifeTurns = [];
+  const lifeTurns = [], merits = {};
   let rebirths = 0, capped = 0;
   for (let s = first; s < first + games; s++) {
     const g = playGame(s, { players, rules, pick }), { turns, per, players: ps } = g;
@@ -247,7 +251,8 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       dyingLives += k.dies.length > 0;
       if (k.dies.length) { const a = k.dies[0], band = a < 40 ? "under 40" : a < 60 ? "40–59" : a < 80 ? "60–79" : "80+"; dieAges[band] = (dieAges[band] || 0) + 1; }
       carriedEnd += (p.karma?.sancita?.length ?? 0) > 0;
-      fellSnake += p.fellBy === "snake";
+      fellSnake += p.fellBy === "snake"; fellSpent += p.fellBy === "spent";
+      if (p.merit != null) (merits[p.merit] = (merits[p.merit] || 0) + 1);
       refusedAll += k.refused.length; couldSit += k.couldSit; throughDoor += k.throughDoor;
       if (k.doorYears) doorYears.push(k.doorYears);
       doorDeaths += !!p.dead && p.pos === 105;
@@ -309,7 +314,8 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   console.log(`death: ${pct((causes.ledger + causes.years + causes.door) / lives)} of lives, by the ledger ${pct(causes.ledger / lives)}, years on earth ${pct(causes.years / lives)}, years at the door ${pct(causes.door / lives)}; the ledger's by age ${Object.entries(ledgerAges).map(([b, c]) => `${b}: ${c}`).join(", ") || "none"}; by form ${FORMS.map(f => `${f} ${forms[f]}`).join(", ")}`);
   console.log(`the door: arrivals at 105 ${(arrivals / lives).toFixed(2)} a life, refused ${arrivals ? pct(nref / arrivals) : "—"} of them (${Object.entries(refusals).map(([r, c]) => `${r} ${c}`).join(", ") || "none"}); lives refused at least once ${pct(refusedLives / lives)}`);
   const dy = summarise(doorYears.length ? doorYears : [0]);
-  console.log(`the fall: Śiva's snake on 110 ${pct(fellSnake / lives)}; refusals ${(refusedAll / lives).toFixed(3)} a life, of which a sannyāsin who could sit ${refusedAll ? pct(couldSit / refusedAll) : "—"}`);
+  const entered = Object.values(merits).reduce((a, b) => a + b, 0);
+  console.log(`the fall: Śiva's snake by the exact throw ${pct(fellSnake / lives)}, the merit spent ${pct(fellSpent / lives)}; merit on entering the heavens, of ${entered} lives: ${[1, 2, 3, 4].map(n => `${n} turn${n > 1 ? "s" : ""} ${pct((merits[n] || 0) / Math.max(1, entered))}`).join(", ")}; refusals ${(refusedAll / lives).toFixed(3)} a life, of which a sannyāsin who could sit ${refusedAll ? pct(couldSit / refusedAll) : "—"}`);
   console.log(`the examination: lives that sat at the door ${pct(doorYears.length / lives)}, years there median ${dy.median}, p95 ${dy.p95}, max ${dy.max} (mean ${(doorYears.reduce((a, b) => a + b, 0) / lives).toFixed(3)} a life); debts the book answered ${passed}, paid in penance ${penanced}; through the door ${pct(throughDoor / lives)} of lives; deaths at the door ${pct(doorDeaths / lives)}`);
   console.log(`the curse: spoken in ${pct(cursed / lives)} of lives; closed by landing ${cursed ? pct(cursedLanded / cursed) : "—"}, the other way ${cursed ? pct((cursed - cursedLanded - cursedOpen) / cursed) : "—"}`);
   console.log(`the witness: ego throws ${(throws / lives).toFixed(3)} a life, rebellions ${(rebellions / lives).toFixed(3)} a life (${throws ? pct(rebellions / throws) : "—"} of throws); lives that rebelled ${pct(rebelLives / lives)}`);
