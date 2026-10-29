@@ -30,7 +30,8 @@ function stageLine(pl) {
   if (pl.pos === 0) return t("notBorn");
   if (pl.dead) return fill(t(ENDED[pl.death?.by] ?? "dead"), { gender: pl.gender });
   if (isAnimal(G.state)) { const a = t("a_" + (G.state.rules.animal?.kind ?? "tortoise")); return a.charAt(0).toUpperCase() + a.slice(1); }
-  return [...new Set([stageName(stageOf(pl), pl.gender), ashramaIn(pl)])].join(" · ");
+  // a life born again through Śiva's snake says so while it is a child (Phase 17)
+  return [...(pl.rebirths && stageOf(pl) === 0 ? [t("bornAgainStage")] : []), ...new Set([stageName(stageOf(pl), pl.gender), ashramaIn(pl)])].join(" · ");
 }
 
 export function renderPlayers() {
@@ -45,9 +46,15 @@ export function renderPlayers() {
   renderLedger();
 }
 
+// The life an entry is about: the seat's player, or a life of it Śiva's snake closed (Phase 17, p.past).
+const lifeOfEntry = e => {
+  const p = e.who == null ? null : G.state.players[e.who];
+  return p && (e.life ?? 0) !== (p.rebirths ?? 0) ? p.past?.[e.life ?? 0] ?? p : p;
+};
+
 // A log entry as the log says it, in the page's language.
 export function entryText(e) {
-  const who = e.who == null ? null : G.state.players[e.who];
+  const who = lifeOfEntry(e);
   return e.k ? t(e.k, { ...e.v, name: who ? pname(who) : "", what: e.v?.sq ? squareName(e.v.sq) : "" }) : e.text;
 }
 

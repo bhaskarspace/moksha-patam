@@ -1342,7 +1342,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         pathDied: "Death",
         mirrorSkip: "Back to the book",
         lPassed: "Passed:",
-        aboveExit: "Moksha is behind you now, on {n}. Nothing up here turns back: these realms are walked, and the throw past {top} is the fall.",
+        aboveExit: "Moksha is behind you now, on {n}. Nothing up here turns back: these realms are walked, no throw goes past {top}, and the throw that lands on it is Śiva's snake, down to a new birth.",
         bornAgain: "{name} is born again",
         bornAgainYou: "You are born again",
         lDied: "{name}'s years ran out at {age}, on square {pos}.",
@@ -1402,11 +1402,22 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         lEgoRebel: "{name} chose on {pos}, and the ego's die did the other thing.",
         lStayOne: "{name} spent a year on {pos}, {what}.",
         lStay: "{name} spent {n} years on {pos}, {what}.",
-        lFell: "{name} rolled {v} on {pos}: past the top of the heavens. The merit is spent, and the life with it.",
         fellText: "The merit ran out in the heavens. The life is written down.",
         fell: "Merit spent",
-        fallHead: "The fall · past this realm",
-        fallFoot: "Past here, the fall",
+        lHeavenStay: "{name} rolled {a} and {b} on {pos}: no throw goes past the top of the heavens, so {name} stays.",
+        lReborn: "{name} is born again at the snake's tail, the same soul under another name.",
+        stayTitle: "No throw past the top",
+        heavenStay: "Neither die may be moved by: no throw goes past the top of the heavens. {name} stays in this realm, and the years stand still here.",
+        bornAgainHead: "Born again",
+        bornAgainLine: "Śiva's snake took {was} down, and the same soul is born again as {name}.",
+        bornAgainCard: "Śiva's snake took {was} down from the top of the heavens. The merit is spent, and that life is written in the book.",
+        bornAgainNew: "The same soul is born again at the snake's tail, as {name}, and carries what the last life left: not its name, and not its memory.",
+        bornAgainStage: "Born again",
+        readPast: "Read the book of the life",
+        goOn: "Go on",
+        lifeLives: "Which life",
+        fallHead: "The fall · Śiva's snake",
+        fallFoot: "Land here, and Śiva's snake takes the life down, to be born again",
         lifeEndFell: "{name} rose as far as the realm of {realm} and lived there on what had been earned below, a little at a time, until none was left, and went back down into the world, {holding}.",
         lifeEndFellFree: "{name} rose as far as the realm of {realm} and lived there on what had been earned below, a little at a time, until none was left, and went back down into the world with nothing in particular in hand.",
         lReckon: "{name} rolled a six, and a debt from square {src} came due.",
@@ -1428,8 +1439,6 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         carryArtha: "still holding on to what was earned",
         carryKama: "still holding on to what was wanted",
         listAnd: " and ",
-        lifeEndFellDoor: "{name} came as far as the door, and it did not open, and a later throw went on past it into the heavens, and the merit was spent there, {holding}.",
-        lifeEndFellDoorFree: "{name} came as far as the door, and it did not open, and a later throw went on past it into the heavens, and the merit was spent there.",
         ledgerHead: "Ledger",
         ledgerEmpty: "Nothing carried.",
         ledgerHeld: "made, not yet ripe · āgāmi · sattā",
@@ -1443,7 +1452,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         lExamPaid: "{name} sat a year at the door in penance, and the debt from square {src} is paid.",
         lDoorOpen: "Nothing is owed, and the door opens for {name}.",
         lDiedDoor: "{name}'s years ran out at {age}, sitting at the door.",
-        lSiva: "{name} rolled {v} and landed on {pos}, and Śiva's snake took {name} down to the world. The merit is spent, and the life with it.",
+        lSiva: "{name} rolled {v} and landed on {pos}, and Śiva's snake took {name} down to the world, to be born again. The merit is spent, and the life with it.",
         examTitle: "The door asks",
         examHead: "The door",
         examAsks: "The door asks: {q}",
@@ -1656,7 +1665,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         pathDied: "मृत्यु",
         mirrorSkip: "बही पर लौटें",
         lPassed: "रास्ते में:",
-        aboveExit: "मोक्ष अब पीछे छूट गया, {n} पर। यहाँ ऊपर से कुछ नहीं लौटता: इन लोकों में आगे ही चलना है, और {top} के पार का दाँव पतन है।",
+        aboveExit: "मोक्ष अब पीछे छूट गया, {n} पर। यहाँ ऊपर से कुछ नहीं लौटता: इन लोकों में आगे ही चलना है, कोई दाँव {top} के पार नहीं जाता, और जो दाँव ठीक उस पर पड़ता है वह शिव का नाग है, नीचे एक नए जन्म तक।",
         bornAgain: "{name} का फिर से जन्म हुआ",
         bornAgainYou: "आपका फिर से जन्म हुआ",
         lDied: "{name} के बरस {age} की आयु में, खाना {pos} पर, पूरे हुए।",
@@ -1716,11 +1725,22 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         lEgoRebel: "{name} ने {pos} पर चुनाव किया, और अहंकार के पासे ने उलटा ही करवाया।",
         lStayOne: "{name} ने खाना {pos}, {what}, पर एक बरस बिताया।",
         lStay: "{name} ने खाना {pos}, {what}, पर {n} बरस बिताए।",
-        lFell: "{name} का {v} आया, {pos} पर: स्वर्गों के शिखर के पार। पुण्य क्षीण हुआ, और उसके साथ यह जीवन।",
         fellText: "स्वर्ग में पुण्य चुक गया। जीवन लिखा जा चुका है।",
         fell: "पुण्य क्षीण",
-        fallHead: "पतन · इस लोक के पार",
-        fallFoot: "इसके पार, पतन",
+        lHeavenStay: "{name} का {a} और {b} आया, {pos} पर: कोई दाँव स्वर्गों के शिखर के पार नहीं जाता, इसलिए {name} वहीं ठहरे।",
+        lReborn: "नाग की पूँछ पर {name} का फिर से जन्म होता है: वही आत्मा, दूसरे नाम से।",
+        stayTitle: "शिखर के पार कोई दाँव नहीं",
+        heavenStay: "किसी भी पासे से चला नहीं जा सकता: कोई दाँव स्वर्गों के शिखर के पार नहीं जाता। {name} इसी लोक में {ठहरता|ठहरती} है, और यहाँ बरस थमे रहते हैं।",
+        bornAgainHead: "फिर से जन्म",
+        bornAgainLine: "शिव का नाग {was} को नीचे ले गया, और वही आत्मा {name} बनकर फिर से जन्म लेती है।",
+        bornAgainCard: "शिव का नाग {was} को स्वर्गों के शिखर से नीचे ले गया। पुण्य क्षीण हुआ, और वह जीवन बही में लिखा जा चुका है।",
+        bornAgainNew: "वही आत्मा नाग की पूँछ पर फिर से जन्म लेती है, {name} बनकर, और पिछला जीवन जो छोड़ गया वह साथ लाती है: उसका नाम नहीं, उसकी याद नहीं।",
+        bornAgainStage: "फिर से जन्मे",
+        readPast: "उस जीवन की बही पढ़ें",
+        goOn: "आगे चलें",
+        lifeLives: "कौन-सा जीवन",
+        fallHead: "पतन · शिव का नाग",
+        fallFoot: "यहाँ पहुँचें, तो शिव का नाग जीवन को नीचे ले जाता है, फिर से जन्म के लिए",
         lifeEndFell: "{name} {realm} के लोक तक {पहुँचा|पहुँची}, और वहाँ नीचे कमाए पुण्य पर थोड़ा-थोड़ा करके {जिया|जी}, जब तक वह चुक नहीं गया, और फिर संसार में लौट {आया|आई}, {holding}।",
         lifeEndFellFree: "{name} {realm} के लोक तक {पहुँचा|पहुँची}, और वहाँ नीचे कमाए पुण्य पर थोड़ा-थोड़ा करके {जिया|जी}, जब तक वह चुक नहीं गया, और फिर संसार में लौट {आया|आई}, हाथ में कुछ ख़ास लिए बिना।",
         lReckon: "{name} का छक्का आया, और खाना {src} का एक क़र्ज़ चुकाने की घड़ी आ गई।",
@@ -1742,8 +1762,6 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         carryArtha: "अब भी कमाए हुए को पकड़े हुए",
         carryKama: "अब भी चाही हुई चीज़ों को पकड़े हुए",
         listAnd: " और ",
-        lifeEndFellDoor: "{name} द्वार तक {पहुँचा|पहुँची}, और वह नहीं खुला, और बाद का एक दाँव उसके पार स्वर्गों में ले गया, और पुण्य वहीं चुक गया, {holding}।",
-        lifeEndFellDoorFree: "{name} द्वार तक {पहुँचा|पहुँची}, और वह नहीं खुला, और बाद का एक दाँव उसके पार स्वर्गों में ले गया, और पुण्य वहीं चुक गया।",
         ledgerHead: "लेखा",
         ledgerEmpty: "कुछ नहीं ढोया जा रहा।",
         ledgerHeld: "किया गया, अभी पका नहीं · आगामी · सत्ता",
@@ -1757,7 +1775,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         lExamPaid: "{name} ने द्वार पर प्रायश्चित में एक बरस बिताया, और खाना {src} का क़र्ज़ चुक गया।",
         lDoorOpen: "कुछ बाक़ी नहीं, और {name} के लिए द्वार खुल जाता है।",
         lDiedDoor: "{name} के बरस {age} पर पूरे हुए, द्वार पर बैठे-बैठे।",
-        lSiva: "{name} का {v} आया और {name} खाना {pos} पर {पहुँचा|पहुँची}, और शिव का नाग {उसे|उसे} संसार में नीचे ले गया। पुण्य क्षीण हुआ, और उसके साथ यह जीवन।",
+        lSiva: "{name} का {v} आया और {name} खाना {pos} पर {पहुँचा|पहुँची}, और शिव का नाग {उसे|उसे} संसार में नीचे ले गया, फिर से जन्म के लिए। पुण्य क्षीण हुआ, और उसके साथ यह जीवन।",
         examTitle: "द्वार का प्रश्न",
         examHead: "द्वार",
         examAsks: "द्वार पूछता है: {q}",
@@ -3517,7 +3535,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       const sign = POLICY === "honest" ? -1 : 1;
       return [...open2].sort((a, b) => sign * (worthOf(a) - worthOf(b)))[0].id;
     }
-    const rng = makeRng((state.rng.seed ^ 625341585 ^ Math.imul(state.turn + 1, 2654435761) ^ Math.imul((p.life?.length ?? 0) + 1, 2246822507)) >>> 0);
+    const rng = makeRng((state.rng.seed ^ 625341585 ^ Math.imul(state.turn + 1, 2654435761) ^ Math.imul((p.life?.length ?? 0) + 1, 2246822507) ^ Math.imul(p.rebirths ?? 0, 1663821227)) >>> 0);
     return open2[Math.floor(next(rng) * open2.length)].id;
   }
   var EGO_ON = true;
@@ -3529,7 +3547,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     return d >= EGO_LEAD ? [6] : d <= -EGO_LEAD ? [4, 5, 6] : [5, 6];
   }
   var egoFacesOn = (state, n) => egoOf(n) ? state.forceEgo ?? egoFaces(state.players[state.turn]) : null;
-  var egoThrow = (state, idx, lived) => die(makeRng((state.rng.seed ^ 461845907 ^ Math.imul(idx + 1, 3432918353) ^ Math.imul(lived + 1, 2146121005)) >>> 0));
+  var egoThrow = (state, idx, lived) => die(makeRng((state.rng.seed ^ 461845907 ^ Math.imul(idx + 1, 3432918353) ^ Math.imul(lived + 1, 2146121005) ^ Math.imul(state.players[idx]?.rebirths ?? 0, 1663821227)) >>> 0));
   function momentOf(n, told) {
     const q2 = squareOf(n);
     if (told === "else" && SQ[n]?.roll) return { moment: SQ[n].roll.moment, own: false, key: `${n}:else` };
@@ -3551,7 +3569,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var OMEN = 6;
   var omenGround = (pos) => pos >= 1 && pos <= 100 || pos === GOAL;
   var omenChance = (pos) => 0.1 + 0.8 * (Math.min(Math.max(pos, 0), GOAL) / GOAL) ** 2;
-  var omenDraw = (state, idx, lived) => next(makeRng((state.rng.seed ^ 668265263 ^ Math.imul(idx + 1, 374761393) ^ Math.imul(lived + 1, 2654435761)) >>> 0));
+  var omenDraw = (state, idx, lived) => next(makeRng((state.rng.seed ^ 668265263 ^ Math.imul(idx + 1, 374761393) ^ Math.imul(lived + 1, 2654435761) ^ Math.imul(state.players[idx]?.rebirths ?? 0, 1663821227)) >>> 0));
   var SEVERITY_POW = 1.6;
   var TIERS = [2, 5, 9, 15];
   var DEATH = 4;
@@ -3691,7 +3709,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     if (!list?.length) return null;
     const forced = state.players[idx]?.curseId;
     if (forced) return list.find((c) => c.id === forced) ?? null;
-    const r = makeRng((state.rng.seed ^ 739982445 ^ Math.imul(idx + 1, 695872825)) >>> 0);
+    const r = makeRng((state.rng.seed ^ 739982445 ^ Math.imul(idx + 1, 695872825) ^ Math.imul(state.players[idx]?.rebirths ?? 0, 1663821227)) >>> 0);
     return list[Math.floor(next(r) * list.length)];
   }
   var spokenAt = (c, years) => years >= c.from && stageOfYears(years) <= 1;
@@ -3755,320 +3773,6 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     };
   }
 
-  // src/engine/turn.js
-  var TUMBLE = 7;
-  var ENDGAME = 94;
-  var diceFor = (p) => p.pos >= ENDGAME ? 2 : 1;
-  function rollDice(rng, n) {
-    for (let i = 0; i < TUMBLE; i++) for (let k = 0; k < n; k++) die(rng);
-    return Array.from({ length: n }, () => die(rng));
-  }
-  function toldOn(n, face, dice = [face]) {
-    const r = SQ[n]?.roll;
-    if (!r || dice.length !== 1 || !face || n >= ENDGAME) return null;
-    const fires = r.valence === "good" ? face <= r.faces : face > 6 - r.faces;
-    return fires ? null : "else";
-  }
-  var canSit = (p) => p.pos >= ENDGAME && (p.pos <= 100 || p.pos === GOAL) && stageOfPlayer(p) === SANNYASA && slotsFor(p).includes("practice");
-  function movesFor(state, dice) {
-    const p = state.players[state.turn], out = [...new Set(dice)];
-    if (dice.length > 1 && canSit(p)) out.push(0);
-    return out;
-  }
-  function moveFor(state, dice) {
-    const moves = movesFor(state, dice), plans = moves.filter(Boolean).map((v) => planTurn(state, v, dice));
-    const to = (pl) => pl.reckon?.from ?? pl.final;
-    const win = plans.find((pl) => pl.win);
-    if (win) return win.v;
-    const p = state.players[state.turn], ex = p.pos === GOAL ? examineOf(p) : null, stay = moves.includes(0) && !(ex?.never && ex.n > 1);
-    if (stay && p.pos === GOAL) return 0;
-    const short = plans.filter((pl) => !pl.fell && to(pl) < GOAL && pl.jump?.kind !== "snake").sort((a, b) => b.v - a.v);
-    if (short.length) return short[0].v;
-    const door = plans.find((pl) => pl.refused);
-    if (door) return door.v;
-    if (stay) return 0;
-    const heaven = plans.filter((pl) => !pl.fell && to(pl) > GOAL).sort((a, b) => a.v - b.v);
-    if (heaven.length) return heaven[0].v;
-    const snake = plans.filter((pl) => !pl.fell).sort((a, b) => b.v - a.v);
-    return snake.length ? snake[0].v : Math.max(...dice);
-  }
-  var gone = (p) => !!(p.dead || p.fell || p.earned || p.short);
-  function createGame({ players, rules, seed }) {
-    return {
-      players: players.map((r, i) => ({
-        name: r.name.trim(),
-        type: r.type,
-        gender: r.gender || "m",
-        alias: r.alias || null,
-        color: i,
-        pos: 0,
-        face: "r",
-        life: [],
-        told: [],
-        fell: false,
-        years: 0,
-        gunas: r.born?.gunas ?? freshGunas(),
-        aims: freshAims(),
-        practised: 0,
-        bhumika: null,
-        peak: null,
-        dead: false,
-        holding: null,
-        karma: r.born?.karma ?? freshKarma(),
-        held: [],
-        reckonings: [],
-        refusals: [],
-        door: null,
-        witness: [],
-        ...r.born?.prior ? { prior: r.born.prior } : {},
-        ...r.soul ? { soul: r.soul } : {}
-      })),
-      rules: { ...rules },
-      // over: someone reached the exit, or nobody is left in the game to
-      turn: 0,
-      winner: null,
-      over: false,
-      last: null,
-      log: [{ k: "lNew", kind: "" }],
-      rng: makeRng(seed)
-    };
-  }
-  var entry = (k, v = {}, kind = "", who2 = null) => ({ k, v, kind, who: who2 });
-  function addLog(state, e) {
-    state.log.unshift(e);
-    state.log = state.log.slice(0, 80);
-  }
-  function planTurn(state, v, dice = [v]) {
-    const idx = state.turn, p = state.players[idx], from = p.pos, rules = state.rules;
-    const pre = [], after2 = [], end = [], path = [];
-    const spare = [...dice];
-    if (v) spare.splice(spare.indexOf(v), 1);
-    if (dice.length > 1) pre.push(entry(v ? "lDice" : "lDiceSit", { a: dice[0], b: dice[1], v }, "", idx));
-    if (!v) {
-      const years = turnYears(p.years ?? 0, { sit: true }), died = years > SPAN;
-      const atDoor = from === GOAL && !!p.door, exam = atDoor ? examineOf(p) : null;
-      const win = atDoor && !died && (exam ? exam.open : !refusalOf(p));
-      if (exam) after2.push(entry(exam.pass ? "lExamPass" : exam.n === 1 ? exam.cleared ? "lExamPaid" : "lExamFail" : exam.cleared ? "lExamPaid" : exam.never ? "lExamNever" : "lExamPenance", { pos: from, src: exam.src, sq: exam.src }, "", idx));
-      else if (!win) after2.push(entry("lSit", { pos: from, sq: from }, "", idx));
-      if (died) end.push(entry(from === GOAL ? "lDiedDoor" : "lDied", { pos: from, age: years, sq: from }, "death", idx));
-      else if (win) end.push(entry("lDoorOpen", { pos: GOAL }, "", idx), entry("lWin", { pos: GOAL }, "heaven", idx));
-      return resolve(state, { idx, v, dice, spare, sit: true, from, path, target: from, final: from, jump: null, win, died, again: false, told: [null], exam, pre, after: after2, end }, years);
-    }
-    if (rules.law === "animal" && from + v >= ANIMAL_TOP) {
-      for (let n = from; n < ANIMAL_TOP; ) path.push(++n);
-      if (path.length > 1) after2.push(entry("lPassed", { passed: path.slice(0, -1) }, "passed", idx));
-      end.push(entry("lAnimalHuman", { pos: ANIMAL_TOP }, "heaven", idx));
-      return { idx, v, dice, spare, sit: false, from, path, target: ANIMAL_TOP, final: ANIMAL_TOP, jump: null, win: false, earned: true, died: false, again: false, told: [null], cost: 0, pre, after: after2, end };
-    }
-    const fell = from + v >= TOP, fellBy = from + v > TOP ? "past" : "snake";
-    for (let n = from; n < Math.min(from + v, TOP); ) path.push(++n);
-    if (fell) {
-      const passed2 = path.filter((n) => n !== from && (fellBy === "past" || n !== TOP));
-      if (passed2.length) after2.push(entry("lPassed", { passed: passed2 }, "passed", idx));
-      end.push(fellBy === "snake" ? entry("lSiva", { v, pos: TOP, sq: TOP }, "fall", idx) : entry("lFell", { v, pos: from }, "fall", idx));
-      return { idx, v, dice, spare, sit: false, fell: true, fellBy, from, path, target: TOP, final: TOP, jump: null, win: false, died: false, again: false, told: [], cost: 0, pre, after: after2, end };
-    }
-    const target = path.at(-1);
-    const passed = path.slice(0, -1);
-    if (passed.length) after2.push(entry("lPassed", { passed }, "passed", idx));
-    const plan = { idx, v, dice, spare, sit: false, from, path, target, final: target, jump: null, win: false, died: false, again: false, told: [null], cost: 0, pre, after: after2, end };
-    const sit = rules.law === "animal" ? null : situationAt(target);
-    if (sit) return Object.assign(plan, { situation: sit, egoFaces: egoFacesOn(state, target) });
-    return finish(state, plan, null);
-  }
-  function resolveChoice(state, plan, id) {
-    const o = optionOf(plan.target, id);
-    if (!plan.situation || !o) throw new Error(`no option ${id} on square ${plan.target}`);
-    delete plan.situation;
-    const ego = egoOf(plan.target), faces = egoFacesOn(state, plan.target);
-    delete plan.egoFaces;
-    if (!ego || id === ego.lower) return finish(state, plan, o);
-    const p = state.players[plan.idx], face = egoThrow(state, plan.idx, p.life?.length ?? 0), rebel = faces.includes(face);
-    const took = rebel ? optionOf(plan.target, ego.lower) : o;
-    plan.ego = { chose: id, took: took.id, face, faces };
-    plan.after.push(entry(rebel ? "lEgoRebel" : "lEgoHeld", { pos: plan.target, sq: plan.target }, "", plan.idx));
-    return finish(state, plan, took);
-  }
-  function finish(state, plan, o) {
-    const { idx, v, dice, from, target, after: after2, end } = plan, p = state.players[idx], rules = state.rules;
-    let jump = null, final = target;
-    const s = o ? o.move === "snake" ? SNAKES[target] : null : SNAKES[target];
-    const l = o ? o.move === "ladder" ? LADDERS[target] : null : LADDERS[target];
-    const cost = o?.cost ?? 0;
-    if (cost) after2.push(entry(cost === 1 ? "lStayOne" : "lStay", { n: cost, pos: target, sq: target }, "", idx));
-    if (s || l) {
-      jump = { kind: s ? "snake" : "ladder", to: (s || l).to };
-      final = jump.to;
-      after2.push(entry(s ? "lSnake" : "lLadder", { v, pos: target, to: jump.to, sq: target }, s ? "snake" : "ladder", idx));
-    } else if (HEAVEN[target]) {
-      after2.push(entry("lHeaven", { v, pos: target, sq: target }, "heaven", idx));
-    } else if (target !== GOAL) {
-      after2.push(entry(from === 0 ? "lBorn" : "lMove", { v, pos: target, sq: target }, "", idx));
-    }
-    if (rules.law === "animal" && final >= ANIMAL_TOP) {
-      plan.end.push(entry("lAnimalHuman", { pos: ANIMAL_TOP }, "heaven", idx));
-      Object.assign(plan, { final, jump, earned: true, told: [toldOn(target, v, dice), ...jump ? [null] : []], cost: 0 });
-      return plan;
-    }
-    const refused = final === GOAL ? refusalOf(p) : null;
-    if (refused) after2.push(entry("lRefused", { pos: GOAL, sq: GOAL }, "", idx));
-    const win = final === GOAL && !refused;
-    const years = turnYears(p.years ?? 0, { target, final, jump, cost }), died = !win && final <= 100 && years > SPAN;
-    const again = !win && !died && v === 6 && rules.six;
-    if (win) end.push(entry("lWin", { pos: GOAL }, "heaven", idx));
-    else if (died) end.push(entry("lDied", { pos: final, age: years, sq: final }, "death", idx));
-    else if (again) end.push(entry("lSix", {}, "", idx));
-    const told = [o ? o.id : toldOn(target, v, dice), ...Array(cost).fill("stay"), ...jump ? [toldOn(final, v, dice)] : []];
-    const mark = o ? { guna: o.guna, aims: o.aims } : null;
-    const plant = plantOf(target, o, years);
-    Object.assign(plan, { final, jump, win, died, again, told, cost, mark, choice: o?.id ?? null, plant, refused });
-    return resolve(state, plan, years);
-  }
-  function resolve(state, plan, years) {
-    const { idx } = plan, p = state.players[idx];
-    const omen = plan.win || plan.died || state.rules.law === "animal" ? null : omenFor(state, idx, { dice: plan.dice, pos: plan.final, years, lived: p.life?.length ?? 0, force: !!(state.forceOmen || state.forceDeath) });
-    if (omen?.reckon && state.forceDeath) Object.assign(omen.reckon, { dies: true, applied: DEATH, form: state.forceDeath, years: 0, holds: null, to: null });
-    const rk = omen?.reckon ?? null;
-    Object.assign(plan, { omen, reckon: rk && { ...rk, from: plan.final } });
-    if (!rk) return plan;
-    if (rk.dies) {
-      plan.died = true;
-      plan.death = { by: "ledger", form: rk.form, age: years, src: rk.src, opt: rk.opt };
-      plan.end = [entry("lReckon", { src: rk.src, sq: rk.src }, "reckon", idx), entry("lDiedLedger", { pos: plan.final, age: years, sq: plan.final }, "death", idx)];
-      plan.again = false;
-      return plan;
-    }
-    if (rk.to) plan.final = rk.to;
-    plan.told.push(...rk.to ? ["reckon"] : [], ...Array(rk.years).fill("stay"));
-    plan.end = [entry("lReckon", { src: rk.src, sq: rk.src }, "reckon", idx), ...plan.end.filter((e) => e.k !== "lSix")];
-    plan.again = false;
-    return plan;
-  }
-  function endTurn(state, plan) {
-    const p = state.players[plan.idx];
-    p.pos = plan.final;
-    if (plan.fell) {
-      p.fell = true;
-      p.fellBy = plan.fellBy;
-      p.fellFrom = plan.fellBy === "snake" ? TOP : plan.from;
-      p.pos = 0;
-      p.holding = holdingOf(p.life || [], p.held);
-    } else {
-      if (plan.choice) p.witness = [...p.witness ?? [], { sq: plan.target, chose: plan.ego?.chose ?? plan.choice, took: plan.choice, i: p.life?.length ?? 0, ...plan.ego ? { face: plan.ego.face, faces: plan.ego.faces } : {} }];
-      (p.life ||= []).push(plan.target, ...Array(plan.cost ?? 0).fill(plan.target), ...plan.jump ? [plan.jump.to] : []);
-      const rk = plan.reckon, at2 = p.life.length;
-      if (rk) p.life.push(...rk.to ? [rk.to] : [], ...Array(rk.years).fill(rk.to ?? rk.from));
-      const before = p.life.length - plan.told.length, kept = (p.told ?? []).slice(0, before);
-      p.told = [...kept, ...Array(before - kept.length).fill(null), ...plan.told];
-      Object.assign(p, grow(p, plan));
-      let k = karmaOf(p);
-      if (rk && !rk.dies) k = { ...k, prarabdha: k.prarabdha.filter((s) => !rk.seeds.some((f2) => f2.src === s.src && f2.opt === s.opt && f2.at === s.at)), agami: k.agami.filter((s) => !rk.seeds.some((f2) => f2.src === s.src && f2.opt === s.opt && f2.at === s.at)) };
-      if (plan.plant) k = { ...k, agami: [...k.agami, { ...plan.plant, i: p.life.length }] };
-      const ex = plan.exam;
-      if (ex) {
-        p.exam = { ...p.exam ?? {}, [ex.key]: ex.n };
-        if (ex.cleared) k = meet(k, ex.key);
-        p.sittings = [...p.sittings ?? [], { at: at2, src: ex.src, opt: ex.opt, planted: ex.at, ...ex.prior ? { prior: true } : {}, n: ex.n, pass: ex.pass, answer: ex.answer, cleared: ex.cleared, ...ex.never ? { never: true } : {}, open: plan.win, age: p.years }];
-      }
-      p.karma = ripen(k, p.years);
-      if (rk) {
-        if (rk.holds) p.held = [...p.held ?? [], rk.holds];
-        p.reckonings = [...p.reckonings ?? [], { at: at2, src: rk.src, opt: rk.opt, planted: rk.planted, ...rk.prior ? { prior: true } : {}, tier: rk.tier, applied: rk.applied, wouldDie: rk.wouldDie, ...rk.dies ? { dies: true, form: rk.form } : {}, years: rk.years, to: rk.to, age: rk.age }];
-      }
-      if (plan.refused && !p.door) p.refusals = [...p.refusals ?? [], { at: at2, ...plan.refused }];
-      p.door = plan.refused ?? (p.pos === GOAL && !plan.win && p.door ? refusalOf(p) ?? p.door : null);
-      if (!p.curse && state.rules.law !== "animal") {
-        const c = curseOf(state, plan.idx);
-        if (c && spokenAt(c, p.years)) p.curse = { id: c.id, i: p.life.length - 1, age: p.years };
-      }
-      if (plan.died) {
-        p.dead = true;
-        p.holding = holdingOf(p.life, p.held);
-        p.death = plan.death ?? { by: plan.sit && plan.from === GOAL ? "door" : "years", age: p.years };
-      }
-    }
-    if (state.rules.law === "animal") {
-      p.throws = (p.throws ?? 0) + 1;
-      if (plan.earned) p.earned = true;
-      else if (p.throws >= ANIMAL_TURNS) {
-        p.short = true;
-        plan.end.push(entry("lAnimalShort", {}, "", plan.idx));
-      }
-    }
-    if (plan.died || plan.fell) {
-      const k = karmaOf(p);
-      p.karma = { sancita: [...k.sancita, ...carried(k)], agami: [], prarabdha: [] };
-    }
-    delete state.forceOmen;
-    delete state.forceDeath;
-    if (plan.ego) delete state.forceEgo;
-    if (plan.win) state.winner = plan.idx;
-    else if (!plan.again) for (let k = 1; k <= state.players.length; k++) {
-      const i = (plan.idx + k) % state.players.length;
-      if (!gone(state.players[i])) {
-        state.turn = i;
-        break;
-      }
-    }
-    const alive = state.players.filter((q2) => !gone(q2)), humans = state.players.some((q2) => q2.type === "human");
-    state.over = state.winner != null || !alive.length || humans && !alive.some((q2) => q2.type === "human");
-    plan.end.forEach((e) => addLog(state, e));
-  }
-  function playTurn(state, roll2 = rollDice(state.rng, diceFor(state.players[state.turn])), pick3 = moveFor, choose2 = choiceFor) {
-    const dice = typeof roll2 === "number" ? [roll2] : roll2, v = dice.length > 1 ? pick3(state, dice) : dice[0];
-    state.last = v || dice[0];
-    let plan = planTurn(state, v, dice);
-    if (plan.situation) plan = resolveChoice(state, plan, choose2(state, plan.situation));
-    [...plan.pre, ...plan.after].forEach((e) => addLog(state, e));
-    endTurn(state, plan);
-    return plan;
-  }
-
-  // src/state.js
-  var G = { setup: null, state: null, busy: false, cpuTimer: null, gen: 0, forcedRoll: null, choosing: null, deciding: null };
-  var SELF = "mp-self";
-  function loadSelf() {
-    try {
-      const s = JSON.parse(localStorage.getItem(SELF) || "null");
-      if (s && typeof s.name === "string") return s;
-    } catch {
-    }
-    return null;
-  }
-  function saveSelf(name, gender) {
-    try {
-      localStorage.setItem(SELF, JSON.stringify({ name, gender }));
-    } catch {
-    }
-  }
-  var defaultSetup = () => {
-    const self = loadSelf();
-    return {
-      count: 2,
-      rows: [{ name: self?.name || "", type: "human", gender: self?.gender || "" }, { name: "", type: "cpu", gender: "" }, { name: "", type: "cpu", gender: "" }, { name: "", type: "cpu", gender: "" }],
-      rules: { six: true }
-    };
-  };
-  function drawName(rng, gender, taken = /* @__PURE__ */ new Set()) {
-    const pool = (gender === "m" || gender === "f" ? [gender] : ["m", "f"]).flatMap((gd) => PLAYER_NAMES[gd].map(([en, hi]) => ({ en, hi, gender: gd }))).filter((nm) => !taken.has(nm.en));
-    return pool[Math.floor(next(rng) * pool.length)];
-  }
-  function cast(rows, seed) {
-    const rng = makeRng((seed ^ 2654435769) >>> 0), taken = new Set(rows.map((r) => r.name.trim()).filter(Boolean));
-    return rows.map((r) => {
-      if (r.name.trim()) return { ...r, gender: r.gender || "n" };
-      const nm = drawName(rng, r.gender, /* @__PURE__ */ new Set([...taken, ...r.avoid ?? []])) ?? drawName(rng, r.gender, taken);
-      taken.add(nm.en);
-      return { ...r, gender: r.gender || nm.gender, alias: { en: nm.en, hi: nm.hi } };
-    });
-  }
-  var pname = (p) => p.name || (p.alias ? L(p.alias.en, p.alias.hi) : t("def" + p.color));
-  var pnameIn = (p, l) => p.name || p.alias?.[l] || p.alias?.en || tIn(l, "def" + p.color);
-  var cur = () => G.state.players[G.state.turn];
-  function newState(seed = freshSeed(), rows = G.setup.rows.slice(0, G.setup.count), rules = G.setup.rules) {
-    return createGame({ players: cast(rows, seed), rules, seed });
-  }
-
   // src/engine/cast.js
   var MEMBERS = ["mother", "father", "teacher", "friend", "spouse", "son", "daughter", "rival"];
   var tokenOf = (who2) => who2 === "son" || who2 === "daughter" ? "child" : who2;
@@ -4096,6 +3800,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const list = CAST.names;
     if (!list) return null;
     const p = state.players[i];
+    if (p.castKept !== void 0) return p.castKept;
     const rng = makeRng((state.rng.seed ^ 739982445 ^ Math.imul(i + 1, 2246822507) ^ Math.imul(life + 1, 3266489909)) >>> 0);
     const taken = new Set(state.players.flatMap((q2) => [q2.name, q2.alias?.en, q2.alias?.hi]).filter(Boolean).map(nameKey));
     const pool = (gd) => [...list[gd], ...list.either || []].filter(([en, hi]) => !taken.has(nameKey(en)) && !taken.has(nameKey(hi)));
@@ -4243,6 +3948,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     if (p.fell) return p.fellBy === "snake" ? "siva" : "fell";
     return null;
   };
+  var pastOf = (state, i, k) => k == null || !state.players[i]?.past?.[k] ? state : { ...state, winner: null, players: state.players.map((q2, j) => j === i ? q2.past[k] : q2) };
   function soulOf(state, i) {
     const p = state.players[i], end = endOf(state, i);
     if (!end || end === "animal") return null;
@@ -4307,6 +4013,354 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const souls = Object.entries(storeOf(store).souls).filter(([k]) => k !== key);
     if (soul && key) souls.push([key, soul]);
     return { v: STORE_V, souls: Object.fromEntries(souls.slice(-KEEP_SOULS)) };
+  }
+
+  // src/engine/turn.js
+  var TUMBLE = 7;
+  var ENDGAME = 94;
+  var diceFor = (p) => p.pos >= ENDGAME ? 2 : 1;
+  function rollDice(rng, n) {
+    for (let i = 0; i < TUMBLE; i++) for (let k = 0; k < n; k++) die(rng);
+    return Array.from({ length: n }, () => die(rng));
+  }
+  function toldOn(n, face, dice = [face]) {
+    const r = SQ[n]?.roll;
+    if (!r || dice.length !== 1 || !face || n >= ENDGAME) return null;
+    const fires = r.valence === "good" ? face <= r.faces : face > 6 - r.faces;
+    return fires ? null : "else";
+  }
+  var canSit = (p) => p.pos >= ENDGAME && (p.pos <= 100 || p.pos === GOAL) && stageOfPlayer(p) === SANNYASA && slotsFor(p).includes("practice");
+  function movesFor(state, dice) {
+    const p = state.players[state.turn], out = [...new Set(dice)].filter((v) => p.pos + v <= TOP);
+    if (dice.length > 1 && canSit(p)) out.push(0);
+    return out;
+  }
+  function moveFor(state, dice) {
+    const moves = movesFor(state, dice), plans = moves.filter(Boolean).map((v) => planTurn(state, v, dice));
+    if (!moves.length) return null;
+    const to = (pl) => pl.reckon?.from ?? pl.final;
+    const win = plans.find((pl) => pl.win);
+    if (win) return win.v;
+    const p = state.players[state.turn], ex = p.pos === GOAL ? examineOf(p) : null, stay = moves.includes(0) && !(ex?.never && ex.n > 1);
+    if (stay && p.pos === GOAL) return 0;
+    const short = plans.filter((pl) => !pl.fell && to(pl) < GOAL && pl.jump?.kind !== "snake").sort((a, b) => b.v - a.v);
+    if (short.length) return short[0].v;
+    const door = plans.find((pl) => pl.refused);
+    if (door) return door.v;
+    if (stay) return 0;
+    const heaven = plans.filter((pl) => !pl.fell && to(pl) > GOAL).sort((a, b) => a.v - b.v);
+    if (heaven.length) return heaven[0].v;
+    const snake = plans.filter((pl) => !pl.fell).sort((a, b) => b.v - a.v);
+    return snake.length ? snake[0].v : plans[0]?.v ?? 0;
+  }
+  var gone = (p) => !!(p.dead || p.fell || p.earned || p.short);
+  var playerOf = (r, i) => ({
+    name: r.name.trim(),
+    type: r.type,
+    gender: r.gender || "m",
+    alias: r.alias || null,
+    color: i,
+    pos: 0,
+    face: "r",
+    life: [],
+    told: [],
+    fell: false,
+    years: 0,
+    gunas: r.born?.gunas ?? freshGunas(),
+    aims: freshAims(),
+    practised: 0,
+    bhumika: null,
+    peak: null,
+    dead: false,
+    holding: null,
+    karma: r.born?.karma ?? freshKarma(),
+    held: [],
+    reckonings: [],
+    refusals: [],
+    door: null,
+    witness: [],
+    ...r.born?.prior ? { prior: r.born.prior } : {},
+    ...r.soul ? { soul: r.soul } : {}
+  });
+  function createGame({ players, rules, seed }) {
+    return {
+      players: players.map(playerOf),
+      rules: { ...rules },
+      // over: someone reached the exit, or nobody is left in the game to
+      turn: 0,
+      winner: null,
+      over: false,
+      last: null,
+      log: [{ k: "lNew", kind: "" }],
+      rng: makeRng(seed)
+    };
+  }
+  var entry = (k, v = {}, kind = "", who2 = null) => ({ k, v, kind, who: who2 });
+  function addLog(state, e) {
+    const p = e.who == null ? null : state.players[e.who];
+    if (p?.rebirths && e.life == null) e.life = p.rebirths;
+    state.log.unshift(e);
+    state.log = state.log.slice(0, 80);
+  }
+  function planTurn(state, v, dice = [v]) {
+    const idx = state.turn, p = state.players[idx], from = p.pos, rules = state.rules;
+    const pre = [], after2 = [], end = [], path = [];
+    if (v == null || from + v > TOP) {
+      pre.push(entry("lHeavenStay", { a: dice[0], b: dice[1], pos: from, sq: from }, "heaven", idx));
+      return { idx, v: null, dice, spare: [], sit: false, stay: true, from, path, target: from, final: from, jump: null, win: false, died: false, again: false, told: [], cost: 0, pre, after: after2, end };
+    }
+    const spare = [...dice];
+    if (v) spare.splice(spare.indexOf(v), 1);
+    if (dice.length > 1) pre.push(entry(v ? "lDice" : "lDiceSit", { a: dice[0], b: dice[1], v }, "", idx));
+    if (!v) {
+      const years = turnYears(p.years ?? 0, { sit: true }), died = years > SPAN;
+      const atDoor = from === GOAL && !!p.door, exam = atDoor ? examineOf(p) : null;
+      const win = atDoor && !died && (exam ? exam.open : !refusalOf(p));
+      if (exam) after2.push(entry(exam.pass ? "lExamPass" : exam.n === 1 ? exam.cleared ? "lExamPaid" : "lExamFail" : exam.cleared ? "lExamPaid" : exam.never ? "lExamNever" : "lExamPenance", { pos: from, src: exam.src, sq: exam.src }, "", idx));
+      else if (!win) after2.push(entry("lSit", { pos: from, sq: from }, "", idx));
+      if (died) end.push(entry(from === GOAL ? "lDiedDoor" : "lDied", { pos: from, age: years, sq: from }, "death", idx));
+      else if (win) end.push(entry("lDoorOpen", { pos: GOAL }, "", idx), entry("lWin", { pos: GOAL }, "heaven", idx));
+      return resolve(state, { idx, v, dice, spare, sit: true, from, path, target: from, final: from, jump: null, win, died, again: false, told: [null], exam, pre, after: after2, end }, years);
+    }
+    if (rules.law === "animal" && from + v >= ANIMAL_TOP) {
+      for (let n = from; n < ANIMAL_TOP; ) path.push(++n);
+      if (path.length > 1) after2.push(entry("lPassed", { passed: path.slice(0, -1) }, "passed", idx));
+      end.push(entry("lAnimalHuman", { pos: ANIMAL_TOP }, "heaven", idx));
+      return { idx, v, dice, spare, sit: false, from, path, target: ANIMAL_TOP, final: ANIMAL_TOP, jump: null, win: false, earned: true, died: false, again: false, told: [null], cost: 0, pre, after: after2, end };
+    }
+    const fell = from + v === TOP, fellBy = "snake";
+    for (let n = from; n < Math.min(from + v, TOP); ) path.push(++n);
+    if (fell) {
+      const passed2 = path.filter((n) => n !== from && n !== TOP);
+      if (passed2.length) after2.push(entry("lPassed", { passed: passed2 }, "passed", idx));
+      end.push(entry("lSiva", { v, pos: TOP, sq: TOP }, "fall", idx));
+      return { idx, v, dice, spare, sit: false, fell: true, fellBy, from, path, target: TOP, final: TOP, jump: null, win: false, died: false, again: false, told: [], cost: 0, pre, after: after2, end };
+    }
+    const target = path.at(-1);
+    const passed = path.slice(0, -1);
+    if (passed.length) after2.push(entry("lPassed", { passed }, "passed", idx));
+    const plan = { idx, v, dice, spare, sit: false, from, path, target, final: target, jump: null, win: false, died: false, again: false, told: [null], cost: 0, pre, after: after2, end };
+    const sit = rules.law === "animal" ? null : situationAt(target);
+    if (sit) return Object.assign(plan, { situation: sit, egoFaces: egoFacesOn(state, target) });
+    return finish(state, plan, null);
+  }
+  function resolveChoice(state, plan, id) {
+    const o = optionOf(plan.target, id);
+    if (!plan.situation || !o) throw new Error(`no option ${id} on square ${plan.target}`);
+    delete plan.situation;
+    const ego = egoOf(plan.target), faces = egoFacesOn(state, plan.target);
+    delete plan.egoFaces;
+    if (!ego || id === ego.lower) return finish(state, plan, o);
+    const p = state.players[plan.idx], face = egoThrow(state, plan.idx, p.life?.length ?? 0), rebel = faces.includes(face);
+    const took = rebel ? optionOf(plan.target, ego.lower) : o;
+    plan.ego = { chose: id, took: took.id, face, faces };
+    plan.after.push(entry(rebel ? "lEgoRebel" : "lEgoHeld", { pos: plan.target, sq: plan.target }, "", plan.idx));
+    return finish(state, plan, took);
+  }
+  function finish(state, plan, o) {
+    const { idx, v, dice, from, target, after: after2, end } = plan, p = state.players[idx], rules = state.rules;
+    let jump = null, final = target;
+    const s = o ? o.move === "snake" ? SNAKES[target] : null : SNAKES[target];
+    const l = o ? o.move === "ladder" ? LADDERS[target] : null : LADDERS[target];
+    const cost = o?.cost ?? 0;
+    if (cost) after2.push(entry(cost === 1 ? "lStayOne" : "lStay", { n: cost, pos: target, sq: target }, "", idx));
+    if (s || l) {
+      jump = { kind: s ? "snake" : "ladder", to: (s || l).to };
+      final = jump.to;
+      after2.push(entry(s ? "lSnake" : "lLadder", { v, pos: target, to: jump.to, sq: target }, s ? "snake" : "ladder", idx));
+    } else if (HEAVEN[target]) {
+      after2.push(entry("lHeaven", { v, pos: target, sq: target }, "heaven", idx));
+    } else if (target !== GOAL) {
+      after2.push(entry(from === 0 ? "lBorn" : "lMove", { v, pos: target, sq: target }, "", idx));
+    }
+    if (rules.law === "animal" && final >= ANIMAL_TOP) {
+      plan.end.push(entry("lAnimalHuman", { pos: ANIMAL_TOP }, "heaven", idx));
+      Object.assign(plan, { final, jump, earned: true, told: [toldOn(target, v, dice), ...jump ? [null] : []], cost: 0 });
+      return plan;
+    }
+    const refused = final === GOAL ? refusalOf(p) : null;
+    if (refused) after2.push(entry("lRefused", { pos: GOAL, sq: GOAL }, "", idx));
+    const win = final === GOAL && !refused;
+    const years = turnYears(p.years ?? 0, { target, final, jump, cost }), died = !win && final <= 100 && years > SPAN;
+    const again = !win && !died && v === 6 && rules.six;
+    if (win) end.push(entry("lWin", { pos: GOAL }, "heaven", idx));
+    else if (died) end.push(entry("lDied", { pos: final, age: years, sq: final }, "death", idx));
+    else if (again) end.push(entry("lSix", {}, "", idx));
+    const told = [o ? o.id : toldOn(target, v, dice), ...Array(cost).fill("stay"), ...jump ? [toldOn(final, v, dice)] : []];
+    const mark = o ? { guna: o.guna, aims: o.aims } : null;
+    const plant = plantOf(target, o, years);
+    Object.assign(plan, { final, jump, win, died, again, told, cost, mark, choice: o?.id ?? null, plant, refused });
+    return resolve(state, plan, years);
+  }
+  function resolve(state, plan, years) {
+    const { idx } = plan, p = state.players[idx];
+    const omen = plan.win || plan.died || state.rules.law === "animal" ? null : omenFor(state, idx, { dice: plan.dice, pos: plan.final, years, lived: p.life?.length ?? 0, force: !!(state.forceOmen || state.forceDeath) });
+    if (omen?.reckon && state.forceDeath) Object.assign(omen.reckon, { dies: true, applied: DEATH, form: state.forceDeath, years: 0, holds: null, to: null });
+    const rk = omen?.reckon ?? null;
+    Object.assign(plan, { omen, reckon: rk && { ...rk, from: plan.final } });
+    if (!rk) return plan;
+    if (rk.dies) {
+      plan.died = true;
+      plan.death = { by: "ledger", form: rk.form, age: years, src: rk.src, opt: rk.opt };
+      plan.end = [entry("lReckon", { src: rk.src, sq: rk.src }, "reckon", idx), entry("lDiedLedger", { pos: plan.final, age: years, sq: plan.final }, "death", idx)];
+      plan.again = false;
+      return plan;
+    }
+    if (rk.to) plan.final = rk.to;
+    plan.told.push(...rk.to ? ["reckon"] : [], ...Array(rk.years).fill("stay"));
+    plan.end = [entry("lReckon", { src: rk.src, sq: rk.src }, "reckon", idx), ...plan.end.filter((e) => e.k !== "lSix")];
+    plan.again = false;
+    return plan;
+  }
+  function endTurn(state, plan) {
+    const p = state.players[plan.idx];
+    p.pos = plan.final;
+    if (plan.stay) return passTurn(state, plan);
+    if (plan.fell) {
+      p.fell = true;
+      p.fellBy = plan.fellBy;
+      p.fellFrom = plan.fellBy === "snake" ? TOP : plan.from;
+      p.pos = 0;
+      p.holding = holdingOf(p.life || [], p.held);
+    } else {
+      if (plan.choice) p.witness = [...p.witness ?? [], { sq: plan.target, chose: plan.ego?.chose ?? plan.choice, took: plan.choice, i: p.life?.length ?? 0, ...plan.ego ? { face: plan.ego.face, faces: plan.ego.faces } : {} }];
+      (p.life ||= []).push(plan.target, ...Array(plan.cost ?? 0).fill(plan.target), ...plan.jump ? [plan.jump.to] : []);
+      const rk = plan.reckon, at2 = p.life.length;
+      if (rk) p.life.push(...rk.to ? [rk.to] : [], ...Array(rk.years).fill(rk.to ?? rk.from));
+      const before = p.life.length - plan.told.length, kept = (p.told ?? []).slice(0, before);
+      p.told = [...kept, ...Array(before - kept.length).fill(null), ...plan.told];
+      Object.assign(p, grow(p, plan));
+      let k = karmaOf(p);
+      if (rk && !rk.dies) k = { ...k, prarabdha: k.prarabdha.filter((s) => !rk.seeds.some((f2) => f2.src === s.src && f2.opt === s.opt && f2.at === s.at)), agami: k.agami.filter((s) => !rk.seeds.some((f2) => f2.src === s.src && f2.opt === s.opt && f2.at === s.at)) };
+      if (plan.plant) k = { ...k, agami: [...k.agami, { ...plan.plant, i: p.life.length }] };
+      const ex = plan.exam;
+      if (ex) {
+        p.exam = { ...p.exam ?? {}, [ex.key]: ex.n };
+        if (ex.cleared) k = meet(k, ex.key);
+        p.sittings = [...p.sittings ?? [], { at: at2, src: ex.src, opt: ex.opt, planted: ex.at, ...ex.prior ? { prior: true } : {}, n: ex.n, pass: ex.pass, answer: ex.answer, cleared: ex.cleared, ...ex.never ? { never: true } : {}, open: plan.win, age: p.years }];
+      }
+      p.karma = ripen(k, p.years);
+      if (rk) {
+        if (rk.holds) p.held = [...p.held ?? [], rk.holds];
+        p.reckonings = [...p.reckonings ?? [], { at: at2, src: rk.src, opt: rk.opt, planted: rk.planted, ...rk.prior ? { prior: true } : {}, tier: rk.tier, applied: rk.applied, wouldDie: rk.wouldDie, ...rk.dies ? { dies: true, form: rk.form } : {}, years: rk.years, to: rk.to, age: rk.age }];
+      }
+      if (plan.refused && !p.door) p.refusals = [...p.refusals ?? [], { at: at2, ...plan.refused }];
+      p.door = plan.refused ?? (p.pos === GOAL && !plan.win && p.door ? refusalOf(p) ?? p.door : null);
+      if (!p.curse && state.rules.law !== "animal") {
+        const c = curseOf(state, plan.idx);
+        if (c && spokenAt(c, p.years)) p.curse = { id: c.id, i: p.life.length - 1, age: p.years };
+      }
+      if (plan.died) {
+        p.dead = true;
+        p.holding = holdingOf(p.life, p.held);
+        p.death = plan.death ?? { by: plan.sit && plan.from === GOAL ? "door" : "years", age: p.years };
+      }
+    }
+    if (state.rules.law === "animal") {
+      p.throws = (p.throws ?? 0) + 1;
+      if (plan.earned) p.earned = true;
+      else if (p.throws >= ANIMAL_TURNS) {
+        p.short = true;
+        plan.end.push(entry("lAnimalShort", {}, "", plan.idx));
+      }
+    }
+    if (plan.died || plan.fell) {
+      const k = karmaOf(p);
+      p.karma = { sancita: [...k.sancita, ...carried(k)], agami: [], prarabdha: [] };
+    }
+    if (plan.fell && state.rules.law !== "animal") {
+      plan.end.forEach((e) => {
+        if (e.who != null) e.life = p.rebirths ?? 0;
+      });
+      bornAgain(state, plan.idx);
+      if (p.rebirths) plan.end.push(entry("lReborn", { pos: 1, sq: 1 }, "", plan.idx));
+    }
+    delete state.forceOmen;
+    delete state.forceDeath;
+    if (plan.ego) delete state.forceEgo;
+    passTurn(state, plan);
+  }
+  function passTurn(state, plan) {
+    if (plan.win) state.winner = plan.idx;
+    else if (!plan.again) for (let k = 1; k <= state.players.length; k++) {
+      const i = (plan.idx + k) % state.players.length;
+      if (!gone(state.players[i])) {
+        state.turn = i;
+        break;
+      }
+    }
+    const alive = state.players.filter((q2) => !gone(q2)), humans = state.players.some((q2) => q2.type === "human");
+    state.over = state.winner != null || !alive.length || humans && !alive.some((q2) => q2.type === "human");
+    plan.end.forEach((e) => addLog(state, e));
+  }
+  function bornAgain(state, i) {
+    const p = state.players[i], soul = soulOf(state, i), born = soul && bornOf(soul);
+    if (!born) return;
+    const was = { ...p, castKept: castOf(state, i, p.prior?.lives ?? 0) };
+    delete was.past;
+    const rebirths = (p.rebirths ?? 0) + 1;
+    const rng = makeRng((state.rng.seed ^ 1013904242 ^ Math.imul(i + 1, 2246822507) ^ Math.imul(rebirths, 3266489909)) >>> 0);
+    const taken = new Set([...state.players.flatMap((q2) => [q2.name.trim(), q2.alias?.en]), ...soul.cast.map((c) => c.en)].filter(Boolean));
+    const nm = drawName(rng, "", taken) ?? drawName(rng, "", /* @__PURE__ */ new Set());
+    const key = p.soul ?? (p.name ? nameKey(p.name) : null);
+    const next2 = playerOf({ name: "", type: p.type, gender: nm.gender, alias: { en: nm.en, hi: nm.hi }, born, soul: key }, p.color);
+    Object.assign(next2, { pos: 1, life: [1], told: [null], past: [...p.past ?? [], was], rebirths });
+    for (const k of Object.keys(p)) delete p[k];
+    Object.assign(p, next2);
+  }
+  function playTurn(state, roll2 = rollDice(state.rng, diceFor(state.players[state.turn])), pick3 = moveFor, choose2 = choiceFor) {
+    const dice = typeof roll2 === "number" ? [roll2] : roll2, v = dice.length > 1 ? pick3(state, dice) : dice[0];
+    state.last = v || dice[0];
+    let plan = planTurn(state, v, dice);
+    if (plan.situation) plan = resolveChoice(state, plan, choose2(state, plan.situation));
+    [...plan.pre, ...plan.after].forEach((e) => addLog(state, e));
+    endTurn(state, plan);
+    return plan;
+  }
+
+  // src/state.js
+  var G = { setup: null, state: null, busy: false, cpuTimer: null, gen: 0, forcedRoll: null, choosing: null, deciding: null };
+  var SELF = "mp-self";
+  function loadSelf() {
+    try {
+      const s = JSON.parse(localStorage.getItem(SELF) || "null");
+      if (s && typeof s.name === "string") return s;
+    } catch {
+    }
+    return null;
+  }
+  function saveSelf(name, gender) {
+    try {
+      localStorage.setItem(SELF, JSON.stringify({ name, gender }));
+    } catch {
+    }
+  }
+  var defaultSetup = () => {
+    const self = loadSelf();
+    return {
+      count: 2,
+      rows: [{ name: self?.name || "", type: "human", gender: self?.gender || "" }, { name: "", type: "cpu", gender: "" }, { name: "", type: "cpu", gender: "" }, { name: "", type: "cpu", gender: "" }],
+      rules: { six: true }
+    };
+  };
+  function drawName(rng, gender, taken = /* @__PURE__ */ new Set()) {
+    const pool = (gender === "m" || gender === "f" ? [gender] : ["m", "f"]).flatMap((gd) => PLAYER_NAMES[gd].map(([en, hi]) => ({ en, hi, gender: gd }))).filter((nm) => !taken.has(nm.en));
+    return pool[Math.floor(next(rng) * pool.length)];
+  }
+  function cast(rows, seed) {
+    const rng = makeRng((seed ^ 2654435769) >>> 0), taken = new Set(rows.map((r) => r.name.trim()).filter(Boolean));
+    return rows.map((r) => {
+      if (r.name.trim()) return { ...r, gender: r.gender || "n" };
+      const nm = drawName(rng, r.gender, /* @__PURE__ */ new Set([...taken, ...r.avoid ?? []])) ?? drawName(rng, r.gender, taken);
+      taken.add(nm.en);
+      return { ...r, gender: r.gender || nm.gender, alias: { en: nm.en, hi: nm.hi } };
+    });
+  }
+  var pname = (p) => p.name || (p.alias ? L(p.alias.en, p.alias.hi) : t("def" + p.color));
+  var pnameIn = (p, l) => p.name || p.alias?.[l] || p.alias?.en || tIn(l, "def" + p.color);
+  var cur = () => G.state.players[G.state.turn];
+  function newState(seed = freshSeed(), rows = G.setup.rows.slice(0, G.setup.count), rules = G.setup.rules) {
+    return createGame({ players: cast(rows, seed), rules, seed });
   }
 
   // src/prefs.js
@@ -5526,7 +5580,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       const a = t("a_" + (G.state.rules.animal?.kind ?? "tortoise"));
       return a.charAt(0).toUpperCase() + a.slice(1);
     }
-    return [.../* @__PURE__ */ new Set([stageName(stageOf2(pl), pl.gender), ashramaIn2(pl)])].join(" · ");
+    return [...pl.rebirths && stageOf2(pl) === 0 ? [t("bornAgainStage")] : [], .../* @__PURE__ */ new Set([stageName(stageOf2(pl), pl.gender), ashramaIn2(pl)])].join(" · ");
   }
   function renderPlayers() {
     $("players").innerHTML = G.state.players.map((pl, i) => `
@@ -5539,8 +5593,12 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     </li>`).join("");
     renderLedger();
   }
+  var lifeOfEntry = (e) => {
+    const p = e.who == null ? null : G.state.players[e.who];
+    return p && (e.life ?? 0) !== (p.rebirths ?? 0) ? p.past?.[e.life ?? 0] ?? p : p;
+  };
   function entryText(e) {
-    const who2 = e.who == null ? null : G.state.players[e.who];
+    const who2 = lifeOfEntry(e);
     return e.k ? t(e.k, { ...e.v, name: who2 ? pname(who2) : "", what: e.v?.sq ? squareName(e.v.sq) : "" }) : e.text;
   }
   function renderLog() {
@@ -6641,12 +6699,21 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     body += `<div class="story">` + en.map((t2, i) => texts(l, t2, hi[i], i === 0 ? "remedy door" : i === 1 ? "moment" : "remedy")).join("") + `<p class="srcline"><a class="src" href="#sq/${ex.src}" data-sq="${ex.src}">${esc(tIn(l, "square", { n: numIn(l, ex.src) }))}</a></p></div>`;
     return { kind: "exam", met: [], html: frame2(l, { kind: "exam", eb: esc(tIn(l, "examTitle")), big: illumined(document.getElementById(`sq-${GOAL}`) ? `sq-${GOAL}` : null, "☸︎"), sqn: numIn(l, GOAL), body, foot: "" }) };
   }
+  var readPast = false;
+  function rebornHtml(was, l) {
+    const p = subjectOf(), q2 = p.past?.[was] ?? p, who2 = (x) => ({ name: pnameIn(p, x), gender: p.gender });
+    const line = (x, k) => fill(tIn(x, k, { name: pnameIn(p, x), was: pnameIn(q2, x) }), k === "bornAgainCard" ? { gender: q2.gender } : who2(x));
+    let body = `<h2 id="leafTitle">${esc(tIn(l, "bornAgainHead"))}</h2>`;
+    body += `<div class="story">` + texts(l, line("en", "bornAgainCard"), line("hi", "bornAgainCard"), "moment") + texts(l, line("en", "bornAgainNew"), line("hi", "bornAgainNew"), "remedy") + `</div>`;
+    body += `<p class="reborn-acts"><button type="button" class="ghost" data-act="pastLife">${esc(tIn(l, "readPast"))}</button> <button type="button" data-act="close">${esc(tIn(l, "goOn"))}</button></p>`;
+    return { kind: "reborn", met: [], html: frame2(l, { kind: "reborn", eb: esc(tIn(l, "bornAgainHead")), big: art("fall", "🔱", "spr snake-glyph"), sqn: numIn(l, TOP), body, foot: "" }) };
+  }
   var metMore = [];
   function paint2({ landing = false } = {}) {
     const l = cardLang ?? lang;
     const fa = leaf2.contains(document.activeElement) ? document.activeElement : null;
     const again = fa?.dataset.act ? `[data-act="${fa.dataset.act}"]` : fa?.dataset.cl ? `[data-cl="${fa.dataset.cl}"]` : null;
-    const out = view.type === "square" ? squareHtml(view.n, l) : view.type === "reckon" ? reckonHtml(view.rk, l) : view.type === "exam" ? examHtml(view.ex, l) : entryHtml(view.id, l);
+    const out = view.type === "square" ? squareHtml(view.n, l) : view.type === "reckon" ? reckonHtml(view.rk, l) : view.type === "exam" ? examHtml(view.ex, l) : view.type === "reborn" ? rebornHtml(view.was, l) : entryHtml(view.id, l);
     leaf2.className = "leaf " + out.kind + (landing ? " landed" : "") + (expanded ? " open" : "");
     leaf2.innerHTML = out.html;
     metMore = out.metMore || [];
@@ -6656,7 +6723,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     refreshRoll();
     if (again) [...leaf2.querySelectorAll(again)].find((el3) => el3.offsetParent)?.focus({ preventScroll: true });
     cue();
-    history.replaceState(null, "", location.pathname + location.search + (view.type === "square" ? `#sq/${view.n}` : view.type === "reckon" ? `#sq/${view.rk.src}` : view.type === "exam" ? `#sq/${GOAL}` : `#codex/${view.id}`));
+    history.replaceState(null, "", location.pathname + location.search + (view.type === "square" ? `#sq/${view.n}` : view.type === "reckon" ? `#sq/${view.rk.src}` : view.type === "exam" ? `#sq/${GOAL}` : view.type === "reborn" ? `#sq/${TOP}` : `#codex/${view.id}`));
     onChange.forEach((fn) => fn());
   }
   function cue() {
@@ -6758,7 +6825,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const wasOpen = dlg2.open, was = view;
     view = next2;
     subject = who2;
-    const block = next2.type === "reckon" || next2.type === "exam" || next2.type === "square" && !!pendingOn(next2.n);
+    const block = next2.type === "reckon" || next2.type === "exam" || next2.type === "reborn" || next2.type === "square" && !!pendingOn(next2.n);
     if (wasOpen) {
       setBlocking(block);
       paint2({ landing });
@@ -6784,6 +6851,10 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var openSquare = (n, opts) => open({ type: "square", n }, opts);
   var openReckoning = (rk, who2) => open({ type: "reckon", rk }, { landing: true, who: who2 });
   var openExam = (ex, who2) => open({ type: "exam", ex }, { landing: true, who: who2 });
+  function openReborn(was, who2) {
+    readPast = false;
+    return open({ type: "reborn", was }, { landing: true, who: who2 }).then(() => readPast);
+  }
   var openEntry = (id, opts) => entryOf(id) ? open({ type: "entry", id }, opts) : Promise.resolve();
   async function closeCard({ instant = false } = {}) {
     if (!dlg2.open || closing) return;
@@ -6883,6 +6954,10 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     if (e.target === dlg2) return blocking && sheetOn() ? void 0 : closeCard();
     const act = e.target.closest("[data-act]")?.dataset.act;
     if (act === "close") return closeCard();
+    if (act === "pastLife") {
+      readPast = true;
+      return closeCard();
+    }
     if (act === "roll") return roll();
     if (act === "pick") return pickFn(+e.target.closest("[data-v]").dataset.v);
     if (act === "opt") {
@@ -7032,13 +7107,27 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     last = null;
     drawLanded();
   };
+  var landStay = (who2, n) => {
+    last = { n, who: who2, stay: true };
+    drawLanded();
+  };
+  var landReborn = (who2, was) => {
+    last = { n: 1, who: who2, was };
+    drawLanded();
+  };
+  function bornLine(l, { who: who2, stay, was }) {
+    const p = G.state.players[who2], w = { name: pnameIn(p, l), gender: p.gender };
+    if (stay) return { title: tIn(l, "stayTitle"), text: fill(tIn(l, "heavenStay", w), w) };
+    const q2 = p.past?.[was];
+    return { title: tIn(l, "bornAgainHead"), text: fill(tIn(l, "bornAgainLine", { name: w.name, was: q2 ? pnameIn(q2, l) : "" }), w) };
+  }
   function drawLanded() {
     const s = G.state;
     const animalLine = (n) => {
       const q2 = squareOf(n);
       return { title: q2?.[lang] || q2?.en || "", text: TALES.includes(n) ? q2?.mirror?.[lang] || q2?.mirror?.en || "" : "" };
     };
-    let { title, text } = !last || !s ? {} : isAnimal(s) && !last.door ? animalLine(last.n) : last.door ? doorLine(lang, last) : last.only ? {} : s.players[last.who]?.pos != null ? momentLine(last.n, last.who, lang, last.told, last.ego) : {};
+    let { title, text } = !last || !s ? {} : isAnimal(s) && !last.door ? animalLine(last.n) : last.door ? doorLine(lang, last) : last.stay || last.was != null ? bornLine(lang, last) : last.only ? {} : s.players[last.who]?.pos != null ? momentLine(last.n, last.who, lang, last.told, last.ego) : {};
     if (last?.curse && s) text = [text, curseLine(lang, last.who)].filter(Boolean).join(" ");
     if (!text && !title) {
       el2.dataset.empty = "";
@@ -7108,7 +7197,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       return x[0].toUpperCase() + x.slice(1);
     };
     const words = (n) => wordsIn(l, Math.floor(n));
-    const rng = makeRng((state.rng.seed ^ 1540483477 ^ Math.imul(i + 1, 2654435761)) >>> 0);
+    const rng = makeRng((state.rng.seed ^ 1540483477 ^ Math.imul(i + 1, 2654435761) ^ Math.imul(p.rebirths ?? 0, 1663821227)) >>> 0);
     let lastThen = -1;
     const then = () => {
       let k = Math.floor(next(rng) * JOINS.then.length);
@@ -7350,7 +7439,6 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const k = karmaOf(p), unmet = [...carried(k), ...k.sancita], aim = (p.refusals || []).findLast((r) => r.aim)?.aim;
     const carry = carryIn(l, unmet, aim, who2), and = tIn(l, "listAnd");
     const holding = vice || carry ? [vice && held2(vice), carry].filter(Boolean).join(and) : null;
-    if (top === GOAL) return holding ? T2("lifeEndFellDoor", { holding }) : T2("lifeEndFellDoorFree");
     return holding ? T2("lifeEndFell", { realm: sq(top), holding }) : T2("lifeEndFellFree", { realm: sq(top) });
   }
   function doorEnd(p, T2, words, l, who2) {
@@ -7439,7 +7527,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     };
     if (d.rebel) add(qs.find((q2) => q2.when === "rebel"));
     const fits = qs.filter((q2) => q2.when !== "rebel" && d[q2.when]);
-    const r = makeRng((state.rng.seed ^ 1831565813 ^ Math.imul(i + 1, 668265261)) >>> 0);
+    const r = makeRng((state.rng.seed ^ 1831565813 ^ Math.imul(i + 1, 668265261) ^ Math.imul(state.players[i]?.rebirths ?? 0, 1663821227)) >>> 0);
     const order = fits.map((q2) => [next(r), q2]).sort((a, b) => a[0] - b[0]).map(([, q2]) => q2);
     order.forEach(add);
     for (const id of FALLBACK) add(qs.find((q2) => q2.id === id && q2.when !== "unwritten"));
@@ -7463,10 +7551,12 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
   var leaf3 = $("lifeLeaf");
   var whose = 0;
   var tab = "book";
+  var past = null;
   var TABS = ["book", "path", "mirror"];
   var TAB_KEY = { book: "lifeBook", path: "lifePath", mirror: "lifeMirror" };
   var lifeText2 = (state, i, l = lang) => lifeText(state, i, l);
-  function panel(state, l, T2) {
+  function panel(game, l, T2) {
+    const state = pastOf(game, whose, past);
     if (tab === "path") {
       const { rows, end: end2 } = pathOf(state, whose, l);
       return `<ol class="life-path">${rows.map((r) => `<li><span class="pa">${esc(r.age)}</span><span class="ps">${esc(r.sq)}</span>${r.via ? `<span class="pv">${esc(r.via)}</span>` : ""}</li>`).join("")}</ol>` + (end2 ? `<p class="life-end">${esc(end2)}</p>` : "");
@@ -7483,9 +7573,10 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
         ${fates.length ? `<p class="life-fates">${esc(fates.join(" "))}</p>` : ""}`;
   }
   function paint3(focusTab = false) {
-    const state = G.state, l = lang, T2 = (k, v) => tIn(l, k, v);
-    const { title } = lifeOf(state, whose, l);
+    const state = G.state, l = lang, T2 = (k, v) => tIn(l, k, v), seat = state.players[whose];
+    const { title } = lifeOf(pastOf(state, whose, past), whose, l);
     const tabs = state.players.length > 1 ? `<div class="life-who" role="group" aria-label="${T2("lifeWhose")}">` + state.players.map((p, i) => `<button type="button" data-who="${i}" aria-pressed="${i === whose}"><span class="dot" style="background:${COLORS[p.color]}"></span>${esc(pnameIn(p, l))}</button>`).join("") + `</div>` : "";
+    const lives2 = seat.past?.length ? `<div class="life-who life-lives" role="group" aria-label="${T2("lifeLives")}">` + [...seat.past.map((q2, k) => [k, q2]), [-1, seat]].map(([k, q2]) => `<button type="button" data-life="${k}" aria-pressed="${(past ?? -1) === k}">${esc(pnameIn(q2, l))}</button>`).join("") + `</div>` : "";
     const ways = `<div class="life-tabs tabs" role="tablist" aria-label="${T2("lifeTabs")}">` + TABS.map((k) => `<button type="button" role="tab" id="lifeTab-${k}" data-tab="${k}" aria-controls="lifePanel" aria-selected="${k === tab}" tabindex="${k === tab ? 0 : -1}">${T2(TAB_KEY[k])}</button>`).join("") + `</div>`;
     leaf3.innerHTML = `
     <header class="leaf-top">
@@ -7493,6 +7584,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
       <div class="leaf-tools"><button type="button" class="x" data-act="close" aria-label="${T2("close")}" autofocus>×</button></div>
     </header>
     ${tabs}
+    ${lives2}
     ${ways}
     <div class="leaf-main life-main">
       <div class="leaf-text" lang="${l}" id="lifePanel" role="tabpanel" aria-labelledby="lifeTab-${tab}">
@@ -7512,8 +7604,9 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     tab = k;
     paint3(focus);
   };
-  function openLife(i = G.state.winner ?? Math.max(0, G.state.players.findIndex((p) => p.type === "human"))) {
+  function openLife(i = G.state.winner ?? Math.max(0, G.state.players.findIndex((p) => p.type === "human")), k = null) {
     whose = i;
+    past = k;
     tab = "book";
     paint3();
     if (!dlg3.open) dlg3.showModal();
@@ -7529,6 +7622,11 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     if (!b) return;
     if (b.dataset.who) {
       whose = +b.dataset.who;
+      past = null;
+      return paint3();
+    }
+    if (b.dataset.life) {
+      past = +b.dataset.life < 0 ? null : +b.dataset.life;
       return paint3();
     }
     if (b.dataset.tab) return showWay(b.dataset.tab);
@@ -7539,7 +7637,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
       dlg3.close();
       return $("reborn").click();
     }
-    const text = lifeText2(G.state, whose);
+    const view2 = pastOf(G.state, whose, past), text = lifeText2(view2, whose);
     if (act === "copy") {
       try {
         await navigator.clipboard.writeText(text);
@@ -7549,7 +7647,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     } else if (act === "save") {
       const a = document.createElement("a");
       a.href = URL.createObjectURL(new Blob([text], { type: "text/plain;charset=utf-8" }));
-      a.download = `${pnameIn(G.state.players[whose], "en").replace(/[^\w-]+/g, "-") || "life"}-${G.state.rng.seed}.txt`;
+      a.download = `${pnameIn(view2.players[whose], "en").replace(/[^\w-]+/g, "-") || "life"}-${G.state.rng.seed}.txt`;
       a.click();
       setTimeout(() => URL.revokeObjectURL(a.href), 1e3);
     }
@@ -7712,8 +7810,8 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     await shut;
     if (g3 !== G.gen) return;
     state.dice = dice;
-    const only = dice.length > 1 && movesFor(state, dice).length === 1;
-    const v = dice.length < 2 || only ? dice[0] : p.type === "human" ? await choose(dice) : moveFor(state, dice);
+    const moves = dice.length > 1 ? movesFor(state, dice) : [dice[0]];
+    const v = moves.length < 2 ? moves[0] ?? null : p.type === "human" ? await choose(dice) : moveFor(state, dice);
     if (g3 !== G.gen) return;
     if (p.type === "human" && !shut && cardOpen()) await closeCard();
     if (g3 !== G.gen) return;
@@ -7749,6 +7847,9 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
         sound.fall(reduced ? 1.2 : 2.6);
         await sleep(reduced ? 300 : 1200);
         if (g3 !== G.gen) return;
+      } else if (plan.stay) {
+        if (p.type === "human") landStay(idx, p.pos);
+        plan.after.forEach(log);
       } else {
         if (stageOf({ ...p, years: ageStep(p.years ?? 0, p.pos) }) !== born) pullBack();
         await waitCard();
@@ -7852,7 +7953,22 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
       lifeLived();
       refreshCard();
     }
-    if ((plan.died || plan.fell) && p.type === "human") openLife(idx);
+    if (plan.died && p.type === "human") openLife(idx);
+    if (plan.fell && p.past?.length) {
+      const was = p.past.length - 1;
+      landReborn(idx, was);
+      render();
+      if (p.type === "human") {
+        if (cardOpen() && !cardBlocking()) await closeCard({ instant: true });
+        G.waitingCard = true;
+        refreshRoll();
+        const read2 = await openReborn(was, idx);
+        G.waitingCard = false;
+        refreshRoll();
+        if (g3 !== G.gen) return;
+        if (read2) openLife(idx, was);
+      }
+    }
     watching();
     pullBack();
     G.busy = false;
@@ -7991,7 +8107,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
       }
       if (state.winner === i) keepSoul(key, null);
       else {
-        const s = soulOf(state, i);
+        const s = soulOf(state, i) ?? (p.past?.length ? soulOf(pastOf(state, i, p.past.length - 1), i) : null);
         if (s) keepSoul(key, s);
       }
     });
@@ -7999,7 +8115,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
   function rebornRows(state) {
     let any = false, animal = null;
     const rows = state.players.map((p, i) => {
-      const key = soulKey(p), soul = endOf(state, i) && soulFor(key), born = soul && bornOf(soul);
+      const key = soulKey(p), soul = (endOf(state, i) || p.past?.length) && soulFor(key), born = soul && bornOf(soul);
       if (!born) return { ...G.setup.rows[i] };
       any = true;
       const row2 = { name: "", type: "human", gender: "", born, soul: key, avoid: [pnameIn(p, "en"), ...soul.cast.map((c) => c.en)] };

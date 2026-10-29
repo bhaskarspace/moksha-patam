@@ -29,9 +29,9 @@ test("a ladder climbs and a snake swallows", () => {
   assert.equal(s.log[0].kind, "snake");
 });
 
-// REDESIGN.md Phase 12: nothing above the exit turns back. The heavens are walked, and the throw past 110 is the fall,
-// which ends the life: no bounce, no square 1, and no landing.
-test("past 105 the heavens are walked, and the throw past 110 ends the life", () => {
+// REDESIGN.md Phase 12: nothing above the exit turns back. Since Phase 17 no throw passes 110 either: a die that would is
+// not offered, and with none the life stays where it is, the years standing still.
+test("past 105 the heavens are walked, and no throw passes 110", () => {
   const s = game(107);
   const plan = playTurn(s, 2);
   assert.deepEqual(plan.path, [108, 109]);
@@ -42,19 +42,19 @@ test("past 105 the heavens are walked, and the throw past 110 ends the life", ()
   const up = playTurn(b, 2);
   assert.equal(up.jump, null);
   assert.equal(b.players[0].pos, 108);
-  // the fall: walks to the top, lands nowhere, and the life is over
+  // a die past the top is not offered; with neither offered the life stays, and nothing is lived
   const f = game(107);
-  const fall = playTurn(f, 6);
-  assert.ok(fall.fell && !fall.win && !fall.died && !fall.again);
-  assert.deepEqual(fall.path, [108, 109, 110]);
+  assert.deepEqual(movesFor(f, [6, 4]), []);
+  assert.deepEqual(movesFor(f, [6, 3]), [3]);
+  assert.equal(moveFor(f, [6, 4]), null);
+  const years = f.players[0].years, stay = playTurn(f, [6, 4]);
+  assert.ok(stay.stay && !stay.fell && !stay.win && !stay.died && !stay.again);
+  assert.deepEqual(stay.path, []);
   const p = f.players[0];
-  assert.ok(p.fell && !p.dead);
-  assert.equal(p.pos, 0);
+  assert.ok(!p.fell && !p.dead && p.pos === 107 && p.years === years);
   assert.deepEqual(p.life, []);
-  assert.equal(f.log[0].k, "lFell");
-  // the person has fallen, so the game with a person in it is over, and nobody won
-  assert.ok(f.over);
-  assert.equal(f.winner, null);
+  assert.equal(f.log[0].k, "lHeavenStay");
+  assert.ok(!f.over && f.turn === 1);
 });
 
 test("no roll from 101 to 110 ever turns back, and only landing on 105 wins", () => {
@@ -62,34 +62,46 @@ test("no roll from 101 to 110 ever turns back, and only landing on 105 wins", ()
     if (pos === 105) continue;
     for (let v = 1; v <= 6; v++) {
       const plan = planTurn(game(pos), v);
-      assert.deepEqual(plan.path, Array.from({ length: Math.min(v, 110 - pos) }, (_, i) => pos + i + 1), `from ${pos}, a ${v}`);
-      // past 110, or since Phase 14 onto it, where Śiva's snake takes the life
-      assert.equal(!!plan.fell, pos + v >= 110, `from ${pos}, a ${v}`);
-      if (plan.fell) assert.equal(plan.fellBy, pos + v === 110 ? "snake" : "past");
-      if (pos > 100 && !plan.fell) assert.ok(plan.final > pos, `from ${pos}, a ${v} goes on`);
+      // past 110 nothing moves; onto it, Śiva's snake takes the life (Phase 14), to be born again (Phase 17)
+      assert.deepEqual(plan.path, pos + v > 110 ? [] : Array.from({ length: v }, (_, i) => pos + i + 1), `from ${pos}, a ${v}`);
+      assert.equal(!!plan.stay, pos + v > 110, `from ${pos}, a ${v}`);
+      assert.equal(!!plan.fell, pos + v === 110, `from ${pos}, a ${v}`);
+      if (plan.fell) assert.equal(plan.fellBy, "snake");
+      if (pos > 100 && !plan.fell && !plan.stay) assert.ok(plan.final > pos, `from ${pos}, a ${v} goes on`);
       assert.equal(plan.win, !plan.fell && plan.final === 105, `from ${pos}, a ${v}`);
     }
   }
 });
 
-test("Śiva's snake: a landing on 110 is the fall, by the snake, and the life ends with nothing landed", () => {
-  const s = game(107), plan = playTurn(s, 3), p = s.players[0];
+test("Śiva's snake: a landing on 110 ends the life, and the same soul is born again in the seat", () => {
+  const s = game(107), was = s.players[0], name = was.alias, plan = playTurn(s, 3), p = s.players[0];
   assert.ok(plan.fell && plan.fellBy === "snake" && !plan.win && !plan.died && !plan.jump);
   assert.deepEqual(plan.path, [108, 109, 110]);
-  assert.ok(p.fell && p.fellBy === "snake" && p.fellFrom === 110 && p.pos === 0);
-  assert.equal(s.log[0].k, "lSiva");
+  // the life that ended is kept whole, and the newborn is the same object, at the snake's tail
+  assert.equal(p, was);
+  assert.equal(p.past.length, 1);
+  const q = p.past[0];
+  assert.ok(q.fell && q.fellBy === "snake" && q.fellFrom === 110 && q.pos === 0);
+  assert.ok(!p.fell && !p.dead && p.pos === 1 && p.years === 0 && p.rebirths === 1 && p.color === 0);
+  assert.deepEqual(p.life, [1]);
+  assert.ok(p.prior?.lives === 1, "born of the life before");
+  assert.notEqual(p.alias?.en, q.alias?.en ?? name?.en);
+  assert.deepEqual(s.log.slice(0, 2).map(e => e.k), ["lReborn", "lSiva"]);
+  assert.equal(s.log[1].life, 0, "the snake's line is the first life's");
+  assert.equal(s.log[0].life, 1);
   assert.ok(!s.log.some(e => e.k === "lHeaven" && e.v.pos === 110));
+  assert.ok(!s.over);
 });
 
-test("a fallen player is passed over, and the race goes on without them", () => {
+test("a player born again through Śiva's snake keeps their seat, and their turn", () => {
   const s = createGame({ players: [{ name: "", type: "cpu" }, { name: "", type: "cpu" }, { name: "", type: "cpu" }], rules: { six: true }, seed: 2 });
   s.players[0].pos = 109;
-  playTurn(s, 4);
-  assert.ok(s.players[0].fell);
+  playTurn(s, 1);
+  assert.ok(s.players[0].past[0].fell && !s.players[0].fell);
   assert.equal(s.turn, 1);
   assert.ok(!s.over);
   playTurn(s, 1); playTurn(s, 1);
-  assert.equal(s.turn, 1, "player 0 has no more turns");
+  assert.equal(s.turn, 0, "player 0 plays on, born again");
 });
 
 test("the log names every square walked over, once, and not the one landed on", () => {
@@ -97,8 +109,8 @@ test("the log names every square walked over, once, and not the one landed on", 
   playTurn(s, 4);
   assert.deepEqual(s.log.find(e => e.k === "lPassed").v.passed, [21, 22, 23]);
   const b = game(107);
-  playTurn(b, 6);
-  assert.deepEqual(b.log.find(e => e.k === "lPassed").v.passed, [108, 109, 110]);
+  playTurn(b, 3);
+  assert.deepEqual(b.log.find(e => e.k === "lPassed").v.passed, [108, 109]);
   const one = game(20);
   playTurn(one, 1);
   assert.ok(!one.log.some(e => e.k === "lPassed"));

@@ -15,6 +15,7 @@ import { destOf, worthOf } from "../src/engine/qbn.js";
 import { ageOf, stageOfYears, yearsAlong } from "../src/engine/self.js";
 import { castFill, CAST_ROLES } from "../src/i18n.js";
 import { MEMBERS, tokenOf, castArcs } from "../src/engine/cast.js";
+import { pastOf } from "../src/engine/samskara.js";
 
 // Names compare without diacritics or case, so "Śaṅkara", "Sankara" and "sankara" are one name.
 const fold = s => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
@@ -577,8 +578,10 @@ export function lintFates(seeds = 500) {
   for (let seed = 1; seed <= seeds; seed++) for (const gender of ["m", "f"]) {
     const s = createGame({ players: [{ name: "", type: "cpu", gender }], rules: { six: true }, seed });
     while (!s.over) playTurn(s);
-    const p = s.players[0], along = yearsAlong(p.life || [], p.told || []).filter(e => e.via !== "stay");
-    for (const a of castArcs(s, 0, along)) {
+    // the seat's first life (Phase 17: one Śiva's snake closed is kept in p.past)
+    const v = pastOf(s, 0, s.players[0].past?.length ? 0 : null);
+    const p = v.players[0], along = yearsAlong(p.life || [], p.told || []).filter(e => e.via !== "stay");
+    for (const a of castArcs(v, 0, along)) {
       const w = `fates: seed ${seed} ${gender}, the ${a.who}`;
       if (a.death == null) { if (a.kind !== "outlived") errors.push(`${w} has no death and does not outlive`); continue; }
       if (a.seen != null && a.death <= a.seen && a.kind !== "seen") errors.push(`${w} dies at ${a.death}, not after the life last saw them at ${a.seen}`);

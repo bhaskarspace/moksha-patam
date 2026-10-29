@@ -24,7 +24,7 @@ const other = l => (l === "hi" ? "en" : "hi");
 const DEPTHS = ["story", "school", "scholar"];
 const deep = d => DEPTHS.indexOf(prefs.depth) >= DEPTHS.indexOf(d);
 
-let view = null;           // { type: "square", n }, { type: "entry", id }, { type: "reckon", rk } or { type: "exam", ex }
+let view = null;           // { type: "square", n }, { type: "entry", id }, { type: "reckon", rk }, { type: "exam", ex } or { type: "reborn", was }
 let cardLang = null;       // the card's own language, when the reader flips it
 let backTo = null;         // the square an entry was opened from
 let subject = null;        // the player a square's moment is about; the player whose turn it is when unset
@@ -379,6 +379,18 @@ function examHtml(ex, l) {
     `<p class="srcline"><a class="src" href="#sq/${ex.src}" data-sq="${ex.src}">${esc(tIn(l, "square", { n: numIn(l, ex.src) }))}</a></p></div>`;
   return { kind: "exam", met: [], html: frame(l, { kind: "exam", eb: esc(tIn(l, "examTitle")), big: illumined(document.getElementById(`sq-${GOAL}`) ? `sq-${GOAL}` : null, "☸\uFE0E"), sqn: numIn(l, GOAL), body, foot: "" }) };
 }
+// Between lives (Phase 17): Śiva's snake closed the seat's life and the same soul is born again in it. The card holds the
+// game until it is read, and offers the book of the life just closed; there is no Play again on it, since the game goes on.
+let readPast = false;
+function rebornHtml(was, l) {
+  const p = subjectOf(), q = p.past?.[was] ?? p, who = x => ({ name: pnameIn(p, x), gender: p.gender });
+  const line = (x, k) => fill(tIn(x, k, { name: pnameIn(p, x), was: pnameIn(q, x) }), k === "bornAgainCard" ? { gender: q.gender } : who(x));
+  let body = `<h2 id="leafTitle">${esc(tIn(l, "bornAgainHead"))}</h2>`;
+  body += `<div class="story">` + texts(l, line("en", "bornAgainCard"), line("hi", "bornAgainCard"), "moment") + texts(l, line("en", "bornAgainNew"), line("hi", "bornAgainNew"), "remedy") + `</div>`;
+  body += `<p class="reborn-acts"><button type="button" class="ghost" data-act="pastLife">${esc(tIn(l, "readPast"))}</button> <button type="button" data-act="close">${esc(tIn(l, "goOn"))}</button></p>`;
+  return { kind: "reborn", met: [], html: frame(l, { kind: "reborn", eb: esc(tIn(l, "bornAgainHead")), big: art("fall", "🔱", "spr snake-glyph"), sqn: numIn(l, TOP), body, foot: "" }) };
+}
+
 // Draws the current view into the leaf. Entries met here are added to the Codex after the
 // leaf is drawn, so "new" marks show on the card that introduced them. Whatever control had focus has it again
 // afterwards, so a keyboard or screen reader keeps its place when the leaf is redrawn under it.
@@ -387,7 +399,7 @@ function paint({ landing = false } = {}) {
   const l = cardLang ?? lang;
   const fa = leaf.contains(document.activeElement) ? document.activeElement : null;
   const again = fa?.dataset.act ? `[data-act="${fa.dataset.act}"]` : fa?.dataset.cl ? `[data-cl="${fa.dataset.cl}"]` : null;
-  const out = view.type === "square" ? squareHtml(view.n, l) : view.type === "reckon" ? reckonHtml(view.rk, l) : view.type === "exam" ? examHtml(view.ex, l) : entryHtml(view.id, l);
+  const out = view.type === "square" ? squareHtml(view.n, l) : view.type === "reckon" ? reckonHtml(view.rk, l) : view.type === "exam" ? examHtml(view.ex, l) : view.type === "reborn" ? rebornHtml(view.was, l) : entryHtml(view.id, l);
   leaf.className = "leaf " + out.kind + (landing ? " landed" : "") + (expanded ? " open" : "");
   leaf.innerHTML = out.html;
   metMore = out.metMore || [];
@@ -399,7 +411,7 @@ function paint({ landing = false } = {}) {
   if (again) [...leaf.querySelectorAll(again)].find(el => el.offsetParent)?.focus({ preventScroll: true });
   cue();
   // the address bar names what is open, so a card can be linked
-  history.replaceState(null, "", location.pathname + location.search + (view.type === "square" ? `#sq/${view.n}` : view.type === "reckon" ? `#sq/${view.rk.src}` : view.type === "exam" ? `#sq/${GOAL}` : `#codex/${view.id}`));
+  history.replaceState(null, "", location.pathname + location.search + (view.type === "square" ? `#sq/${view.n}` : view.type === "reckon" ? `#sq/${view.rk.src}` : view.type === "exam" ? `#sq/${GOAL}` : view.type === "reborn" ? `#sq/${TOP}` : `#codex/${view.id}`));
   onChange.forEach(fn => fn());
 }
 
@@ -512,7 +524,7 @@ async function open(next, { landing = false, from = null, who = null, focus = tr
   const wasOpen = dlg.open, was = view;
   view = next;
   subject = who;
-  const block = next.type === "reckon" || next.type === "exam" || (next.type === "square" && !!pendingOn(next.n));
+  const block = next.type === "reckon" || next.type === "exam" || next.type === "reborn" || (next.type === "square" && !!pendingOn(next.n));
   // already open: the leaf turns to the new square, forward or back
   if (wasOpen) {
     setBlocking(block);
@@ -543,6 +555,12 @@ export const openSquare = (n, opts) => open({ type: "square", n }, opts);
 export const openReckoning = (rk, who) => open({ type: "reckon", rk }, { landing: true, who });
 // A year at the door, for player who (REDESIGN.md Phase 14): like a reckoning, it holds the game until it is read.
 export const openExam = (ex, who) => open({ type: "exam", ex }, { landing: true, who });
+// Between lives, for player who (Phase 17): resolves once it is closed, true when the reader asked for the book of the
+// life just closed, which the page then opens.
+export function openReborn(was, who) {
+  readPast = false;
+  return open({ type: "reborn", was }, { landing: true, who }).then(() => readPast);
+}
 export const openEntry = (id, opts) => (entryOf(id) ? open({ type: "entry", id }, opts) : Promise.resolve());
 
 export async function closeCard({ instant = false } = {}) {
@@ -631,6 +649,7 @@ dlg.addEventListener("click", e => {
   if (e.target === dlg) return blocking && sheetOn() ? undefined : closeCard();
   const act = e.target.closest("[data-act]")?.dataset.act;
   if (act === "close") return closeCard();
+  if (act === "pastLife") { readPast = true; return closeCard(); }
   if (act === "roll") return roll();
   if (act === "pick") return pickFn(+e.target.closest("[data-v]").dataset.v);
   if (act === "opt") { const b = e.target.closest("[data-id]"); if (b.getAttribute("aria-disabled") !== "true") decideFn(b.dataset.id); return; }

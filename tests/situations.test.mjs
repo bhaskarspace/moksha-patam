@@ -9,6 +9,7 @@ import { SITUATIONS, SQ, squareOf } from "../src/content.js";
 import { fill, castFill, wordsIn } from "../src/i18n.js";
 import { lintContent } from "../tools/lint-content.mjs";
 import { playGame } from "../tools/sim.mjs";
+import { setAttached } from "../src/engine/karma.js";
 
 const game = pos => {
   const s = createGame({ players: [{ name: "Meera", type: "cpu", gender: "f" }], rules: { six: true }, seed: 1 });
@@ -98,15 +99,17 @@ test("a computer chooses without touching the dice, and only what is open", () =
 
 test("the dishonest player plays the board as it was: every least-worth option is the old snake, ladder or square", () => {
   // the structural guarantee is about where an option takes the player and what it costs; what the least-worth options
-  // plant (REDESIGN.md Phase 12) is the ledger's, so the seeds are taken away for both runs
+  // plant (REDESIGN.md Phase 12) is the ledger's, so the seeds are taken away for both runs; and so is the door's reading
+  // of the aims they weigh for attachment (since Phase 17 a seat plays on past Śiva's snake, and reaches the door more)
   const saved = { ...SITUATIONS }, seeds = Object.values(SITUATIONS).flatMap(s => s.options.filter(o => o.seed).map(o => [o, o.seed]));
   seeds.forEach(([o]) => delete o.seed);
+  setAttached(Infinity);
   const run = () => Array.from({ length: 300 }, (_, i) => playGame(i + 1, { players: 2 })).map(g => JSON.stringify([g.log, g.turns, g.winner, g.players.map(p => [p.life, p.years])]));
   try {
     const crooked = policy("dishonest", run);
     for (const k of Object.keys(SITUATIONS)) delete SITUATIONS[k];
     assert.deepEqual(run(), crooked);
-  } finally { Object.assign(SITUATIONS, saved); seeds.forEach(([o, sd]) => { o.seed = sd; }); }
+  } finally { Object.assign(SITUATIONS, saved); seeds.forEach(([o, sd]) => { o.seed = sd; }); setAttached(75); }
 });
 
 // Bhaskar's live check of Phase 15: the outcome is said at the age of choosing, as the account says it, never after the

@@ -55,6 +55,8 @@ export function castOf(state, i, life = 0) {
   const list = CAST.names;
   if (!list) return null;
   const p = state.players[i];
+  // a life closed by Śiva's snake (Phase 17) keeps the cast it had, since the table it was drawn against has changed
+  if (p.castKept !== undefined) return p.castKept;
   const rng = makeRng((state.rng.seed ^ 0x2c1b3c6d ^ Math.imul(i + 1, 0x85ebca6b) ^ Math.imul(life + 1, 0xc2b2ae35)) >>> 0);
   // nobody at the table lends a name to anyone's cast
   const taken = new Set(state.players.flatMap(q => [q.name, q.alias?.en, q.alias?.hi]).filter(Boolean).map(nameKey));

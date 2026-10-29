@@ -61,7 +61,7 @@ export function lifeOf(state, i, l) {
   const J = (j, v = {}) => { const x = fill((j[l] || j.en).replace(/\{(\w+)\}/g, (_, k) => v[k] ?? `{${k}}`), who); return x[0].toUpperCase() + x.slice(1); };
   const words = n => wordsIn(l, Math.floor(n));
   // the plain joins come from this life's own sequence, never the game's dice
-  const rng = makeRng((state.rng.seed ^ 0x5bd1e995 ^ Math.imul(i + 1, 0x9e3779b1)) >>> 0);
+  const rng = makeRng((state.rng.seed ^ 0x5bd1e995 ^ Math.imul(i + 1, 0x9e3779b1) ^ Math.imul(p.rebirths ?? 0, 0x632be5ab)) >>> 0);
   let lastThen = -1;
   const then = () => { let k = Math.floor(next(rng) * JOINS.then.length); if (k === lastThen) k = (k + 1) % JOINS.then.length; lastThen = k; return JOINS.then[k]; };
 
@@ -287,14 +287,13 @@ function winEnd(p, T, words, held) {
 // holding, the vice a death would have named. Gita 9.21 in the board's own words.
 // What the door named is still carried down: the debts the life never met, or the holding on it was refused for.
 function fellEnd(p, along, T, sq, held, l, who) {
-  // nothing above the exit turns back, so the square it fell from is the highest it reached; from the door itself, the
-  // throw went past it and every heaven at once
+  // nothing above the exit turns back, so the square it fell from is the highest it reached: since Phase 17 always the
+  // top of the heavens, where Śiva's snake is
   const top = p.fellFrom ?? Math.max(...along.map(e => e.n)), vice = SNAKES[p.holding]?.holding;
   // the fall has already put what was unmet into the store (sañcita), which in one life is only this life's
   const k = karmaOf(p), unmet = [...carried(k), ...k.sancita], aim = (p.refusals || []).findLast(r => r.aim)?.aim;
   const carry = carryIn(l, unmet, aim, who), and = tIn(l, "listAnd");
   const holding = vice || carry ? [vice && held(vice), carry].filter(Boolean).join(and) : null;
-  if (top === GOAL) return holding ? T("lifeEndFellDoor", { holding }) : T("lifeEndFellDoorFree");
   return holding ? T("lifeEndFell", { realm: sq(top), holding }) : T("lifeEndFellFree", { realm: sq(top) });
 }
 

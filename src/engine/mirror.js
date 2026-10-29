@@ -43,7 +43,7 @@ export function mirrorOf(state, i) {
   const add = q => { if (q && out.length < ASKED && !out.some(x => x.id === q.id)) out.push({ id: q.id, ...(q.when === "rebel" ? { rebel: d.rebel } : {}), ...(q.when === "unwritten" ? { who: d.unwritten } : {}) }); };
   if (d.rebel) add(qs.find(q => q.when === "rebel"));
   const fits = qs.filter(q => q.when !== "rebel" && d[q.when]);
-  const r = makeRng((state.rng.seed ^ 0x6d2b79f5 ^ Math.imul(i + 1, 0x27d4eb2d)) >>> 0);
+  const r = makeRng((state.rng.seed ^ 0x6d2b79f5 ^ Math.imul(i + 1, 0x27d4eb2d) ^ Math.imul(state.players[i]?.rebirths ?? 0, 0x632be5ab)) >>> 0);
   // a draw for every candidate, in authored order, so what one life fits never moves another's
   const order = fits.map(q => [next(r), q]).sort((a, b) => a[0] - b[0]).map(([, q]) => q);
   order.forEach(add);

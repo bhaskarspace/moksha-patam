@@ -1,10 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { GOAL, SITUATIONS } from "../src/content.js";
+import { GOAL, TOP, SITUATIONS } from "../src/content.js";
 import { createGame, planTurn, playTurn, resolveChoice, endTurn, moveFor } from "../src/engine/turn.js";
-import { freshKarma, ripen, omenFor, omenChance, reckonOf, severityOf, tierOf, refusalOf, reckonLinesIn, DEATH, TIERS, answerOf, questionOf, examLinesIn, carried, karmaOf, setDeath, deathFormOf, examineOf } from "../src/engine/karma.js";
+import { freshKarma, ripen, omenFor, omenChance, reckonOf, severityOf, tierOf, refusalOf, reckonLinesIn, DEATH, TIERS, answerOf, questionOf, examLinesIn, carried, karmaOf, setDeath, deathFormOf, examineOf, debtsIn } from "../src/engine/karma.js";
 const carriedOf = p => carried(karmaOf(p));
 import { lifeText, lifeOf } from "../src/engine/account.js";
+import { firstLives } from "./lives.mjs";
+import { pnameIn } from "../src/state.js";
 
 // A fixture situation on square 20, which has none of its own, planting a debt with a short fuse (REDESIGN.md Phase 12).
 const FIXTURE = {
@@ -153,19 +155,22 @@ test("the door refuses a debt, keeps the player on 105, and says why in words", 
   assert.equal(refusalOf({ karma: freshKarma(), aims: { artha: 10, kama: 10, dharma: 50 } }), null);
 });
 
-test("a life refused at the door that throws on past the heavens closes on the door", () => {
+test("a life refused at the door that goes on into the heavens closes on what the door named", () => {
   const s = game(103, 80), p = s.players[0];
   p.karma = { ...freshKarma(), agami: [seed(55, "keep", 30)] };
   p.life = [103];
   playTurn(s, [2, 1], () => 2);
-  playTurn(s, [6, 6], () => 6);
-  assert.equal(p.fell, true);
-  assert.equal(p.fellFrom, GOAL);
-  assert.equal(p.pos, 0);
+  // a double six at the door goes nowhere (Phase 17): it stays there, refused
+  const stay = playTurn(s, [6, 6], () => 6);
+  assert.ok(stay.stay && p.pos === GOAL && p.door);
+  playTurn(s, [5, 6], () => 5);
+  const was = p.past[0];
+  assert.ok(was.fell && was.fellFrom === TOP && was.pos === 0);
   // the debt it never met is carried into the store
-  assert.equal(p.karma.sancita.length, 1);
-  const text = lifeText(s, 0, "en");
-  assert.match(text, /came as far as the door, and it did not open/);
+  assert.equal(was.karma.sancita.length, 1);
+  const text = lifeText(firstLives(s), 0, "en");
+  assert.match(text, /rose as far as the realm of Shiva/);
+  assert.ok(text.includes(debtsIn("en", was.karma.sancita, { name: pnameIn(was, "en"), gender: was.gender })), text);
 });
 
 // ---- Phase 14: the door is an examination ----
@@ -273,12 +278,13 @@ test("at a door that can never open a person is told they may sit on or throw on
   // the last year says no more that the life may sit on
   assert.doesNotMatch(examLinesIn("en", { ...plan.exam, died: true }, who).join(" "), /may sit on/);
   assert.match(lifeOf(a, 0, "en").end, /sitting at the door, still carrying the hand that fell, at forty-eight\.$/);
-  // going on: after the question, a die carries the life into the heavens, where the walk goes on to the fall
+  // going on: after the question, a die carries the life into the heavens, where the walk goes on to Śiva's snake
   const b = atDoor([seed(59, "strike", 48, 10, 3)]), pb = b.players[0];
   sit(b);
   playTurn(b, [3, 4], () => 3);
   assert.ok(pb.pos === 108 && !b.over && !pb.door);
-  while (!b.over) playTurn(b, [6, 6], () => 6);
-  assert.ok(pb.fell && !pb.dead);
-  assert.match(lifeOf(b, 0, "en").end, /the hand that fell, at forty-eight/);
+  playTurn(b, [2, 6], () => 2);
+  const was = pb.past?.[0];
+  assert.ok(was?.fell && !was.dead && !pb.fell);
+  assert.match(lifeOf(firstLives(b), 0, "en").end, /the hand that fell, at forty-eight/);
 });

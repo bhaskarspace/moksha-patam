@@ -299,7 +299,7 @@ await check("Phase 7: Moksha is 105, Brahma at 108 is only his realm, and 110 is
   const goal = await card(105), brahma = await card(108), shiva = await card(110), ganesha = await card(104);
   assert(goal.title === "Moksha" && goal.views === 6, `105: ${JSON.stringify(goal)}`);
   assert(brahma.title === "Brahma" && !brahma.snake && !brahma.foot && /nothing up here turns back/i.test(brahma.above), `108: ${JSON.stringify(brahma)}`);
-  assert(shiva.title === "Shiva" && shiva.art && /105/.test(shiva.above) && shiva.snake === "Merit spent" && shiva.gita && /the fall$/.test(shiva.foot), `110: ${JSON.stringify(shiva)}`);
+  assert(shiva.title === "Shiva" && shiva.art && /105/.test(shiva.above) && shiva.snake === "Merit spent" && shiva.gita && /born again$/.test(shiva.foot), `110: ${JSON.stringify(shiva)}`);
   assert(!ganesha.above, "104 is below the exit and should not say Moksha is behind");
   // the board: 105 is the goal cell and keeps ॐ (its vignette is the card's alone), and Shiva's picture sits on 110, in his
   // label's roundel or, since Phase 13, as his vignette in the cell
@@ -311,24 +311,28 @@ await check("Phase 7: Moksha is 105, Brahma at 108 is only his realm, and 110 is
   await page.evaluate(() => mp.close({ instant: true }));
 });
 
-await check("Phase 12: past 105 the heavens are walked, and the throw past 110 ends the life on its own line, counted as a life", async page => {
+await check("Phase 12 and 17: past 105 the heavens are walked, no die past 110 is offered, and with none the life stays", async page => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto(BASE + "?seed=5&debug");
   const settle = k => page.waitForFunction(k => { if (document.getElementById("folio").open) mp.close({ instant: true }); return mp.state.log.some(e => e.k === k) && !mp.busy; }, k, { timeout: 15000, polling: 200 });
   await page.evaluate(() => { mp.jump(106); mp.roll(2); });     // 107, 108: Brahma's realm, and nothing falls
   await settle("lHeaven");
   assert(await page.evaluate(() => mp.state.players[0].pos === 108 && !mp.state.players[0].fell), "108 is not just a realm");
-  await page.goto(BASE + "?seed=5&debug");
-  // as a new viewer: the fall is their first life ended, counted in mp-lives as a death is
-  const before = 0;
-  await page.evaluate(() => { mp.first(); mp.jump(107); mp.roll(6); });     // 108, 109, 110, and past it: the fall
-  await settle("lFell");
-  const r = await page.evaluate(() => ({ fell: mp.state.players[0].fell, pos: mp.state.players[0].pos, over: mp.state.over, winner: mp.state.winner,
-    win: !document.getElementById("win").hidden, text: document.getElementById("winText").textContent, end: mp.lifeText(0, "en"), lives: +(localStorage.getItem("mp-lives") || 0) }));
-  assert(r.fell && r.pos === 0 && r.over && r.winner === null && r.win, `the fall did not end the life: ${JSON.stringify(r)}`);
-  assert(/merit ran out in the heavens/i.test(r.text), `end screen: ${r.text}`);
-  assert(/rose as far as the realm of/.test(r.end), `the account does not close on the fall: ${r.end}`);
-  assert(r.lives === before + 1, `mp-lives ${before} → ${r.lives}`);
+  // the person's turn again, once the computer has played
+  const mine = () => page.waitForFunction(() => { if (document.getElementById("folio").open) mp.close({ instant: true }); return !mp.busy && mp.state.turn === 0 && !document.getElementById("roll").disabled; }, null, { timeout: 15000, polling: 200 });
+  // from 108 a 6 would pass the top: only the 1 is offered, so nothing is asked, and the life moves by it
+  await mine();
+  await page.evaluate(() => mp.roll(6, 1));
+  await page.waitForFunction(() => { if (document.getElementById("folio").open) mp.close({ instant: true }); return !mp.busy && mp.state.players[0].pos === 109; }, null, { timeout: 15000, polling: 200 });
+  assert(await page.evaluate(() => document.getElementById("pick").hidden), "a choice of one was asked");
+  // a double six offers nothing: the life stays where it is, the years standing still, and the line says why
+  await mine();
+  const years = await page.evaluate(() => mp.state.players[0].years);
+  await page.evaluate(() => mp.roll(6));
+  await settle("lHeavenStay");
+  const r = await page.evaluate(() => ({ p: mp.state.players[0], over: mp.state.over, line: mp.landed() }));
+  assert(r.p.pos === 109 && r.p.years === years && !r.p.fell && !r.over, `the stay: ${JSON.stringify({ pos: r.p.pos, years: r.p.years, over: r.over })}`);
+  assert(/no throw goes past the top of the heavens/.test(r.line || ""), `the line: ${r.line}`);
 });
 
 await check("Phase 12: a debt comes due on its own card, which holds the game until it is read, and the ledger keeps it", async page => {
@@ -1483,15 +1487,33 @@ await check("Phase 14: the years running out at the door close it over the token
   assert(/years ran out at the door, still owing the hand that fell/.test(r.line || ""), `the line: ${r.line}`);
 });
 
-await check("Phase 14: a throw that lands on 110 is Śiva's snake, and ends the life", async page => {
+await check("Phase 14 and 17: a throw that lands on 110 is Śiva's snake, and the same soul is born again in the seat", async page => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto(BASE + "?seed=5&debug");
-  await page.evaluate(() => mp.jump(107));
+  // as a new viewer: the life Śiva's snake ends is their first life ended, counted in mp-lives as a death is
+  assert(await page.evaluate(() => { const first = mp.first(); mp.jump(107); return first; }), "mp.first did not make a first life");
+  const was = await page.evaluate(() => ({ en: mp.state.players[0].name || mp.state.players[0].alias?.en }));
   assert(await page.evaluate(() => mp.siva()) === 3, "mp.siva did not set the throw to 110");
   await page.evaluate(() => document.getElementById("roll").click());
-  await until(page, () => !mp.busy && mp.state.log.some(e => e.k === "lSiva"));
-  const r = await page.evaluate(() => ({ p: mp.state.players[0], over: mp.state.over, text: mp.state.log.find(e => e.k === "lSiva") }));
-  assert(r.p.fell && r.p.fellBy === "snake" && r.p.pos === 0 && r.over, JSON.stringify({ fell: r.p.fell, by: r.p.fellBy, pos: r.p.pos, over: r.over }));
+  // the card between lives holds the game, and offers the book of the life just closed
+  await page.waitForFunction(() => document.querySelector("#folio[open] .leaf.reborn"), null, { timeout: 15000 });
+  const c = await page.evaluate(() => ({ text: document.getElementById("leaf").textContent, read: !!document.querySelector('#leaf [data-act="pastLife"]'),
+    p: mp.state.players[0], over: mp.state.over, win: !document.getElementById("win").hidden, line: mp.landed(), stage: document.querySelector("#players .stage")?.textContent, lives: +(localStorage.getItem("mp-lives") || 0) }));
+  assert(/Born again/.test(c.text) && /Śiva's snake took/.test(c.text) && c.read, `the card: ${c.text.slice(0, 300)}`);
+  assert(c.p.past?.length === 1 && c.p.past[0].fell && c.p.pos === 1 && c.p.rebirths === 1 && !c.p.fell && !c.over && !c.win, JSON.stringify({ past: c.p.past?.length, pos: c.p.pos, over: c.over }));
+  assert((c.p.name || c.p.alias?.en) !== was.en, `the newborn is still called ${was.en}`);
+  assert(/the same soul is born again as/.test(c.line || ""), `the line: ${c.line}`);
+  assert(/^Born again/.test(c.stage || ""), `the panel: ${c.stage}`);
+  assert(c.lives === 1, `mp-lives ${c.lives}`);
+  // its book opens on the life just closed
+  await page.click('#leaf [data-act="pastLife"]');
+  await page.waitForFunction(() => document.getElementById("lifeDlg").open, null, { timeout: 5000 });
+  const b = await page.evaluate(() => ({ title: document.getElementById("lifeTitle").textContent, lives: [...document.querySelectorAll(".life-lives button")].map(x => [x.textContent, x.getAttribute("aria-pressed")]), end: document.querySelector("#lifeLeaf .life-end")?.textContent }));
+  assert(b.title.includes(was.en) && b.lives.length === 2 && b.lives[0][1] === "true", `the book: ${JSON.stringify(b)}`);
+  assert(/rose as far as the realm of Shiva/.test(b.end || ""), `the book's end: ${b.end}`);
+  // and the game goes on: the newborn throws next
+  await page.evaluate(() => document.querySelector('#lifeLeaf [data-act="close"]').click());
+  await page.waitForFunction(() => !mp.busy && !document.getElementById("roll").disabled, null, { timeout: 5000 });
 });
 
 await check("Phase 14: the curse is said on the person's line, on the landing it is spoken at", async page => {

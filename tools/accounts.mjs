@@ -24,6 +24,9 @@
 // life never reads saṃskāra, so every line without the tag must be the same as main's. Its fourth step plays the animal
 // interlude a death by ledger is owed before that second life (src/engine/animal.js), each round's account hashed and
 // tagged "animal" as well as "rebirth".
+// Phase 17 makes Śiva's snake rebirth in the seat: a game can hold several lives a seat (p.past). The first is hashed
+// under the seat's own key, as before, and each after it under the key with " sivaN", tagged "siva" (and "above", since
+// only the heavens lead there). Every untagged account must be the same as main's.
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
@@ -36,7 +39,7 @@ const load = f => import(pathToFileURL(path.join(root, f)).href);
 const [{ createGame, playTurn }, { lifeOf, lifeText }, content, { cast }] = await Promise.all(["src/engine/turn.js", "src/engine/account.js", "src/content.js", "src/state.js"].map(load));
 // the mirror, in a checkout that has one
 const { mirrorOf } = fs.existsSync(path.join(root, "src/engine/mirror.js")) ? await load("src/engine/mirror.js") : {};
-const { soulOf, bornOf } = fs.existsSync(path.join(root, "src/engine/samskara.js")) ? await load("src/engine/samskara.js") : {};
+const { soulOf, bornOf, pastOf } = fs.existsSync(path.join(root, "src/engine/samskara.js")) ? await load("src/engine/samskara.js") : {};
 const { lifeSeed } = flags.lives ? await load("tools/sim.mjs") : {};
 const { animalRules, afterAnimal } = flags.lives ? await load("src/engine/animal.js") : {};
 if (flags.cast === "off") {
@@ -66,9 +69,18 @@ const play = (players, seed, rules = { six: true }) => {
 const hash = t => crypto.createHash("sha256").update(t).digest("hex");
 const tally = { intros: 0, returns: 0, fates: 0, lives: 0 };
 const out = [];
+// every life seat i lived in game s, the first under key itself (Phase 17)
 const say = (key, s, i, l) => {
+  const past = s.players[i].past ?? [];
+  if (!past.length) return sayOne(key, s, i, l);
+  [...past.map((_, k) => pastOf(s, i, k)), s].forEach((v, k) => {
+    if (k) v = { ...v, siva: true };
+    sayOne(k ? `${key} siva${k}` : key, v, i, l);
+  });
+};
+const sayOne = (key, s, i, l) => {
   const text = lifeText(s, i, l), life = lifeOf(s, i, l);
-  out.push(flags.full ? `## ${key}\n${text}` : `${key} ${hash(text)}${flags.tag ? (s.above ? " above" : "") + (s.karma ? " karma" : "") + (s.door ? " door" : "") + (s.curse ? " curse" : "") + (s.witness || life.witnessed ? " witness" : "") + (s.death ? " death" : "") + (mirrorOf?.(s, i)[0]?.id === "rebel" ? " mirror" : "") + (s.rebirth ? " rebirth" : "") + (s.animal ? " animal" : "") : ""}`);
+  out.push(flags.full ? `## ${key}\n${text}` : `${key} ${hash(text)}${flags.tag ? (s.above ? " above" : "") + (s.karma ? " karma" : "") + (s.door ? " door" : "") + (s.curse ? " curse" : "") + (s.witness || life.witnessed ? " witness" : "") + (s.death ? " death" : "") + (mirrorOf?.(s, i)[0]?.id === "rebel" ? " mirror" : "") + (s.rebirth ? " rebirth" : "") + (s.animal ? " animal" : "") + (s.siva ? " siva" : "") : ""}`);
   if (l === "en" && life.fates) {
     tally.lives++;
     tally.fates += life.fates.length;

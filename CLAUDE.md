@@ -61,12 +61,16 @@ person's ended life is kept (`mp-samskara`, `src/engine/samskara.js`) and Be bor
 dreams of the last; a death by ledger is first born an animal (`rules.law = "animal"`, `src/engine/animal.js`). Play
 again starts clean. The death's form is by years: accident to 50, calamity 51–68, illness from 69. Its follow-up
 gives every stage past the child a female and a neutral figure by `p.gender` (`src/render/art.js`, pure), Hindi stage
-names that agree (`hiF`), and the interlude its animal's own sprite; under ?first the saṃskāra is kept in memory only. Next is 17, The laws (REDESIGN.md Phases 17–20).
+names that agree (`hiF`), and the interlude its animal's own sprite; under ?first the saṃskāra is kept in memory only. Phase 17, The laws, is in progress (REDESIGN.md Phase 17): its step 1 makes the endgame exact, since no die past 110 is
+offered and with none the life stays (`plan.stay`), and makes Śiva's snake rebirth in the seat (`bornAgain` in
+`src/engine/turn.js`): the closed life goes to `p.past`, the newborn is the same object at square 1 with a new name, and
+`p.rebirths` salts every sequence of a life's own. A seat's past life is read through `pastOf(state, i, k)`
+(`src/engine/samskara.js`); tests read first lives through `tests/lives.mjs`.
 Phase 7 was The Exit (REDESIGN.md §4): Moksha is square 105 (`GOAL`), partway
 along the divine row, while the board still ends at 110 (`TOP`). Since Phase 12 nothing above the exit turns back: past 105 the
-heavens (106–110) are walked, and the throw that would pass `TOP` is the fall, which ends the life (`plan.fell`, `p.fell`;
-`gone(p)` in `src/engine/turn.js` is dead or fallen). It is never a respawn: the account closes on `lifeEndFell`, and it counts in
-`mp-lives` like a death. The Brahma snake (108 → 1), `p.hasFallen` and the Brahmaloka rule are retired; the fall's card is `FALL`
+heavens (106–110) are walked. Since Phase 17 no throw passes `TOP`, and the exact throw onto it is Śiva's snake, the fall
+(`plan.fell`, `p.fell` on the closed life in `p.past`): the account closes on `lifeEndFell`, it counts in `mp-lives` like a
+death, and the same soul is born again in the seat. `gone(p)` is dead, or an animal interlude ended. The Brahma snake (108 → 1), `p.hasFallen` and the Brahmaloka rule are retired; the fall's card is `FALL`
 in `content/squares.json`, shown on 110. A Shepard tone plays under the divine row and keeps rising through 106–110; the fall is
 its only resolution (`src/audio/shepard.js`). Phase 12's second step is the ledger (`src/engine/karma.js`, pure): a situation's
 least-worth options carry a `seed` (`content/situations.json`: `fuse` in years, `weight` 1–3, `holds` a snake head, `debt` and
@@ -114,7 +118,9 @@ illuminated frame (`frame.js`) and a bottom sheet below 768px (`sheet.js`).
   `--death=off` reports the death tier only, `--penance=N` is the years a unit of weight costs at the door (2), and
   `--unpaid=N` the weight from which only the book answers a debt (3). `--lives=N` plays each seed as one soul's lives
   instead (born of the last through `soulOf`/`bornOf`, a death by ledger's animal interlude between), and reports
-  liberation by life, lives per liberation, the rebirth rate and the interludes per hundred lives.
+  liberation by life, lives per liberation, the rebirth rate and the interludes per hundred lives. Since Phase 17 every
+  number is per life (each `p.past` and the last; `livesOf` in `tools/sim.mjs`), plus turns per life, rebirths through
+  Śiva's snake a game and games that hit the turn cap (`CAP`, expected never); the heavens are 106–109.
   Balance against the p95, the share over 100, liberation per life and lives per liberation.
 - `npm run smoke [-- --only=text]`: Playwright checks of the built page in a real browser (needs Chrome installed).
   `--only` runs just the checks whose names contain the text, e.g. `--only="Phase 6"`.

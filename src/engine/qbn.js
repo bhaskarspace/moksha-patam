@@ -46,7 +46,7 @@ export function choiceFor(state, sit) {
     const sign = POLICY === "honest" ? -1 : 1;
     return [...open].sort((a, b) => sign * (worthOf(a) - worthOf(b)))[0].id;
   }
-  const rng = makeRng((state.rng.seed ^ 0x2545f491 ^ Math.imul(state.turn + 1, 0x9e3779b1) ^ Math.imul((p.life?.length ?? 0) + 1, 0x85ebca6b)) >>> 0);
+  const rng = makeRng((state.rng.seed ^ 0x2545f491 ^ Math.imul(state.turn + 1, 0x9e3779b1) ^ Math.imul((p.life?.length ?? 0) + 1, 0x85ebca6b) ^ Math.imul(p.rebirths ?? 0, 0x632be5ab)) >>> 0);
   return open[Math.floor(next(rng) * open.length)].id;
 }
 
@@ -77,7 +77,7 @@ export function egoFaces(p) {
 // mp.ego() set for the next throw (state.forceEgo).
 export const egoFacesOn = (state, n) => (egoOf(n) ? state.forceEgo ?? egoFaces(state.players[state.turn]) : null);
 export const egoThrow = (state, idx, lived) =>
-  die(makeRng((state.rng.seed ^ 0x1b873593 ^ Math.imul(idx + 1, 0xcc9e2d51) ^ Math.imul(lived + 1, 0x7feb352d)) >>> 0));
+  die(makeRng((state.rng.seed ^ 0x1b873593 ^ Math.imul(idx + 1, 0xcc9e2d51) ^ Math.imul(lived + 1, 0x7feb352d) ^ Math.imul(state.players[idx]?.rebirths ?? 0, 0x632be5ab)) >>> 0));
 
 // ---- What a square tells ----
 // The moment a landing on square n told, given what it told (p.told): a roll-dependent square's other moment, a

@@ -6,11 +6,12 @@ import { lifeOf, lifeText } from "../src/engine/account.js";
 import { castFill } from "../src/i18n.js";
 import { JOINS, SQ, SNAKES, CAST, GOAL, squareOf } from "../src/content.js";
 import { debtsIn, refusalIn } from "../src/engine/karma.js";
+import { firstLives } from "./lives.mjs";
 
 const meera = (seed, gender = "f") => {
   const s = createGame({ players: [{ name: "Meera", type: "cpu", gender }], rules: { six: true }, seed });
   while (!s.over) playTurn(s);
-  return s;
+  return firstLives(s);
 };
 // a game whose one life is exactly these squares
 const lived = (life, extra = {}) => {
@@ -97,7 +98,8 @@ test("a life that fell from the heavens closes on the realm, the merit spent and
   }
   for (const [seed, holds] of [[held, true], [free, false]]) {
     const f = meera(seed), m = meera(seed, "m"), p = f.players[0];
-    const realm = squareOf(Math.max(...p.life));
+    // since Phase 17 every fall is Śiva's snake, from the top of the heavens
+    const realm = squareOf(p.fellFrom);
     const en = lifeOf(f, 0, "en").end;
     assert.ok(en.startsWith(`Meera rose as far as the realm of ${realm.en} and lived there on what had been earned below`), en);
     assert.ok(holds ? en.endsWith(`world, ${SNAKES[p.holding].holding.en.replace(/\{\w+=([^}]*)\}/g, "$1").replaceAll("{name}", "Meera")}.`) : en.endsWith("with nothing in particular in hand."), en);

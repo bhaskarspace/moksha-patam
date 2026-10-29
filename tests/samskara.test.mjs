@@ -8,11 +8,12 @@ import { lifeOf, lifeText } from "../src/engine/account.js";
 import { castOf, RETURNS_AS } from "../src/engine/cast.js";
 import { karmaOf, debtIn } from "../src/engine/karma.js";
 import { freshGunas } from "../src/engine/self.js";
+import { firstLives } from "./lives.mjs";
 
 const play = (seed, row = {}) => {
   const s = createGame({ players: [{ name: "Meera", type: "cpu", gender: "f", ...row }], rules: { six: true }, seed });
   while (!s.over) playTurn(s);
-  return s;
+  return firstLives(s);
 };
 // the first seeds whose life ended unfreed and left a debt
 const ended = (() => {

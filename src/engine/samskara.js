@@ -30,6 +30,10 @@ export const endOf = (state, i) => {
   return null;
 };
 
+// The game as it stood for the k-th life of seat i that Śiva's snake closed (Phase 17, p.past): the same table, with that
+// life in the seat, so its book, its path and its mirror read as they did when it ended. state itself for k null.
+export const pastOf = (state, i, k) => (k == null || !state.players[i]?.past?.[k] ? state : { ...state, winner: null, players: state.players.map((q, j) => (j === i ? q.past[k] : q)) });
+
 // The record player i's ended life leaves, or null when it was let go or has not ended.
 export function soulOf(state, i) {
   const p = state.players[i], end = endOf(state, i);

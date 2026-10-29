@@ -16,7 +16,7 @@ export function curseOf(state, idx) {
   if (!list?.length) return null;
   const forced = state.players[idx]?.curseId;
   if (forced) return list.find(c => c.id === forced) ?? null;
-  const r = makeRng((state.rng.seed ^ 0x2c1b3c6d ^ Math.imul(idx + 1, 0x297a2d39)) >>> 0);
+  const r = makeRng((state.rng.seed ^ 0x2c1b3c6d ^ Math.imul(idx + 1, 0x297a2d39) ^ Math.imul(state.players[idx]?.rebirths ?? 0, 0x632be5ab)) >>> 0);
   return list[Math.floor(next(r) * list.length)];
 }
 // Whether a landing at these years is the one it is said at: the first old enough for it, in childhood or brahmacharya.

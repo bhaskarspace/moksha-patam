@@ -13,14 +13,14 @@ import { ageStep } from "./engine/self.js";
 import { karmaOf, carried, plantOf, debtKey, refusalOf, examineOf, FORMS, deathFormOf } from "./engine/karma.js";
 import { curseOf } from "./engine/curse.js";
 import { castOf, meetsNamed, nameKey } from "./engine/cast.js";
-import { soulOf, bornOf, endOf } from "./engine/samskara.js";
+import { soulOf, bornOf, endOf, pastOf } from "./engine/samskara.js";
 import { isAnimal, animalRules, afterAnimal, KINDS, masterOf } from "./engine/animal.js";
 import { frame, pullBack, hold, release } from "./render/camera.js";
 import { spriteURL, spriteSheet } from "./render/sprites.js";
 import { tokenEls, buildTokens, place, retrigger, climb, swallow, animate } from "./render/tokens.js";
-import { openSquare, openReckoning, openExam, cardCurse, openEntry, closeCard, cardIdle, cardOpen, cardCarried, cardBlocking, cardExpanded, releaseCard, setCardRoll, setCardDecide, optionNote, refreshRoll, refreshCard, onCardChange } from "./render/card.js";
+import { openSquare, openReckoning, openExam, openReborn, cardCurse, openEntry, closeCard, cardIdle, cardOpen, cardCarried, cardBlocking, cardExpanded, releaseCard, setCardRoll, setCardDecide, optionNote, refreshRoll, refreshCard, onCardChange } from "./render/card.js";
 import { drawDoor } from "./render/door.js";
-import { landHuman, landDoor, landCurse, clearLanded, drawLanded } from "./render/landed.js";
+import { landHuman, landDoor, landCurse, landStay, landReborn, clearLanded, drawLanded } from "./render/landed.js";
 import { sheetState } from "./render/sheet.js";
 import { renderCodex, showTab } from "./render/codex.js";
 import { renderLog } from "./render/log.js";
@@ -166,9 +166,10 @@ async function takeTurn() {
   await shut;
   if (g !== G.gen) return;
   state.dice = dice;
-  // a choice with only one move in it (a double, where there is no sitting) is not asked
-  const only = dice.length > 1 && movesFor(state, dice).length === 1;
-  const v = dice.length < 2 || only ? dice[0] : p.type === "human" ? await choose(dice) : moveFor(state, dice);
+  // a choice with only one move in it (a double, where there is no sitting, or in the heavens a die that would pass the
+  // top) is not asked; with none, the life stays where it is (Phase 17)
+  const moves = dice.length > 1 ? movesFor(state, dice) : [dice[0]];
+  const v = moves.length < 2 ? moves[0] ?? null : p.type === "human" ? await choose(dice) : moveFor(state, dice);
   if (g !== G.gen) return;
   if (p.type === "human" && !shut && cardOpen()) await closeCard();
   if (g !== G.gen) return;
@@ -206,6 +207,10 @@ async function takeTurn() {
       sound.fall(reduced ? 1.2 : 2.6);
       await sleep(reduced ? 300 : 1200);
       if (g !== G.gen) return;
+    } else if (plan.stay) {
+      // a throw that offered nothing in the heavens: nothing is walked or landed on, and the line says why
+      if (p.type === "human") landStay(idx, p.pos);
+      plan.after.forEach(log);
     } else {
       // a new ashrama is seen whole: the one this landing's years bring, not the square's
       if (stageOf({ ...p, years: ageStep(p.years ?? 0, p.pos) }) !== born) pullBack();
@@ -307,8 +312,23 @@ async function takeTurn() {
   G.plan = null; G.face = null;
   // the viewer's own life is over: the first life's quiet cards end with it (prefs.js). The fall counts as a death.
   if (p.type === "human" && (plan.died || plan.win || plan.fell) && firstLife()) { lifeLived(); refreshCard(); }
-  // a person whose years run out, or who falls, reads their life at once, rather than watching the others finish
-  if ((plan.died || plan.fell) && p.type === "human") openLife(idx);
+  // a person whose years run out reads their life at once, rather than watching the others finish
+  if (plan.died && p.type === "human") openLife(idx);
+  // Śiva's snake (Phase 17): the same soul is born again in the seat, at the snake's tail. It is public, as the door is;
+  // a person's holds the game on its card, which offers the book of the life just closed
+  if (plan.fell && p.past?.length) {
+    const was = p.past.length - 1;
+    landReborn(idx, was);
+    render();
+    if (p.type === "human") {
+      if (cardOpen() && !cardBlocking()) await closeCard({ instant: true });
+      G.waitingCard = true; refreshRoll();
+      const read = await openReborn(was, idx);
+      G.waitingCard = false; refreshRoll();
+      if (g !== G.gen) return;
+      if (read) openLife(idx, was);
+    }
+  }
   watching();
   pullBack();
   G.busy = false;
@@ -455,7 +475,8 @@ function keepLives(state) {
     // an interlude ended (src/engine/animal.js): the soul it was owed to goes on, human or an animal once more
     if (isAnimal(state)) { const s = soulFor(key); if (s?.animal) keepSoul(key, afterAnimal(s, !!p.earned)); return; }
     if (state.winner === i) keepSoul(key, null);
-    else { const s = soulOf(state, i); if (s) keepSoul(key, s); }
+    // a life still going when the game ended leaves nothing; one Śiva's snake closed before it, its own (Phase 17)
+    else { const s = soulOf(state, i) ?? (p.past?.length ? soulOf(pastOf(state, i, p.past.length - 1), i) : null); if (s) keepSoul(key, s); }
   });
 }
 // The rows of the next game when it is born again: a person whose life here ended and was kept is born from it, not
@@ -465,7 +486,7 @@ function keepLives(state) {
 function rebornRows(state) {
   let any = false, animal = null;
   const rows = state.players.map((p, i) => {
-    const key = soulKey(p), soul = endOf(state, i) && soulFor(key), born = soul && bornOf(soul);
+    const key = soulKey(p), soul = (endOf(state, i) || p.past?.length) && soulFor(key), born = soul && bornOf(soul);
     if (!born) return { ...G.setup.rows[i] };
     any = true;
     const row = { name: "", type: "human", gender: "", born, soul: key, avoid: [pnameIn(p, "en"), ...soul.cast.map(c => c.en)] };

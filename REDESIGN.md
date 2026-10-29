@@ -1288,6 +1288,12 @@ cycle. It is also, almost square for square, what Phase 7 built. So:
   begins, counted in `mp-lives` like a death. This is the minimal version; Phase 16 turns
   that ending into the rebirth proper — the dream of the first life, the interlude, the
   cast crossing over.
+  > *Superseded 29 Oct, decided by Bhaskar, built in Phase 17 step 1:* no throw passes 110. A die that would is not
+  > offered; with none offered the life stays where it is in the heavens, its years standing still (`lHeavenStay`). Only
+  > the exact throw reaches 110, and Śiva's snake there is rebirth in the seat, at once: the life is closed and kept in
+  > `p.past`, and the same soul is born at square 1, of that life (`soulOf`/`bornOf`), with a new name and gender drawn
+  > off a sequence of its own. The game ends only on a liberation, or when nobody (in a game with people, no person) is
+  > left. `fellBy: "past"` and `lFell` are gone.
 - **Retired:** the once-per-life Brahmā snake (108 → 1), `p.hasFallen`, Brahmā's
   `fallWhen` text, and `TOP` as a turning point. `TOP` remains the board's extent.
 - **Not reopened:** "move up to the roll" (Phase 9) stays declined; two dice from 94 stay,
@@ -1930,6 +1936,35 @@ non-trivial.
 
 *The payoff of the whole design, and now also the repair of its largest open number.*
 
+> **In progress** (branch `phase-17-laws`, decided by Bhaskar 29 Oct). Step 0, on `main`: a phone's ordinary sheet
+> closes on a stray tap. **Step 1, the endgame: exact to Śiva, and rebirth through his snake.** No die past 110 is
+> offered (`movesFor`); with none the life stays (`plan.stay`, `lHeavenStay`, the line under the board says why). 110 is
+> always Śiva's snake, and it is rebirth in the seat (`bornAgain` in `src/engine/turn.js`): the closed life is pushed to
+> `p.past` whole, with the cast it had (`castKept`), and the same soul is born at square 1 from `soulOf`/`bornOf`, with a
+> new name and gender off a sequence of its own, never a name at the table or in its cast. Every sequence of a life's own
+> (omen, ego, curse, joins, mirror) is salted by `p.rebirths`, zero for a first life, so first lives draw what they did.
+> A log line keeps which life it is about (`e.life`). A person's rebirth is a modal card between lives, offering the
+> book of the life just closed (`openReborn`; the book has a tab per life, `pastOf` in `src/engine/samskara.js`); a
+> computer's is the line under the board, as the door's is. The game ends on a liberation, or when nobody is left.
+> Measured, 20000 one-player games a policy, before → after (a life is each `p.past` and the last):
+>
+> | | honest | mixed | dishonest |
+> |---|---|---|---|
+> | turns a life, median / p95 | 27 / 45 → 28 / 47 | 28 / 48 → 30 / 48 | 29 / 49 → 30 / 49 |
+> | turns a game, median / p95 / max | 27 / 45 / 69 → 45 / 155 / 721 | 28 / 48 / 82 → 47 / 159 / 541 | 29 / 49 / 82 → 46 / 142 / 376 |
+> | turns in 106–109, mean / p95 / max | 0.83 / 3 / 4 → 1.96 / 8 / 32 | 0.83 / 3 / 4 → 1.95 / 8 / 27 | 0.78 / 3 / 4 → 1.80 / 8 / 27 |
+> | liberated, a life | 43.5% → 42.1% | 35.4% → 32.2% | 27.5% → 24.1% |
+> | lives per liberation | 2.30 → 2.37 | 2.82 → 3.11 | 3.64 → 4.15 |
+> | died, a life | 6.3% → 6.7% | 14.6% → 17.2% | 25.1% → 28.9% |
+> | Śiva's snake, a life | 50.2% (with the throw past) → 51.2% | 49.9% → 50.6% | 47.4% → 47.0% |
+> | rebirths a game | — → 1.05 | — → 1.03 | — → 0.89 |
+> | a game ends liberated | 43.5% → 86.3% | 35.4% → 65.2% | 27.5% → 45.5% |
+>
+> The turn cap (5000) was never hit. Per-life liberation falls a little because a life born through Śiva carries the
+> heaviest unmet debt as prārabdha, and the door refuses it more (refused arrivals 11.8% → 19.0% honest). Accounts against
+> `main` (2000 seeds, `--tag --lives=2`): every changed account went above the exit, or is a second life born of one that
+> did; each later life of a seat is hashed under `sivaN`, tagged `siva`. Golden: page and sim identical through rebirths.
+
 - Mīmāṃsā first (default), then Cārvāka, then the rest.
 - A law-select screen that explains each in the player's own terms before they commit.
 - Different win conditions per §2.7.
@@ -2247,8 +2282,9 @@ reason is the thing to re-examine, not the idea.*
   outcome. "Buys the thing at last" is the model: a 2026 reader knows it is a phone, and a
   2046 reader will still know what was meant. Behaviour outlasts the thing it runs on.
 - **Nothing turns back above mokṣa.** Past 105 the only way is on, and then down: the
-  heavens are walked and the throw past 110 ends the life. No bounce, no once-per-life
-  exception, no square that sends a roll back toward the exit (decided 20 Oct).
+  heavens are walked, no throw passes 110, and the exact throw onto it is Śiva's snake, which ends the life and begins
+  the next (Phase 17). A throw that offers no die stays: a stay is not a bounce. No bounce, no once-per-life exception,
+  no square that sends a roll back toward the exit (decided 20 Oct; the stay, 29 Oct).
 - **The 1 is the threshold face; the 6 is the world's face.** The slow arrival, the
   admitting throw, the question at the door are 1s; the omen, the entry into the world, the
   fall are 6s. No mechanic uses them the other way round.

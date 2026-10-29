@@ -6,6 +6,9 @@ import { situationAt, optionOf, choiceFor, egoOf, egoFacesOn, egoThrow } from ".
 import { freshKarma, karmaOf, carried, ripen, plantOf, omenFor, refusalOf, examineOf, meet, DEATH } from "./karma.js";
 import { curseOf, spokenAt } from "./curse.js";
 import { ANIMAL_TOP, ANIMAL_TURNS } from "./animal.js";
+import { soulOf, bornOf } from "./samskara.js";
+import { castOf, nameKey } from "./cast.js";
+import { drawName } from "../state.js";
 
 // The die shows this many random faces while it tumbles before the real roll. They come from the
 // game's own sequence, so a headless game must draw them too to stay in step with the UI.
@@ -48,9 +51,11 @@ export function toldOn(n, face, dice = [face]) {
 // you walk. A sannyasin the door at 105 has refused may sit there too (REDESIGN.md Phase 12); it is still earth, and
 // since Phase 14 each year sat there is a question of the examination (src/engine/karma.js examineOf).
 export const canSit = p => p.pos >= ENDGAME && (p.pos <= 100 || p.pos === GOAL) && stageOfPlayer(p) === SANNYASA && slotsFor(p).includes("practice");
-// The moves a roll offers: each die's value once, and 0 for sitting.
+// The moves a roll offers: each die's value once, and 0 for sitting. Since Phase 17 no die is offered that would carry
+// the life past the top: the heavens end at Śiva's square, and only the exact throw reaches it. With nothing offered
+// the life stays where it is in the heavens.
 export function movesFor(state, dice) {
-  const p = state.players[state.turn], out = [...new Set(dice)];
+  const p = state.players[state.turn], out = [...new Set(dice)].filter(v => p.pos + v <= TOP);
   if (dice.length > 1 && canSit(p)) out.push(0);
   return out;
 }
@@ -58,12 +63,13 @@ export function movesFor(state, dice) {
 // refused it, sitting there to be examined, wherever it may (Phase 14); otherwise a die
 // that stops short of the exit and is not a snake, the bigger first; then the exit even if it will refuse them (Phase
 // 12); then sitting, where a sannyasin may; then a die
-// into the heavens, the smaller first, to stay there longest; then a snake; and the fall last, since it ends the life
-// (REDESIGN.md Phase 12 treats the throw past the top as the heavens' snake). Below the exit this is Phase 9's choice
+// into the heavens, the smaller first, to stay there longest; then a snake; and Śiva's square last, since it ends the
+// life (Phase 17: the life is born again). null when no die may be moved by: the life stays. Below the exit this is Phase 9's choice
 // exactly; Phase 9's whole rule, the bigger die that is not a snake, is kept in tools/sim.mjs as --pick=phase9.
 // It ranks by where the dice take it, before the omen: nobody sees a reckoning coming.
 export function moveFor(state, dice) {
   const moves = movesFor(state, dice), plans = moves.filter(Boolean).map(v => planTurn(state, v, dice));
+  if (!moves.length) return null;
   const to = pl => pl.reckon?.from ?? pl.final;
   const win = plans.find(pl => pl.win);
   if (win) return win.v;
@@ -79,9 +85,10 @@ export function moveFor(state, dice) {
   const heaven = plans.filter(pl => !pl.fell && to(pl) > GOAL).sort((a, b) => a.v - b.v);
   if (heaven.length) return heaven[0].v;
   const snake = plans.filter(pl => !pl.fell).sort((a, b) => b.v - a.v);
-  return snake.length ? snake[0].v : Math.max(...dice);
+  return snake.length ? snake[0].v : plans[0]?.v ?? 0;
 }
-// A player still in the game: not dead, and not fallen from the heavens.
+// A player still in the game: not dead, and not fallen from the heavens (since Phase 17 a fallen life is reborn in its
+// seat at once, so only a record in p.past is ever fell).
 // since Phase 16 an animal interlude also ends, earned (p.earned) or short of the forest's edge (p.short)
 export const gone = p => !!(p.dead || p.fell || p.earned || p.short);
 
@@ -96,12 +103,16 @@ export const gone = p => !!(p.dead || p.fell || p.earned || p.short);
 // witness chose and what the life took. Phase 16 adds what a row may bring from a life before (src/engine/samskara.js
 // bornOf): born is { gunas, karma, prior }, prior being the last life as the next half-remembers it; and soul, the key
 // its saṃskāra is kept under. A row without them is a first life, exactly as before.
+// Phase 17 adds past, the lives this seat has already lived in this game, each closed by Śiva's snake, and rebirths, how
+// many: every sequence of a life's own (the omen, the ego, the curse, the joins) is salted by it, so a life born again
+// draws its own, and a first life draws exactly what it did before.
+export const playerOf = (r, i) => ({ name: r.name.trim(), type: r.type, gender: r.gender || "m", alias: r.alias || null, color: i, pos: 0, face: "r", life: [], told: [], fell: false,
+  years: 0, gunas: r.born?.gunas ?? freshGunas(), aims: freshAims(), practised: 0, bhumika: null, peak: null, dead: false, holding: null,
+  karma: r.born?.karma ?? freshKarma(), held: [], reckonings: [], refusals: [], door: null, witness: [],
+  ...(r.born?.prior ? { prior: r.born.prior } : {}), ...(r.soul ? { soul: r.soul } : {}) });
 export function createGame({ players, rules, seed }) {
   return {
-    players: players.map((r, i) => ({ name: r.name.trim(), type: r.type, gender: r.gender || "m", alias: r.alias || null, color: i, pos: 0, face: "r", life: [], told: [], fell: false,
-      years: 0, gunas: r.born?.gunas ?? freshGunas(), aims: freshAims(), practised: 0, bhumika: null, peak: null, dead: false, holding: null,
-      karma: r.born?.karma ?? freshKarma(), held: [], reckonings: [], refusals: [], door: null, witness: [],
-      ...(r.born?.prior ? { prior: r.born.prior } : {}), ...(r.soul ? { soul: r.soul } : {}) })),
+    players: players.map(playerOf),
     rules: { ...rules },
     // over: someone reached the exit, or nobody is left in the game to
     turn: 0, winner: null, over: false, last: null,
@@ -112,7 +123,11 @@ export function createGame({ players, rules, seed }) {
 
 // Log entries keep a message key and values, so they re-translate when the language changes.
 export const entry = (k, v = {}, kind = "", who = null) => ({ k, v, kind, who });
+// An entry about a player keeps which of the seat's lives it is about (Phase 17: e.life, p.rebirths; none for the first),
+// so a line from a life Śiva's snake closed still names that life, not the one born after it.
 export function addLog(state, e) {
+  const p = e.who == null ? null : state.players[e.who];
+  if (p?.rebirths && e.life == null) e.life = p.rebirths;
   state.log.unshift(e);
   state.log = state.log.slice(0, 80);
 }
@@ -121,13 +136,18 @@ export function addLog(state, e) {
 // shows them: pre (before walking), after (on landing) and end (once the turn is over).
 // The exit sits partway along the divine row (REDESIGN.md Phase 7): landing exactly on it is liberation, and passing
 // it carries the player into the heavens. Nothing above it turns back (REDESIGN.md Phase 12): the heavens are walked,
-// and the throw that would carry the player past the top is the fall. Merit spent, the life ends there; there is no
-// landing, and no square 1 with the years still running.
+// and since Phase 17 no throw passes the top. The exact throw onto it is the fall, Śiva's snake: merit spent, the life
+// ends there, with no landing, and the same soul is born again (endTurn).
 // v is the move: a die's value, or 0 to sit. dice is everything rolled; the dice not moved by are spare, and in
-// sannyasa they go to practice (src/engine/self.js).
+// sannyasa they go to practice (src/engine/self.js). v null is the throw that offered nothing (Phase 17): in the heavens
+// no die may pass the top, and then the life stays where it is. The heavens' years stand still, so none pass.
 export function planTurn(state, v, dice = [v]) {
   const idx = state.turn, p = state.players[idx], from = p.pos, rules = state.rules;
   const pre = [], after = [], end = [], path = [];
+  if (v == null || from + v > TOP) {
+    pre.push(entry("lHeavenStay", { a: dice[0], b: dice[1], pos: from, sq: from }, "heaven", idx));
+    return { idx, v: null, dice, spare: [], sit: false, stay: true, from, path, target: from, final: from, jump: null, win: false, died: false, again: false, told: [], cost: 0, pre, after, end };
+  }
   const spare = [...dice];
   if (v) spare.splice(spare.indexOf(v), 1);
   if (dice.length > 1) pre.push(entry(v ? "lDice" : "lDiceSit", { a: dice[0], b: dice[1], v }, "", idx));
@@ -155,13 +175,15 @@ export function planTurn(state, v, dice = [v]) {
     end.push(entry("lAnimalHuman", { pos: ANIMAL_TOP }, "heaven", idx));
     return { idx, v, dice, spare, sit: false, from, path, target: ANIMAL_TOP, final: ANIMAL_TOP, jump: null, win: false, earned: true, died: false, again: false, told: [null], cost: 0, pre, after, end };
   }
-  const fell = from + v >= TOP, fellBy = from + v > TOP ? "past" : "snake";
+  // Śiva's snake (Phase 17): the exact throw to the top. The life ends there and the same soul is born again at once
+  // (endTurn, bornAgain); no throw passes the top (movesFor)
+  const fell = from + v === TOP, fellBy = "snake";
   for (let n = from; n < Math.min(from + v, TOP); ) path.push(++n);
   if (fell) {
-    // the walk goes to the top of the heavens and no further: what was passed, then the fall, and the life is over
-    const passed = path.filter(n => n !== from && (fellBy === "past" || n !== TOP));
+    // the walk goes to the top of the heavens: what was passed, then the snake
+    const passed = path.filter(n => n !== from && n !== TOP);
     if (passed.length) after.push(entry("lPassed", { passed }, "passed", idx));
-    end.push(fellBy === "snake" ? entry("lSiva", { v, pos: TOP, sq: TOP }, "fall", idx) : entry("lFell", { v, pos: from }, "fall", idx));
+    end.push(entry("lSiva", { v, pos: TOP, sq: TOP }, "fall", idx));
     return { idx, v, dice, spare, sit: false, fell: true, fellBy, from, path, target: TOP, final: TOP, jump: null, win: false, died: false, again: false, told: [], cost: 0, pre, after, end };
   }
   const target = path.at(-1);
@@ -276,6 +298,8 @@ function resolve(state, plan, years) {
 export function endTurn(state, plan) {
   const p = state.players[plan.idx];
   p.pos = plan.final;
+  // a stay in the heavens (Phase 17): nothing is lived, and the turn passes
+  if (plan.stay) return passTurn(state, plan);
   // the fall ends the life: nothing is landed on and nothing more is lived, and the token leaves the board, back into
   // the world below it (Phase 15 builds what that world is)
   // Śiva's snake took it from the top of the heavens, the highest a life can reach
@@ -331,9 +355,20 @@ export function endTurn(state, plan) {
     else if (p.throws >= ANIMAL_TURNS) { p.short = true; plan.end.push(entry("lAnimalShort", {}, "", plan.idx)); }
   }
   if (plan.died || plan.fell) { const k = karmaOf(p); p.karma = { sancita: [...k.sancita, ...carried(k)], agami: [], prarabdha: [] }; }
+  // Śiva's snake is rebirth (Phase 17): the same soul, born of the life it closed, at the snake's tail
+  if (plan.fell && state.rules.law !== "animal") {
+    // the turn's last lines are logged after the birth, and still belong to the life that ended
+    plan.end.forEach(e => { if (e.who != null) e.life = p.rebirths ?? 0; });
+    bornAgain(state, plan.idx);
+    if (p.rebirths) plan.end.push(entry("lReborn", { pos: 1, sq: 1 }, "", plan.idx));
+  }
   delete state.forceOmen;
   delete state.forceDeath;
   if (plan.ego) delete state.forceEgo;
+  passTurn(state, plan);
+}
+
+function passTurn(state, plan) {
   if (plan.win) state.winner = plan.idx;
   // the turn passes to the next player still alive; with nobody left, the game is over
   else if (!plan.again) for (let k = 1; k <= state.players.length; k++) {
@@ -345,6 +380,28 @@ export function endTurn(state, plan) {
   const alive = state.players.filter(q => !gone(q)), humans = state.players.some(q => q.type === "human");
   state.over = state.winner != null || !alive.length || (humans && !alive.some(q => q.type === "human"));
   plan.end.forEach(e => addLog(state, e));
+}
+
+// Śiva's snake closes player i's life and the same soul is born again in its seat (Phase 17), as Be born again would
+// begin it (src/engine/samskara.js soulOf, bornOf): the guṇas half carried, the heaviest unmet debt as prārabdha, the
+// dream, the cast in new roles. The closed life is kept in p.past, whole, with the cast it had, for its book. The
+// newborn has a new name and gender, drawn off a sequence of its own (never the dice), and not the last life's name, nor
+// anyone's at the table, nor any its cast carries. It keeps its colour and its seat, and its saṃskāra key; it begins at
+// the snake's tail, square 1, born. The object is changed in place, so whatever holds the player still holds it.
+function bornAgain(state, i) {
+  const p = state.players[i], soul = soulOf(state, i), born = soul && bornOf(soul);
+  if (!born) return;
+  const was = { ...p, castKept: castOf(state, i, p.prior?.lives ?? 0) };
+  delete was.past;
+  const rebirths = (p.rebirths ?? 0) + 1;
+  const rng = makeRng((state.rng.seed ^ 0x3c6ef372 ^ Math.imul(i + 1, 0x85ebca6b) ^ Math.imul(rebirths, 0xc2b2ae35)) >>> 0);
+  const taken = new Set([...state.players.flatMap(q => [q.name.trim(), q.alias?.en]), ...soul.cast.map(c => c.en)].filter(Boolean));
+  const nm = drawName(rng, "", taken) ?? drawName(rng, "", new Set());
+  const key = p.soul ?? (p.name ? nameKey(p.name) : null);
+  const next = playerOf({ name: "", type: p.type, gender: nm.gender, alias: { en: nm.en, hi: nm.hi }, born, soul: key }, p.color);
+  Object.assign(next, { pos: 1, life: [1], told: [null], past: [...(p.past ?? []), was], rebirths });
+  for (const k of Object.keys(p)) delete p[k];
+  Object.assign(p, next);
 }
 
 // One whole turn without animation. A number is one die moved by; an array is the dice rolled, and pick chooses
