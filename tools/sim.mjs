@@ -35,7 +35,7 @@
 // was hit, which should be never. --law=id plays every computer under that law. The heavens last as long as the merit (p.merit, one to four turns by the guṇas): the
 // fall is split into the exact throw onto 110 and the merit spent, with the merit lives entered the heavens with.
 import { pathToFileURL } from "node:url";
-import { createGame, playTurn, moveFor, movesFor, planTurn, rollDice, diceFor, setEndgame, ENDGAME, canSit, spentOf } from "../src/engine/turn.js";
+import { createGame, playTurn, moveFor, movesFor, planTurn, rollDice, diceFor, setEndgame, ENDGAME, canSit, spentOf, inHeaven } from "../src/engine/turn.js";
 import { SQ, SITUATIONS, CURSES } from "../src/content.js";
 import { curseIn } from "../src/engine/curse.js";
 import { setPolicy, setEgo, worthOf, optionOf } from "../src/engine/qbn.js";
@@ -80,8 +80,9 @@ export function playGame(seed, { players = 2, rules = SIM_RULES, pick = moveFor,
     turns[state.turn]++;
     const w = now(state.turn);
     w.turns++;
-    // a turn begun above the exit is a turn spent in the heavens (REDESIGN.md Phase 12): since Phase 17, 106–109
-    if (state.players[state.turn].pos > 105) w.heaven++;
+    // a turn begun above the exit is a turn spent in the heavens (REDESIGN.md Phase 12): since Phase 17, 106–109, and
+    // not the turn the snake takes a life whose merit is spent, so the count never passes the merit
+    if (inHeaven(state.players[state.turn].pos) && !spentOf(state.players[state.turn])) w.heaven++;
     const before = state.log[0];
     const q = state.players[state.turn], plan = playTurn(state, spentOf(q) ? [] : rollDice(state.rng, diceFor(q)), pick), p = state.players[plan.idx];
     if (p.bhumika != null && !plan.fell) w.seen.add(p.bhumika);

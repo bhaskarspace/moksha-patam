@@ -7,7 +7,7 @@ import { $, COLORS, esc, reduced, sleep, quality, forcedQuality, setQuality } fr
 import { die, makeRng, freshSeed } from "./rng.js";
 import { TUMBLE, planTurn, resolveChoice, endTurn, addLog, diceFor, movesFor, moveFor, gone, canSit, createGame, playTurn, spentOf } from "./engine/turn.js";
 import { optionsFor, situationAt, momentOf } from "./engine/qbn.js";
-import { LAWS, lawOf, choosable } from "./engine/laws/index.js";
+import { LAWS, lawOf, choosable, canChoose } from "./engine/laws/index.js";
 import { S, colRow, labEls, buildCells, draw, drawAge, fxClear, focusSquare } from "./render/board.js";
 import { lens, wash, stageOf, lookOf, clearOf } from "./render/age.js";
 import { ageStep } from "./engine/self.js";
@@ -537,7 +537,7 @@ function readSetup() {
   const setup = G.setup;
   setup.rows.slice(0, setup.count).forEach((r, i) => {
     r.name = $("pname" + i).value; r.type = $("ptype" + i).value; r.gender = $("pgender" + i).value;
-    if ($("plaw" + i)) r.law = $("plaw" + i).value === "board" ? undefined : $("plaw" + i).value;
+    if ($("plaw" + i)) { const v = $("plaw" + i).value; r.law = v !== "board" && canChoose(v) ? v : undefined; }
   });
   setup.rules = { six: $("ruleSix").checked };
 }

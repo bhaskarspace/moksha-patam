@@ -3,7 +3,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import { createGame, playTurn } from "../src/engine/turn.js";
-import { LAWS, lawOf, choosable } from "../src/engine/laws/index.js";
+import { LAWS, lawOf, choosable, canChoose } from "../src/engine/laws/index.js";
 import { board } from "../src/engine/laws/board.js";
 import { soulOf, bornOf } from "../src/engine/samskara.js";
 import { animalRules } from "../src/engine/animal.js";
@@ -41,4 +41,21 @@ test("the law a life lived under is kept in its saṃskāra and offered to the n
   assert.equal(soul.law, "board");
   assert.equal(bornOf(soul).law, "board");
   assert.equal(bornOf({ ...soul, law: "animal" }).law, undefined, "the interlude is never chosen");
+});
+
+test("the animal's law is never offered: not in the picker, not from a setup, not from a saṃskāra", () => {
+  // with a second law beside the board's, as from step 3, so the picker shows
+  LAWS.other = { ...board, id: "other" };
+  try {
+    const ids = choosable().map(l => l.id);
+    assert.ok(ids.length > 1 && !ids.includes("animal"), ids.join());
+    assert.ok(canChoose("other") && canChoose("board"));
+    for (const id of ["animal", "nonesuch", "__proto__", "constructor", undefined]) assert.equal(canChoose(id), false, String(id));
+  } finally { delete LAWS.other; }
+  // the picker on the between-lives card and the setup's select are built from choosable() and read back through canChoose
+  for (const f of ["../src/render/card.js", "../src/main.js"]) {
+    const src = fs.readFileSync(new URL(f, import.meta.url), "utf8");
+    assert.match(src, /choosable\(\)\.map/, `${f} builds its picker from choosable()`);
+    assert.match(src, /canChoose\(/, `${f} reads a pick back through canChoose`);
+  }
 });

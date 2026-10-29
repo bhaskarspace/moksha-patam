@@ -1969,7 +1969,8 @@ non-trivial.
 > and `?first` reads and writes nothing. *A cast member gone at 100 does not return:* once a moment says someone is gone,
 > a life sent back down the board neither names them nor lives beside their squares (`castAlong`, `castArcs`), and the
 > fate lint runs over every life. The log now agrees Hindi with the life a line is about. Turns in 106–109 after it,
-> mean / p95 / max: honest 1.43 / 5 / 5, mixed 1.24 / 4 / 5, dishonest 1.03 / 3 / 5 (step 1 alone: 1.96 / 8 / 32, 1.95
+> mean / p95 / max (the turn the snake takes a spent life not counted, so never past the merit): honest 1.20 / 4 / 4,
+> mixed 0.96 / 3 / 4, dishonest 0.73 / 3 / 4 (step 1 alone: 1.96 / 8 / 32, 1.95
 > / 8 / 27, 1.80 / 8 / 27). Liberated a life 41.9%, 32.2%, 24.2%; lives per liberation 2.39, 3.10, 4.14; turns a life
 > median 27, 29, 29 and p95 46, 48, 48. The fall splits into the exact throw 28.5%, 23.0%, 16.7% of lives and the merit
 > spent 22.9%, 27.7%, 30.3%. Merit on entering, mixed: one turn 20%, two 36%, three 33%, four 11%; honest leans to four,
@@ -1990,7 +1991,8 @@ non-trivial.
 > per row in Players & rules, never in a viewer's first life and only when more than one is choosable, so the picker
 > stays hidden until step 3; the saṃskāra record keeps the choice (`soulOf`, `bornOf`). `?debug` adds `mp.law(id[,
 > "all"])`, the sim `--law=id`. Accounts byte-identical to step 1's follow-up (2000 seeds, `--lives=2`), the mixed sim
-> identical, golden identical.
+> identical, golden identical. The animal's law is never offered (`canChoose`; a test with a second law registered).
+> The board's law is "पट का नियम" in Hindi.
 
 - Mīmāṃsā first (default), then Cārvāka, then the rest.
 - A law-select screen that explains each in the player's own terms before they commit.

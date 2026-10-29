@@ -111,6 +111,7 @@ test("the heavens last one to four turns, by sattva, and then the merit is spent
   assert.deepEqual(fall.path, [108, 109, 110]);
   const was = p.past[0];
   assert.ok(was.fell && was.fellFrom === 107 && was.years === years);
+  assert.equal(was.heavenTurns, was.merit);        // the turn the snake takes is not counted: never past the merit
   assert.ok(p.pos === 1 && p.rebirths === 1 && p.merit === undefined && !spentOf(p));
   assert.deepEqual(s.log.slice(0, 2).map(e => e.k), ["lReborn", "lSpent"]);
 });

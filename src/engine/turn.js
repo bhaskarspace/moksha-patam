@@ -318,8 +318,8 @@ function resolve(state, plan, years) {
 export function endTurn(state, plan) {
   const p = state.players[plan.idx];
   p.pos = plan.final;
-  // a turn begun in the heavens spends merit (Phase 17)
-  if (inHeaven(plan.from)) p.heavenTurns = (p.heavenTurns ?? 0) + 1;
+  // a turn begun in the heavens spends merit (Phase 17); the turn the snake takes the spent life is not one of them
+  if (inHeaven(plan.from) && !plan.spent) p.heavenTurns = (p.heavenTurns ?? 0) + 1;
   // a stay in the heavens (Phase 17): nothing is lived, and the turn passes
   if (plan.stay) return passTurn(state, plan);
   // the fall ends the life: nothing is landed on and nothing more is lived, and the token leaves the board, back into

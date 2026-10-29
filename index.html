@@ -1677,7 +1677,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         pathDied: "मृत्यु",
         mirrorSkip: "बही पर लौटें",
         lPassed: "रास्ते में:",
-        aboveExit: "मोक्ष अब पीछे छूट गया, {n} पर। यहाँ ऊपर से कुछ नहीं लौटता: इन लोकों में आगे ही चलना है, और ये तभी तक हैं जब तक पुण्य है। कोई दाँव {top} के पार नहीं जाता; जो दाँव ठीक उस पर पड़ता है, या पुण्य का चुक जाना, वही शिव का नाग है, नीचे एक नए जन्म तक।",
+        aboveExit: "मोक्ष अब पीछे छूट गया, {n} पर। यहाँ ऊपर से कुछ नहीं लौटता: इन लोकों में आगे ही चलना है, और ये तभी तक हैं जब तक पुण्य है। कोई दाँव {top} के पार नहीं जाता। जब कोई दाँव ठीक उस पर पड़ता है, या पुण्य क्षीण हो जाता है, तब शिव का नाग नीचे एक नए जन्म तक ले जाता है।",
         bornAgain: "{name} का फिर से जन्म हुआ",
         bornAgainYou: "आपका फिर से जन्म हुआ",
         lDied: "{name} के बरस {age} की आयु में, खाना {pos} पर, पूरे हुए।",
@@ -1742,11 +1742,11 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         lHeavenStay: "{name} का {a} और {b} आया, {pos} पर: कोई दाँव स्वर्गों के शिखर के पार नहीं जाता, इसलिए {name} वहीं {ठहरा|ठहरी}।",
         lReborn: "नाग की पूँछ पर {name} का फिर से जन्म होता है: वही आत्मा, दूसरे नाम से।",
         lawPick: "नियम",
-        lawBoard: "खेल का नियम",
+        lawBoard: "पट का नियम",
         lawBoardAbout: "खेल जैसे खेला जाता है। जीवन जो चुनता है, वह ऋण या पुण्य बोता है, शकुन देय ऋण को सामने लाता है, और मोक्ष का द्वार केवल उसी जीवन के लिए खुलता है जिस पर कुछ बकाया नहीं। उसके पार स्वर्ग तभी तक हैं जब तक पुण्य है, और शिव का नाग अगला जीवन शुरू करता है।",
         lawAnimal: "पशु का नियम",
         lawAnimalAbout: "जंगल में एक छोटा जीवन: एक पासा, न कोई चुनाव, न कोई शकुन। जंगल का छोर फिर से मनुष्य का जन्म दिलाता है।",
-        lSpent: "{what} के लोक में {name} का पुण्य चुक गया, और शिव का नाग {name} को संसार में नीचे ले गया, फिर से जन्म के लिए।",
+        lSpent: "{what} के लोक में {name} का पुण्य क्षीण हो गया, और शिव का नाग उसे संसार में नीचे ले गया, फिर से जन्म के लिए।",
         stayTitle: "शिखर के पार कोई दाँव नहीं",
         heavenStay: "किसी भी पासे से चला नहीं जा सकता: कोई दाँव स्वर्गों के शिखर के पार नहीं जाता। {name} इसी लोक में {ठहरता|ठहरती} है, और यहाँ बरस थमे रहते हैं।",
         bornAgainHead: "फिर से जन्म",
@@ -3844,6 +3844,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var LAWS = { board, animal };
   var lawOf = (state, i = state.turn) => LAWS[state.players[i]?.law ?? state.rules?.law ?? "board"] ?? board;
   var choosable = () => Object.values(LAWS).filter((l) => l.choosable);
+  var canChoose = (id) => Object.hasOwn(LAWS, id) && !!LAWS[id].choosable;
 
   // src/engine/cast.js
   var MEMBERS = ["mother", "father", "teacher", "friend", "spouse", "son", "daughter", "rival"];
@@ -4074,7 +4075,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const dream = soul.dream && optionOf(soul.dream.sq, soul.dream.opt)?.dream ? soul.dream : null;
     return {
       gunas,
-      ...typeof soul.law === "string" && LAWS[soul.law]?.choosable ? { law: soul.law } : {},
+      ...canChoose(soul.law) ? { law: soul.law } : {},
       karma: { sancita: rest, agami: slice ? [{ ...slice, i: 0, prior: true }] : [], prarabdha: [] },
       prior: { lives: soul.lives, last: { ...soul.last, holding }, cast: cast2, dream, ...KINDS.includes(soul.was) ? { was: soul.was } : {} }
     };
@@ -4307,7 +4308,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   function endTurn(state, plan) {
     const p = state.players[plan.idx];
     p.pos = plan.final;
-    if (inHeaven(plan.from)) p.heavenTurns = (p.heavenTurns ?? 0) + 1;
+    if (inHeaven(plan.from) && !plan.spent) p.heavenTurns = (p.heavenTurns ?? 0) + 1;
     if (plan.stay) return passTurn(state, plan);
     if (plan.fell) {
       p.fell = true;
@@ -7059,7 +7060,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     }
     if (act === "law") {
       const p = subjectOf(), id = e.target.closest("[data-law]").dataset.law;
-      if (p && LAWS[id]) {
+      if (p && canChoose(id)) {
         if (id === "board") delete p.law;
         else p.law = id;
         paint2();
@@ -8265,7 +8266,10 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
       r.name = $("pname" + i).value;
       r.type = $("ptype" + i).value;
       r.gender = $("pgender" + i).value;
-      if ($("plaw" + i)) r.law = $("plaw" + i).value === "board" ? void 0 : $("plaw" + i).value;
+      if ($("plaw" + i)) {
+        const v = $("plaw" + i).value;
+        r.law = v !== "board" && canChoose(v) ? v : void 0;
+      }
     });
     setup.rules = { six: $("ruleSix").checked };
   }

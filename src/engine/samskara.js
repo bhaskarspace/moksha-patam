@@ -14,7 +14,7 @@ import { worthOf, optionOf } from "./qbn.js";
 import { castOf, MEMBERS } from "./cast.js";
 import { pnameIn } from "../state.js";
 import { interludeFor, animalEndOf, isAnimal, KINDS } from "./animal.js";
-import { LAWS } from "./laws/index.js";
+import { canChoose } from "./laws/index.js";
 
 export const SOUL_V = 1, KEEP_DEBTS = 6;
 // the roles whose names can return: the parents are never named
@@ -92,7 +92,7 @@ export function bornOf(soul) {
   const dream = soul.dream && optionOf(soul.dream.sq, soul.dream.opt)?.dream ? soul.dream : null;
   return {
     gunas,
-    ...(typeof soul.law === "string" && LAWS[soul.law]?.choosable ? { law: soul.law } : {}),
+    ...(canChoose(soul.law) ? { law: soul.law } : {}),
     karma: { sancita: rest, agami: slice ? [{ ...slice, i: 0, prior: true }] : [], prarabdha: [] },
     prior: { lives: soul.lives, last: { ...soul.last, holding }, cast, dream, ...(KINDS.includes(soul.was) ? { was: soul.was } : {}) },
   };

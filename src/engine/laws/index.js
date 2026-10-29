@@ -9,3 +9,5 @@ export const LAWS = { board, animal };
 export const lawOf = (state, i = state.turn) => LAWS[state.players[i]?.law ?? state.rules?.law ?? "board"] ?? board;
 // the laws a player may choose, in the order they are offered
 export const choosable = () => Object.values(LAWS).filter(l => l.choosable);
+// may a player choose this law (the animal interlude never)
+export const canChoose = id => Object.hasOwn(LAWS, id) && !!LAWS[id].choosable;
