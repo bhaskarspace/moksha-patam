@@ -15,6 +15,7 @@ import { destOf, worthOf } from "../src/engine/qbn.js";
 import { ageOf, stageOfYears, yearsAlong } from "../src/engine/self.js";
 import { castFill, CAST_ROLES } from "../src/i18n.js";
 import { MEMBERS, tokenOf, castArcs } from "../src/engine/cast.js";
+import { pastOf } from "../src/engine/samskara.js";
 
 // Names compare without diacritics or case, so "Śaṅkara", "Sankara" and "sankara" are one name.
 const fold = s => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
@@ -553,10 +554,13 @@ export function lintReport() {
   if (fs.existsSync(sheet)) errors.push(...lintSprites(fs.readFileSync(sheet, "utf8")));
   errors.push(...lintPaint(root));
 
-  // a character lost in an encoding round trip comes back as U+FFFD, the replacement character: never in content
+  // a character lost in an encoding round trip comes back as U+FFFD, the replacement character: never in content; and
+  // since Phase 17 no square is a खाना
   for (const f of fs.readdirSync(path.join(root, "content")).filter(f => f.endsWith(".json"))) {
     fs.readFileSync(path.join(root, "content", f), "utf8").split("\n").forEach((line, i) => {
       if (line.includes("\uFFFD")) err(`content/${f}:${i + 1}`, "has a replacement character (U+FFFD): a character was lost in an encoding round trip");
+      // a square in Hindi is a घर, or said by its number alone ("{pos} पर"); "खाना" is food (Bhaskar, 29 Oct)
+      if (line.includes("खाना {")) err(`content/${f}:${i + 1}`, 'calls a square "खाना {…}": say "घर {…}" or "{…} पर"');
     });
   }
 
@@ -577,14 +581,17 @@ export function lintFates(seeds = 500) {
   for (let seed = 1; seed <= seeds; seed++) for (const gender of ["m", "f"]) {
     const s = createGame({ players: [{ name: "", type: "cpu", gender }], rules: { six: true }, seed });
     while (!s.over) playTurn(s);
-    const p = s.players[0], along = yearsAlong(p.life || [], p.told || []).filter(e => e.via !== "stay");
-    for (const a of castArcs(s, 0, along)) {
-      const w = `fates: seed ${seed} ${gender}, the ${a.who}`;
+    // every life the seat lived (Phase 17: those Śiva's snake closed, in p.past, then the last)
+    for (const [k, v] of [...(s.players[0].past ?? []).map((_, k) => [k, pastOf(s, 0, k)]), [null, s]]) {
+    const p = v.players[0], along = yearsAlong(p.life || [], p.told || []).filter(e => e.via !== "stay");
+    for (const a of castArcs(v, 0, along)) {
+      const w = `fates: seed ${seed} ${gender}${k == null ? "" : `, life ${k + 1}`}, the ${a.who}`;
       if (a.death == null) { if (a.kind !== "outlived") errors.push(`${w} has no death and does not outlive`); continue; }
       if (a.seen != null && a.death <= a.seen && a.kind !== "seen") errors.push(`${w} dies at ${a.death}, not after the life last saw them at ${a.seen}`);
       if (a.death < a.floor && a.kind !== "seen") errors.push(`${w} dies at ${a.death}, before the board's last word on them at ${a.floor}`);
       if (a.ceil != null && a.death >= a.ceil) errors.push(`${w} dies at ${a.death}, but square 100 said they were gone at ${a.ceil}`);
       if ((a.kind === "outlived") !== (a.death > a.end) && a.kind !== "seen") errors.push(`${w} is "${a.kind}" with death ${a.death} and the life over at ${a.end}`);
+    }
     }
   }
   return errors;

@@ -6,11 +6,12 @@ import { lifeOf, lifeText } from "../src/engine/account.js";
 import { castFill } from "../src/i18n.js";
 import { JOINS, SQ, SNAKES, CAST, GOAL, squareOf } from "../src/content.js";
 import { debtsIn, refusalIn } from "../src/engine/karma.js";
+import { firstLives } from "./lives.mjs";
 
 const meera = (seed, gender = "f") => {
   const s = createGame({ players: [{ name: "Meera", type: "cpu", gender }], rules: { six: true }, seed });
   while (!s.over) playTurn(s);
-  return s;
+  return firstLives(s);
 };
 // a game whose one life is exactly these squares
 const lived = (life, extra = {}) => {
@@ -97,7 +98,8 @@ test("a life that fell from the heavens closes on the realm, the merit spent and
   }
   for (const [seed, holds] of [[held, true], [free, false]]) {
     const f = meera(seed), m = meera(seed, "m"), p = f.players[0];
-    const realm = squareOf(Math.max(...p.life));
+    // since Phase 17 every fall is Śiva's snake, from the top of the heavens
+    const realm = squareOf(p.fellFrom);
     const en = lifeOf(f, 0, "en").end;
     assert.ok(en.startsWith(`Meera rose as far as the realm of ${realm.en} and lived there on what had been earned below`), en);
     assert.ok(holds ? en.endsWith(`world, ${SNAKES[p.holding].holding.en.replace(/\{\w+=([^}]*)\}/g, "$1").replaceAll("{name}", "Meera")}.`) : en.endsWith("with nothing in particular in hand."), en);
@@ -183,8 +185,8 @@ test("seed 23: a life stuck in the 99 → 61 loop reads as stuck in one line, no
   // no moment is told in full more than twice in the whole life
   for (const n of new Set(SEED23)) { const m = squareOf(n)?.moment?.en; if (m) assert.ok(text.split(m.split("{age}").at(-1).slice(0, 30)).length - 1 <= 2, `square ${n}`); }
   const hi = all(s, "hi");
-  assert.match(hi, /छियानवे बरस पर फिर अहंकार, और अड़तीस बरस और अनकिए हो गए।/);
-  assert.match(hi, /अहंकार से Meera कुल तीन बार पीछे गिरी, आख़िरी बार एक सौ चार बरस पर।/);
+  assert.match(hi, /छियानवे बरस की उम्र में फिर अहंकार, और अड़तीस बरस और अनकिए हो गए।/);
+  assert.match(hi, /अहंकार से Meera कुल तीन बार पीछे गिरी, आख़िरी बार एक सौ चार बरस की उम्र में।/);
 });
 
 test("a ladder climbed a second time is one line, and from the third a tally", () => {
@@ -213,7 +215,7 @@ test("a life let go with no vice taken has nothing to put down", () => {
   const s = lived([1, 5, 9], { years: 88 });
   s.winner = 0; s.over = true;
   assert.equal(lifeOf(s, 0, "en").end, "Then, at eighty-eight, moksha, with nothing to put down.");
-  assert.equal(lifeOf(s, 0, "hi").end, "फिर, अट्ठासी बरस पर, मोक्ष, और छोड़ने को कुछ था ही नहीं।");
+  assert.equal(lifeOf(s, 0, "hi").end, "फिर, अट्ठासी बरस की उम्र में, मोक्ष, और छोड़ने को कुछ था ही नहीं।");
   const v = lived([13, 14, 8], { years: 88 });
   v.winner = 0; v.over = true;
   assert.equal(lifeOf(v, 0, "en").end, "Then, at eighty-eight, moksha, and Meera put down what was told in confidence.");

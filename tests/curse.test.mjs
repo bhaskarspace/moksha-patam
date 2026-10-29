@@ -5,11 +5,12 @@ import { CURSES } from "../src/content.js";
 import { createGame, playTurn } from "../src/engine/turn.js";
 import { curseOf, curseIn } from "../src/engine/curse.js";
 import { lifeOf, lifeText } from "../src/engine/account.js";
+import { firstLives } from "./lives.mjs";
 
 const life = (seed, gender = "f") => {
   const s = createGame({ players: [{ name: "Meera", type: "cpu", gender }], rules: { six: true }, seed });
   while (!s.over) playTurn(s);
-  return s;
+  return firstLives(s);
 };
 
 test("one curse is drawn per life, off a sequence of its own: the same game draws the same, and every one is drawn", () => {
@@ -64,9 +65,10 @@ test("with the curses taken away nothing is drawn, and the account has no curse 
 // enough (here, a token moved by hand to 52, as mp.jump does) never hears it, and the account never closes it.
 test("a curse is never spoken late, and an unspoken curse is never closed", () => {
   for (let seed = 1; seed <= 20; seed++) {
-    const s = createGame({ players: [{ name: "Meera", type: "cpu", gender: "f" }], rules: { six: true }, seed });
+    let s = createGame({ players: [{ name: "Meera", type: "cpu", gender: "f" }], rules: { six: true }, seed });
     s.players[0].pos = 52;
     while (!s.over) playTurn(s);
+    s = firstLives(s);
     assert.equal(s.players[0].curse, undefined, `seed ${seed}`);
     for (const l of ["en", "hi"]) assert.equal(lifeOf(s, 0, l).curse, "");
   }

@@ -7,11 +7,12 @@ import { mirrorOf, mirrorIn, mirrorIntroIn, ASKED } from "../src/engine/mirror.j
 import { pathOf, lifeText } from "../src/engine/account.js";
 import { MIRROR } from "../src/content.js";
 import { genderedYou } from "../tools/lint-content.mjs";
+import { firstLives } from "./lives.mjs";
 
 const life = (seed, gender = "f") => {
   const s = createGame({ players: [{ name: "Meera", type: "cpu", gender }], rules: { six: true }, seed });
   while (!s.over) playTurn(s);
-  return s;
+  return firstLives(s);
 };
 
 test("three questions a life, never one twice, the same for the same game, and nothing written", () => {
@@ -41,7 +42,7 @@ test("a rebellion is always asked about first, by what was chosen and what the l
   endTurn(s, resolveChoice(s, planTurn(s, 3), "return"));
   s.forceEgo = [];
   while (!s.over) playTurn(s);
-  const m = mirrorOf(s, 0);
+  const m = mirrorOf(firstLives(s), 0);
   assert.equal(m[0].id, "rebel");
   assert.equal(mirrorIn("en", m[0]), "At forty-two you chose to give the change back, and the life kept it. Which of you was it?");
   assert.equal(mirrorIn("hi", m[0]), "बयालीस बरस की उम्र में आपने छुट्टा लौटाना चुना था, और जीवन ने उसे रख लिया। इन दोनों में आप कौन हैं?");

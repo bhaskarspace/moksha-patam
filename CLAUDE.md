@@ -17,7 +17,7 @@ single static `index.html` at https://codebpr.com/moksha-patam/
 - `docs/REFERENCE.md`: philosophy-to-mechanics mapping and the history of the board.
 - `docs/LANDSCAPE.md`: comparable games.
 
-**State:** Phases 0 to 16 have shipped. Phase 8 was Life State (REDESIGN.md §4): years lived are a clock of their own
+**State:** Phases 0 to 17 have shipped. Phase 8 was Life State (REDESIGN.md §4): years lived are a clock of their own
 (`src/engine/self.js`) that a snake never turns back, moments say their age through `{age}`, a life ends when its years
 pass `SPAN` (110), and the life account (`src/engine/account.js`, pure) chooses each join by how a moment relates to the
 last. Gunas, aims and the bhumika are in state and never shown as numbers. Phase 9 was Dice as currency: from 94
@@ -61,12 +61,47 @@ person's ended life is kept (`mp-samskara`, `src/engine/samskara.js`) and Be bor
 dreams of the last; a death by ledger is first born an animal (`rules.law = "animal"`, `src/engine/animal.js`). Play
 again starts clean. The death's form is by years: accident to 50, calamity 51–68, illness from 69. Its follow-up
 gives every stage past the child a female and a neutral figure by `p.gender` (`src/render/art.js`, pure), Hindi stage
-names that agree (`hiF`), and the interlude its animal's own sprite; under ?first the saṃskāra is kept in memory only. Next is 17, The laws (REDESIGN.md Phases 17–20).
+names that agree (`hiF`), and the interlude its animal's own sprite; under ?first the saṃskāra is kept in memory only. Phase 17, The laws, has shipped (REDESIGN.md Phase 17): its step 1 makes the endgame exact, since no die past 110 is
+offered and with none the life stays (`plan.stay`), and makes Śiva's snake rebirth in the seat (`bornAgain` in
+`src/engine/turn.js`): the closed life goes to `p.past`, the newborn is the same object at square 1 with a new name, and
+`p.rebirths` salts every sequence of a life's own. A seat's past life is read through `pastOf(state, i, k)`
+(`src/engine/samskara.js`); tests read first lives through `tests/lives.mjs`. The heavens last as long as the merit:
+one to four turns begun in 106–109 by sattva as the life enters (`meritOf`, `p.merit`, `p.heavenTurns`), then nothing is
+thrown and Śiva's snake takes it (`spentOf`, `plan.spent`). A game in progress is kept after every turn and resumed on
+reload (`mp-game`, `saveGame`/`loadGame` in `src/prefs.js`); `?seed` starts fresh and `?first` keeps nothing. Its step 2 makes
+the rules a law (`src/engine/laws/`: `board.js`, `animal.js`, `lawOf(state, i)` in `index.js`, from `p.law`, then
+`rules.law`, then the board's). `turn.js` never branches on a law's id (`tests/laws.test.mjs` reads it); a difference is
+a hook in the law, defaulting to the board's. Step 3 adds Mīmāṃsā (`mimamsa.js`: svarga at 101 with nothing carried,
+no door at 105, every consequence shown, `foresee`) and Cārvāka (`carvaka.js`: no ledger, omen or curse, no win, Śiva's
+snake ends the life and nothing is kept). A law's exit is `exit()` (`{ at, kind, door }` or null); `p.won` is the kind
+won; `setLaw(state, i, id)` in `laws/index.js` is how a law is changed mid-game. `setPolicy(null)` restores each law's
+own computer; the sim's `--policy` overrides it. Its follow-up: a Cārvāka life neither adds to nor takes from a kept soul
+(`keepOf` in `samskara.js`, and Be born again skips that seat), and a life under a law other than the board's says so in
+the log (`lLawOf`, `logLaw` in `turn.js`). Step 4 adds the Jain law (`jain.js`: a ladder waits at its foot and the 1 climbs it,
+`fromFoot`; a climb while holding the vice it heals is upaśama, told `"upasama"`, which `answerOf` skips; the door asks
+last about the merit, `binds`) and Bhakti (`bhakti.js`: grace on the lower ego choice, `graceThrow`, kept as
+`witness.grace` and never a rebellion; the door's grace once a life, `forgive`; Devotion climbs to 94, told `"climb"`). Its follow-ups: a Jain life may wait at a foot, a year a throw, until the 1
+(`movesFor` offers 0 there on one die, `prefer` makes its computer wait, `lFootWait`); an upaśama climb is told in
+the account (`accUpasama`); Devotion's climb past 37 is drawn on in gold (`goldLadder`). Hindi says "घर {n}", never
+"खाना {n}" (lint), and "बरस की उम्र में", never "बरस पर"; `tools/accounts.mjs --tag` marks such Hindi accounts `wording`.
+`npm run format` skips `content/boards.json`.
+Step 5 adds Nyāya (`nyaya.js`: karma `veiled`, so the ledger is never shown and a reckoning (`lSign`, `reckonSignIn`) and
+the door's refusal (`doorSign`) are signs; a person may spend a throw to infer the latest sign, `zero` → "infer",
+`inferLinesIn`, five members; its door opens on no win, `exit().alive: false`, `lDoorThrough`; release is `freed`:
+apavarga, a life ended by its years or Śiva's snake with nothing owed, `state.winner` and not reborn), Sāṃkhya
+(`sankhya.js`: `auto`, the game chooses a person's die by `moveFor` and options by the leading guṇa, policy "inert" for
+tamas; the card says "Prakṛti did" and greys what it passed over; the account closes on Sāṃkhyakārikā 59), Advaita
+(`advaita.js`: no exit at 105, `text.goal`; from the sixth bhūmikā `zero` → "recognise", a win of kind "recognition";
+`dissolve` fades `#art` with the bhūmikā, `clearOf` in `src/render/age.js`) and Yoga (`yoga.js`: `practice`/`sits`, a
+year in practice before the throw draws no dice, `playTurn(state, [])`, and stores `p.nirodha` up to three; `zero` →
+"letGo" spends one; `line` says it in words on the player's line). A law's act in place of a move is `zero(state, i,
+dice)` → `{ act, line, kind }`, told as `p.told` on the square again; `?debug` adds `mp.still(n)` and `mp.bhumika(b)`;
+the sim plays `playTurn(state, undefined, pick)` so the game decides what is thrown.
 Phase 7 was The Exit (REDESIGN.md §4): Moksha is square 105 (`GOAL`), partway
 along the divine row, while the board still ends at 110 (`TOP`). Since Phase 12 nothing above the exit turns back: past 105 the
-heavens (106–110) are walked, and the throw that would pass `TOP` is the fall, which ends the life (`plan.fell`, `p.fell`;
-`gone(p)` in `src/engine/turn.js` is dead or fallen). It is never a respawn: the account closes on `lifeEndFell`, and it counts in
-`mp-lives` like a death. The Brahma snake (108 → 1), `p.hasFallen` and the Brahmaloka rule are retired; the fall's card is `FALL`
+heavens (106–110) are walked. Since Phase 17 no throw passes `TOP`, and the exact throw onto it is Śiva's snake, the fall
+(`plan.fell`, `p.fell` on the closed life in `p.past`): the account closes on `lifeEndFell`, it counts in `mp-lives` like a
+death, and the same soul is born again in the seat. `gone(p)` is dead, or an animal interlude ended. The Brahma snake (108 → 1), `p.hasFallen` and the Brahmaloka rule are retired; the fall's card is `FALL`
 in `content/squares.json`, shown on 110. A Shepard tone plays under the divine row and keeps rising through 106–110; the fall is
 its only resolution (`src/audio/shepard.js`). Phase 12's second step is the ledger (`src/engine/karma.js`, pure): a situation's
 least-worth options carry a `seed` (`content/situations.json`: `fuse` in years, `weight` 1–3, `holds` a snake head, `debt` and
@@ -114,7 +149,12 @@ illuminated frame (`frame.js`) and a bottom sheet below 768px (`sheet.js`).
   `--death=off` reports the death tier only, `--penance=N` is the years a unit of weight costs at the door (2), and
   `--unpaid=N` the weight from which only the book answers a debt (3). `--lives=N` plays each seed as one soul's lives
   instead (born of the last through `soulOf`/`bornOf`, a death by ledger's animal interlude between), and reports
-  liberation by life, lives per liberation, the rebirth rate and the interludes per hundred lives.
+  liberation by life, lives per liberation, the rebirth rate and the interludes per hundred lives. Since Phase 17 every
+  number is per life (each `p.past` and the last; `livesOf` in `tools/sim.mjs`), plus turns per life, rebirths through
+  Śiva's snake a game and games that hit the turn cap (`CAP`, expected never); the heavens are 106–109. `--law=id` plays
+  every seat under that law, and `--laws=all|a,b` sweeps the laws, each under every policy and its own computer, with
+  liberation per life and by life 1, 3, 5 and 10 over ten-life souls, turns and years, deaths by cause, and each law's
+  own counts.
   Balance against the p95, the share over 100, liberation per life and lives per liberation.
 - `npm run smoke [-- --only=text]`: Playwright checks of the built page in a real browser (needs Chrome installed).
   `--only` runs just the checks whose names contain the text, e.g. `--only="Phase 6"`.
@@ -146,7 +186,8 @@ illuminated frame (`frame.js`) and a bottom sheet below 768px (`sheet.js`).
   read, replace, or `null` to empty), `mp.dream(l)` (the account of a life two born of the current life, played by a computer)
   and `mp.animal(kind)` (an animal interlude for the current person, at once: tortoise, jackal, mongoose, cat or lion).
   Its follow-up adds `mp.sprites()` (every figure, by gender, and the animals, side by side on every band's ground) and
-  extends `mp.sprite(stage, color, frame, gender, animal)`.
+  extends `mp.sprite(stage, color, frame, gender, animal)`. Phase 17 adds `mp.law(id[, "all"])` (the current player's law, or the whole game's) and `mp.grace(face)` (the face
+  grace's next throw shows under Bhakti: `mp.grace(1)` brings it).
 - No physics on any card. "Debt" is the only word a player sees for a seed, and the ledger's buckets, weights, fuses
   and chances are never shown as numbers. The 1 is the threshold face and the 6 is the world's (`tests/faces.test.mjs`).
 - Never use `unshift` on anything but the log: `tools/golden.mjs` records every `unshift` of an entry as logged.

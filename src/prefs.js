@@ -77,4 +77,18 @@ const keep = store => (freshViewer ? (mem = store) : write(SAMSKARA, store));
 export const keepSoul = (key, soul) => keep(storeWith(soulStore(), key, soul));
 export const setSoulStore = raw => keep(storeOf(raw));
 
+// ---- The game in progress (Phase 17) ----
+// A game is kept after every turn and resumed on reload, so a game of several lives survives the tab being closed. It may
+// come back empty or unreadable (another version, cleared storage, a private window): then the page starts a new one.
+// ?first reads and writes nothing, as for everything else here.
+const GAME = "mp-game", GAME_V = 1;
+const gameOk = s => !!s && Array.isArray(s.players) && s.players.length > 0 && s.players.every(p => p && typeof p === "object" && Array.isArray(p.life))
+  && !!s.rng && Number.isFinite(s.rng.s) && Number.isFinite(s.rng.seed) && Array.isArray(s.log) && Number.isInteger(s.turn) && !s.over;
+export const saveGame = (setup, state) => write(GAME, state && !state.over ? { v: GAME_V, setup, state } : null);
+// { setup, state } of a game to resume, or null
+export function loadGame() {
+  const g = read(GAME, null);
+  return g?.v === GAME_V && g.setup && Array.isArray(g.setup.rows) && gameOk(g.state) ? g : null;
+}
+
 export const beFirst = () => { lives = 0; opened = "moment"; who = new Set(); };

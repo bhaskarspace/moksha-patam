@@ -9,6 +9,7 @@ import { stageOf as ashramaOfPlayer } from "./age.js";
 import { gone } from "../engine/turn.js";
 import { isAnimal } from "../engine/animal.js";
 import { renderLedger } from "./ledger.js";
+import { LAWS } from "../engine/laws/index.js";
 
 // Who a player is becoming, as words and never as a number (REDESIGN.md Phase 8): the strongest guna and the
 // aim they have most of. Nothing is said until one guna stands out, so a life starts without a description.
@@ -30,25 +31,37 @@ function stageLine(pl) {
   if (pl.pos === 0) return t("notBorn");
   if (pl.dead) return fill(t(ENDED[pl.death?.by] ?? "dead"), { gender: pl.gender });
   if (isAnimal(G.state)) { const a = t("a_" + (G.state.rules.animal?.kind ?? "tortoise")); return a.charAt(0).toUpperCase() + a.slice(1); }
-  return [...new Set([stageName(stageOf(pl), pl.gender), ashramaIn(pl)])].join(" · ");
+  // a life born again through Śiva's snake says so while it is a child (Phase 17)
+  return [...(pl.rebirths && stageOf(pl) === 0 ? [fill(t("bornAgainStage"), { gender: pl.gender })] : []), ...new Set([stageName(stageOf(pl), pl.gender), ashramaIn(pl)])].join(" · ");
 }
 
+// What the player's law says on their line (Phase 17 step 5: Yoga's stillness, in words, never a count)
+const lawLine = (pl, i) => { const k = !gone(pl) && LAWS[pl.law ?? G.state.rules?.law ?? "board"]?.line(pl); return k ? `<span class="self still">${esc(t(k))}</span>` : ""; };
 export function renderPlayers() {
   $("players").innerHTML = G.state.players.map((pl, i) => `
     <li class="${i === G.state.turn && !G.state.over ? "current" : ""}${gone(pl) ? " dead" : ""}">
       <span class="dot" style="background:${COLORS[pl.color]}"></span>
       <span><span class="pname">${esc(pname(pl))}</span><span class="kind">${pl.type === "cpu" ? t("cpu") : ""}</span>
         <span class="stage">${stageLine(pl)}</span>
-        ${selfLine(pl) && !gone(pl) ? `<span class="self">${esc(selfLine(pl))}</span>` : ""}</span>
+        ${selfLine(pl) && !gone(pl) ? `<span class="self">${esc(selfLine(pl))}</span>` : ""}${lawLine(pl, i)}</span>
       <span class="pos">${pl.fell ? "" : pl.pos === 0 ? t("start") : pl.pos === GOAL ? t("moksha") : t("square", { n: pl.pos })}</span>
     </li>`).join("");
   renderLedger();
 }
 
+// The life an entry is about: the seat's player, or a life of it Śiva's snake closed (Phase 17, p.past).
+const lifeOfEntry = e => {
+  const p = e.who == null ? null : G.state.players[e.who];
+  return p && (e.life ?? 0) !== (p.rebirths ?? 0) ? p.past?.[e.life ?? 0] ?? p : p;
+};
+
 // A log entry as the log says it, in the page's language.
 export function entryText(e) {
-  const who = e.who == null ? null : G.state.players[e.who];
-  return e.k ? t(e.k, { ...e.v, name: who ? pname(who) : "", what: e.v?.sq ? squareName(e.v.sq) : "" }) : e.text;
+  const who = lifeOfEntry(e);
+  // Hindi agrees with the life the line is about ({पहुँचा|पहुँची})
+  // a law is kept by its id, and named in the page's language (Phase 17)
+  const law = e.v?.law && LAWS[e.v.law] ? t(LAWS[e.v.law].text.name) : "";
+  return e.k ? fill(t(e.k, { ...e.v, name: who ? pname(who) : "", what: e.v?.sq ? squareName(e.v.sq) : "", law }), { gender: who?.gender }) : e.text;
 }
 
 export function renderLog() {

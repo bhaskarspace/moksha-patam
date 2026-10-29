@@ -10,6 +10,7 @@ import { fill, castFill } from "../src/i18n.js";
 import { lintFates, lintContent } from "../tools/lint-content.mjs";
 import { playGame } from "../tools/sim.mjs";
 import PHASE10 from "./cast-phase10.json" with { type: "json" };
+import { firstLives } from "./lives.mjs";
 
 const game = (name = "Meera", gender = "f", seed = 7) => createGame({ players: [{ name, type: "cpu", gender }], rules: { six: true }, seed });
 const lived = (life, { told, ...extra } = {}, s = game()) => { Object.assign(s.players[0], { life, pos: life.at(-1), told: told ?? life.map(() => null), ...extra }); return s; };
@@ -67,7 +68,7 @@ test("with the cast's names taken away, every moment and closing phrase that nam
   for (let seed = 1; seed <= 50; seed++) {
     const s = game("Meera", "f", seed);
     while (!s.over) playTurn(s);
-    const text = uncast(() => lifeText(s, 0, "en"));
+    const text = uncast(() => lifeText(firstLives(s), 0, "en"));
     assert.doesNotMatch(text, /(His|Her) name is |was there again|was waiting|was back|was still there|whom Meera last saw/);
   }
 });

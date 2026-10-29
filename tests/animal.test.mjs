@@ -8,6 +8,7 @@ import { ANIMAL_TOP, ANIMAL_TURNS, animalOf, animalRules, afterAnimal, masterOf,
 import { soulOf, bornOf, validSoul } from "../src/engine/samskara.js";
 import { lifeOf, lifeText, pathOf } from "../src/engine/account.js";
 import { birthRanking } from "../tools/lint-content.mjs";
+import { firstLives } from "./lives.mjs";
 
 const cast = [{ role: "friend", gender: "m", en: "Rohan", hi: "रोहन" }, { role: "rival", gender: "f", en: "Nīrā", hi: "नीरा" }];
 const interlude = (seed, kind = "tortoise", round = 1) => {
@@ -62,7 +63,7 @@ test("the animal is the creature of the vice held, and the master the rival, or 
   for (let seed = 1; seed <= 300; seed++) {
     const s = createGame({ players: [{ name: "Meera", type: "cpu", gender: "f" }], rules: { six: true }, seed });
     while (!s.over) playTurn(s);
-    const soul = soulOf(s, 0), p = s.players[0];
+    const f = firstLives(s), soul = soulOf(f, 0), p = f.players[0];
     if (!soul) continue;
     assert.equal(!!soul.animal, p.death?.by === "ledger", `seed ${seed}`);
     assert.ok(validSoul(soul));
@@ -88,8 +89,8 @@ test("two short rounds give a human birth regardless; earned nudges the next lif
   assert.equal(bornOf(won).prior.was, "jackal");
   const s = createGame({ players: [{ name: "", alias: { en: "Ravi", hi: "रवि" }, type: "cpu", gender: "m", born: bornOf(won) }], rules: { six: true }, seed: 3 });
   while (!s.over) playTurn(s);
-  assert.match(lifeOf(s, 0, "en").open, /Some nights Ravi dreams of being a jackal\./);
-  assert.match(lifeOf(s, 0, "hi").open, /कुछ रातों को रवि सपना देखता है कि वह एक सियार है।/);
+  assert.match(lifeOf(firstLives(s), 0, "en").open, /Some nights Ravi dreams of being a jackal\./);
+  assert.match(lifeOf(firstLives(s), 0, "hi").open, /कुछ रातों को रवि सपना देखता है कि वह एक सियार है।/);
 });
 
 test("the interlude's account names the animal and its master, tells its fables as the moment, and has no years", () => {

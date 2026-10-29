@@ -42,6 +42,7 @@ import { castAlong, peopleOf, introIn, beforeIn, calledIn, fatesIn } from "./cas
 import { reckoningIn, seedOf, refusalIn, carryIn, karmaOf, carried, debtIn, formIn } from "./karma.js";
 import { curseIn } from "./curse.js";
 import { isAnimal, animalLifeOf } from "./animal.js";
+import { lawOf } from "./laws/index.js";
 
 const EARTH = 100, GAP = 8;
 // An English moment that does not open with the name reads on after a joining phrase in lower case:
@@ -61,7 +62,7 @@ export function lifeOf(state, i, l) {
   const J = (j, v = {}) => { const x = fill((j[l] || j.en).replace(/\{(\w+)\}/g, (_, k) => v[k] ?? `{${k}}`), who); return x[0].toUpperCase() + x.slice(1); };
   const words = n => wordsIn(l, Math.floor(n));
   // the plain joins come from this life's own sequence, never the game's dice
-  const rng = makeRng((state.rng.seed ^ 0x5bd1e995 ^ Math.imul(i + 1, 0x9e3779b1)) >>> 0);
+  const rng = makeRng((state.rng.seed ^ 0x5bd1e995 ^ Math.imul(i + 1, 0x9e3779b1) ^ Math.imul(p.rebirths ?? 0, 0x632be5ab)) >>> 0);
   let lastThen = -1;
   const then = () => { let k = Math.floor(next(rng) * JOINS.then.length); if (k === lastThen) k = (k + 1) % JOINS.then.length; lastThen = k; return JOINS.then[k]; };
 
@@ -72,16 +73,17 @@ export function lifeOf(state, i, l) {
   let toldN = 0, lastTold = {}, metAt = {};
   // the witness (Phase 15): each choice the ego overruled, by where in the life it was made; where in the life each member
   // was met; the witness lines already said; and how many were said, which tools/accounts.mjs tags
+  // grace (Bhakti, Phase 17) is no rebellion: the witness chose the lower and the life did the higher, told as grace
   const choices = p.witness ?? [], rebelAt = new Map(choices.filter(w => w.chose !== w.took).map(w => [w.i, w]));
   const metI = {}, usedWit = new Set();
   let witnessed = 0;
-  const rebelLine = e => { const w = rebelAt.get(e.i), t = w && SITUATIONS[w.sq]?.ego?.account; return t ? J(t) : ""; };
+  const rebelLine = e => { const w = rebelAt.get(e.i); if (w?.grace) return T("accGrace"); const t = w && SITUATIONS[w.sq]?.ego?.account; return t ? J(t) : ""; };
   // the line for member who returning at entry e, from the latest situation they saw after the life met them, or null
   const witnessOf = (who, e) => {
     for (let k = choices.length - 1; k >= 0; k--) {
       const w = choices[k], lines = SITUATIONS[w.sq]?.witness?.[who];
       if (!lines || w.i >= e.i || !(metI[who] < w.i) || usedWit.has(k)) continue;
-      const t = (w.chose !== w.took && lines.rebel) || lines[w.took];
+      const t = (w.chose !== w.took && !w.grace && lines.rebel) || lines[w.took];
       if (t) return { k, t };
     }
     return null;
@@ -199,6 +201,8 @@ export function lifeOf(state, i, l) {
       const age = words(e.years);
       // a choice the ego overruled is told even when what it led to is only counted
       if (rebel) para.parts.push(rebel);
+      // a climb in suppression (Jain upaśama) is said even when the climb is only counted
+      if (nextE.told === "upasama") para.parts.push(T("accUpasama"));
       if (times > 2) para.tally.set(e.n, { times, years: e.years });
       else if (SNAKES[e.n]) para.parts.push(J(JOINS.snakeAgain, { age, vice: sq(e.n), cost: words(ageOf(e.n) - ageOf(nextE.n)) }));
       else para.parts.push(J(JOINS.ladderAgain, { age, virtue: sq(e.n) }));
@@ -235,7 +239,9 @@ export function lifeOf(state, i, l) {
     const raw = repeat && e.via ? (JOINS.backTo[l] || JOINS.backTo.en).replace("{first}", words(lived.get(e.n))) : m[l] || m.en;
     // the moment that meets a member of the cast says their name at its end
     const intro = c.meets && !repeat ? [introIn(c.cast, c.about, l), beforeIn(c.cast, c.about, l)].filter(Boolean).join(" ") : "";
-    const text = fill(castFill(raw, peopleOf(c.cast, c.before, l, c.about)), { ...who, age }) + (intro ? " " + intro : "");
+    // a ladder climbed while the vice it heals was still held (Jain upaśama, Phase 17): the climb, and that the vice stayed
+    const held = e.told === "upasama" ? " " + T("accUpasama") : "";
+    const text = fill(castFill(raw, peopleOf(c.cast, c.before, l, c.about)), { ...who, age }) + (intro ? " " + intro : "") + held;
     // a choice the ego overruled is said first, a sentence of its own, and takes the place of any other join
     para.parts.push(rebel ? rebel + " " + text : join ? join + after(raw, text, l) : text);
     if (!(repeat && e.via)) {
@@ -261,13 +267,13 @@ export function lifeOf(state, i, l) {
       const head = s === 5 || !ages.length ? stage(s) : a === b ? T("lifeAt", { stage: stage(s), a }) : T("lifeSpan", { stage: stage(s), a, b });
       return { head, text: parts.join(" ") };
     }),
-    end: state.winner === i ? winEnd(p, T, words, held)
-      : p.fell ? fellEnd(p, along, T, sq, held, l, who)
+    end: lawEnd(state, i, T, words, state.winner === i ? winEnd(p, T, words, held, lawOf(state, i))
+      : p.fell ? fellEnd(p, along, T, sq, held, l, who, lawOf(state, i))
       : !p.life?.length ? T("lifeUnborn")
       : p.death?.by === "ledger" ? ledgerEnd(p, T, words, l, who, held)
       : p.dead && p.pos === GOAL ? doorEnd(p, T, words, l, who)
       : p.dead ? T("lifeEndDied", { age: words(p.years), holding: held(SNAKES[p.holding]?.holding) }).replace(/, ([.।])$/, "$1")
-      : T("lifeEndOpen", { n: p.pos }),
+      : T("lifeEndOpen", { n: p.pos })),
     // a curse the life never bore out is closed after the end, the other way (Phase 14): empty with none
     curse: curse && curse.closedAt == null && (state.winner === i || p.fell || p.dead) ? fill(curse.c.not[l] || curse.c.not.en, who) : "",
     // what the life never found out about the people in it (Phase 10C): empty with no cast
@@ -277,24 +283,34 @@ export function lifeOf(state, i, l) {
   };
 }
 
-// A life let go names what it put down: the vice it took most, the one a death would have named as still held.
-function winEnd(p, T, words, held) {
+// A life let go names what it put down: the vice it took most, the one a death would have named as still held. A law
+// whose exit is not mokṣa has its own line (Mīmāṃsā's svarga).
+function winEnd(p, T, words, held, law) {
+  if (law.text.win.end) return T(law.text.win.end, { age: words(p.years ?? 0) });
   const letgo = SNAKES[holdingOf(p.life || [], p.held)]?.letgo, age = words(p.years ?? 0);
   return letgo ? T("lifeEndWin", { age, letgo: held(letgo) }) : T("lifeEndFree", { age });
+}
+
+// A law with its own last word closes the account with it once the life is over (Cārvāka: this life was all there was;
+// Sāṃkhya: the dancer of Sāṃkhyakārikā 59, won or not).
+function lawEnd(state, i, T, words, end) {
+  const p = state.players[i], k = lawOf(state, i).text.end;
+  return k && (p.dead || p.fell || state.winner === i) ? `${end} ${T(k)}` : end;
 }
 
 // The fall from the heavens (REDESIGN.md Phase 12): the realm the life reached, the merit spent, and what it was still
 // holding, the vice a death would have named. Gita 9.21 in the board's own words.
 // What the door named is still carried down: the debts the life never met, or the holding on it was refused for.
-function fellEnd(p, along, T, sq, held, l, who) {
-  // nothing above the exit turns back, so the square it fell from is the highest it reached; from the door itself, the
-  // throw went past it and every heaven at once
+function fellEnd(p, along, T, sq, held, l, who, law) {
+  // nothing above the exit turns back, so the square it fell from is the highest it reached: since Phase 17 always the
+  // top of the heavens, where Śiva's snake is
   const top = p.fellFrom ?? Math.max(...along.map(e => e.n)), vice = SNAKES[p.holding]?.holding;
+  // a law with no next life ends it there, with nothing carried down (Cārvāka)
+  if (law.text.fell) return T(law.text.fell, { realm: sq(top) });
   // the fall has already put what was unmet into the store (sañcita), which in one life is only this life's
   const k = karmaOf(p), unmet = [...carried(k), ...k.sancita], aim = (p.refusals || []).findLast(r => r.aim)?.aim;
   const carry = carryIn(l, unmet, aim, who), and = tIn(l, "listAnd");
   const holding = vice || carry ? [vice && held(vice), carry].filter(Boolean).join(and) : null;
-  if (top === GOAL) return holding ? T("lifeEndFellDoor", { holding }) : T("lifeEndFellDoorFree");
   return holding ? T("lifeEndFell", { realm: sq(top), holding }) : T("lifeEndFellFree", { realm: sq(top) });
 }
 
@@ -358,7 +374,7 @@ export function pathOf(state, i, l) {
   const viaOf = r => r.kind === "snake" ? T("pathSnake", { sq: nameOf(r.from) }) : r.kind === "ladder" ? T("pathLadder", { sq: nameOf(r.from) })
     : r.kind === "reckon" ? T("pathReckon") : r.kind === "sit" ? (r.count === 1 ? T("pathSat") : T("pathSatN", { n: words(r.count) }))
     : r.kind === "stay" ? (r.count === 1 ? T("pathStay") : T("pathStayN", { n: words(r.count) })) : "";
-  const end = state.winner === i ? T("pathWin") : p.fell ? T("pathFell") : p.dead ? T("pathDied") : p.earned ? T("animalEarned") : p.short ? T(state.rules.animal?.round >= 2 ? "animalLastText" : "animalShortText") : "";
+  const end = state.winner === i ? T(lawOf(state, i).text.win.path) : p.fell ? T("pathFell") : p.dead ? T("pathDied") : p.earned ? T("animalEarned") : p.short ? T(state.rules.animal?.round >= 2 ? "animalLastText" : "animalShortText") : "";
   // an animal does not count years, so its path has none
   return { rows: rows.map(r => ({ age: isAnimal(state) ? "" : words(r.years), sq: nameOf(r.n), via: viaOf(r) })), end };
 }

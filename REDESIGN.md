@@ -1288,6 +1288,12 @@ cycle. It is also, almost square for square, what Phase 7 built. So:
   begins, counted in `mp-lives` like a death. This is the minimal version; Phase 16 turns
   that ending into the rebirth proper — the dream of the first life, the interlude, the
   cast crossing over.
+  > *Superseded 29 Oct, decided by Bhaskar, built in Phase 17 step 1:* no throw passes 110. A die that would is not
+  > offered; with none offered the life stays where it is in the heavens, its years standing still (`lHeavenStay`). Only
+  > the exact throw reaches 110, and Śiva's snake there is rebirth in the seat, at once: the life is closed and kept in
+  > `p.past`, and the same soul is born at square 1, of that life (`soulOf`/`bornOf`), with a new name and gender drawn
+  > off a sequence of its own. The game ends only on a liberation, or when nobody (in a game with people, no person) is
+  > left. `fellBy: "past"` and `lFell` are gone.
 - **Retired:** the once-per-life Brahmā snake (108 → 1), `p.hasFallen`, Brahmā's
   `fallWhen` text, and `TOP` as a turning point. `TOP` remains the board's extent.
 - **Not reopened:** "move up to the roll" (Phase 9) stays declined; two dice from 94 stay,
@@ -1926,9 +1932,264 @@ non-trivial.
 
 ---
 
-### Phase 17 — The laws
+### Phase 17 — The laws  ✅ SHIPPED
 
 *The payoff of the whole design, and now also the repair of its largest open number.*
+
+> **Shipped** (30 Oct, branch `phase-17-laws`; decided by Bhaskar 29 Oct, the full table at the end). Step 0, on `main`: a phone's ordinary sheet
+> closes on a stray tap. **Step 1, the endgame: exact to Śiva, and rebirth through his snake.** No die past 110 is
+> offered (`movesFor`); with none the life stays (`plan.stay`, `lHeavenStay`, the line under the board says why). 110 is
+> always Śiva's snake, and it is rebirth in the seat (`bornAgain` in `src/engine/turn.js`): the closed life is pushed to
+> `p.past` whole, with the cast it had (`castKept`), and the same soul is born at square 1 from `soulOf`/`bornOf`, with a
+> new name and gender off a sequence of its own, never a name at the table or in its cast. Every sequence of a life's own
+> (omen, ego, curse, joins, mirror) is salted by `p.rebirths`, zero for a first life, so first lives draw what they did.
+> A log line keeps which life it is about (`e.life`). A person's rebirth is a modal card between lives, offering the
+> book of the life just closed (`openReborn`; the book has a tab per life, `pastOf` in `src/engine/samskara.js`); a
+> computer's is the line under the board, as the door's is. The game ends on a liberation, or when nobody is left.
+> Measured, 20000 one-player games a policy, before → after (a life is each `p.past` and the last):
+>
+> | | honest | mixed | dishonest |
+> |---|---|---|---|
+> | turns a life, median / p95 | 27 / 45 → 28 / 47 | 28 / 48 → 30 / 48 | 29 / 49 → 30 / 49 |
+> | turns a game, median / p95 / max | 27 / 45 / 69 → 45 / 155 / 721 | 28 / 48 / 82 → 47 / 159 / 541 | 29 / 49 / 82 → 46 / 142 / 376 |
+> | turns in 106–109, mean / p95 / max | 0.83 / 3 / 4 → 1.96 / 8 / 32 | 0.83 / 3 / 4 → 1.95 / 8 / 27 | 0.78 / 3 / 4 → 1.80 / 8 / 27 |
+> | liberated, a life | 43.5% → 42.1% | 35.4% → 32.2% | 27.5% → 24.1% |
+> | lives per liberation | 2.30 → 2.37 | 2.82 → 3.11 | 3.64 → 4.15 |
+> | died, a life | 6.3% → 6.7% | 14.6% → 17.2% | 25.1% → 28.9% |
+> | Śiva's snake, a life | 50.2% (with the throw past) → 51.2% | 49.9% → 50.6% | 47.4% → 47.0% |
+> | rebirths a game | — → 1.05 | — → 1.03 | — → 0.89 |
+> | a game ends liberated | 43.5% → 86.3% | 35.4% → 65.2% | 27.5% → 45.5% |
+>
+> **Step 1's follow-up (Bhaskar, 29 Oct).** *Heaven lasts as long as the merit:* a life entering 106–109 may begin one
+> to four turns there, by sattva's share of its guṇas as it enters (`meritOf`: under 0.45 one, 0.6 two, 0.75 three, then
+> four), a stay counting as a turn; then nothing is thrown, and Śiva's snake takes it from the realm it is in, told as the
+> merit spent (`plan.spent`, `lSpent`, `fellBy: "spent"`; the account closes on that realm). The exact throw onto 110 is
+> still the snake. *Save and resume:* the game in progress is kept after every turn (`mp-game`, `saveGame`/`loadGame` in
+> `src/prefs.js`, wrapped, and anything unreadable is a new game) and resumed on reload; `?seed` starts its seed instead,
+> and `?first` reads and writes nothing. *A cast member gone at 100 does not return:* once a moment says someone is gone,
+> a life sent back down the board neither names them nor lives beside their squares (`castAlong`, `castArcs`), and the
+> fate lint runs over every life. The log now agrees Hindi with the life a line is about. Turns in 106–109 after it,
+> mean / p95 / max (the turn the snake takes a spent life not counted, so never past the merit): honest 1.20 / 4 / 4,
+> mixed 0.96 / 3 / 4, dishonest 0.73 / 3 / 4 (step 1 alone: 1.96 / 8 / 32, 1.95
+> / 8 / 27, 1.80 / 8 / 27). Liberated a life 41.9%, 32.2%, 24.2%; lives per liberation 2.39, 3.10, 4.14; turns a life
+> median 27, 29, 29 and p95 46, 48, 48. The fall splits into the exact throw 28.5%, 23.0%, 16.7% of lives and the merit
+> spent 22.9%, 27.7%, 30.3%. Merit on entering, mixed: one turn 20%, two 36%, three 33%, four 11%; honest leans to four,
+> dishonest to one. Accounts against step 1: every change is in a game that went above the exit.
+>
+> The turn cap (5000) was never hit. Per-life liberation falls a little because a life born through Śiva carries the
+> heaviest unmet debt as prārabdha, and the door refuses it more (refused arrivals 11.8% → 19.0% honest). Accounts against
+> `main` (2000 seeds, `--tag --lives=2`): every changed account went above the exit, or is a second life born of one that
+> did; each later life of a seat is hashed under `sivaN`, tagged `siva`. Golden: page and sim identical through rebirths.
+>
+> **Step 2, the law machinery (29 Oct).** A law is a module (`src/engine/laws/`): `board.js` is the game as step 1
+> left it, `animal.js` the animal interlude's rules that `turn.js` used to branch on, and `index.js` the registry
+> (`LAWS`, `choosable()`) and `lawOf(state, i)`: the player's `p.law`, else `rules.law`, else the board's. The engine
+> asks the law and never its id (a test reads `turn.js` for `.law ===`). The hooks so far, each the board's behaviour in
+> `board.js`: `movesFor(state, dice, base)`, `edge`, `situation`, `choose` (every computer's policy), `omen`, `curse`,
+> `merit`, `siva` (`"reborn"` or `"out"`), `afterTurn`, and `text` (`name`, `about`); the rest of §3.2's list (`climbs`,
+> `grace`, `winAt`, `door`, `rebirth`) arrives with the laws that need them. A law is chosen on the between-lives card and
+> per row in Players & rules, never in a viewer's first life and only when more than one is choosable, so the picker
+> stays hidden until step 3; the saṃskāra record keeps the choice (`soulOf`, `bornOf`). `?debug` adds `mp.law(id[,
+> "all"])`, the sim `--law=id`. Accounts byte-identical to step 1's follow-up (2000 seeds, `--lives=2`), the mixed sim
+> identical, golden identical. The animal's law is never offered (`canChoose`; a test with a second law registered).
+> The board's law is "पट का नियम" in Hindi.
+>
+> **Step 3, Mīmāṃsā and Cārvāka (29 Oct).** Two laws in `src/engine/laws/`, and the hooks they needed: `exit` (where a
+> life is let go, its kind and whether a door stands there: the board's is mokṣa at 105 behind the door; null for none),
+> `karma` (whether choices plant and a ledger is carried), `foresight`, `rebirth`, and `text` grown to Śiva's and the
+> merit's lines, the heavens' card, the account's last word and the win's line, title, text, path and note.
+> *Mīmāṃsā:* svarga is the exact landing on 101, Indra's heaven, with nothing carried (`SVARGA`; landing there owing is
+> told, `lSvargaOwed`, and the life goes on). 105 is ordinary: no door, no win, no sitting. Each option on the card
+> names the debt it would plant and the age it ripens at, in words (`foresee` in `turn.js`, "Plants a debt, the teacher
+> who was coming, at fourteen, that ripens when Meera is twenty-nine."), and the ledger is always shown, a debt not yet
+> ripe saying when it ripens. Its computer plays honest. The win panel quotes Gītā 9.20–21 (in Sanskrit and Hindi
+> under हिं), and since svarga returns, the soul is kept: `endOf` is `"svarga"`, and Be born again follows it.
+> *Cārvāka:* no ledger (a life born into it carries nothing in, and `setLaw` empties it when chosen between lives), no
+> omen, no curse, no door and no win. Śiva's snake ends the life (`siva: "out"`, `lSivaOnce`, `lSpentOnce`) and nothing
+> is born of it: the person's account opens at once and closes "This life was all there was.", the end panel says
+> nobody wins under this law, and the saṃskāra under that name is let go. Its computer takes the most artha and kāma.
+> The heavens still last by the guṇas, told as pleasure wearing out. The laws are offered, each with its two or three
+> sentences, in Players & rules, on the card between lives and above Be born again (not before an animal interlude),
+> never in a first life, and never the animal's. The sim's `--policy`, when given, overrides a law's own computer.
+> Single-player games, 20,000 each (a game holds every life of the seat; the board's mixed for comparison: 32.2%):
+>
+> | | Mīmāṃsā honest | mixed | dishonest | Cārvāka honest | mixed | dishonest | its own |
+> |---|---|---|---|---|---|---|---|
+> | the law's win per life | 24.9% | 14.0% | 7.6% | 0% | 0% | 0% | 0% |
+> | lives per win | 4.02 | 7.13 | 13.20 | — | — | — | — |
+> | turns per life, median / p95 | 28 / 45 | 29 / 47 | 29 / 47 | 29 / 47 | 30 / 52 | 31 / 55 | 31 / 55 |
+> | died | 6.5% | 16.0% | 26.4% | 3.8% | 3.1% | 2.3% | 2.4% |
+> | Śiva's snake | 68.6% | 69.9% | 66.0% | 96.2% | 96.9% | 97.7% | 97.6% |
+> | rebirths a game | 2.19 | 2.33 | 1.94 | 0 | 0 | 0 | 0 |
+>
+> Mīmāṃsā's own computer is the honest column. Over ten lives (5,000 souls, `--lives=10`) svarga comes to 85.9%, 65.5%
+> and 41.3% of souls; by life 1, 3, 5 and 10: honest 34.1%, 24.4%, 17.1%, 7.8%; mixed 20.7%, 10.2%, 8.0%, 7.6%;
+> dishonest 11.4%, 5.1%, 4.2%, 4.3%. It falls with each life because the heaviest unmet debt is carried in as
+> prārabdha, and svarga wants nothing carried; the dishonest life dips under the 5% floor from the third life, though
+> its per-life rate (7.6% in one game, 5.4% over ten lives) stays above it. Cārvāka's 0% is by design. *The stated reason
+> (Bhaskar, 29 Oct):* Mīmāṃsā's dishonest life sits near the 5% floor (7.6% a life, 5.4% over ten lives, 4.2–5.1% from
+> the third life) and the rule stays: svarga needs nothing owed, and a carried debt is exactly what this school says
+> bars it. The board's law
+> is byte-identical (accounts, with the one Hindi rewording "चुक" → "क्षीण" in the fall's account undone; the mixed
+> sim; golden).
+>
+> **Step 3's follow-ups (Bhaskar, 29 Oct).** A Cārvāka life neither adds to nor takes from a kept soul (`keepOf` in
+> `samskara.js`; Be born again skips that seat), so the same person born again later under another law carries what it
+> carried before. A life under a law other than the board's says so in the log (`lLawOf`). Every `{a|b}` choice with a
+> space inside (54 in content) keeps it through `fill`, in a test and on a phone in Hindi; "कीहोगी" did not reproduce.
+>
+> **Step 4, the Jain law and Bhakti (29 Oct, for review).** New hooks, each the board's behaviour in `board.js`: `climb`
+> ("now" or "wait" at a ladder's foot), `fromFoot` (the move that climbs from the foot the life stands at),
+> `suppressed`, `ladderTo`, `grace` (faces), `forgive` (the door's grace) and `binds` (what the door asks last). A climb
+> to a top not the board's is told `"climb"` and a climb in suppression `"upasama"`, so `yearsAlong` and `answerOf`
+> read them; under the board's law both read exactly as before.
+> *Jain (`jain.js`):* a ladder's foot is a stop; the admitting 1 climbs from it on a later turn (the die moved by), and
+> another throw walks on. An option that takes the ladder waits at the foot; one that stays turns away from it. A climb
+> is upaśama when the life carries an unmet debt of the vice the ladder heals and that vice's snake is the one it took
+> most (`suppressedAt` in `karma.js`): the book at the door does not take it as the answer. Otherwise it is kṣapaka, as
+> on the board. Merit binds: once nothing is owed, the door asks last about the deed of most worth the life did (a
+> situation's option with its dream), let go in one year sat (`p.exam.merit`). The omen stays on the 6. Its computer
+> is honest.
+> *Bhakti (`bhakti.js`):* choosing the lower option on an ego test throws grace's die (`graceThrow`, a sequence of its
+> own); on the 1, or the 1 and 2 once Devotion is climbed, the life does the option of most worth instead. It is never
+> shown before the choice; after it the card says so (`graceCard`), the log (`lGrace`), and the account (`accGrace`),
+> and it is never read as a rebellion. At the door, once a life, grace may forgive a debt the book cannot answer, even
+> one no penance pays (`lExamGrace`). Devotion (23, found as guru-bhakti) climbs to the end of the earth, the top of
+> the last ladder (94); the painted ladder stays the board's. Its computer is honest. `?debug` adds `mp.grace(face)`.
+> The sim's `--laws=all|a,b` sweeps the laws under each policy and the law's own computer.
+> Single-player games, 20,000 a column, and 5,000 souls of ten lives (honest / mixed / dishonest; its own computer is
+> the honest column for both):
+>
+> | | Jain honest | mixed | dishonest | Bhakti honest | mixed | dishonest |
+> |---|---|---|---|---|---|---|
+> | liberated, a life | 25.3% | 16.3% | 10.9% | 43.8% | 37.9% | 31.7% |
+> | lives per liberation | 3.95 | 6.12 | 9.16 | 2.28 | 2.64 | 3.15 |
+> | by life 1 / 3 / 5 / 10 | 26 / 21 / 15 / 9 | 18 / 9 / 8 / 7 | 12 / 5 / 5 / 4 | 46 / 42 / 40 / 32 | 41 / 35 / 32 / 27 | 35 / 27 / 24 / 17 |
+> | souls liberated within ten lives | 83.7% | 62.1% | 42.3% | 99.1% | 97.5% | 94.7% |
+> | turns a life, median / p95 | 45 / 65 | 45 / 67 | 43 / 70 | 23 / 43 | 24 / 44 | 24 / 45 |
+> | died: ledger / years / door | 4.7 / 23.4 / 0.8% | 29.1 / 19.2 / 1.1% | 51.7 / 12.5 / 1.0% | 1.0 / 3.4 / 0.2% | 4.9 / 4.2 / 0.5% | 11.1 / 4.7 / 1.0% |
+> | Śiva's snake | 45.8% | 34.3% | 23.9% | 51.7% | 52.4% | 51.5% |
+>
+> Jain: 5.3 to 5.6 waits at a foot a life and 0.6 to 0.9 climbs on the 1, so most ladders are lost; of the climbs
+> 0.7%, 3.8% and 6.5% are upaśama; the merit is let go at the door in 24.8% and 12.8% of lives (the dishonest life has
+> no deed of worth). Lives run longer (45 turns against the board's 29), so more die of their years, and the dishonest
+> more of the ledger. Bhakti: grace comes on 16% of lower choices, and at the door in 2.0%, 5.4% and 7.8% of lives;
+> Devotion is climbed in about 31% of lives, which shortens them (23 turns) and passes the situations from 28 to 93.
+> The board's law against these: 41.9%, 32.2%, 24.2% a life, 98.5%, 94.1%, 84.4% within ten. Open for review: Jain's
+> ten-life liberation is under 80% for the mixed and dishonest lives (62.1%, 42.3%), and needs a stated reason or a
+> change. Devotion's ladder to 94 stays under 60% a life with the order kept, so the fallback (to 85) was not needed.
+> The board's law is byte-identical (accounts, 2000 seeds `--lives=2 --tag`; the mixed sim; golden).
+>
+> **Step 4 approved, with its follow-ups (Bhaskar, 29 Oct).** *Jain:* a life at a ladder's foot may wait there instead
+> of moving on, a year a throw (a year sat at the foot, `lFootWait`; offered on one die as "Wait"), until it throws the
+> admitting 1; while it waits any other throw moves nothing. Its computer waits (`prefer`, a new hook). An upaśama
+> climb is told in the account: "But the old habit only lay down; it did not leave." (`accUpasama`). *Bhakti:* a
+> Devotion climb goes up the painted ladder to 37, then on in gold to 94, drawn as the token climbs and faded after
+> (`goldLadder` in `src/render/tokens.js`, in `--b-gold`). *Hindi:* every "खाना {n}" is now "घर {n}" (and a lint fails on
+> "खाना {"), every "बरस पर" is "बरस की उम्र में" (the seven named, and the account's four repeat lines), and lLawOf,
+> lGrace, graceCard and examGrace are Bhaskar's wording. Accounts against step 4 (2000 seeds, `--lives=2 --tag`): every
+> English account is byte-identical; 11,600 of 18,589 Hindi accounts changed, each tagged `wording` (a Hindi account
+> that says either phrase). `npm run format` no longer rewrites `content/boards.json`.
+> Jain with the wait, 20,000 games and 5,000 souls of ten lives (honest / mixed / dishonest; its own is honest):
+>
+> | | honest | mixed | dishonest |
+> |---|---|---|---|
+> | liberated, a life | 31.9% | 27.0% | 23.4% |
+> | lives per liberation | 3.14 | 3.71 | 4.27 |
+> | by life 1 / 3 / 5 / 10 | 32 / 29 / 26 / 18 | 28 / 20 / 18 / 12 | 26 / 14 / 13 / 13 |
+> | souls liberated within ten lives | 94.8% | 86.8% | 79.98% |
+> | turns a life, median / p95 | 45 / 70 | 47 / 72 | 48 / 75 |
+> | died: ledger / years / door | 1.5 / 12.4 / 0.5% | 11.0 / 14.8 / 1.1% | 23.1 / 14.0 / 1.2% |
+> | waits at a foot / climbs on the 1, a life | 3.51 / 2.48 | 3.48 / 2.74 | 3.53 / 3.12 |
+> | upaśama, of climbs | 0.5% | 2.6% | 4.8% |
+>
+> *The stated reason (Bhaskar, 29 Oct):* the dishonest Jain soul's ten-life liberation sits just under the 80% floor
+> (3,999 of 5,000), and the rule stays. It is the Jain doctrine that in the present age, duḥṣamā, no one from this world
+> attains liberation: the path is open, and it is long.
+>
+> **Step 5, Nyāya, Sāṃkhya, Advaita and Yoga (30 Oct, for review).** Hooks added to `board.js`: `practice` and `sits` (a
+> year in practice before the throw, drawing no dice), `zero` (`{ act, line, kind }`: what a move of 0 is when it is the
+> law's own act, told on the square again as `p.told`; `kind` makes it a win), `acted`, `freed` (a life let go as it
+> ends), `veiled`, `auto`, `dissolve`, `line`, and `text.scholar`, `text.goal`, `text.reckon`, `text.endSrc`. An exit may
+> say `alive: false` (its door opens on no win). The sim now asks the turn what is thrown (`playTurn(state, undefined)`).
+> *Nyāya:* the ledger is never shown, at any depth (`ledgerVeiled`); a reckoning is a sign only (`reckonSignIn`: the floor
+> and what it took; the log's `lSign` names no square, the card no source and the address no square), and so is the
+> door's refusal (`doorSign`). After a sign a person may spend a throw to infer it (Infer beside the move; the life stays,
+> the year passes); the card states the five members, ending on the deed in words (`inferLinesIn`). Each sign is inferred
+> once; its computer never infers. No examination at 105; the door opens on no win (`lDoorThrough`) and the life goes on.
+> Apavarga is a life ended by its years or Śiva's snake owing nothing (`freed`): won, and not born again. A death by the
+> ledger never is. *Sāṃkhya:* the person still rolls, by Space or the button; the game picks the die (`moveFor`) and the
+> option by the leading guṇa (sattva honest, rajas pleasure, tamas "inert": the cheapest in years, then the least worth;
+> in balance the game's own mixed). The card opens as a situation's does, says "{name} did not choose here. Prakṛti
+> did…", shows what it passed over greyed and not clickable, Gītā 3.27 in its scholar layer, and closes with ×. The
+> account closes on the dancer of Sāṃkhyakārikā 59, its source in the scholar layer of the book. *Advaita:* no exit at
+> 105, whose card says there was never a door; from the sixth bhūmikā (padārthābhāvanī) a sannyāsin may Recognise in place
+> of a move on any square of earth, a win of kind "recognition". The painted art (`#art`, `.cell .pic`) fades with the
+> bhūmikā to 0.4 at the sixth (`clearOf`); labels, cards and tokens never dim, and `contrast.test` holds. *Yoga:* Sit in
+> practice beside Roll (Space still rolls) stores a stillness, up to three, at any age on earth; Let it go beside the
+> move spends one. From 94 a sannyāsin's 0 is still Phase 9's practice, and spends nothing. The stillness is said on the
+> player's line in words (the third, Gītā 6.19's lamp). Its computer sits holding none with a snake's head that bites
+> within six, and lets go a throw onto one or onto 110. A first version counted a situation's square on a snake's head as
+> one, so the dishonest computer dodged four ego tests and planted a third of its debts (ledger deaths 0.4%); a snake
+> that is a choice is not a bite. Each law's explanation names its sources at scholar depth. `?debug` adds `mp.still(n)`
+> and `mp.bhumika(b)`.
+> 20,000 single-player games a column and 5,000 souls of ten lives (Sāṃkhya's honest, mixed and dishonest are the
+> board's exactly, since only who chooses differs; its own is the guṇa's):
+>
+> | | Nyāya honest | mixed | dishonest | Sāṃkhya own | Advaita honest | mixed | dishonest | Yoga honest | mixed | dishonest |
+> |---|---|---|---|---|---|---|---|---|---|---|
+> | won, a life | 64.1% | 37.6% | 20.9% | 35.4% | 47.1% | 14.0% | 2.9% | 47.3% | 39.7% | 31.5% |
+> | souls won within ten | 97.1% | 93.1% | 77.4% | 95.5% | 100.0% | 79.4% | 26.3% | 99.9% | 98.7% | 94.9% |
+> | turns a life, median / p95 | 29 / 46 | 29 / 47 | 29 / 48 | 28 / 48 | 24 / 45 | 29 / 47 | 29 / 47 | 26 / 37 | 28 / 40 | 28 / 42 |
+> | died: ledger / years / door | 1.6 / 5.1 / 0 | 9.9 / 6.1 / 0 | 20.7 / 5.8 / 0 | 8.9 / 4.6 / 0.6 | 1.1 / 3.3 / 0 | 9.4 / 5.8 / 0 | 20.8 / 5.6 / 0 | 0.2 / 0 / 0 | 3.2 / 0.8 / 0.5 | 10.0 / 1.9 / 1.2 |
+>
+> Open for review: Nyāya's honest life passes the 60% ceiling (97% of its releases at Śiva's snake; asking the door's
+> whole test changes nothing, 65.0%) and its dishonest soul is under 80% in ten lives; Advaita's dishonest life is under
+> the 5% floor and its own (mixed) soul at 79.4% in ten (from the fifth bhūmikā instead: 67.4% / 27.4% / 7.9% a life,
+> honest over the ceiling). The board's law is byte-identical (accounts, 2000 seeds `--lives=2 --tag`, all 37,178 lines;
+> the mixed sim; golden 20/20); perf as 220cf2c.
+>
+> **Step 5 approved (Bhaskar, 30 Oct), with two stated reasons.** *Nyāya:* apavarga is the removal of fault (Nyāyasūtra
+> 1.1.2, 1.1.22), and a life that planted nothing has none to remove, so honest lives are released at their end (64.1% a
+> life) while dishonest souls fall just short over ten lives (77.4%). The rule stays. *Advaita:* Śaṅkara (Brahmasūtra-
+> bhāṣya 1.1.1) opens the inquiry only to the qualified seeker (sādhana-catuṣṭaya: viveka, vairāgya, śamādi, mumukṣutva),
+> so recognition rarely comes to the unprepared (dishonest 2.9% a life; its own computer 79.4% over ten). The trigger
+> stays at the sixth bhūmikā. Hindi: lDoorThrough and lawSankhyaAbout in Bhaskar's wording (no gendered verb with आप).
+>
+> **Phase 17 as shipped: every law, per life** (`node tools/sim.mjs 20000 --laws=all`: 20,000 single-player games a
+> column and 5,000 souls of ten lives; "own" is the law's own computer, shown apart only where it differs from a policy;
+> Sāṃkhya's honest, mixed and dishonest columns are the board's exactly):
+>
+> | law / computer | won, a life | souls won in ten | by life 1 / 3 / 5 / 10 | turns median / p95 | died: ledger / years / door | Śiva's snake | rebirths a game |
+> |---|---|---|---|---|---|---|---|
+> | board honest | 41.9% | 98.5% | 45 / 39 / 33 / 21 | 27 / 46 | 1.4 / 5.0 / 0.3% | 51.4% | 1.06 |
+> | board mixed (own) | 32.2% | 94.1% | 36 / 26 / 23 / 19 | 29 / 48 | 9.6 / 6.5 / 0.9% | 50.7% | 1.03 |
+> | board dishonest | 24.2% | 84.4% | 27 / 17 / 15 / 13 | 29 / 48 | 21.0 / 6.4 / 1.4% | 47.0% | 0.89 |
+> | Mīmāṃsā honest (own) | 24.9% | 85.9% | 34 / 24 / 17 / 8 | 28 / 45 | 1.4 / 5.2 / 0% | 68.6% | 2.19 |
+> | Mīmāṃsā mixed | 14.0% | 65.5% | 21 / 10 / 8 / 8 | 29 / 47 | 9.8 / 6.2 / 0% | 69.9% | 2.33 |
+> | Mīmāṃsā dishonest | 7.6% | 41.3% | 11 / 5 / 4 / 4 | 29 / 47 | 20.7 / 5.6 / 0% | 66.0% | 1.94 |
+> | Cārvāka, every computer | 0% | 0% | — | 29–31 / 47–55 | 0 / 2.3–3.8 / 0% | 96–98% | 0 |
+> | Jain honest (own) | 31.9% | 94.8% | 32 / 29 / 26 / 18 | 45 / 70 | 1.5 / 12.4 / 0.5% | 53.7% | 1.16 |
+> | Jain mixed | 27.0% | 86.8% | 28 / 20 / 18 / 12 | 47 / 72 | 11.0 / 14.8 / 1.1% | 46.1% | 0.86 |
+> | Jain dishonest | 23.4% | 80.0% | 26 / 14 / 13 / 13 | 48 / 75 | 23.1 / 14.0 / 1.2% | 38.3% | 0.62 |
+> | Bhakti honest (own) | 43.8% | 99.1% | 46 / 42 / 40 / 32 | 23 / 43 | 1.0 / 3.4 / 0.2% | 51.7% | 1.07 |
+> | Bhakti mixed | 37.9% | 97.5% | 41 / 35 / 32 / 27 | 24 / 44 | 4.9 / 4.2 / 0.5% | 52.4% | 1.10 |
+> | Bhakti dishonest | 31.7% | 94.7% | 35 / 27 / 24 / 17 | 24 / 45 | 11.1 / 4.7 / 1.0% | 51.5% | 1.06 |
+> | Nyāya honest | 64.1% | 97.1% | 84 / 23 / 14 / 14 | 29 / 46 | 1.6 / 5.1 / 0% | 93.3% | 0.45 |
+> | Nyāya mixed (own) | 37.6% | 93.1% | 52 / 21 / 20 / 18 | 29 / 47 | 9.9 / 6.1 / 0% | 84.0% | 0.91 |
+> | Nyāya dishonest | 20.9% | 77.4% | 30 / 12 / 12 / 12 | 29 / 48 | 20.7 / 5.8 / 0% | 73.5% | 1.14 |
+> | Sāṃkhya own (by guṇa) | 35.4% | 95.5% | 37 / 31 / 28 / 15 | 28 / 48 | 8.9 / 4.6 / 0.6% | 50.4% | 1.02 |
+> | Advaita honest | 47.1% | 100% | 41 / 53 / 45 / — | 24 / 45 | 1.1 / 3.3 / 0% | 48.5% | 0.94 |
+> | Advaita mixed (own) | 14.0% | 79.4% | 11 / 15 / 15 / 16 | 29 / 47 | 9.4 / 5.8 / 0% | 70.8% | 2.43 |
+> | Advaita dishonest | 2.9% | 26.3% | 2 / 3 / 3 / 3 | 29 / 47 | 20.8 / 5.6 / 0% | 70.7% | 2.42 |
+> | Yoga honest | 47.3% | 99.9% | 48 / 47 / 47 / — | 26 / 37 | 0.2 / 0 / 0% | 52.4% | 1.10 |
+> | Yoga mixed (own) | 39.7% | 98.7% | 42 / 35 / 33 / 36 | 28 / 40 | 3.2 / 0.8 / 0.5% | 55.8% | 1.26 |
+> | Yoga dishonest | 31.5% | 94.9% | 34 / 26 / 27 / 17 | 28 / 42 | 10.0 / 1.9 / 1.2% | 55.5% | 1.25 |
+>
+> (— : too few souls still unliberated at that life to read.) Honest > mixed > dishonest under every law with karma.
+> Outside 5–60% a life or under 80% in ten lives, each with its stated reason above: Cārvāka (no win, by design),
+> Mīmāṃsā dishonest, Jain dishonest (duḥṣamā), Nyāya honest and dishonest, Advaita mixed and dishonest. The board's law
+> is byte-identical to Phase 16 plus step 1 (accounts, the mixed sim, golden); a computer can play under any law.
 
 - Mīmāṃsā first (default), then Cārvāka, then the rest.
 - A law-select screen that explains each in the player's own terms before they commit.
@@ -2247,8 +2508,9 @@ reason is the thing to re-examine, not the idea.*
   outcome. "Buys the thing at last" is the model: a 2026 reader knows it is a phone, and a
   2046 reader will still know what was meant. Behaviour outlasts the thing it runs on.
 - **Nothing turns back above mokṣa.** Past 105 the only way is on, and then down: the
-  heavens are walked and the throw past 110 ends the life. No bounce, no once-per-life
-  exception, no square that sends a roll back toward the exit (decided 20 Oct).
+  heavens are walked, no throw passes 110, and the exact throw onto it is Śiva's snake, which ends the life and begins
+  the next (Phase 17). A throw that offers no die stays: a stay is not a bounce. No bounce, no once-per-life exception,
+  no square that sends a roll back toward the exit (decided 20 Oct; the stay, 29 Oct).
 - **The 1 is the threshold face; the 6 is the world's face.** The slow arrival, the
   admitting throw, the question at the door are 1s; the omen, the entry into the world, the
   fall are 6s. No mechanic uses them the other way round.

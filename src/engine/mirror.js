@@ -20,7 +20,7 @@ const least = (n, id) => { const o = optionOf(n, id); return !!o && SITUATIONS[n
 // What player i's life did that a question can be about, for the `when` of content/mirror.json.
 function deeds(state, i) {
   const p = state.players[i], w = p.witness ?? [], along = yearsAlong(p.life || [], p.told || []);
-  const rebel = w.findLast(x => x.chose !== x.took) ?? null;
+  const rebel = w.findLast(x => x.chose !== x.took && !x.grace) ?? null;
   const arcs = castArcs(state, i, along), cc = castAlong(state, i, along), cast = cc.at(-1)?.cast ?? {};
   const unwritten = arcs.find(a => a.kind === "died" && cast[a.who]?.en) ?? null;
   return {
@@ -43,7 +43,7 @@ export function mirrorOf(state, i) {
   const add = q => { if (q && out.length < ASKED && !out.some(x => x.id === q.id)) out.push({ id: q.id, ...(q.when === "rebel" ? { rebel: d.rebel } : {}), ...(q.when === "unwritten" ? { who: d.unwritten } : {}) }); };
   if (d.rebel) add(qs.find(q => q.when === "rebel"));
   const fits = qs.filter(q => q.when !== "rebel" && d[q.when]);
-  const r = makeRng((state.rng.seed ^ 0x6d2b79f5 ^ Math.imul(i + 1, 0x27d4eb2d)) >>> 0);
+  const r = makeRng((state.rng.seed ^ 0x6d2b79f5 ^ Math.imul(i + 1, 0x27d4eb2d) ^ Math.imul(state.players[i]?.rebirths ?? 0, 0x632be5ab)) >>> 0);
   // a draw for every candidate, in authored order, so what one life fits never moves another's
   const order = fits.map(q => [next(r), q]).sort((a, b) => a[0] - b[0]).map(([, q]) => q);
   order.forEach(add);

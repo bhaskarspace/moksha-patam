@@ -11,7 +11,9 @@ function fmt(v, depth, max) {
   return (arr ? "[" : "{") + "\n" + items.join(",\n") + "\n" + end + (arr ? "]" : "}");
 }
 
-const files = process.argv.slice(2).length ? process.argv.slice(2) : fs.readdirSync("content").filter(f => f.endsWith(".json")).map(f => "content/" + f);
+// boards.json is hand-laid (palettes and pigments as nested tables) and is never rewritten
+const SKIP = new Set(["boards.json"]);
+const files = process.argv.slice(2).length ? process.argv.slice(2) : fs.readdirSync("content").filter(f => f.endsWith(".json") && !SKIP.has(f)).map(f => "content/" + f);
 for (const f of files) {
   const max = EXPAND[f.split("/").pop()] ?? 2;
   fs.writeFileSync(f, fmt(JSON.parse(fs.readFileSync(f, "utf8")), 0, max) + "\n");

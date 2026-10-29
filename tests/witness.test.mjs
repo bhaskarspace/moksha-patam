@@ -7,6 +7,7 @@ import { egoOf, egoFaces, egoThrow, setPolicy, optionOf } from "../src/engine/qb
 import { lifeOf, lifeText } from "../src/engine/account.js";
 import { SITUATIONS, SNAKES } from "../src/content.js";
 import { fill } from "../src/i18n.js";
+import { firstLives } from "./lives.mjs";
 
 const TESTS = { 49: "first", 54: "claim", 55: "keep", 56: "eaten", 59: "strike" };
 const game = (pos, seed = 1) => {
@@ -14,7 +15,7 @@ const game = (pos, seed = 1) => {
   s.players[0].pos = pos;
   return s;
 };
-const policy = (x, fn) => { setPolicy(x); try { return fn(); } finally { setPolicy("mixed"); } };
+const policy = (x, fn) => { setPolicy(x); try { return fn(); } finally { setPolicy(null); } };
 
 test("five situations are ego tests, each naming the lower option the ego pulls toward", () => {
   const tagged = Object.keys(SITUATIONS).filter(n => egoOf(+n)).map(Number);
@@ -89,8 +90,9 @@ test("the computer rebels by the same rule, and the account tells every rebellio
   let rebels = 0;
   policy("honest", () => {
     for (let seed = 1; seed <= 300; seed++) {
-      const s = createGame({ players: [{ name: "Meera", type: "cpu", gender: "m" }], rules: { six: true }, seed });
-      while (!s.over) playTurn(s);
+      const g = createGame({ players: [{ name: "Meera", type: "cpu", gender: "m" }], rules: { six: true }, seed });
+      while (!g.over) playTurn(g);
+      const s = firstLives(g);
       const p = s.players[0], overruled = p.witness.filter(w => w.chose !== w.took);
       rebels += overruled.length;
       for (const w of overruled) {
@@ -108,9 +110,9 @@ test("a cast member who returns is joined by what they saw the life do, and a re
   let any = 0, rebel = 0;
   policy("honest", () => {
     for (let seed = 1; seed <= 400 && !(any && rebel); seed++) {
-      const s = createGame({ players: [{ name: "Meera", type: "cpu", gender: "f" }], rules: { six: true }, seed });
-      while (!s.over) playTurn(s);
-      const life = lifeOf(s, 0, "en"), text = life.paras.map(p => p.text).join(" ");
+      const g = createGame({ players: [{ name: "Meera", type: "cpu", gender: "f" }], rules: { six: true }, seed });
+      while (!g.over) playTurn(g);
+      const s = firstLives(g), life = lifeOf(s, 0, "en"), text = life.paras.map(p => p.text).join(" ");
       if (life.witnessed) any++;
       if (/had meant to give a plate|never what Meera had meant/.test(text)) rebel++;
     }

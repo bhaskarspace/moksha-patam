@@ -309,6 +309,19 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 .leaf .story .line2 { font-style: italic; color: var(--l-ink2); font-size: 18px; }
 /* Phase 10: a situation's options, under its prompt. A withheld one stays in place, greyed, and says why. */
 .leaf .options { display: grid; gap: 8px; margin: 14px 0 0; max-width: 58ch; }
+/* Phase 17: between lives, the actions, and the law the next life plays under */
+.leaf .reborn-acts { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 0; }
+.leaf .laws { display: grid; gap: 8px; margin: 14px 0 0; max-width: 58ch; }
+.leaf .law { display: grid; gap: 2px; min-height: 44px; padding: 10px 14px; text-align: start; font: inherit; color: var(--l-ink); background: rgba(255, 252, 240, 0.7); border: 1px solid var(--l-line); border-radius: 8px; cursor: pointer; }
+.leaf .law[aria-pressed="true"] { border-color: var(--l-rule); border-width: 2px; }
+.leaf .law span { font-size: 15px; }
+/* Phase 17 step 5: a law's sources at scholar depth; prakṛti's passed-over options (Sāṃkhya), greyed and never to be
+   taken; the five members of an inference (Nyāya) */
+.leaf .law .law-src, .win .laws .law .law-src { font-size: 13px; font-style: italic; }
+.leaf .options.passed { display: grid; gap: 6px; margin: 8px 0; }
+.leaf .options.passed .opt { grid-template-columns: 1fr; cursor: default; }
+.leaf .options.passed .opt-c { grid-column: 1; }
+.leaf ol.infer { padding-inline-start: 1.4em; }
 .leaf .opt { display: grid; grid-template-columns: auto 1fr; column-gap: 10px; align-items: baseline; min-height: 44px; padding: 10px 14px; text-align: start; font: inherit; font-size: 17px; color: var(--l-ink); background: rgba(255, 252, 240, 0.7); border: 1px solid var(--l-line); border-radius: 8px; cursor: pointer; }
 .leaf .opt:hover:not([aria-disabled="true"]), .leaf .opt:focus-visible { border-color: var(--l-rule); }
 .leaf .opt-k { grid-row: span 3; font-weight: 600; color: var(--l-gold); }
@@ -573,6 +586,13 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 .win > div { background: var(--surface); color: var(--ink); padding: 24px 28px; border-radius: 6px; text-align: center; display: flex; flex-direction: column; gap: 12px; align-items: center; max-width: 80%; }
 .win h2 { font-family: var(--f-display); font-weight: 400; font-size: clamp(24px, 4vw, 34px); margin: 0; line-height: 1.1; text-wrap: balance; }
 .win p { margin: 0; color: var(--muted); }
+/* Phase 17: the win's note (Mīmāṃsā's Gītā 9.20–21), and the law the next life is born under */
+.win > div { max-height: calc(100% - 24px); overflow-y: auto; }
+.win .verse { max-width: 52ch; font-size: 14px; font-style: italic; text-align: start; }
+.win .laws { display: grid; gap: 6px; width: 100%; max-width: 46ch; }
+.win .laws .law { display: grid; gap: 2px; min-height: 44px; margin: 0; padding: 8px 12px; font: inherit; text-align: start; color: var(--ink); background: transparent; border: 1px solid var(--muted); border-radius: 6px; cursor: pointer; }
+.win .laws .law[aria-pressed="true"] { border: 2px solid var(--ink); }
+.win .laws .law span { font-size: 14px; color: var(--muted); }
 
 /* Side panel */
 /* Side panel: the margin of the cloth, written in the leaf's manuscript idiom: ruled, with vermilion rubrics, no boxes */
@@ -649,6 +669,7 @@ details[open].card summary::after { content: "−"; }
 .seg button { flex: 1; padding: 6px 0; }
 .seg button[aria-pressed="false"] { background: transparent; color: var(--ink); border-color: var(--line); }
 .prow { display: grid; grid-template-columns: 14px 1fr 112px; gap: 8px; align-items: center; }
+.prow .law-about { grid-column: 1 / -1; margin: 0; font-size: 13px; color: var(--muted); }
 input[type="text"], select { font: inherit; padding: 6px 8px; border-radius: 5px; border: 1px solid var(--line); background: var(--ground); color: var(--ink); width: 100%; min-width: 0; }
 label.check { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; }
 label.check input { margin-top: 4px; accent-color: var(--accent); }

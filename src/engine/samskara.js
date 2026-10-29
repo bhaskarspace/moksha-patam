@@ -14,6 +14,7 @@ import { worthOf, optionOf } from "./qbn.js";
 import { castOf, MEMBERS } from "./cast.js";
 import { pnameIn } from "../state.js";
 import { interludeFor, animalEndOf, isAnimal, KINDS } from "./animal.js";
+import { canChoose, lawOf } from "./laws/index.js";
 
 export const SOUL_V = 1, KEEP_DEBTS = 6;
 // the roles whose names can return: the parents are never named
@@ -24,11 +25,16 @@ export const endOf = (state, i) => {
   const p = state.players[i];
   // an animal interlude (src/engine/animal.js) ends at the forest's edge or short of it, and is never "let go"
   if (isAnimal(state)) return animalEndOf(p) && "animal";
-  if (state.winner === i) return null;
+  // a life let go is gone from the wheel; svarga (Mīmāṃsā's exit) lasts as long as its merit, and returns (Gītā 9.21)
+  if (state.winner === i) return p.won === "svarga" ? "svarga" : null;
   if (p.dead) return p.death?.by ?? "years";
   if (p.fell) return p.fellBy === "snake" ? "siva" : "fell";
   return null;
 };
+
+// The game as it stood for the k-th life of seat i that Śiva's snake closed (Phase 17, p.past): the same table, with that
+// life in the seat, so its book, its path and its mirror read as they did when it ended. state itself for k null.
+export const pastOf = (state, i, k) => (k == null || !state.players[i]?.past?.[k] ? state : { ...state, winner: null, players: state.players.map((q, j) => (j === i ? q.past[k] : q)) });
 
 // The record player i's ended life leaves, or null when it was let go or has not ended.
 export function soulOf(state, i) {
@@ -53,10 +59,24 @@ export function soulOf(state, i) {
     cast: NAMED.filter(w => cast[w]?.en).map(w => ({ role: w, gender: cast[w].gender, en: cast[w].en, hi: cast[w].hi })),
     dream: dream && { sq: dream.sq, opt: dream.opt },
     animal: null,
+    // the law it lived under, offered first to the next (Phase 17)
+    ...(p.law ? { law: p.law } : {}),
   };
   // a life the ledger ended is born an animal first (Phase 16's interlude), in the house of its rival or its friend
   if (end === "ledger") rec.animal = interludeFor(rec.last.holding, rec.cast);
   return rec;
+}
+
+// What the store does with player i's soul once the game is over: { soul } to keep, { drop: true } when the life was let
+// go, or null to leave the store as it was. A law with no next life (Cārvāka) adds nothing and takes nothing away: the
+// same person, born again later under another law, carries what they carried before it. A life still going leaves
+// nothing; one Śiva's snake closed before it (Phase 17), its own.
+export function keepOf(state, i) {
+  const p = state.players[i];
+  if (!lawOf(state, i).rebirth) return null;
+  if (state.winner === i && !endOf(state, i)) return { drop: true };
+  const soul = soulOf(state, i) ?? (p.past?.length ? soulOf(pastOf(state, i, p.past.length - 1), i) : null);
+  return soul ? { soul } : null;
 }
 
 const num = x => typeof x === "number" && Number.isFinite(x);
@@ -85,6 +105,7 @@ export function bornOf(soul) {
   const dream = soul.dream && optionOf(soul.dream.sq, soul.dream.opt)?.dream ? soul.dream : null;
   return {
     gunas,
+    ...(canChoose(soul.law) ? { law: soul.law } : {}),
     karma: { sancita: rest, agami: slice ? [{ ...slice, i: 0, prior: true }] : [], prarabdha: [] },
     prior: { lives: soul.lives, last: { ...soul.last, holding }, cast, dream, ...(KINDS.includes(soul.was) ? { was: soul.was } : {}) },
   };

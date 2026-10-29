@@ -40,7 +40,8 @@ export function yearsAlong(life, told = []) {
   let years = 0;
   for (const [i, n] of life.entries()) {
     const from = life[i - 1], sn = SNAKES[from], ld = LADDERS[from];
-    const via = toldAt(i) === "reckon" ? "reckon" : sn && sn.to === n ? "snake" : ld && ld.to === n ? "ladder" : from === n && ground(n) ? (toldAt(i) === "stay" ? "stay" : "sit") : null;
+    // a climb to a top not the board's (Phase 17: Bhakti's Devotion) is told "climb", and is a ladder all the same
+    const via = toldAt(i) === "reckon" ? "reckon" : sn && sn.to === n ? "snake" : ld && (ld.to === n || toldAt(i) === "climb") ? "ladder" : from === n && ground(n) ? (toldAt(i) === "stay" ? "stay" : "sit") : null;
     if (via === "sit" || via === "stay") years += 1;
     else if (via === "reckon") { /* no time: the years it took follow as stays */ }
     else if (via === "ladder") years = Math.max(years, ageOf(n) ?? years);
