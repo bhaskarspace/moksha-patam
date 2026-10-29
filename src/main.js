@@ -16,7 +16,7 @@ import { castOf, meetsNamed, nameKey } from "./engine/cast.js";
 import { soulOf, bornOf, endOf } from "./engine/samskara.js";
 import { isAnimal, animalRules, afterAnimal, KINDS, masterOf } from "./engine/animal.js";
 import { frame, pullBack, hold, release } from "./render/camera.js";
-import { spriteURL } from "./render/sprites.js";
+import { spriteURL, spriteSheet } from "./render/sprites.js";
 import { tokenEls, buildTokens, place, retrigger, climb, swallow, animate } from "./render/tokens.js";
 import { openSquare, openReckoning, openExam, cardCurse, openEntry, closeCard, cardIdle, cardOpen, cardCarried, cardBlocking, cardExpanded, releaseCard, setCardRoll, setCardDecide, optionNote, refreshRoll, refreshCard, onCardChange } from "./render/card.js";
 import { drawDoor } from "./render/door.js";
@@ -347,6 +347,8 @@ function rollInfo(l) {
   if (G.choosing) return { choose: G.choosing.moves.map(v => ({ v, label: moveLabel(l, v) })) };
   // the choice on a situation is in the card's body, not its Roll
   if (G.deciding) return null;
+  // the card that ends a life (a debt, or the years at the door) offers no throw: the life is over before it closes
+  if (G.waitingCard && G.plan?.died) return null;
   const n = s.players.length, plan = G.plan, humans = s.players.filter(q => q.type === "human").length;
   let i = plan ? (plan.again ? plan.idx : (plan.idx + 1) % n) : s.turn;
   for (let k = 0; k < n && (s.players[i].type !== "human" || gone(s.players[i])); k++) i = (i + 1) % n;
@@ -716,7 +718,7 @@ new ResizeObserver(draw).observe($("cells"));
 // (mp.roll(a, b) fixes both endgame dice, and mp.pick(v) moves by one of them, 0 to sit),
 // mp.seed() reads the current game's seed and mp.seed(n) starts a new game with that seed. Phase 14 adds mp.door(),
 // mp.examine(), mp.curse(id) and mp.siva(). Phase 15 adds mp.ego(faces). Phase 16 adds mp.die(form), mp.samskara(obj),
-// mp.dream() and mp.animal(kind).
+// mp.dream() and mp.animal(kind). Its follow-up adds mp.sprites().
 if (new URLSearchParams(location.search).has("debug")) {
   window.mp = {
     jump(n) { cur().pos = n; render(); age(true); },
@@ -765,7 +767,9 @@ if (new URLSearchParams(location.search).has("debug")) {
     },
     entry: openEntry,
     close: closeCard,
+    // mp.sprite(stage, color, frame, gender, animal) is one figure's image; mp.sprites() shows them all side by side
     sprite: spriteURL,
+    sprites: spriteSheet,
     data: { GOAL, TOP, LADDERS, SNAKES, SQ, HEAVEN, STR },
     setLang,
     life: openLife,

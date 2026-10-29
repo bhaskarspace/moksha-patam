@@ -35,3 +35,31 @@ test("the fade at turya (Phase 16) is on the art alone: no label, card or token 
     assert.ok(["#art", ".cell .pic"].includes(sel), `--clear is on ${sel}`);
   }
 });
+
+// ---- The tokens (src/render/art.js) ----
+// Every figure is bounded by its outline on the left, the right and the top (the staff and the crown may stand proud of
+// it), and the token's edge, the outline with its white halo (.token .spr in styles.css), keeps 3:1 against the ground
+// of every square it can stand on: the animals only walk 1–40.
+const { ART, PAL, ANIMALS, framesOf } = await import("../src/render/art.js");
+const EDGE = new Set(["K", "B", "Y"]);
+test("every figure is bounded by its outline", () => {
+  for (const [k, a] of Object.entries(ART)) for (const f of [0, 1, 2, 3]) {
+    const rows = framesOf(a, f), bad = [];
+    rows.forEach((r, y) => {
+      const xs = [...r].flatMap((c, x) => (c === "." ? [] : [x]));
+      for (const x of xs.length ? [xs[0], xs.at(-1)] : []) if (!EDGE.has(r[x])) bad.push(`row ${y} at ${x}`);
+    });
+    for (let x = 0; x < 12; x++) { const y = rows.findIndex(r => r[x] !== "."); if (y >= 0 && !EDGE.has(rows[y][x])) bad.push(`top at ${x}`); }
+    assert.deepEqual(bad, [], `${k}, frame ${f}`);
+  }
+});
+test("every token's edge reads on every ground it can stand on", () => {
+  const outline = rgb(PAL.K), halo = rgb("#FFFFFF");
+  for (const [k] of Object.entries(ART)) {
+    const last = ANIMALS.includes(k) ? 40 : TOP;
+    for (let n = 1; n <= last; n++) {
+      const bg = rgb(groundOf(n)[0]);
+      assert.ok(Math.max(ratio(bg, outline), ratio(bg, halo)) >= 3, `${k} on square ${n}`);
+    }
+  }
+});

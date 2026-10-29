@@ -1154,12 +1154,17 @@ await check("Phase 16: mp.die(form) ends the life on the reckoning's card, in th
   await page.waitForFunction(() => document.getElementById("folio").open && /It closes/.test(document.getElementById("leaf").textContent), null, { timeout: 15000 });
   const text = await page.evaluate(() => document.getElementById("leaf").textContent);
   assert(/of the bad chest, after a winter that did not end/.test(text), `the card: ${text.slice(0, 500)}`);
+  // the card that ends the life offers no throw
+  assert(await page.evaluate(() => [...document.querySelectorAll("#leaf .roll-c")].every(b => b.hidden || !b.offsetParent)), "the death card offers a roll");
   await page.evaluate(() => mp.close());
   await page.waitForFunction(() => mp.state.over && document.getElementById("lifeDlg").open, null, { timeout: 15000 });
   const r = await page.evaluate(() => ({ death: mp.state.players[0].death, life: document.getElementById("lifeLeaf").textContent, win: document.getElementById("winText").textContent }));
   assert(r.death?.by === "ledger" && r.death.form === "illness", JSON.stringify(r.death));
   assert(/died at seventy-one, of the bad chest, after a winter that did not end, still carrying the hand that fell/.test(r.life), `the account: ${r.life.slice(-400)}`);
   assert(/A debt came due that the life could not pay/.test(r.win), r.win);
+  // the players panel names the real end, not the years
+  const stage = await page.evaluate(() => document.querySelector("#players li .stage").textContent);
+  assert(stage === "A debt came due", stage);
 });
 
 await check("Phase 16: the end of a life is read three ways, the book, the path and the mirror, as tabs the keys move between", async page => {
@@ -1271,12 +1276,78 @@ await check("Phase 16: a death by ledger is born an animal first, plays to the f
   assert(lion.law === "animal" && lion.kind === "lion" && lion.pos === 0, JSON.stringify(lion));
 });
 
-await check("Phase 16: ?first neither reads nor keeps a saṃskāra", async page => {
+await check("Phase 16: ?first never reads the stored saṃskāra and writes nothing, but keeps its own for the page", async page => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.addInitScript(() => { try { localStorage.setItem("mp-samskara", JSON.stringify({ v: 1, souls: { x: { v: 1 } } })); } catch {} });
+  await page.addInitScript(() => {
+    try { localStorage.setItem("mp-samskara", JSON.stringify({ v: 1, souls: { x: { v: 1 } } })); } catch {}
+    const cpu = { name: "", type: "cpu", gender: "" };
+    window.claude = { hot: { data: { setup: { count: 1, rows: [{ name: "Meera", type: "human", gender: "f" }, cpu, cpu, cpu], rules: { six: true } } } } };
+  });
   await page.goto(BASE + "?seed=1&debug&first");
-  const r = await page.evaluate(() => ({ store: mp.samskara(), kept: localStorage.getItem("mp-samskara") }));
-  assert(Object.keys(r.store.souls).length === 0 && r.kept === JSON.stringify({ v: 1, souls: { x: { v: 1 } } }), JSON.stringify(r));
+  const before = await page.evaluate(() => mp.samskara());
+  assert(Object.keys(before.souls).length === 0, JSON.stringify(before));
+  // a death by ledger is kept in memory, so Be born again reaches the interlude
+  await page.evaluate(() => { mp.jump(40); mp.years(70); mp.die("illness"); mp.roll(2); });
+  await page.waitForFunction(() => document.getElementById("folio").open, null, { timeout: 15000 });
+  await page.evaluate(() => mp.close());
+  await page.waitForFunction(() => mp.state.over && document.getElementById("lifeDlg").open, null, { timeout: 15000 });
+  const r = await page.evaluate(() => ({ soul: mp.samskara().souls.mira, kept: localStorage.getItem("mp-samskara") }));
+  assert(r.soul?.animal?.kind && r.kept === JSON.stringify({ v: 1, souls: { x: { v: 1 } } }), JSON.stringify(r));
+  await page.click('#lifeDlg [data-act="reborn"]');
+  await page.waitForFunction(() => !mp.state.over && mp.state.rules.law === "animal", null, { timeout: 15000 });
+  assert(await page.evaluate(() => localStorage.getItem("mp-samskara") === JSON.stringify({ v: 1, souls: { x: { v: 1 } } })), "?first wrote the store");
+});
+
+// ---- Follow-up to Phase 16: who the tokens are ----
+await check("Follow-up: a woman, a man and a neutral player at the same age are three figures, each their own", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.addInitScript(() => {
+    window.claude = { hot: { data: { setup: { count: 3, rows: [{ name: "Meera", type: "human", gender: "f" }, { name: "Ravi", type: "cpu", gender: "m" }, { name: "Sam", type: "human", gender: "n" }, { name: "", type: "cpu", gender: "" }], rules: { six: true } } } } };
+  });
+  await page.goto(BASE + "?seed=1&debug");
+  const r = await page.evaluate(() => {
+    mp.state.players.forEach(p => { p.pos = 50; p.years = 45; });
+    mp.jump(50);
+    // the browser reads the url back quoted, so the data URLs are compared bare
+    const bare = u => u.replace(/^url\("?|"?\)$/g, "");
+    const imgs = [...document.querySelectorAll("#tokens .token")].map(el => ({ title: el.title, img: bare(el.querySelector(".spr").style.backgroundImage) }));
+    const want = mp.state.players.map(p => ({ title: p.name, img: bare(mp.sprite(4, p.color, 0, p.gender)) }));
+    return { imgs, want, hi: (mp.setLang("hi"), document.querySelector("#players li .stage").textContent) };
+  });
+  for (const w of r.want) assert(r.imgs.some(i => i.title === w.title && i.img === w.img), `${w.title} is not drawn as their own figure`);
+  assert(new Set(r.want.map(w => w.img)).size === 3, "the three figures are not distinct");
+  // at 45 Meera is गृहस्थ, the same word for both; her stage name agrees where Hindi has a feminine
+  assert(/गृहस्थ/.test(r.hi), r.hi);
+  const f = await page.evaluate(() => { mp.state.players[0].years = 20; mp.state.players[0].pos = 30; mp.jump(30); return document.querySelector("#players li .stage").textContent; });
+  assert(/युवा विद्यार्थिनी/.test(f), f);
+});
+
+await check("Follow-up: an animal interlude draws the creature, names it on the panel, and tells no stage on the way", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.addInitScript(() => {
+    const cpu = { name: "", type: "cpu", gender: "" };
+    window.claude = { hot: { data: { setup: { count: 1, rows: [{ name: "Meera", type: "human", gender: "f" }, cpu, cpu, cpu], rules: { six: true } } } } };
+  });
+  await page.goto(BASE + "?seed=1&debug");
+  await page.evaluate(() => mp.animal("cat"));
+  await page.waitForFunction(() => mp.state.rules.law === "animal");
+  const toasts = [];
+  for (let k = 0; k < 6; k++) {
+    await until(page, () => !mp.busy && (mp.state.over || document.getElementById("roll").disabled === false));
+    if (await page.evaluate(() => mp.state.over)) break;
+    await page.evaluate(() => { mp.roll(6); });
+    await until(page, () => !mp.busy);
+    toasts.push(await page.evaluate(() => document.getElementById("toastSlot").textContent));
+    const r = await page.evaluate(() => {
+      const bare = u => u.replace(/^url\("?|"?\)$/g, "");
+      const p = mp.state.players[0], img = bare(document.querySelector(".token .spr").style.backgroundImage);
+      return { ok: [0, 1, 2, 3].some(f => img === bare(mp.sprite(0, p.color, f, p.gender, "cat"))), stage: document.querySelector("#players li .stage").textContent, over: mp.state.over };
+    });
+    if (r.over) break;
+    assert(r.ok, "the token is not the cat");
+    assert(r.stage === "Cat", r.stage);
+  }
+  assert(toasts.every(t => !t), `a stage was told in the interlude: ${toasts.join(" | ")}`);
 });
 
 // ---- Phase 16: a door that can never open ----

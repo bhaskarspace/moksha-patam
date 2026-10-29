@@ -1730,7 +1730,8 @@ goes with the first.*
 > **Step 1, death and penance** (branch `phase-16-death-rebirth`, 27 Oct). The top tier of Phase 12's scale is death
 > (`reckonOf`: `dies`, `deathFormOf` in `src/engine/karma.js`). Its form is the age's and the stage's, never the vice's:
 > an accident up to fifty (the roof that gives way over the trunk, 75), a calamity in vānaprastha (the bad year, Uṣasti's
-> famine, 48), an illness in sannyāsa (the bad chest, 73). The debt that came due is not met, and goes with the rest into
+> famine, 48), an illness in sannyāsa (the bad chest, 73). *By years* (`stageOfYears`, the squares' ages, not decades):
+> accident to 50, calamity 51–68, illness from 69, so a death at 71 is a sannyāsin's, of illness (follow-up, 29 Oct). The debt that came due is not met, and goes with the rest into
 > sañcita; the account closes "{name} died at {age}, {form}, {carry}", the debts in the door's words, or else the holding.
 > Every death records its cause (`p.death.by`: ledger, years, door). Penance is two years a unit of weight (`PENANCE`),
 > and a weight-three debt the book does not answer no penance pays (`UNPAID`): the door stays shut while it is owed, and
@@ -1899,6 +1900,29 @@ animal interlude is playable end to end in under fifteen turns and ends in a hum
 the Mirror view exists and is skippable; and liberation rate, death rate and rebirth rate
 are reported together, since this phase is the first in which all three are meant to be
 non-trivial.
+
+> **Follow-up before Phase 17 (branch `phase-16-followup`, 29 Oct): who the tokens are, and four fixes from Bhaskar's
+> live check.** Presentational but for ?first; golden identical on 20 seeds and all 21,784 life accounts (`--tag
+> --lives=2`) byte-identical to main's, so no death changed its form.
+> - *Gendered figures.* Every stage past the child has a female and a neutral figure beside the male one
+>   (`src/render/art.js`, pure; `artOf(art, gender)`), chosen by `p.gender` for every player, computers too. Female: two
+>   plaits with ribbons and a frock; one long plait, drawn centred down the back on a ladder (`behind`); a sari with the
+>   pallu over the shoulder and a bun; a grey bun, shawl and staff; a sannyāsinī in saffron; the crown. Neutral ("A
+>   child"): the male figures with no beard or moustache and hair to the collar, but the householder, bare-headed (a
+>   turban reads male) in a short crop with a fringe (longer hair read as a woman's at board size). No bindi, sindoor
+>   or mangalsutra. The mongoose stands reared up, its tail behind as a counterweight.
+>   `mp.sprites()` shows every set side by side on every band's ground.
+> - *The stage names agree in Hindi* (`hiF`): बालिका, विद्यार्थिनी, युवा विद्यार्थिनी, वानप्रस्थिनी, संन्यासिनी; गृहस्थ for
+>   both (गृहिणी is a housewife, not the āśrama); neutral takes the masculine.
+> - *The animal interlude draws the animal*: tortoise, jackal, mongoose, cat and lion, walking, each in its own coat
+>   with a thread at the neck in the player's colour. The panel names the creature, and no stage is toasted.
+> - *Fixes.* The panel names the real end ("A debt came due", "Years run out at the door", "Years run out"); the card
+>   that ends a life offers no throw; ?first keeps its saṃskāra in memory for the page, never reading or writing the
+>   stored one, so Be born again dreams and a death by ledger reaches the interlude; the death form's bands are stated
+>   in years above, and the sim's ledger deaths by age report in them (to 50, 51–68, 69+).
+> - Tests: every figure is whole and bounded by its outline, and the token's edge keeps 3:1 on every square it can
+>   stand on (`tests/contrast.test.mjs`, `tests/sprites.test.mjs`); smoke covers a woman, a man, a neutral player and
+>   an animal.
 
 ---
 

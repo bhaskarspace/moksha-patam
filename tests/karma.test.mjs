@@ -119,7 +119,8 @@ test("the death tier kills: the life ends where it stands, and the debt that cam
 });
 
 test("the form of a death is the age's and the stage's, never the vice's", () => {
-  assert.deepEqual([20, 45, 50, 51, 68, 69, 95].map(deathFormOf), ["accident", "accident", "accident", "calamity", "calamity", "illness", "illness"]);
+  // by the squares' ages, not decades: vānaprastha is 51–68, so the death at 71 Bhaskar saw is a sannyāsin's, of illness
+  assert.deepEqual([20, 45, 50, 51, 68, 69, 71, 95].map(deathFormOf), ["accident", "accident", "accident", "calamity", "calamity", "illness", "illness", "illness"]);
   // the same ledger, the same tier, at three ages: three forms
   const forms = [40, 60, 80].map(years => reckonOf(heavy(), { pos: 80, years }).form);
   assert.deepEqual(forms, ["accident", "calamity", "illness"]);
