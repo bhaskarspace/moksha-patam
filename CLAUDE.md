@@ -17,7 +17,7 @@ single static `index.html` at https://codebpr.com/moksha-patam/
 - `docs/REFERENCE.md`: philosophy-to-mechanics mapping and the history of the board.
 - `docs/LANDSCAPE.md`: comparable games.
 
-**State:** Phases 0 to 16 have shipped. Phase 8 was Life State (REDESIGN.md §4): years lived are a clock of their own
+**State:** Phases 0 to 17 have shipped. Phase 8 was Life State (REDESIGN.md §4): years lived are a clock of their own
 (`src/engine/self.js`) that a snake never turns back, moments say their age through `{age}`, a life ends when its years
 pass `SPAN` (110), and the life account (`src/engine/account.js`, pure) chooses each join by how a moment relates to the
 last. Gunas, aims and the bhumika are in state and never shown as numbers. Phase 9 was Dice as currency: from 94
@@ -61,7 +61,7 @@ person's ended life is kept (`mp-samskara`, `src/engine/samskara.js`) and Be bor
 dreams of the last; a death by ledger is first born an animal (`rules.law = "animal"`, `src/engine/animal.js`). Play
 again starts clean. The death's form is by years: accident to 50, calamity 51–68, illness from 69. Its follow-up
 gives every stage past the child a female and a neutral figure by `p.gender` (`src/render/art.js`, pure), Hindi stage
-names that agree (`hiF`), and the interlude its animal's own sprite; under ?first the saṃskāra is kept in memory only. Phase 17, The laws, is in progress (REDESIGN.md Phase 17): its step 1 makes the endgame exact, since no die past 110 is
+names that agree (`hiF`), and the interlude its animal's own sprite; under ?first the saṃskāra is kept in memory only. Phase 17, The laws, has shipped (REDESIGN.md Phase 17): its step 1 makes the endgame exact, since no die past 110 is
 offered and with none the life stays (`plan.stay`), and makes Śiva's snake rebirth in the seat (`bornAgain` in
 `src/engine/turn.js`): the closed life goes to `p.past`, the newborn is the same object at square 1 with a new name, and
 `p.rebirths` salts every sequence of a life's own. A seat's past life is read through `pastOf(state, i, k)`

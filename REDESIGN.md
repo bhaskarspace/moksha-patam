@@ -1932,11 +1932,11 @@ non-trivial.
 
 ---
 
-### Phase 17 — The laws
+### Phase 17 — The laws  ✅ SHIPPED
 
 *The payoff of the whole design, and now also the repair of its largest open number.*
 
-> **In progress** (branch `phase-17-laws`, decided by Bhaskar 29 Oct). Step 0, on `main`: a phone's ordinary sheet
+> **Shipped** (30 Oct, branch `phase-17-laws`; decided by Bhaskar 29 Oct, the full table at the end). Step 0, on `main`: a phone's ordinary sheet
 > closes on a stray tap. **Step 1, the endgame: exact to Śiva, and rebirth through his snake.** No die past 110 is
 > offered (`movesFor`); with none the life stays (`plan.stay`, `lHeavenStay`, the line under the board says why). 110 is
 > always Śiva's snake, and it is rebirth in the seat (`bornAgain` in `src/engine/turn.js`): the closed life is pushed to
@@ -2148,6 +2148,48 @@ non-trivial.
 > the 5% floor and its own (mixed) soul at 79.4% in ten (from the fifth bhūmikā instead: 67.4% / 27.4% / 7.9% a life,
 > honest over the ceiling). The board's law is byte-identical (accounts, 2000 seeds `--lives=2 --tag`, all 37,178 lines;
 > the mixed sim; golden 20/20); perf as 220cf2c.
+>
+> **Step 5 approved (Bhaskar, 30 Oct), with two stated reasons.** *Nyāya:* apavarga is the removal of fault (Nyāyasūtra
+> 1.1.2, 1.1.22), and a life that planted nothing has none to remove, so honest lives are released at their end (64.1% a
+> life) while dishonest souls fall just short over ten lives (77.4%). The rule stays. *Advaita:* Śaṅkara (Brahmasūtra-
+> bhāṣya 1.1.1) opens the inquiry only to the qualified seeker (sādhana-catuṣṭaya: viveka, vairāgya, śamādi, mumukṣutva),
+> so recognition rarely comes to the unprepared (dishonest 2.9% a life; its own computer 79.4% over ten). The trigger
+> stays at the sixth bhūmikā. Hindi: lDoorThrough and lawSankhyaAbout in Bhaskar's wording (no gendered verb with आप).
+>
+> **Phase 17 as shipped: every law, per life** (`node tools/sim.mjs 20000 --laws=all`: 20,000 single-player games a
+> column and 5,000 souls of ten lives; "own" is the law's own computer, shown apart only where it differs from a policy;
+> Sāṃkhya's honest, mixed and dishonest columns are the board's exactly):
+>
+> | law / computer | won, a life | souls won in ten | by life 1 / 3 / 5 / 10 | turns median / p95 | died: ledger / years / door | Śiva's snake | rebirths a game |
+> |---|---|---|---|---|---|---|---|
+> | board honest | 41.9% | 98.5% | 45 / 39 / 33 / 21 | 27 / 46 | 1.4 / 5.0 / 0.3% | 51.4% | 1.06 |
+> | board mixed (own) | 32.2% | 94.1% | 36 / 26 / 23 / 19 | 29 / 48 | 9.6 / 6.5 / 0.9% | 50.7% | 1.03 |
+> | board dishonest | 24.2% | 84.4% | 27 / 17 / 15 / 13 | 29 / 48 | 21.0 / 6.4 / 1.4% | 47.0% | 0.89 |
+> | Mīmāṃsā honest (own) | 24.9% | 85.9% | 34 / 24 / 17 / 8 | 28 / 45 | 1.4 / 5.2 / 0% | 68.6% | 2.19 |
+> | Mīmāṃsā mixed | 14.0% | 65.5% | 21 / 10 / 8 / 8 | 29 / 47 | 9.8 / 6.2 / 0% | 69.9% | 2.33 |
+> | Mīmāṃsā dishonest | 7.6% | 41.3% | 11 / 5 / 4 / 4 | 29 / 47 | 20.7 / 5.6 / 0% | 66.0% | 1.94 |
+> | Cārvāka, every computer | 0% | 0% | — | 29–31 / 47–55 | 0 / 2.3–3.8 / 0% | 96–98% | 0 |
+> | Jain honest (own) | 31.9% | 94.8% | 32 / 29 / 26 / 18 | 45 / 70 | 1.5 / 12.4 / 0.5% | 53.7% | 1.16 |
+> | Jain mixed | 27.0% | 86.8% | 28 / 20 / 18 / 12 | 47 / 72 | 11.0 / 14.8 / 1.1% | 46.1% | 0.86 |
+> | Jain dishonest | 23.4% | 80.0% | 26 / 14 / 13 / 13 | 48 / 75 | 23.1 / 14.0 / 1.2% | 38.3% | 0.62 |
+> | Bhakti honest (own) | 43.8% | 99.1% | 46 / 42 / 40 / 32 | 23 / 43 | 1.0 / 3.4 / 0.2% | 51.7% | 1.07 |
+> | Bhakti mixed | 37.9% | 97.5% | 41 / 35 / 32 / 27 | 24 / 44 | 4.9 / 4.2 / 0.5% | 52.4% | 1.10 |
+> | Bhakti dishonest | 31.7% | 94.7% | 35 / 27 / 24 / 17 | 24 / 45 | 11.1 / 4.7 / 1.0% | 51.5% | 1.06 |
+> | Nyāya honest | 64.1% | 97.1% | 84 / 23 / 14 / 14 | 29 / 46 | 1.6 / 5.1 / 0% | 93.3% | 0.45 |
+> | Nyāya mixed (own) | 37.6% | 93.1% | 52 / 21 / 20 / 18 | 29 / 47 | 9.9 / 6.1 / 0% | 84.0% | 0.91 |
+> | Nyāya dishonest | 20.9% | 77.4% | 30 / 12 / 12 / 12 | 29 / 48 | 20.7 / 5.8 / 0% | 73.5% | 1.14 |
+> | Sāṃkhya own (by guṇa) | 35.4% | 95.5% | 37 / 31 / 28 / 15 | 28 / 48 | 8.9 / 4.6 / 0.6% | 50.4% | 1.02 |
+> | Advaita honest | 47.1% | 100% | 41 / 53 / 45 / — | 24 / 45 | 1.1 / 3.3 / 0% | 48.5% | 0.94 |
+> | Advaita mixed (own) | 14.0% | 79.4% | 11 / 15 / 15 / 16 | 29 / 47 | 9.4 / 5.8 / 0% | 70.8% | 2.43 |
+> | Advaita dishonest | 2.9% | 26.3% | 2 / 3 / 3 / 3 | 29 / 47 | 20.8 / 5.6 / 0% | 70.7% | 2.42 |
+> | Yoga honest | 47.3% | 99.9% | 48 / 47 / 47 / — | 26 / 37 | 0.2 / 0 / 0% | 52.4% | 1.10 |
+> | Yoga mixed (own) | 39.7% | 98.7% | 42 / 35 / 33 / 36 | 28 / 40 | 3.2 / 0.8 / 0.5% | 55.8% | 1.26 |
+> | Yoga dishonest | 31.5% | 94.9% | 34 / 26 / 27 / 17 | 28 / 42 | 10.0 / 1.9 / 1.2% | 55.5% | 1.25 |
+>
+> (— : too few souls still unliberated at that life to read.) Honest > mixed > dishonest under every law with karma.
+> Outside 5–60% a life or under 80% in ten lives, each with its stated reason above: Cārvāka (no win, by design),
+> Mīmāṃsā dishonest, Jain dishonest (duḥṣamā), Nyāya honest and dishonest, Advaita mixed and dishonest. The board's law
+> is byte-identical to Phase 16 plus step 1 (accounts, the mixed sim, golden); a computer can play under any law.
 
 - Mīmāṃsā first (default), then Cārvāka, then the rest.
 - A law-select screen that explains each in the player's own terms before they commit.
