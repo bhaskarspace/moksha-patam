@@ -15,7 +15,7 @@ const game = (pos, seed = 1) => {
   s.players[0].pos = pos;
   return s;
 };
-const policy = (x, fn) => { setPolicy(x); try { return fn(); } finally { setPolicy("mixed"); } };
+const policy = (x, fn) => { setPolicy(x); try { return fn(); } finally { setPolicy(null); } };
 
 test("five situations are ego tests, each naming the lower option the ego pulls toward", () => {
   const tagged = Object.keys(SITUATIONS).filter(n => egoOf(+n)).map(Number);

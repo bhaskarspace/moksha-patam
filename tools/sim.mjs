@@ -43,7 +43,7 @@ import { SPAN, setSpan, yearsAlong, BHUMIKA_AT, TURYA, setPractice } from "../sr
 import { setDeath, setPenance, setUnpaid, FORMS } from "../src/engine/karma.js";
 import { soulOf, bornOf } from "../src/engine/samskara.js";
 import { animalRules, afterAnimal } from "../src/engine/animal.js";
-import { LAWS } from "../src/engine/laws/index.js";
+import { LAWS, lawOf } from "../src/engine/laws/index.js";
 
 // Phase 9's choice, before Phase 12 made the fall the heavens' snake: the exit, else the bigger die that is not a
 // snake, else sitting. Kept to show what the new choice is worth.
@@ -112,7 +112,9 @@ export function playLives(seed, n, { rules = SIM_RULES, pick = moveFor } = {}) {
   for (let k = 0; k < n; k++) {
     const g = playGame(lifeSeed(seed, k), { players: 1, rules, pick, born });
     out.push(g);
-    if (g.winner === 0) break;
+    // the law's win ends the soul's count, as liberation does (svarga's return is the page's, not the measure's); a law
+    // with no next life (Cārvāka) ends it too
+    if (g.winner === 0 || !lawOf(g.state, 0).rebirth) break;
     let soul = soulOf(g.state, 0);
     g.interludes = [];
     for (let r = 0; soul?.animal; r++) {
@@ -153,6 +155,10 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   if (flags.law && !LAWS[flags.law]) throw new Error(`no law ${flags.law}: ${Object.keys(LAWS).join(", ")}`);
   const rules = flags.law ? { ...SIM_RULES, law: flags.law } : SIM_RULES;
   const pct = x => `${(x * 100).toFixed(1)}%`;
+  // the words for a law's win and its Śiva's snake (Phase 17): mokṣa is "liberated", Mīmāṃsā's svarga is the law's own,
+  // and under Cārvāka nothing is won and the snake is the end
+  const LAW = LAWS[flags.law ?? "board"], KIND = LAW.exit()?.kind, WON = KIND === "moksha" ? "liberated" : KIND ? `won (${KIND})` : "won (no exit under this law)";
+  const SNAKE = LAW.rebirth ? "born again" : "the end";
   // --lives: one soul's lives a seed (Phase 16)
   if (flags.lives) {
     const n = +flags.lives, byLife = Array.from({ length: n }, () => ({ lives: 0, freed: 0, ledger: 0, years: 0, door: 0, fell: 0, turns: [] }));
@@ -171,19 +177,20 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
         const b = byLife[k];
         all.push(turns);
         lived++; b.lives++; b.turns.push(turns);
-        if (won) { freed++; b.freed++; } else if (k < n - 1) reborn++;
+        // born again: a next life follows (none after the last counted, nor under a law with no next life)
+        if (won) { freed++; b.freed++; } else if (k < Math.min(n, lives.length) - 1) reborn++;
         if (p.death) b[p.death.by]++;
         b.fell += p.fell;
       });
     }
     console.log(`${games} souls, up to ${n} lives each, seeds ${first}–${first + games - 1}${flags.policy ? `, policy ${flags.policy}` : ""}${flags.penance ? `, penance ${flags.penance}` : ""}`);
-    console.log(`lives lived ${lived}; liberated ${pct(freed / games)} of souls within ${n} lives; liberation per life ${pct(freed / lived)}; lives per liberation ${(lived / Math.max(1, freed)).toFixed(2)}; reborn ${pct(reborn / lived)} of lives`);
+    console.log(`lives lived ${lived}; ${WON} ${pct(freed / games)} of souls within ${n} lives; per life ${pct(freed / lived)}; lives per win ${freed ? (lived / freed).toFixed(2) : "—"}; reborn ${pct(reborn / lived)} of lives`);
     const at = summarise(all), bt = summarise(beasts.throws.length ? beasts.throws : [0]);
     console.log(`turns a life: median ${at.median}, p95 ${at.p95}; games that hit the cap of ${CAP} turns ${capped}; animal interludes ${(100 * beasts.n / lived).toFixed(1)} per hundred lives, a second round in ${beasts.n ? pct(beasts.second / beasts.n) : "—"}, the human birth earned in ${beasts.n ? pct(beasts.earned / beasts.n) : "—"}, throws median ${bt.median}, p95 ${bt.p95}; by kind ${Object.entries(beasts.kinds).map(([k, c]) => `${k} ${c}`).join(", ") || "none"}`);
     for (const [k, b] of byLife.entries()) {
       if (!b.lives) continue;
       const t = summarise(b.turns);
-      console.log(`  life ${k + 1}: ${b.lives} lived, liberated ${pct(b.freed / b.lives)}; died by the ledger ${pct(b.ledger / b.lives)}, years on earth ${pct(b.years / b.lives)}, at the door ${pct(b.door / b.lives)}; Śiva's snake ${pct(b.fell / b.lives)}; turns median ${t.median}, p95 ${t.p95}`);
+      console.log(`  life ${k + 1}: ${b.lives} lived, ${WON} ${pct(b.freed / b.lives)}; died by the ledger ${pct(b.ledger / b.lives)}, years on earth ${pct(b.years / b.lives)}, at the door ${pct(b.door / b.lives)}; Śiva's snake ${pct(b.fell / b.lives)}; turns median ${t.median}, p95 ${t.p95}`);
     }
     process.exit(0);
   }
@@ -291,7 +298,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     }
   }
   const r = summarise(lengths), y = summarise(spans);
-  console.log(`${games} games, ${players} players, seeds ${first}–${first + games - 1}, span ${SPAN}, two dice from ${ENDGAME}${flags.pick ? `, pick ${flags.pick}` : ""}${flags.practice ? `, practice ${flags.practice}` : ""}${flags.roll ? `, roll ${flags.roll}` : ""}${flags.policy ? `, policy ${flags.policy}` : ""}${flags.situations ? `, situations ${flags.situations}` : ""}${flags.death ? `, death ${flags.death}` : ""}${flags.penance ? `, penance ${flags.penance}` : ""}${flags.unpaid ? `, unpaid from weight ${flags.unpaid}` : ""}`);
+  console.log(`${games} games, ${players} players, seeds ${first}–${first + games - 1}, span ${SPAN}, two dice from ${ENDGAME}${flags.pick ? `, pick ${flags.pick}` : ""}${flags.practice ? `, practice ${flags.practice}` : ""}${flags.roll ? `, roll ${flags.roll}` : ""}${flags.policy ? `, policy ${flags.policy}` : ""}${flags.situations ? `, situations ${flags.situations}` : ""}${flags.death ? `, death ${flags.death}` : ""}${flags.penance ? `, penance ${flags.penance}` : ""}${flags.unpaid ? `, unpaid from weight ${flags.unpaid}` : ""}${flags.law ? `, law ${flags.law}` : ""}`);
   console.log(`turns per player until the game ends: median ${r.median}, p5 ${r.p5}, p95 ${r.p95}, mean ${r.mean.toFixed(1)}, max ${r.max}, over 100: ${pct(r.over100)}`);
   console.log(`rolls per game: mean ${(rolls / games).toFixed(1)}`);
   const lt = summarise(lifeTurns);
@@ -302,11 +309,11 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   const b = summarise(freed);
   console.log(`the 99 → 61 snake taken twice or more: ${pct(looped / lives)}; a square landed on four times or more: ${pct(told4 / lives)}; the same moment told four times or more: ${pct(said4 / lives)}; years sat out: ${(sits / lives).toFixed(2)} a life`);
   const mean = xs => xs.reduce((a, b) => a + b, 0) / xs.length, med = xs => summarise(xs).median;
-  console.log(`liberated: ${pct(freed.length / lives)}; situations met: ${(met / lives).toFixed(2)} a life, the least worth option taken in ${met ? pct(crooked / met) : "—"} of them`);
+  console.log(`${WON}: ${pct(freed.length / lives)}; situations met: ${(met / lives).toFixed(2)} a life, the least worth option taken in ${met ? pct(crooked / met) : "—"} of them`);
   console.log(`on the board: square at fifty median ${med(at50)} (mean ${mean(at50).toFixed(1)}), at seventy median ${med(at70)} (mean ${mean(at70).toFixed(1)})`);
   console.log(`the ledger at the end: sattva ${mean(sat).toFixed(3)}, tamas ${mean(tam).toFixed(3)}, dharma ${mean(dharma).toFixed(1)}, highest bhumika ${mean(peaks.filter(x => x >= 0)).toFixed(2)}`);
   const h = summarise(heavenTurns);
-  console.log(`how lives end: liberated ${pct(freed.length / lives)}, died ${pct(died / lives)}, Śiva's snake (born again) ${pct(falls12 / lives)}, still playing when the game ended ${pct(open / lives)}; lives per liberation ${(lives / freed.length).toFixed(2)}`);
+  console.log(`how lives end: ${WON} ${pct(freed.length / lives)}, died ${pct(died / lives)}, Śiva's snake (${SNAKE}) ${pct(falls12 / lives)}, still playing when the game ended ${pct(open / lives)}; lives per ${KIND === "moksha" ? "liberation" : "win"} ${freed.length ? (lives / freed.length).toFixed(2) : "—"}`);
   console.log(`turns in 106–109: mean ${h.mean.toFixed(2)}, median ${h.median}, p95 ${h.p95}, max ${h.max}; in those that went there ${(heavenTurns.reduce((a, b) => a + b, 0) / Math.max(1, heavenTurns.filter(Boolean).length)).toFixed(2)}; a square at or above 94 landed on four times or more: ${pct(divine4 / lives)}`);
   const all = tiers.reduce((a, b) => a + b, 0) || 1, nref = Object.values(refusals).reduce((a, b) => a + b, 0);
   console.log(`the ledger: debts planted ${(planted / lives).toFixed(2)} a life; lives ending with a debt never met ${pct(carriedEnd / lives)}`);

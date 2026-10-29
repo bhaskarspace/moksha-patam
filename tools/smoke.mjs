@@ -1094,6 +1094,89 @@ await check("Phase 17: the heavens last as long as the merit, and then Śiva's s
   assert(r.log.includes("lSpent"), `the log: ${r.log}`);
 });
 
+// Phase 17, step 3: a viewer who has lived a life is offered the laws (the smoke's viewer has been named, so has)
+const meera = page => page.addInitScript(() => {
+  const cpu = { name: "", type: "cpu", gender: "" };
+  window.claude = { hot: { data: { setup: { count: 1, rows: [{ name: "Meera", type: "human", gender: "f" }, cpu, cpu, cpu], rules: { six: true } } } } };
+});
+
+await check("Phase 17, step 3: the laws are offered once a life has been lived, each explained before it is chosen, and never the animal's", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  // a new viewer (?first) is in their first life, and is offered none
+  await page.goto(BASE + "?seed=5&debug&first");
+  assert(await page.evaluate(() => !document.getElementById("plaw0")), "a law was offered in the first life");
+  await page.goto(BASE + "?seed=5&debug");
+  const setup = await page.evaluate(() => ({ ids: [...document.querySelectorAll("#plaw0 option")].map(o => o.value), about: document.getElementById("plawAbout0").textContent }));
+  assert(setup.ids.join() === "board,mimamsa,carvaka" && /The board as it is played/.test(setup.about), JSON.stringify(setup));
+  // the panel is folded away; the select is changed as a reader would, and says so
+  await page.evaluate(() => { const s = document.getElementById("plaw0"); s.value = "carvaka"; s.dispatchEvent(new Event("change", { bubbles: true })); });
+  assert(/Perception is the only means of knowing/.test(await page.textContent("#plawAbout0")), "the setup did not explain Cārvāka");
+  // between lives, on the card Śiva's snake leaves
+  await page.evaluate(() => { mp.jump(107); mp.siva(); });
+  await page.evaluate(() => document.getElementById("roll").click());
+  await page.waitForFunction(() => document.querySelector("#folio[open] .leaf.reborn"), null, { timeout: 15000 });
+  const ids = await page.evaluate(() => [...document.querySelectorAll('#leaf [data-act="law"]')].map(b => b.dataset.law));
+  assert(ids.join() === "board,mimamsa,carvaka", `the card's laws: ${ids}`);
+  await page.click('#leaf [data-law="mimamsa"]');
+  const now = await page.evaluate(() => ({ law: mp.state.players[0].law, pressed: document.querySelector('#leaf [data-law="mimamsa"]').getAttribute("aria-pressed") }));
+  assert(now.law === "mimamsa" && now.pressed === "true", JSON.stringify(now));
+});
+
+await check("Phase 17, step 3: under Mīmāṃsā each option names its debt and when it ripens, the ledger is shown, and 101 owing nothing is svarga", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=1&debug");
+  await page.evaluate(() => { mp.law("mimamsa"); mp.jump(10); mp.years(9); mp.roll(2); });
+  await page.waitForFunction(() => document.querySelectorAll("#leaf .opt").length > 1, null, { timeout: 15000 });
+  const said = await page.evaluate(() => ({ opts: [...document.querySelectorAll("#leaf .opt-d")].map(x => x.textContent), ledger: !document.getElementById("ledgerCard").hidden }));
+  assert(said.opts.some(x => /^Plants a debt, .+, that ripens when .+ is [a-z-]+\.$/.test(x)) && said.opts.includes("Plants no debt."), JSON.stringify(said.opts));
+  assert(!/\d/.test(said.opts.join(" ")), `a number on the card: ${said.opts}`);
+  assert(said.ledger, "the ledger is hidden under Mīmāṃsā");
+  await page.click('#leaf .opt[data-id="lie"]');
+  await until(page, () => !mp.busy && mp.state.turn === 0 && !document.getElementById("roll").disabled);
+  const row = await page.evaluate(() => document.getElementById("ledger").textContent);
+  assert(/ripens at [a-z-]+/.test(row), `the ledger: ${row}`);
+  // nothing owed, and the exact throw onto Indra's heaven
+  await page.evaluate(() => { mp.state.players[0].karma = { sancita: [], agami: [], prarabdha: [] }; mp.jump(97); mp.years(88); mp.roll(4, 1); });
+  await page.waitForFunction(() => !document.getElementById("pick").hidden, null, { timeout: 15000 });
+  await page.click('#pick button[data-v="4"]');
+  await until(page, () => mp.state.over);
+  const w = await page.evaluate(() => ({ title: document.getElementById("winTitle").textContent, note: document.getElementById("winNote").textContent, hidden: document.getElementById("winNote").hidden, won: mp.state.players[0].won }));
+  assert(w.won === "svarga" && /reached svarga/.test(w.title) && !w.hidden && /when their merit is spent they enter the world of mortals/.test(w.note), JSON.stringify(w));
+});
+
+await check("Phase 17, step 3: under Cārvāka Śiva's snake ends the life, the account is the result, and nothing is kept to be born again", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await meera(page);
+  await page.goto(BASE + "?seed=1&debug");
+  await page.evaluate(() => { mp.law("carvaka"); mp.jump(107); mp.siva(); });
+  await page.evaluate(() => document.getElementById("roll").click());
+  await page.waitForFunction(() => mp.state.over && document.getElementById("lifeDlg").open, null, { timeout: 15000 });
+  const r = await page.evaluate(() => ({ end: document.querySelector("#lifeLeaf .life-end")?.textContent, text: document.getElementById("winText").textContent, reborn: !document.getElementById("reborn").hidden, soul: mp.samskara().souls.mira ?? null, p: mp.state.players[0] }));
+  assert(/This life was all there was\.$/.test((r.end || "").trim()), `the account's end: ${r.end}`);
+  assert(/Nobody wins under this law/.test(r.text) && !r.reborn && r.soul === null && r.p.fell && !r.p.past, JSON.stringify({ text: r.text, reborn: r.reborn, soul: r.soul }));
+  assert(await page.evaluate(() => mp.state.log.some(e => e.k === "lSivaOnce")), "Śiva's line under Cārvāka");
+});
+
+await check("Phase 17, step 3: Be born again offers the laws, explained, and the next life is born under the one chosen", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await meera(page);
+  await page.goto(BASE + "?seed=1&debug");
+  await page.evaluate(() => { mp.jump(40); mp.years(70); mp.die("illness"); mp.roll(2); });
+  await page.waitForFunction(() => document.getElementById("folio").open, null, { timeout: 15000 });
+  await page.evaluate(() => mp.close());
+  await page.waitForFunction(() => mp.state.over && document.getElementById("lifeDlg").open, null, { timeout: 15000 });
+  // owed an animal interlude first: the law waits for the human birth after it
+  assert(await page.evaluate(() => document.getElementById("rebornLaws").hidden), "a law was offered before the interlude");
+  await page.evaluate(() => { const s = mp.samskara(); s.souls.mira.animal = null; mp.samskara(s); document.getElementById("lifeDlg").close(); });
+  await page.waitForFunction(() => !document.getElementById("rebornLaws").hidden, null, { timeout: 5000 });
+  const laws = await page.evaluate(() => [...document.querySelectorAll("#rebornLaws .law")].map(b => [b.dataset.law, b.textContent]));
+  assert(laws.map(x => x[0]).join() === "board,mimamsa,carvaka" && laws.every(x => x[1].length > 60), JSON.stringify(laws));
+  await page.click('#rebornLaws [data-law="mimamsa"]');
+  await page.click("#reborn");
+  await page.waitForFunction(() => !mp.state.over && mp.state.players[0].prior, null, { timeout: 15000 });
+  assert(await page.evaluate(() => mp.state.players[0].law) === "mimamsa", "the next life is not under Mīmāṃsā");
+});
+
 await check("Phase 17, step 0: on a phone an ordinary card closes on a tap on its text or on the dimmed board; one that holds the game does not", async page => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto(BASE + "?seed=1&debug&depth=scholar");

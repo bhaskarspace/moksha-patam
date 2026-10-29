@@ -579,6 +579,13 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 .win > div { background: var(--surface); color: var(--ink); padding: 24px 28px; border-radius: 6px; text-align: center; display: flex; flex-direction: column; gap: 12px; align-items: center; max-width: 80%; }
 .win h2 { font-family: var(--f-display); font-weight: 400; font-size: clamp(24px, 4vw, 34px); margin: 0; line-height: 1.1; text-wrap: balance; }
 .win p { margin: 0; color: var(--muted); }
+/* Phase 17: the win's note (Mīmāṃsā's Gītā 9.20–21), and the law the next life is born under */
+.win > div { max-height: calc(100% - 24px); overflow-y: auto; }
+.win .verse { max-width: 52ch; font-size: 14px; font-style: italic; text-align: start; }
+.win .laws { display: grid; gap: 6px; width: 100%; max-width: 46ch; }
+.win .laws .law { display: grid; gap: 2px; min-height: 44px; margin: 0; padding: 8px 12px; font: inherit; text-align: start; color: var(--ink); background: transparent; border: 1px solid var(--muted); border-radius: 6px; cursor: pointer; }
+.win .laws .law[aria-pressed="true"] { border: 2px solid var(--ink); }
+.win .laws .law span { font-size: 14px; color: var(--muted); }
 
 /* Side panel */
 /* Side panel: the margin of the cloth, written in the leaf's manuscript idiom: ruled, with vermilion rubrics, no boxes */
@@ -655,6 +662,7 @@ details[open].card summary::after { content: "−"; }
 .seg button { flex: 1; padding: 6px 0; }
 .seg button[aria-pressed="false"] { background: transparent; color: var(--ink); border-color: var(--line); }
 .prow { display: grid; grid-template-columns: 14px 1fr 112px; gap: 8px; align-items: center; }
+.prow .law-about { grid-column: 1 / -1; margin: 0; font-size: 13px; color: var(--muted); }
 input[type="text"], select { font: inherit; padding: 6px 8px; border-radius: 5px; border: 1px solid var(--line); background: var(--ground); color: var(--ink); width: 100%; min-width: 0; }
 label.check { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; }
 label.check input { margin-top: 4px; accent-color: var(--accent); }

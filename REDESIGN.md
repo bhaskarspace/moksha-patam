@@ -1993,6 +1993,42 @@ non-trivial.
 > "all"])`, the sim `--law=id`. Accounts byte-identical to step 1's follow-up (2000 seeds, `--lives=2`), the mixed sim
 > identical, golden identical. The animal's law is never offered (`canChoose`; a test with a second law registered).
 > The board's law is "पट का नियम" in Hindi.
+>
+> **Step 3, Mīmāṃsā and Cārvāka (29 Oct).** Two laws in `src/engine/laws/`, and the hooks they needed: `exit` (where a
+> life is let go, its kind and whether a door stands there: the board's is mokṣa at 105 behind the door; null for none),
+> `karma` (whether choices plant and a ledger is carried), `foresight`, `rebirth`, and `text` grown to Śiva's and the
+> merit's lines, the heavens' card, the account's last word and the win's line, title, text, path and note.
+> *Mīmāṃsā:* svarga is the exact landing on 101, Indra's heaven, with nothing carried (`SVARGA`; landing there owing is
+> told, `lSvargaOwed`, and the life goes on). 105 is ordinary: no door, no win, no sitting. Each option on the card
+> names the debt it would plant and the age it ripens at, in words (`foresee` in `turn.js`, "Plants a debt, the teacher
+> who was coming, at fourteen, that ripens when Meera is twenty-nine."), and the ledger is always shown, a debt not yet
+> ripe saying when it ripens. Its computer plays honest. The win panel quotes Gītā 9.20–21 (in Sanskrit and Hindi
+> under हिं), and since svarga returns, the soul is kept: `endOf` is `"svarga"`, and Be born again follows it.
+> *Cārvāka:* no ledger (a life born into it carries nothing in, and `setLaw` empties it when chosen between lives), no
+> omen, no curse, no door and no win. Śiva's snake ends the life (`siva: "out"`, `lSivaOnce`, `lSpentOnce`) and nothing
+> is born of it: the person's account opens at once and closes "This life was all there was.", the end panel says
+> nobody wins under this law, and the saṃskāra under that name is let go. Its computer takes the most artha and kāma.
+> The heavens still last by the guṇas, told as pleasure wearing out. The laws are offered, each with its two or three
+> sentences, in Players & rules, on the card between lives and above Be born again (not before an animal interlude),
+> never in a first life, and never the animal's. The sim's `--policy`, when given, overrides a law's own computer.
+> Single-player games, 20,000 each (a game holds every life of the seat; the board's mixed for comparison: 32.2%):
+>
+> | | Mīmāṃsā honest | mixed | dishonest | Cārvāka honest | mixed | dishonest | its own |
+> |---|---|---|---|---|---|---|---|
+> | the law's win per life | 24.9% | 14.0% | 7.6% | 0% | 0% | 0% | 0% |
+> | lives per win | 4.02 | 7.13 | 13.20 | — | — | — | — |
+> | turns per life, median / p95 | 28 / 45 | 29 / 47 | 29 / 47 | 29 / 47 | 30 / 52 | 31 / 55 | 31 / 55 |
+> | died | 6.5% | 16.0% | 26.4% | 3.8% | 3.1% | 2.3% | 2.4% |
+> | Śiva's snake | 68.6% | 69.9% | 66.0% | 96.2% | 96.9% | 97.7% | 97.6% |
+> | rebirths a game | 2.19 | 2.33 | 1.94 | 0 | 0 | 0 | 0 |
+>
+> Mīmāṃsā's own computer is the honest column. Over ten lives (5,000 souls, `--lives=10`) svarga comes to 85.9%, 65.5%
+> and 41.3% of souls; by life 1, 3, 5 and 10: honest 34.1%, 24.4%, 17.1%, 7.8%; mixed 20.7%, 10.2%, 8.0%, 7.6%;
+> dishonest 11.4%, 5.1%, 4.2%, 4.3%. It falls with each life because the heaviest unmet debt is carried in as
+> prārabdha, and svarga wants nothing carried; the dishonest life dips under the 5% floor from the third life, though
+> its per-life rate (7.6% in one game, 5.4% over ten lives) stays above it. Cārvāka's 0% is by design. The board's law
+> is byte-identical (accounts, with the one Hindi rewording "चुक" → "क्षीण" in the fall's account undone; the mixed
+> sim; golden).
 
 - Mīmāṃsā first (default), then Cārvāka, then the rest.
 - A law-select screen that explains each in the player's own terms before they commit.

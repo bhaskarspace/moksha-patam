@@ -2,7 +2,7 @@
 import { GOAL, TOP, LADDERS, SNAKES, HEAVEN, SQ } from "../content.js";
 import { makeRng, die } from "../rng.js";
 import { SPAN, turnYears, grow, freshGunas, freshAims, holdingOf, slotsFor, stageOfPlayer, SANNYASA } from "./self.js";
-import { optionOf, egoOf, egoFacesOn, egoThrow } from "./qbn.js";
+import { optionOf, egoOf, egoFacesOn, egoThrow, destOf } from "./qbn.js";
 import { freshKarma, karmaOf, carried, ripen, plantOf, omenFor, refusalOf, examineOf, meet, DEATH } from "./karma.js";
 import { curseOf, spokenAt } from "./curse.js";
 import { lawOf } from "./laws/index.js";
@@ -123,7 +123,7 @@ export const playerOf = (r, i) => ({ name: r.name.trim(), type: r.type, gender: 
   // the law the life plays under (src/engine/laws/index.js), when it is its own: chosen, or kept from the life before
   ...((r.law ?? r.born?.law) ? { law: r.law ?? r.born.law } : {}) });
 export function createGame({ players, rules, seed }) {
-  return {
+  const state = {
     players: players.map(playerOf),
     rules: { ...rules },
     // over: someone reached the exit, or nobody is left in the game to
@@ -131,6 +131,9 @@ export function createGame({ players, rules, seed }) {
     log: [{ k: "lNew", kind: "" }],
     rng: makeRng(seed),
   };
+  // a law that keeps no ledger (Cārvāka) carries nothing in from a life before
+  state.players.forEach((p, i) => { if (!lawOf(state, i).karma) p.karma = freshKarma(); });
+  return state;
 }
 
 // Log entries keep a message key and values, so they re-translate when the language changes.
@@ -159,7 +162,7 @@ export function planTurn(state, v, dice = [v]) {
   // the merit spent: no throw, and Śiva's snake takes the life from the realm it is in, by way of the top
   if (spentOf(p) && law.merit(state, idx)) {
     for (let n = from; n < TOP; ) path.push(++n);
-    end.push(entry("lSpent", { pos: from, sq: from }, "fall", idx));
+    end.push(entry(law.text.spent, { pos: from, sq: from }, "fall", idx));
     return { idx, v: null, dice, spare: [], sit: false, fell: true, fellBy: "spent", spent: true, from, path, target: TOP, final: TOP, jump: null, win: false, died: false, again: false, told: [], cost: 0, pre, after, end };
   }
   if (v == null || from + v > TOP) {
@@ -203,7 +206,7 @@ export function planTurn(state, v, dice = [v]) {
     // the walk goes to the top of the heavens: what was passed, then the snake
     const passed = path.filter(n => n !== from && n !== TOP);
     if (passed.length) after.push(entry("lPassed", { passed }, "passed", idx));
-    end.push(entry("lSiva", { v, pos: TOP, sq: TOP }, "fall", idx));
+    end.push(entry(law.text.siva, { v, pos: TOP, sq: TOP }, "fall", idx));
     return { idx, v, dice, spare, sit: false, fell: true, fellBy, from, path, target: TOP, final: TOP, jump: null, win: false, died: false, again: false, told: [], cost: 0, pre, after, end };
   }
   const target = path.at(-1);
@@ -238,9 +241,18 @@ export function resolveChoice(state, plan, id) {
   return finish(state, plan, took);
 }
 
+// What option o would plant if the life took it on this plan's square, and the age it would ripen at: what Mīmāṃsā shows
+// before the choice (src/engine/laws/mimamsa.js foresight). Null when it plants nothing, or the law keeps no ledger.
+export function foresee(state, plan, o) {
+  const p = state.players[plan.idx], final = destOf(plan.target, o);
+  const jump = o.move === "ladder" && final !== plan.target ? { kind: "ladder", to: final } : null;
+  const plant = lawOf(state, plan.idx).karma ? plantOf(plan.target, o, turnYears(p.years ?? 0, { target: plan.target, final, jump, cost: o.cost ?? 0 })) : null;
+  return plant && { ...plant, ripe: plant.at + plant.fuse };
+}
+
 // The rest of a turn, once it is known what the square does: the snake or ladder, the years, the win or the death.
 function finish(state, plan, o) {
-  const { idx, v, dice, from, target, after, end } = plan, p = state.players[idx], edge = lawOf(state, idx).edge(state, idx);
+  const { idx, v, dice, from, target, after, end } = plan, p = state.players[idx], law = lawOf(state, idx), edge = law.edge(state, idx);
   let jump = null, final = target;
   // a situation's option decides whether the snake or the ladder is taken; elsewhere the square does
   const s = o ? (o.move === "snake" ? SNAKES[target] : null) : SNAKES[target];
@@ -264,14 +276,19 @@ function finish(state, plan, o) {
     Object.assign(plan, { final, jump, earned: true, told: [toldOn(target, v, dice), ...(jump ? [null] : [])], cost: 0 });
     return plan;
   }
-  const refused = final === GOAL ? refusalOf(p) : null;
+  // the law's exit (src/engine/laws/): the board's is the door at 105. One with no door is won on the exact landing with
+  // nothing carried, and a life that lands there owing is told so and goes on
+  const ex = law.exit(state, idx), atExit = !!ex && final === ex.at;
+  const refused = atExit && ex.door ? refusalOf(p) : null;
   if (refused) after.push(entry("lRefused", { pos: GOAL, sq: GOAL }, "", idx));
-  const win = final === GOAL && !refused;
+  const owed = atExit && !ex.door && carried(karmaOf(p)).length > 0;
+  if (owed) after.push(entry(ex.owed, { pos: final, sq: final }, "", idx));
+  const win = atExit && !refused && !owed;
   // A life ends when its years run out on earth (REDESIGN.md Phase 8). Only a life that walks ground it has
   // already lived can outrun the span, so only the snakes bring this about.
   const years = turnYears(p.years ?? 0, { target, final, jump, cost }), died = !win && final <= 100 && years > SPAN;
   const again = !win && !died && v === 6 && state.rules.six;
-  if (win) end.push(entry("lWin", { pos: GOAL }, "heaven", idx));
+  if (win) end.push(entry(law.text.win.line, ex.door ? { pos: ex.at } : { pos: ex.at, sq: ex.at }, "heaven", idx));
   else if (died) end.push(entry("lDied", { pos: final, age: years, sq: final }, "death", idx));
   else if (again) end.push(entry("lSix", {}, "", idx));
   // which moment each square of this turn tells, in the order they join the life: one face for the whole turn. A
@@ -280,7 +297,7 @@ function finish(state, plan, o) {
   // the hidden guna and aims of the choice, applied as a vice's or a virtue's are (src/engine/self.js grow)
   const mark = o ? { guna: o.guna, aims: o.aims } : null;
   // and what the choice plants: āgāmi, since the player could have chosen otherwise (src/engine/karma.js)
-  const plant = plantOf(target, o, years);
+  const plant = law.karma ? plantOf(target, o, years) : null;
   Object.assign(plan, { final, jump, win, died, again, told, cost, mark, choice: o?.id ?? null, plant, refused });
   return resolve(state, plan, years);
 }
@@ -369,6 +386,8 @@ export function endTurn(state, plan) {
     if (!p.curse && lawOf(state, plan.idx).curse(state, plan.idx)) { const c = curseOf(state, plan.idx); if (c && spokenAt(c, p.years)) p.curse = { id: c.id, i: p.life.length - 1, age: p.years }; }
     // how the life ended (Phase 16): its ledger, its years on earth, or its years at the door
     if (plan.died) { p.dead = true; p.holding = holdingOf(p.life, p.held); p.death = plan.death ?? { by: plan.sit && plan.from === GOAL ? "door" : "years", age: p.years }; }
+    // the exit the life went through, of its law's kind (mokṣa, svarga)
+    if (plan.win) p.won = lawOf(state, plan.idx).exit(state, plan.idx)?.kind ?? null;
     // the merit a life brings into the heavens, read as it enters them
     if (inHeaven(p.pos) && p.merit == null && lawOf(state, plan.idx).merit(state, plan.idx)) p.merit = meritOf(p);
   }

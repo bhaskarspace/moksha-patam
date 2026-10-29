@@ -7,9 +7,9 @@ import { lang, tIn, numIn, srcIn, pick, fill, castFill, ageWordsIn } from "../i1
 import { ageStep, stageOfYears, bhumikaOf, freshGunas, SANNYASA, yearsAlong, landedYears } from "../engine/self.js";
 import { castOf, castAlong, peopleOf, introIn } from "../engine/cast.js";
 import { momentOf, destOf, egoOf } from "../engine/qbn.js";
-import { reckonLinesIn, refusalIn, examLinesIn, debtsIn } from "../engine/karma.js";
-import { canSit } from "../engine/turn.js";
-import { lawOf, choosable, canChoose } from "../engine/laws/index.js";
+import { reckonLinesIn, refusalIn, examLinesIn, debtsIn, debtIn } from "../engine/karma.js";
+import { canSit, foresee } from "../engine/turn.js";
+import { lawOf, choosable, canChoose, setLaw } from "../engine/laws/index.js";
 import { curseSaidIn } from "../engine/curse.js";
 import { prefs, hasMet, meet, firstLife, firstOpened, openFirst, knowsWho, meetWho } from "../prefs.js";
 import { G, pnameIn } from "../state.js";
@@ -63,6 +63,15 @@ export function optionNote(l, n, o) {
   return o.cost ? `${where} · ${o.cost === 1 ? tIn(l, "optYear") : tIn(l, "optYears", { n: numIn(l, o.cost) })}` : where;
 }
 
+// Under a law that shows every consequence before the choice (Mīmāṃsā), an option names the debt it would plant and the
+// age it ripens at, in words; or that it plants none.
+function foresight(l, o) {
+  if (!G.plan || !lawOf(G.state, G.plan.idx).foresight) return "";
+  const p = G.state.players[G.plan.idx], who = { name: pnameIn(p, l), gender: p.gender }, s = foresee(G.state, G.plan, o);
+  const text = s ? fill(tIn(l, "optDebt", { debt: debtIn(l, s, who), name: who.name, age: ageWordsIn(l, Math.floor(s.ripe)) }), who) : tIn(l, "optNoDebt");
+  return `<span class="opt-d">${esc(text)}</span>`;
+}
+
 // ---- What a square's card says, in language l ----
 function squareInfo(n, l) {
   const T = (k, v) => tIn(l, k, v), o = other(l), r = READINGS[n] || {};
@@ -89,6 +98,9 @@ function squareInfo(n, l) {
 // On the square they are standing on that is the years they have lived (REDESIGN.md Phase 8), "still" so when a
 // snake has just put them there; on any other square, the age the square is written for.
 const subjectOf = () => G.state?.players[subject ?? G.state.turn];
+// the law the subject lives under (Phase 17), and its exit
+const lawHere = () => (G.state ? lawOf(G.state, subject ?? G.state.turn) : null);
+const exitHere = () => lawHere()?.exit(G.state, subject ?? G.state.turn) ?? null;
 // Who is standing on square n, as { p, years, still }: during a landing the turn has not been ended yet, so
 // the years are the ones this landing brings.
 function livedOn(n) {
@@ -255,13 +267,16 @@ function squareHtml(n, l) {
   // a snake tail one square below its remedy says so (REDESIGN.md Phase 4, item 3)
   const remedy = sq.remedy ? texts(l, fill(sq.remedy.en, person("en", n)), fill(sq.remedy.hi, person("hi", n)), "remedy") : "";
   // past the exit, the card says the way out is behind and below (REDESIGN.md Phase 7, item 3)
-  const above = n > GOAL && HEAVEN[n] ? texts(l, ...["en", "hi"].map(x => tIn(x, "aboveExit", { n: numIn(x, GOAL), top: numIn(x, TOP) })), "remedy above") : "";
+  // in the law's own words (Phase 17): its exit is behind, or there was none
+  const above = n > GOAL && HEAVEN[n] ? texts(l, ...["en", "hi"].map(x => tIn(x, lawHere()?.text.above ?? "aboveExit", { n: numIn(x, exitHere()?.at ?? GOAL), top: numIn(x, TOP) })), "remedy above") : "";
+  // a law with no door at 105 says the square is ordinary under it
+  const noDoor = n === GOAL && G.state && exitHere()?.at !== GOAL ? texts(l, ...["en", "hi"].map(x => tIn(x, "lawNoDoor", { law: tIn(x, lawHere().text.name) })), "remedy door") : "";
   // the options, each with what it visibly does; one a gate withholds is greyed, with why (§2.5), and cannot be taken
   const opts = pending && G.deciding?.sit === pending ? G.deciding.opts : null;
   const options = opts ? `<div class="options" role="group" aria-label="${esc(T("chooseLabel"))}">` + opts.map((o, i) =>
     `<button type="button" class="opt" data-act="opt" data-id="${esc(o.id)}"${o.open ? "" : ` aria-disabled="true" aria-describedby="why-${esc(o.id)}"`}>` +
     `<span class="opt-k" aria-hidden="true">${numIn(l, i + 1)}</span><span class="opt-l">${esc(o.label[l] || o.label.en)}</span>` +
-    `<span class="opt-c">${esc(optionNote(l, n, o))}</span>` +
+    `<span class="opt-c">${esc(optionNote(l, n, o))}</span>` + foresight(l, o) +
     (o.open ? "" : `<span class="opt-why" id="why-${esc(o.id)}">${esc(T("optWithheld"))} ${esc(o.why[l] || o.why.en)}</span>`) + `</button>`).join("") + `</div>` : "";
   // the door that did not open says why, in words (REDESIGN.md Phase 12): during the landing, and while they stand at it
   // (whoever is standing there refused, if it is not the player whose turn it is)
@@ -274,7 +289,7 @@ function squareHtml(n, l) {
   const curse = sayer ? texts(l, curseSaidIn("en", sayer, pnameIn(sayer, "en")), curseSaidIn("hi", sayer, pnameIn(sayer, "hi")), "remedy") : "";
   // a rebellion's mirror is the Gita's question of what drives a person to wrong unwilling (3.36–37)
   const mirrored = pending || tumbling ? "" : rebel ? texts(l, EGO.mirror.en, EGO.mirror.hi, "mirror") : mirrorHtml(l, mirror, m);
-  body += `<div class="story">${door}${egoTop}${moment}${faces}${curse}${options}${remedy}${mirrored}${bi(l, r.line2, "line2")}${above}</div>`;
+  body += `<div class="story">${noDoor}${door}${egoTop}${moment}${faces}${curse}${options}${remedy}${mirrored}${bi(l, r.line2, "line2")}${above}</div>`;
   // what the toggle opens: the voices, and the notes, at the reader's depth
   // Codex entries in it count as met only once the reader opens it
   let more = "";
@@ -656,7 +671,7 @@ dlg.addEventListener("click", e => {
   const act = e.target.closest("[data-act]")?.dataset.act;
   if (act === "close") return closeCard();
   if (act === "pastLife") { readPast = true; return closeCard(); }
-  if (act === "law") { const p = subjectOf(), id = e.target.closest("[data-law]").dataset.law; if (p && canChoose(id)) { if (id === "board") delete p.law; else p.law = id; paint(); } return; }
+  if (act === "law") { const p = subjectOf(), id = e.target.closest("[data-law]").dataset.law; if (p && canChoose(id)) { setLaw(G.state, G.state.players.indexOf(p), id); paint(); } return; }
   if (act === "roll") return roll();
   if (act === "pick") return pickFn(+e.target.closest("[data-v]").dataset.v);
   if (act === "opt") { const b = e.target.closest("[data-id]"); if (b.getAttribute("aria-disabled") !== "true") decideFn(b.dataset.id); return; }

@@ -25,7 +25,8 @@ export const endOf = (state, i) => {
   const p = state.players[i];
   // an animal interlude (src/engine/animal.js) ends at the forest's edge or short of it, and is never "let go"
   if (isAnimal(state)) return animalEndOf(p) && "animal";
-  if (state.winner === i) return null;
+  // a life let go is gone from the wheel; svarga (Mīmāṃsā's exit) lasts as long as its merit, and returns (Gītā 9.21)
+  if (state.winner === i) return p.won === "svarga" ? "svarga" : null;
   if (p.dead) return p.death?.by ?? "years";
   if (p.fell) return p.fellBy === "snake" ? "siva" : "fell";
   return null;

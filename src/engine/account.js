@@ -42,6 +42,7 @@ import { castAlong, peopleOf, introIn, beforeIn, calledIn, fatesIn } from "./cas
 import { reckoningIn, seedOf, refusalIn, carryIn, karmaOf, carried, debtIn, formIn } from "./karma.js";
 import { curseIn } from "./curse.js";
 import { isAnimal, animalLifeOf } from "./animal.js";
+import { lawOf } from "./laws/index.js";
 
 const EARTH = 100, GAP = 8;
 // An English moment that does not open with the name reads on after a joining phrase in lower case:
@@ -261,13 +262,13 @@ export function lifeOf(state, i, l) {
       const head = s === 5 || !ages.length ? stage(s) : a === b ? T("lifeAt", { stage: stage(s), a }) : T("lifeSpan", { stage: stage(s), a, b });
       return { head, text: parts.join(" ") };
     }),
-    end: state.winner === i ? winEnd(p, T, words, held)
-      : p.fell ? fellEnd(p, along, T, sq, held, l, who)
+    end: lawEnd(state, i, T, words, state.winner === i ? winEnd(p, T, words, held, lawOf(state, i))
+      : p.fell ? fellEnd(p, along, T, sq, held, l, who, lawOf(state, i))
       : !p.life?.length ? T("lifeUnborn")
       : p.death?.by === "ledger" ? ledgerEnd(p, T, words, l, who, held)
       : p.dead && p.pos === GOAL ? doorEnd(p, T, words, l, who)
       : p.dead ? T("lifeEndDied", { age: words(p.years), holding: held(SNAKES[p.holding]?.holding) }).replace(/, ([.।])$/, "$1")
-      : T("lifeEndOpen", { n: p.pos }),
+      : T("lifeEndOpen", { n: p.pos })),
     // a curse the life never bore out is closed after the end, the other way (Phase 14): empty with none
     curse: curse && curse.closedAt == null && (state.winner === i || p.fell || p.dead) ? fill(curse.c.not[l] || curse.c.not.en, who) : "",
     // what the life never found out about the people in it (Phase 10C): empty with no cast
@@ -277,19 +278,29 @@ export function lifeOf(state, i, l) {
   };
 }
 
-// A life let go names what it put down: the vice it took most, the one a death would have named as still held.
-function winEnd(p, T, words, held) {
+// A life let go names what it put down: the vice it took most, the one a death would have named as still held. A law
+// whose exit is not mokṣa has its own line (Mīmāṃsā's svarga).
+function winEnd(p, T, words, held, law) {
+  if (law.text.win.end) return T(law.text.win.end, { age: words(p.years ?? 0) });
   const letgo = SNAKES[holdingOf(p.life || [], p.held)]?.letgo, age = words(p.years ?? 0);
   return letgo ? T("lifeEndWin", { age, letgo: held(letgo) }) : T("lifeEndFree", { age });
+}
+
+// A law with its own last word closes the account with it once the life is over (Cārvāka: this life was all there was).
+function lawEnd(state, i, T, words, end) {
+  const p = state.players[i], k = lawOf(state, i).text.end;
+  return k && (p.dead || p.fell) ? `${end} ${T(k)}` : end;
 }
 
 // The fall from the heavens (REDESIGN.md Phase 12): the realm the life reached, the merit spent, and what it was still
 // holding, the vice a death would have named. Gita 9.21 in the board's own words.
 // What the door named is still carried down: the debts the life never met, or the holding on it was refused for.
-function fellEnd(p, along, T, sq, held, l, who) {
+function fellEnd(p, along, T, sq, held, l, who, law) {
   // nothing above the exit turns back, so the square it fell from is the highest it reached: since Phase 17 always the
   // top of the heavens, where Śiva's snake is
   const top = p.fellFrom ?? Math.max(...along.map(e => e.n)), vice = SNAKES[p.holding]?.holding;
+  // a law with no next life ends it there, with nothing carried down (Cārvāka)
+  if (law.text.fell) return T(law.text.fell, { realm: sq(top) });
   // the fall has already put what was unmet into the store (sañcita), which in one life is only this life's
   const k = karmaOf(p), unmet = [...carried(k), ...k.sancita], aim = (p.refusals || []).findLast(r => r.aim)?.aim;
   const carry = carryIn(l, unmet, aim, who), and = tIn(l, "listAnd");
@@ -357,7 +368,7 @@ export function pathOf(state, i, l) {
   const viaOf = r => r.kind === "snake" ? T("pathSnake", { sq: nameOf(r.from) }) : r.kind === "ladder" ? T("pathLadder", { sq: nameOf(r.from) })
     : r.kind === "reckon" ? T("pathReckon") : r.kind === "sit" ? (r.count === 1 ? T("pathSat") : T("pathSatN", { n: words(r.count) }))
     : r.kind === "stay" ? (r.count === 1 ? T("pathStay") : T("pathStayN", { n: words(r.count) })) : "";
-  const end = state.winner === i ? T("pathWin") : p.fell ? T("pathFell") : p.dead ? T("pathDied") : p.earned ? T("animalEarned") : p.short ? T(state.rules.animal?.round >= 2 ? "animalLastText" : "animalShortText") : "";
+  const end = state.winner === i ? T(lawOf(state, i).text.win.path) : p.fell ? T("pathFell") : p.dead ? T("pathDied") : p.earned ? T("animalEarned") : p.short ? T(state.rules.animal?.round >= 2 ? "animalLastText" : "animalShortText") : "";
   // an animal does not count years, so its path has none
   return { rows: rows.map(r => ({ age: isAnimal(state) ? "" : words(r.years), sq: nameOf(r.n), via: viaOf(r) })), end };
 }

@@ -14,6 +14,8 @@ export const animal = {
   omen: () => false,
   curse: () => false,
   merit: () => false,
+  exit: () => null,
+  karma: false,
   siva: () => "out",
   // each throw is counted, and the last one short of the forest's edge ends the interlude
   afterTurn: (state, plan, p) => {
@@ -21,5 +23,5 @@ export const animal = {
     if (plan.earned) p.earned = true;
     else if (p.throws >= ANIMAL_TURNS) { p.short = true; plan.end.push(entry("lAnimalShort", {}, "", plan.idx)); }
   },
-  text: { name: "lawAnimal", about: "lawAnimalAbout" },
+  text: { ...board.text, name: "lawAnimal", about: "lawAnimalAbout" },
 };

@@ -25,7 +25,7 @@ const lived = (life, told) => {
   return s;
 };
 const all = (s, l = "en") => lifeOf(s, 0, l).paras.map(p => p.text).join(" ");
-const policy = (x, fn) => { setPolicy(x); try { return fn(); } finally { setPolicy("mixed"); } };
+const policy = (x, fn) => { setPolicy(x); try { return fn(); } finally { setPolicy(null); } };
 
 test("ten squares offer a choice: four snakes, three ladders and three story squares", () => {
   assert.deepEqual(Object.keys(SITUATIONS).map(Number), [12, 19, 28, 47, 49, 51, 54, 55, 56, 59]);

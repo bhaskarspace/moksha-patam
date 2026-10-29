@@ -71,7 +71,11 @@ thrown and Śiva's snake takes it (`spentOf`, `plan.spent`). A game in progress 
 reload (`mp-game`, `saveGame`/`loadGame` in `src/prefs.js`); `?seed` starts fresh and `?first` keeps nothing. Its step 2 makes
 the rules a law (`src/engine/laws/`: `board.js`, `animal.js`, `lawOf(state, i)` in `index.js`, from `p.law`, then
 `rules.law`, then the board's). `turn.js` never branches on a law's id (`tests/laws.test.mjs` reads it); a difference is
-a hook in the law, defaulting to the board's.
+a hook in the law, defaulting to the board's. Step 3 adds Mīmāṃsā (`mimamsa.js`: svarga at 101 with nothing carried,
+no door at 105, every consequence shown, `foresee`) and Cārvāka (`carvaka.js`: no ledger, omen or curse, no win, Śiva's
+snake ends the life and nothing is kept). A law's exit is `exit()` (`{ at, kind, door }` or null); `p.won` is the kind
+won; `setLaw(state, i, id)` in `laws/index.js` is how a law is changed mid-game. `setPolicy(null)` restores each law's
+own computer; the sim's `--policy` overrides it.
 Phase 7 was The Exit (REDESIGN.md §4): Moksha is square 105 (`GOAL`), partway
 along the divine row, while the board still ends at 110 (`TOP`). Since Phase 12 nothing above the exit turns back: past 105 the
 heavens (106–110) are walked. Since Phase 17 no throw passes `TOP`, and the exact throw onto it is Śiva's snake, the fall
