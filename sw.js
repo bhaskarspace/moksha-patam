@@ -1,6 +1,6 @@
 // Service worker: the game works offline after one visit. tools/build.mjs writes this file to /sw.js
 // with VERSION set from the built page, so every deploy replaces the old cache.
-const VERSION = "33b919fe4f4a";
+const VERSION = "2dce957acee7";
 const CACHE = `moksha-patam-${VERSION}`;
 const FONTS = "moksha-patam-fonts";
 const CORE = ["./", "index.html", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png", "icons/icon-maskable-512.png", "icons/apple-touch-icon.png"];

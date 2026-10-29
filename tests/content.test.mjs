@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import crypto from "node:crypto";
 import { lintContent, lintSprites, leadNames } from "../tools/lint-content.mjs";
+import { fill, castFill } from "../src/i18n.js";
 import { GOAL, TOP, READINGS, CODEX, REFS, SQ, SNAKES, LADDERS, HEAVEN, MOKSHA, FALL, sourceOf, leadOf, squareOf, fallOn } from "../src/content.js";
 
 test("all content passes the lint", () => {
@@ -149,4 +150,22 @@ test("Phase 7: Moksha is 105, the exit, with no sprite (since Phase 13 a vignett
   assert.equal(spriteHash("fall"), "409050c182");
   assert.equal(spriteHash("sn-108"), null);
   assert.ok(REFS.gita?.includes(TOP) && REFS.mimamsa.includes(TOP));
+});
+
+// Phase 17 (Bhaskar, 29 Oct): a choice whose forms have a space in them ("{का होगा|की होगी}") keeps it. Every string in
+// content/*.json with such a choice, in either language, filled for each gender, says the chosen form whole.
+test("a {m|f|n} choice with a space inside keeps the space, in every string that has one", () => {
+  const CHOICE = /\{([^{}|:=]*(?:\|[^{}|]*){1,2})\}/g, found = [];
+  const walk = (x, at) => {
+    if (typeof x === "string") { for (const m of x.matchAll(CHOICE)) if (/ /.test(m[1])) found.push({ at, text: x, forms: m[1].split("|") }); }
+    else if (x && typeof x === "object") for (const [k, v] of Object.entries(x)) walk(v, `${at}.${k}`);
+  };
+  for (const f of fs.readdirSync(new URL("../content/", import.meta.url)).filter(f => f.endsWith(".json")))
+    walk(JSON.parse(fs.readFileSync(new URL(`../content/${f}`, import.meta.url), "utf8")), f);
+  assert.ok(found.some(c => c.at.endsWith("hi.optDebt")), "optDebt is among them");
+  for (const { at, text, forms } of found)
+    for (const [k, gender] of ["m", "f", "n"].entries()) {
+      const want = forms[k] ?? forms[0];
+      assert.ok(fill(castFill(text), { name: "X", gender, age: "Y" }).includes(want), `${at} (${gender}): "${want}"`);
+    }
 });

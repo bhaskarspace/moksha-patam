@@ -14,7 +14,7 @@ import { worthOf, optionOf } from "./qbn.js";
 import { castOf, MEMBERS } from "./cast.js";
 import { pnameIn } from "../state.js";
 import { interludeFor, animalEndOf, isAnimal, KINDS } from "./animal.js";
-import { canChoose } from "./laws/index.js";
+import { canChoose, lawOf } from "./laws/index.js";
 
 export const SOUL_V = 1, KEEP_DEBTS = 6;
 // the roles whose names can return: the parents are never named
@@ -65,6 +65,18 @@ export function soulOf(state, i) {
   // a life the ledger ended is born an animal first (Phase 16's interlude), in the house of its rival or its friend
   if (end === "ledger") rec.animal = interludeFor(rec.last.holding, rec.cast);
   return rec;
+}
+
+// What the store does with player i's soul once the game is over: { soul } to keep, { drop: true } when the life was let
+// go, or null to leave the store as it was. A law with no next life (Cārvāka) adds nothing and takes nothing away: the
+// same person, born again later under another law, carries what they carried before it. A life still going leaves
+// nothing; one Śiva's snake closed before it (Phase 17), its own.
+export function keepOf(state, i) {
+  const p = state.players[i];
+  if (!lawOf(state, i).rebirth) return null;
+  if (state.winner === i && !endOf(state, i)) return { drop: true };
+  const soul = soulOf(state, i) ?? (p.past?.length ? soulOf(pastOf(state, i, p.past.length - 1), i) : null);
+  return soul ? { soul } : null;
 }
 
 const num = x => typeof x === "number" && Number.isFinite(x);

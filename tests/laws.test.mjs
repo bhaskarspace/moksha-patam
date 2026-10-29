@@ -5,7 +5,7 @@ import fs from "node:fs";
 import { createGame, playTurn, planTurn, resolveChoice, endTurn, addLog, movesFor, canSit, foresee, gone } from "../src/engine/turn.js";
 import { LAWS, lawOf, choosable, canChoose, setLaw } from "../src/engine/laws/index.js";
 import { board } from "../src/engine/laws/board.js";
-import { soulOf, bornOf, endOf } from "../src/engine/samskara.js";
+import { soulOf, bornOf, endOf, keepOf, storeWith } from "../src/engine/samskara.js";
 import { optionOf, choiceFor, situationAt } from "../src/engine/qbn.js";
 import { carried } from "../src/engine/karma.js";
 import { lifeOf } from "../src/engine/account.js";
@@ -137,10 +137,38 @@ test("Cārvāka: no ledger, no omen, no curse; Śiva's snake ends the life and n
   assert.ok(fall.fell && p.fell && !p.past && !p.rebirths && gone(p) && s.over);
   assert.equal(s.log.find(e => e.kind === "fall")?.k, "lSivaOnce");
   assert.equal(soulOf(s, 0)?.law, "carvaka");
-  assert.ok(!lawOf(s, 0).rebirth, "the page keeps no saṃskāra for it (main.js keepLives)");
+  assert.ok(!lawOf(s, 0).rebirth);
+  assert.equal(keepOf(s, 0), null, "the store is left as it was (main.js keepLives)");
   const end = lifeOf(s, 0, "en").end;
   assert.match(end, /This life was all there was\.$/);
   assert.doesNotMatch(end, /went back down into the world/);
+});
+
+test("Cārvāka neither adds to nor takes from a kept soul: the same person, later under another law, carries what they did", () => {
+  // Mira's soul as a life under the board's law left it: a debt unmet, sattva leading
+  const b = createGame({ players: [{ name: "Mira", type: "human", gender: "f" }], rules: { six: true }, seed: 3 });
+  Object.assign(b.players[0], { pos: 60, years: 70, dead: true, death: { by: "years" }, gunas: { s: 0.6, r: 0.2, t: 0.2 }, karma: { sancita: [{ ...DEBT }], agami: [], prarabdha: [] } });
+  const kept = keepOf(b, 0)?.soul;
+  assert.ok(kept && kept.sancita.length === 1);
+  const store = storeWith(null, "mira", kept), before = JSON.stringify(store);
+  // born of it under Cārvāka: the life carries nothing in, and Śiva's snake ends it
+  const s = createGame({ players: [{ name: "", type: "human", gender: "f", law: "carvaka", soul: "mira", born: bornOf(kept) }], rules: { six: true }, seed: 4 });
+  const p = s.players[0];
+  assert.equal(carried(p.karma).length, 0);
+  Object.assign(p, { pos: 104, years: 90 });
+  playTurn(s, [6, 1], () => 6);
+  assert.ok(p.fell && s.over && endOf(s, 0));
+  // nothing kept and nothing let go: the store is byte for byte what it was
+  assert.equal(keepOf(s, 0), null);
+  const k = keepOf(s, 0), after = k ? storeWith(store, "mira", k.drop ? null : k.soul) : store;
+  assert.equal(JSON.stringify(after), before);
+  // later, under the board's law, the same soul is born with what it carried before Cārvāka
+  const next = createGame({ players: [{ name: "", type: "human", gender: "f", soul: "mira", born: bornOf(after.souls.mira) }], rules: { six: true }, seed: 5 });
+  const q = next.players[0];
+  assert.equal(q.law, undefined);
+  assert.deepEqual(q.prior.lives, kept.lives);
+  assert.equal(carried(q.karma).length, 1, "the heaviest unmet debt comes in as prārabdha");
+  assert.ok(q.gunas.s > 1 / 3, "the guṇas carry half of the life before");
 });
 
 test("a law chosen between lives that keeps no ledger takes the one the life was born with away", () => {

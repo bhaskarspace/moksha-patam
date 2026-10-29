@@ -5,7 +5,7 @@ import { SPAN, turnYears, grow, freshGunas, freshAims, holdingOf, slotsFor, stag
 import { optionOf, egoOf, egoFacesOn, egoThrow, destOf } from "./qbn.js";
 import { freshKarma, karmaOf, carried, ripen, plantOf, omenFor, refusalOf, examineOf, meet, DEATH } from "./karma.js";
 import { curseOf, spokenAt } from "./curse.js";
-import { lawOf } from "./laws/index.js";
+import { lawOf, isDefault } from "./laws/index.js";
 import { soulOf, bornOf } from "./samskara.js";
 import { castOf, nameKey } from "./cast.js";
 import { drawName } from "../state.js";
@@ -133,7 +133,17 @@ export function createGame({ players, rules, seed }) {
   };
   // a law that keeps no ledger (Cārvāka) carries nothing in from a life before
   state.players.forEach((p, i) => { if (!lawOf(state, i).karma) p.karma = freshKarma(); });
+  // whoever lives under a law other than the board's says so in the log (Phase 17); under the board's nothing is added
+  state.players.forEach((p, i) => { if (p.law && !isDefault(lawOf(state, i))) addLog(state, lawEntry(state, i)); });
   return state;
+}
+// The log's line that player i lives under their law, as a log entry: the law's id, which the log names in its language.
+export const lawEntry = (state, i) => entry("lLawOf", { law: lawOf(state, i).id }, "", i);
+// A law chosen between lives (src/render/card.js) says so; a second choice for the same seat replaces the line it left.
+export function logLaw(state, i) {
+  const e = lawEntry(state, i), top = state.log[0];
+  if (top?.k === "lLawOf" && top.who === i) state.log[0] = { ...e, ...(top.life != null ? { life: top.life } : {}) };
+  else addLog(state, e);
 }
 
 // Log entries keep a message key and values, so they re-translate when the language changes.

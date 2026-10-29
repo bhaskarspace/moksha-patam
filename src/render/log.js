@@ -9,6 +9,7 @@ import { stageOf as ashramaOfPlayer } from "./age.js";
 import { gone } from "../engine/turn.js";
 import { isAnimal } from "../engine/animal.js";
 import { renderLedger } from "./ledger.js";
+import { LAWS } from "../engine/laws/index.js";
 
 // Who a player is becoming, as words and never as a number (REDESIGN.md Phase 8): the strongest guna and the
 // aim they have most of. Nothing is said until one guna stands out, so a life starts without a description.
@@ -56,7 +57,9 @@ const lifeOfEntry = e => {
 export function entryText(e) {
   const who = lifeOfEntry(e);
   // Hindi agrees with the life the line is about ({पहुँचा|पहुँची})
-  return e.k ? fill(t(e.k, { ...e.v, name: who ? pname(who) : "", what: e.v?.sq ? squareName(e.v.sq) : "" }), { gender: who?.gender }) : e.text;
+  // a law is kept by its id, and named in the page's language (Phase 17)
+  const law = e.v?.law && LAWS[e.v.law] ? t(LAWS[e.v.law].text.name) : "";
+  return e.k ? fill(t(e.k, { ...e.v, name: who ? pname(who) : "", what: e.v?.sq ? squareName(e.v.sq) : "", law }), { gender: who?.gender }) : e.text;
 }
 
 export function renderLog() {

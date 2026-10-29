@@ -2026,7 +2026,10 @@ non-trivial.
 > and 41.3% of souls; by life 1, 3, 5 and 10: honest 34.1%, 24.4%, 17.1%, 7.8%; mixed 20.7%, 10.2%, 8.0%, 7.6%;
 > dishonest 11.4%, 5.1%, 4.2%, 4.3%. It falls with each life because the heaviest unmet debt is carried in as
 > prārabdha, and svarga wants nothing carried; the dishonest life dips under the 5% floor from the third life, though
-> its per-life rate (7.6% in one game, 5.4% over ten lives) stays above it. Cārvāka's 0% is by design. The board's law
+> its per-life rate (7.6% in one game, 5.4% over ten lives) stays above it. Cārvāka's 0% is by design. *The stated reason
+> (Bhaskar, 29 Oct):* Mīmāṃsā's dishonest life sits near the 5% floor (7.6% a life, 5.4% over ten lives, 4.2–5.1% from
+> the third life) and the rule stays: svarga needs nothing owed, and a carried debt is exactly what this school says
+> bars it. The board's law
 > is byte-identical (accounts, with the one Hindi rewording "चुक" → "क्षीण" in the fall's account undone; the mixed
 > sim; golden).
 

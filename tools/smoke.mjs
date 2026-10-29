@@ -1157,6 +1157,53 @@ await check("Phase 17, step 3: under Cārvāka Śiva's snake ends the life, the 
   assert(await page.evaluate(() => mp.state.log.some(e => e.k === "lSivaOnce")), "Śiva's line under Cārvāka");
 });
 
+await check("Phase 17, step 3 follow-up: a Cārvāka life leaves a kept soul as it was, and offers no Be born again from it", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await meera(page);
+  await page.goto(BASE + "?seed=1&debug");
+  const rec = { v: 1, lives: 1, last: { name: { en: "Asha", hi: "आशा" }, gender: "f", end: "years", age: 80, gunas: { s: 0.5, r: 0.25, t: 0.25 }, peak: null, holding: null },
+    sancita: [{ src: 12, opt: "lie", at: 10, fuse: 15, weight: 2 }], cast: [], dream: null, animal: null };
+  await page.evaluate(r => { mp.samskara({ v: 1, souls: { meera: r } }); mp.law("carvaka"); mp.jump(107); mp.siva(); }, rec);
+  await page.evaluate(() => document.getElementById("roll").click());
+  await page.waitForFunction(() => mp.state.over && document.getElementById("lifeDlg").open, null, { timeout: 15000 });
+  const r = await page.evaluate(() => ({ soul: mp.samskara().souls.meera ?? null, reborn: !document.getElementById("reborn").hidden }));
+  assert(JSON.stringify(r.soul) === JSON.stringify(rec) && !r.reborn, JSON.stringify(r));
+});
+
+await check("Phase 17, step 3 follow-up: a computer under Cārvāka throws ten times, and its law is in the log", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.addInitScript(() => {
+    const cpu = { name: "", type: "cpu" };
+    window.claude = { hot: { data: { setup: { count: 2, rows: [{ name: "Meera", type: "human", gender: "f" }, { ...cpu, law: "carvaka" }, cpu, cpu], rules: { six: true } } } } };
+  });
+  await page.goto(BASE + "?seed=2&debug");
+  const start = await page.evaluate(() => ({ law: mp.state.players[1].law, own: mp.state.players[0].law ?? null, log: document.getElementById("log").textContent }));
+  assert(start.law === "carvaka" && start.own === null && /The law .+ lives under: Cārvāka\./.test(start.log), JSON.stringify(start));
+  for (let k = 0; k < 40 && (await page.evaluate(() => (mp.state.players[1].life?.length ?? 0))) < 10; k++) {
+    await until(page, () => mp.state.over || (!mp.busy && mp.state.turn === 0 && !document.getElementById("roll").disabled));
+    if (await page.evaluate(() => mp.state.over)) break;
+    await page.evaluate(() => { if (!document.getElementById("pick").hidden) document.querySelector("#pick button")?.click(); else document.getElementById("roll").click(); });
+    await until(page, () => mp.state.over || !document.getElementById("pick").hidden || (!mp.busy && mp.state.turn === 0));
+    await page.evaluate(() => { if (!document.getElementById("pick").hidden) document.querySelector("#pick button:not([aria-disabled])")?.click(); });
+  }
+  const end = await page.evaluate(() => ({ life: mp.state.players[1].life.length, law: mp.state.players[1].law }));
+  assert(end.life >= 10 && end.law === "carvaka", JSON.stringify(end));
+});
+
+await check("Phase 17, step 3 follow-up: on a phone, in Hindi, a choice's words keep their space (की होगी), with one language or both", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=1&debug&lang=hi");
+  for (const both of [false, true]) {
+    if (both) await page.evaluate(() => { mp.close({ instant: true }); const c = document.getElementById("prefBoth"); c.checked = true; c.dispatchEvent(new Event("change", { bubbles: true })); });
+    await page.evaluate(() => { mp.state.players[0].gender = "f"; mp.law("mimamsa"); mp.jump(10); mp.years(9); mp.roll(2); });
+    await page.waitForFunction(() => document.querySelectorAll("#leaf .opt").length > 1, null, { timeout: 15000 });
+    const opts = await page.evaluate(() => [...document.querySelectorAll("#leaf .opt-d")].map(x => x.textContent));
+    assert(opts.some(x => /बरस की होगी।$/.test(x)) && !opts.some(x => /कीहोगी/.test(x)), JSON.stringify({ both, opts }));
+    await page.click('#leaf .opt[data-id="lie"]');
+    await until(page, () => !mp.busy && mp.state.turn === 0 && !document.getElementById("roll").disabled);
+  }
+}, { phone: [375, 812] });
+
 await check("Phase 17, step 3: Be born again offers the laws, explained, and the next life is born under the one chosen", async page => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await meera(page);

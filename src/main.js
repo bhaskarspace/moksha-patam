@@ -14,7 +14,7 @@ import { ageStep } from "./engine/self.js";
 import { karmaOf, carried, plantOf, debtKey, refusalOf, examineOf, FORMS, deathFormOf } from "./engine/karma.js";
 import { curseOf } from "./engine/curse.js";
 import { castOf, meetsNamed, nameKey } from "./engine/cast.js";
-import { soulOf, bornOf, endOf, pastOf } from "./engine/samskara.js";
+import { soulOf, bornOf, endOf, keepOf } from "./engine/samskara.js";
 import { isAnimal, animalRules, afterAnimal, KINDS, masterOf } from "./engine/animal.js";
 import { frame, pullBack, hold, release } from "./render/camera.js";
 import { spriteURL, spriteSheet } from "./render/sprites.js";
@@ -488,21 +488,23 @@ function keepLives(state) {
     if (!key) return;
     // an interlude ended (src/engine/animal.js): the soul it was owed to goes on, human or an animal once more
     if (isAnimal(state)) { const s = soulFor(key); if (s?.animal) keepSoul(key, afterAnimal(s, !!p.earned)); return; }
-    // a life let go is let go; a law with no next life keeps nothing either (Cārvāka). Svarga returns (Gītā 9.21), so
-    // it is kept as an end like any other (src/engine/samskara.js endOf)
-    if ((state.winner === i && !endOf(state, i)) || !lawOf(state, i).rebirth) keepSoul(key, null);
-    // a life still going when the game ended leaves nothing; one Śiva's snake closed before it, its own (Phase 17)
-    else { const s = soulOf(state, i) ?? (p.past?.length ? soulOf(pastOf(state, i, p.past.length - 1), i) : null); if (s) keepSoul(key, s); }
+    // a life let go is let go; a law with no next life (Cārvāka) leaves the store as it was. Svarga returns (Gītā 9.21),
+    // so it is kept as an end like any other (src/engine/samskara.js keepOf)
+    const k = keepOf(state, i);
+    if (k) keepSoul(key, k.drop ? null : k.soul);
   });
 }
 // The rows of the next game when it is born again: a person whose life here ended and was kept is born from it, not
 // called by the last name nor by any the cast carries; everyone else sits as the setup has them. A person owed an animal
 // interlude (src/engine/animal.js) is born into it alone, before anyone else's next life. { rows, rules }, or null when
 // nobody is born again.
+// Whether seat i's life ended in a way its soul goes on from: not under a law with no next life (Cārvāka), whose
+// person's kept soul waits, untouched, for a life under another law (keepOf)
+const rebornFrom = (state, i) => (endOf(state, i) || state.players[i].past?.length) && lawOf(state, i).rebirth;
 function rebornRows(state) {
   let any = false, animal = null;
   const rows = state.players.map((p, i) => {
-    const key = soulKey(p), soul = (endOf(state, i) || p.past?.length) && soulFor(key), born = soul && bornOf(soul);
+    const key = soulKey(p), soul = rebornFrom(state, i) && soulFor(key), born = soul && bornOf(soul);
     if (!born) return { ...G.setup.rows[i] };
     any = true;
     // the law: the one the setup now asks for in that seat, or else the one the last life lived under
@@ -520,7 +522,7 @@ const lawsOffered = () => choosable().length > 1 && !firstLife();
 const lawButtons = now => choosable().map(w => `<button type="button" class="law" data-law="${w.id}" aria-pressed="${w.id === now}"><b>${esc(t(w.text.name))}</b> <span>${esc(t(w.text.about))}</span></button>`).join("");
 // At Be born again: the law the next life is born under, each explained before it is chosen. It is the first person born
 // again's, as the setup's row keeps it, or else the law the life before lived under.
-const rebornSeat = state => state.players.findIndex((p, i) => p.type === "human" && (endOf(state, i) || p.past?.length) && soulFor(soulKey(p)));
+const rebornSeat = state => state.players.findIndex((p, i) => p.type === "human" && rebornFrom(state, i) && soulFor(soulKey(p)));
 function drawRebornLaws(reborn) {
   // not into an animal interlude: the law is chosen at the human birth after it
   const el = $("rebornLaws"), seat = reborn && lawsOffered() && !isAnimal(G.state) ? rebornSeat(G.state) : -1;

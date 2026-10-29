@@ -8,7 +8,7 @@ import { ageStep, stageOfYears, bhumikaOf, freshGunas, SANNYASA, yearsAlong, lan
 import { castOf, castAlong, peopleOf, introIn } from "../engine/cast.js";
 import { momentOf, destOf, egoOf } from "../engine/qbn.js";
 import { reckonLinesIn, refusalIn, examLinesIn, debtsIn, debtIn } from "../engine/karma.js";
-import { canSit, foresee } from "../engine/turn.js";
+import { canSit, foresee, logLaw } from "../engine/turn.js";
 import { lawOf, choosable, canChoose, setLaw } from "../engine/laws/index.js";
 import { curseSaidIn } from "../engine/curse.js";
 import { prefs, hasMet, meet, firstLife, firstOpened, openFirst, knowsWho, meetWho } from "../prefs.js";
@@ -671,7 +671,7 @@ dlg.addEventListener("click", e => {
   const act = e.target.closest("[data-act]")?.dataset.act;
   if (act === "close") return closeCard();
   if (act === "pastLife") { readPast = true; return closeCard(); }
-  if (act === "law") { const p = subjectOf(), id = e.target.closest("[data-law]").dataset.law; if (p && canChoose(id)) { setLaw(G.state, G.state.players.indexOf(p), id); paint(); } return; }
+  if (act === "law") { const p = subjectOf(), id = e.target.closest("[data-law]").dataset.law; if (p && canChoose(id)) { const i = G.state.players.indexOf(p); setLaw(G.state, i, id); logLaw(G.state, i); paint(); } return; }
   if (act === "roll") return roll();
   if (act === "pick") return pickFn(+e.target.closest("[data-v]").dataset.v);
   if (act === "opt") { const b = e.target.closest("[data-id]"); if (b.getAttribute("aria-disabled") !== "true") decideFn(b.dataset.id); return; }

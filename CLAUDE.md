@@ -75,7 +75,9 @@ a hook in the law, defaulting to the board's. Step 3 adds Mīmāṃsā (`mimamsa
 no door at 105, every consequence shown, `foresee`) and Cārvāka (`carvaka.js`: no ledger, omen or curse, no win, Śiva's
 snake ends the life and nothing is kept). A law's exit is `exit()` (`{ at, kind, door }` or null); `p.won` is the kind
 won; `setLaw(state, i, id)` in `laws/index.js` is how a law is changed mid-game. `setPolicy(null)` restores each law's
-own computer; the sim's `--policy` overrides it.
+own computer; the sim's `--policy` overrides it. Its follow-up: a Cārvāka life neither adds to nor takes from a kept soul
+(`keepOf` in `samskara.js`, and Be born again skips that seat), and a life under a law other than the board's says so in
+the log (`lLawOf`, `logLaw` in `turn.js`).
 Phase 7 was The Exit (REDESIGN.md §4): Moksha is square 105 (`GOAL`), partway
 along the divine row, while the board still ends at 110 (`TOP`). Since Phase 12 nothing above the exit turns back: past 105 the
 heavens (106–110) are walked. Since Phase 17 no throw passes `TOP`, and the exact throw onto it is Śiva's snake, the fall

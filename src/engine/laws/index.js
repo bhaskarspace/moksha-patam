@@ -10,6 +10,8 @@ import { animal } from "./animal.js";
 // in the order they are offered: the board's first, the default
 export const LAWS = { board, mimamsa, carvaka, animal };
 export const lawOf = (state, i = state.turn) => LAWS[state.players[i]?.law ?? state.rules?.law ?? "board"] ?? board;
+// whether a law is the board's own, the default, which the log does not announce
+export const isDefault = l => l === board;
 // the laws a player may choose, in the order they are offered
 export const choosable = () => Object.values(LAWS).filter(l => l.choosable);
 // may a player choose this law (the animal interlude never)
