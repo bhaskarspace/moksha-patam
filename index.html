@@ -521,6 +521,8 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
   }
   #folio.snap { transition: transform 0.2s ease, max-height 0.2s ease; }
   #folio::backdrop { background: rgba(20, 12, 4, 0.3); }
+  /* an ordinary card's sheet is not modal, so the board is dimmed by hand under it; a tap there closes the card */
+  .board-wrap.sheet-up::after { content: ""; position: absolute; inset: 0; z-index: 20; background: rgba(20, 12, 4, 0.3); pointer-events: none; }
   #folio .leaf {
     max-height: var(--sh); border-radius: 18px 18px 0 0; view-transition-name: none;
     padding-bottom: env(safe-area-inset-bottom, 0px);
@@ -6728,6 +6730,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     place2();
   }
   function place2() {
+    $("board").classList.toggle("sheet-up", dlg2.open && !blocking && sheetOn());
     const col = document.querySelector(".board-col")?.getBoundingClientRect();
     const over = dlg2.open && !blocking && !sheetOn() && col && innerWidth > 820;
     dlg2.style.left = over ? `${Math.max(12, col.left)}px` : "";
@@ -6865,8 +6868,19 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     if (!dlg2.open || blocking || closing || leaf2.contains(e.target)) return;
     if (!e.target.closest(".lab, button, a, input, select, label, summary, dialog")) closeCard();
   });
+  var CONTROL = "button, a, input, select, label, summary, [data-act], [data-cl], [data-entry], [data-sq]";
+  document.addEventListener("click", (e) => {
+    if (!dlg2.open || blocking || closing || !sheetOn() || e.target.closest(CONTROL)) return;
+    const onBoard = $("board").contains(e.target);
+    if (!onBoard && !leaf2.contains(e.target)) return;
+    if (onBoard) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+    closeCard();
+  }, true);
   dlg2.addEventListener("click", (e) => {
-    if (e.target === dlg2) return closeCard();
+    if (e.target === dlg2) return blocking && sheetOn() ? void 0 : closeCard();
     const act = e.target.closest("[data-act]")?.dataset.act;
     if (act === "close") return closeCard();
     if (act === "roll") return roll();

@@ -476,6 +476,8 @@ function show(block) {
   place();
 }
 function place() {
+  // on a phone an ordinary card's sheet dims the board behind it, and a tap there closes the card (below)
+  $("board").classList.toggle("sheet-up", dlg.open && !blocking && sheetOn());
   const col = document.querySelector(".board-col")?.getBoundingClientRect();
   const over = dlg.open && !blocking && !sheetOn() && col && innerWidth > 820;
   dlg.style.left = over ? `${Math.max(12, col.left)}px` : "";
@@ -612,8 +614,21 @@ document.addEventListener("click", e => {
   if (!dlg.open || blocking || closing || leaf.contains(e.target)) return;
   if (!e.target.closest(".lab, button, a, input, select, label, summary, dialog")) closeCard();
 });
+// On a phone the sheet covers the board, and could stay up until the next turn: there, a tap anywhere on the card that is
+// not one of its controls closes it, and so does a tap on the dimmed board, which closes the card rather than opening a
+// square. Taken before the board's own click, so the square under the tap is not opened. A drag never makes a click. A
+// card that holds the game is modal and never closes this way; the × and Escape stay.
+const CONTROL = "button, a, input, select, label, summary, [data-act], [data-cl], [data-entry], [data-sq]";
+document.addEventListener("click", e => {
+  if (!dlg.open || blocking || closing || !sheetOn() || e.target.closest(CONTROL)) return;
+  const onBoard = $("board").contains(e.target);
+  if (!onBoard && !leaf.contains(e.target)) return;
+  if (onBoard) { e.stopPropagation(); e.preventDefault(); }
+  closeCard();
+}, true);
 dlg.addEventListener("click", e => {
-  if (e.target === dlg) return closeCard();
+  // the backdrop: on a phone a card that holds the game is not closed by a stray tap on the board behind it
+  if (e.target === dlg) return blocking && sheetOn() ? undefined : closeCard();
   const act = e.target.closest("[data-act]")?.dataset.act;
   if (act === "close") return closeCard();
   if (act === "roll") return roll();

@@ -499,6 +499,8 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
   }
   #folio.snap { transition: transform 0.2s ease, max-height 0.2s ease; }
   #folio::backdrop { background: rgba(20, 12, 4, 0.3); }
+  /* an ordinary card's sheet is not modal, so the board is dimmed by hand under it; a tap there closes the card */
+  .board-wrap.sheet-up::after { content: ""; position: absolute; inset: 0; z-index: 20; background: rgba(20, 12, 4, 0.3); pointer-events: none; }
   #folio .leaf {
     max-height: var(--sh); border-radius: 18px 18px 0 0; view-transition-name: none;
     padding-bottom: env(safe-area-inset-bottom, 0px);

@@ -1049,6 +1049,53 @@ await check("Phase 6: the sheet goes by swipe, backdrop, × and Escape; a scroll
   await page.waitForFunction(() => !document.getElementById("folio").open);
 }, { phone: [375, 812] });
 
+await check("Phase 17, step 0: on a phone an ordinary card closes on a tap on its text or on the dimmed board; one that holds the game does not", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=1&debug&depth=scholar");
+  const tapBoard = async () => { const b = await rect(page, "#board"); await page.mouse.click(b.x, b.top + 60); };
+  // a tap on the card's text closes it; its "more" toggle and a link inside do not
+  await openOn(page, 34);
+  assert(await page.evaluate(() => document.getElementById("board").classList.contains("sheet-up")), "the board is not dimmed under the sheet");
+  await page.click("#leaf .more-btn");
+  await page.waitForTimeout(300);
+  assert(await folioOpen(page), "the more toggle closed the card");
+  const link = await page.$("#leaf [data-entry], #leaf [data-sq]");
+  if (link) { await link.click(); await page.waitForTimeout(300); assert(await folioOpen(page), "a link on the card closed it"); }
+  const text = await rect(page, "#leaf .leaf-main");
+  await page.mouse.click(text.x, text.top + 20);
+  await page.waitForFunction(() => !document.getElementById("folio").open);
+  assert(await page.evaluate(() => !document.getElementById("board").classList.contains("sheet-up")), "the board stayed dimmed");
+  // a tap on the dimmed board closes it, and opens no square
+  await openOn(page, 34);
+  await tapBoard();
+  await page.waitForFunction(() => !document.getElementById("folio").open);
+  await page.waitForTimeout(300);
+  assert(!(await folioOpen(page)), "the tap on the board opened a square's card");
+  // a situation's card holds the game: neither tap closes it
+  await page.evaluate(() => { mp.jump(10); mp.roll(2); });
+  await page.waitForFunction(() => document.getElementById("folio").open && mp.deciding, null, { timeout: 15000 });
+  await page.waitForTimeout(300);
+  const leafTop = await rect(page, "#leaf .leaf-top");
+  await page.mouse.click(leafTop.x, leafTop.bottom + 30);
+  await tapBoard();
+  await page.waitForTimeout(300);
+  assert(await folioOpen(page) && await page.evaluate(() => !!mp.deciding), "a stray tap closed the situation's card");
+}, { phone: [375, 812] });
+
+await check("Phase 17, step 0: on a phone a reckoning's card survives a tap on its text and on the board", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=1&debug");
+  await page.evaluate(() => { Object.assign(mp.state.players[0], { pos: 30, years: 40, life: [30], told: [null] }); mp.plant(12, "lie"); mp.fire(); mp.roll(2); });
+  await page.waitForFunction(() => document.getElementById("folio").open && /floor is not there/.test(document.getElementById("leaf").textContent), null, { timeout: 15000 });
+  await page.waitForTimeout(300);
+  const text = await rect(page, "#leaf .leaf-main");
+  await page.mouse.click(text.x, text.top + 20);
+  const b = await rect(page, "#board");
+  await page.mouse.click(b.x, b.top + 60);
+  await page.waitForTimeout(300);
+  assert(await folioOpen(page) && await page.evaluate(() => mp.busy), "a stray tap closed the reckoning's card");
+}, { phone: [375, 812] });
+
 await check("Phase 6: under reduced motion the sheet comes and goes without moving", async page => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto(BASE + "?seed=1&debug");
@@ -1628,13 +1675,17 @@ await check("Phase 11: a returning player keeps the full card, and every mirror 
   assert(!missing.length, missing.slice(0, 5).join("; "));
 });
 
-await check("Phase 11: on a phone the sheet does not trap: a square tapped turns it, and a tap beside the board closes it", async page => {
+// Phase 11 turned the sheet to a square tapped under it; since Phase 17's step 0 the board under the sheet is dimmed, and a
+// tap on it, a square or not, closes the card and opens nothing (Bhaskar, 29 Oct)
+await check("Phase 11: on a phone the sheet does not trap: a square tapped closes it and opens nothing, and so does a tap beside the board", async page => {
   await page.goto(BASE + "?seed=1&debug");
   await openOn(page, 34);
   const lab = await rect(page, '#labels .lab[data-n="20"]');
   await page.mouse.click(lab.x, (lab.top + lab.bottom) / 2);
-  await page.waitForFunction(() => location.hash === "#sq/20", null, { timeout: 5000 });
-  assert(await folioOpen(page), "tapping a square closed the sheet");
+  await page.waitForFunction(() => !document.getElementById("folio").open, null, { timeout: 5000 });
+  await page.waitForTimeout(300);
+  assert(!(await folioOpen(page)) && !/#sq\/20/.test(await page.evaluate(() => location.hash)), "tapping a square under the sheet opened it");
+  await openOn(page, 34);
   await page.mouse.click(3, 200);
   await page.waitForFunction(() => !document.getElementById("folio").open, null, { timeout: 5000 });
 }, { phone: [375, 812] });
