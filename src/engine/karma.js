@@ -217,12 +217,28 @@ export function reckonLinesIn(l, rk, who) {
   if (rk.to) out.push(T(l, "reckonBack", who, { to: rk.to }));
   return out;
 }
+// The same reckoning as a sign only (Nyāya, Phase 17 step 5): the floor, and what it took; never what came due nor where
+// it came from.
+export function reckonSignIn(l, rk, who) {
+  if (rk.dies) return [T(l, "reckonClose", who), T(l, "reckonDies", who, { age: wordsIn(l, Math.floor(rk.age)), form: formIn(l, rk.form, who) })];
+  return reckonLinesIn(l, rk, who).filter((_, i) => i !== 1 && i !== 2);
+}
+// The inference from a sign (Nyāya), as the school states one: the five members (docs/REFERENCE.md §1.2). The claim, the
+// reason (the sign), the example (smoke and fire), the application, and the conclusion, which names the deed in words.
+// sign is { kind: "reckon", src, opt, planted, prior, age } or { kind: "door", debts }.
+export function inferLinesIn(l, sign, who) {
+  const reason = sign.kind === "door" ? T(l, "inferDoor", who) : T(l, "inferFloor", who, { age: wordsIn(l, Math.floor(sign.age ?? 0)) });
+  const deed = sign.kind === "door" ? debtsIn(l, sign.debts, who) : debtIn(l, { src: sign.src, opt: sign.opt, at: sign.planted, prior: sign.prior }, who);
+  return [T(l, "inferClaim", who), reason, T(l, "inferExample", who), T(l, "inferApply", who), T(l, "inferConclude", who, { deed })];
+}
 // How a life ended by its ledger, as a phrase: "when the roof gave way one night in the rains".
 export const formIn = (l, form, who) => T(l, "death" + form[0].toUpperCase() + form.slice(1), who);
 // Why the door did not open, in one sentence, and what it means for the next throw.
 // sit: whether this life may sit at the door and be examined (a sannyāsin, src/engine/turn.js canSit).
-export function refusalIn(l, refusal, who, sit = false) {
+// veiled: the law shows karma only as signs (Nyāya), so the door says that something is owed, never what.
+export function refusalIn(l, refusal, who, sit = false, veiled = false) {
   if (!refusal) return [];
+  if (veiled) return [T(l, "doorSign", who), T(l, "doorOn", who)];
   const on = T(l, sit && !refusal.aim ? "doorSit" : "doorOn", who);
   if (refusal.aim) return [T(l, refusal.aim === "artha" ? "doorArtha" : "doorKama", who), on];
   // the last question (Jain): good karma binds too, so the merit the life is proud of is asked after before it may pass

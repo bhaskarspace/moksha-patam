@@ -1107,7 +1107,7 @@ await check("Phase 17, step 3: the laws are offered once a life has been lived, 
   assert(await page.evaluate(() => !document.getElementById("plaw0")), "a law was offered in the first life");
   await page.goto(BASE + "?seed=5&debug");
   const setup = await page.evaluate(() => ({ ids: [...document.querySelectorAll("#plaw0 option")].map(o => o.value), about: document.getElementById("plawAbout0").textContent }));
-  assert(setup.ids.join() === "board,mimamsa,carvaka,jain,bhakti" && /The board as it is played/.test(setup.about), JSON.stringify(setup));
+  assert(setup.ids.join() === "board,mimamsa,carvaka,jain,bhakti,nyaya,sankhya,advaita,yoga" && /The board as it is played/.test(setup.about), JSON.stringify(setup));
   // the panel is folded away; the select is changed as a reader would, and says so
   await page.evaluate(() => { const s = document.getElementById("plaw0"); s.value = "carvaka"; s.dispatchEvent(new Event("change", { bubbles: true })); });
   assert(/Perception is the only means of knowing/.test(await page.textContent("#plawAbout0")), "the setup did not explain Cārvāka");
@@ -1116,7 +1116,7 @@ await check("Phase 17, step 3: the laws are offered once a life has been lived, 
   await page.evaluate(() => document.getElementById("roll").click());
   await page.waitForFunction(() => document.querySelector("#folio[open] .leaf.reborn"), null, { timeout: 15000 });
   const ids = await page.evaluate(() => [...document.querySelectorAll('#leaf [data-act="law"]')].map(b => b.dataset.law));
-  assert(ids.join() === "board,mimamsa,carvaka,jain,bhakti", `the card's laws: ${ids}`);
+  assert(ids.join() === "board,mimamsa,carvaka,jain,bhakti,nyaya,sankhya,advaita,yoga", `the card's laws: ${ids}`);
   await page.click('#leaf [data-law="mimamsa"]');
   const now = await page.evaluate(() => ({ law: mp.state.players[0].law, pressed: document.querySelector('#leaf [data-law="mimamsa"]').getAttribute("aria-pressed") }));
   assert(now.law === "mimamsa" && now.pressed === "true", JSON.stringify(now));
@@ -1217,7 +1217,7 @@ await check("Phase 17, step 3: Be born again offers the laws, explained, and the
   await page.evaluate(() => { const s = mp.samskara(); s.souls.mira.animal = null; mp.samskara(s); document.getElementById("lifeDlg").close(); });
   await page.waitForFunction(() => !document.getElementById("rebornLaws").hidden, null, { timeout: 5000 });
   const laws = await page.evaluate(() => [...document.querySelectorAll("#rebornLaws .law")].map(b => [b.dataset.law, b.textContent]));
-  assert(laws.map(x => x[0]).join() === "board,mimamsa,carvaka,jain,bhakti" && laws.every(x => x[1].length > 60), JSON.stringify(laws));
+  assert(laws.map(x => x[0]).join() === "board,mimamsa,carvaka,jain,bhakti,nyaya,sankhya,advaita,yoga" && laws.every(x => x[1].length > 60), JSON.stringify(laws));
   await page.click('#rebornLaws [data-law="mimamsa"]');
   await page.click("#reborn");
   await page.waitForFunction(() => !mp.state.over && mp.state.players[0].prior, null, { timeout: 15000 });
@@ -1307,6 +1307,101 @@ await check("Phase 17, step 4 follow-up: under Bhakti Devotion's ladder is drawn
   await until(page, () => !mp.busy && mp.state.turn === 0 && !document.getElementById("roll").disabled);
   const after = await page.evaluate(`({ pos: mp.state.players[0].pos, gold: (${goldOn})() })`);
   assert(after.pos === 94 && after.gold === 0, JSON.stringify(after));
+});
+
+// ---- Phase 17, step 5: Nyāya, Sāṃkhya, Advaita, Yoga ----
+const settled = page => until(page, () => !mp.busy && mp.state.turn === 0 && !document.getElementById("roll").disabled);
+await check("Phase 17, step 5: under Yoga a year in practice sits beside Roll and stores a stillness in words; a stored one lets a throw go", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await meera(page);
+  await page.goto(BASE + "?seed=1&debug");
+  await page.evaluate(() => { mp.law("yoga"); mp.jump(20); mp.years(12); });
+  await page.waitForFunction(() => !document.getElementById("practise").hidden);
+  const both = await page.evaluate(() => ({ roll: !document.getElementById("roll").hidden, label: document.getElementById("practise").textContent }));
+  assert(both.roll && both.label === "Sit in practice", JSON.stringify(both));
+  await page.click("#practise");
+  await settled(page);
+  const sat = await page.evaluate(() => ({ still: mp.still(), pos: mp.state.players[0].pos, log: document.getElementById("log").textContent, line: document.querySelector("#players .still")?.textContent }));
+  assert(sat.still === 1 && sat.pos === 20 && /sat a year in practice/.test(sat.log) && sat.line === "A stillness kept", JSON.stringify(sat).slice(0, 300));
+  // Space still rolls
+  await page.evaluate(() => document.activeElement?.blur());
+  await page.keyboard.press("Space");
+  await page.waitForFunction(() => mp.choosing || mp.state.players[0].pos !== 20, null, { timeout: 15000 });
+  if (await page.evaluate(() => !!mp.choosing)) {
+    const offer = await page.evaluate(() => [...document.querySelectorAll("#pick button")].map(b => b.textContent));
+    assert(offer.includes("Let it go"), JSON.stringify(offer));
+    await page.click('#pick button[data-v="0"]');
+  }
+  await settled(page);
+  const after = await page.evaluate(() => ({ still: mp.still(), pos: mp.state.players[0].pos, line: document.querySelector("#players .still")?.textContent ?? "" }));
+  assert(after.still === 0 && after.pos === 20 && !/\d/.test(after.line), JSON.stringify(after));
+});
+
+await check("Phase 17, step 5: under Nyāya a reckoning is a sign with no source, the ledger is never shown, and a throw infers in five members", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await meera(page);
+  await page.goto(BASE + "?seed=1&debug&depth=scholar");
+  await page.evaluate(() => { mp.law("nyaya"); mp.jump(30); mp.years(40); mp.plant(12, "lie"); mp.fire(); });
+  const ledger = await page.evaluate(() => document.getElementById("ledger").textContent);
+  assert(/never seen/.test(ledger) && !/teacher|homework|lie/i.test(ledger), ledger);
+  await page.evaluate(() => { mp.roll(3); });
+  await page.waitForFunction(() => document.getElementById("folio").open && /A sign/.test(document.getElementById("leaf").textContent), null, { timeout: 15000 });
+  const sign = await page.evaluate(() => ({ text: document.querySelector("#leaf .leaf-text").textContent, src: !!document.querySelector("#leaf .srcline"), hash: location.hash }));
+  assert(!sign.src && !/comes from|square|teacher/i.test(sign.text) && !/\d/.test(sign.text) && !/sq\/12/.test(sign.hash), JSON.stringify(sign).slice(0, 400));
+  await page.evaluate(() => mp.close());
+  await settled(page);
+  const log = await page.evaluate(() => mp.state.log.find(e => e.kind === "reckon"));
+  assert(log?.k === "lSign" && !log.v.sq, JSON.stringify(log));
+  await page.evaluate(() => { mp.roll(3); });
+  await page.waitForFunction(() => mp.choosing, null, { timeout: 15000 });
+  const offer = await page.evaluate(() => [...document.querySelectorAll("#pick button")].map(b => b.textContent));
+  assert(offer.includes("Infer"), JSON.stringify(offer));
+  await page.click('#pick button[data-v="0"]');
+  await page.waitForFunction(() => document.getElementById("folio").open && document.querySelectorAll("#leaf ol.infer > li").length === 5, null, { timeout: 15000 });
+  const inf = await page.evaluate(() => [...document.querySelectorAll("#leaf ol.infer > li")].map(li => li.textContent.trim()));
+  assert(/smoke there is fire/.test(inf[2]) && /^So there is a deed behind it: /.test(inf[4]) && !inf.some(t => /\d/.test(t)), JSON.stringify(inf));
+  await page.evaluate(() => mp.close());
+  await settled(page);
+});
+
+await check("Phase 17, step 5: under Sāṃkhya the person rolls and prakṛti chooses; the card tells it, the options passed over greyed", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await meera(page);
+  await page.goto(BASE + "?seed=1&debug&depth=scholar");
+  await page.evaluate(() => { mp.law("sankhya"); mp.jump(45); mp.years(40); mp.roll(2); });
+  await page.waitForFunction(() => document.getElementById("folio").open && /Prakṛti did/.test(document.getElementById("leaf").textContent), null, { timeout: 15000 });
+  const card = await page.evaluate(() => ({ role: document.getElementById("folio").tagName, deciding: mp.deciding, clickable: document.querySelectorAll('#leaf [data-act="opt"]').length,
+    passed: [...document.querySelectorAll("#leaf .options.passed .opt")].map(o => o.getAttribute("aria-disabled")), x: !!document.querySelector('#leaf [data-act="close"]') }));
+  assert(card.role === "DIALOG" && !card.deciding && card.clickable === 0 && card.passed.length >= 1 && card.passed.every(a => a === "true") && card.x, JSON.stringify(card));
+  await page.click("#leaf .more-btn");
+  const more = await page.evaluate(() => document.getElementById("leafMore").textContent);
+  assert(/3\.27|३\.२७/.test(more), more.slice(0, 200));
+  await page.evaluate(() => mp.close());
+  await settled(page);
+});
+
+await check("Phase 17, step 5: under Advaita 105 had no door, the art fades with the bhūmikā and never the labels, and recognition wins", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await meera(page);
+  await page.goto(BASE + "?seed=1&debug");
+  await page.evaluate(() => { mp.law("advaita"); });
+  await openOn(page, 105);
+  const goal = await page.evaluate(() => document.querySelector("#leaf .story").textContent);
+  assert(/There was never a door here, only something not yet recognised\./.test(goal), goal.slice(0, 200));
+  await page.evaluate(() => mp.close());
+  const ink = () => getComputedStyle(document.querySelector('#labels .lab[data-n="50"]')).color;
+  const before = await page.evaluate(`(${ink})()`);
+  await page.evaluate(() => { mp.jump(50); mp.bhumika(5); });
+  await page.waitForFunction(() => +getComputedStyle(document.getElementById("art")).opacity < 0.45, null, { timeout: 5000 });
+  assert(before === await page.evaluate(`(${ink})()`), "a label dimmed");
+  await page.evaluate(() => { mp.roll(3); });
+  await page.waitForFunction(() => mp.choosing, null, { timeout: 15000 });
+  const offer = await page.evaluate(() => [...document.querySelectorAll("#pick button")].map(b => b.textContent));
+  assert(offer.includes("Recognise"), JSON.stringify(offer));
+  await page.click('#pick button[data-v="0"]');
+  await page.waitForFunction(() => mp.state.over && mp.state.winner === 0, null, { timeout: 15000 });
+  const win = await page.evaluate(() => ({ won: mp.state.players[0].won, pos: mp.state.players[0].pos, title: document.getElementById("winTitle").textContent }));
+  assert(win.won === "recognition" && win.pos === 50 && /recognised/.test(win.title), JSON.stringify(win));
 });
 
 await check("Phase 17, step 0: on a phone an ordinary card closes on a tap on its text or on the dimmed board; one that holds the game does not", async page => {

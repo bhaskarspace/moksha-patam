@@ -8,6 +8,8 @@ import { $, COLORS, esc } from "../ui.js";
 import { lifeOf, lifeText as textOf, pathOf } from "../engine/account.js";
 import { mirrorOf, mirrorIn, mirrorIntroIn } from "../engine/mirror.js";
 import { pastOf } from "../engine/samskara.js";
+import { lawOf } from "../engine/laws/index.js";
+import { prefs } from "../prefs.js";
 
 const dlg = $("lifeDlg"), leaf = $("lifeLeaf");
 // past: which of the seat's lives closed by Śiva's snake is read (Phase 17, p.past), or null for the one in it now
@@ -31,11 +33,14 @@ function panel(game, l, T) {
       `<p><button type="button" class="ghost" data-act="skip">${T("mirrorSkip")}</button></p>`;
   }
   const { sub, open, paras, end, curse, fates } = lifeOf(state, whose, l);
+  // the source of a law's last word (Sāṃkhya's dancer, Sāṃkhyakārikā 59), in the scholar layer
+  const lw = lawOf(state, whose).text, src = lw.endSrc && prefs.depth === "scholar" && end.endsWith(tIn(l, lw.end)) ? tIn(l, lw.endSrc) : "";
   return `<p class="life-scribe">${esc(T("citragupta"))}</p>
         ${sub ? `<p class="life-sub">${esc(sub)}</p>` : ""}
         ${open ? `<p class="life-open">${esc(open)}</p>` : ""}
         ${paras.map(p => `<h3 class="sub">${esc(p.head)}</h3><p>${esc(p.text)}</p>`).join("")}
         <p class="life-end">${esc([end, curse].filter(Boolean).join(" "))}</p>
+        ${src ? `<p class="life-src">${esc(src)}</p>` : ""}
         ${fates.length ? `<p class="life-fates">${esc(fates.join(" "))}</p>` : ""}`;
 }
 

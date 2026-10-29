@@ -2,12 +2,13 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import { createGame, playTurn, planTurn, resolveChoice, endTurn, addLog, movesFor, moveFor, canSit, foresee, gone } from "../src/engine/turn.js";
+import { createGame, playTurn, planTurn, resolveChoice, endTurn, addLog, movesFor, moveFor, canSit, foresee, gone, canPractise, practisesNow, zeroOf } from "../src/engine/turn.js";
 import { LAWS, lawOf, choosable, canChoose, setLaw } from "../src/engine/laws/index.js";
 import { board } from "../src/engine/laws/board.js";
 import { soulOf, bornOf, endOf, keepOf, storeWith } from "../src/engine/samskara.js";
 import { optionOf, choiceFor, situationAt } from "../src/engine/qbn.js";
-import { carried, answerOf, examineOf, refusalOf } from "../src/engine/karma.js";
+import { carried, answerOf, examineOf, refusalOf, inferLinesIn, reckonSignIn, reckonLinesIn, refusalIn, debtIn } from "../src/engine/karma.js";
+import { leadOf } from "../src/engine/laws/sankhya.js";
 import { yearsAlong } from "../src/engine/self.js";
 import { doorOf } from "../src/engine/turn.js";
 import { lifeOf } from "../src/engine/account.js";
@@ -27,7 +28,7 @@ test("a player's law is their own, else the game's, else the board's; every law 
   s.players[1].law = "nonesuch";
   assert.equal(lawOf(s, 1).id, "board");
   for (const l of Object.values(LAWS)) for (const k of Object.keys(board)) assert.ok(k in l, `${l.id} has ${k}`);
-  assert.deepEqual(choosable().map(l => l.id), ["board", "mimamsa", "carvaka", "jain", "bhakti"]);
+  assert.deepEqual(choosable().map(l => l.id), ["board", "mimamsa", "carvaka", "jain", "bhakti", "nyaya", "sankhya", "advaita", "yoga"]);
 });
 
 test("the interlude plays through the animal law's hooks, as Phase 16 played it", () => {
@@ -348,4 +349,157 @@ test("Jain: at a ladder's foot a life may wait, a year a throw; once waiting onl
   const b = at("board", [18, 20]);
   b.players[0].pos = 23; b.players[0].life.push(23); b.players[0].told.push(null);
   assert.deepEqual(movesFor(b, [4]), [4]);
+});
+
+// ---- Phase 17 step 5: Nyāya, Sāṃkhya, Advaita, Yoga ----
+
+test("Yoga: a year in practice before the throw draws no dice and stores a stillness, up to three", () => {
+  const s = at("yoga", [18, 20]), p = s.players[0];
+  assert.ok(canPractise(s));
+  const rng = { ...s.rng }, y = p.years;
+  const sat = playTurn(s, []);
+  assert.deepEqual(s.rng, rng, "nothing thrown");
+  assert.ok(sat.sit && sat.act === "practice" && p.pos === 20 && p.years === y + 1 && p.nirodha === 1);
+  assert.ok(s.log.some(e => e.k === "lPractice"));
+  assert.equal(yearsAlong(p.life, p.told).at(-1).via, "sit");
+  for (const _ of [1, 2, 3]) { s.turn = 0; if (canPractise(s)) playTurn(s, []); }
+  assert.equal(p.nirodha, 3, "capped at three");
+  assert.ok(!canPractise(s));
+  // in words on the player's line, never a count
+  assert.equal(lawOf(s, 0).line(p), "still3");
+  assert.equal(lawOf(s, 0).line({ ...p, nirodha: 0 }), null);
+  // under the board's law there is no such sitting
+  assert.ok(!canPractise(at("board", [18, 20])));
+});
+
+test("Yoga: a stored stillness lets a throw go: the life stays and the year passes; without one, nothing is offered", () => {
+  const s = at("yoga", [18, 20], { nirodha: 1 }), p = s.players[0];
+  assert.deepEqual(movesFor(s, [4]), [4, 0]);
+  assert.equal(zeroOf(s, [4]).act, "letGo");
+  const y = p.years, gone1 = playTurn(s, [4], () => 0);
+  assert.ok(gone1.act === "letGo" && p.pos === 20 && p.years === y + 1 && p.nirodha === 0 && s.log.some(e => e.k === "lLetGo"));
+  s.turn = 0;
+  assert.deepEqual(movesFor(s, [4]), [4], "nothing stored, nothing to let go");
+  // from 94 a sannyāsin's 0 is Phase 9's year in practice, and spends nothing
+  const e = under("yoga", 95, { years: 92, nirodha: 2 });
+  e.turn = 0;
+  assert.ok(canSit(e.players[0]) && zeroOf(e, [1, 2]) === null);
+  playTurn(e, [1, 2], () => 0);
+  assert.equal(e.players[0].nirodha, 2);
+});
+
+test("Yoga: its computer sits with nothing stored and a snake's head within a throw, and lets a throw onto one go", () => {
+  const s = at("yoga", [18, 20, 25]);
+  assert.ok(practisesNow(s), "29 is within a throw of 25");
+  const f = at("yoga", [18, 20]);
+  assert.ok(!practisesNow(f), "no snake's head from 21 to 26");
+  const g = at("yoga", [18, 20, 25], { nirodha: 1 });
+  assert.ok(!practisesNow(g), "it holds one already");
+  assert.equal(moveFor(g, [4]), 0, "25 + 4 is the snake's head on 29");
+  assert.equal(moveFor(g, [3]), 3);
+});
+
+test("Nyāya: the door refuses as a sign and opens on no win; release is a life that ends owing nothing", () => {
+  const s = under("nyaya", 103), p = s.players[0];
+  const through = playTurn(s, [2, 1], () => 2);
+  assert.ok(p.pos === 105 && !through.win && !s.over && s.log.some(e => e.k === "lDoorThrough"));
+  // owing, it is refused, and the refusal is said as a sign, never by what is owed
+  const o = under("nyaya", 103, { karma: { sancita: [], agami: [{ ...DEBT }], prarabdha: [] } });
+  const refused = playTurn(o, [2, 1], () => 2);
+  assert.ok(refused.refused && o.players[0].door);
+  const who = { name: "Mira", gender: "f" };
+  assert.deepEqual(refusalIn("en", refused.refused, who, false, true).slice(0, 1), [STR_SIGN]);
+  assert.ok(!refusalIn("en", refused.refused, who, false, true).join(" ").includes(debtIn("en", DEBT, who)));
+  // no examination there; a computer is offered nothing, Mira (a person) her inference
+  o.turn = 0;
+  assert.equal(zeroOf(o, [1, 2])?.act, "infer");
+  // Śiva's snake with nothing owed: apavarga, won, not born again, and let go from the store
+  const f = under("nyaya", 104);
+  const fall = playTurn(f, [6, 1], () => 6);
+  assert.ok(fall.fell && fall.freed && f.winner === 0 && f.over && f.players[0].won === "apavarga" && !f.players[0].past);
+  assert.deepEqual(keepOf(f, 0), { drop: true });
+  assert.match(lifeOf(f, 0, "en").end, /apavarga/);
+  // owing, the snake is rebirth as on the board
+  const fo = under("nyaya", 104, { karma: { sancita: [], agami: [{ ...DEBT }], prarabdha: [] } });
+  playTurn(fo, [6, 1], () => 6);
+  assert.ok(fo.winner == null && fo.players[0].rebirths === 1);
+  // the years running out with nothing owed is release too
+  const y = at("nyaya", [28, 30], { years: 110 });
+  const died = playTurn(y, [3]);
+  assert.ok(died.died && y.winner === 0 && y.players[0].dead && y.players[0].won === "apavarga");
+  // a death by the ledger never is
+  const d = at("nyaya", [28, 30], { years: 60, karma: { sancita: [], agami: [], prarabdha: [{ ...DEBT }] } });
+  d.forceDeath = "calamity";
+  const ledger = playTurn(d, [3]);
+  assert.ok(ledger.died && d.players[0].death.by === "ledger" && d.winner == null && !d.players[0].won);
+});
+const STR_SIGN = "The door does not open. Something is still owed.";
+
+test("Nyāya: a reckoning is a sign, with no source anywhere; a person may spend a throw to infer it, in five members", () => {
+  const s = at("nyaya", [28, 30], { years: 40, karma: { sancita: [], agami: [], prarabdha: [{ ...DEBT }] } }), p = s.players[0];
+  assert.ok(lawOf(s, 0).veiled && !lawOf(s, 0).foresight);
+  s.forceOmen = true;
+  const rk = playTurn(s, [3]);
+  assert.ok(rk.reckon);
+  const line = s.log.find(e => e.kind === "reckon");
+  assert.equal(line.k, "lSign");
+  assert.deepEqual(line.v, {}, "the log names no square");
+  const who = { name: "Mira", gender: "f" }, full = reckonLinesIn("en", rk.reckon, who), sign = reckonSignIn("en", rk.reckon, who);
+  assert.ok(sign.length === full.length - 2 && !sign.some(t => t.includes("comes from")));
+  // the sign offers its inference beside the move; the life stays and the year passes
+  s.turn = 0;
+  const pos = p.pos, y = p.years;
+  assert.ok(movesFor(s, [2]).includes(0));
+  const inf = playTurn(s, [2], () => 0);
+  assert.ok(inf.act === "infer" && inf.infer.kind === "reckon" && p.pos === pos && p.years === y + 1);
+  assert.deepEqual(p.inferred, [inf.infer.key]);
+  s.turn = 0;
+  assert.deepEqual(movesFor(s, [2]), [2], "inferred once, nothing more to infer");
+  // the five members, ending on the deed, in words
+  const lines = inferLinesIn("en", inf.infer, who);
+  assert.equal(lines.length, 5);
+  assert.ok(lines[4].includes(debtIn("en", { src: 12, opt: "lie", at: 10 }, who)), lines[4]);
+  assert.ok(lines.every(t => !/\d/.test(t)), lines.join(" | "));
+  // its computer never infers
+  const c = at("nyaya", [28, 30], { type: "cpu", years: 40, reckonings: [{ at: 1, src: 12, opt: "lie", planted: 10, age: 35 }] });
+  assert.deepEqual(movesFor(c, [2]), [2]);
+});
+
+test("Sāṃkhya: prakṛti chooses for the person by the guṇa leading the life, and the account closes on the dancer", () => {
+  const s = under("sankhya", 45), p = s.players[0], sit = situationAt(47);
+  assert.ok(lawOf(s, 0).auto);
+  s.turn = 0;
+  p.gunas = { s: 0.6, r: 0.2, t: 0.2 };
+  assert.equal(leadOf(p), "s");
+  assert.equal(lawOf(s, 0).choose(s, sit), choiceFor(s, sit, "honest"));
+  p.gunas = { s: 0.2, r: 0.6, t: 0.2 };
+  assert.equal(lawOf(s, 0).choose(s, sit), "buy", "rajas: the most wealth and pleasure");
+  p.gunas = { s: 0.2, r: 0.2, t: 0.6 };
+  assert.equal(lawOf(s, 0).choose(s, sit), choiceFor(s, sit, "inert"));
+  p.gunas = { s: 1 / 3, r: 1 / 3, t: 1 / 3 };
+  assert.equal(leadOf(p), null);
+  assert.equal(lawOf(s, 0).choose(s, sit), choiceFor(s, sit, "mixed"), "in balance, the game's own");
+  // the dancer of Sāṃkhyakārikā 59, won or not
+  const f = under("sankhya", 104);
+  playTurn(f, [6, 1], () => 6);
+  f.players[0].past && (f.players[0] = f.players[0].past[0]);
+  assert.match(lifeOf(f, 0, "en").end, /prakṛti stops once she has shown herself/);
+});
+
+test("Advaita: arriving at 105 wins nothing; from the sixth bhūmikā a sannyāsin recognises in place of a move, and wins", () => {
+  const s = under("advaita", 103), p = s.players[0];
+  const arrive = playTurn(s, [2, 1], () => 2);
+  assert.ok(p.pos === 105 && !arrive.win && !arrive.refused && !s.over);
+  assert.equal(lawOf(s, 0).text.goal, "advaitaGoal");
+  const r = at("advaita", [48, 50], { years: 75, bhumika: 5 }), q = r.players[0];
+  assert.ok(movesFor(r, [3]).includes(0));
+  assert.equal(moveFor(r, [3]), 0, "its computer recognises whenever it may");
+  const won = playTurn(r, [3]);
+  assert.ok(won.win && won.act === "recognise" && q.pos === 50 && r.winner === 0 && q.won === "recognition");
+  assert.ok(r.log.some(e => e.k === "lRecognised"));
+  assert.deepEqual(keepOf(r, 0), { drop: true });
+  assert.match(lifeOf(r, 0, "en").end, /recognition/);
+  // the fifth is not enough
+  const n = at("advaita", [48, 50], { years: 75, bhumika: 4 });
+  assert.deepEqual(movesFor(n, [3]), [3]);
 });

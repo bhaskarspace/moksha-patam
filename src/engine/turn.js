@@ -51,6 +51,13 @@ export function toldOn(n, face, dice = [face]) {
 // you walk. A sannyasin the door at 105 has refused may sit there too (REDESIGN.md Phase 12); it is still earth, and
 // since Phase 14 each year sat there is a question of the examination (src/engine/karma.js examineOf).
 export const canSit = p => p.pos >= ENDGAME && (p.pos <= 100 || p.pos === GOAL) && stageOfPlayer(p) === SANNYASA && slotsFor(p).includes("practice");
+// A year sat in practice before the throw, drawing no dice (Phase 17 step 5, Yoga): whether player i may, and whether the
+// computer whose turn it is does now. The page and tools/sim.mjs ask the same.
+export const canPractise = (state, i = state.turn) => lawOf(state, i).practice(state, i);
+export const practisesNow = state => canPractise(state) && lawOf(state).sits(state);
+// What a move of 0 is for the current player under their law, when it is the law's own act (src/engine/laws/board.js zero):
+// { act, line, kind }, or null for Phase 9's year in practice or a wait at a ladder's foot.
+export const zeroOf = (state, dice) => lawOf(state).zero(state, state.turn, dice);
 // What the law adds at the door for player i (Phase 17, src/engine/karma.js examineOf): what it asks last, and grace.
 export const doorOf = (state, i) => { const law = lawOf(state, i); return { bound: law.binds(state, i), forgive: (s, n) => law.forgive(state, i, s, n) }; };
 // The moves a roll offers: each die's value once, and 0 for sitting. Since Phase 17 no die is offered that would carry
@@ -72,8 +79,9 @@ export function movesFor(state, dice) {
 export function moveFor(state, dice) {
   const moves = movesFor(state, dice);
   if (!moves.length) return null;
-  // a law's computer may have a move of its own first (Jain: waiting at a ladder's foot)
-  const own = lawOf(state).prefer(state, moves);
+  // a law's computer may have a move of its own first (Jain: waiting at a ladder's foot; Yoga: a bad throw let go;
+  // Advaita: recognition)
+  const own = lawOf(state).prefer(state, moves, dice);
   if (own != null) return own;
   const plans = moves.filter(Boolean).map(v => planTurn(state, v, dice));
   const to = pl => pl.reckon?.from ?? pl.final;
@@ -192,18 +200,25 @@ export function planTurn(state, v, dice = [v]) {
     // a year sat out: no walk, no landing, and the year still passes. At a door that has refused the life it is a year
     // of the examination (REDESIGN.md Phase 14): one question, and the door opens when nothing is owed. A life whose
     // years run out there dies at the door.
-    const years = turnYears(p.years ?? 0, { sit: true }), died = years > SPAN;
+    // Phase 17 step 5: a year in practice before any throw (no dice drawn), or the law's own act in place of a move: a
+    // throw let go, an inference, a recognition (a win, of its kind, which no running out of years forestalls)
+    const z = !dice.length ? { act: "practice", line: "lPractice" } : law.zero(state, idx, dice);
+    const years = turnYears(p.years ?? 0, { sit: true }), died = years > SPAN && !z?.kind;
     // a reckoning may have met what was owed while the life sat there: then there is no question, and the door opens
-    const atDoor = from === GOAL && !!p.door, exam = atDoor ? examineOf(p, doorOf(state, idx)) : null;
+    const atDoor = !z && from === GOAL && !!p.door, exam = atDoor ? examineOf(p, doorOf(state, idx)) : null;
     // mp.grace(face) forces grace's next throw, at the door as on an ego test; it is spent once asked
     if (exam) delete state.forceGrace;
-    const win = atDoor && !died && (exam ? exam.open : !refusalOf(p, law.binds(state, idx)));
-    if (exam) after.push(entry(exam.merit ? "lExamMerit" : exam.graced ? "lExamGrace" : exam.pass ? "lExamPass" : exam.n === 1 ? (exam.cleared ? "lExamPaid" : "lExamFail") : exam.cleared ? "lExamPaid" : exam.never ? "lExamNever" : "lExamPenance", { pos: from, src: exam.src, sq: exam.src }, "", idx));
+    const win = !!z?.kind || (atDoor && !died && (exam ? exam.open : !refusalOf(p, law.binds(state, idx))));
+    if (z) after.push(entry(z.line, { pos: from, sq: from }, "", idx));
+    else if (exam) after.push(entry(exam.merit ? "lExamMerit" : exam.graced ? "lExamGrace" : exam.pass ? "lExamPass" : exam.n === 1 ? (exam.cleared ? "lExamPaid" : "lExamFail") : exam.cleared ? "lExamPaid" : exam.never ? "lExamNever" : "lExamPenance", { pos: from, src: exam.src, sq: exam.src }, "", idx));
     // a year waited at a ladder's foot (Jain) is said so; elsewhere it is a year in practice
     else if (!win) after.push(entry(LADDERS[from] ? "lFootWait" : "lSit", { pos: from, sq: from }, "", idx));
     if (died) end.push(entry(from === GOAL ? "lDiedDoor" : "lDied", { pos: from, age: years, sq: from }, "death", idx));
+    else if (z?.kind) end.push(entry(law.text.win.line, { pos: from, sq: from }, "heaven", idx));
     else if (win) end.push(entry("lDoorOpen", { pos: GOAL }, "", idx), entry("lWin", { pos: GOAL }, "heaven", idx));
-    return resolve(state, { idx, v, dice, spare, sit: true, from, path, target: from, final: from, jump: null, win, died, again: false, told: [null], exam, pre, after, end }, years);
+    // the act is told on the square again, so the life reads it as a year there (src/engine/self.js yearsAlong)
+    const act = z ? { act: z.act, ...(z.kind ? { kind: z.kind } : {}), ...law.acted(state, idx, z.act) } : {};
+    return resolve(state, { idx, v, dice, spare, sit: true, from, path, target: from, final: from, jump: null, win, died, again: false, told: [z?.act ?? null], exam, pre, after, end, ...act }, years);
   }
   // the fall (REDESIGN.md Phase 12): the throw past the top, or since Phase 14 a landing on it, where Śiva's snake
   // takes the life down to square 1. Either way the life ends; the snake's tail only marks where the next begins.
@@ -327,9 +342,12 @@ function finish(state, plan, o) {
   const ex = law.exit(state, idx), atExit = !!ex && final === ex.at;
   const refused = atExit && ex.door ? refusalOf(p, law.binds(state, idx)) : null;
   if (refused) after.push(entry("lRefused", { pos: GOAL, sq: GOAL }, "", idx));
+  // a door that opens on no win while the life lasts (Nyāya): the life goes on, into the heavens
+  const through = atExit && ex.door && !refused && ex.alive === false;
+  if (through) after.push(entry(ex.through, { pos: GOAL, sq: GOAL }, "", idx));
   const owed = atExit && !ex.door && carried(karmaOf(p)).length > 0;
   if (owed) after.push(entry(ex.owed, { pos: final, sq: final }, "", idx));
-  const win = atExit && !refused && !owed;
+  const win = atExit && !refused && !owed && !through;
   // A life ends when its years run out on earth (REDESIGN.md Phase 8). Only a life that walks ground it has
   // already lived can outrun the span, so only the snakes bring this about.
   const years = turnYears(p.years ?? 0, { target, final, jump, cost }), died = !win && final <= 100 && years > SPAN;
@@ -352,13 +370,13 @@ function finish(state, plan, o) {
   return resolve(state, plan, years);
 }
 
-// RESOLVE (§2.1): once the move is made, the omen. A 6 among the dice, a ripe debt, on earth or at the door, and the
+// RESOLVE (§2.1): once the move is made, the omen. Under a law that veils karma (Nyāya) its line names no square. A 6 among the dice, a ripe debt, on earth or at the door, and the
 // chance that rises toward the exit: then a reckoning, prārabdha in fruit, which nobody could steer away from. What it
 // costs is the ledger's (src/engine/karma.js reckonOf): years, which are the square again told as stays; a holding; at
 // the third tier the square the debt was made on, reached as a snake reaches its tail, taking no time.
 function resolve(state, plan, years) {
-  const { idx } = plan, p = state.players[idx];
-  const omen = plan.win || plan.died || !lawOf(state, idx).omen(state, idx) ? null : omenFor(state, idx, { dice: plan.dice, pos: plan.final, years, lived: p.life?.length ?? 0, force: !!(state.forceOmen || state.forceDeath) });
+  const { idx } = plan, p = state.players[idx], law = lawOf(state, idx);
+  const omen = plan.win || plan.died || !law.omen(state, idx) ? null : omenFor(state, idx, { dice: plan.dice, pos: plan.final, years, lived: p.life?.length ?? 0, force: !!(state.forceOmen || state.forceDeath) });
   // mp.die(form) (Phase 16): the omen that fires is the death tier, in that form, whatever the ledger weighs
   if (omen?.reckon && state.forceDeath) Object.assign(omen.reckon, { dies: true, applied: DEATH, form: state.forceDeath, years: 0, holds: null, to: null });
   const rk = omen?.reckon ?? null;
@@ -369,7 +387,7 @@ function resolve(state, plan, years) {
   if (rk.dies) {
     plan.died = true;
     plan.death = { by: "ledger", form: rk.form, age: years, src: rk.src, opt: rk.opt };
-    plan.end = [entry("lReckon", { src: rk.src, sq: rk.src }, "reckon", idx), entry("lDiedLedger", { pos: plan.final, age: years, sq: plan.final }, "death", idx)];
+    plan.end = [entry(law.text.reckon, law.veiled ? {} : { src: rk.src, sq: rk.src }, "reckon", idx), entry("lDiedLedger", { pos: plan.final, age: years, sq: plan.final }, "death", idx)];
     plan.again = false;
     return plan;
   }
@@ -377,7 +395,7 @@ function resolve(state, plan, years) {
   plan.told.push(...(rk.to ? ["reckon"] : []), ...Array(rk.years).fill("stay"));
   // first among the turn's ends; a new array, since the log alone is built by unshift (tools/golden.mjs listens for it).
   // A reckoning takes the throw a 6 would have given: the turn passes (Bhaskar, 26 Oct).
-  plan.end = [entry("lReckon", { src: rk.src, sq: rk.src }, "reckon", idx), ...plan.end.filter(e => e.k !== "lSix")];
+  plan.end = [entry(law.text.reckon, law.veiled ? {} : { src: rk.src, sq: rk.src }, "reckon", idx), ...plan.end.filter(e => e.k !== "lSix")];
   plan.again = false;
   return plan;
 }
@@ -439,16 +457,19 @@ export function endTurn(state, plan) {
     // how the life ended (Phase 16): its ledger, its years on earth, or its years at the door
     if (plan.died) { p.dead = true; p.holding = holdingOf(p.life, p.held); p.death = plan.death ?? { by: plan.sit && plan.from === GOAL ? "door" : "years", age: p.years }; }
     // the exit the life went through, of its law's kind (mokṣa, svarga)
-    if (plan.win) p.won = lawOf(state, plan.idx).exit(state, plan.idx)?.kind ?? null;
+    if (plan.win) p.won = plan.kind ?? lawOf(state, plan.idx).exit(state, plan.idx)?.kind ?? null;
     // the merit a life brings into the heavens, read as it enters them
     if (inHeaven(p.pos) && p.merit == null && lawOf(state, plan.idx).merit(state, plan.idx)) p.merit = meritOf(p);
   }
   // a life over carries what it never met into the store (sañcita), for Phase 15 to draw the next life's prārabdha from
   // the interlude (Phase 16): earned at the forest's edge, or the throws run out short of it
   lawOf(state, plan.idx).afterTurn(state, plan, p);
+  // a life let go as it ends (Nyāya's apavarga: its years or Śiva's snake, with nothing owed): won, and not born again
+  const freed = (plan.died || plan.fell) && lawOf(state, plan.idx).freed(state, plan.idx, plan);
+  if (freed) { p.won = freed; plan.freed = true; plan.end.push(entry(lawOf(state, plan.idx).text.win.line, {}, "heaven", plan.idx)); }
   if (plan.died || plan.fell) { const k = karmaOf(p); p.karma = { sancita: [...k.sancita, ...carried(k)], agami: [], prarabdha: [] }; }
   // Śiva's snake is rebirth (Phase 17): the same soul, born of the life it closed, at the snake's tail
-  if (plan.fell && lawOf(state, plan.idx).siva(state, plan.idx) === "reborn") {
+  if (plan.fell && !plan.freed && lawOf(state, plan.idx).siva(state, plan.idx) === "reborn") {
     // the turn's last lines are logged after the birth, and still belong to the life that ended
     plan.end.forEach(e => { if (e.who != null) e.life = p.rebirths ?? 0; });
     bornAgain(state, plan.idx);
@@ -461,7 +482,7 @@ export function endTurn(state, plan) {
 }
 
 function passTurn(state, plan) {
-  if (plan.win) state.winner = plan.idx;
+  if (plan.win || plan.freed) state.winner = plan.idx;
   // the turn passes to the next player still alive; with nobody left, the game is over
   else if (!plan.again) for (let k = 1; k <= state.players.length; k++) {
     const i = (plan.idx + k) % state.players.length;
@@ -499,11 +520,13 @@ function bornAgain(state, i) {
 // One whole turn without animation. A number is one die moved by; an array is the dice rolled, and pick chooses
 // the move from them.
 // With the merit spent nothing is thrown, so nothing is drawn.
-export function playTurn(state, roll = spentOf(state.players[state.turn]) ? [] : rollDice(state.rng, diceFor(state.players[state.turn])), pick = moveFor, choose = (s, sit) => lawOf(s).choose(s, sit)) {
+// A year in practice before the throw (Yoga) draws nothing either: its computer decides before any die (practisesNow).
+export function playTurn(state, roll = spentOf(state.players[state.turn]) || practisesNow(state) ? [] : rollDice(state.rng, diceFor(state.players[state.turn])), pick = moveFor, choose = (s, sit) => lawOf(s).choose(s, sit)) {
   // one die is no choice, unless the law offers one (Jain: waiting at a ladder's foot, or moved only by the 1 there)
   const dice = typeof roll === "number" ? [roll] : roll, one = dice.length > 1 ? null : movesFor(state, dice);
-  const v = !one ? pick(state, dice) : one.length > 1 ? pick(state, dice) : one[0] ?? dice[0];
-  state.last = v || dice[0];
+  // no dice and the merit not spent: the year sat in practice
+  const v = !dice.length && !spentOf(state.players[state.turn]) ? 0 : !one ? pick(state, dice) : one.length > 1 ? pick(state, dice) : one[0] ?? dice[0];
+  if (dice.length || v == null) state.last = v || dice[0];
   let plan = planTurn(state, v, dice);
   if (plan.situation) plan = resolveChoice(state, plan, choose(state, plan.situation));
   [...plan.pre, ...plan.after].forEach(e => addLog(state, e));

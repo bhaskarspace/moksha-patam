@@ -76,7 +76,10 @@ export function playGame(seed, { players = 2, rules = SIM_RULES, pick = moveFor,
   const fresh = () => ({ turns: 0, heaven: 0, seen: new Set(), karma: { planted: 0, eligible: 0, fired: 0, bands: {}, tiers: [], dies: [], arrivals: 0, refused: [], couldSit: 0, doorYears: 0, throughDoor: 0 },
     // Phase 17 step 4: the Jain ladders (waited at the foot, climbed on the 1, of those in suppression) and the merit let
     // go at the door; Bhakti's grace (ego tests met, the lower chosen, grace on them, grace at the door) and Devotion
-    law: { waited: 0, climbed: 0, upasama: 0, merit: 0, egoTests: 0, lower: 0, grace: 0, doorGrace: 0, devotion: 0 } });
+    law: { waited: 0, climbed: 0, upasama: 0, merit: 0, egoTests: 0, lower: 0, grace: 0, doorGrace: 0, devotion: 0,
+      // step 5: the law's acts in place of a move (Yoga's practice and throws let go, Advaita's recognition), and the door
+      // opening on no win (Nyāya)
+      practice: 0, letGo: 0, recognise: 0, through: 0 } });
   const per = state.players.map(() => [fresh()]), now = i => { const a = per[i], k = state.players[i].rebirths ?? 0; while (a.length <= k) a.push(fresh()); return a[k]; };
   let played = 0;
   while (!state.over && played++ < CAP) {
@@ -87,7 +90,8 @@ export function playGame(seed, { players = 2, rules = SIM_RULES, pick = moveFor,
     // not the turn the snake takes a life whose merit is spent, so the count never passes the merit
     if (inHeaven(state.players[state.turn].pos) && !spentOf(state.players[state.turn])) w.heaven++;
     const before = state.log[0];
-    const q = state.players[state.turn], plan = playTurn(state, spentOf(q) ? [] : rollDice(state.rng, diceFor(q)), pick), p = state.players[plan.idx];
+    // the turn throws what the game would (nothing with the merit spent, or for a year in practice before the throw, Yoga)
+    const plan = playTurn(state, undefined, pick), p = state.players[plan.idx];
     if (p.bhumika != null && !plan.fell) w.seen.add(p.bhumika);
     const k = w.karma;
     if (plan.plant) k.planted++;
@@ -107,6 +111,8 @@ export function playGame(seed, { players = 2, rules = SIM_RULES, pick = moveFor,
     L.grace += !!plan.grace;
     L.doorGrace += !!plan.exam?.graced;
     L.devotion += plan.after.some(e => e.k === "lDevotion");
+    if (plan.act && plan.act in L) L[plan.act]++;
+    L.through += plan.after.some(e => e.k === "lDoorThrough");
     log.push(...state.log.slice(0, state.log.indexOf(before)).reverse());
   }
   return { log, turns, per, capped: !state.over, winner: state.winner, players: state.players, state };
@@ -183,12 +189,12 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       const law = LAWS[id], kind = law.exit()?.kind ?? "none", rules = { ...SIM_RULES, law: id }, cols = [];
       for (const pol of POL) {
         setPolicy(pol === "own" ? null : pol);
-        const c = { lives: 0, won: 0, turns: [], years: [], ledger: 0, yearsOut: 0, door: 0, siva: 0, rebirths: 0, law: {}, by: [0, 0, 0, 0], at: [0, 0, 0, 0], ten: 0 };
+        const c = { lives: 0, won: 0, wonFell: 0, turns: [], years: [], ledger: 0, yearsOut: 0, door: 0, siva: 0, rebirths: 0, law: {}, by: [0, 0, 0, 0], at: [0, 0, 0, 0], ten: 0 };
         for (let s = first; s < first + games; s++) {
           const g = playGame(s, { players: 1, rules, pick });
           c.rebirths += g.players[0].rebirths ?? 0;
           for (const x of livesOf(g)) {
-            c.lives++; c.won += x.won; c.turns.push(g.per[0][x.k].turns); c.years.push(Math.floor(x.p.years ?? 0));
+            c.lives++; c.won += x.won; c.wonFell += x.won && !!x.p.fell; c.turns.push(g.per[0][x.k].turns); c.years.push(Math.floor(x.p.years ?? 0));
             if (x.p.death) c[x.p.death.by === "years" ? "yearsOut" : x.p.death.by]++;
             c.siva += !!x.p.fell;
             for (const [k, v] of Object.entries(g.per[0][x.k].law)) c.law[k] = (c.law[k] ?? 0) + v;
@@ -220,6 +226,15 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
         row("climbed on the 1, a life", c => (c.law.climbed / c.lives).toFixed(2));
         row("of climbs, upaśama", c => (c.law.climbed ? pct(c.law.upasama / c.law.climbed) : "—"));
         row("merit let go at the door", c => pct(c.law.merit / c.lives));
+      }
+      if (cols.some(c => c.law.practice || c.law.letGo)) {
+        row("years in practice, a life", c => (c.law.practice / c.lives).toFixed(2));
+        row("throws let go, a life", c => (c.law.letGo / c.lives).toFixed(2));
+      }
+      if (cols.some(c => c.law.recognise)) row("of wins, by recognition", c => (c.won ? pct(c.law.recognise / c.won) : "—"));
+      if (cols.some(c => c.law.through)) {
+        row("the door opened, a life", c => pct(c.law.through / c.lives));
+        row("of wins, at Śiva's snake", c => (c.won ? pct(c.wonFell / c.won) : "—"));
       }
       if (cols.some(c => c.law.grace || c.law.doorGrace || c.law.devotion)) {
         row("grace on the lower choice", c => (c.law.lower ? pct(c.law.grace / c.law.lower) : "—"));

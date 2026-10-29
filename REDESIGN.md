@@ -2106,6 +2106,48 @@ non-trivial.
 > *The stated reason (Bhaskar, 29 Oct):* the dishonest Jain soul's ten-life liberation sits just under the 80% floor
 > (3,999 of 5,000), and the rule stays. It is the Jain doctrine that in the present age, duḥṣamā, no one from this world
 > attains liberation: the path is open, and it is long.
+>
+> **Step 5, Nyāya, Sāṃkhya, Advaita and Yoga (30 Oct, for review).** Hooks added to `board.js`: `practice` and `sits` (a
+> year in practice before the throw, drawing no dice), `zero` (`{ act, line, kind }`: what a move of 0 is when it is the
+> law's own act, told on the square again as `p.told`; `kind` makes it a win), `acted`, `freed` (a life let go as it
+> ends), `veiled`, `auto`, `dissolve`, `line`, and `text.scholar`, `text.goal`, `text.reckon`, `text.endSrc`. An exit may
+> say `alive: false` (its door opens on no win). The sim now asks the turn what is thrown (`playTurn(state, undefined)`).
+> *Nyāya:* the ledger is never shown, at any depth (`ledgerVeiled`); a reckoning is a sign only (`reckonSignIn`: the floor
+> and what it took; the log's `lSign` names no square, the card no source and the address no square), and so is the
+> door's refusal (`doorSign`). After a sign a person may spend a throw to infer it (Infer beside the move; the life stays,
+> the year passes); the card states the five members, ending on the deed in words (`inferLinesIn`). Each sign is inferred
+> once; its computer never infers. No examination at 105; the door opens on no win (`lDoorThrough`) and the life goes on.
+> Apavarga is a life ended by its years or Śiva's snake owing nothing (`freed`): won, and not born again. A death by the
+> ledger never is. *Sāṃkhya:* the person still rolls, by Space or the button; the game picks the die (`moveFor`) and the
+> option by the leading guṇa (sattva honest, rajas pleasure, tamas "inert": the cheapest in years, then the least worth;
+> in balance the game's own mixed). The card opens as a situation's does, says "{name} did not choose here. Prakṛti
+> did…", shows what it passed over greyed and not clickable, Gītā 3.27 in its scholar layer, and closes with ×. The
+> account closes on the dancer of Sāṃkhyakārikā 59, its source in the scholar layer of the book. *Advaita:* no exit at
+> 105, whose card says there was never a door; from the sixth bhūmikā (padārthābhāvanī) a sannyāsin may Recognise in place
+> of a move on any square of earth, a win of kind "recognition". The painted art (`#art`, `.cell .pic`) fades with the
+> bhūmikā to 0.4 at the sixth (`clearOf`); labels, cards and tokens never dim, and `contrast.test` holds. *Yoga:* Sit in
+> practice beside Roll (Space still rolls) stores a stillness, up to three, at any age on earth; Let it go beside the
+> move spends one. From 94 a sannyāsin's 0 is still Phase 9's practice, and spends nothing. The stillness is said on the
+> player's line in words (the third, Gītā 6.19's lamp). Its computer sits holding none with a snake's head that bites
+> within six, and lets go a throw onto one or onto 110. A first version counted a situation's square on a snake's head as
+> one, so the dishonest computer dodged four ego tests and planted a third of its debts (ledger deaths 0.4%); a snake
+> that is a choice is not a bite. Each law's explanation names its sources at scholar depth. `?debug` adds `mp.still(n)`
+> and `mp.bhumika(b)`.
+> 20,000 single-player games a column and 5,000 souls of ten lives (Sāṃkhya's honest, mixed and dishonest are the
+> board's exactly, since only who chooses differs; its own is the guṇa's):
+>
+> | | Nyāya honest | mixed | dishonest | Sāṃkhya own | Advaita honest | mixed | dishonest | Yoga honest | mixed | dishonest |
+> |---|---|---|---|---|---|---|---|---|---|---|
+> | won, a life | 64.1% | 37.6% | 20.9% | 35.4% | 47.1% | 14.0% | 2.9% | 47.3% | 39.7% | 31.5% |
+> | souls won within ten | 97.1% | 93.1% | 77.4% | 95.5% | 100.0% | 79.4% | 26.3% | 99.9% | 98.7% | 94.9% |
+> | turns a life, median / p95 | 29 / 46 | 29 / 47 | 29 / 48 | 28 / 48 | 24 / 45 | 29 / 47 | 29 / 47 | 26 / 37 | 28 / 40 | 28 / 42 |
+> | died: ledger / years / door | 1.6 / 5.1 / 0 | 9.9 / 6.1 / 0 | 20.7 / 5.8 / 0 | 8.9 / 4.6 / 0.6 | 1.1 / 3.3 / 0 | 9.4 / 5.8 / 0 | 20.8 / 5.6 / 0 | 0.2 / 0 / 0 | 3.2 / 0.8 / 0.5 | 10.0 / 1.9 / 1.2 |
+>
+> Open for review: Nyāya's honest life passes the 60% ceiling (97% of its releases at Śiva's snake; asking the door's
+> whole test changes nothing, 65.0%) and its dishonest soul is under 80% in ten lives; Advaita's dishonest life is under
+> the 5% floor and its own (mixed) soul at 79.4% in ten (from the fifth bhūmikā instead: 67.4% / 27.4% / 7.9% a life,
+> honest over the ceiling). The board's law is byte-identical (accounts, 2000 seeds `--lives=2 --tag`, all 37,178 lines;
+> the mixed sim; golden 20/20); perf as 220cf2c.
 
 - Mīmāṃsā first (default), then Cārvāka, then the rest.
 - A law-select screen that explains each in the player's own terms before they commit.

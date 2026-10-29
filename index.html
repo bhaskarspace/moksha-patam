@@ -337,6 +337,13 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 .leaf .law { display: grid; gap: 2px; min-height: 44px; padding: 10px 14px; text-align: start; font: inherit; color: var(--l-ink); background: rgba(255, 252, 240, 0.7); border: 1px solid var(--l-line); border-radius: 8px; cursor: pointer; }
 .leaf .law[aria-pressed="true"] { border-color: var(--l-rule); border-width: 2px; }
 .leaf .law span { font-size: 15px; }
+/* Phase 17 step 5: a law's sources at scholar depth; prakṛti's passed-over options (Sāṃkhya), greyed and never to be
+   taken; the five members of an inference (Nyāya) */
+.leaf .law .law-src, .win .laws .law .law-src { font-size: 13px; font-style: italic; }
+.leaf .options.passed { display: grid; gap: 6px; margin: 8px 0; }
+.leaf .options.passed .opt { grid-template-columns: 1fr; cursor: default; }
+.leaf .options.passed .opt-c { grid-column: 1; }
+.leaf ol.infer { padding-inline-start: 1.4em; }
 .leaf .opt { display: grid; grid-template-columns: auto 1fr; column-gap: 10px; align-items: baseline; min-height: 44px; padding: 10px 14px; text-align: start; font: inherit; font-size: 17px; color: var(--l-ink); background: rgba(255, 252, 240, 0.7); border: 1px solid var(--l-line); border-radius: 8px; cursor: pointer; }
 .leaf .opt:hover:not([aria-disabled="true"]), .leaf .opt:focus-visible { border-color: var(--l-rule); }
 .leaf .opt-k { grid-row: span 3; font-weight: 600; color: var(--l-gold); }
@@ -908,6 +915,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           <div class="dice"><div class="die" id="die" aria-label="Die"></div><div class="die" id="die2" aria-label="Die" hidden></div></div>
           <div class="roll-info">
             <button id="roll" type="button">Roll the die</button>
+            <button id="practise" type="button" class="ghost" data-t="practise" hidden>Sit in practice</button>
             <div class="pick" id="pick" role="group" hidden></div>
             <span class="hint" id="hint"></span>
           </div>
@@ -1550,7 +1558,73 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         deathIllness: "of the bad chest, after a winter that did not end",
         lifeOpenLedger: "{name} died at {age}.",
         lifeEndLedger: "{name} died at {age}, {form}, {carry}.",
-        ledgerText: "A debt came due that the life could not pay. The life is written down."
+        ledgerText: "A debt came due that the life could not pay. The life is written down.",
+        lawNyaya: "Nyāya",
+        lawNyayaAbout: "The school of reasoning. Karma is real but never seen: a reckoning shows only its sign, the floor opening or the years taken, never the deed it came from, and the ledger is never shown. After a sign, a throw may be spent to infer its cause, in the five steps of an argument. Nothing is won while the life lasts: release, apavarga, is a life that ends owing nothing.",
+        lawNyayaScholar: "Nyāyasūtra 1.1.5: inference is of three kinds, from cause to effect, from effect to cause, and from what is commonly seen; a sign of karma is inferred from effect to cause (śeṣavat). The five members of an argument are the claim, the reason, the example, the application and the conclusion: pratijñā, hetu, udāharaṇa, upanaya, nigamana (1.1.32). Apavarga is the absolute release from pain (1.1.22).",
+        lSign: "{name} rolled a six, and the floor opened.",
+        lInfer: "{name} spent the throw on {pos} to infer.",
+        lDoorThrough: "{name} reached Moksha on square {pos}, and the door opened onto the heavens. Nothing ends here while the life lasts.",
+        doorOpenOn: "The door opens onto the heavens. Nothing ends here while the life lasts.",
+        doorSign: "The door does not open. Something is still owed.",
+        lApavarga: "{name}'s life ended owing nothing: apavarga, release.",
+        pathApavarga: "Released",
+        winTitleApavarga: "{name} was released",
+        winHumanApavarga: "Nothing was won while the life lasted. It ended owing nothing, and that was release.",
+        winCpuApavarga: "The computer was released first this time.",
+        lifeEndApavarga: "Then, at {age}, the life ended owing nothing: apavarga, release from pain.",
+        winNoteApavarga: "“Pain, birth, activity, faults, false knowledge: as each later one goes, the one before it goes, and that is release.” Nyāyasūtra 1.1.2",
+        signTitle: "A sign",
+        signHead: "The floor opened",
+        ledgerVeiled: "Under this law the ledger is never seen; only its signs.",
+        inferTitle: "Inference",
+        inferClaim: "There is a deed in this life behind the sign.",
+        inferFloor: "For the floor opened under {name} at {age}.",
+        inferDoor: "For the door did not open to {name}.",
+        inferExample: "Where there is smoke there is fire, as in a kitchen; where there is such a sign, a deed.",
+        inferApply: "And this is such a sign.",
+        inferConclude: "So there is a deed behind it: {deed}.",
+        actInfer: "Infer",
+        actInferHint: "Spend this throw to infer the sign's cause: the life stays, and the year passes.",
+        inferChoose: "Rolled {a}. Move, or spend the throw to infer.",
+        lawSankhya: "Sāṃkhya",
+        lawSankhyaAbout: "The school that counts the principles. Whatever acts is prakṛti, nature, moving by its three guṇas; the self, puruṣa, only watches. You still throw, but the game makes the move and the choice for you, by the guṇa that leads the life, and the card tells what prakṛti did and what it passed over. Offered only after a life under another law.",
+        lawSankhyaScholar: "Sāṃkhyakārikā 59: as a dancer stops dancing once she has shown herself to the audience, so prakṛti stops once she has shown herself to puruṣa. Gītā 3.27: actions are done in every way by the guṇas of prakṛti; the one deluded by the ego thinks, I am the doer.",
+        sankhyaDancer: "As a dancer stops once she has shown herself to the audience, prakṛti stops once she has shown herself to the one who watched.",
+        sankhyaDancerSrc: "Sāṃkhyakārikā 59",
+        prakritiChose: "{name} did not choose here. Prakṛti did, by the guṇa leading the life: {label}.",
+        prakritiPassed: "Passed over",
+        prakritiScholar: "Gītā 3.27: prakṛteḥ kriyamāṇāni guṇaiḥ karmāṇi sarvaśaḥ, ahaṃkāra-vimūḍhātmā kartāham iti manyate. “Actions are done in every way by the guṇas of prakṛti; the one deluded by the ego thinks, I am the doer.”",
+        lawAdvaita: "Advaita",
+        lawAdvaitaAbout: "The school of non-duality. There was never anywhere to go: liberation is recognition, not arrival. Reaching Moksha wins nothing, and there is no door there. From the sixth stage of knowing, a sannyāsin may recognise on any square of earth, in place of a move, and that is the win. As the stages deepen, the painted board grows faint.",
+        lawAdvaitaScholar: "The Yogavāsiṣṭha's seven stages of knowing (jñāna-bhūmikā): the sixth is padārthābhāvanī, objects no longer appearing. So here the painting on the board fades with the stage: it is the stage itself, not decoration. The seventh is turya.",
+        advaitaGoal: "There was never a door here, only something not yet recognised.",
+        aboveAdvaita: "Moksha was never on {n}. Nothing up here turns back: these realms are walked, and they last only as long as the merit. No throw goes past {top}; the throw that lands on it, or the merit running out, is Śiva's snake, down to a new birth.",
+        lRecognise: "{name} did not move on from {pos}.",
+        lRecognised: "{name} recognised what had always been so: there was nowhere to go.",
+        pathRecognised: "Recognised",
+        winTitleRecognised: "{name} recognised",
+        winHumanRecognised: "Nothing was reached. From the sixth stage of knowing, where things no longer appear as things, the life recognised what it had always been.",
+        winCpuRecognised: "The computer recognised first this time.",
+        lifeEndRecognised: "Then, at {age}, without moving on, recognition: there had been nowhere to go.",
+        winNoteRecognised: "“There is no dissolution and no origination, none bound and none striving, none who seeks release and none released: this is the highest truth.” Gauḍapāda, Māṇḍūkya Kārikā 2.32",
+        actRecognise: "Recognise",
+        actRecogniseHint: "In place of a move: recognise what was always so. The life is released here.",
+        recogniseChoose: "Rolled {a}. Move, or recognise.",
+        lawYoga: "Yoga",
+        lawYogaAbout: "Patañjali's path of stilling the mind. Before a throw, at any age, a life may sit a year in practice instead, and each year sat stores a stillness, up to three. After a throw it may let the throw go and spend one: the life stays where it is, and the year passes. Practice is chosen blind; letting go is chosen with the die in view.",
+        lawYogaScholar: "Yogasūtra 1.2: yogaś citta-vṛtti-nirodhaḥ, yoga is the stilling of the mind's turnings. 1.12: abhyāsa-vairāgyābhyāṃ tan-nirodhaḥ, they are stilled by practice and by letting go. Gītā 6.19: as a lamp in a windless place does not flicker.",
+        still1: "A stillness kept",
+        still2: "A deeper stillness",
+        still3: "Still as a lamp where no wind blows",
+        practise: "Sit in practice",
+        practiseHint: "Instead of throwing: a year in practice, which stores a stillness.",
+        lPractice: "{name} sat a year in practice on {pos}, without throwing.",
+        lLetGo: "{name} let the throw go, and stayed on {pos} a year.",
+        actLetGo: "Let it go",
+        actLetGoHint: "Let this throw go, and spend a stillness: the life stays, and the year passes.",
+        letGoChoose: "Rolled {a}. Move, or let it go.",
+        diceChooseOr: "Rolled {a} and {b}. Move by either, or: {act}."
       },
       hi: {
         title: "मोक्ष पटम",
@@ -1925,7 +1999,73 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         deathIllness: "छाती की उसी तकलीफ़ से, एक ऐसी सर्दी के बाद जो ख़त्म ही नहीं हुई",
         lifeOpenLedger: "{name} {age} बरस की उम्र में {चल बसा|चल बसी}।",
         lifeEndLedger: "{name} {age} बरस की उम्र में {चल बसा|चल बसी}, {form}, {carry}।",
-        ledgerText: "एक ऐसा क़र्ज़ सामने आया जो यह जीवन चुका नहीं सका। जीवन लिखा जा चुका है।"
+        ledgerText: "एक ऐसा क़र्ज़ सामने आया जो यह जीवन चुका नहीं सका। जीवन लिखा जा चुका है।",
+        lawNyaya: "न्याय",
+        lawNyayaAbout: "तर्क का दर्शन। कर्म सच है, पर कभी दिखता नहीं: क़र्ज़ की घड़ी केवल अपना चिह्न दिखाती है, पैरों तले ज़मीन का खिसकना या बरसों का जाना, वह कर्म कभी नहीं जिससे वह आई, और लेखा कभी नहीं दिखता। चिह्न के बाद कोई दाँव उसका कारण अनुमान करने में लगाया जा सकता है, तर्क के पाँच अवयवों में। जीते-जी कुछ नहीं जीता जाता: अपवर्ग वह जीवन है जो बिना किसी बकाये के समाप्त हो।",
+        lawNyayaScholar: "न्यायसूत्र १.१.५: अनुमान तीन प्रकार का है, पूर्ववत्, शेषवत् और सामान्यतोदृष्ट; कर्म का चिह्न कार्य से कारण की ओर, शेषवत्, अनुमान किया जाता है। तर्क के पाँच अवयव हैं: प्रतिज्ञा, हेतु, उदाहरण, उपनय, निगमन (१.१.३२)। दुःख से आत्यन्तिक छुटकारा अपवर्ग है (१.१.२२)।",
+        lSign: "{name} का छक्का आया, और पैरों तले ज़मीन खिसक गई।",
+        lInfer: "{name} ने घर {pos} पर दाँव अनुमान में लगाया।",
+        lDoorThrough: "{name} घर {pos} पर मोक्ष पहुँचे, और द्वार स्वर्गों की ओर खुला। जीते-जी यहाँ कुछ समाप्त नहीं होता।",
+        doorOpenOn: "द्वार स्वर्गों की ओर खुलता है। जीते-जी यहाँ कुछ समाप्त नहीं होता।",
+        doorSign: "द्वार नहीं खुलता। अभी कुछ बकाया है।",
+        lApavarga: "{name} का जीवन बिना किसी बकाये के समाप्त हुआ: अपवर्ग, मुक्ति।",
+        pathApavarga: "अपवर्ग",
+        winTitleApavarga: "{name} को अपवर्ग मिला",
+        winHumanApavarga: "जीते-जी कुछ नहीं जीता गया। जीवन बिना किसी बकाये के समाप्त हुआ, और वही मुक्ति थी।",
+        winCpuApavarga: "इस बार कंप्यूटर पहले मुक्त हुआ।",
+        lifeEndApavarga: "फिर, {age} बरस की उम्र में, जीवन बिना किसी बकाये के समाप्त हुआ: अपवर्ग, दुःख से मुक्ति।",
+        winNoteApavarga: "दुःखजन्मप्रवृत्तिदोषमिथ्याज्ञानानामुत्तरोत्तरापाये तदनन्तरापायादपवर्गः॥ मिथ्या ज्ञान जाता है तो दोष जाते हैं; दोष जाते हैं तो प्रवृत्ति; फिर जन्म; फिर दुःख: यही अपवर्ग है। न्यायसूत्र १.१.२",
+        signTitle: "एक चिह्न",
+        signHead: "ज़मीन खिसकी",
+        ledgerVeiled: "इस नियम में लेखा कभी नहीं दिखता; केवल उसके चिह्न।",
+        inferTitle: "अनुमान",
+        inferClaim: "इस चिह्न के पीछे इस जीवन का कोई कर्म है।",
+        inferFloor: "क्योंकि {age} बरस की उम्र में {name} के पैरों तले ज़मीन खिसकी।",
+        inferDoor: "क्योंकि द्वार {name} के लिए नहीं खुला।",
+        inferExample: "जहाँ धुआँ है वहाँ आग है, जैसे रसोई में; जहाँ ऐसा चिह्न है, वहाँ कोई कर्म।",
+        inferApply: "और यह ऐसा ही चिह्न है।",
+        inferConclude: "इसलिए इसके पीछे एक कर्म है: {deed}।",
+        actInfer: "अनुमान करें",
+        actInferHint: "इस दाँव को चिह्न का कारण अनुमान करने में लगाएँ: जीवन यहीं रहता है, और बरस बीतता है।",
+        inferChoose: "{a} आया। चलें, या दाँव अनुमान में लगाएँ।",
+        lawSankhya: "सांख्य",
+        lawSankhyaAbout: "तत्त्वों को गिनने वाला दर्शन। जो कुछ करता है वह प्रकृति है, अपने तीन गुणों से चलती हुई; आत्मा, पुरुष, केवल देखता है। दाँव आप ही फेंकते हैं, पर चाल और चुनाव खेल आपके लिए करता है, उस गुण से जो जीवन में आगे है, और पत्ता बताता है कि प्रकृति ने क्या किया और क्या छोड़ दिया। किसी और नियम में एक जीवन के बाद ही मिलता है।",
+        lawSankhyaScholar: "सांख्यकारिका ५९: रङ्गस्य दर्शयित्वा निवर्तते नर्तकी यथा नृत्यात्। पुरुषस्य तथात्मानं प्रकाश्य विनिवर्तते प्रकृतिः॥ जैसे नर्तकी रंगमंच पर स्वयं को दिखाकर नृत्य से रुक जाती है, वैसे ही प्रकृति पुरुष को स्वयं को दिखाकर रुक जाती है। गीता ३.२७: सब कर्म हर प्रकार से प्रकृति के गुणों द्वारा किए जाते हैं; अहंकार से मोहित मनुष्य मानता है कि मैं कर्ता हूँ।",
+        sankhyaDancer: "जैसे नर्तकी दर्शकों को स्वयं को दिखाकर रुक जाती है, वैसे ही प्रकृति देखने वाले को स्वयं को दिखाकर रुक जाती है।",
+        sankhyaDancerSrc: "सांख्यकारिका ५९",
+        prakritiChose: "{name} ने यहाँ नहीं चुना। प्रकृति ने चुना, उस गुण से जो जीवन में आगे है: {label}।",
+        prakritiPassed: "छोड़ा गया",
+        prakritiScholar: "प्रकृतेः क्रियमाणानि गुणैः कर्माणि सर्वशः। अहङ्कारविमूढात्मा कर्ताहमिति मन्यते॥ सब कर्म हर प्रकार से प्रकृति के गुणों द्वारा किए जाते हैं; अहंकार से मोहित मनुष्य मानता है कि मैं कर्ता हूँ। भगवद्गीता ३.२७",
+        lawAdvaita: "अद्वैत",
+        lawAdvaitaAbout: "अद्वैत का दर्शन। कहीं जाना था ही नहीं: मोक्ष पहचान है, पहुँचना नहीं। मोक्ष तक पहुँचने से कुछ नहीं मिलता, और वहाँ कोई द्वार नहीं। ज्ञान की छठी भूमिका से संन्यासी धरती के किसी भी घर पर, चाल के बदले, पहचान सकता है, और वही जीत है। जैसे-जैसे भूमिकाएँ गहरी होती हैं, पट का चित्र धुँधला होता जाता है।",
+        lawAdvaitaScholar: "योगवासिष्ठ की ज्ञान की सात भूमिकाएँ: छठी पदार्थाभावनी है, जिसमें पदार्थ दिखने बंद हो जाते हैं। इसलिए यहाँ पट का चित्र भूमिका के साथ धुँधला होता है: यह सजावट नहीं, स्वयं वह भूमिका है। सातवीं तुर्या है।",
+        advaitaGoal: "यहाँ कभी कोई द्वार था ही नहीं, केवल कुछ ऐसा जो अभी पहचाना नहीं गया।",
+        aboveAdvaita: "मोक्ष कभी {n} पर था ही नहीं। यहाँ ऊपर से कुछ नहीं लौटता: इन लोकों में आगे ही चलना है, और ये तभी तक हैं जब तक पुण्य है। कोई दाँव {top} के पार नहीं जाता। जब कोई दाँव ठीक उस पर पड़ता है, या पुण्य क्षीण हो जाता है, तब शिव का नाग नीचे एक नए जन्म तक ले जाता है।",
+        lRecognise: "{name} घर {pos} से आगे नहीं {बढ़ा|बढ़ी}।",
+        lRecognised: "{name} ने वह पहचान लिया जो सदा से था: कहीं जाना था ही नहीं।",
+        pathRecognised: "पहचान",
+        winTitleRecognised: "{name} ने पहचान लिया",
+        winHumanRecognised: "कुछ पाया नहीं गया। ज्ञान की छठी भूमिका से, जहाँ वस्तुएँ वस्तुओं की तरह नहीं दिखतीं, जीवन ने वह पहचान लिया जो वह सदा से था।",
+        winCpuRecognised: "इस बार कंप्यूटर ने पहले पहचान लिया।",
+        lifeEndRecognised: "फिर, {age} बरस की उम्र में, बिना आगे बढ़े, पहचान: कहीं जाना था ही नहीं।",
+        winNoteRecognised: "न निरोधो न चोत्पत्तिर्न बद्धो न च साधकः। न मुमुक्षुर्न वै मुक्त इत्येषा परमार्थता॥ न प्रलय है, न उत्पत्ति, न कोई बँधा है, न कोई साधक; न कोई मुक्ति चाहने वाला है, न कोई मुक्त: यही परम सत्य है। गौड़पाद, माण्डूक्य कारिका २.३२",
+        actRecognise: "पहचानें",
+        actRecogniseHint: "चाल के बदले: वह पहचानें जो सदा से था। जीवन यहीं मुक्त होता है।",
+        recogniseChoose: "{a} आया। चलें, या पहचानें।",
+        lawYoga: "योग",
+        lawYogaAbout: "पतंजलि का मार्ग, मन को स्थिर करने का। दाँव से पहले, किसी भी उम्र में, जीवन उसके बदले एक बरस अभ्यास में बैठ सकता है, और हर बैठा बरस एक स्थिरता सँजोता है, तीन तक। दाँव के बाद वह दाँव को जाने दे सकता है और एक स्थिरता लगा सकता है: जीवन वहीं रहता है, और बरस बीतता है। अभ्यास बिना देखे चुना जाता है; जाने देना पासे को देखकर।",
+        lawYogaScholar: "योगसूत्र १.२: योगश्चित्तवृत्तिनिरोधः, चित्त की वृत्तियों का निरोध योग है। १.१२: अभ्यासवैराग्याभ्यां तन्निरोधः, अभ्यास और वैराग्य से उनका निरोध होता है। गीता ६.१९: यथा दीपो निवातस्थो नेङ्गते, जैसे वायुरहित स्थान में दीपक की लौ नहीं काँपती।",
+        still1: "एक स्थिरता सँजोई हुई",
+        still2: "गहरी स्थिरता",
+        still3: "निर्वात स्थान के दीपक-सी स्थिरता",
+        practise: "अभ्यास में बैठें",
+        practiseHint: "दाँव के बदले: एक बरस अभ्यास में, जो एक स्थिरता सँजोता है।",
+        lPractice: "{name} ने घर {pos} पर बिना दाँव फेंके एक बरस अभ्यास में बिताया।",
+        lLetGo: "{name} ने दाँव को जाने दिया, और एक बरस घर {pos} पर {रहा|रही}।",
+        actLetGo: "जाने दें",
+        actLetGoHint: "इस दाँव को जाने दें, और एक स्थिरता लगाएँ: जीवन यहीं रहता है, और बरस बीतता है।",
+        letGoChoose: "{a} आया। चलें, या जाने दें।",
+        diceChooseOr: "{a} और {b} आए। किसी एक से चलें, या: {act}।"
       }
     },
     JOINS: {
@@ -3659,6 +3799,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       return [...open2].sort((a, b) => sign * (worthOf(a) - worthOf(b)))[0].id;
     }
     if (policy === "pleasure") return [...open2].sort((a, b) => pleasureOf(b) - pleasureOf(a))[0].id;
+    if (policy === "inert") return [...open2].sort((a, b) => (a.cost ?? 0) - (b.cost ?? 0) || worthOf(a) - worthOf(b))[0].id;
     const rng = makeRng((state.rng.seed ^ 625341585 ^ Math.imul(state.turn + 1, 2654435761) ^ Math.imul((p.life?.length ?? 0) + 1, 2246822507) ^ Math.imul(p.rebirths ?? 0, 1663821227)) >>> 0);
     return open2[Math.floor(next(rng) * open2.length)].id;
   }
@@ -3808,9 +3949,19 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     if (rk.to) out.push(T(l, "reckonBack", who2, { to: rk.to }));
     return out;
   }
+  function reckonSignIn(l, rk, who2) {
+    if (rk.dies) return [T(l, "reckonClose", who2), T(l, "reckonDies", who2, { age: wordsIn(l, Math.floor(rk.age)), form: formIn(l, rk.form, who2) })];
+    return reckonLinesIn(l, rk, who2).filter((_, i) => i !== 1 && i !== 2);
+  }
+  function inferLinesIn(l, sign, who2) {
+    const reason = sign.kind === "door" ? T(l, "inferDoor", who2) : T(l, "inferFloor", who2, { age: wordsIn(l, Math.floor(sign.age ?? 0)) });
+    const deed = sign.kind === "door" ? debtsIn(l, sign.debts, who2) : debtIn(l, { src: sign.src, opt: sign.opt, at: sign.planted, prior: sign.prior }, who2);
+    return [T(l, "inferClaim", who2), reason, T(l, "inferExample", who2), T(l, "inferApply", who2), T(l, "inferConclude", who2, { deed })];
+  }
   var formIn = (l, form, who2) => T(l, "death" + form[0].toUpperCase() + form.slice(1), who2);
-  function refusalIn(l, refusal, who2, sit = false) {
+  function refusalIn(l, refusal, who2, sit = false, veiled = false) {
     if (!refusal) return [];
+    if (veiled) return [T(l, "doorSign", who2), T(l, "doorOn", who2)];
     const on2 = T(l, sit && !refusal.aim ? "doorSit" : "doorOn", who2);
     if (refusal.aim) return [T(l, refusal.aim === "artha" ? "doorArtha" : "doorKama", who2), on2];
     if (refusal.merit) return [T(l, "doorMerit", who2, { deed: meritIn(l, refusal.merit, who2) }), T(l, sit ? "doorSit" : "doorOn", who2)];
@@ -3900,8 +4051,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     // from the foot the life stands at, climbs it (the admitting 1 under the Jain law; never on the board)
     climb: () => "now",
     fromFoot: () => false,
-    // the move a computer under this law takes before the game's own choice (moveFor), or null for none (Jain: it waits at
-    // a ladder's foot)
+    // the move a computer under this law takes before the game's own choice (moveFor, given the moves and the dice), or null
+    // for none (Jain: it waits at a ladder's foot)
     prefer: () => null,
     // whether a climb from foot is suppression (upaśama), which the book at the door does not take as an answer (Jain)
     suppressed: () => false,
@@ -3916,11 +4067,37 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     // anything the law keeps once a turn is over
     afterTurn: () => {
     },
+    // Step 5. Whether the life may sit a year in practice before it throws, drawing no dice (Yoga), and whether its computer
+    // does now
+    practice: () => false,
+    sits: () => false,
+    // what a move of 0 is when it is neither Phase 9's year in practice nor a wait at a ladder's foot, as { act, line, kind }:
+    // Yoga's throw let go, Nyāya's inference, Advaita's recognition (kind: the win it is); null for none. And what the act
+    // adds to the plan (Nyāya: the sign it infers from).
+    zero: () => null,
+    acted: () => ({}),
+    // whether a life ending by its years or Śiva's snake is let go there, and as what (Nyāya: apavarga, with nothing owed)
+    freed: () => null,
+    // karma real and never shown (Nyāya): the ledger hidden at every depth, a reckoning and the door's refusal told as
+    // signs, never by their cause
+    veiled: false,
+    // whether the game chooses a person's dice and options for them, as prakṛti acting, while they watch (Sāṃkhya)
+    auto: false,
+    // whether the painted art dissolves with the bhūmikā (Advaita: the sixth is padārthābhāvanī, objects no longer appearing)
+    dissolve: false,
+    // the words on the player's line under this law (Yoga's stillness), as a string key, or null
+    line: () => null,
     // its name and its two or three sentences, the lines of Śiva's snake and the merit spent, the heavens' card, and the
     // win: its log line, its title and text at the end of the game, and the account's last line (null: the board's own)
+    // scholar: the law's explanation at scholar depth; goal: what 105's card says under a law with no door there; reckon:
+    // the log's line for a reckoning
     text: {
       name: "lawBoard",
       about: "lawBoardAbout",
+      scholar: null,
+      goal: null,
+      reckon: "lReckon",
+      endSrc: null,
       siva: "lSiva",
       spent: "lSpent",
       above: "aboveExit",
@@ -4028,6 +4205,119 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     text: { ...board.text, name: "lawBhakti", about: "lawBhaktiAbout" }
   };
 
+  // src/engine/laws/nyaya.js
+  var APAVARGA = { at: GOAL, kind: "apavarga", door: true, alive: false, through: "lDoorThrough" };
+  var signsOf = (p) => [
+    ...(p.reckonings ?? []).filter((r) => !r.dies).map((r) => ({ key: `r${r.at}`, kind: "reckon", at: r.at, age: r.age, src: r.src, opt: r.opt, planted: r.planted, ...r.prior ? { prior: true } : {} })),
+    ...(p.refusals ?? []).filter((r) => r.debts?.length).map((r) => ({ key: `d${r.at}`, kind: "door", at: r.at, debts: r.debts }))
+  ].sort((a, b) => a.at - b.at);
+  var signOf = (p) => p.type === "human" ? signsOf(p).filter((s) => !(p.inferred ?? []).includes(s.key)).at(-1) ?? null : null;
+  var where = (p) => p.pos >= 1 && p.pos <= 100 || p.pos === GOAL;
+  var infers = (p) => !!signOf(p) && where(p);
+  var nyaya = {
+    ...board,
+    id: "nyaya",
+    exit: () => APAVARGA,
+    // no examination at the door (its questions name the debts); a sign offers its inference beside the moves
+    movesFor: (state, dice, base) => {
+      const p = state.players[state.turn], out = p.pos === GOAL ? base.filter(Boolean) : base;
+      return infers(p) && !out.includes(0) ? [...out, 0] : out;
+    },
+    zero: (state, i) => infers(state.players[i]) ? { act: "infer", line: "lInfer" } : null,
+    acted: (state, i, act) => act === "infer" ? { infer: signOf(state.players[i]) } : {},
+    afterTurn: (state, plan, p) => {
+      if (plan.infer) p.inferred = [...p.inferred ?? [], plan.infer.key];
+    },
+    freed: (state, i, plan) => {
+      const p = state.players[i];
+      return (plan.fell || plan.died && !plan.death) && !carried(karmaOf(p)).length ? "apavarga" : null;
+    },
+    veiled: true,
+    text: {
+      ...board.text,
+      name: "lawNyaya",
+      about: "lawNyayaAbout",
+      scholar: "lawNyayaScholar",
+      reckon: "lSign",
+      win: { line: "lApavarga", path: "pathApavarga", title: "winTitleApavarga", human: "winHumanApavarga", cpu: "winCpuApavarga", end: "lifeEndApavarga", note: "winNoteApavarga" }
+    }
+  };
+
+  // src/engine/laws/sankhya.js
+  function leadOf(p) {
+    const g3 = p.gunas ?? freshGunas(), [[k, v], [, w]] = Object.entries(g3).sort((a, b) => b[1] - a[1]);
+    return v - w > 1e-9 ? k : null;
+  }
+  var POLICY_OF = { s: "honest", r: "pleasure", t: "inert" };
+  var sankhya = {
+    ...board,
+    id: "sankhya",
+    auto: true,
+    choose: (state, sit) => choiceFor(state, sit, policyOr(POLICY_OF[leadOf(state.players[state.turn])] ?? "mixed")),
+    text: { ...board.text, name: "lawSankhya", about: "lawSankhyaAbout", scholar: "lawSankhyaScholar", end: "sankhyaDancer", endSrc: "sankhyaDancerSrc" }
+  };
+
+  // src/engine/laws/advaita.js
+  var RECOGNISE_AT = 5;
+  var recognises = (p) => (p.bhumika ?? -1) >= RECOGNISE_AT && p.pos >= 1 && p.pos <= 100;
+  var advaita = {
+    ...board,
+    id: "advaita",
+    exit: () => null,
+    // no door at 105, so nobody sits there to be examined; and recognition offered beside the moves
+    movesFor: (state, dice, base) => {
+      const p = state.players[state.turn], out = p.pos === GOAL ? base.filter(Boolean) : base;
+      return recognises(p) && !out.includes(0) ? [...out, 0] : out;
+    },
+    zero: (state, i) => recognises(state.players[i]) ? { act: "recognise", line: "lRecognise", kind: "recognition" } : null,
+    // its computer recognises whenever it may
+    prefer: (state, moves) => moves.includes(0) && recognises(state.players[state.turn]) ? 0 : null,
+    dissolve: true,
+    text: {
+      ...board.text,
+      name: "lawAdvaita",
+      about: "lawAdvaitaAbout",
+      scholar: "lawAdvaitaScholar",
+      goal: "advaitaGoal",
+      above: "aboveAdvaita",
+      win: { line: "lRecognised", path: "pathRecognised", title: "winTitleRecognised", human: "winHumanRecognised", cpu: "winCpuRecognised", end: "lifeEndRecognised", note: "winNoteRecognised" }
+    }
+  };
+
+  // src/engine/laws/yoga.js
+  var NIRODHA_CAP = 3;
+  var stillness = (p) => p.nirodha ?? 0;
+  var earthly = (p) => p.pos >= 1 && p.pos <= 100;
+  var letsGo = (p, dice) => stillness(p) > 0 && earthly(p) && !(dice.length > 1 && canSit(p));
+  var bites = (n) => !!SNAKES[n] && !situationAt(n);
+  var bad = (p, v) => bites(p.pos + v) || p.pos + v === TOP;
+  var yoga = {
+    ...board,
+    id: "yoga",
+    practice: (state, i) => {
+      const p = state.players[i];
+      return earthly(p) && stillness(p) < NIRODHA_CAP;
+    },
+    // its computer sits when it holds no stillness and a snake's head that bites is within a throw
+    sits: (state) => {
+      const p = state.players[state.turn];
+      return stillness(p) === 0 && [1, 2, 3, 4, 5, 6].some((d) => bites(p.pos + d));
+    },
+    movesFor: (state, dice, base) => letsGo(state.players[state.turn], dice) && !base.includes(0) ? [...base, 0] : base,
+    zero: (state, i, dice) => letsGo(state.players[i], dice) ? { act: "letGo", line: "lLetGo" } : null,
+    // and lets a throw go when every die it could move by is bad
+    prefer: (state, moves, dice) => {
+      const p = state.players[state.turn];
+      return moves.includes(0) && letsGo(p, dice) && moves.filter(Boolean).every((v) => bad(p, v)) ? 0 : null;
+    },
+    afterTurn: (state, plan, p) => {
+      if (plan.act === "practice") p.nirodha = Math.min(NIRODHA_CAP, stillness(p) + 1);
+      if (plan.act === "letGo") p.nirodha = stillness(p) - 1;
+    },
+    line: (p) => stillness(p) ? `still${stillness(p)}` : null,
+    text: { ...board.text, name: "lawYoga", about: "lawYogaAbout", scholar: "lawYogaScholar" }
+  };
+
   // src/engine/animal.js
   var ANIMAL_TOP = 40;
   var ANIMAL_TURNS = 15;
@@ -4102,7 +4392,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   };
 
   // src/engine/laws/index.js
-  var LAWS = { board, mimamsa, carvaka, jain, bhakti, animal };
+  var LAWS = { board, mimamsa, carvaka, jain, bhakti, nyaya, sankhya, advaita, yoga, animal };
   var lawOf = (state, i = state.turn) => LAWS[state.players[i]?.law ?? state.rules?.law ?? "board"] ?? board;
   var isDefault = (l) => l === board;
   var choosable = () => Object.values(LAWS).filter((l) => l.choosable);
@@ -4383,6 +4673,9 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     return fires ? null : "else";
   }
   var canSit = (p) => p.pos >= ENDGAME && (p.pos <= 100 || p.pos === GOAL) && stageOfPlayer(p) === SANNYASA && slotsFor(p).includes("practice");
+  var canPractise = (state, i = state.turn) => lawOf(state, i).practice(state, i);
+  var practisesNow = (state) => canPractise(state) && lawOf(state).sits(state);
+  var zeroOf = (state, dice) => lawOf(state).zero(state, state.turn, dice);
   var doorOf = (state, i) => {
     const law = lawOf(state, i);
     return { bound: law.binds(state, i), forgive: (s, n) => law.forgive(state, i, s, n) };
@@ -4395,7 +4688,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   function moveFor(state, dice) {
     const moves = movesFor(state, dice);
     if (!moves.length) return null;
-    const own = lawOf(state).prefer(state, moves);
+    const own = lawOf(state).prefer(state, moves, dice);
     if (own != null) return own;
     const plans = moves.filter(Boolean).map((v) => planTurn(state, v, dice));
     const to = (pl) => pl.reckon?.from ?? pl.final;
@@ -4500,15 +4793,19 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     if (v) spare.splice(spare.indexOf(v), 1);
     if (dice.length > 1) pre.push(entry(v ? "lDice" : "lDiceSit", { a: dice[0], b: dice[1], v }, "", idx));
     if (!v) {
-      const years = turnYears(p.years ?? 0, { sit: true }), died = years > SPAN;
-      const atDoor = from === GOAL && !!p.door, exam = atDoor ? examineOf(p, doorOf(state, idx)) : null;
+      const z = !dice.length ? { act: "practice", line: "lPractice" } : law.zero(state, idx, dice);
+      const years = turnYears(p.years ?? 0, { sit: true }), died = years > SPAN && !z?.kind;
+      const atDoor = !z && from === GOAL && !!p.door, exam = atDoor ? examineOf(p, doorOf(state, idx)) : null;
       if (exam) delete state.forceGrace;
-      const win = atDoor && !died && (exam ? exam.open : !refusalOf(p, law.binds(state, idx)));
-      if (exam) after2.push(entry(exam.merit ? "lExamMerit" : exam.graced ? "lExamGrace" : exam.pass ? "lExamPass" : exam.n === 1 ? exam.cleared ? "lExamPaid" : "lExamFail" : exam.cleared ? "lExamPaid" : exam.never ? "lExamNever" : "lExamPenance", { pos: from, src: exam.src, sq: exam.src }, "", idx));
+      const win = !!z?.kind || atDoor && !died && (exam ? exam.open : !refusalOf(p, law.binds(state, idx)));
+      if (z) after2.push(entry(z.line, { pos: from, sq: from }, "", idx));
+      else if (exam) after2.push(entry(exam.merit ? "lExamMerit" : exam.graced ? "lExamGrace" : exam.pass ? "lExamPass" : exam.n === 1 ? exam.cleared ? "lExamPaid" : "lExamFail" : exam.cleared ? "lExamPaid" : exam.never ? "lExamNever" : "lExamPenance", { pos: from, src: exam.src, sq: exam.src }, "", idx));
       else if (!win) after2.push(entry(LADDERS[from] ? "lFootWait" : "lSit", { pos: from, sq: from }, "", idx));
       if (died) end.push(entry(from === GOAL ? "lDiedDoor" : "lDied", { pos: from, age: years, sq: from }, "death", idx));
+      else if (z?.kind) end.push(entry(law.text.win.line, { pos: from, sq: from }, "heaven", idx));
       else if (win) end.push(entry("lDoorOpen", { pos: GOAL }, "", idx), entry("lWin", { pos: GOAL }, "heaven", idx));
-      return resolve(state, { idx, v, dice, spare, sit: true, from, path, target: from, final: from, jump: null, win, died, again: false, told: [null], exam, pre, after: after2, end }, years);
+      const act = z ? { act: z.act, ...z.kind ? { kind: z.kind } : {}, ...law.acted(state, idx, z.act) } : {};
+      return resolve(state, { idx, v, dice, spare, sit: true, from, path, target: from, final: from, jump: null, win, died, again: false, told: [z?.act ?? null], exam, pre, after: after2, end, ...act }, years);
     }
     if (law.fromFoot(state, idx, v, dice)) {
       after2.push(entry("lClimbOne", { pos: from, sq: from }, "", idx));
@@ -4598,9 +4895,11 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const ex = law.exit(state, idx), atExit = !!ex && final === ex.at;
     const refused = atExit && ex.door ? refusalOf(p, law.binds(state, idx)) : null;
     if (refused) after2.push(entry("lRefused", { pos: GOAL, sq: GOAL }, "", idx));
+    const through = atExit && ex.door && !refused && ex.alive === false;
+    if (through) after2.push(entry(ex.through, { pos: GOAL, sq: GOAL }, "", idx));
     const owed = atExit && !ex.door && carried(karmaOf(p)).length > 0;
     if (owed) after2.push(entry(ex.owed, { pos: final, sq: final }, "", idx));
-    const win = atExit && !refused && !owed;
+    const win = atExit && !refused && !owed && !through;
     const years = turnYears(p.years ?? 0, { target, final, jump, cost }), died = !win && final <= 100 && years > SPAN;
     const again = !win && !died && v === 6 && state.rules.six;
     if (win) end.push(entry(law.text.win.line, ex.door ? { pos: ex.at } : { pos: ex.at, sq: ex.at }, "heaven", idx));
@@ -4614,8 +4913,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     return resolve(state, plan, years);
   }
   function resolve(state, plan, years) {
-    const { idx } = plan, p = state.players[idx];
-    const omen = plan.win || plan.died || !lawOf(state, idx).omen(state, idx) ? null : omenFor(state, idx, { dice: plan.dice, pos: plan.final, years, lived: p.life?.length ?? 0, force: !!(state.forceOmen || state.forceDeath) });
+    const { idx } = plan, p = state.players[idx], law = lawOf(state, idx);
+    const omen = plan.win || plan.died || !law.omen(state, idx) ? null : omenFor(state, idx, { dice: plan.dice, pos: plan.final, years, lived: p.life?.length ?? 0, force: !!(state.forceOmen || state.forceDeath) });
     if (omen?.reckon && state.forceDeath) Object.assign(omen.reckon, { dies: true, applied: DEATH, form: state.forceDeath, years: 0, holds: null, to: null });
     const rk = omen?.reckon ?? null;
     Object.assign(plan, { omen, reckon: rk && { ...rk, from: plan.final } });
@@ -4623,13 +4922,13 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     if (rk.dies) {
       plan.died = true;
       plan.death = { by: "ledger", form: rk.form, age: years, src: rk.src, opt: rk.opt };
-      plan.end = [entry("lReckon", { src: rk.src, sq: rk.src }, "reckon", idx), entry("lDiedLedger", { pos: plan.final, age: years, sq: plan.final }, "death", idx)];
+      plan.end = [entry(law.text.reckon, law.veiled ? {} : { src: rk.src, sq: rk.src }, "reckon", idx), entry("lDiedLedger", { pos: plan.final, age: years, sq: plan.final }, "death", idx)];
       plan.again = false;
       return plan;
     }
     if (rk.to) plan.final = rk.to;
     plan.told.push(...rk.to ? ["reckon"] : [], ...Array(rk.years).fill("stay"));
-    plan.end = [entry("lReckon", { src: rk.src, sq: rk.src }, "reckon", idx), ...plan.end.filter((e) => e.k !== "lSix")];
+    plan.end = [entry(law.text.reckon, law.veiled ? {} : { src: rk.src, sq: rk.src }, "reckon", idx), ...plan.end.filter((e) => e.k !== "lSix")];
     plan.again = false;
     return plan;
   }
@@ -4677,15 +4976,21 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         p.holding = holdingOf(p.life, p.held);
         p.death = plan.death ?? { by: plan.sit && plan.from === GOAL ? "door" : "years", age: p.years };
       }
-      if (plan.win) p.won = lawOf(state, plan.idx).exit(state, plan.idx)?.kind ?? null;
+      if (plan.win) p.won = plan.kind ?? lawOf(state, plan.idx).exit(state, plan.idx)?.kind ?? null;
       if (inHeaven(p.pos) && p.merit == null && lawOf(state, plan.idx).merit(state, plan.idx)) p.merit = meritOf(p);
     }
     lawOf(state, plan.idx).afterTurn(state, plan, p);
+    const freed = (plan.died || plan.fell) && lawOf(state, plan.idx).freed(state, plan.idx, plan);
+    if (freed) {
+      p.won = freed;
+      plan.freed = true;
+      plan.end.push(entry(lawOf(state, plan.idx).text.win.line, {}, "heaven", plan.idx));
+    }
     if (plan.died || plan.fell) {
       const k = karmaOf(p);
       p.karma = { sancita: [...k.sancita, ...carried(k)], agami: [], prarabdha: [] };
     }
-    if (plan.fell && lawOf(state, plan.idx).siva(state, plan.idx) === "reborn") {
+    if (plan.fell && !plan.freed && lawOf(state, plan.idx).siva(state, plan.idx) === "reborn") {
       plan.end.forEach((e) => {
         if (e.who != null) e.life = p.rebirths ?? 0;
       });
@@ -4698,7 +5003,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     passTurn(state, plan);
   }
   function passTurn(state, plan) {
-    if (plan.win) state.winner = plan.idx;
+    if (plan.win || plan.freed) state.winner = plan.idx;
     else if (!plan.again) for (let k = 1; k <= state.players.length; k++) {
       const i = (plan.idx + k) % state.players.length;
       if (!gone(state.players[i])) {
@@ -4725,10 +5030,10 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     for (const k of Object.keys(p)) delete p[k];
     Object.assign(p, next2);
   }
-  function playTurn(state, roll2 = spentOf(state.players[state.turn]) ? [] : rollDice(state.rng, diceFor(state.players[state.turn])), pick3 = moveFor, choose2 = (s, sit) => lawOf(s).choose(s, sit)) {
+  function playTurn(state, roll2 = spentOf(state.players[state.turn]) || practisesNow(state) ? [] : rollDice(state.rng, diceFor(state.players[state.turn])), pick3 = moveFor, choose2 = (s, sit) => lawOf(s).choose(s, sit)) {
     const dice = typeof roll2 === "number" ? [roll2] : roll2, one = dice.length > 1 ? null : movesFor(state, dice);
-    const v = !one ? pick3(state, dice) : one.length > 1 ? pick3(state, dice) : one[0] ?? dice[0];
-    state.last = v || dice[0];
+    const v = !dice.length && !spentOf(state.players[state.turn]) ? 0 : !one ? pick3(state, dice) : one.length > 1 ? pick3(state, dice) : one[0] ?? dice[0];
+    if (dice.length || v == null) state.last = v || dice[0];
     let plan = planTurn(state, v, dice);
     if (plan.situation) plan = resolveChoice(state, plan, choose2(state, plan.situation));
     [...plan.pre, ...plan.after].forEach((e) => addLog(state, e));
@@ -5368,7 +5673,9 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   }
   var clamp3 = (x) => Math.max(0, Math.min(1, x));
   var CLEAR_FROM = 4;
-  var clearOf = (state) => clamp3(Math.max(0, ...state.players.map((p) => (p.bhumika ?? -1) - CLEAR_FROM)) / 2);
+  var clearFor = (state, p, i) => lawOf(state, i).dissolve && p.bhumika != null ? (p.bhumika + 1) / (DISSOLVED + 1) : ((p.bhumika ?? -1) - CLEAR_FROM) / 2;
+  var DISSOLVED = 5;
+  var clearOf = (state) => clamp3(Math.max(0, ...state.players.map((p, i) => clearFor(state, p, i))));
   function wash(n, { fadeAge, dimAge, lead, look: look2 = null, begun = true }) {
     if (look2 === "first" && !begun) return { sepia: 0, dim: 0 };
     const k = look2 === "veil" ? VEIL : 1, a = ageOf2(n);
@@ -5961,6 +6268,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var row = (text, state) => `<span class="stage">${esc(text)}<br>${esc(state)}</span>`;
   function ledgerOf(p, law) {
     if (!law.karma) return `<span class="stage">${esc(t("ledgerNone"))}</span>`;
+    if (law.veiled) return `<span class="stage">${esc(t("ledgerVeiled"))}</span>`;
     const who2 = { name: pname(p), gender: p.gender }, k = karmaOf(p);
     const debt = (s) => debtIn(lang, s, who2);
     const met = (p.reckonings ?? []).filter((r) => !r.dies).map((r) => row(debt({ src: r.src, opt: r.opt, at: r.planted }), t("ledgerMet", { age: wordsIn(lang, Math.floor(r.age ?? 0)) })));
@@ -6009,13 +6317,17 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     }
     return [...pl.rebirths && stageOf2(pl) === 0 ? [fill(t("bornAgainStage"), { gender: pl.gender })] : [], .../* @__PURE__ */ new Set([stageName(stageOf2(pl), pl.gender), ashramaIn2(pl)])].join(" · ");
   }
+  var lawLine = (pl, i) => {
+    const k = !gone(pl) && LAWS[pl.law ?? G.state.rules?.law ?? "board"]?.line(pl);
+    return k ? `<span class="self still">${esc(t(k))}</span>` : "";
+  };
   function renderPlayers() {
     $("players").innerHTML = G.state.players.map((pl, i) => `
     <li class="${i === G.state.turn && !G.state.over ? "current" : ""}${gone(pl) ? " dead" : ""}">
       <span class="dot" style="background:${COLORS[pl.color]}"></span>
       <span><span class="pname">${esc(pname(pl))}</span><span class="kind">${pl.type === "cpu" ? t("cpu") : ""}</span>
         <span class="stage">${stageLine(pl)}</span>
-        ${selfLine(pl) && !gone(pl) ? `<span class="self">${esc(selfLine(pl))}</span>` : ""}</span>
+        ${selfLine(pl) && !gone(pl) ? `<span class="self">${esc(selfLine(pl))}</span>` : ""}${lawLine(pl, i)}</span>
       <span class="pos">${pl.fell ? "" : pl.pos === 0 ? t("start") : pl.pos === GOAL ? t("moksha") : t("square", { n: pl.pos })}</span>
     </li>`).join("");
     renderLedger();
@@ -6873,8 +7185,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     decideFn = fn;
   };
   function optionNote(l, n, o) {
-    const to = destOf(n, o), where = to < n ? tIn(l, "optDown", { n: numIn(l, to) }) : to > n ? tIn(l, "optUp", { n: numIn(l, to) }) : tIn(l, "optHere", { n: numIn(l, n) });
-    return o.cost ? `${where} · ${o.cost === 1 ? tIn(l, "optYear") : tIn(l, "optYears", { n: numIn(l, o.cost) })}` : where;
+    const to = destOf(n, o), where2 = to < n ? tIn(l, "optDown", { n: numIn(l, to) }) : to > n ? tIn(l, "optUp", { n: numIn(l, to) }) : tIn(l, "optHere", { n: numIn(l, n) });
+    return o.cost ? `${where2} · ${o.cost === 1 ? tIn(l, "optYear") : tIn(l, "optYears", { n: numIn(l, o.cost) })}` : where2;
   }
   function foresight(l, o) {
     if (!G.plan || !lawOf(G.state, G.plan.idx).foresight) return "";
@@ -6952,6 +7264,15 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     let k = p.life.length - 1;
     while (k > 0 && p.told?.[k] === "stay") k--;
     return p.life[k] === n && !!p.witness?.findLast((w) => w.i === k)?.grace;
+  }
+  function prakritiHere(n) {
+    const p = subjectOf(), plan = G.plan;
+    if (!p || !G.state || !lawHere()?.auto) return null;
+    if (plan && G.state.players[plan.idx] === p && plan.target === n) return plan.choice ? plan.ego?.chose ?? plan.grace?.chose ?? plan.choice : null;
+    if (p.pos !== n || !p.life?.length) return null;
+    let k = p.life.length - 1;
+    while (k > 0 && p.told?.[k] === "stay") k--;
+    return p.life[k] === n && p.witness?.findLast((w) => w.i === k)?.chose || null;
   }
   var FACES = ["⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
   var facesIn = (fs) => fs.map((f2) => FACES[f2 - 1]).join(" ");
@@ -7053,22 +7374,25 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const egoTop = !ego ? "" : pips(texts(l, ...["en", "hi"].map((x) => `${tIn(x, "egoDie")} ${FACES[(tumbling ? G.egoTumble : ego.face) - 1]}` + (tumbling || rebel ? "" : ` ${tIn(x, "egoHeld")}`)), "remedy ego")) + (rebel && !tumbling ? texts(l, ...["en", "hi"].map((x) => momentIn(egoOf(n).card, x, n, false)), "moment") : "");
     const moment = m && !tumbling ? texts(l, momentIn(m, "en", n, !pending), momentIn(m, "hi", n, !pending), n > 100 ? "moment remnant" : "moment") : "";
     const grace = !pending && graceHere(n) ? texts(l, ...["en", "hi"].map((x) => fill(tIn(x, "graceCard", { name: person(x, n).name }), person(x, n))), "remedy grace") : "";
+    const pk = pending ? null : prakritiHere(n), pko = pk && optionOf(n, pk);
+    const prakriti = pko ? texts(l, ...["en", "hi"].map((x) => fill(tIn(x, "prakritiChose", { name: person(x, n).name, label: pko.label[x] || pko.label.en }), person(x, n))), "remedy prakriti") + `<div class="options passed" role="group" aria-label="${esc(T2("prakritiPassed"))}">` + situationAt(n).options.filter((o) => o.id !== pk).map((o) => `<span class="opt" aria-disabled="true"><span class="opt-l">${esc(o.label[l] || o.label.en)}</span><span class="opt-c">${esc(T2("prakritiPassed"))} · ${esc(optionNote(l, n, o))}</span></span>`).join("") + `</div>` : "";
     const remedy = sq.remedy ? texts(l, fill(sq.remedy.en, person("en", n)), fill(sq.remedy.hi, person("hi", n)), "remedy") : "";
     const above = n > GOAL && HEAVEN[n] ? texts(l, ...["en", "hi"].map((x) => tIn(x, lawHere()?.text.above ?? "aboveExit", { n: numIn(x, exitHere()?.at ?? GOAL), top: numIn(x, TOP) })), "remedy above") : "";
-    const noDoor = n === GOAL && G.state && exitHere()?.at !== GOAL ? texts(l, ...["en", "hi"].map((x) => tIn(x, "lawNoDoor", { law: tIn(x, lawHere().text.name) })), "remedy door") : "";
+    const noDoor = n === GOAL && G.state && exitHere()?.at !== GOAL ? texts(l, ...["en", "hi"].map((x) => tIn(x, lawHere().text.goal ?? "lawNoDoor", { law: tIn(x, lawHere().text.name) })), "remedy door") : "";
     const opts = pending && G.deciding?.sit === pending ? G.deciding.opts : null;
     const options = opts ? `<div class="options" role="group" aria-label="${esc(T2("chooseLabel"))}">` + opts.map((o, i) => `<button type="button" class="opt" data-act="opt" data-id="${esc(o.id)}"${o.open ? "" : ` aria-disabled="true" aria-describedby="why-${esc(o.id)}"`}><span class="opt-k" aria-hidden="true">${numIn(l, i + 1)}</span><span class="opt-l">${esc(o.label[l] || o.label.en)}</span><span class="opt-c">${esc(optionNote(l, n, o))}</span>` + foresight(l, o) + (o.open ? "" : `<span class="opt-why" id="why-${esc(o.id)}">${esc(T2("optWithheld"))} ${esc(o.why[l] || o.why.en)}</span>`) + `</button>`).join("") + `</div>` : "";
     const sp0 = subjectOf(), landing = G.plan && sp0 === G.state.players[G.plan.idx] && G.plan.target === n ? G.plan : null;
     const sp = landing || sp0?.door ? sp0 : G.state?.players.find((q2) => q2.pos === GOAL && q2.door) ?? sp0;
     const refusal = n === GOAL && sp ? landing ? landing.refused : sp.pos === GOAL ? sp.door : null : null;
+    const veiled = sp && lawOf(G.state, G.state.players.indexOf(sp)).veiled;
     const door = refusal ? (() => {
-      const [en, hi] = ["en", "hi"].map((x) => refusalIn(x, refusal, { name: pnameIn(sp, x), gender: sp.gender }, canSit({ ...sp, pos: GOAL })));
+      const [en, hi] = ["en", "hi"].map((x) => refusalIn(x, refusal, { name: pnameIn(sp, x), gender: sp.gender }, canSit({ ...sp, pos: GOAL }), veiled));
       return en.map((t2, i) => texts(l, t2, hi[i], "remedy door")).join("");
     })() : "";
     const sayer = spoken && spoken.n === n && G.state?.players[spoken.who];
     const curse = sayer ? texts(l, curseSaidIn("en", sayer, pnameIn(sayer, "en")), curseSaidIn("hi", sayer, pnameIn(sayer, "hi")), "remedy") : "";
     const mirrored = pending || tumbling ? "" : rebel ? texts(l, EGO.mirror.en, EGO.mirror.hi, "mirror") : mirrorHtml(l, mirror, m);
-    body += `<div class="story">${noDoor}${door}${egoTop}${moment}${grace}${faces}${curse}${options}${remedy}${mirrored}${bi(l, r.line2, "line2")}${above}</div>`;
+    body += `<div class="story">${noDoor}${door}${egoTop}${moment}${grace}${prakriti}${faces}${curse}${options}${remedy}${mirrored}${bi(l, r.line2, "line2")}${above}</div>`;
     let more = "";
     const metMore2 = [];
     const viewList = (vs, cls) => `<ul class="${cls}">` + vs.map((v) => `<li>${entryLink(v.id, l)}${texts(l, v.en, v.hi)}</li>`).join("") + `</ul>`;
@@ -7090,6 +7414,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       metMore2.push(...r.schools.map((s) => s.id));
     }
     if (rebel && deep("scholar")) more += bi(l, EGO.scholar, "note");
+    if (pko && deep("scholar")) more += texts(l, tIn("en", "prakritiScholar"), tIn("hi", "prakritiScholar"), "note");
     if (deep("scholar") || deep("school") && !r.schools?.length && !r.views?.length) more += bi(l, r.scholar, "note");
     if (deep("scholar")) {
       if (r.figures?.length) {
@@ -7130,7 +7455,12 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     };
   }
   function reckonHtml(rk, l) {
-    const p = subjectOf(), lines = (x) => reckonLinesIn(x, rk, { name: pnameIn(p, x), gender: p.gender });
+    const p = subjectOf(), veiled = lawHere()?.veiled, lines = (x) => (veiled ? reckonSignIn : reckonLinesIn)(x, rk, { name: pnameIn(p, x), gender: p.gender });
+    if (veiled) {
+      const en2 = lines("en"), hi2 = lines("hi");
+      const body2 = `<h2 id="leafTitle">${esc(tIn(l, "signHead"))}</h2><div class="story">` + en2.map((t2, i) => texts(l, t2, hi2[i], i === 0 ? "remedy floor" : "remedy")).join("") + `</div>`;
+      return { kind: "reckon", met: [], html: frame2(l, { kind: "reckon", eb: esc(tIn(l, "signTitle")), big: "⚅", sqn: "", body: body2, foot: "" }) };
+    }
     const en = lines("en"), hi = lines("hi"), q2 = squareOf(rk.src);
     let body = `<h2 id="leafTitle">${esc(q2[l] || q2.en)}</h2>`;
     body += `<div class="story">` + en.map((t2, i) => texts(l, t2, hi[i], i === 1 ? "moment" : i === 0 ? "remedy floor" : "remedy")).join("") + `<p class="srcline"><a class="src" href="#sq/${rk.src}" data-sq="${rk.src}">${esc(tIn(l, "square", { n: numIn(l, rk.src) }))}</a></p></div>`;
@@ -7166,6 +7496,12 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       })
     };
   }
+  function inferHtml(sign, l) {
+    const p = subjectOf(), lines = (x) => inferLinesIn(x, sign, { name: pnameIn(p, x), gender: p.gender });
+    const en = lines("en"), hi = lines("hi");
+    const body = `<h2 id="leafTitle">${esc(tIn(l, "inferTitle"))}</h2><ol class="story infer">` + en.map((t2, i) => `<li>${texts(l, t2, hi[i], i === 4 ? "moment" : "remedy")}</li>`).join("") + `</ol>`;
+    return { kind: "infer", met: [], html: frame2(l, { kind: "exam", eb: esc(tIn(l, "inferTitle")), big: "🔥︎", sqn: "", body, foot: "" }) };
+  }
   function examHtml(ex, l) {
     const p = subjectOf(), who2 = (x) => ({ name: pnameIn(p, x), gender: p.gender });
     const lines = (x) => {
@@ -7186,7 +7522,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     body += `<div class="story">` + texts(l, line("en", "bornAgainCard"), line("hi", "bornAgainCard"), "moment") + texts(l, line("en", "bornAgainNew"), line("hi", "bornAgainNew"), "remedy") + `</div>`;
     if (choosable().length > 1 && !firstLife()) {
       const now = lawOf(G.state, subject).id;
-      body += `<div class="laws" role="group" aria-label="${esc(tIn(l, "lawPick"))}">` + choosable().map((w) => `<button type="button" class="law" data-act="law" data-law="${w.id}" aria-pressed="${w.id === now}"><b>${esc(tIn(l, w.text.name))}</b> <span>${esc(tIn(l, w.text.about))}</span></button>`).join("") + `</div>`;
+      body += `<div class="laws" role="group" aria-label="${esc(tIn(l, "lawPick"))}">` + choosable().map((w) => `<button type="button" class="law" data-act="law" data-law="${w.id}" aria-pressed="${w.id === now}"><b>${esc(tIn(l, w.text.name))}</b> <span>${esc(tIn(l, w.text.about))}</span>${w.text.scholar && deep("scholar") ? ` <small class="law-src">${esc(tIn(l, w.text.scholar))}</small>` : ""}</button>`).join("") + `</div>`;
     }
     body += `<p class="reborn-acts"><button type="button" class="ghost" data-act="pastLife">${esc(tIn(l, "readPast"))}</button> <button type="button" data-act="close">${esc(tIn(l, "goOn"))}</button></p>`;
     return { kind: "reborn", met: [], html: frame2(l, { kind: "reborn", eb: esc(tIn(l, "bornAgainHead")), big: art("fall", "🔱", "spr snake-glyph"), sqn: numIn(l, TOP), body, foot: "" }) };
@@ -7196,7 +7532,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const l = cardLang ?? lang;
     const fa = leaf2.contains(document.activeElement) ? document.activeElement : null;
     const again = fa?.dataset.act ? `[data-act="${fa.dataset.act}"]` : fa?.dataset.cl ? `[data-cl="${fa.dataset.cl}"]` : null;
-    const out = view.type === "square" ? squareHtml(view.n, l) : view.type === "reckon" ? reckonHtml(view.rk, l) : view.type === "exam" ? examHtml(view.ex, l) : view.type === "reborn" ? rebornHtml(view.was, l) : entryHtml(view.id, l);
+    const out = view.type === "square" ? squareHtml(view.n, l) : view.type === "reckon" ? reckonHtml(view.rk, l) : view.type === "exam" ? examHtml(view.ex, l) : view.type === "infer" ? inferHtml(view.sign, l) : view.type === "reborn" ? rebornHtml(view.was, l) : entryHtml(view.id, l);
     leaf2.className = "leaf " + out.kind + (landing ? " landed" : "") + (expanded ? " open" : "");
     leaf2.innerHTML = out.html;
     metMore = out.metMore || [];
@@ -7206,7 +7542,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     refreshRoll();
     if (again) [...leaf2.querySelectorAll(again)].find((el3) => el3.offsetParent)?.focus({ preventScroll: true });
     cue();
-    history.replaceState(null, "", location.pathname + location.search + (view.type === "square" ? `#sq/${view.n}` : view.type === "reckon" ? `#sq/${view.rk.src}` : view.type === "exam" ? `#sq/${GOAL}` : view.type === "reborn" ? `#sq/${TOP}` : `#codex/${view.id}`));
+    history.replaceState(null, "", location.pathname + location.search + (view.type === "square" ? `#sq/${view.n}` : view.type === "reckon" ? lawHere()?.veiled ? "" : `#sq/${view.rk.src}` : view.type === "exam" ? `#sq/${GOAL}` : view.type === "infer" ? "" : view.type === "reborn" ? `#sq/${TOP}` : `#codex/${view.id}`));
     onChange.forEach((fn) => fn());
   }
   function cue() {
@@ -7308,7 +7644,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const wasOpen = dlg2.open, was = view;
     view = next2;
     subject = who2;
-    const block = next2.type === "reckon" || next2.type === "exam" || next2.type === "reborn" || next2.type === "square" && !!pendingOn(next2.n);
+    const block = next2.type === "reckon" || next2.type === "exam" || next2.type === "infer" || next2.type === "reborn" || next2.type === "square" && !!pendingOn(next2.n);
     if (wasOpen) {
       setBlocking(block);
       paint2({ landing });
@@ -7334,6 +7670,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var openSquare = (n, opts) => open({ type: "square", n }, opts);
   var openReckoning = (rk, who2) => open({ type: "reckon", rk }, { landing: true, who: who2 });
   var openExam = (ex, who2) => open({ type: "exam", ex }, { landing: true, who: who2 });
+  var openInfer = (sign, who2) => open({ type: "infer", sign }, { landing: true, who: who2 });
   function openReborn(was, who2) {
     readPast = false;
     return open({ type: "reborn", was }, { landing: true, who: who2 }).then(() => readPast);
@@ -7582,8 +7919,9 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   };
   function doorLine(l, { who: who2, door }) {
     const p = G.state.players[who2], w = { name: pnameIn(p, l), gender: p.gender };
-    if (door.kind === "refused") return { title: tIn(l, "endRefused"), text: refusalIn(l, door.refusal, w, door.sit).join(" ") };
+    if (door.kind === "refused") return { title: tIn(l, "endRefused"), text: refusalIn(l, door.refusal, w, door.sit, lawOf(G.state, who2).veiled).join(" ") };
     if (door.kind === "through") return { title: tIn(l, "moksha"), text: fill(tIn(l, "doorThrough", w), w) };
+    if (door.kind === "open") return { title: tIn(l, "moksha"), text: fill(tIn(l, "doorOpenOn", w), w) };
     if (door.kind === "died") return { title: tIn(l, "moksha"), text: fill(tIn(l, "doorDied", { name: w.name, debts: debtsIn(l, door.debts, w) }), w) };
     const died = door.ex.died ? [fill(tIn(l, "doorDied", { name: w.name, debts: debtsIn(l, door.ex.debts, w) }), w)] : [];
     return { title: tIn(l, "moksha"), text: [...examLinesIn(l, door.ex, w), ...died].join(" ") };
@@ -7934,7 +8272,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   }
   function lawEnd(state, i, T2, words, end) {
     const p = state.players[i], k = lawOf(state, i).text.end;
-    return k && (p.dead || p.fell) ? `${end} ${T2(k)}` : end;
+    return k && (p.dead || p.fell || state.winner === i) ? `${end} ${T2(k)}` : end;
   }
   function fellEnd(p, along, T2, sq, held2, l, who2, law) {
     const top = p.fellFrom ?? Math.max(...along.map((e) => e.n)), vice = SNAKES[p.holding]?.holding;
@@ -7966,7 +8304,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     if (!along.length) return "";
     if (p.death?.by === "ledger") return T2("lifeOpenLedger", { age: words(p.death.age ?? p.years) });
     if (p.dead) return T2("lifeOpenDied", { age: words(p.years) });
-    const earthly = along.filter((e) => e.n <= EARTH3), to = Math.max(...earthly.map((e) => e.years));
+    const earthly2 = along.filter((e) => e.n <= EARTH3), to = Math.max(...earthly2.map((e) => e.years));
     const snakes = along.filter((e) => e.via === "snake");
     const worst = snakes.reduce((w, e) => ageOf(e.from) - ageOf(e.n) > (w ? ageOf(w.from) - ageOf(w.n) : -1) ? e : w, null);
     if (worst && ageOf(worst.from) - ageOf(worst.n) >= 20) return T2("lifeOpenFall", { age: words(to), at: words(worst.years) });
@@ -8068,11 +8406,13 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
       return `<p class="life-open">${esc(mirrorIntroIn(l))}</p><ol class="life-mirror">${mirrorOf(state, whose).map((m) => `<li>${esc(mirrorIn(l, m))}</li>`).join("")}</ol><p><button type="button" class="ghost" data-act="skip">${T2("mirrorSkip")}</button></p>`;
     }
     const { sub, open: open2, paras, end, curse, fates } = lifeOf(state, whose, l);
+    const lw = lawOf(state, whose).text, src = lw.endSrc && prefs.depth === "scholar" && end.endsWith(tIn(l, lw.end)) ? tIn(l, lw.endSrc) : "";
     return `<p class="life-scribe">${esc(T2("citragupta"))}</p>
         ${sub ? `<p class="life-sub">${esc(sub)}</p>` : ""}
         ${open2 ? `<p class="life-open">${esc(open2)}</p>` : ""}
         ${paras.map((p) => `<h3 class="sub">${esc(p.head)}</h3><p>${esc(p.text)}</p>`).join("")}
         <p class="life-end">${esc([end, curse].filter(Boolean).join(" "))}</p>
+        ${src ? `<p class="life-src">${esc(src)}</p>` : ""}
         ${fates.length ? `<p class="life-fates">${esc(fates.join(" "))}</p>` : ""}`;
   }
   function paint3(focusTab = false) {
@@ -8202,16 +8542,21 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     return dice;
   }
   var atLadder = () => !!LADDERS[G.state.players[G.state.turn]?.pos];
-  var moveLabel = (l, v) => v ? tIn(l, "diceBy", { v }) : tIn(l, atLadder() ? "footWait" : "sit");
+  var actOf = () => G.choosing ? zeroOf(G.state, G.choosing.dice)?.act : null;
+  var cap = (x) => x[0].toUpperCase() + x.slice(1);
+  var moveLabel = (l, v) => v ? tIn(l, "diceBy", { v }) : actOf() ? tIn(l, "act" + cap(actOf())) : tIn(l, atLadder() ? "footWait" : "sit");
+  var zeroHint = () => actOf() ? "act" + cap(actOf()) + "Hint" : atLadder() ? "footWaitHint" : "sitHint";
   function choose(dice) {
     const moves = movesFor(G.state, dice);
     return new Promise((resolve2) => {
       G.choosing = { dice, moves, resolve: resolve2 };
-      const pick3 = $("pick");
-      pick3.innerHTML = moves.map((v) => `<button type="button" data-v="${v}"${v ? "" : ` title="${esc(t(atLadder() ? "footWaitHint" : "sitHint"))}"`}>${esc(moveLabel(lang, v))}</button>`).join("");
+      const pick3 = $("pick"), act = actOf();
+      pick3.innerHTML = moves.map((v) => `<button type="button" data-v="${v}"${v ? "" : ` title="${esc(t(zeroHint()))}"`}>${esc(moveLabel(lang, v))}</button>`).join("");
       pick3.hidden = false;
       $("roll").hidden = true;
-      $("hint").textContent = t(dice.length === 1 ? "footChoose" : moves.includes(0) ? "diceChooseSit" : "diceChoose", { a: num(dice[0]), b: num(dice[1]) });
+      $("practise").hidden = true;
+      const ab = { a: num(dice[0]), b: num(dice[1]) };
+      $("hint").textContent = act ? dice.length === 1 ? t(act + "Choose", ab) : t("diceChooseOr", { ...ab, act: moveLabel(lang, 0) }) : t(dice.length === 1 ? "footChoose" : moves.includes(0) ? "diceChooseSit" : "diceChoose", ab);
       refreshRoll();
       if (!cardOpen()) pick3.querySelector("button")?.focus({ preventScroll: true });
     });
@@ -8288,7 +8633,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     renderLog();
   }
   var canThrow = () => !G.busy && !G.state.over;
-  async function takeTurn() {
+  async function takeTurn({ practice = false } = {}) {
     const state = G.state;
     if (!canThrow()) {
       G.forcedRoll = null;
@@ -8310,17 +8655,17 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
       if (cardOpen() && diceFor(p) < 2) shut = closeCard();
     }
     release();
-    const spent = spentOf(p);
-    const dice = spent ? [] : await rollDice2(diceFor(p));
+    const spent = spentOf(p), still2 = !spent && (p.type === "human" ? practice && canPractise(state) : practisesNow(state));
+    const dice = spent || still2 ? [] : await rollDice2(diceFor(p));
     await shut;
     if (g3 !== G.gen) return;
     state.dice = dice;
-    const moves = spent ? [] : movesFor(state, dice);
-    const v = moves.length < 2 ? moves[0] ?? null : p.type === "human" ? await choose(dice) : moveFor(state, dice);
+    const moves = spent || still2 ? [] : movesFor(state, dice), auto = lawOf(state, idx).auto;
+    const v = still2 ? 0 : moves.length < 2 ? moves[0] ?? null : p.type === "human" && !auto ? await choose(dice) : moveFor(state, dice);
     if (g3 !== G.gen) return;
     if (p.type === "human" && !shut && cardOpen()) await closeCard();
     if (g3 !== G.gen) return;
-    state.last = v || dice[0];
+    if (dice.length || v == null) state.last = v || dice[0];
     setDrone(lens(state).droneStage);
     const watching = watchFrames();
     let onCard = false;
@@ -8367,7 +8712,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
             refreshRoll();
             openSquare(p.pos, { landing: true, who: idx });
           }
-          const id = p.type === "human" ? await decide(plan.situation, p) : lawOf(state, idx).choose(state, plan.situation);
+          const id = p.type === "human" && !auto ? await decide(plan.situation, p) : lawOf(state, idx).choose(state, plan.situation);
           if (g3 !== G.gen) return;
           plan = resolveChoice(state, plan, id);
           G.plan = plan;
@@ -8437,7 +8782,15 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
           }
         }
         if (!plan.sit && plan.final === GOAL && lawOf(state, idx).exit(state, idx)?.door && !plan.reckon?.to) {
-          landDoor(idx, plan.refused ? { kind: "refused", refusal: plan.refused, sit: canSit({ ...p, pos: GOAL }) } : { kind: "through" });
+          landDoor(idx, plan.refused ? { kind: "refused", refusal: plan.refused, sit: canSit({ ...p, pos: GOAL }) } : { kind: plan.win ? "through" : "open" });
+        } else if (plan.infer && p.type === "human") {
+          if (cardOpen() && !cardBlocking()) await closeCard({ instant: true });
+          G.waitingCard = true;
+          refreshRoll();
+          await openInfer(plan.infer, idx);
+          G.waitingCard = false;
+          refreshRoll();
+          if (g3 !== G.gen) return;
         } else if (plan.sit && plan.from === GOAL && (plan.exam || plan.died)) {
           const debts = carried(karmaOf(p)).filter((s) => !(plan.exam?.cleared && debtKey(s) === plan.exam.key));
           const ex = plan.exam && { ...plan.exam, died: plan.died, debts };
@@ -8464,7 +8817,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
       refreshCard();
     }
     if ((plan.died || plan.fell && p.fell) && p.type === "human") openLife(idx);
-    if (plan.fell && p.past?.length) {
+    if (plan.fell && !plan.freed && p.past?.length) {
       const was = p.past.length - 1;
       landReborn(idx, was);
       render();
@@ -8572,6 +8925,9 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     $("turnName").textContent = state.winner != null ? t("wins", { name: pname(state.players[state.winner]) }) : pname(p);
     const human = p.type === "human";
     $("roll").disabled = G.busy || state.over || !human;
+    $("practise").hidden = !human || state.over || !!G.choosing || !!G.deciding || !canPractise(state);
+    $("practise").disabled = G.busy;
+    $("practise").title = t("practiseHint");
     $("roll").textContent = human ? t("roll") : t("rolling", { name: pname(p) });
     $("hint").textContent = state.over ? t("hintOver") : isAnimal(state) ? t("animalHint") : human ? t("hintHuman") : t("hintCpu");
     if (G.deciding) drawDecide();
@@ -8641,7 +8997,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     return any ? { rows, rules: G.setup.rules } : null;
   }
   var lawsOffered = () => choosable().length > 1 && !firstLife();
-  var lawButtons = (now) => choosable().map((w) => `<button type="button" class="law" data-law="${w.id}" aria-pressed="${w.id === now}"><b>${esc(t(w.text.name))}</b> <span>${esc(t(w.text.about))}</span></button>`).join("");
+  var lawButtons = (now) => choosable().map((w) => `<button type="button" class="law" data-law="${w.id}" aria-pressed="${w.id === now}"><b>${esc(t(w.text.name))}</b> <span>${esc(t(w.text.about))}</span>${w.text.scholar && prefs.depth === "scholar" ? ` <small class="law-src">${esc(t(w.text.scholar))}</small>` : ""}</button>`).join("");
   var rebornSeat = (state) => state.players.findIndex((p, i) => p.type === "human" && rebornFrom(state, i) && soulFor(soulKey(p)));
   function drawRebornLaws(reborn) {
     const el3 = $("rebornLaws"), seat = reborn && lawsOffered() && !isAnimal(G.state) ? rebornSeat(G.state) : -1;
@@ -8847,7 +9203,8 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     startGame();
   });
   $("naming").addEventListener("cancel", (e) => e.preventDefault());
-  $("roll").addEventListener("click", takeTurn);
+  $("roll").addEventListener("click", () => takeTurn());
+  $("practise").addEventListener("click", () => takeTurn({ practice: true }));
   document.addEventListener("keydown", (e) => {
     if (G.deciding && /^[1-3]$/.test(e.key) && !e.target.closest("input, select, textarea") && !e.ctrlKey && !e.metaKey && !e.altKey) {
       const o = G.deciding.opts[+e.key - 1];
@@ -9102,6 +9459,27 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
         render();
         age(true);
         return p.door;
+      },
+      // mp.still(n) gives the current player n stillnesses under Yoga (Phase 17 step 5); mp.still() reads them
+      still(n) {
+        if (n != null) {
+          cur().nirodha = n;
+          render();
+        }
+        return cur().nirodha ?? 0;
+      },
+      // mp.bhumika(b) puts the current player in bhūmikā b (0 the first … 6 turyā), a sannyāsin of seventy, for Advaita's
+      // recognition and the board dissolving; mp.bhumika() reads it
+      bhumika(b) {
+        if (b != null) {
+          const p = cur();
+          p.years = Math.max(p.years ?? 0, 70);
+          p.bhumika = b;
+          p.peak = Math.max(p.peak ?? -1, b);
+          render();
+          age(true);
+        }
+        return cur().bhumika ?? null;
       },
       // mp.examine(i) is player i's examination: the years asked so far (p.exam, p.sittings) and what the next would ask
       examine: (i = G.state.turn) => {

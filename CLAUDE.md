@@ -85,6 +85,18 @@ last about the merit, `binds`) and Bhakti (`bhakti.js`: grace on the lower ego c
 the account (`accUpasama`); Devotion's climb past 37 is drawn on in gold (`goldLadder`). Hindi says "घर {n}", never
 "खाना {n}" (lint), and "बरस की उम्र में", never "बरस पर"; `tools/accounts.mjs --tag` marks such Hindi accounts `wording`.
 `npm run format` skips `content/boards.json`.
+Step 5 adds Nyāya (`nyaya.js`: karma `veiled`, so the ledger is never shown and a reckoning (`lSign`, `reckonSignIn`) and
+the door's refusal (`doorSign`) are signs; a person may spend a throw to infer the latest sign, `zero` → "infer",
+`inferLinesIn`, five members; its door opens on no win, `exit().alive: false`, `lDoorThrough`; release is `freed`:
+apavarga, a life ended by its years or Śiva's snake with nothing owed, `state.winner` and not reborn), Sāṃkhya
+(`sankhya.js`: `auto`, the game chooses a person's die by `moveFor` and options by the leading guṇa, policy "inert" for
+tamas; the card says "Prakṛti did" and greys what it passed over; the account closes on Sāṃkhyakārikā 59), Advaita
+(`advaita.js`: no exit at 105, `text.goal`; from the sixth bhūmikā `zero` → "recognise", a win of kind "recognition";
+`dissolve` fades `#art` with the bhūmikā, `clearOf` in `src/render/age.js`) and Yoga (`yoga.js`: `practice`/`sits`, a
+year in practice before the throw draws no dice, `playTurn(state, [])`, and stores `p.nirodha` up to three; `zero` →
+"letGo" spends one; `line` says it in words on the player's line). A law's act in place of a move is `zero(state, i,
+dice)` → `{ act, line, kind }`, told as `p.told` on the square again; `?debug` adds `mp.still(n)` and `mp.bhumika(b)`;
+the sim plays `playTurn(state, undefined, pick)` so the game decides what is thrown.
 Phase 7 was The Exit (REDESIGN.md §4): Moksha is square 105 (`GOAL`), partway
 along the divine row, while the board still ends at 110 (`TOP`). Since Phase 12 nothing above the exit turns back: past 105 the
 heavens (106–110) are walked. Since Phase 17 no throw passes `TOP`, and the exact throw onto it is Śiva's snake, the fall

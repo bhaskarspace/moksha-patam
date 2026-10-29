@@ -15,6 +15,8 @@ const row = (text, state) => `<span class="stage">${esc(text)}<br>${esc(state)}<
 
 function ledgerOf(p, law) {
   if (!law.karma) return `<span class="stage">${esc(t("ledgerNone"))}</span>`;
+  // a law that veils karma (Nyāya, Phase 17 step 5) never shows it, at any depth: only its signs
+  if (law.veiled) return `<span class="stage">${esc(t("ledgerVeiled"))}</span>`;
   const who = { name: pname(p), gender: p.gender }, k = karmaOf(p);
   const debt = s => debtIn(lang, s, who);
   const met = (p.reckonings ?? []).filter(r => !r.dies).map(r => row(debt({ src: r.src, opt: r.opt, at: r.planted }), t("ledgerMet", { age: wordsIn(lang, Math.floor(r.age ?? 0)) })));

@@ -6,8 +6,8 @@ import { GOAL, TOP, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, READINGS, CODEX, ENTR
 import { lang, tIn, numIn, srcIn, pick, fill, castFill, ageWordsIn } from "../i18n.js";
 import { ageStep, stageOfYears, bhumikaOf, freshGunas, SANNYASA, yearsAlong, landedYears } from "../engine/self.js";
 import { castOf, castAlong, peopleOf, introIn } from "../engine/cast.js";
-import { momentOf, destOf, egoOf } from "../engine/qbn.js";
-import { reckonLinesIn, refusalIn, examLinesIn, debtsIn, debtIn } from "../engine/karma.js";
+import { momentOf, destOf, egoOf, optionOf, situationAt } from "../engine/qbn.js";
+import { reckonLinesIn, reckonSignIn, inferLinesIn, refusalIn, examLinesIn, debtsIn, debtIn } from "../engine/karma.js";
 import { canSit, foresee, logLaw } from "../engine/turn.js";
 import { lawOf, choosable, canChoose, setLaw } from "../engine/laws/index.js";
 import { curseSaidIn } from "../engine/curse.js";
@@ -25,7 +25,7 @@ const other = l => (l === "hi" ? "en" : "hi");
 const DEPTHS = ["story", "school", "scholar"];
 const deep = d => DEPTHS.indexOf(prefs.depth) >= DEPTHS.indexOf(d);
 
-let view = null;           // { type: "square", n }, { type: "entry", id }, { type: "reckon", rk }, { type: "exam", ex } or { type: "reborn", was }
+let view = null;           // { type: "square", n }, { type: "entry", id }, { type: "reckon", rk }, { type: "exam", ex }, { type: "infer", sign } or { type: "reborn", was }
 let cardLang = null;       // the card's own language, when the reader flips it
 let backTo = null;         // the square an entry was opened from
 let subject = null;        // the player a square's moment is about; the player whose turn it is when unset
@@ -148,6 +148,17 @@ function graceHere(n) {
   let k = p.life.length - 1;
   while (k > 0 && p.told?.[k] === "stay") k--;
   return p.life[k] === n && !!p.witness?.findLast(w => w.i === k)?.grace;
+}
+// What prakṛti chose on square n for its subject, under a law whose game chooses for the person (Sāṃkhya, Phase 17 step 5):
+// the option the witness was given, as the plan or the record of the choice made where they stand; null for none.
+function prakritiHere(n) {
+  const p = subjectOf(), plan = G.plan;
+  if (!p || !G.state || !lawHere()?.auto) return null;
+  if (plan && G.state.players[plan.idx] === p && plan.target === n) return plan.choice ? (plan.ego?.chose ?? plan.grace?.chose ?? plan.choice) : null;
+  if (p.pos !== n || !p.life?.length) return null;
+  let k = p.life.length - 1;
+  while (k > 0 && p.told?.[k] === "stay") k--;
+  return (p.life[k] === n && p.witness?.findLast(w => w.i === k)?.chose) || null;
 }
 // The faces of a die, as the ego's are shown: never a number about the player.
 const FACES = ["⚀", "⚁", "⚂", "⚃", "⚄", "⚅"], facesIn = fs => fs.map(f => FACES[f - 1]).join(" ");
@@ -278,13 +289,19 @@ function squareHtml(n, l) {
     (rebel && !tumbling ? texts(l, ...["en", "hi"].map(x => momentIn(egoOf(n).card, x, n, false)), "moment") : "");
   const moment = m && !tumbling ? texts(l, momentIn(m, "en", n, !pending), momentIn(m, "hi", n, !pending), n > 100 ? "moment remnant" : "moment") : "";
   const grace = !pending && graceHere(n) ? texts(l, ...["en", "hi"].map(x => fill(tIn(x, "graceCard", { name: person(x, n).name }), person(x, n))), "remedy grace") : "";
+  // prakṛti chose (Sāṃkhya): what it chose, told as its act, and the options it passed over, greyed, never to be taken
+  const pk = pending ? null : prakritiHere(n), pko = pk && optionOf(n, pk);
+  const prakriti = pko ? texts(l, ...["en", "hi"].map(x => fill(tIn(x, "prakritiChose", { name: person(x, n).name, label: pko.label[x] || pko.label.en }), person(x, n))), "remedy prakriti") +
+    `<div class="options passed" role="group" aria-label="${esc(T("prakritiPassed"))}">` + situationAt(n).options.filter(o => o.id !== pk).map(o =>
+      `<span class="opt" aria-disabled="true"><span class="opt-l">${esc(o.label[l] || o.label.en)}</span><span class="opt-c">${esc(T("prakritiPassed"))} · ${esc(optionNote(l, n, o))}</span></span>`).join("") + `</div>` : "";
   // a snake tail one square below its remedy says so (REDESIGN.md Phase 4, item 3)
   const remedy = sq.remedy ? texts(l, fill(sq.remedy.en, person("en", n)), fill(sq.remedy.hi, person("hi", n)), "remedy") : "";
   // past the exit, the card says the way out is behind and below (REDESIGN.md Phase 7, item 3)
   // in the law's own words (Phase 17): its exit is behind, or there was none
   const above = n > GOAL && HEAVEN[n] ? texts(l, ...["en", "hi"].map(x => tIn(x, lawHere()?.text.above ?? "aboveExit", { n: numIn(x, exitHere()?.at ?? GOAL), top: numIn(x, TOP) })), "remedy above") : "";
   // a law with no door at 105 says the square is ordinary under it
-  const noDoor = n === GOAL && G.state && exitHere()?.at !== GOAL ? texts(l, ...["en", "hi"].map(x => tIn(x, "lawNoDoor", { law: tIn(x, lawHere().text.name) })), "remedy door") : "";
+  // or, under a law with its own word for it (Advaita), that there never was one
+  const noDoor = n === GOAL && G.state && exitHere()?.at !== GOAL ? texts(l, ...["en", "hi"].map(x => tIn(x, lawHere().text.goal ?? "lawNoDoor", { law: tIn(x, lawHere().text.name) })), "remedy door") : "";
   // the options, each with what it visibly does; one a gate withholds is greyed, with why (§2.5), and cannot be taken
   const opts = pending && G.deciding?.sit === pending ? G.deciding.opts : null;
   const options = opts ? `<div class="options" role="group" aria-label="${esc(T("chooseLabel"))}">` + opts.map((o, i) =>
@@ -297,13 +314,15 @@ function squareHtml(n, l) {
   const sp0 = subjectOf(), landing = G.plan && sp0 === G.state.players[G.plan.idx] && G.plan.target === n ? G.plan : null;
   const sp = landing || sp0?.door ? sp0 : G.state?.players.find(q => q.pos === GOAL && q.door) ?? sp0;
   const refusal = n === GOAL && sp ? (landing ? landing.refused : sp.pos === GOAL ? sp.door : null) : null;
-  const door = refusal ? (() => { const [en, hi] = ["en", "hi"].map(x => refusalIn(x, refusal, { name: pnameIn(sp, x), gender: sp.gender }, canSit({ ...sp, pos: GOAL }))); return en.map((t, i) => texts(l, t, hi[i], "remedy door")).join(""); })() : "";
+  // under a law that veils karma (Nyāya) only as a sign: something is owed
+  const veiled = sp && lawOf(G.state, G.state.players.indexOf(sp)).veiled;
+  const door = refusal ? (() => { const [en, hi] = ["en", "hi"].map(x => refusalIn(x, refusal, { name: pnameIn(sp, x), gender: sp.gender }, canSit({ ...sp, pos: GOAL }), veiled)); return en.map((t, i) => texts(l, t, hi[i], "remedy door")).join(""); })() : "";
   // the curse, said at this landing, when the landing's card is open rather than the line (Phase 14)
   const sayer = spoken && spoken.n === n && G.state?.players[spoken.who];
   const curse = sayer ? texts(l, curseSaidIn("en", sayer, pnameIn(sayer, "en")), curseSaidIn("hi", sayer, pnameIn(sayer, "hi")), "remedy") : "";
   // a rebellion's mirror is the Gita's question of what drives a person to wrong unwilling (3.36–37)
   const mirrored = pending || tumbling ? "" : rebel ? texts(l, EGO.mirror.en, EGO.mirror.hi, "mirror") : mirrorHtml(l, mirror, m);
-  body += `<div class="story">${noDoor}${door}${egoTop}${moment}${grace}${faces}${curse}${options}${remedy}${mirrored}${bi(l, r.line2, "line2")}${above}</div>`;
+  body += `<div class="story">${noDoor}${door}${egoTop}${moment}${grace}${prakriti}${faces}${curse}${options}${remedy}${mirrored}${bi(l, r.line2, "line2")}${above}</div>`;
   // what the toggle opens: the voices, and the notes, at the reader's depth
   // Codex entries in it count as met only once the reader opens it
   let more = "";
@@ -330,6 +349,8 @@ function squareHtml(n, l) {
   // a square with no voices shows its scholar note at school depth rather than a bare lead
   // and Duryodhana's confession, beside 3.27, in the scholar layer
   if (rebel && deep("scholar")) more += bi(l, EGO.scholar, "note");
+  // and Gītā 3.27 beside what prakṛti did (Sāṃkhya)
+  if (pko && deep("scholar")) more += texts(l, tIn("en", "prakritiScholar"), tIn("hi", "prakritiScholar"), "note");
   if (deep("scholar") || (deep("school") && !r.schools?.length && !r.views?.length)) more += bi(l, r.scholar, "note");
   if (deep("scholar")) {
     if (r.figures?.length) {
@@ -362,8 +383,14 @@ function squareHtml(n, l) {
 
 // A reckoning (REDESIGN.md Phase 12): the floor opening, what came due, the square it came from, and what it took. It
 // names its source and links to it; the ledger behind it is never a number.
+// Under a law that veils karma (Nyāya, Phase 17 step 5) it is a sign only: no source, no square, nothing of what came due.
 function reckonHtml(rk, l) {
-  const p = subjectOf(), lines = x => reckonLinesIn(x, rk, { name: pnameIn(p, x), gender: p.gender });
+  const p = subjectOf(), veiled = lawHere()?.veiled, lines = x => (veiled ? reckonSignIn : reckonLinesIn)(x, rk, { name: pnameIn(p, x), gender: p.gender });
+  if (veiled) {
+    const en = lines("en"), hi = lines("hi");
+    const body = `<h2 id="leafTitle">${esc(tIn(l, "signHead"))}</h2><div class="story">` + en.map((t, i) => texts(l, t, hi[i], i === 0 ? "remedy floor" : "remedy")).join("") + `</div>`;
+    return { kind: "reckon", met: [], html: frame(l, { kind: "reckon", eb: esc(tIn(l, "signTitle")), big: "⚅", sqn: "", body, foot: "" }) };
+  }
   const en = lines("en"), hi = lines("hi"), q = squareOf(rk.src);
   let body = `<h2 id="leafTitle">${esc(q[l] || q.en)}</h2>`;
   body += `<div class="story">` + en.map((t, i) => texts(l, t, hi[i], i === 1 ? "moment" : i === 0 ? "remedy floor" : "remedy")).join("") +
@@ -391,6 +418,14 @@ function entryHtml(id, l) {
       body, foot: backTo != null ? `<button type="button" class="nav back" data-act="back">${T("back", { n: backTo })}</button>` : "",
       prev: prev ? entryName(prev, l) : null, next: next ? entryName(next, l) : null, prevLabel: T("prevEntry"), nextLabel: T("nextEntry") }),
   };
+}
+
+// An inference from a sign (Nyāya, Phase 17 step 5): the five members, ending on the deed, in words; nothing counted.
+function inferHtml(sign, l) {
+  const p = subjectOf(), lines = x => inferLinesIn(x, sign, { name: pnameIn(p, x), gender: p.gender });
+  const en = lines("en"), hi = lines("hi");
+  const body = `<h2 id="leafTitle">${esc(tIn(l, "inferTitle"))}</h2><ol class="story infer">` + en.map((t, i) => `<li>${texts(l, t, hi[i], i === 4 ? "moment" : "remedy")}</li>`).join("") + `</ol>`;
+  return { kind: "infer", met: [], html: frame(l, { kind: "exam", eb: esc(tIn(l, "inferTitle")), big: "🔥\uFE0E", sqn: "", body, foot: "" }) };
 }
 
 // A year sat at the door (REDESIGN.md Phase 14): the question, the life's answer from the book, and whether the debt is
@@ -421,7 +456,7 @@ function rebornHtml(was, l) {
   // the law the new life plays under, once there is more than one to choose and this is not the viewer's first life
   if (choosable().length > 1 && !firstLife()) {
     const now = lawOf(G.state, subject).id;
-    body += `<div class="laws" role="group" aria-label="${esc(tIn(l, "lawPick"))}">` + choosable().map(w => `<button type="button" class="law" data-act="law" data-law="${w.id}" aria-pressed="${w.id === now}"><b>${esc(tIn(l, w.text.name))}</b> <span>${esc(tIn(l, w.text.about))}</span></button>`).join("") + `</div>`;
+    body += `<div class="laws" role="group" aria-label="${esc(tIn(l, "lawPick"))}">` + choosable().map(w => `<button type="button" class="law" data-act="law" data-law="${w.id}" aria-pressed="${w.id === now}"><b>${esc(tIn(l, w.text.name))}</b> <span>${esc(tIn(l, w.text.about))}</span>${w.text.scholar && deep("scholar") ? ` <small class="law-src">${esc(tIn(l, w.text.scholar))}</small>` : ""}</button>`).join("") + `</div>`;
   }
   body += `<p class="reborn-acts"><button type="button" class="ghost" data-act="pastLife">${esc(tIn(l, "readPast"))}</button> <button type="button" data-act="close">${esc(tIn(l, "goOn"))}</button></p>`;
   return { kind: "reborn", met: [], html: frame(l, { kind: "reborn", eb: esc(tIn(l, "bornAgainHead")), big: art("fall", "🔱", "spr snake-glyph"), sqn: numIn(l, TOP), body, foot: "" }) };
@@ -435,7 +470,7 @@ function paint({ landing = false } = {}) {
   const l = cardLang ?? lang;
   const fa = leaf.contains(document.activeElement) ? document.activeElement : null;
   const again = fa?.dataset.act ? `[data-act="${fa.dataset.act}"]` : fa?.dataset.cl ? `[data-cl="${fa.dataset.cl}"]` : null;
-  const out = view.type === "square" ? squareHtml(view.n, l) : view.type === "reckon" ? reckonHtml(view.rk, l) : view.type === "exam" ? examHtml(view.ex, l) : view.type === "reborn" ? rebornHtml(view.was, l) : entryHtml(view.id, l);
+  const out = view.type === "square" ? squareHtml(view.n, l) : view.type === "reckon" ? reckonHtml(view.rk, l) : view.type === "exam" ? examHtml(view.ex, l) : view.type === "infer" ? inferHtml(view.sign, l) : view.type === "reborn" ? rebornHtml(view.was, l) : entryHtml(view.id, l);
   leaf.className = "leaf " + out.kind + (landing ? " landed" : "") + (expanded ? " open" : "");
   leaf.innerHTML = out.html;
   metMore = out.metMore || [];
@@ -447,7 +482,7 @@ function paint({ landing = false } = {}) {
   if (again) [...leaf.querySelectorAll(again)].find(el => el.offsetParent)?.focus({ preventScroll: true });
   cue();
   // the address bar names what is open, so a card can be linked
-  history.replaceState(null, "", location.pathname + location.search + (view.type === "square" ? `#sq/${view.n}` : view.type === "reckon" ? `#sq/${view.rk.src}` : view.type === "exam" ? `#sq/${GOAL}` : view.type === "reborn" ? `#sq/${TOP}` : `#codex/${view.id}`));
+  history.replaceState(null, "", location.pathname + location.search + (view.type === "square" ? `#sq/${view.n}` : view.type === "reckon" ? (lawHere()?.veiled ? "" : `#sq/${view.rk.src}`) : view.type === "exam" ? `#sq/${GOAL}` : view.type === "infer" ? "" : view.type === "reborn" ? `#sq/${TOP}` : `#codex/${view.id}`));
   onChange.forEach(fn => fn());
 }
 
@@ -560,7 +595,7 @@ async function open(next, { landing = false, from = null, who = null, focus = tr
   const wasOpen = dlg.open, was = view;
   view = next;
   subject = who;
-  const block = next.type === "reckon" || next.type === "exam" || next.type === "reborn" || (next.type === "square" && !!pendingOn(next.n));
+  const block = next.type === "reckon" || next.type === "exam" || next.type === "infer" || next.type === "reborn" || (next.type === "square" && !!pendingOn(next.n));
   // already open: the leaf turns to the new square, forward or back
   if (wasOpen) {
     setBlocking(block);
@@ -591,6 +626,8 @@ export const openSquare = (n, opts) => open({ type: "square", n }, opts);
 export const openReckoning = (rk, who) => open({ type: "reckon", rk }, { landing: true, who });
 // A year at the door, for player who (REDESIGN.md Phase 14): like a reckoning, it holds the game until it is read.
 export const openExam = (ex, who) => open({ type: "exam", ex }, { landing: true, who });
+// an inference (Nyāya): held until it is read, as a year at the door is
+export const openInfer = (sign, who) => open({ type: "infer", sign }, { landing: true, who });
 // Between lives, for player who (Phase 17): resolves once it is closed, true when the reader asked for the book of the
 // life just closed, which the page then opens.
 export function openReborn(was, who) {

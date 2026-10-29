@@ -315,6 +315,13 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 .leaf .law { display: grid; gap: 2px; min-height: 44px; padding: 10px 14px; text-align: start; font: inherit; color: var(--l-ink); background: rgba(255, 252, 240, 0.7); border: 1px solid var(--l-line); border-radius: 8px; cursor: pointer; }
 .leaf .law[aria-pressed="true"] { border-color: var(--l-rule); border-width: 2px; }
 .leaf .law span { font-size: 15px; }
+/* Phase 17 step 5: a law's sources at scholar depth; prakṛti's passed-over options (Sāṃkhya), greyed and never to be
+   taken; the five members of an inference (Nyāya) */
+.leaf .law .law-src, .win .laws .law .law-src { font-size: 13px; font-style: italic; }
+.leaf .options.passed { display: grid; gap: 6px; margin: 8px 0; }
+.leaf .options.passed .opt { grid-template-columns: 1fr; cursor: default; }
+.leaf .options.passed .opt-c { grid-column: 1; }
+.leaf ol.infer { padding-inline-start: 1.4em; }
 .leaf .opt { display: grid; grid-template-columns: auto 1fr; column-gap: 10px; align-items: baseline; min-height: 44px; padding: 10px 14px; text-align: start; font: inherit; font-size: 17px; color: var(--l-ink); background: rgba(255, 252, 240, 0.7); border: 1px solid var(--l-line); border-radius: 8px; cursor: pointer; }
 .leaf .opt:hover:not([aria-disabled="true"]), .leaf .opt:focus-visible { border-color: var(--l-rule); }
 .leaf .opt-k { grid-row: span 3; font-weight: 600; color: var(--l-gold); }

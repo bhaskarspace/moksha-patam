@@ -35,13 +35,15 @@ function stageLine(pl) {
   return [...(pl.rebirths && stageOf(pl) === 0 ? [fill(t("bornAgainStage"), { gender: pl.gender })] : []), ...new Set([stageName(stageOf(pl), pl.gender), ashramaIn(pl)])].join(" · ");
 }
 
+// What the player's law says on their line (Phase 17 step 5: Yoga's stillness, in words, never a count)
+const lawLine = (pl, i) => { const k = !gone(pl) && LAWS[pl.law ?? G.state.rules?.law ?? "board"]?.line(pl); return k ? `<span class="self still">${esc(t(k))}</span>` : ""; };
 export function renderPlayers() {
   $("players").innerHTML = G.state.players.map((pl, i) => `
     <li class="${i === G.state.turn && !G.state.over ? "current" : ""}${gone(pl) ? " dead" : ""}">
       <span class="dot" style="background:${COLORS[pl.color]}"></span>
       <span><span class="pname">${esc(pname(pl))}</span><span class="kind">${pl.type === "cpu" ? t("cpu") : ""}</span>
         <span class="stage">${stageLine(pl)}</span>
-        ${selfLine(pl) && !gone(pl) ? `<span class="self">${esc(selfLine(pl))}</span>` : ""}</span>
+        ${selfLine(pl) && !gone(pl) ? `<span class="self">${esc(selfLine(pl))}</span>` : ""}${lawLine(pl, i)}</span>
       <span class="pos">${pl.fell ? "" : pl.pos === 0 ? t("start") : pl.pos === GOAL ? t("moksha") : t("square", { n: pl.pos })}</span>
     </li>`).join("");
   renderLedger();

@@ -12,6 +12,7 @@ import { lang, tIn, fill } from "../i18n.js";
 import { G, pnameIn } from "../state.js";
 import { refusalIn, examLinesIn, debtsIn } from "../engine/karma.js";
 import { curseSaidIn } from "../engine/curse.js";
+import { lawOf } from "../engine/laws/index.js";
 import { $, esc } from "../ui.js";
 import { labEls } from "./board.js";
 import { momentLine, openSquare } from "./card.js";
@@ -24,13 +25,16 @@ let last = null; // { n, who, told }, the person's last landing, and the option 
 // ego is the throw on a situation, when there was one (Phase 15)
 export const landHuman = (n, who, told, ego = null) => { last = { n, who, told, ego }; drawLanded(); };
 // What happened at the door to player who, for anyone: door is { kind: "refused", refusal, sit }, { kind: "through" },
+// { kind: "open" } (Nyāya: the door opened on no win),
 // { kind: "exam", ex } or { kind: "died", debts } (ex.debts and debts: what is still owed should the years run out there),
 // told in the door's words, in the language of the moment it is drawn.
 export const landDoor = (who, door) => { last = { n: GOAL, who, door }; drawLanded(); };
 function doorLine(l, { who, door }) {
   const p = G.state.players[who], w = { name: pnameIn(p, l), gender: p.gender };
-  if (door.kind === "refused") return { title: tIn(l, "endRefused"), text: refusalIn(l, door.refusal, w, door.sit).join(" ") };
+  // under a law that veils karma (Nyāya) the refusal is a sign, and its door opens on no win (open)
+  if (door.kind === "refused") return { title: tIn(l, "endRefused"), text: refusalIn(l, door.refusal, w, door.sit, lawOf(G.state, who).veiled).join(" ") };
   if (door.kind === "through") return { title: tIn(l, "moksha"), text: fill(tIn(l, "doorThrough", w), w) };
+  if (door.kind === "open") return { title: tIn(l, "moksha"), text: fill(tIn(l, "doorOpenOn", w), w) };
   if (door.kind === "died") return { title: tIn(l, "moksha"), text: fill(tIn(l, "doorDied", { name: w.name, debts: debtsIn(l, door.debts, w) }), w) };
   const died = door.ex.died ? [fill(tIn(l, "doorDied", { name: w.name, debts: debtsIn(l, door.ex.debts, w) }), w)] : [];
   return { title: tIn(l, "moksha"), text: [...examLinesIn(l, door.ex, w), ...died].join(" ") };

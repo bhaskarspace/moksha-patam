@@ -291,10 +291,11 @@ function winEnd(p, T, words, held, law) {
   return letgo ? T("lifeEndWin", { age, letgo: held(letgo) }) : T("lifeEndFree", { age });
 }
 
-// A law with its own last word closes the account with it once the life is over (Cārvāka: this life was all there was).
+// A law with its own last word closes the account with it once the life is over (Cārvāka: this life was all there was;
+// Sāṃkhya: the dancer of Sāṃkhyakārikā 59, won or not).
 function lawEnd(state, i, T, words, end) {
   const p = state.players[i], k = lawOf(state, i).text.end;
-  return k && (p.dead || p.fell) ? `${end} ${T(k)}` : end;
+  return k && (p.dead || p.fell || state.winner === i) ? `${end} ${T(k)}` : end;
 }
 
 // The fall from the heavens (REDESIGN.md Phase 12): the realm the life reached, the merit spent, and what it was still

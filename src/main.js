@@ -5,7 +5,7 @@ import { G, defaultSetup, pname, pnameIn, cur, newState, loadSelf, saveSelf } fr
 import { prefs, setPref, applyTheme, lifeLived, beFirst, freshViewer, firstLife, soulStore, soulFor, keepSoul, setSoulStore, saveGame, loadGame } from "./prefs.js";
 import { $, COLORS, esc, reduced, sleep, quality, forcedQuality, setQuality } from "./ui.js";
 import { die, makeRng, freshSeed } from "./rng.js";
-import { TUMBLE, planTurn, resolveChoice, endTurn, addLog, diceFor, movesFor, moveFor, gone, canSit, createGame, playTurn, spentOf, doorOf } from "./engine/turn.js";
+import { TUMBLE, planTurn, resolveChoice, endTurn, addLog, diceFor, movesFor, moveFor, gone, canSit, createGame, playTurn, spentOf, doorOf, canPractise, practisesNow, zeroOf } from "./engine/turn.js";
 import { optionsFor, situationAt, momentOf } from "./engine/qbn.js";
 import { LAWS, lawOf, choosable, canChoose, setLaw } from "./engine/laws/index.js";
 import { S, colRow, labEls, buildCells, draw, drawAge, fxClear, focusSquare } from "./render/board.js";
@@ -19,7 +19,7 @@ import { isAnimal, animalRules, afterAnimal, KINDS, masterOf } from "./engine/an
 import { frame, pullBack, hold, release } from "./render/camera.js";
 import { spriteURL, spriteSheet } from "./render/sprites.js";
 import { tokenEls, buildTokens, place, retrigger, climb, swallow, animate } from "./render/tokens.js";
-import { openSquare, openReckoning, openExam, openReborn, cardCurse, openEntry, closeCard, cardIdle, cardOpen, cardCarried, cardBlocking, cardExpanded, releaseCard, setCardRoll, setCardDecide, optionNote, refreshRoll, refreshCard, onCardChange } from "./render/card.js";
+import { openSquare, openReckoning, openExam, openInfer, openReborn, cardCurse, openEntry, closeCard, cardIdle, cardOpen, cardCarried, cardBlocking, cardExpanded, releaseCard, setCardRoll, setCardDecide, optionNote, refreshRoll, refreshCard, onCardChange } from "./render/card.js";
 import { drawDoor } from "./render/door.js";
 import { landHuman, landDoor, landCurse, landStay, landReborn, clearLanded, drawLanded } from "./render/landed.js";
 import { sheetState } from "./render/sheet.js";
@@ -62,18 +62,24 @@ async function rollDice(n) {
 // ---- Choosing between the dice ----
 // A person sees both dice and moves by either, or in 94–100 sits the year out; a computer chooses at once, the
 // same way tools/sim.mjs does. The choice is offered on the panel and, for a reader on a phone, on the card.
-// at a ladder's foot (Jain, Phase 17) the move that is no move is waiting there, not sitting in practice
+// at a ladder's foot (Jain, Phase 17) the move that is no move is waiting there, not sitting in practice; and under a law
+// whose own act it is (step 5), that act: a throw let go (Yoga), an inference (Nyāya), recognition (Advaita)
 const atLadder = () => !!LADDERS[G.state.players[G.state.turn]?.pos];
-const moveLabel = (l, v) => (v ? tIn(l, "diceBy", { v }) : tIn(l, atLadder() ? "footWait" : "sit"));
+const actOf = () => (G.choosing ? zeroOf(G.state, G.choosing.dice)?.act : null);
+const cap = x => x[0].toUpperCase() + x.slice(1);
+const moveLabel = (l, v) => (v ? tIn(l, "diceBy", { v }) : actOf() ? tIn(l, "act" + cap(actOf())) : tIn(l, atLadder() ? "footWait" : "sit"));
+const zeroHint = () => (actOf() ? "act" + cap(actOf()) + "Hint" : atLadder() ? "footWaitHint" : "sitHint");
 function choose(dice) {
   const moves = movesFor(G.state, dice);
   return new Promise(resolve => {
     G.choosing = { dice, moves, resolve };
-    const pick = $("pick");
-    pick.innerHTML = moves.map(v => `<button type="button" data-v="${v}"${v ? "" : ` title="${esc(t(atLadder() ? "footWaitHint" : "sitHint"))}"`}>${esc(moveLabel(lang, v))}</button>`).join("");
+    const pick = $("pick"), act = actOf();
+    pick.innerHTML = moves.map(v => `<button type="button" data-v="${v}"${v ? "" : ` title="${esc(t(zeroHint()))}"`}>${esc(moveLabel(lang, v))}</button>`).join("");
     pick.hidden = false;
     $("roll").hidden = true;
-    $("hint").textContent = t(dice.length === 1 ? "footChoose" : moves.includes(0) ? "diceChooseSit" : "diceChoose", { a: num(dice[0]), b: num(dice[1]) });
+    $("practise").hidden = true;
+    const ab = { a: num(dice[0]), b: num(dice[1]) };
+    $("hint").textContent = act ? (dice.length === 1 ? t(act + "Choose", ab) : t("diceChooseOr", { ...ab, act: moveLabel(lang, 0) })) : t(dice.length === 1 ? "footChoose" : moves.includes(0) ? "diceChooseSit" : "diceChoose", ab);
     refreshRoll();
     if (!cardOpen()) pick.querySelector("button")?.focus({ preventScroll: true });
   });
@@ -151,7 +157,8 @@ function log(e) {
 
 // Whether a throw can be taken now: a forced roll (mp.roll) set when it cannot would wait and drive some later throw.
 const canThrow = () => !G.busy && !G.state.over;
-async function takeTurn() {
+// practice: a person's year in practice before the throw (Yoga, Phase 17 step 5), from its own button; nothing is thrown
+async function takeTurn({ practice = false } = {}) {
   const state = G.state;
   if (!canThrow()) { G.forcedRoll = null; return; }
   const g = G.gen;
@@ -165,21 +172,23 @@ async function takeTurn() {
   let shut = null;
   if (p.type === "human") { clearLanded(); G.humanRolled = true; if (cardOpen() && diceFor(p) < 2) shut = closeCard(); }
   release();
-  // the merit spent in the heavens (Phase 17): nothing is thrown, and Śiva's snake takes the life
-  const spent = spentOf(p);
-  const dice = spent ? [] : await rollDice(diceFor(p));
+  // the merit spent in the heavens (Phase 17): nothing is thrown, and Śiva's snake takes the life. A year in practice
+  // before the throw (Yoga) throws nothing either: a person's from its button, a computer's as tools/sim.mjs decides it
+  const spent = spentOf(p), still = !spent && (p.type === "human" ? practice && canPractise(state) : practisesNow(state));
+  const dice = spent || still ? [] : await rollDice(diceFor(p));
   await shut;
   if (g !== G.gen) return;
   state.dice = dice;
   // a choice with only one move in it (a double, where there is no sitting, or in the heavens a die that would pass the
   // top) is not asked; with none, the life stays where it is (Phase 17). One die is one move, unless the law offers
   // another (Jain: waiting at a ladder's foot)
-  const moves = spent ? [] : movesFor(state, dice);
-  const v = moves.length < 2 ? moves[0] ?? null : p.type === "human" ? await choose(dice) : moveFor(state, dice);
+  // under a law whose game chooses for the person (Sāṃkhya), prakṛti moves them as the computer would
+  const moves = spent || still ? [] : movesFor(state, dice), auto = lawOf(state, idx).auto;
+  const v = still ? 0 : moves.length < 2 ? moves[0] ?? null : p.type === "human" && !auto ? await choose(dice) : moveFor(state, dice);
   if (g !== G.gen) return;
   if (p.type === "human" && !shut && cardOpen()) await closeCard();
   if (g !== G.gen) return;
-  state.last = v || dice[0];
+  if (dice.length || v == null) state.last = v || dice[0];
   // the drone begins with the first roll
   setDrone(lens(state).droneStage);
   const watching = watchFrames();
@@ -232,7 +241,8 @@ async function takeTurn() {
           G.waitingCard = true; refreshRoll();
           openSquare(p.pos, { landing: true, who: idx });
         }
-        const id = p.type === "human" ? await decide(plan.situation, p) : lawOf(state, idx).choose(state, plan.situation);
+        // prakṛti chooses for a person under Sāṃkhya, and the card tells it (src/render/card.js)
+        const id = p.type === "human" && !auto ? await decide(plan.situation, p) : lawOf(state, idx).choose(state, plan.situation);
         if (g !== G.gen) return;
         plan = resolveChoice(state, plan, id);
         G.plan = plan;
@@ -298,7 +308,15 @@ async function takeTurn() {
       // whoever comes to 105 is refused there or let through, and whoever sits there is examined, a year at a time.
       // A person's year at the door holds the game on its card until it is read, as a reckoning's does.
       if (!plan.sit && plan.final === GOAL && lawOf(state, idx).exit(state, idx)?.door && !plan.reckon?.to) {
-        landDoor(idx, plan.refused ? { kind: "refused", refusal: plan.refused, sit: canSit({ ...p, pos: GOAL }) } : { kind: "through" });
+        // a door that opens on no win while the life lasts (Nyāya) says so
+        landDoor(idx, plan.refused ? { kind: "refused", refusal: plan.refused, sit: canSit({ ...p, pos: GOAL }) } : { kind: plan.win ? "through" : "open" });
+      } else if (plan.infer && p.type === "human") {
+        // an inference (Nyāya): the five members, on a card that holds the game until it is read
+        if (cardOpen() && !cardBlocking()) await closeCard({ instant: true });
+        G.waitingCard = true; refreshRoll();
+        await openInfer(plan.infer, idx);
+        G.waitingCard = false; refreshRoll();
+        if (g !== G.gen) return;
       } else if (plan.sit && plan.from === GOAL && (plan.exam || plan.died)) {
         // what is still owed after this year, should the years run out at it
         const debts = carried(karmaOf(p)).filter(s => !(plan.exam?.cleared && debtKey(s) === plan.exam.key));
@@ -326,7 +344,7 @@ async function takeTurn() {
   if ((plan.died || (plan.fell && p.fell)) && p.type === "human") openLife(idx);
   // Śiva's snake (Phase 17): the same soul is born again in the seat, at the snake's tail. It is public, as the door is;
   // a person's holds the game on its card, which offers the book of the life just closed
-  if (plan.fell && p.past?.length) {
+  if (plan.fell && !plan.freed && p.past?.length) {
     const was = p.past.length - 1;
     landReborn(idx, was);
     render();
@@ -436,6 +454,10 @@ function render() {
   $("turnName").textContent = state.winner != null ? t("wins", { name: pname(state.players[state.winner]) }) : pname(p);
   const human = p.type === "human";
   $("roll").disabled = G.busy || state.over || !human;
+  // a year in practice before the throw (Yoga): beside Roll, never in place of it, and Space still rolls
+  $("practise").hidden = !human || state.over || !!G.choosing || !!G.deciding || !canPractise(state);
+  $("practise").disabled = G.busy;
+  $("practise").title = t("practiseHint");
   $("roll").textContent = human ? t("roll") : t("rolling", { name: pname(p) });
   $("hint").textContent = state.over ? t("hintOver") : isAnimal(state) ? t("animalHint") : human ? t("hintHuman") : t("hintCpu");
   if (G.deciding) drawDecide();
@@ -525,7 +547,8 @@ function rebornRows(state) {
 // ---- The laws (Phase 17) ----
 // A law is offered only once there is more than one to choose, and never in a viewer's first life.
 const lawsOffered = () => choosable().length > 1 && !firstLife();
-const lawButtons = now => choosable().map(w => `<button type="button" class="law" data-law="${w.id}" aria-pressed="${w.id === now}"><b>${esc(t(w.text.name))}</b> <span>${esc(t(w.text.about))}</span></button>`).join("");
+// at scholar depth a law's explanation adds its sources (Phase 17 step 5)
+const lawButtons = now => choosable().map(w => `<button type="button" class="law" data-law="${w.id}" aria-pressed="${w.id === now}"><b>${esc(t(w.text.name))}</b> <span>${esc(t(w.text.about))}</span>${w.text.scholar && prefs.depth === "scholar" ? ` <small class="law-src">${esc(t(w.text.scholar))}</small>` : ""}</button>`).join("");
 // At Be born again: the law the next life is born under, each explained before it is chosen. It is the first person born
 // again's, as the setup's row keeps it, or else the law the life before lived under.
 const rebornSeat = state => state.players.findIndex((p, i) => p.type === "human" && rebornFrom(state, i) && soulFor(soulKey(p)));
@@ -716,7 +739,8 @@ $("namingForm").addEventListener("submit", e => {
   startGame();
 });
 $("naming").addEventListener("cancel", e => e.preventDefault());
-$("roll").addEventListener("click", takeTurn);
+$("roll").addEventListener("click", () => takeTurn());
+$("practise").addEventListener("click", () => takeTurn({ practice: true }));
 document.addEventListener("keydown", e => {
   // choosing on a situation: 1, 2 and 3 are its options in order
   if (G.deciding && /^[1-3]$/.test(e.key) && !e.target.closest("input, select, textarea") && !e.ctrlKey && !e.metaKey && !e.altKey) {
@@ -796,7 +820,7 @@ new ResizeObserver(draw).observe($("cells"));
 // ?debug exposes helpers for testing: mp.jump(n) moves the current player, mp.roll(v) rolls a fixed number
 // (mp.roll(a, b) fixes both endgame dice, and mp.pick(v) moves by one of them, 0 to sit),
 // mp.seed() reads the current game's seed and mp.seed(n) starts a new game with that seed. Phase 14 adds mp.door(),
-// mp.examine(), mp.curse(id) and mp.siva(). Phase 15 adds mp.ego(faces). Phase 17 adds mp.law(id[, "all"]) and mp.grace(face). Phase 16 adds mp.die(form), mp.samskara(obj),
+// mp.examine(), mp.curse(id) and mp.siva(). Phase 15 adds mp.ego(faces). Phase 17 adds mp.law(id[, "all"]) and mp.grace(face), and step 5 mp.still(n) and mp.bhumika(b). Phase 16 adds mp.die(form), mp.samskara(obj),
 // mp.dream() and mp.animal(kind). Its follow-up adds mp.sprites().
 if (new URLSearchParams(location.search).has("debug")) {
   window.mp = {
@@ -897,6 +921,11 @@ if (new URLSearchParams(location.search).has("debug")) {
       render(); age(true);
       return p.door;
     },
+    // mp.still(n) gives the current player n stillnesses under Yoga (Phase 17 step 5); mp.still() reads them
+    still(n) { if (n != null) { cur().nirodha = n; render(); } return cur().nirodha ?? 0; },
+    // mp.bhumika(b) puts the current player in bhūmikā b (0 the first … 6 turyā), a sannyāsin of seventy, for Advaita's
+    // recognition and the board dissolving; mp.bhumika() reads it
+    bhumika(b) { if (b != null) { const p = cur(); p.years = Math.max(p.years ?? 0, 70); p.bhumika = b; p.peak = Math.max(p.peak ?? -1, b); render(); age(true); } return cur().bhumika ?? null; },
     // mp.examine(i) is player i's examination: the years asked so far (p.exam, p.sittings) and what the next would ask
     examine: (i = G.state.turn) => { const p = G.state.players[i]; return { exam: p.exam ?? {}, sittings: p.sittings ?? [], next: examineOf(p, doorOf(G.state, i)) }; },
     // mp.curse(id) chooses the current life's curse (content/curses.json), before or after it is spoken

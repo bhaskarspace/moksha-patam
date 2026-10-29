@@ -5,6 +5,7 @@
 // Pure, so it runs in node and the same positions always give the same board.
 import { GOAL, ASHRAMAS, squareOf } from "../content.js";
 import { stageOfYears } from "../engine/self.js";
+import { lawOf } from "../engine/laws/index.js";
 
 const EARTH = 100;
 // years for a square to fade fully once everyone has lived past it, and for the dimness ahead to deepen
@@ -59,7 +60,11 @@ const clamp = x => Math.max(0, Math.min(1, x));
 // half at the sixth, whole at turyā; the highest any player at the table is in now. Paint only: the ground and every
 // label stay as they are (styles.css #art, .cell .pic), so no label's contrast can change.
 export const CLEAR_FROM = 4;
-export const clearOf = state => clamp(Math.max(0, ...state.players.map(p => (p.bhumika ?? -1) - CLEAR_FROM)) / 2);
+// Under a law whose art dissolves with the bhūmikā (Advaita, Phase 17 step 5: the sixth is padārthābhāvanī, objects no
+// longer appearing), a life's painting fades from its first bhūmikā and is at its faintest (0.4, styles.css) at the sixth.
+const clearFor = (state, p, i) => (lawOf(state, i).dissolve && p.bhumika != null ? (p.bhumika + 1) / (DISSOLVED + 1) : ((p.bhumika ?? -1) - CLEAR_FROM) / 2);
+export const DISSOLVED = 5;
+export const clearOf = state => clamp(Math.max(0, ...state.players.map((p, i) => clearFor(state, p, i))));
 // How aged square n looks through a lens, as { sepia, dim } from 0 to 1. The divine row never fades and
 // stays fully dim until someone reaches it. Ahead, the next years are barely dimmed and the far future most.
 export function wash(n, { fadeAge, dimAge, lead, look = null, begun = true }) {
