@@ -2,7 +2,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import { createGame, playTurn, planTurn, resolveChoice, endTurn, addLog, movesFor, canSit, foresee, gone } from "../src/engine/turn.js";
+import { createGame, playTurn, planTurn, resolveChoice, endTurn, addLog, movesFor, moveFor, canSit, foresee, gone } from "../src/engine/turn.js";
 import { LAWS, lawOf, choosable, canChoose, setLaw } from "../src/engine/laws/index.js";
 import { board } from "../src/engine/laws/board.js";
 import { soulOf, bornOf, endOf, keepOf, storeWith } from "../src/engine/samskara.js";
@@ -242,6 +242,10 @@ test("Jain: a climb while the vice it heals is held is upaśama, which the door'
   const cp = clean.players[0];
   assert.equal(cp.told.at(-1), null);
   assert.ok(answerOf(cp, debt), "destruction answers, as on the board");
+  // the account says the climb, and that the vice only lay down
+  assert.match(lifeOf(held, 0, "en").paras.map(x => x.text).join(" "), /the old habit only lay down; it did not leave\./);
+  assert.match(lifeOf(held, 0, "hi").paras.map(x => x.text).join(" "), /पुरानी आदत बस दबकर बैठ गई थी/);
+  assert.doesNotMatch(lifeOf(clean, 0, "en").paras.map(x => x.text).join(" "), /only lay down/);
 });
 
 test("Jain: merit binds; once nothing is owed the door asks last about the merit, let go in a year sat there", () => {
@@ -318,4 +322,30 @@ test("Bhakti: Devotion is the one ladder to the end, and the life reads it as a 
   playTurn(b, [3], () => 3);
   assert.equal(b.players[0].pos, 37);
   assert.equal(b.players[0].told.at(-1), null);
+});
+
+test("Jain: at a ladder's foot a life may wait, a year a throw; once waiting only the 1 moves it, up the ladder", () => {
+  const s = at("jain", [18, 20]), p = s.players[0];
+  playTurn(s, [3], () => 3);
+  s.turn = 0;
+  assert.deepEqual(movesFor(s, [4]), [4, 0], "move on, or wait");
+  assert.deepEqual(movesFor(s, [1]), [1], "the 1 climbs");
+  assert.equal(moveFor(s, [4]), 0, "its computer waits");
+  const y = p.years;
+  const sat = playTurn(s, [4], () => 0);
+  assert.ok(sat.sit && p.pos === 23 && p.years === y + 1 && s.log.some(e => e.k === "lFootWait"));
+  s.turn = 0;
+  assert.deepEqual(movesFor(s, [5]), [0], "waiting, any other throw moves nothing");
+  playTurn(s, [5]);
+  assert.equal(p.pos, 23);
+  s.turn = 0;
+  playTurn(s, [1]);
+  assert.equal(p.pos, 37);
+  assert.deepEqual(p.life.slice(-4), [23, 23, 23, 37]);
+  const along = yearsAlong(p.life, p.told);
+  assert.deepEqual(along.slice(-4).map(e => e.via), [null, "sit", "sit", "ladder"]);
+  // under the board's law nobody waits at a foot
+  const b = at("board", [18, 20]);
+  b.players[0].pos = 23; b.players[0].life.push(23); b.players[0].told.push(null);
+  assert.deepEqual(movesFor(b, [4]), [4]);
 });

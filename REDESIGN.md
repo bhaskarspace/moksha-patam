@@ -2079,6 +2079,33 @@ non-trivial.
 > ten-life liberation is under 80% for the mixed and dishonest lives (62.1%, 42.3%), and needs a stated reason or a
 > change. Devotion's ladder to 94 stays under 60% a life with the order kept, so the fallback (to 85) was not needed.
 > The board's law is byte-identical (accounts, 2000 seeds `--lives=2 --tag`; the mixed sim; golden).
+>
+> **Step 4 approved, with its follow-ups (Bhaskar, 29 Oct).** *Jain:* a life at a ladder's foot may wait there instead
+> of moving on, a year a throw (a year sat at the foot, `lFootWait`; offered on one die as "Wait"), until it throws the
+> admitting 1; while it waits any other throw moves nothing. Its computer waits (`prefer`, a new hook). An upaśama
+> climb is told in the account: "But the old habit only lay down; it did not leave." (`accUpasama`). *Bhakti:* a
+> Devotion climb goes up the painted ladder to 37, then on in gold to 94, drawn as the token climbs and faded after
+> (`goldLadder` in `src/render/tokens.js`, in `--b-gold`). *Hindi:* every "खाना {n}" is now "घर {n}" (and a lint fails on
+> "खाना {"), every "बरस पर" is "बरस की उम्र में" (the seven named, and the account's four repeat lines), and lLawOf,
+> lGrace, graceCard and examGrace are Bhaskar's wording. Accounts against step 4 (2000 seeds, `--lives=2 --tag`): every
+> English account is byte-identical; 11,600 of 18,589 Hindi accounts changed, each tagged `wording` (a Hindi account
+> that says either phrase). `npm run format` no longer rewrites `content/boards.json`.
+> Jain with the wait, 20,000 games and 5,000 souls of ten lives (honest / mixed / dishonest; its own is honest):
+>
+> | | honest | mixed | dishonest |
+> |---|---|---|---|
+> | liberated, a life | 31.9% | 27.0% | 23.4% |
+> | lives per liberation | 3.14 | 3.71 | 4.27 |
+> | by life 1 / 3 / 5 / 10 | 32 / 29 / 26 / 18 | 28 / 20 / 18 / 12 | 26 / 14 / 13 / 13 |
+> | souls liberated within ten lives | 94.8% | 86.8% | 79.98% |
+> | turns a life, median / p95 | 45 / 70 | 47 / 72 | 48 / 75 |
+> | died: ledger / years / door | 1.5 / 12.4 / 0.5% | 11.0 / 14.8 / 1.1% | 23.1 / 14.0 / 1.2% |
+> | waits at a foot / climbs on the 1, a life | 3.51 / 2.48 | 3.48 / 2.74 | 3.53 / 3.12 |
+> | upaśama, of climbs | 0.5% | 2.6% | 4.8% |
+>
+> *The stated reason (Bhaskar, 29 Oct):* the dishonest Jain soul's ten-life liberation sits just under the 80% floor
+> (3,999 of 5,000), and the rule stays. It is the Jain doctrine that in the present age, duḥṣamā, no one from this world
+> attains liberation: the path is open, and it is long.
 
 - Mīmāṃsā first (default), then Cārvāka, then the rest.
 - A law-select screen that explains each in the player's own terms before they commit.

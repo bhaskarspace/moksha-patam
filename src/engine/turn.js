@@ -70,8 +70,12 @@ export function movesFor(state, dice) {
 // exactly; Phase 9's whole rule, the bigger die that is not a snake, is kept in tools/sim.mjs as --pick=phase9.
 // It ranks by where the dice take it, before the omen: nobody sees a reckoning coming.
 export function moveFor(state, dice) {
-  const moves = movesFor(state, dice), plans = moves.filter(Boolean).map(v => planTurn(state, v, dice));
+  const moves = movesFor(state, dice);
   if (!moves.length) return null;
+  // a law's computer may have a move of its own first (Jain: waiting at a ladder's foot)
+  const own = lawOf(state).prefer(state, moves);
+  if (own != null) return own;
+  const plans = moves.filter(Boolean).map(v => planTurn(state, v, dice));
   const to = pl => pl.reckon?.from ?? pl.final;
   const win = plans.find(pl => pl.win);
   if (win) return win.v;
@@ -195,7 +199,8 @@ export function planTurn(state, v, dice = [v]) {
     if (exam) delete state.forceGrace;
     const win = atDoor && !died && (exam ? exam.open : !refusalOf(p, law.binds(state, idx)));
     if (exam) after.push(entry(exam.merit ? "lExamMerit" : exam.graced ? "lExamGrace" : exam.pass ? "lExamPass" : exam.n === 1 ? (exam.cleared ? "lExamPaid" : "lExamFail") : exam.cleared ? "lExamPaid" : exam.never ? "lExamNever" : "lExamPenance", { pos: from, src: exam.src, sq: exam.src }, "", idx));
-    else if (!win) after.push(entry("lSit", { pos: from, sq: from }, "", idx));
+    // a year waited at a ladder's foot (Jain) is said so; elsewhere it is a year in practice
+    else if (!win) after.push(entry(LADDERS[from] ? "lFootWait" : "lSit", { pos: from, sq: from }, "", idx));
     if (died) end.push(entry(from === GOAL ? "lDiedDoor" : "lDied", { pos: from, age: years, sq: from }, "death", idx));
     else if (win) end.push(entry("lDoorOpen", { pos: GOAL }, "", idx), entry("lWin", { pos: GOAL }, "heaven", idx));
     return resolve(state, { idx, v, dice, spare, sit: true, from, path, target: from, final: from, jump: null, win, died, again: false, told: [null], exam, pre, after, end }, years);
@@ -495,7 +500,9 @@ function bornAgain(state, i) {
 // the move from them.
 // With the merit spent nothing is thrown, so nothing is drawn.
 export function playTurn(state, roll = spentOf(state.players[state.turn]) ? [] : rollDice(state.rng, diceFor(state.players[state.turn])), pick = moveFor, choose = (s, sit) => lawOf(s).choose(s, sit)) {
-  const dice = typeof roll === "number" ? [roll] : roll, v = dice.length > 1 ? pick(state, dice) : dice[0];
+  // one die is no choice, unless the law offers one (Jain: waiting at a ladder's foot, or moved only by the 1 there)
+  const dice = typeof roll === "number" ? [roll] : roll, one = dice.length > 1 ? null : movesFor(state, dice);
+  const v = !one ? pick(state, dice) : one.length > 1 ? pick(state, dice) : one[0] ?? dice[0];
   state.last = v || dice[0];
   let plan = planTurn(state, v, dice);
   if (plan.situation) plan = resolveChoice(state, plan, choose(state, plan.situation));

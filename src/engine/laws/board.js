@@ -39,6 +39,9 @@ export const board = {
   // from the foot the life stands at, climbs it (the admitting 1 under the Jain law; never on the board)
   climb: () => "now",
   fromFoot: () => false,
+  // the move a computer under this law takes before the game's own choice (moveFor), or null for none (Jain: it waits at
+  // a ladder's foot)
+  prefer: () => null,
   // whether a climb from foot is suppression (upaśama), which the book at the door does not take as an answer (Jain)
   suppressed: () => false,
   // the square a ladder's climb reaches (Bhakti: Devotion, the one ladder to the end)

@@ -80,7 +80,11 @@ own computer; the sim's `--policy` overrides it. Its follow-up: a Cārvāka life
 the log (`lLawOf`, `logLaw` in `turn.js`). Step 4 adds the Jain law (`jain.js`: a ladder waits at its foot and the 1 climbs it,
 `fromFoot`; a climb while holding the vice it heals is upaśama, told `"upasama"`, which `answerOf` skips; the door asks
 last about the merit, `binds`) and Bhakti (`bhakti.js`: grace on the lower ego choice, `graceThrow`, kept as
-`witness.grace` and never a rebellion; the door's grace once a life, `forgive`; Devotion climbs to 94, told `"climb"`).
+`witness.grace` and never a rebellion; the door's grace once a life, `forgive`; Devotion climbs to 94, told `"climb"`). Its follow-ups: a Jain life may wait at a foot, a year a throw, until the 1
+(`movesFor` offers 0 there on one die, `prefer` makes its computer wait, `lFootWait`); an upaśama climb is told in
+the account (`accUpasama`); Devotion's climb past 37 is drawn on in gold (`goldLadder`). Hindi says "घर {n}", never
+"खाना {n}" (lint), and "बरस की उम्र में", never "बरस पर"; `tools/accounts.mjs --tag` marks such Hindi accounts `wording`.
+`npm run format` skips `content/boards.json`.
 Phase 7 was The Exit (REDESIGN.md §4): Moksha is square 105 (`GOAL`), partway
 along the divine row, while the board still ends at 110 (`TOP`). Since Phase 12 nothing above the exit turns back: past 105 the
 heavens (106–110) are walked. Since Phase 17 no throw passes `TOP`, and the exact throw onto it is Śiva's snake, the fall

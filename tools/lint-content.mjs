@@ -554,10 +554,13 @@ export function lintReport() {
   if (fs.existsSync(sheet)) errors.push(...lintSprites(fs.readFileSync(sheet, "utf8")));
   errors.push(...lintPaint(root));
 
-  // a character lost in an encoding round trip comes back as U+FFFD, the replacement character: never in content
+  // a character lost in an encoding round trip comes back as U+FFFD, the replacement character: never in content; and
+  // since Phase 17 no square is a खाना
   for (const f of fs.readdirSync(path.join(root, "content")).filter(f => f.endsWith(".json"))) {
     fs.readFileSync(path.join(root, "content", f), "utf8").split("\n").forEach((line, i) => {
       if (line.includes("\uFFFD")) err(`content/${f}:${i + 1}`, "has a replacement character (U+FFFD): a character was lost in an encoding round trip");
+      // a square in Hindi is a घर, or said by its number alone ("{pos} पर"); "खाना" is food (Bhaskar, 29 Oct)
+      if (line.includes("खाना {")) err(`content/${f}:${i + 1}`, 'calls a square "खाना {…}": say "घर {…}" or "{…} पर"');
     });
   }
 

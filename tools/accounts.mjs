@@ -27,6 +27,8 @@
 // Phase 17 makes Śiva's snake rebirth in the seat: a game can hold several lives a seat (p.past). The first is hashed
 // under the seat's own key, as before, and each after it under the key with " sivaN", tagged "siva" (and "above", since
 // only the heavens lead there). Every untagged account must be the same as main's.
+// Its step 4 follow-up rewords the Hindi ("बरस पर" → "बरस की उम्र में", "खाना {n}" → "घर {n}"): "wording" marks a Hindi
+// account that says either. Every English account, and every Hindi one untagged wording, must be the same as before.
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
@@ -80,7 +82,7 @@ const say = (key, s, i, l) => {
 };
 const sayOne = (key, s, i, l) => {
   const text = lifeText(s, i, l), life = lifeOf(s, i, l);
-  out.push(flags.full ? `## ${key}\n${text}` : `${key} ${hash(text)}${flags.tag ? (s.above ? " above" : "") + (s.karma ? " karma" : "") + (s.door ? " door" : "") + (s.curse ? " curse" : "") + (s.witness || life.witnessed ? " witness" : "") + (s.death ? " death" : "") + (mirrorOf?.(s, i)[0]?.id === "rebel" ? " mirror" : "") + (s.rebirth ? " rebirth" : "") + (s.animal ? " animal" : "") + (s.siva ? " siva" : "") : ""}`);
+  out.push(flags.full ? `## ${key}\n${text}` : `${key} ${hash(text)}${flags.tag ? (s.above ? " above" : "") + (s.karma ? " karma" : "") + (s.door ? " door" : "") + (s.curse ? " curse" : "") + (s.witness || life.witnessed ? " witness" : "") + (s.death ? " death" : "") + (mirrorOf?.(s, i)[0]?.id === "rebel" ? " mirror" : "") + (s.rebirth ? " rebirth" : "") + (s.animal ? " animal" : "") + (s.siva ? " siva" : "") + (l === "hi" && /बरस की उम्र में|घर [०-९\d]/.test(text) ? " wording" : "") : ""}`);
   if (l === "en" && life.fates) {
     tally.lives++;
     tally.fates += life.fates.length;

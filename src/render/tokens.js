@@ -98,7 +98,25 @@ export const animate = (ms, fn) => new Promise(res => {
 });
 export const ease = f => (f < 0.5 ? 2 * f * f : 1 - (-2 * f + 2) ** 2 / 2);
 
-export async function climb(idx, a, b) {
+// A ladder drawn on in gold from P toward Q, as far as e of the way (Phase 17: Bhakti's Devotion going on past its painted
+// top), at alpha: two rails and a rung every so often, in the board's own gold.
+function goldLadder(P, Q, e, alpha) {
+  const len = Math.hypot(Q.x - P.x, Q.y - P.y) || 1, nx = -(Q.y - P.y) / len * S * 0.13, ny = (Q.x - P.x) / len * S * 0.13;
+  const css = getComputedStyle(document.documentElement), gold = css.getPropertyValue("--b-gold").trim() || "#B8862B", hi = css.getPropertyValue("--b-gold-hi").trim() || "#EDCF72";
+  const X = P.x + (Q.x - P.x) * e, Y = P.y + (Q.y - P.y) * e;
+  fx.save(); fx.globalAlpha = alpha; fx.lineCap = "round";
+  fx.strokeStyle = gold; fx.lineWidth = S * 0.045;
+  for (const s of [1, -1]) { fx.beginPath(); fx.moveTo(P.x + s * nx, P.y + s * ny); fx.lineTo(X + s * nx, Y + s * ny); fx.stroke(); }
+  fx.strokeStyle = hi; fx.lineWidth = S * 0.035;
+  for (let d = S * 0.36; d < len * e; d += S * 0.36) {
+    const x = P.x + (Q.x - P.x) * (d / len), y = P.y + (Q.y - P.y) * (d / len);
+    fx.beginPath(); fx.moveTo(x + nx, y + ny); fx.lineTo(x - nx, y - ny); fx.stroke();
+  }
+  fx.restore();
+}
+
+// gold: the ladder is drawn on in gold as the token climbs, and fades once it is up (Bhakti's Devotion past its top)
+export async function climb(idx, a, b, gold = false) {
   const g = G.gen, el = tokenEls[idx], p = G.state.players[idx];
   const P = center(a), Q = center(b), len = Math.hypot(Q.x - P.x, Q.y - P.y);
   const rungs = Math.max(2, Math.floor(len / (S * 0.36)));
@@ -114,6 +132,7 @@ export async function climb(idx, a, b) {
     // each rung catches the light as a hand takes it
     if (extras && k !== lastRung) { lastRung = k; glints.push({ x, y: y + S * 0.15, u }); }
     fxClear();
+    if (gold) goldLadder(P, Q, e, 1);
     for (const gl of glints) {
       const a = 1 - (u - gl.u) * 4;
       if (a <= 0) continue;
@@ -127,6 +146,7 @@ export async function climb(idx, a, b) {
       fx.beginPath(); fx.arc(pt.x, pt.y + S * 0.15, S * 0.08 * alpha, 0, Math.PI * 2); fx.fill();
     }
   });
+  if (gold && g === G.gen) await animate(700, u => { fxClear(); goldLadder(P, Q, 1, 1 - u); });
   fxClear();
   if (g !== G.gen) return;
   el.classList.remove("free"); el._frame = 0; p.pos = b; place();

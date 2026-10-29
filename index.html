@@ -1436,6 +1436,10 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         lawBhakti: "Bhakti",
         lawBhaktiAbout: "The path of devotion. Grace is not earned and cannot be foreseen: where the ego is tested and a life takes the lesser way, grace may turn it to the better, and at the door it may, rarely, forgive what the book cannot answer. Devotion is the one ladder that goes to the end of the earth. Nothing of grace is shown before it comes.",
         lAtFoot: "{name} waits at the foot of the ladder on {pos}, and climbs only on a one.",
+        footWait: "Wait",
+        footWaitHint: "Wait at the ladder's foot: the year passes, and from now on only a one moves you, up the ladder.",
+        footChoose: "Rolled {a}. Move on, or wait at the foot of the ladder for a one.",
+        lFootWait: "{name} waited a year at the foot of the ladder on {pos}.",
         lClimbOne: "At the foot of the ladder, the one lets {name} climb.",
         lDevotion: "Devotion carries {name} past the ladder's top, to the end of the earth on {to}.",
         lGrace: "{name} chose the lesser way on {pos}, and grace did the better.",
@@ -1447,6 +1451,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         examGrace: "And yet the debt is lifted: {debt}. Nobody earned it. It is grace.",
         graceCard: "{name} chose the lesser way here, and the life did the better. Nobody can say why.",
         accGrace: "Though {name} had chosen otherwise, grace turned it.",
+        accUpasama: "But the old habit only lay down; it did not leave.",
         lawCarvakaAbout: "Perception is the only means of knowing. An inference is never certain, because the rule that joins smoke to fire is never itself seen in every case; so no unseen fruit of an act, no self that goes on, no heaven and no liberation can be known. One life, with no ledger, no omen and nothing after it. Every other school had to answer this argument.",
         lSvarga: "{name} landed exactly on {pos}, Indra's heaven, owing nothing: svarga.",
         lSvargaOwed: "{name} came to {pos}, Indra's heaven, still owing, and it could not keep {name}.",
@@ -1567,7 +1572,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         newGame: "नया खेल शुरू करें",
         again: "फिर से खेलें",
         notBorn: "अभी जन्म नहीं हुआ",
-        square: "खाना {n}",
+        square: "घर {n}",
         moksha: "मोक्ष",
         wins: "{name} जीते",
         winTitle: "{name} को मोक्ष मिला",
@@ -1587,7 +1592,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         lHeaven: "{name} का {v} आया: {pos}, {what} लोक में पहुँचे।",
         lMove: "{name} का {v} आया: {pos}, {what}।",
         lBorn: "{name} का {v} आया: {pos} पर जन्म लिया।",
-        lWin: "{name} खाना {pos} पर मोक्ष पहुँचे।",
+        lWin: "{name} घर {pos} पर मोक्ष पहुँचे।",
         lSix: "{name} का 6 आया, एक और बारी।",
         grew: "{name} अब {stage}",
         virtue: "गुण",
@@ -1614,7 +1619,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         nextSq: "अगला खाना",
         prevEntry: "पिछली प्रविष्टि",
         nextEntry: "अगली प्रविष्टि",
-        back: "खाना {n} पर वापस",
+        back: "घर {n} पर वापस",
         cardLang: "कार्ड की भाषा",
         moreSchool: "दर्शन इसे कैसे परखते हैं",
         moreScholar: "दर्शन, टिप्पणी और लोग",
@@ -1644,7 +1649,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         sound: "ध्वनि",
         soundOn: "ध्वनि चालू",
         soundOff: "ध्वनि बंद",
-        sqLabel: "खाना {n}: {name}। कार्ड खोलें",
+        sqLabel: "घर {n}: {name}। कार्ड खोलें",
         school: "दर्शन",
         openCodex: "कोश में खोलें",
         firstMet: "आपके कोश में नया",
@@ -1674,8 +1679,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         lifeTitle: "{name} का जीवन",
         lifeAt: "{stage}, आयु {a}",
         lifeSpan: "{stage}, आयु {a} से {b}",
-        lifeEndWin: "फिर, {age} बरस पर, मोक्ष, और {name} ने {letgo} को छोड़ दिया।",
-        lifeEndOpen: "खेल यहीं रुका, खाना {n} पर।",
+        lifeEndWin: "फिर, {age} बरस की उम्र में, मोक्ष, और {name} ने {letgo} को छोड़ दिया।",
+        lifeEndOpen: "खेल यहीं रुका, घर {n} पर।",
         lifeUnborn: "{name} के जन्म से पहले ही खेल ख़त्म हो गया।",
         lifeCopy: "कॉपी करें",
         lifeCopied: "कॉपी हो गया",
@@ -1731,7 +1736,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         aboveExit: "मोक्ष अब पीछे छूट गया, {n} पर। यहाँ ऊपर से कुछ नहीं लौटता: इन लोकों में आगे ही चलना है, और ये तभी तक हैं जब तक पुण्य है। कोई दाँव {top} के पार नहीं जाता। जब कोई दाँव ठीक उस पर पड़ता है, या पुण्य क्षीण हो जाता है, तब शिव का नाग नीचे एक नए जन्म तक ले जाता है।",
         bornAgain: "{name} का फिर से जन्म हुआ",
         bornAgainYou: "आपका फिर से जन्म हुआ",
-        lDied: "{name} के बरस {age} की आयु में, खाना {pos} पर, पूरे हुए।",
+        lDied: "{name} के बरस {age} की आयु में, घर {pos} पर, पूरे हुए।",
         lifeOpenDied: "{name} के बरस {age} पर पूरे हो गए।",
         lifeOpenFall: "{name} {age} बरस {जिया|जी}, और {at} की उम्र में सब फिर से शुरू करना पड़ा।",
         lifeOpenSteady: "{name} के जीवन में कुछ भी पीछे नहीं गया।",
@@ -1765,8 +1770,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         title4: "ब्रह्मविद्वरिष्ठ · जानने वालों में श्रेष्ठ",
         lDice: "{name} के {a} और {b} आए, और {v} से चले।",
         lDiceSit: "{name} के {a} और {b} आए, और किसी से नहीं चले।",
-        lSit: "{name} ने खाना {pos}, {what}, पर बरस अभ्यास में बिताया।",
-        lifeEndFree: "फिर, {age} बरस पर, मोक्ष, और छोड़ने को कुछ था ही नहीं।",
+        lSit: "{name} ने घर {pos}, {what}, पर बरस अभ्यास में बिताया।",
+        lifeEndFree: "फिर, {age} बरस की उम्र में, मोक्ष, और छोड़ने को कुछ था ही नहीं।",
         diceChoose: "{a} और {b} आए। किसी एक से चलें।",
         diceChooseSit: "{a} और {b} आए। किसी एक से चलें, या बरस अभ्यास में बिताएँ।",
         diceBy: "{v} चलें",
@@ -1786,8 +1791,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         egoHeld: "चुनाव टिका रहा।",
         lEgoHeld: "{name} ने {pos} पर चुनाव किया, और अहंकार के पासे ने उसे टिका रहने दिया।",
         lEgoRebel: "{name} ने {pos} पर चुनाव किया, और अहंकार के पासे ने उलटा ही करवाया।",
-        lStayOne: "{name} ने खाना {pos}, {what}, पर एक बरस बिताया।",
-        lStay: "{name} ने खाना {pos}, {what}, पर {n} बरस बिताए।",
+        lStayOne: "{name} ने घर {pos}, {what}, पर एक बरस बिताया।",
+        lStay: "{name} ने घर {pos}, {what}, पर {n} बरस बिताए।",
         fellText: "स्वर्ग में पुण्य क्षीण हो गया। जीवन लिखा जा चुका है।",
         fell: "पुण्य क्षीण",
         lHeavenStay: "{name} का {a} और {b} आया, {pos} पर: कोई दाँव स्वर्गों के शिखर के पार नहीं जाता, इसलिए {name} वहीं {ठहरा|ठहरी}।",
@@ -1800,23 +1805,28 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         lawMimamsa: "मीमांसा",
         lawMimamsaAbout: "वेद की विधियों का नियम। हर कर्म अपना फल देता है और कुछ छिपा नहीं: हर चुनाव दिखाता है कि वह कौन-सा ऋण बोएगा और वह किस उम्र में पकेगा, और लेखा सदा सामने रहता है। लक्ष्य स्वर्ग है, इन्द्र का लोक, जो उस पर ठीक पड़े दाँव से मिलता है जब कुछ बकाया न हो; मोक्ष पर कोई द्वार नहीं।",
         lawCarvaka: "चार्वाक",
-        lLawOf: "{name} जिस नियम से {जीता|जीती} है: {law}।",
+        lLawOf: "{name} का जीवन {law} के नियम पर चलता है।",
         lawJain: "जैन",
         lawJainAbout: "जैन मार्ग, जैसा पुराने पटों पर खेला जाता था। सीढ़ी पर पहुँचते ही नहीं चढ़ा जाता: जीव उसके पाँव पर रुकता है और केवल एक के दाँव पर चढ़ता है, और कोई और दाँव उसे आगे ले जाता है। जिस दोष को सीढ़ी मिटाती है, उसे पकड़े रहकर चढ़ी गई सीढ़ी उसे केवल दबाती है, और वह लौट आता है; निर्मल होकर चढ़ी गई सीढ़ी उसे मिटा देती है। शुभ कर्म भी अशुभ की तरह बाँधता है, इसलिए द्वार पर अंतिम प्रश्न उस पुण्य के बारे में होता है जिस पर जीवन को गर्व है।",
         lawBhakti: "भक्ति",
         lawBhaktiAbout: "भक्ति का मार्ग। कृपा कमाई नहीं जाती और पहले से देखी नहीं जा सकती: जहाँ अहंकार की परीक्षा हो और जीवन छोटा रास्ता चुने, वहाँ कृपा उसे अच्छे की ओर मोड़ सकती है, और द्वार पर, कभी-कभार, वह क़र्ज़ भी क्षमा कर सकती है जिसका उत्तर बही में नहीं। भक्ति ही वह एक सीढ़ी है जो धरती के अंत तक जाती है। कृपा के आने से पहले उसका कुछ नहीं दिखता।",
-        lAtFoot: "{name} खाना {pos} पर सीढ़ी के पाँव पर {रुका|रुकी} है, और एक के दाँव पर ही {चढ़ेगा|चढ़ेगी}।",
+        lAtFoot: "{name} घर {pos} पर सीढ़ी के पाँव पर {रुका|रुकी} है, और एक के दाँव पर ही {चढ़ेगा|चढ़ेगी}।",
+        footWait: "रुकें",
+        footWaitHint: "सीढ़ी के पाँव पर रुकें: बरस बीतता है, और अब से केवल एक ही आपको आगे ले जाएगा, सीढ़ी पर।",
+        footChoose: "{a} आया। आगे चलें, या सीढ़ी के पाँव पर एक की प्रतीक्षा करें।",
+        lFootWait: "{name} ने घर {pos} पर सीढ़ी के पाँव पर एक बरस प्रतीक्षा की।",
         lClimbOne: "सीढ़ी के पाँव पर एक ने {name} को ऊपर जाने दिया।",
-        lDevotion: "भक्ति {name} को सीढ़ी के सिरे से आगे, धरती के अंत तक, खाना {to} पर ले जाती है।",
-        lGrace: "{name} ने {pos} पर छोटा रास्ता चुना, और कृपा ने अच्छा करवाया।",
+        lDevotion: "भक्ति {name} को सीढ़ी के सिरे से आगे, धरती के अंत तक, घर {to} पर ले जाती है।",
+        lGrace: "{name} ने {pos} पर ओछा रास्ता चुना, और कृपा ने भला करवा दिया।",
         lExamMerit: "{name} ने द्वार पर एक बरस बिताया और उस पुण्य को छोड़ दिया जिस पर गर्व था।",
-        lExamGrace: "{name} ने द्वार पर एक बरस बिताया; खाना {src} के लिए बही में कोई उत्तर नहीं था, और क़र्ज़ क्षमा हो गया।",
+        lExamGrace: "{name} ने द्वार पर एक बरस बिताया; घर {src} के लिए बही में कोई उत्तर नहीं था, और क़र्ज़ क्षमा हो गया।",
         doorMerit: "द्वार नहीं खुलता। वह अंत में उस पुण्य के बारे में पूछता है जिस पर {name} को गर्व है: {name}, {deed}।",
         examMerit: "अंतिम प्रश्न उस पुण्य के बारे में है जिस पर {name} को गर्व है: {name}, {deed}।",
         examMeritShed: "शुभ कर्म भी क़र्ज़ की तरह बाँधता है। बरस द्वार पर बीतता है, और {name} उसे छोड़ {देता|देती} है।",
-        examGrace: "फिर भी क़र्ज़ उठ गया: {debt}। किसी ने इसे कमाया नहीं। यह कृपा है।",
-        graceCard: "{name} ने यहाँ छोटा रास्ता चुना, और जीवन ने अच्छा किया। क्यों, कोई नहीं कह सकता।",
+        examGrace: "फिर भी क़र्ज़ क्षमा हो गया: {debt}। इसे किसी ने कमाया नहीं। यह कृपा है।",
+        graceCard: "{name} ने यहाँ ओछा रास्ता चुना, और जीवन ने भला किया। क्यों, कोई नहीं कह सकता।",
         accGrace: "{name} ने चुना कुछ और था, पर कृपा ने उसे मोड़ दिया।",
+        accUpasama: "पर पुरानी आदत बस दबकर बैठ गई थी; गई नहीं थी।",
         lawCarvakaAbout: "प्रत्यक्ष ही एकमात्र प्रमाण है। अनुमान कभी निश्चित नहीं, क्योंकि धुएँ को आग से जोड़ने वाली व्याप्ति हर उदाहरण में कभी स्वयं दिखती नहीं; इसलिए कर्म का कोई अदृष्ट फल, आगे जाने वाली कोई आत्मा, कोई स्वर्ग और कोई मोक्ष जाना नहीं जा सकता। एक जीवन, न लेखा, न शकुन, और उसके बाद कुछ नहीं। हर दूसरे दर्शन को इस तर्क का उत्तर देना पड़ा।",
         lSvarga: "{name} ठीक {pos} पर, इन्द्र के लोक में, {पहुँचा|पहुँची}, और कुछ भी बकाया नहीं था: स्वर्ग।",
         lSvargaOwed: "{name} {pos} पर, इन्द्र के लोक में, {पहुँचा|पहुँची}, पर ऋण अब भी बाकी था, और वह लोक उसे रोक न सका।",
@@ -1853,16 +1863,16 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         fallFoot: "यहाँ पहुँचें, तो शिव का नाग जीवन को नीचे ले जाता है, फिर से जन्म के लिए",
         lifeEndFell: "{name} {realm} के लोक तक {पहुँचा|पहुँची}, और वहाँ नीचे कमाए पुण्य पर थोड़ा-थोड़ा करके {जिया|जी}, जब तक वह क्षीण नहीं हो गया, और फिर संसार में लौट {आया|आई}, {holding}।",
         lifeEndFellFree: "{name} {realm} के लोक तक {पहुँचा|पहुँची}, और वहाँ नीचे कमाए पुण्य पर थोड़ा-थोड़ा करके {जिया|जी}, जब तक वह क्षीण नहीं हो गया, और फिर संसार में लौट {आया|आई}, हाथ में कुछ ख़ास लिए बिना।",
-        lReckon: "{name} का छक्का आया, और खाना {src} का एक क़र्ज़ चुकाने की घड़ी आ गई।",
-        lRefused: "{name} खाना {pos} पर मोक्ष तक पहुँचे, और द्वार नहीं खुला।",
+        lReckon: "{name} का छक्का आया, और घर {src} का एक क़र्ज़ चुकाने की घड़ी आ गई।",
+        lRefused: "{name} घर {pos} पर मोक्ष तक पहुँचे, और द्वार नहीं खुला।",
         reckonTitle: "क़र्ज़ की घड़ी",
         reckonFloor: "छक्का पड़ता है, और एक पल को पैरों तले ज़मीन नहीं रहती।",
-        reckonFrom: "यह खाना {src} से आया है: {debt}।",
+        reckonFrom: "यह घर {src} से आया है: {debt}।",
         reckonNone: "फिर ज़मीन लौट आती है। इस बार कुछ नहीं गया।",
         reckonYears: "इसमें {name} के {years} बरस चले जाते हैं।",
         reckonYear: "इसमें {name} का एक बरस चला जाता है।",
         reckonHeld: "{name} आगे {बढ़ता|बढ़ती} है, {holding}।",
-        reckonBack: "और यह {name} को बोर्ड पर नीचे, खाना {to} तक लौटा देता है।",
+        reckonBack: "और यह {name} को बोर्ड पर नीचे, घर {to} तक लौटा देता है।",
         doorRefused: "द्वार नहीं खुलता। {name} अब भी {debts} {ढो रहा|ढो रही} है।",
         doorArtha: "द्वार नहीं खुलता। {name} अब भी कमाए हुए को पकड़े हुए है।",
         doorKama: "द्वार नहीं खुलता। {name} अब भी चाही हुई चीज़ों को पकड़े हुए है।",
@@ -1876,26 +1886,26 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         ledgerEmpty: "कुछ नहीं ढोया जा रहा।",
         ledgerHeld: "किया गया, अभी पका नहीं · आगामी · सत्ता",
         ledgerRipe: "पका हुआ, छक्के की प्रतीक्षा में · प्रारब्ध · उदीरणा",
-        ledgerMet: "{age} बरस पर फल मिला · उदय",
+        ledgerMet: "{age} बरस की उम्र में फल मिला · उदय",
         ledgerStore: "बिना भुगते, आगे जो आएगा उसमें ढोया गया · संचित",
         ledgerNote: "यह पटल स्वयं इंजन है, और सीधे अर्थ में एक नियतिवादी गतिशील तंत्र है। जीवन में पहले लिया गया कोई निर्णय एक बीज बोता है, जिसकी अवधि जिए गए बरसों में गिनी जाती है; अवधि पूरी होने पर बीज पक जाता है, और एक ऐसी घटना की प्रतीक्षा करता है जिसे खिलाड़ी मोड़ नहीं सकता, एक छक्का, जिसकी संभावना द्वार की ओर बढ़ती जाती है। तब उसकी कीमत उस पल के पूरे लेखे का एक निश्चित फलन होती है: कीमत में कुछ भी पासे से नहीं आता। पासा तय करता है कब, और जीवन तय करता है कितना, और परिणाम निर्णय और छक्के के बीच हुई हर बात पर निर्भर करता है। तीनों भंडार वेदांत के संचित (पिछले जन्मों का छोड़ा हुआ, जो यहाँ तब तक ख़ाली है जब तक कोई जीवन उसे आगे न ले जाए), आगामी (जो यह जीवन बना रहा है) और प्रारब्ध (जो इस जीवन में फल देने को छूट चुका है) हैं। जैन चित्रपट यही यात्रा सत्ता, बँधा और रखा हुआ कर्म; उदीरणा, पकने को उकसाया गया कर्म; और उदय, फल में आया कर्म, के रूप में दिखाते हैं।",
-        lExamPass: "{name} ने द्वार पर एक बरस बिताया और खाना {src} के बारे में पूछा गया; बही में उत्तर था, और क़र्ज़ उतर गया।",
-        lExamFail: "{name} ने द्वार पर एक बरस बिताया और खाना {src} के बारे में पूछा गया; बही में कोई उत्तर नहीं था।",
-        lExamPenance: "{name} ने खाना {src} के क़र्ज़ के प्रायश्चित में द्वार पर एक बरस बिताया।",
-        lExamPaid: "{name} ने द्वार पर प्रायश्चित में एक बरस बिताया, और खाना {src} का क़र्ज़ चुक गया।",
+        lExamPass: "{name} ने द्वार पर एक बरस बिताया और घर {src} के बारे में पूछा गया; बही में उत्तर था, और क़र्ज़ उतर गया।",
+        lExamFail: "{name} ने द्वार पर एक बरस बिताया और घर {src} के बारे में पूछा गया; बही में कोई उत्तर नहीं था।",
+        lExamPenance: "{name} ने घर {src} के क़र्ज़ के प्रायश्चित में द्वार पर एक बरस बिताया।",
+        lExamPaid: "{name} ने द्वार पर प्रायश्चित में एक बरस बिताया, और घर {src} का क़र्ज़ चुक गया।",
         lDoorOpen: "कुछ बाक़ी नहीं, और {name} के लिए द्वार खुल जाता है।",
         lDiedDoor: "{name} के बरस {age} पर पूरे हुए, द्वार पर बैठे-बैठे।",
         lSiva: "{name} का {v} आया और {name} {pos} पर {पहुँचा|पहुँची}, और शिव का नाग उसे संसार में नीचे ले गया, फिर से जन्म के लिए। पुण्य क्षीण हुआ, और उसके साथ यह जीवन।",
         examTitle: "द्वार का प्रश्न",
         examHead: "द्वार",
         examAsks: "द्वार पूछता है: {q}",
-        examPass: "उत्तर है {a}, और चित्रगुप्त उसे बही में पाते हैं: {age} बरस पर {name} {answered}।",
+        examPass: "उत्तर है {a}, और चित्रगुप्त उसे बही में पाते हैं: {age} बरस की उम्र में {name} {answered}।",
         examMet: "क़र्ज़ उतर गया: {debt}।",
         examFail: "उत्तर है {a}। चित्रगुप्त पन्ने पलटते हैं, और वह बही में नहीं है। बरस द्वार पर, प्रायश्चित में, बीतता है।",
         examPenance: "वही प्रश्न, और बही में कहने को कुछ और नहीं। द्वार पर एक और बरस, प्रायश्चित में।",
         examPaid: "इस बरस के साथ क़र्ज़ चुक गया: {debt}।",
         examOwing: "क़र्ज़ अभी चुका नहीं: {debt}।",
-        lExamNever: "{name} ने द्वार पर एक और बरस बिताया; खाना {src} का क़र्ज़ किसी प्रायश्चित से नहीं चुकता।",
+        lExamNever: "{name} ने द्वार पर एक और बरस बिताया; घर {src} का क़र्ज़ किसी प्रायश्चित से नहीं चुकता।",
         examFailNever: "उत्तर है {a}। चित्रगुप्त पन्ने पलटते हैं, और वह बही में नहीं है। बरस द्वार पर बीतता है।",
         examAgainNever: "वही प्रश्न, और बही में कहने को कुछ और नहीं। द्वार पर एक और बरस।",
         examNever: "यह क़र्ज़ किसी प्रायश्चित से नहीं चुकता: {debt}। जब तक यह बाक़ी है, द्वार बंद रहेगा।",
@@ -1905,16 +1915,16 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         doorThrough: "{name} द्वार तक {आया|आई}, और वह खुल गया।",
         doorDied: "{name} के बरस द्वार पर ही पूरे हो गए, {debts} अब भी बाक़ी थे।",
         lifeEndDoor: "{name} के बरस {age} पर पूरे हुए, द्वार पर बैठे-बैठे, {carry}।",
-        lDiedLedger: "{name} {age} बरस की आयु में, खाना {pos} पर, {चल बसा|चल बसी}।",
+        lDiedLedger: "{name} {age} बरस की आयु में, घर {pos} पर, {चल बसा|चल बसी}।",
         lAnimalHuman: "{name} जंगल के किनारे तक {आ पहुँचा|आ पहुँची}: अगला जन्म मनुष्य का है।",
         lAnimalShort: "मौसम बदल गए, और {name} अब भी जंगल में है।",
         reckonClose: "छक्का पड़ता है, और इस बार ज़मीन खिसकती नहीं। वह लौटती ही नहीं।",
-        reckonDies: "{name} {age} बरस पर {चल बसा|चल बसी}, {form}।",
+        reckonDies: "{name} {age} बरस की उम्र में {चल बसा|चल बसी}, {form}।",
         deathAccident: "जब बरसों से टपकती छत बरसात की एक रात बैठ गई",
         deathCalamity: "एक बुरे बरस में, जब बारिश नहीं आई और अनाज ख़त्म हो गया",
         deathIllness: "छाती की उसी तकलीफ़ से, एक ऐसी सर्दी के बाद जो ख़त्म ही नहीं हुई",
-        lifeOpenLedger: "{name} {age} बरस पर {चल बसा|चल बसी}।",
-        lifeEndLedger: "{name} {age} बरस पर {चल बसा|चल बसी}, {form}, {carry}।",
+        lifeOpenLedger: "{name} {age} बरस की उम्र में {चल बसा|चल बसी}।",
+        lifeEndLedger: "{name} {age} बरस की उम्र में {चल बसा|चल बसी}, {form}, {carry}।",
         ledgerText: "एक ऐसा क़र्ज़ सामने आया जो यह जीवन चुका नहीं सका। जीवन लिखा जा चुका है।"
       }
     },
@@ -1964,19 +1974,19 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       },
       snakeAgain: {
         en: "At {age}, {vice} again, and {cost} more years came undone.",
-        hi: "{age} बरस पर फिर {vice}, और {cost} बरस और अनकिए हो गए।"
+        hi: "{age} बरस की उम्र में फिर {vice}, और {cost} बरस और अनकिए हो गए।"
       },
       ladderAgain: {
         en: "At {age}, {virtue} lifted {name} again.",
-        hi: "{age} बरस पर {virtue} ने {name} को फिर ऊपर उठाया।"
+        hi: "{age} बरस की उम्र में {virtue} ने {name} को फिर ऊपर उठाया।"
       },
       tallySnake: {
         en: "{vice} took {name} back {times} in all, the last time at {age}.",
-        hi: "{vice} से {name} कुल {times} पीछे {गिरा|गिरी}, आख़िरी बार {age} बरस पर।"
+        hi: "{vice} से {name} कुल {times} पीछे {गिरा|गिरी}, आख़िरी बार {age} बरस की उम्र में।"
       },
       tallyLadder: {
         en: "{virtue} lifted {name} {times} in all, the last time at {age}.",
-        hi: "{virtue} ने {name} को कुल {times} ऊपर उठाया, आख़िरी बार {age} बरस पर।"
+        hi: "{virtue} ने {name} को कुल {times} ऊपर उठाया, आख़िरी बार {age} बरस की उम्र में।"
       },
       times: {
         en: "{n} times",
@@ -3890,6 +3900,9 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     // from the foot the life stands at, climbs it (the admitting 1 under the Jain law; never on the board)
     climb: () => "now",
     fromFoot: () => false,
+    // the move a computer under this law takes before the game's own choice (moveFor), or null for none (Jain: it waits at
+    // a ladder's foot)
+    prefer: () => null,
     // whether a climb from foot is suppression (upaśama), which the book at the door does not take as an answer (Jain)
     suppressed: () => false,
     // the square a ladder's climb reaches (Bhakti: Devotion, the one ladder to the end)
@@ -3969,9 +3982,20 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     }
     return best && { sq: best.sq, opt: best.opt };
   }
+  var waiting = (p) => atFoot(p) && p.life.length > 1 && p.life.at(-2) === p.pos;
   var jain = {
     ...board,
     id: "jain",
+    // at a ladder's foot the life may wait there instead of moving on, a year a throw (0, a year sat); once waiting, the
+    // admitting throw climbs and any other moves nothing
+    movesFor: (state, dice, base) => {
+      const p = state.players[state.turn];
+      if (!atFoot(p)) return base;
+      if (waiting(p)) return dice.includes(ADMITS) ? [ADMITS] : [0];
+      return dice.includes(ADMITS) || base.includes(0) ? base : [...base, 0];
+    },
+    // its computer waits at a foot for the ladder
+    prefer: (state, moves) => moves.includes(0) && atFoot(state.players[state.turn]) ? 0 : null,
     climb: () => "wait",
     fromFoot: (state, i, v) => v === ADMITS && atFoot(state.players[i]),
     suppressed: (state, i, foot) => suppressedAt(state.players[i], foot),
@@ -4369,8 +4393,11 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     return lawOf(state).movesFor(state, dice, out);
   }
   function moveFor(state, dice) {
-    const moves = movesFor(state, dice), plans = moves.filter(Boolean).map((v) => planTurn(state, v, dice));
+    const moves = movesFor(state, dice);
     if (!moves.length) return null;
+    const own = lawOf(state).prefer(state, moves);
+    if (own != null) return own;
+    const plans = moves.filter(Boolean).map((v) => planTurn(state, v, dice));
     const to = (pl) => pl.reckon?.from ?? pl.final;
     const win = plans.find((pl) => pl.win);
     if (win) return win.v;
@@ -4478,7 +4505,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       if (exam) delete state.forceGrace;
       const win = atDoor && !died && (exam ? exam.open : !refusalOf(p, law.binds(state, idx)));
       if (exam) after2.push(entry(exam.merit ? "lExamMerit" : exam.graced ? "lExamGrace" : exam.pass ? "lExamPass" : exam.n === 1 ? exam.cleared ? "lExamPaid" : "lExamFail" : exam.cleared ? "lExamPaid" : exam.never ? "lExamNever" : "lExamPenance", { pos: from, src: exam.src, sq: exam.src }, "", idx));
-      else if (!win) after2.push(entry("lSit", { pos: from, sq: from }, "", idx));
+      else if (!win) after2.push(entry(LADDERS[from] ? "lFootWait" : "lSit", { pos: from, sq: from }, "", idx));
       if (died) end.push(entry(from === GOAL ? "lDiedDoor" : "lDied", { pos: from, age: years, sq: from }, "death", idx));
       else if (win) end.push(entry("lDoorOpen", { pos: GOAL }, "", idx), entry("lWin", { pos: GOAL }, "heaven", idx));
       return resolve(state, { idx, v, dice, spare, sit: true, from, path, target: from, final: from, jump: null, win, died, again: false, told: [null], exam, pre, after: after2, end }, years);
@@ -4699,7 +4726,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     Object.assign(p, next2);
   }
   function playTurn(state, roll2 = spentOf(state.players[state.turn]) ? [] : rollDice(state.rng, diceFor(state.players[state.turn])), pick3 = moveFor, choose2 = (s, sit) => lawOf(s).choose(s, sit)) {
-    const dice = typeof roll2 === "number" ? [roll2] : roll2, v = dice.length > 1 ? pick3(state, dice) : dice[0];
+    const dice = typeof roll2 === "number" ? [roll2] : roll2, one = dice.length > 1 ? null : movesFor(state, dice);
+    const v = !one ? pick3(state, dice) : one.length > 1 ? pick3(state, dice) : one[0] ?? dice[0];
     state.last = v || dice[0];
     let plan = planTurn(state, v, dice);
     if (plan.situation) plan = resolveChoice(state, plan, choose2(state, plan.situation));
@@ -6099,7 +6127,33 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     requestAnimationFrame(tick);
   });
   var ease = (f2) => f2 < 0.5 ? 2 * f2 * f2 : 1 - (-2 * f2 + 2) ** 2 / 2;
-  async function climb(idx, a, b) {
+  function goldLadder(P, Q, e, alpha) {
+    const len = Math.hypot(Q.x - P.x, Q.y - P.y) || 1, nx = -(Q.y - P.y) / len * S * 0.13, ny = (Q.x - P.x) / len * S * 0.13;
+    const css = getComputedStyle(document.documentElement), gold = css.getPropertyValue("--b-gold").trim() || "#B8862B", hi = css.getPropertyValue("--b-gold-hi").trim() || "#EDCF72";
+    const X = P.x + (Q.x - P.x) * e, Y = P.y + (Q.y - P.y) * e;
+    fx.save();
+    fx.globalAlpha = alpha;
+    fx.lineCap = "round";
+    fx.strokeStyle = gold;
+    fx.lineWidth = S * 0.045;
+    for (const s of [1, -1]) {
+      fx.beginPath();
+      fx.moveTo(P.x + s * nx, P.y + s * ny);
+      fx.lineTo(X + s * nx, Y + s * ny);
+      fx.stroke();
+    }
+    fx.strokeStyle = hi;
+    fx.lineWidth = S * 0.035;
+    for (let d = S * 0.36; d < len * e; d += S * 0.36) {
+      const x = P.x + (Q.x - P.x) * (d / len), y = P.y + (Q.y - P.y) * (d / len);
+      fx.beginPath();
+      fx.moveTo(x + nx, y + ny);
+      fx.lineTo(x - nx, y - ny);
+      fx.stroke();
+    }
+    fx.restore();
+  }
+  async function climb(idx, a, b, gold = false) {
     const g3 = G.gen, el3 = tokenEls[idx], p = G.state.players[idx];
     const P = center(a), Q = center(b), len = Math.hypot(Q.x - P.x, Q.y - P.y);
     const rungs = Math.max(2, Math.floor(len / (S * 0.36)));
@@ -6120,6 +6174,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         glints.push({ x, y: y + S * 0.15, u });
       }
       fxClear();
+      if (gold) goldLadder(P, Q, e, 1);
       for (const gl of glints) {
         const a2 = 1 - (u - gl.u) * 4;
         if (a2 <= 0) continue;
@@ -6137,6 +6192,10 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         fx.arc(pt.x, pt.y + S * 0.15, S * 0.08 * alpha, 0, Math.PI * 2);
         fx.fill();
       }
+    });
+    if (gold && g3 === G.gen) await animate(700, (u) => {
+      fxClear();
+      goldLadder(P, Q, 1, 1 - u);
     });
     fxClear();
     if (g3 !== G.gen) return;
@@ -7795,6 +7854,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       if (times >= 2) {
         const age3 = words(e.years);
         if (rebel) para.parts.push(rebel);
+        if (nextE.told === "upasama") para.parts.push(T2("accUpasama"));
         if (times > 2) para.tally.set(e.n, { times, years: e.years });
         else if (SNAKES[e.n]) para.parts.push(J(JOINS.snakeAgain, { age: age3, vice: sq(e.n), cost: words(ageOf(e.n) - ageOf(nextE.n)) }));
         else para.parts.push(J(JOINS.ladderAgain, { age: age3, virtue: sq(e.n) }));
@@ -7828,7 +7888,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       const age2 = Number.isInteger(e.years) ? ageWordsIn(l, e.years, e.via === "snake") : "";
       const raw = repeat && e.via ? (JOINS.backTo[l] || JOINS.backTo.en).replace("{first}", words(lived.get(e.n))) : m[l] || m.en;
       const intro = c.meets && !repeat ? [introIn(c.cast, c.about, l), beforeIn(c.cast, c.about, l)].filter(Boolean).join(" ") : "";
-      const text = fill(castFill(raw, peopleOf(c.cast, c.before, l, c.about)), { ...who2, age: age2 }) + (intro ? " " + intro : "");
+      const held3 = e.told === "upasama" ? " " + T2("accUpasama") : "";
+      const text = fill(castFill(raw, peopleOf(c.cast, c.before, l, c.about)), { ...who2, age: age2 }) + (intro ? " " + intro : "") + held3;
       para.parts.push(rebel ? rebel + " " + text : join ? join + after(raw, text, l) : text);
       if (!(repeat && e.via)) {
         toldN++;
@@ -8140,16 +8201,17 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     tumble(dice);
     return dice;
   }
-  var moveLabel = (l, v) => v ? tIn(l, "diceBy", { v }) : tIn(l, "sit");
+  var atLadder = () => !!LADDERS[G.state.players[G.state.turn]?.pos];
+  var moveLabel = (l, v) => v ? tIn(l, "diceBy", { v }) : tIn(l, atLadder() ? "footWait" : "sit");
   function choose(dice) {
     const moves = movesFor(G.state, dice);
     return new Promise((resolve2) => {
       G.choosing = { dice, moves, resolve: resolve2 };
       const pick3 = $("pick");
-      pick3.innerHTML = moves.map((v) => `<button type="button" data-v="${v}"${v ? "" : ` title="${esc(t("sitHint"))}"`}>${esc(moveLabel(lang, v))}</button>`).join("");
+      pick3.innerHTML = moves.map((v) => `<button type="button" data-v="${v}"${v ? "" : ` title="${esc(t(atLadder() ? "footWaitHint" : "sitHint"))}"`}>${esc(moveLabel(lang, v))}</button>`).join("");
       pick3.hidden = false;
       $("roll").hidden = true;
-      $("hint").textContent = t(moves.includes(0) ? "diceChooseSit" : "diceChoose", { a: num(dice[0]), b: num(dice[1]) });
+      $("hint").textContent = t(dice.length === 1 ? "footChoose" : moves.includes(0) ? "diceChooseSit" : "diceChoose", { a: num(dice[0]), b: num(dice[1]) });
       refreshRoll();
       if (!cardOpen()) pick3.querySelector("button")?.focus({ preventScroll: true });
     });
@@ -8253,7 +8315,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     await shut;
     if (g3 !== G.gen) return;
     state.dice = dice;
-    const moves = spent ? [] : dice.length > 1 ? movesFor(state, dice) : [dice[0]];
+    const moves = spent ? [] : movesFor(state, dice);
     const v = moves.length < 2 ? moves[0] ?? null : p.type === "human" ? await choose(dice) : moveFor(state, dice);
     if (g3 !== G.gen) return;
     if (p.type === "human" && !shut && cardOpen()) await closeCard();
@@ -8347,7 +8409,12 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
           if (g3 !== G.gen) return;
           (plan.jump.kind === "snake" ? sound.snake : sound.ladder)();
           frame(p.pos, plan.jump.to);
-          await (plan.jump.kind === "snake" ? swallow(idx, p.pos, plan.jump.to) : climb(idx, p.pos, plan.jump.to));
+          const top = plan.jump.kind === "ladder" ? LADDERS[p.pos]?.to : null;
+          if (top != null && top !== plan.jump.to) {
+            await climb(idx, p.pos, top);
+            if (g3 !== G.gen) return;
+            await climb(idx, top, plan.jump.to, true);
+          } else await (plan.jump.kind === "snake" ? swallow(idx, p.pos, plan.jump.to) : climb(idx, p.pos, plan.jump.to));
           if (g3 !== G.gen) return;
         }
         if (plan.reckon) {

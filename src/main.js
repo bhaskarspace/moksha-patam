@@ -62,16 +62,18 @@ async function rollDice(n) {
 // ---- Choosing between the dice ----
 // A person sees both dice and moves by either, or in 94–100 sits the year out; a computer chooses at once, the
 // same way tools/sim.mjs does. The choice is offered on the panel and, for a reader on a phone, on the card.
-const moveLabel = (l, v) => (v ? tIn(l, "diceBy", { v }) : tIn(l, "sit"));
+// at a ladder's foot (Jain, Phase 17) the move that is no move is waiting there, not sitting in practice
+const atLadder = () => !!LADDERS[G.state.players[G.state.turn]?.pos];
+const moveLabel = (l, v) => (v ? tIn(l, "diceBy", { v }) : tIn(l, atLadder() ? "footWait" : "sit"));
 function choose(dice) {
   const moves = movesFor(G.state, dice);
   return new Promise(resolve => {
     G.choosing = { dice, moves, resolve };
     const pick = $("pick");
-    pick.innerHTML = moves.map(v => `<button type="button" data-v="${v}"${v ? "" : ` title="${esc(t("sitHint"))}"`}>${esc(moveLabel(lang, v))}</button>`).join("");
+    pick.innerHTML = moves.map(v => `<button type="button" data-v="${v}"${v ? "" : ` title="${esc(t(atLadder() ? "footWaitHint" : "sitHint"))}"`}>${esc(moveLabel(lang, v))}</button>`).join("");
     pick.hidden = false;
     $("roll").hidden = true;
-    $("hint").textContent = t(moves.includes(0) ? "diceChooseSit" : "diceChoose", { a: num(dice[0]), b: num(dice[1]) });
+    $("hint").textContent = t(dice.length === 1 ? "footChoose" : moves.includes(0) ? "diceChooseSit" : "diceChoose", { a: num(dice[0]), b: num(dice[1]) });
     refreshRoll();
     if (!cardOpen()) pick.querySelector("button")?.focus({ preventScroll: true });
   });
@@ -170,8 +172,9 @@ async function takeTurn() {
   if (g !== G.gen) return;
   state.dice = dice;
   // a choice with only one move in it (a double, where there is no sitting, or in the heavens a die that would pass the
-  // top) is not asked; with none, the life stays where it is (Phase 17)
-  const moves = spent ? [] : dice.length > 1 ? movesFor(state, dice) : [dice[0]];
+  // top) is not asked; with none, the life stays where it is (Phase 17). One die is one move, unless the law offers
+  // another (Jain: waiting at a ladder's foot)
+  const moves = spent ? [] : movesFor(state, dice);
   const v = moves.length < 2 ? moves[0] ?? null : p.type === "human" ? await choose(dice) : moveFor(state, dice);
   if (g !== G.gen) return;
   if (p.type === "human" && !shut && cardOpen()) await closeCard();
@@ -267,7 +270,10 @@ async function takeTurn() {
         if (g !== G.gen) return;
         (plan.jump.kind === "snake" ? sound.snake : sound.ladder)();
         frame(p.pos, plan.jump.to);
-        await (plan.jump.kind === "snake" ? swallow(idx, p.pos, plan.jump.to) : climb(idx, p.pos, plan.jump.to));
+        // a ladder that goes on past its painted top (Bhakti's Devotion, Phase 17) is climbed to the top, then on in gold
+        const top = plan.jump.kind === "ladder" ? LADDERS[p.pos]?.to : null;
+        if (top != null && top !== plan.jump.to) { await climb(idx, p.pos, top); if (g !== G.gen) return; await climb(idx, top, plan.jump.to, true); }
+        else await (plan.jump.kind === "snake" ? swallow(idx, p.pos, plan.jump.to) : climb(idx, p.pos, plan.jump.to));
         if (g !== G.gen) return;
       }
       // a reckoning (REDESIGN.md Phase 12): a person's holds the game on its card until it is read; a computer's is in the

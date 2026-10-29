@@ -37,9 +37,23 @@ export function meritOwn(p) {
   return best && { sq: best.sq, opt: best.opt };
 }
 
+// Whether p is waiting at a foot: it chose to stay there a year (the foot again in its life, a year sat), and since then
+// only the admitting throw moves it.
+export const waiting = p => atFoot(p) && p.life.length > 1 && p.life.at(-2) === p.pos;
+
 export const jain = {
   ...board,
   id: "jain",
+  // at a ladder's foot the life may wait there instead of moving on, a year a throw (0, a year sat); once waiting, the
+  // admitting throw climbs and any other moves nothing
+  movesFor: (state, dice, base) => {
+    const p = state.players[state.turn];
+    if (!atFoot(p)) return base;
+    if (waiting(p)) return dice.includes(ADMITS) ? [ADMITS] : [0];
+    return dice.includes(ADMITS) || base.includes(0) ? base : [...base, 0];
+  },
+  // its computer waits at a foot for the ladder
+  prefer: (state, moves) => (moves.includes(0) && atFoot(state.players[state.turn]) ? 0 : null),
   climb: () => "wait",
   fromFoot: (state, i, v) => v === ADMITS && atFoot(state.players[i]),
   suppressed: (state, i, foot) => suppressedAt(state.players[i], foot),

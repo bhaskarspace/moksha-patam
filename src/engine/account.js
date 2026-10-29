@@ -201,6 +201,8 @@ export function lifeOf(state, i, l) {
       const age = words(e.years);
       // a choice the ego overruled is told even when what it led to is only counted
       if (rebel) para.parts.push(rebel);
+      // a climb in suppression (Jain upaśama) is said even when the climb is only counted
+      if (nextE.told === "upasama") para.parts.push(T("accUpasama"));
       if (times > 2) para.tally.set(e.n, { times, years: e.years });
       else if (SNAKES[e.n]) para.parts.push(J(JOINS.snakeAgain, { age, vice: sq(e.n), cost: words(ageOf(e.n) - ageOf(nextE.n)) }));
       else para.parts.push(J(JOINS.ladderAgain, { age, virtue: sq(e.n) }));
@@ -237,7 +239,9 @@ export function lifeOf(state, i, l) {
     const raw = repeat && e.via ? (JOINS.backTo[l] || JOINS.backTo.en).replace("{first}", words(lived.get(e.n))) : m[l] || m.en;
     // the moment that meets a member of the cast says their name at its end
     const intro = c.meets && !repeat ? [introIn(c.cast, c.about, l), beforeIn(c.cast, c.about, l)].filter(Boolean).join(" ") : "";
-    const text = fill(castFill(raw, peopleOf(c.cast, c.before, l, c.about)), { ...who, age }) + (intro ? " " + intro : "");
+    // a ladder climbed while the vice it heals was still held (Jain upaśama, Phase 17): the climb, and that the vice stayed
+    const held = e.told === "upasama" ? " " + T("accUpasama") : "";
+    const text = fill(castFill(raw, peopleOf(c.cast, c.before, l, c.about)), { ...who, age }) + (intro ? " " + intro : "") + held;
     // a choice the ego overruled is said first, a sentence of its own, and takes the place of any other join
     para.parts.push(rebel ? rebel + " " + text : join ? join + after(raw, text, l) : text);
     if (!(repeat && e.via)) {

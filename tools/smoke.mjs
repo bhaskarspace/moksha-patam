@@ -1233,6 +1233,17 @@ await check("Phase 17, step 4: under the Jain law a ladder waits at its foot and
   await until(page, () => !mp.busy && mp.state.turn === 0 && !document.getElementById("roll").disabled);
   const wait = await page.evaluate(() => ({ pos: mp.state.players[0].pos, log: document.getElementById("log").textContent }));
   assert(wait.pos === 23 && /waits at the foot of the ladder/.test(wait.log), JSON.stringify(wait).slice(0, 300));
+  // a throw that is not the 1: move on, or wait there a year; waiting, then only the 1 moves the life
+  await page.evaluate(() => { mp.roll(4); });
+  await page.waitForFunction(() => !document.getElementById("pick").hidden, null, { timeout: 15000 });
+  const offer = await page.evaluate(() => ({ moves: [...document.querySelectorAll("#pick button")].map(b => b.textContent), hint: document.getElementById("hint").textContent }));
+  assert(offer.moves.length === 2 && offer.moves[1] === "Wait" && /^Rolled 4\. Move on, or wait at the foot of the ladder for a one\.$/.test(offer.hint), JSON.stringify(offer));
+  await page.click('#pick button[data-v="0"]');
+  await until(page, () => !mp.busy && mp.state.turn === 0 && !document.getElementById("roll").disabled);
+  await page.evaluate(() => { mp.roll(5); });
+  await until(page, () => !mp.busy && mp.state.turn === 0 && !document.getElementById("roll").disabled);
+  const waited = await page.evaluate(() => ({ pos: mp.state.players[0].pos, waits: mp.state.log.filter(e => e.k === "lFootWait").length, pick: !document.getElementById("pick").hidden }));
+  assert(waited.pos === 23 && waited.waits === 2 && !waited.pick, JSON.stringify(waited));
   await page.evaluate(() => mp.roll(1));
   await until(page, () => !mp.busy && mp.state.turn === 0 && !document.getElementById("roll").disabled);
   const up = await page.evaluate(() => ({ pos: mp.state.players[0].pos, log: document.getElementById("log").textContent }));
@@ -1278,6 +1289,24 @@ await check("Phase 17, step 4: under Bhakti grace turns the lower choice, shown 
   await until(page, () => !mp.busy && mp.state.turn === 0 && !document.getElementById("roll").disabled);
   const dev = await page.evaluate(() => ({ pos: mp.state.players[0].pos, log: document.getElementById("log").textContent }));
   assert(dev.pos === 94 && /Devotion carries .+ to the end of the earth/.test(dev.log), JSON.stringify(dev).slice(0, 300));
+});
+
+await check("Phase 17, step 4 follow-up: under Bhakti Devotion's ladder is drawn on in gold past its top, and fades", async page => {
+  await meera(page);
+  await page.goto(BASE + "?seed=1&debug");
+  await page.evaluate(() => { mp.law("bhakti"); mp.jump(20); mp.years(12); mp.roll(3); });
+  // the board's gold (--b-gold), drawn on the effects canvas while the token climbs on from 37
+  const goldOn = () => {
+    const c = document.getElementById("fx"), d = c.getContext("2d").getImageData(0, 0, c.width, c.height).data;
+    const g = getComputedStyle(document.documentElement).getPropertyValue("--b-gold").trim().match(/\w\w/g).map(h => parseInt(h, 16));
+    let n = 0;
+    for (let i = 0; i < d.length; i += 4) if (d[i + 3] > 200 && Math.abs(d[i] - g[0]) < 8 && Math.abs(d[i + 1] - g[1]) < 8 && Math.abs(d[i + 2] - g[2]) < 8) n++;
+    return n;
+  };
+  await page.waitForFunction(`(${goldOn})() > 200`, null, { timeout: 15000, polling: 30 });
+  await until(page, () => !mp.busy && mp.state.turn === 0 && !document.getElementById("roll").disabled);
+  const after = await page.evaluate(`({ pos: mp.state.players[0].pos, gold: (${goldOn})() })`);
+  assert(after.pos === 94 && after.gold === 0, JSON.stringify(after));
 });
 
 await check("Phase 17, step 0: on a phone an ordinary card closes on a tap on its text or on the dimmed board; one that holds the game does not", async page => {
