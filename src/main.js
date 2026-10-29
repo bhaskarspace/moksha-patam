@@ -5,7 +5,7 @@ import { G, defaultSetup, pname, pnameIn, cur, newState, loadSelf, saveSelf } fr
 import { prefs, setPref, applyTheme, lifeLived, beFirst, freshViewer, firstLife, soulStore, soulFor, keepSoul, setSoulStore, saveGame, loadGame } from "./prefs.js";
 import { $, COLORS, esc, reduced, sleep, quality, forcedQuality, setQuality } from "./ui.js";
 import { die, makeRng, freshSeed } from "./rng.js";
-import { TUMBLE, planTurn, resolveChoice, endTurn, addLog, diceFor, movesFor, moveFor, gone, canSit, createGame, playTurn, spentOf } from "./engine/turn.js";
+import { TUMBLE, planTurn, resolveChoice, endTurn, addLog, diceFor, movesFor, moveFor, gone, canSit, createGame, playTurn, spentOf, doorOf } from "./engine/turn.js";
 import { optionsFor, situationAt, momentOf } from "./engine/qbn.js";
 import { LAWS, lawOf, choosable, canChoose, setLaw } from "./engine/laws/index.js";
 import { S, colRow, labEls, buildCells, draw, drawAge, fxClear, focusSquare } from "./render/board.js";
@@ -790,7 +790,7 @@ new ResizeObserver(draw).observe($("cells"));
 // ?debug exposes helpers for testing: mp.jump(n) moves the current player, mp.roll(v) rolls a fixed number
 // (mp.roll(a, b) fixes both endgame dice, and mp.pick(v) moves by one of them, 0 to sit),
 // mp.seed() reads the current game's seed and mp.seed(n) starts a new game with that seed. Phase 14 adds mp.door(),
-// mp.examine(), mp.curse(id) and mp.siva(). Phase 15 adds mp.ego(faces). Phase 16 adds mp.die(form), mp.samskara(obj),
+// mp.examine(), mp.curse(id) and mp.siva(). Phase 15 adds mp.ego(faces). Phase 17 adds mp.law(id[, "all"]) and mp.grace(face). Phase 16 adds mp.die(form), mp.samskara(obj),
 // mp.dream() and mp.animal(kind). Its follow-up adds mp.sprites().
 if (new URLSearchParams(location.search).has("debug")) {
   window.mp = {
@@ -886,13 +886,13 @@ if (new URLSearchParams(location.search).has("debug")) {
     door() {
       const p = cur();
       if (!carried(karmaOf(p)).length) { const k = karmaOf(p); p.karma = { ...k, prarabdha: [...k.prarabdha, { ...plantOf(12, situationAt(12).options.find(o => o.id === "lie"), 10), i: 0 }] }; }
-      p.years = Math.max(p.years ?? 0, 80); p.pos = GOAL; p.door = refusalOf(p);
+      p.years = Math.max(p.years ?? 0, 80); p.pos = GOAL; p.door = refusalOf(p, lawOf(G.state).binds(G.state, G.state.turn));
       p.refusals = [...(p.refusals ?? []), { at: p.life?.length ?? 0, ...p.door }];
       render(); age(true);
       return p.door;
     },
     // mp.examine(i) is player i's examination: the years asked so far (p.exam, p.sittings) and what the next would ask
-    examine: (i = G.state.turn) => { const p = G.state.players[i]; return { exam: p.exam ?? {}, sittings: p.sittings ?? [], next: examineOf(p) }; },
+    examine: (i = G.state.turn) => { const p = G.state.players[i]; return { exam: p.exam ?? {}, sittings: p.sittings ?? [], next: examineOf(p, doorOf(G.state, i)) }; },
     // mp.curse(id) chooses the current life's curse (content/curses.json), before or after it is spoken
     curse(id) { const p = cur(); if (id) { p.curseId = id; if (p.curse) p.curse = { ...p.curse, id }; } return curseOf(G.state, G.state.turn)?.id ?? null; },
     // mp.siva() makes the next throw land on 110, where Śiva's snake takes the life down; false if no die reaches it
@@ -933,6 +933,9 @@ if (new URLSearchParams(location.search).has("debug")) {
       render(); saveGame(G.setup, G.state);
       return lawOf(G.state).id;
     },
+    // Phase 17 step 4: mp.grace(face) is the face grace's next throw shows (Bhakti): on an ego test after the lower choice,
+    // or in a year at the door the book cannot answer. mp.grace(1) brings grace; mp.grace(6) withholds it.
+    grace(face = 1) { G.state.forceGrace = face; return face; },
   };
 }
 

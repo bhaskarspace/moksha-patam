@@ -73,7 +73,10 @@ export function playGame(seed, { players = 2, rules = SIM_RULES, pick = moveFor,
   const log = [...state.log], turns = Array(players).fill(0);
   // per seat, per life (Phase 17: a seat's lives are p.past and then the one in it): turns, turns in the heavens, the
   // bhumikas a sannyasin was in, and Phase 12's ledger, the omens, the reckonings and the door
-  const fresh = () => ({ turns: 0, heaven: 0, seen: new Set(), karma: { planted: 0, eligible: 0, fired: 0, bands: {}, tiers: [], dies: [], arrivals: 0, refused: [], couldSit: 0, doorYears: 0, throughDoor: 0 } });
+  const fresh = () => ({ turns: 0, heaven: 0, seen: new Set(), karma: { planted: 0, eligible: 0, fired: 0, bands: {}, tiers: [], dies: [], arrivals: 0, refused: [], couldSit: 0, doorYears: 0, throughDoor: 0 },
+    // Phase 17 step 4: the Jain ladders (waited at the foot, climbed on the 1, of those in suppression) and the merit let
+    // go at the door; Bhakti's grace (ego tests met, the lower chosen, grace on them, grace at the door) and Devotion
+    law: { waited: 0, climbed: 0, upasama: 0, merit: 0, egoTests: 0, lower: 0, grace: 0, doorGrace: 0, devotion: 0 } });
   const per = state.players.map(() => [fresh()]), now = i => { const a = per[i], k = state.players[i].rebirths ?? 0; while (a.length <= k) a.push(fresh()); return a[k]; };
   let played = 0;
   while (!state.over && played++ < CAP) {
@@ -96,6 +99,14 @@ export function playGame(seed, { players = 2, rules = SIM_RULES, pick = moveFor,
     if (!plan.sit && !plan.fell && !plan.stay && plan.target === 105) { k.arrivals++; if (plan.refused) { k.refused.push(plan.refused.aim ?? "debt"); k.couldSit += canSit(p); } }
     // Phase 14: a year sat at the door, and the door opening on one
     if (plan.sit && plan.from === 105) { k.doorYears++; k.throughDoor += !!plan.win; }
+    const L = w.law, ego = plan.choice ? SITUATIONS[plan.target]?.ego : null;
+    L.waited += plan.after.some(e => e.k === "lAtFoot");
+    if (plan.fromFoot) { L.climbed++; L.upasama += plan.told.includes("upasama"); }
+    L.merit += !!plan.exam?.merit;
+    if (ego) { L.egoTests++; L.lower += !!plan.grace || (plan.choice === ego.lower && !plan.ego); }
+    L.grace += !!plan.grace;
+    L.doorGrace += !!plan.exam?.graced;
+    L.devotion += plan.after.some(e => e.k === "lDevotion");
     log.push(...state.log.slice(0, state.log.indexOf(before)).reverse());
   }
   return { log, turns, per, capped: !state.over, winner: state.winner, players: state.players, state };
@@ -159,6 +170,66 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   // and under Cārvāka nothing is won and the snake is the end
   const LAW = LAWS[flags.law ?? "board"], KIND = LAW.exit()?.kind, WON = KIND === "moksha" ? "liberated" : KIND ? `won (${KIND})` : "won (no exit under this law)";
   const SNAKE = LAW.rebirth ? "born again" : "the end";
+  // --laws=all|a,b (Phase 17): every law named, under each policy and its own computer, in one table a law. Per life:
+  // the law's win, lives per win, turns and years (median / p95), deaths by cause, Śiva's snake, and rebirths a game,
+  // from single-player games; then over ten lives a soul (a quarter as many souls): the win by life 1, 3, 5 and 10 and
+  // the share of souls won within ten; and the law's own counts.
+  if (flags.laws) {
+    const ids = flags.laws === "all" ? Object.values(LAWS).filter(l => l.choosable).map(l => l.id) : flags.laws.split(",");
+    for (const id of ids) if (!LAWS[id]) throw new Error(`no law ${id}: ${Object.keys(LAWS).join(", ")}`);
+    const POL = ["honest", "mixed", "dishonest", "own"], souls = Math.max(1, Math.floor(games / 4));
+    console.log(`${games} single-player games and ${souls} souls of up to ten lives a column, seeds from ${first}`);
+    for (const id of ids) {
+      const law = LAWS[id], kind = law.exit()?.kind ?? "none", rules = { ...SIM_RULES, law: id }, cols = [];
+      for (const pol of POL) {
+        setPolicy(pol === "own" ? null : pol);
+        const c = { lives: 0, won: 0, turns: [], years: [], ledger: 0, yearsOut: 0, door: 0, siva: 0, rebirths: 0, law: {}, by: [0, 0, 0, 0], at: [0, 0, 0, 0], ten: 0 };
+        for (let s = first; s < first + games; s++) {
+          const g = playGame(s, { players: 1, rules, pick });
+          c.rebirths += g.players[0].rebirths ?? 0;
+          for (const x of livesOf(g)) {
+            c.lives++; c.won += x.won; c.turns.push(g.per[0][x.k].turns); c.years.push(Math.floor(x.p.years ?? 0));
+            if (x.p.death) c[x.p.death.by === "years" ? "yearsOut" : x.p.death.by]++;
+            c.siva += !!x.p.fell;
+            for (const [k, v] of Object.entries(g.per[0][x.k].law)) c.law[k] = (c.law[k] ?? 0) + v;
+          }
+        }
+        for (let s = first; s < first + souls; s++) {
+          const lives = playLives(s, 10, { rules, pick }).flatMap(livesOf).slice(0, 10);
+          [0, 2, 4, 9].forEach((k, j) => { if (lives[k]) { c.at[j]++; c.by[j] += lives[k].won; } });
+          c.ten += lives.some(x => x.won);
+        }
+        cols.push(c);
+      }
+      setPolicy(null);
+      const row = (label, f) => console.log(`  ${label.padEnd(30)}${cols.map(c => String(f(c)).padStart(15)).join("")}`);
+      const md = xs => summarise(xs.length ? xs : [0]);
+      console.log(`\n${id} (its win: ${kind})`);
+      row("", (c, j = cols.indexOf(c)) => POL[j]);
+      row("win a life", c => pct(c.won / c.lives));
+      row("lives per win", c => (c.won ? (c.lives / c.won).toFixed(2) : "—"));
+      row("win by life 1 / 3 / 5 / 10", c => c.at.map((n, j) => (n ? Math.round((100 * c.by[j]) / n) : "—")).join("/"));
+      row("souls won within ten lives", c => pct(c.ten / souls));
+      row("turns a life, median / p95", c => `${md(c.turns).median} / ${md(c.turns).p95}`);
+      row("years a life, median / p95", c => `${md(c.years).median} / ${md(c.years).p95}`);
+      row("died: ledger / years / door", c => [c.ledger, c.yearsOut, c.door].map(n => (100 * n / c.lives).toFixed(1)).join("/"));
+      row("Śiva's snake", c => pct(c.siva / c.lives));
+      row("rebirths a game", c => (c.rebirths / games).toFixed(2));
+      if (cols.some(c => c.law.waited)) {
+        row("waited at a foot, a life", c => (c.law.waited / c.lives).toFixed(2));
+        row("climbed on the 1, a life", c => (c.law.climbed / c.lives).toFixed(2));
+        row("of climbs, upaśama", c => (c.law.climbed ? pct(c.law.upasama / c.law.climbed) : "—"));
+        row("merit let go at the door", c => pct(c.law.merit / c.lives));
+      }
+      if (cols.some(c => c.law.grace || c.law.doorGrace || c.law.devotion)) {
+        row("grace on the lower choice", c => (c.law.lower ? pct(c.law.grace / c.law.lower) : "—"));
+        row("grace, per ego test", c => (c.law.egoTests ? pct(c.law.grace / c.law.egoTests) : "—"));
+        row("grace at the door, a life", c => pct(c.law.doorGrace / c.lives));
+        row("Devotion climbed, a life", c => pct(c.law.devotion / c.lives));
+      }
+    }
+    process.exit(0);
+  }
   // --lives: one soul's lives a seed (Phase 16)
   if (flags.lives) {
     const n = +flags.lives, byLife = Array.from({ length: n }, () => ({ lives: 0, freed: 0, ledger: 0, years: 0, door: 0, fell: 0, turns: [] }));

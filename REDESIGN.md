@@ -2032,6 +2032,53 @@ non-trivial.
 > bars it. The board's law
 > is byte-identical (accounts, with the one Hindi rewording "चुक" → "क्षीण" in the fall's account undone; the mixed
 > sim; golden).
+>
+> **Step 3's follow-ups (Bhaskar, 29 Oct).** A Cārvāka life neither adds to nor takes from a kept soul (`keepOf` in
+> `samskara.js`; Be born again skips that seat), so the same person born again later under another law carries what it
+> carried before. A life under a law other than the board's says so in the log (`lLawOf`). Every `{a|b}` choice with a
+> space inside (54 in content) keeps it through `fill`, in a test and on a phone in Hindi; "कीहोगी" did not reproduce.
+>
+> **Step 4, the Jain law and Bhakti (29 Oct, for review).** New hooks, each the board's behaviour in `board.js`: `climb`
+> ("now" or "wait" at a ladder's foot), `fromFoot` (the move that climbs from the foot the life stands at),
+> `suppressed`, `ladderTo`, `grace` (faces), `forgive` (the door's grace) and `binds` (what the door asks last). A climb
+> to a top not the board's is told `"climb"` and a climb in suppression `"upasama"`, so `yearsAlong` and `answerOf`
+> read them; under the board's law both read exactly as before.
+> *Jain (`jain.js`):* a ladder's foot is a stop; the admitting 1 climbs from it on a later turn (the die moved by), and
+> another throw walks on. An option that takes the ladder waits at the foot; one that stays turns away from it. A climb
+> is upaśama when the life carries an unmet debt of the vice the ladder heals and that vice's snake is the one it took
+> most (`suppressedAt` in `karma.js`): the book at the door does not take it as the answer. Otherwise it is kṣapaka, as
+> on the board. Merit binds: once nothing is owed, the door asks last about the deed of most worth the life did (a
+> situation's option with its dream), let go in one year sat (`p.exam.merit`). The omen stays on the 6. Its computer
+> is honest.
+> *Bhakti (`bhakti.js`):* choosing the lower option on an ego test throws grace's die (`graceThrow`, a sequence of its
+> own); on the 1, or the 1 and 2 once Devotion is climbed, the life does the option of most worth instead. It is never
+> shown before the choice; after it the card says so (`graceCard`), the log (`lGrace`), and the account (`accGrace`),
+> and it is never read as a rebellion. At the door, once a life, grace may forgive a debt the book cannot answer, even
+> one no penance pays (`lExamGrace`). Devotion (23, found as guru-bhakti) climbs to the end of the earth, the top of
+> the last ladder (94); the painted ladder stays the board's. Its computer is honest. `?debug` adds `mp.grace(face)`.
+> The sim's `--laws=all|a,b` sweeps the laws under each policy and the law's own computer.
+> Single-player games, 20,000 a column, and 5,000 souls of ten lives (honest / mixed / dishonest; its own computer is
+> the honest column for both):
+>
+> | | Jain honest | mixed | dishonest | Bhakti honest | mixed | dishonest |
+> |---|---|---|---|---|---|---|
+> | liberated, a life | 25.3% | 16.3% | 10.9% | 43.8% | 37.9% | 31.7% |
+> | lives per liberation | 3.95 | 6.12 | 9.16 | 2.28 | 2.64 | 3.15 |
+> | by life 1 / 3 / 5 / 10 | 26 / 21 / 15 / 9 | 18 / 9 / 8 / 7 | 12 / 5 / 5 / 4 | 46 / 42 / 40 / 32 | 41 / 35 / 32 / 27 | 35 / 27 / 24 / 17 |
+> | souls liberated within ten lives | 83.7% | 62.1% | 42.3% | 99.1% | 97.5% | 94.7% |
+> | turns a life, median / p95 | 45 / 65 | 45 / 67 | 43 / 70 | 23 / 43 | 24 / 44 | 24 / 45 |
+> | died: ledger / years / door | 4.7 / 23.4 / 0.8% | 29.1 / 19.2 / 1.1% | 51.7 / 12.5 / 1.0% | 1.0 / 3.4 / 0.2% | 4.9 / 4.2 / 0.5% | 11.1 / 4.7 / 1.0% |
+> | Śiva's snake | 45.8% | 34.3% | 23.9% | 51.7% | 52.4% | 51.5% |
+>
+> Jain: 5.3 to 5.6 waits at a foot a life and 0.6 to 0.9 climbs on the 1, so most ladders are lost; of the climbs
+> 0.7%, 3.8% and 6.5% are upaśama; the merit is let go at the door in 24.8% and 12.8% of lives (the dishonest life has
+> no deed of worth). Lives run longer (45 turns against the board's 29), so more die of their years, and the dishonest
+> more of the ledger. Bhakti: grace comes on 16% of lower choices, and at the door in 2.0%, 5.4% and 7.8% of lives;
+> Devotion is climbed in about 31% of lives, which shortens them (23 turns) and passes the situations from 28 to 93.
+> The board's law against these: 41.9%, 32.2%, 24.2% a life, 98.5%, 94.1%, 84.4% within ten. Open for review: Jain's
+> ten-life liberation is under 80% for the mixed and dishonest lives (62.1%, 42.3%), and needs a stated reason or a
+> change. Devotion's ladder to 94 stays under 60% a life with the order kept, so the fallback (to 85) was not needed.
+> The board's law is byte-identical (accounts, 2000 seeds `--lives=2 --tag`; the mixed sim; golden).
 
 - Mīmāṃsā first (default), then Cārvāka, then the rest.
 - A law-select screen that explains each in the player's own terms before they commit.

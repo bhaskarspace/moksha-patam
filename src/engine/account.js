@@ -73,16 +73,17 @@ export function lifeOf(state, i, l) {
   let toldN = 0, lastTold = {}, metAt = {};
   // the witness (Phase 15): each choice the ego overruled, by where in the life it was made; where in the life each member
   // was met; the witness lines already said; and how many were said, which tools/accounts.mjs tags
+  // grace (Bhakti, Phase 17) is no rebellion: the witness chose the lower and the life did the higher, told as grace
   const choices = p.witness ?? [], rebelAt = new Map(choices.filter(w => w.chose !== w.took).map(w => [w.i, w]));
   const metI = {}, usedWit = new Set();
   let witnessed = 0;
-  const rebelLine = e => { const w = rebelAt.get(e.i), t = w && SITUATIONS[w.sq]?.ego?.account; return t ? J(t) : ""; };
+  const rebelLine = e => { const w = rebelAt.get(e.i); if (w?.grace) return T("accGrace"); const t = w && SITUATIONS[w.sq]?.ego?.account; return t ? J(t) : ""; };
   // the line for member who returning at entry e, from the latest situation they saw after the life met them, or null
   const witnessOf = (who, e) => {
     for (let k = choices.length - 1; k >= 0; k--) {
       const w = choices[k], lines = SITUATIONS[w.sq]?.witness?.[who];
       if (!lines || w.i >= e.i || !(metI[who] < w.i) || usedWit.has(k)) continue;
-      const t = (w.chose !== w.took && lines.rebel) || lines[w.took];
+      const t = (w.chose !== w.took && !w.grace && lines.rebel) || lines[w.took];
       if (t) return { k, t };
     }
     return null;

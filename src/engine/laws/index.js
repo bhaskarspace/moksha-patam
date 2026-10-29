@@ -5,10 +5,12 @@
 import { board } from "./board.js";
 import { mimamsa } from "./mimamsa.js";
 import { carvaka } from "./carvaka.js";
+import { jain } from "./jain.js";
+import { bhakti } from "./bhakti.js";
 import { animal } from "./animal.js";
 
 // in the order they are offered: the board's first, the default
-export const LAWS = { board, mimamsa, carvaka, animal };
+export const LAWS = { board, mimamsa, carvaka, jain, bhakti, animal };
 export const lawOf = (state, i = state.turn) => LAWS[state.players[i]?.law ?? state.rules?.law ?? "board"] ?? board;
 // whether a law is the board's own, the default, which the log does not announce
 export const isDefault = l => l === board;

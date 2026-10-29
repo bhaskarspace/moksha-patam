@@ -2,7 +2,7 @@
 import { GOAL, TOP, LADDERS, SNAKES, HEAVEN, SQ } from "../content.js";
 import { makeRng, die } from "../rng.js";
 import { SPAN, turnYears, grow, freshGunas, freshAims, holdingOf, slotsFor, stageOfPlayer, SANNYASA } from "./self.js";
-import { optionOf, egoOf, egoFacesOn, egoThrow, destOf } from "./qbn.js";
+import { optionOf, optionsFor, egoOf, egoFacesOn, egoThrow, graceThrow, worthOf, destOf } from "./qbn.js";
 import { freshKarma, karmaOf, carried, ripen, plantOf, omenFor, refusalOf, examineOf, meet, DEATH } from "./karma.js";
 import { curseOf, spokenAt } from "./curse.js";
 import { lawOf, isDefault } from "./laws/index.js";
@@ -51,6 +51,8 @@ export function toldOn(n, face, dice = [face]) {
 // you walk. A sannyasin the door at 105 has refused may sit there too (REDESIGN.md Phase 12); it is still earth, and
 // since Phase 14 each year sat there is a question of the examination (src/engine/karma.js examineOf).
 export const canSit = p => p.pos >= ENDGAME && (p.pos <= 100 || p.pos === GOAL) && stageOfPlayer(p) === SANNYASA && slotsFor(p).includes("practice");
+// What the law adds at the door for player i (Phase 17, src/engine/karma.js examineOf): what it asks last, and grace.
+export const doorOf = (state, i) => { const law = lawOf(state, i); return { bound: law.binds(state, i), forgive: (s, n) => law.forgive(state, i, s, n) }; };
 // The moves a roll offers: each die's value once, and 0 for sitting. Since Phase 17 no die is offered that would carry
 // the life past the top: the heavens end at Śiva's square, and only the exact throw reaches it. With nothing offered
 // the life stays where it is in the heavens.
@@ -74,7 +76,7 @@ export function moveFor(state, dice) {
   const win = plans.find(pl => pl.win);
   if (win) return win.v;
   // ...unless the door has already said that no penance pays what it owes (Phase 16): then it throws on
-  const p = state.players[state.turn], ex = p.pos === GOAL ? examineOf(p) : null, stay = moves.includes(0) && !(ex?.never && ex.n > 1);
+  const p = state.players[state.turn], ex = p.pos === GOAL ? examineOf(p, doorOf(state, state.turn)) : null, stay = moves.includes(0) && !(ex?.never && ex.n > 1);
   if (stay && p.pos === GOAL) return 0;
   const short = plans.filter(pl => !pl.fell && to(pl) < GOAL && pl.jump?.kind !== "snake").sort((a, b) => b.v - a.v);
   if (short.length) return short[0].v;
@@ -188,9 +190,11 @@ export function planTurn(state, v, dice = [v]) {
     // years run out there dies at the door.
     const years = turnYears(p.years ?? 0, { sit: true }), died = years > SPAN;
     // a reckoning may have met what was owed while the life sat there: then there is no question, and the door opens
-    const atDoor = from === GOAL && !!p.door, exam = atDoor ? examineOf(p) : null;
-    const win = atDoor && !died && (exam ? exam.open : !refusalOf(p));
-    if (exam) after.push(entry(exam.pass ? "lExamPass" : exam.n === 1 ? (exam.cleared ? "lExamPaid" : "lExamFail") : exam.cleared ? "lExamPaid" : exam.never ? "lExamNever" : "lExamPenance", { pos: from, src: exam.src, sq: exam.src }, "", idx));
+    const atDoor = from === GOAL && !!p.door, exam = atDoor ? examineOf(p, doorOf(state, idx)) : null;
+    // mp.grace(face) forces grace's next throw, at the door as on an ego test; it is spent once asked
+    if (exam) delete state.forceGrace;
+    const win = atDoor && !died && (exam ? exam.open : !refusalOf(p, law.binds(state, idx)));
+    if (exam) after.push(entry(exam.merit ? "lExamMerit" : exam.graced ? "lExamGrace" : exam.pass ? "lExamPass" : exam.n === 1 ? (exam.cleared ? "lExamPaid" : "lExamFail") : exam.cleared ? "lExamPaid" : exam.never ? "lExamNever" : "lExamPenance", { pos: from, src: exam.src, sq: exam.src }, "", idx));
     else if (!win) after.push(entry("lSit", { pos: from, sq: from }, "", idx));
     if (died) end.push(entry(from === GOAL ? "lDiedDoor" : "lDied", { pos: from, age: years, sq: from }, "death", idx));
     else if (win) end.push(entry("lDoorOpen", { pos: GOAL }, "", idx), entry("lWin", { pos: GOAL }, "heaven", idx));
@@ -200,6 +204,12 @@ export function planTurn(state, v, dice = [v]) {
   // takes the life down to square 1. Either way the life ends; the snake's tail only marks where the next begins.
   // the animal interlude (Phase 16, src/engine/animal.js): the board ends at the edge of the forest, and reaching it is
   // the human birth earned back; nothing there falls, nothing chooses
+  // a law under which a ladder waits at its foot (Jain): the admitting throw climbs from where the life stands, with no
+  // walk; the life records only the ladder's top, as if the climb had followed the landing
+  if (law.fromFoot(state, idx, v, dice)) {
+    after.push(entry("lClimbOne", { pos: from, sq: from }, "", idx));
+    return finish(state, { idx, v, dice, spare, sit: false, from, path, target: from, final: from, jump: null, win: false, died: false, again: false, told: [], cost: 0, pre, after, end, fromFoot: true }, null);
+  }
   // a law whose board ends short of the heavens (the interlude's forest edge) is complete at its edge
   const edge = law.edge(state, idx);
   if (edge != null && from + v >= edge) {
@@ -240,9 +250,25 @@ export function planTurn(state, v, dice = [v]) {
 export function resolveChoice(state, plan, id) {
   const o = optionOf(plan.target, id);
   if (!plan.situation || !o) throw new Error(`no option ${id} on square ${plan.target}`);
+  const sit = plan.situation;
   delete plan.situation;
   const ego = egoOf(plan.target), faces = egoFacesOn(state, plan.target);
   delete plan.egoFaces;
+  // grace (Bhakti, Phase 17): the lower choice on an ego test throws grace's die, off a sequence of its own, and on one of
+  // its faces the life does the higher, the option of most worth open to it. Never shown before the choice.
+  const gf = ego && id === ego.lower ? lawOf(state, plan.idx).grace(state, plan.idx) : null;
+  if (gf) {
+    const p = state.players[plan.idx], face = state.forceGrace ? state.forceGrace : graceThrow(state, plan.idx, p.life?.length ?? 0);
+    delete state.forceGrace;
+    if (gf.includes(face)) {
+      const best = optionsFor(p, sit).filter(x => x.open).sort((a, b) => worthOf(b) - worthOf(a))[0];
+      if (best && best.id !== id) {
+        plan.grace = { chose: id, took: best.id, face };
+        plan.after.push(entry("lGrace", { pos: plan.target, sq: plan.target }, "", plan.idx));
+        return finish(state, plan, optionOf(plan.target, best.id));
+      }
+    }
+  }
   if (!ego || id === ego.lower) return finish(state, plan, o);
   const p = state.players[plan.idx], face = egoThrow(state, plan.idx, p.life?.length ?? 0), rebel = faces.includes(face);
   const took = rebel ? optionOf(plan.target, ego.lower) : o;
@@ -266,17 +292,22 @@ function finish(state, plan, o) {
   let jump = null, final = target;
   // a situation's option decides whether the snake or the ladder is taken; elsewhere the square does
   const s = o ? (o.move === "snake" ? SNAKES[target] : null) : SNAKES[target];
-  const l = o ? (o.move === "ladder" ? LADDERS[target] : null) : LADDERS[target];
+  // a ladder is climbed now, or (Jain) the life waits at its foot for the admitting throw; a climb from the foot is one
+  const taken = o ? (o.move === "ladder" ? LADDERS[target] : null) : LADDERS[target];
+  const waits = !!taken && !plan.fromFoot && law.climb(state, idx, target, o) === "wait";
+  const l = plan.fromFoot ? LADDERS[target] : waits ? null : taken;
+  if (waits) after.push(entry("lAtFoot", { pos: target, sq: target }, "", idx));
   const cost = o?.cost ?? 0;
   // the years an option costs pass on its square, before any snake or ladder
   if (cost) after.push(entry(cost === 1 ? "lStayOne" : "lStay", { n: cost, pos: target, sq: target }, "", idx));
   if (s || l) {
-    jump = { kind: s ? "snake" : "ladder", to: (s || l).to };
+    jump = { kind: s ? "snake" : "ladder", to: s ? s.to : law.ladderTo(state, idx, target) };
+    if (l && jump.to !== l.to) after.push(entry("lDevotion", { pos: target, to: jump.to, sq: target }, "", idx));
     final = jump.to;
     after.push(entry(s ? "lSnake" : "lLadder", { v, pos: target, to: jump.to, sq: target }, s ? "snake" : "ladder", idx));
   } else if (HEAVEN[target]) {
     after.push(entry("lHeaven", { v, pos: target, sq: target }, "heaven", idx));
-  } else if (target !== GOAL) {
+  } else if (target !== GOAL && !plan.fromFoot) {
     after.push(entry(from === 0 ? "lBorn" : "lMove", { v, pos: target, sq: target }, "", idx));
   }
   // the door (REDESIGN.md §2.3, Phase 12): the exit is reached, and refuses a life still carrying a debt it has not met
@@ -289,7 +320,7 @@ function finish(state, plan, o) {
   // the law's exit (src/engine/laws/): the board's is the door at 105. One with no door is won on the exact landing with
   // nothing carried, and a life that lands there owing is told so and goes on
   const ex = law.exit(state, idx), atExit = !!ex && final === ex.at;
-  const refused = atExit && ex.door ? refusalOf(p) : null;
+  const refused = atExit && ex.door ? refusalOf(p, law.binds(state, idx)) : null;
   if (refused) after.push(entry("lRefused", { pos: GOAL, sq: GOAL }, "", idx));
   const owed = atExit && !ex.door && carried(karmaOf(p)).length > 0;
   if (owed) after.push(entry(ex.owed, { pos: final, sq: final }, "", idx));
@@ -303,7 +334,11 @@ function finish(state, plan, o) {
   else if (again) end.push(entry("lSix", {}, "", idx));
   // which moment each square of this turn tells, in the order they join the life: one face for the whole turn. A
   // chosen option is what its square told; each year it cost is the square again, told as a stay.
-  const told = [o ? o.id : toldOn(target, v, dice), ...Array(cost).fill("stay"), ...(jump ? [toldOn(final, v, dice)] : [])];
+  // A climb whose top is not the board's is told "climb", so the life reads it as a ladder (src/engine/self.js
+  // yearsAlong); a climb from the foot in suppression (Jain upaśama) is told "upasama", which the book at the door does
+  // not take as an answer. A climb from the foot records only its top.
+  const top = jump?.kind === "ladder" ? (plan.fromFoot && law.suppressed(state, idx, target) ? "upasama" : jump.to !== LADDERS[target]?.to ? "climb" : toldOn(final, v, dice)) : null;
+  const told = [...(plan.fromFoot ? [] : [o ? o.id : toldOn(target, v, dice)]), ...Array(cost).fill("stay"), ...(jump ? [jump.kind === "ladder" ? top : toldOn(final, v, dice)] : [])];
   // the hidden guna and aims of the choice, applied as a vice's or a virtue's are (src/engine/self.js grow)
   const mark = o ? { guna: o.guna, aims: o.aims } : null;
   // and what the choice plants: āgāmi, since the player could have chosen otherwise (src/engine/karma.js)
@@ -357,11 +392,13 @@ export function endTurn(state, plan) {
   else {
     // what the witness chose on a situation and what the life did (REDESIGN.md Phase 15), where in the life, for the
     // account and for Phase 16's Mirror; on an ego test that threw, the face and the faces the ego owned
-    if (plan.choice) p.witness = [...(p.witness ?? []), { sq: plan.target, chose: plan.ego?.chose ?? plan.choice, took: plan.choice, i: p.life?.length ?? 0, ...(plan.ego ? { face: plan.ego.face, faces: plan.ego.faces } : {}) }];
+    // grace (Bhakti) is kept apart from the ego's throw: the witness chose the lower and the life did the higher
+    if (plan.choice) p.witness = [...(p.witness ?? []), { sq: plan.target, chose: plan.ego?.chose ?? plan.grace?.chose ?? plan.choice, took: plan.choice, i: p.life?.length ?? 0, ...(plan.ego ? { face: plan.ego.face, faces: plan.ego.faces } : {}), ...(plan.grace ? { grace: true } : {}) }];
     // a snake or a ladder is two moments: the square that did it, and the one it led to
     // a year sat out is the same square again: on earth nothing else lands where it stands (src/engine/self.js)
     // the years a choice cost are the square again, once a year (src/engine/self.js yearsAlong reads them as stays)
-    (p.life ||= []).push(plan.target, ...Array(plan.cost ?? 0).fill(plan.target), ...(plan.jump ? [plan.jump.to] : []));
+    // a climb from the foot the life already stood at (Jain) adds only the ladder's top
+    (p.life ||= []).push(...(plan.fromFoot ? [] : [plan.target]), ...Array(plan.cost ?? 0).fill(plan.target), ...(plan.jump ? [plan.jump.to] : []));
     // a reckoning (REDESIGN.md Phase 12): the square the debt was made on, at the third tier, and each year it took
     const rk = plan.reckon, at = p.life.length;
     if (rk) p.life.push(...(rk.to ? [rk.to] : []), ...Array(rk.years).fill(rk.to ?? rk.from));
@@ -380,7 +417,7 @@ export function endTurn(state, plan) {
     if (ex) {
       p.exam = { ...(p.exam ?? {}), [ex.key]: ex.n };
       if (ex.cleared) k = meet(k, ex.key);
-      p.sittings = [...(p.sittings ?? []), { at, src: ex.src, opt: ex.opt, planted: ex.at, ...(ex.prior ? { prior: true } : {}), n: ex.n, pass: ex.pass, answer: ex.answer, cleared: ex.cleared, ...(ex.never ? { never: true } : {}), open: plan.win, age: p.years }];
+      p.sittings = [...(p.sittings ?? []), { at, src: ex.src, opt: ex.opt, planted: ex.at, ...(ex.prior ? { prior: true } : {}), n: ex.n, pass: ex.pass, answer: ex.answer, cleared: ex.cleared, ...(ex.never ? { never: true } : {}), ...(ex.graced ? { graced: true } : {}), ...(ex.merit ? { merit: ex.merit } : {}), open: plan.win, age: p.years }];
     }
     p.karma = ripen(k, p.years);
     if (rk) {
@@ -391,7 +428,7 @@ export function endTurn(state, plan) {
     // stand there is the same one)
     if (plan.refused && !p.door) p.refusals = [...(p.refusals ?? []), { at, ...plan.refused }];
     // standing at a door that has refused them, they keep the reason, what is still owed; anywhere else there is none
-    p.door = plan.refused ?? (p.pos === GOAL && !plan.win && p.door ? refusalOf(p) ?? p.door : null);
+    p.door = plan.refused ?? (p.pos === GOAL && !plan.win && p.door ? refusalOf(p, lawOf(state, plan.idx).binds(state, plan.idx)) ?? p.door : null);
     // the curse (REDESIGN.md Phase 14): spoken at the first landing old enough for it, and kept where in the life it was
     if (!p.curse && lawOf(state, plan.idx).curse(state, plan.idx)) { const c = curseOf(state, plan.idx); if (c && spokenAt(c, p.years)) p.curse = { id: c.id, i: p.life.length - 1, age: p.years }; }
     // how the life ended (Phase 16): its ledger, its years on earth, or its years at the door

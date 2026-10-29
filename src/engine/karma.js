@@ -16,7 +16,7 @@
 import { GOAL, SITUATIONS, SNAKES, LADDERS, DOOR, STR } from "../content.js";
 import { makeRng, next } from "../rng.js";
 import { tIn, fill, castFill, wordsIn } from "../i18n.js";
-import { SPAN, yearsAlong, stageOfYears } from "./self.js";
+import { SPAN, yearsAlong, stageOfYears, holdingOf } from "./self.js";
 
 export const freshKarma = () => ({ sancita: [], agami: [], prarabdha: [] });
 // a game saved before Phase 12 has no ledger yet, and starts an empty one
@@ -110,12 +110,15 @@ export function reckonOf(k, { pos, years }) {
 export let ATTACHED = 75;
 // tests/situations.test.mjs sets it out of reach, to compare where options move apart from what the door reads in them
 export const setAttached = n => { ATTACHED = n; };
-export function refusalOf(p) {
+// bound is what the law binds the life with besides its debts (Jain, Phase 17: the merit it is proud of, { sq, opt }),
+// asked last; null under every other law.
+export function refusalOf(p, bound = null) {
   const debts = carried(karmaOf(p));
   if (debts.length) return { debts: debts.map(({ src, opt, at, prior }) => ({ src, opt, at, ...(prior ? { prior } : {}) })) };
   const a = p.aims ?? {};
   if ((a.artha ?? 0) >= ATTACHED) return { aim: "artha" };
   if ((a.kama ?? 0) >= ATTACHED) return { aim: "kama" };
+  if (bound) return { merit: bound };
   return null;
 }
 
@@ -138,28 +141,46 @@ export const setPenance = n => { PENANCE = n; };
 export const debtKey = s => `${s.src}:${s.opt}:${s.at}`;
 export const viceOf = s => seedOf(s.src, s.opt)?.holds ?? null;
 export const questionOf = s => DOOR[viceOf(s)] ?? null;
-// The climb that answers a debt's question, as { age }, or null: the healing ladder's foot and then its top, at or
+// The climb that answers a debt's question, as { age }, or null: the healing ladder's foot and then its climb, at or
 // after the place in the life the debt was planted (s.i; a seed planted before Phase 14 has none, and goes by years).
+// The climb is read by how its top was reached, so a law whose ladder goes elsewhere (Bhakti's Devotion) still answers;
+// a climb made in suppression (Jain upaśama, told "upasama" on its top) the book does not take as an answer.
 export function answerOf(p, s) {
-  const foot = questionOf(s)?.heals, top = LADDERS[foot]?.to;
-  if (top == null) return null;
+  const foot = questionOf(s)?.heals;
+  if (!LADDERS[foot]) return null;
   const along = yearsAlong(p.life || [], p.told || []), from = s.i ?? along.findIndex(e => e.years >= s.at);
-  const k = along.findIndex((e, j) => j >= Math.max(0, from) && e.n === foot && along[j + 1]?.n === top && along[j + 1].via === "ladder");
+  const k = along.findIndex((e, j) => j >= Math.max(0, from) && e.n === foot && along[j + 1]?.via === "ladder" && along[j + 1].from === foot && along[j + 1].told !== "upasama");
   return k < 0 ? null : { age: along[k].years };
+}
+// Whether a climb from foot is suppression (Jain upaśama, REDESIGN.md Phase 17): the life carries an unmet debt of the
+// vice this ladder heals, and that vice is the one it has clung to most (its snake taken most, holdingOf). The climb is
+// real, and the vice stays held, to fruit later. A climb with no such debt and holding is destruction (kṣapaka).
+export function suppressedAt(p, foot) {
+  const held = holdingOf(p.life || [], p.held);
+  return held != null && DOOR[held]?.heals === foot && carried(karmaOf(p)).some(s => viceOf(s) === held);
 }
 // The oldest debt the life still owes, the first made.
 export const owedOf = p => carried(karmaOf(p)).reduce((a, s) => (!a || s.at < a.at ? s : a), null);
 // What a year sat at the door does: { src, opt, at, key, n, pass, answer, cleared, weight, open }, or null when nothing
 // is owed. n is the year this is on this debt; the book can answer only the first time, since it does not change.
 // open is whether the door opens with it: nothing left owed, and no holding on to what was earned or wanted.
-export function examineOf(p) {
+// A law may add to it (Phase 17): bound is what it asks last, once nothing is owed (Jain: the merit the life is proud of,
+// shed in one year sat, keyed "merit"); forgive(s, n) is grace (Bhakti), which may forgive in the year the book cannot
+// answer, even a debt no penance pays.
+export const MERIT_KEY = "merit";
+export function examineOf(p, { bound = null, forgive = null } = {}) {
   const s = owedOf(p);
-  if (!s) return null;
+  if (!s) {
+    // the last question: the merit, let go in the year it is asked; the door then opens unless the life still clings
+    if (!bound) return null;
+    return { merit: bound, key: MERIT_KEY, n: 1, pass: false, answer: null, cleared: true, never: false, weight: 0, open: !refusalOf(p) };
+  }
   const key = debtKey(s), n = (p.exam?.[key] ?? 0) + 1, answer = n === 1 ? answerOf(p, s) : null, pass = !!answer;
-  const never = !pass && (s.weight ?? 1) >= UNPAID;
-  const cleared = pass || (!never && n >= Math.ceil(PENANCE * (s.weight ?? 1))), left = carried(karmaOf(p)).length - (cleared ? 1 : 0);
+  const graced = !pass && !!forgive?.(s, n);
+  const never = !pass && !graced && (s.weight ?? 1) >= UNPAID;
+  const cleared = pass || graced || (!never && n >= Math.ceil(PENANCE * (s.weight ?? 1))), left = carried(karmaOf(p)).length - (cleared ? 1 : 0);
   return { src: s.src, opt: s.opt, at: s.at, ...(s.prior ? { prior: true } : {}), key, n, pass, answer: answer?.age ?? null, cleared, never, weight: s.weight ?? 1,
-    open: cleared && !left && !refusalOf({ ...p, karma: freshKarma() }) };
+    ...(graced ? { graced: true } : {}), open: cleared && !left && !refusalOf({ ...p, karma: freshKarma() }, bound) };
 }
 // The ledger once a debt is met at the door: it leaves whichever bucket held it.
 export const meet = (k, key) => ({ ...k, agami: k.agami.filter(s => debtKey(s) !== key), prarabdha: k.prarabdha.filter(s => debtKey(s) !== key) });
@@ -204,15 +225,21 @@ export function refusalIn(l, refusal, who, sit = false) {
   if (!refusal) return [];
   const on = T(l, sit && !refusal.aim ? "doorSit" : "doorOn", who);
   if (refusal.aim) return [T(l, refusal.aim === "artha" ? "doorArtha" : "doorKama", who), on];
+  // the last question (Jain): good karma binds too, so the merit the life is proud of is asked after before it may pass
+  if (refusal.merit) return [T(l, "doorMerit", who, { deed: meritIn(l, refusal.merit, who) }), T(l, sit ? "doorSit" : "doorOn", who)];
   return [T(l, "doorRefused", who, { debts: debtsIn(l, refusal.debts, who) }), on];
 }
 // A year at the door, line by line: the question, the answer, what the book holds, and whether the debt was met; and
 // the door opening, when it does. who is { name, gender } in language l.
 export function examLinesIn(l, ex, who) {
+  // the last question (Jain): the merit is let go in the year it is asked
+  if (ex.merit) return [T(l, "examMerit", who, { deed: meritIn(l, ex.merit, who) }), T(l, "examMeritShed", who), ...(ex.open ? [T(l, "doorOpens", who)] : [])];
   const q = DOOR[seedOf(ex.src, ex.opt)?.holds], debt = debtIn(l, ex, who);
   if (!q) return [];
   const out = [T(l, "examAsks", who, { q: q.q[l] || q.q.en })];
-  if (ex.pass) out.push(T(l, "examPass", who, { a: q.a[l] || q.a.en, age: wordsIn(l, Math.floor(ex.answer)), answered: fill(q.answered[l] || q.answered.en, who) }), T(l, "examMet", who, { debt }));
+  // grace (Bhakti): the book has no answer, and the debt is forgiven all the same
+  if (ex.graced) out.push(T(l, "examFail", who, { a: q.a[l] || q.a.en, debt }), T(l, "examGrace", who, { debt }));
+  else if (ex.pass) out.push(T(l, "examPass", who, { a: q.a[l] || q.a.en, age: wordsIn(l, Math.floor(ex.answer)), answered: fill(q.answered[l] || q.answered.en, who) }), T(l, "examMet", who, { debt }));
   else {
     // a debt no penance pays (UNPAID): the year passes, and pays nothing
     // and the person is told plainly what is left to them, unless the years have run out there
@@ -224,6 +251,11 @@ export function examLinesIn(l, ex, who) {
   }
   if (ex.open) out.push(T(l, "doorOpens", who));
   return out;
+}
+// The merit a life is proud of, as a phrase: the deed of a situation's option (its dream, which says it as done).
+export function meritIn(l, { sq, opt }, who) {
+  const d = SITUATIONS[sq]?.options.find(o => o.id === opt)?.dream;
+  return d ? fill(castFill(d[l] || d.en), who) : "";
 }
 // Several debts as one phrase, in the door's words: "a, b and c".
 export function debtsIn(l, debts, who) {

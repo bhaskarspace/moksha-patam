@@ -84,6 +84,10 @@ export function egoFaces(p) {
 export const egoFacesOn = (state, n) => (egoOf(n) ? state.forceEgo ?? egoFaces(state.players[state.turn]) : null);
 export const egoThrow = (state, idx, lived) =>
   die(makeRng((state.rng.seed ^ 0x1b873593 ^ Math.imul(idx + 1, 0xcc9e2d51) ^ Math.imul(lived + 1, 0x7feb352d) ^ Math.imul(state.players[idx]?.rebirths ?? 0, 0x632be5ab)) >>> 0));
+// Grace's throw (Bhakti, REDESIGN.md Phase 17): one die off a sequence of its own, salted apart from the ego's, so neither
+// the dice nor the ego's throw ever change. Never shown before the choice.
+export const graceThrow = (state, idx, lived) =>
+  die(makeRng((state.rng.seed ^ 0x68e31da4 ^ Math.imul(idx + 1, 0x1b56c4e9) ^ Math.imul(lived + 1, 0x2c1b3c6d) ^ Math.imul(state.players[idx]?.rebirths ?? 0, 0x297a2d39)) >>> 0));
 
 // ---- What a square tells ----
 // The moment a landing on square n told, given what it told (p.told): a roll-dependent square's other moment, a

@@ -3,7 +3,7 @@
 // last as long as the merit, and Śiva's snake as rebirth in the seat. Every hook a law can set is here, as this law
 // plays it; another law spreads this one and changes only what it changes (src/engine/laws/index.js). Pure.
 import { situationAt, choiceFor } from "../qbn.js";
-import { GOAL } from "../../content.js";
+import { GOAL, LADDERS } from "../../content.js";
 
 // The board's exit: mokṣa at 105, behind a door that refuses a life still owing (src/engine/karma.js refusalOf). A law
 // whose exit has no door wins on the exact landing with nothing carried, and says so (owed) when something is.
@@ -35,6 +35,20 @@ export const board = {
   merit: () => true,
   // what Śiva's snake does to the life it takes: "reborn" in the seat, or "out" of the game
   siva: () => "reborn",
+  // a ladder taken on landing at its foot: climbed "now", or the life "wait"s at the foot (Jain); and whether move v,
+  // from the foot the life stands at, climbs it (the admitting 1 under the Jain law; never on the board)
+  climb: () => "now",
+  fromFoot: () => false,
+  // whether a climb from foot is suppression (upaśama), which the book at the door does not take as an answer (Jain)
+  suppressed: () => false,
+  // the square a ladder's climb reaches (Bhakti: Devotion, the one ladder to the end)
+  ladderTo: (state, i, foot) => LADDERS[foot]?.to ?? foot,
+  // grace (Bhakti): the faces on which the lower choice on an ego test is overturned toward the higher, and on which the
+  // door forgives a debt the book cannot answer; null for none
+  grace: () => null,
+  forgive: () => false,
+  // what the door asks last, once every debt is met (Jain: the merit the life is proud of), or null
+  binds: () => null,
   // anything the law keeps once a turn is over
   afterTurn: () => {},
   // its name and its two or three sentences, the lines of Śiva's snake and the merit spent, the heavens' card, and the

@@ -77,7 +77,10 @@ snake ends the life and nothing is kept). A law's exit is `exit()` (`{ at, kind,
 won; `setLaw(state, i, id)` in `laws/index.js` is how a law is changed mid-game. `setPolicy(null)` restores each law's
 own computer; the sim's `--policy` overrides it. Its follow-up: a Cārvāka life neither adds to nor takes from a kept soul
 (`keepOf` in `samskara.js`, and Be born again skips that seat), and a life under a law other than the board's says so in
-the log (`lLawOf`, `logLaw` in `turn.js`).
+the log (`lLawOf`, `logLaw` in `turn.js`). Step 4 adds the Jain law (`jain.js`: a ladder waits at its foot and the 1 climbs it,
+`fromFoot`; a climb while holding the vice it heals is upaśama, told `"upasama"`, which `answerOf` skips; the door asks
+last about the merit, `binds`) and Bhakti (`bhakti.js`: grace on the lower ego choice, `graceThrow`, kept as
+`witness.grace` and never a rebellion; the door's grace once a life, `forgive`; Devotion climbs to 94, told `"climb"`).
 Phase 7 was The Exit (REDESIGN.md §4): Moksha is square 105 (`GOAL`), partway
 along the divine row, while the board still ends at 110 (`TOP`). Since Phase 12 nothing above the exit turns back: past 105 the
 heavens (106–110) are walked. Since Phase 17 no throw passes `TOP`, and the exact throw onto it is Śiva's snake, the fall
@@ -133,7 +136,9 @@ illuminated frame (`frame.js`) and a bottom sheet below 768px (`sheet.js`).
   liberation by life, lives per liberation, the rebirth rate and the interludes per hundred lives. Since Phase 17 every
   number is per life (each `p.past` and the last; `livesOf` in `tools/sim.mjs`), plus turns per life, rebirths through
   Śiva's snake a game and games that hit the turn cap (`CAP`, expected never); the heavens are 106–109. `--law=id` plays
-  every seat under that law.
+  every seat under that law, and `--laws=all|a,b` sweeps the laws, each under every policy and its own computer, with
+  liberation per life and by life 1, 3, 5 and 10 over ten-life souls, turns and years, deaths by cause, and each law's
+  own counts.
   Balance against the p95, the share over 100, liberation per life and lives per liberation.
 - `npm run smoke [-- --only=text]`: Playwright checks of the built page in a real browser (needs Chrome installed).
   `--only` runs just the checks whose names contain the text, e.g. `--only="Phase 6"`.
@@ -165,7 +170,8 @@ illuminated frame (`frame.js`) and a bottom sheet below 768px (`sheet.js`).
   read, replace, or `null` to empty), `mp.dream(l)` (the account of a life two born of the current life, played by a computer)
   and `mp.animal(kind)` (an animal interlude for the current person, at once: tortoise, jackal, mongoose, cat or lion).
   Its follow-up adds `mp.sprites()` (every figure, by gender, and the animals, side by side on every band's ground) and
-  extends `mp.sprite(stage, color, frame, gender, animal)`. Phase 17 adds `mp.law(id[, "all"])` (the current player's law, or the whole game's).
+  extends `mp.sprite(stage, color, frame, gender, animal)`. Phase 17 adds `mp.law(id[, "all"])` (the current player's law, or the whole game's) and `mp.grace(face)` (the face
+  grace's next throw shows under Bhakti: `mp.grace(1)` brings it).
 - No physics on any card. "Debt" is the only word a player sees for a seed, and the ledger's buckets, weights, fuses
   and chances are never shown as numbers. The 1 is the threshold face and the 6 is the world's (`tests/faces.test.mjs`).
 - Never use `unshift` on anything but the log: `tools/golden.mjs` records every `unshift` of an entry as logged.

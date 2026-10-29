@@ -20,7 +20,7 @@ const least = (n, id) => { const o = optionOf(n, id); return !!o && SITUATIONS[n
 // What player i's life did that a question can be about, for the `when` of content/mirror.json.
 function deeds(state, i) {
   const p = state.players[i], w = p.witness ?? [], along = yearsAlong(p.life || [], p.told || []);
-  const rebel = w.findLast(x => x.chose !== x.took) ?? null;
+  const rebel = w.findLast(x => x.chose !== x.took && !x.grace) ?? null;
   const arcs = castArcs(state, i, along), cc = castAlong(state, i, along), cast = cc.at(-1)?.cast ?? {};
   const unwritten = arcs.find(a => a.kind === "died" && cast[a.who]?.en) ?? null;
   return {

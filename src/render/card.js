@@ -72,6 +72,8 @@ function foresight(l, o) {
   return `<span class="opt-d">${esc(text)}</span>`;
 }
 
+// Where the ladder on n climbs to for the card's subject, by their law (Phase 17: Bhakti's Devotion goes to the end)
+const climbTo = n => (G.state ? lawOf(G.state, G.state.players.indexOf(subjectOf())).ladderTo(G.state, G.state.players.indexOf(subjectOf()), n) : LADDERS[n].to);
 // ---- What a square's card says, in language l ----
 function squareInfo(n, l) {
   const T = (k, v) => tIn(l, k, v), o = other(l), r = READINGS[n] || {};
@@ -80,7 +82,7 @@ function squareInfo(n, l) {
   if (sl) {
     const virtue = !!LADDERS[n];
     return { kind: virtue ? "virtue" : "vice", big: sl.ic, title: sl[l], alt: [sl[o], skt],
-      eb: `${T(virtue ? "virtue" : "vice")} · ${stageIn(l, n)}`, ft: T(virtue ? "ladderTo" : "snakeTo", { n: sl.to }) };
+      eb: `${T(virtue ? "virtue" : "vice")} · ${stageIn(l, n)}`, ft: T(virtue ? "ladderTo" : "snakeTo", { n: virtue ? climbTo(n) : sl.to }) };
   }
   if (n === GOAL) {
     return { kind: "goal", big: "ॐ", title: l === "hi" ? "मोक्ष" : "Moksha", alt: [o === "hi" ? "मोक्ष" : "Moksha", scholar ? r.iast : T("liberation")],
@@ -135,6 +137,17 @@ function egoHere(n) {
   let k = p.life.length - 1;
   while (k > 0 && p.told?.[k] === "stay") k--;
   return (p.life[k] === n && p.witness?.findLast(w => w.i === k && w.faces)) || null;
+}
+// Whether grace (Bhakti, Phase 17) did the higher on square n for its subject: during the landing the plan's, after it the
+// record of the choice made where they stand. Shown only after the choice, never before.
+function graceHere(n) {
+  const p = subjectOf(), plan = G.plan;
+  if (!p) return false;
+  if (plan && G.state.players[plan.idx] === p && plan.target === n) return !!plan.grace;
+  if (p.pos !== n || !p.life?.length) return false;
+  let k = p.life.length - 1;
+  while (k > 0 && p.told?.[k] === "stay") k--;
+  return p.life[k] === n && !!p.witness?.findLast(w => w.i === k)?.grace;
 }
 // The faces of a die, as the ego's are shown: never a number about the player.
 const FACES = ["⚀", "⚁", "⚂", "⚃", "⚄", "⚅"], facesIn = fs => fs.map(f => FACES[f - 1]).join(" ");
@@ -264,6 +277,7 @@ function squareHtml(n, l) {
   const egoTop = !ego ? "" : pips(texts(l, ...["en", "hi"].map(x => `${tIn(x, "egoDie")} ${FACES[(tumbling ? G.egoTumble : ego.face) - 1]}` + (tumbling || rebel ? "" : ` ${tIn(x, "egoHeld")}`)), "remedy ego")) +
     (rebel && !tumbling ? texts(l, ...["en", "hi"].map(x => momentIn(egoOf(n).card, x, n, false)), "moment") : "");
   const moment = m && !tumbling ? texts(l, momentIn(m, "en", n, !pending), momentIn(m, "hi", n, !pending), n > 100 ? "moment remnant" : "moment") : "";
+  const grace = !pending && graceHere(n) ? texts(l, ...["en", "hi"].map(x => fill(tIn(x, "graceCard", { name: person(x, n).name }), person(x, n))), "remedy grace") : "";
   // a snake tail one square below its remedy says so (REDESIGN.md Phase 4, item 3)
   const remedy = sq.remedy ? texts(l, fill(sq.remedy.en, person("en", n)), fill(sq.remedy.hi, person("hi", n)), "remedy") : "";
   // past the exit, the card says the way out is behind and below (REDESIGN.md Phase 7, item 3)
@@ -289,7 +303,7 @@ function squareHtml(n, l) {
   const curse = sayer ? texts(l, curseSaidIn("en", sayer, pnameIn(sayer, "en")), curseSaidIn("hi", sayer, pnameIn(sayer, "hi")), "remedy") : "";
   // a rebellion's mirror is the Gita's question of what drives a person to wrong unwilling (3.36–37)
   const mirrored = pending || tumbling ? "" : rebel ? texts(l, EGO.mirror.en, EGO.mirror.hi, "mirror") : mirrorHtml(l, mirror, m);
-  body += `<div class="story">${noDoor}${door}${egoTop}${moment}${faces}${curse}${options}${remedy}${mirrored}${bi(l, r.line2, "line2")}${above}</div>`;
+  body += `<div class="story">${noDoor}${door}${egoTop}${moment}${grace}${faces}${curse}${options}${remedy}${mirrored}${bi(l, r.line2, "line2")}${above}</div>`;
   // what the toggle opens: the voices, and the notes, at the reader's depth
   // Codex entries in it count as met only once the reader opens it
   let more = "";
@@ -388,11 +402,12 @@ function examHtml(ex, l) {
     if (!ex.died) return out;
     return [...out, fill(tIn(x, "doorDied", { name: who(x).name, debts: debtsIn(x, ex.debts ?? [], who(x)) }), who(x))];
   };
-  // titled for the door, not for the square the debt was made on, which the line under it links to (Phase 15, step 0)
-  const en = lines("en"), hi = lines("hi");
+  // titled for the door, not for the square the debt was made on, which the line under it links to (Phase 15, step 0); the
+  // merit asked last (Jain) links to the square of the deed
+  const en = lines("en"), hi = lines("hi"), src = ex.src ?? ex.merit?.sq;
   let body = `<h2 id="leafTitle">${esc(tIn(l, "examHead"))}</h2>`;
   body += `<div class="story">` + en.map((t, i) => texts(l, t, hi[i], i === 0 ? "remedy door" : i === 1 ? "moment" : "remedy")).join("") +
-    `<p class="srcline"><a class="src" href="#sq/${ex.src}" data-sq="${ex.src}">${esc(tIn(l, "square", { n: numIn(l, ex.src) }))}</a></p></div>`;
+    `<p class="srcline"><a class="src" href="#sq/${src}" data-sq="${src}">${esc(tIn(l, "square", { n: numIn(l, src) }))}</a></p></div>`;
   return { kind: "exam", met: [], html: frame(l, { kind: "exam", eb: esc(tIn(l, "examTitle")), big: illumined(document.getElementById(`sq-${GOAL}`) ? `sq-${GOAL}` : null, "☸\uFE0E"), sqn: numIn(l, GOAL), body, foot: "" }) };
 }
 // Between lives (Phase 17): Śiva's snake closed the seat's life and the same soul is born again in it. The card holds the
