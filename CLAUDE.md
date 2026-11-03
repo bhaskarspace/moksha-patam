@@ -17,7 +17,7 @@ single static `index.html` at https://codebpr.com/moksha-patam/
 - `docs/REFERENCE.md`: philosophy-to-mechanics mapping and the history of the board.
 - `docs/LANDSCAPE.md`: comparable games.
 
-**State:** Phases 0 to 17 have shipped. Phase 8 was Life State (REDESIGN.md §4): years lived are a clock of their own
+**State:** Phases 0 to 18 have shipped. Phase 8 was Life State (REDESIGN.md §4): years lived are a clock of their own
 (`src/engine/self.js`) that a snake never turns back, moments say their age through `{age}`, a life ends when its years
 pass `SPAN` (110), and the life account (`src/engine/account.js`, pure) chooses each join by how a moment relates to the
 last. Gunas, aims and the bhumika are in state and never shown as numbers. Phase 9 was Dice as currency: from 94
@@ -97,6 +97,17 @@ year in practice before the throw draws no dice, `playTurn(state, [])`, and stor
 "letGo" spends one; `line` says it in words on the player's line). A law's act in place of a move is `zero(state, i,
 dice)` → `{ act, line, kind }`, told as `p.told` on the square again; `?debug` adds `mp.still(n)` and `mp.bhumika(b)`;
 the sim plays `playTurn(state, undefined, pick)` so the game decides what is thrown.
+Phase 18, Historical boards, has shipped (REDESIGN.md Phase 18): a board is data (`content/boards.json`: `geometry`,
+`rules`, `look`), and `useBoard(id)` in `src/content.js` swaps the live bindings; `rules.board` picks it, the 110 is the
+default and unchanged. The 72 Vaiṣṇava (App. D1, seven cowries at p = 0.45) and the 84 Jain (App. D2, Jeṭhābhāī's rules,
+the 1-2-5-6 stick die, drawn on the lokapuruṣa) are played as the old cloth (`src/engine/cloth.js`, pure; `turn.js`
+hands a turn there when `BOARD.rules.engine === "cloth"`, never on a law's id): a pawn, the board's randomizer
+(`src/engine/dice.js`), its snakes and ladders, and the legends the charts write (`content/legends.json`, cited, uncertain
+readings said); no years, moments, debts or rebirth. The 84's top squares are 85–90, shown "top 1"–"top 6"
+(`sqNum`). The game's other rules for an old board (`rules.start: "six"`, `rules.end: "exact" | "roam"`) are off unless
+chosen and only where the board offers them (`rules.variants`, `variantOf`); entry on a six and the exact throw are
+Johari's modern rules, roam is Harikṛṣṇa's, and the setup says so. Citations keep Latin digits in Hindi (`srcIn`); square
+numbers are Devanagari. A row of the 84 is a realm, never a rank.
 Phase 7 was The Exit (REDESIGN.md §4): Moksha is square 105 (`GOAL`), partway
 along the divine row, while the board still ends at 110 (`TOP`). Since Phase 12 nothing above the exit turns back: past 105 the
 heavens (106–110) are walked. Since Phase 17 no throw passes `TOP`, and the exact throw onto it is Śiva's snake, the fall
@@ -155,7 +166,9 @@ illuminated frame (`frame.js`) and a bottom sheet below 768px (`sheet.js`).
   every seat under that law, and `--laws=all|a,b` sweeps the laws, each under every policy and its own computer, with
   liberation per life and by life 1, 3, 5 and 10 over ten-life souls, turns and years, deaths by cause, and each law's
   own counts.
-  Balance against the p95, the share over 100, liberation per life and lives per liberation.
+  Balance against the p95, the share over 100, liberation per life and lives per liberation. Since Phase 18
+  `--board=72|84` plays an old board as the old cloth, `--rand=own,die` by what it is thrown with, and
+  `--start=six` / `--end=exact|roam` with the game's other rules; it reports turns to the goal and where they went.
 - `npm run smoke [-- --only=text]`: Playwright checks of the built page in a real browser (needs Chrome installed).
   `--only` runs just the checks whose names contain the text, e.g. `--only="Phase 6"`.
 - `npm run golden [seeds]`: the built page and `sim.mjs` must produce the same move log.
@@ -167,7 +180,7 @@ illuminated frame (`frame.js`) and a bottom sheet below 768px (`sheet.js`).
   every untagged account must match. With `--curse=off` the curse is never drawn. `--lives=2` also hashes each named life's
   next one (`rebirth`), and before it the animal interlude a death by ledger is owed (`animal`): a first life never reads
   saṃskāra, so every line without `rebirth` must match.
-- `npm run perf [--rate=4] [--query=quality=low]`: frame times on a throttled phone-sized page. Reports only;
+- `npm run perf [--rate=4] [--query=quality=low] [--board=72|84]`: frame times on a throttled phone-sized page. Reports only;
   compare against a run on `main`.
 - `node tools/icons.mjs`: regenerates `icons/`. Only needed when the emblem changes.
 - `node tools/vignettes.mjs [squares…]`: draws the scenes in `art/vignettes.mjs` into `assets/sprites.svg` (`sq-N`, `class="vg"`).
@@ -187,7 +200,8 @@ illuminated frame (`frame.js`) and a bottom sheet below 768px (`sheet.js`).
   and `mp.animal(kind)` (an animal interlude for the current person, at once: tortoise, jackal, mongoose, cat or lion).
   Its follow-up adds `mp.sprites()` (every figure, by gender, and the animals, side by side on every band's ground) and
   extends `mp.sprite(stage, color, frame, gender, animal)`. Phase 17 adds `mp.law(id[, "all"])` (the current player's law, or the whole game's) and `mp.grace(face)` (the face
-  grace's next throw shows under Bhakti: `mp.grace(1)` brings it).
+  grace's next throw shows under Bhakti: `mp.grace(1)` brings it). Phase 18 adds `mp.board(id[, { start, end }])` (a fresh
+  game on that board, with the game's other rules; `mp.board()` is the board in play).
 - No physics on any card. "Debt" is the only word a player sees for a seed, and the ledger's buckets, weights, fuses
   and chances are never shown as numbers. The 1 is the threshold face and the 6 is the world's (`tests/faces.test.mjs`).
 - Never use `unshift` on anything but the log: `tools/golden.mjs` records every `unshift` of an entry as logged.
