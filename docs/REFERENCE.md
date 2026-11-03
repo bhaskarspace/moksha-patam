@@ -202,8 +202,11 @@ the cosmic body.
   mokṣa (4): "by dharma and mokṣa one climbs house by house; because of artha and kāma one
   wanders." The low face is the gate; the game's rule that the 1 is the threshold face and
   the 6 the world's comes from here.
-- Squares that must be passed in a set order; a player who climbed to Brahmaloka had to
-  later slide down to *pṛthvī* at least once.
+- **Not a rule: Brahmaloka.** On the 72, dayā's ladder (17) leads to Brahmaloka (69), past
+  Vaikuṇṭha, so a pawn that climbs it must throw on to 72 and take the snake to *pṛthvī*
+  (51) before it can win (Topsfield 1985: 204). That is the board's layout. Nothing in
+  `research/` gives a rule that a player must fall once, or that squares must be passed
+  in a set order; both earlier claims here are withdrawn.
 - **The counts, corrected 20 Oct.** The critically read 72 has ten snakes and eight to ten
   ladders; the Jain 84 nine snakes, six ladders and nine footprints; the Marathi 108 forty
   snakes and twenty-two ladders; the Mughal 100–101 is 17 ladders to 13 snakes. Snake-heavy

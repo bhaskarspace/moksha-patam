@@ -2291,8 +2291,9 @@ computer can be set to a law other than the player's.
 >
 > **Measured,** `node tools/sim.mjs 5000 1 --board=… [--rand=die] [--start=six] [--end=…]`, one pawn, turns to the goal,
 > median / p95 (share over 100), every game reaching the goal. The 110's baseline (`npm run sim 5000 1`) is median 47,
-> p95 153, over 100 15.0%, turns a game. The thesis's own measure of the randomizer (64.5 turns to 100.5 with the
-> shells) is beside it: the lever is real, and it belongs with its board.
+> p95 153, over 100 15.0%, turns a game. Dennis, Bender et al.'s measure of the randomizer on the 72 (2024: 64.5 turns
+> to 100.5 with the shells, under their own rules; `docs/BOARDCRAFT.md §4`) is beside it: the lever is real, and it
+> belongs with its board.
 >
 > | board | its own | a die |
 > |---|---|---|

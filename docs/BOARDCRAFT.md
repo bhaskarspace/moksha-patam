@@ -89,11 +89,16 @@ the cost is known rather than assumed. See §6.
 The most interesting historical mechanic in the paper, and it is a direct upgrade.
 
 The Vaiṣṇava board's win square is 68, not 72. Overshooting carries you into 69–72, and
-**snake T at 72 drops you back to 51 to go round again.** A roll that would exceed 72 is
-not made.
+**snake T at 72 drops you back to 51 to go round again.** A throw that would pass 72 stops
+on 72 and takes the snake to 51, the rest of the count not carried: Dampier (1895: 25),
+the only early witness for the 72, and what Phase 18 plays (`src/engine/cloth.js`). The
+rule that a throw past 72 is forfeited, so that the pawn must land exactly on 72, is
+Johari's, for his modern redesign (2007: 9–10), and is not attested in the old sources
+(Schmidt-Madsen 2019, ch. 5, p. 208 fn. 353); Phase 18 offers it only as a setting,
+"(Johari, a modern rule)".
 
-The measured consequence: only **16.8%** of games never use snake T, and most games use
-it more than once. Rebirth is not a theme painted on that board, it is the modal
+The measured consequence, in the paper's simulation under its own rules: only **16.8%**
+of games never use snake T, and most games use it more than once. Rebirth is not a theme painted on that board, it is the modal
 experience of playing it.
 
 Compare the current rule: you need an exact roll for 110 and otherwise stay put, which
@@ -116,8 +121,10 @@ the game. Tuning (109→81 vs
 107→81 vs a shorter fall) belongs to the sim.
 
 **Historical warrant for a snake out of the god-realm.** Checked, and it is stronger than
-expected. Some boards required that a player who reached **Brahmaloka** early then
-**descend a snake to *pṛthvī*, earth, at least once** before finishing. A snake's head on
+expected. On the 72, dayā's ladder (17) leads to **Brahmaloka** (69), past Vaikuṇṭha, so a
+player who climbs it must throw on to tamas (72) and **down the snake to *pṛthvī*, earth
+(51)**, to resume the upward path (Topsfield 1985: 204). That is the board's layout, not
+a rule of its own: no source in `research/` has a rule that every player must fall once. A snake's head on
 the **final square** returned the player to the start, described as the punishment for
 overreaching. And on the 72-square Johnson board (Gerald Robert Dampier, *North Indian Notes and Queries* vol. 5, 1895, pp. 25–27, ed. William Crooke) the win is Vaikuṇṭha via
 the Bhakti ladder at 54, while **square 72 carries a long snake back to earth, triggered
@@ -141,19 +148,23 @@ adopting.
 
 ## 4. The randomizer is an unused lever
 
-The Vaiṣṇava board was played with seven cowrie shells, not a die. Each shell lands up
-or down at p = 0.5, so the move distribution is binomial, not uniform:
+The Vaiṣṇava board was played with seven cowrie shells, not a die (Pārakh 1886: 200).
+Each shell falls face up about 45% of the time, as Schmidt-Madsen measured with a set
+brought home from India (2019, p. 206 fn. 345), so the move is the count face up, binomial
+at p = 0.45, not uniform (Phase 18's `src/engine/dice.js`):
 
 | Move | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
 |---|---|---|---|---|---|---|---|---|
-| P | 0.78% | 5.47% | 16.41% | 27.34% | 27.34% | 16.41% | 5.47% | 0.78% |
+| P | 1.5% | 8.7% | 21.4% | 29.2% | 23.9% | 11.7% | 3.2% | 0.4% |
 
-The same board took 64.5 turns with a die and **100.5 with shells**. A bell-shaped
+The same board took 64.5 turns with a die and **100.5 with shells** in the paper's
+simulation, under its own rules (Phase 18's measure, under the rules it built, is in
+REDESIGN.md Phase 18). A bell-shaped
 randomizer makes the game markedly longer and much less swingy, because extreme moves
 become rare and a 0 is possible.
 
-The Jaina board used a four-outcome stick die (1, 2, 5, 6) with 3 and 4 converted up,
-which is a bimodal distribution: lots of tiny moves and lots of big ones, nothing in the
+The Jaina board used a four-sided stick die configured 1, 2, 5, 6 (an inscription on
+Ja84#5; Lüders 1907: 17; Schmidt-Madsen 2019, p. 204), which is a bimodal distribution: lots of tiny moves and lots of big ones, nothing in the
 middle.
 
 **Recommendation.** Offer the randomizer as a setting: die, cowries, stick die. It is a
