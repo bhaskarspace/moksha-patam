@@ -21,7 +21,7 @@ import { spriteURL, spriteSheet } from "./render/sprites.js";
 import { tokenEls, buildTokens, place, retrigger, climb, swallow, animate } from "./render/tokens.js";
 import { openSquare, openReckoning, openExam, openInfer, openReborn, cardCurse, openEntry, closeCard, cardIdle, cardOpen, cardCarried, cardBlocking, cardExpanded, releaseCard, setCardRoll, setCardDecide, optionNote, refreshRoll, refreshCard, onCardChange } from "./render/card.js";
 import { drawDoor } from "./render/door.js";
-import { landHuman, landDoor, landCurse, landStay, landReborn, clearLanded, drawLanded } from "./render/landed.js";
+import { landHuman, landDoor, landCurse, landStay, landReborn, landSix, sixOf, sixLineIn, clearLanded, drawLanded } from "./render/landed.js";
 import { sheetState } from "./render/sheet.js";
 import { renderCodex, showTab } from "./render/codex.js";
 import { renderLog } from "./render/log.js";
@@ -171,6 +171,7 @@ async function takeTurn({ practice = false } = {}) {
   // card stays until the dice are chosen between, since on a phone the choice is on it (REDESIGN.md Phase 9).
   let shut = null;
   if (p.type === "human") { clearLanded(); G.humanRolled = true; if (cardOpen() && diceFor(p) < 2) shut = closeCard(); }
+  else if (sixOf()?.cpu) landSix(null);
   release();
   // the merit spent in the heavens (Phase 17): nothing is thrown, and Śiva's snake takes the life. A year in practice
   // before the throw (Yoga) throws nothing either: a person's from its button, a computer's as tools/sim.mjs decides it
@@ -334,6 +335,8 @@ async function takeTurn({ practice = false } = {}) {
   }
   const cursed = !!p.curse;
   endTurn(state, plan);
+  // the second throw a six gives, or the one a reckoning took, said on the line and in the hint (Émerson, 30 Oct)
+  if (plan.again || plan.sixLost || sixOf()?.who === idx) landSix(idx, plan.again ? "again" : plan.sixLost ? "lost" : null);
   // the curse is said on the landing it is spoken at, a person's own (Phase 14); a computer's is told in its account
   if (!cursed && p.curse && p.type === "human") onCard && cardOpen() ? cardCurse(idx, plan.target) : landCurse(idx, plan.target);
   G.plan = null; G.face = null;
@@ -459,7 +462,8 @@ function render() {
   $("practise").disabled = G.busy;
   $("practise").title = t("practiseHint");
   $("roll").textContent = human ? t("roll") : t("rolling", { name: pname(p) });
-  $("hint").textContent = state.over ? t("hintOver") : isAnimal(state) ? t("animalHint") : human ? t("hintHuman") : t("hintCpu");
+  const six = !state.over && sixOf();
+  $("hint").textContent = state.over ? t("hintOver") : six ? sixLineIn(lang, six) : isAnimal(state) ? t("animalHint") : human ? t("hintHuman") : t("hintCpu");
   if (G.deciding) drawDecide();
   showDice(state.dice?.length ? state.dice : [state.last || 6]);
   refreshRoll();

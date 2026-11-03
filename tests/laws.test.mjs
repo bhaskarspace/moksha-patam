@@ -503,3 +503,16 @@ test("Advaita: arriving at 105 wins nothing; from the sixth bhūmikā a sannyās
   const n = at("advaita", [48, 50], { years: 75, bhumika: 4 });
   assert.deepEqual(movesFor(n, [3]), [3]);
 });
+
+// Émerson, 30 Oct: "sometimes the same player rolls two times; is this a bug?" Under every law a six on one die gives
+// the throw again, and the line under the board says so (src/render/landed.js sixLineIn).
+test("under every law a six throws again", () => {
+  for (const id of Object.keys(LAWS)) {
+    const s = createGame({ players: [{ name: "A", type: "human", gender: "f", law: id }, { name: "", type: "cpu" }], rules: { six: true }, seed: 3 });
+    Object.assign(s.players[0], { pos: 10, years: 10 });
+    const plan = playTurn(s, 6);
+    assert.equal(plan.again, true, id);
+    assert.equal(s.turn, 0, id);
+    assert.ok(!plan.sixLost, id);
+  }
+});

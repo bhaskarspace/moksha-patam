@@ -75,6 +75,8 @@ test("a reckoning on a 6 takes the throw the 6 would have given: the turn passes
   assert.ok(plan.reckon);
   assert.equal(plan.again, false);
   assert.ok(!plan.end.some(e => e.k === "lSix"));
+  // and says so (Émerson, 30 Oct): the line under the board reads sixLost
+  assert.equal(plan.sixLost, true);
   assert.equal(s.turn, 1);
 }));
 

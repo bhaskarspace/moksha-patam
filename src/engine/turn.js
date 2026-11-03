@@ -396,6 +396,8 @@ function resolve(state, plan, years) {
   // first among the turn's ends; a new array, since the log alone is built by unshift (tools/golden.mjs listens for it).
   // A reckoning takes the throw a 6 would have given: the turn passes (Bhaskar, 26 Oct).
   plan.end = [entry(law.text.reckon, law.veiled ? {} : { src: rk.src, sq: rk.src }, "reckon", idx), ...plan.end.filter(e => e.k !== "lSix")];
+  // said where the player is looking, so a six that does not throw again is not taken for a bug (src/render/landed.js)
+  plan.sixLost = plan.again;
   plan.again = false;
   return plan;
 }

@@ -1227,6 +1227,12 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         lBorn: "{name} rolled {v}: was born onto {pos}.",
         lWin: "{name} reached Moksha on square {pos}.",
         lSix: "{name} rolled a 6 and goes again.",
+        lineSix: "A six: throw again.",
+        lineSixLost: "The six brought a debt due: no second throw.",
+        lineSixSign: "The six opened the floor: no second throw.",
+        lineCpuSix: "A six for {name}: another throw.",
+        lineCpuSixLost: "{name}'s six brought a debt due: no second throw.",
+        lineCpuSixSign: "{name}'s six opened the floor: no second throw.",
         grew: "{name} grew into a {stage}",
         virtue: "Virtue",
         vice: "Vice",
@@ -1668,6 +1674,12 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         lBorn: "{name} का {v} आया: {pos} पर जन्म लिया।",
         lWin: "{name} घर {pos} पर मोक्ष पहुँचे।",
         lSix: "{name} का 6 आया, एक और बारी।",
+        lineSix: "छक्का: फिर से फेंकें।",
+        lineSixLost: "छक्का एक पुराना क़र्ज़ ले आया: दूसरा दाँव नहीं।",
+        lineSixSign: "छक्के ने पैरों तले ज़मीन खिसका दी: दूसरा दाँव नहीं।",
+        lineCpuSix: "{name} का छक्का: एक और दाँव।",
+        lineCpuSixLost: "{name} का छक्का एक पुराना क़र्ज़ ले आया: दूसरा दाँव नहीं।",
+        lineCpuSixSign: "{name} के छक्के ने पैरों तले ज़मीन खिसका दी: दूसरा दाँव नहीं।",
         grew: "{name} अब {stage}",
         virtue: "गुण",
         vice: "दोष",
@@ -4929,6 +4941,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     if (rk.to) plan.final = rk.to;
     plan.told.push(...rk.to ? ["reckon"] : [], ...Array(rk.years).fill("stay"));
     plan.end = [entry(law.text.reckon, law.veiled ? {} : { src: rk.src, sq: rk.src }, "reckon", idx), ...plan.end.filter((e) => e.k !== "lSix")];
+    plan.sixLost = plan.again;
     plan.again = false;
     return plan;
   }
@@ -7936,8 +7949,21 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   };
   var clearLanded = () => {
     last = null;
+    six = null;
     drawLanded();
   };
+  var six = null;
+  var landSix = (who2, kind) => {
+    const cpu = who2 != null && G.state.players[who2]?.type !== "human";
+    if (kind) six = { who: who2, lost: kind === "lost", cpu };
+    else if (who2 == null || six?.cpu === cpu) six = null;
+    drawLanded();
+  };
+  var sixOf = () => six;
+  function sixLineIn(l, { who: who2, lost }) {
+    const p = G.state.players[who2], own = p.type === "human", k = lost ? lawOf(G.state, who2).veiled ? "SixSign" : "SixLost" : "Six";
+    return fill(tIn(l, (own ? "line" : "lineCpu") + k, { name: pnameIn(p, l) }), { gender: p.gender });
+  }
   var landStay = (who2, n) => {
     last = { n, who: who2, stay: true };
     drawLanded();
@@ -7960,6 +7986,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     };
     let { title, text } = !last || !s ? {} : isAnimal(s) && !last.door ? animalLine(last.n) : last.door ? doorLine(lang, last) : last.stay || last.was != null ? bornLine(lang, last) : last.only ? {} : s.players[last.who]?.pos != null ? momentLine(last.n, last.who, lang, last.told, last.ego) : {};
     if (last?.curse && s) text = [text, curseLine(lang, last.who)].filter(Boolean).join(" ");
+    if (six && s?.players[six.who]) text = [text, sixLineIn(lang, six)].filter(Boolean).join(" ");
     if (!text && !title) {
       el2.dataset.empty = "";
       el2.innerHTML = "";
@@ -7967,7 +7994,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       return;
     }
     el2.innerHTML = `<span class="landed-t">${title ? `<b>${esc(title)}</b> ` : ""}${esc(text)}</span>`;
-    el2.dataset.sq = last.n;
+    if (last) el2.dataset.sq = last.n;
+    else delete el2.dataset.sq;
     delete el2.dataset.empty;
     el2.tabIndex = 0;
   }
@@ -8653,7 +8681,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
       clearLanded();
       G.humanRolled = true;
       if (cardOpen() && diceFor(p) < 2) shut = closeCard();
-    }
+    } else if (sixOf()?.cpu) landSix(null);
     release();
     const spent = spentOf(p), still2 = !spent && (p.type === "human" ? practice && canPractise(state) : practisesNow(state));
     const dice = spent || still2 ? [] : await rollDice2(diceFor(p));
@@ -8809,6 +8837,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     }
     const cursed = !!p.curse;
     endTurn(state, plan);
+    if (plan.again || plan.sixLost || sixOf()?.who === idx) landSix(idx, plan.again ? "again" : plan.sixLost ? "lost" : null);
     if (!cursed && p.curse && p.type === "human") onCard && cardOpen() ? cardCurse(idx, plan.target) : landCurse(idx, plan.target);
     G.plan = null;
     G.face = null;
@@ -8929,7 +8958,8 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     $("practise").disabled = G.busy;
     $("practise").title = t("practiseHint");
     $("roll").textContent = human ? t("roll") : t("rolling", { name: pname(p) });
-    $("hint").textContent = state.over ? t("hintOver") : isAnimal(state) ? t("animalHint") : human ? t("hintHuman") : t("hintCpu");
+    const six2 = !state.over && sixOf();
+    $("hint").textContent = state.over ? t("hintOver") : six2 ? sixLineIn(lang, six2) : isAnimal(state) ? t("animalHint") : human ? t("hintHuman") : t("hintCpu");
     if (G.deciding) drawDecide();
     showDice(state.dice?.length ? state.dice : [state.last || 6]);
     refreshRoll();

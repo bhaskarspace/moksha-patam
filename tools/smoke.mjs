@@ -1521,6 +1521,24 @@ await check("Phase 13 follow-ups: a reckoning on a 6 takes the extra throw: the 
   assert(await page.evaluate(() => !mp.state.log.some(e => e.k === "lSix")), "the log still gives the six its throw");
 });
 
+// Émerson, 30 Oct: "sometimes the same player rolls two times; is this a bug?"
+await check("Step 18.0: a six says so under the board and in the hint; a six a reckoning took says that", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=1&debug");
+  await page.evaluate(() => { Object.assign(mp.state.players[0], { pos: 30, years: 40, life: [30], told: [null] }); mp.roll(6); });
+  await page.waitForFunction(() => mp.state.players[0].pos !== 30 && !mp.busy && /A six/.test(document.getElementById("landed").textContent), null, { timeout: 15000 });
+  const line = await page.evaluate(() => document.getElementById("landed").textContent);
+  assert(/A six: throw again\./.test(line), `the line says ${line}`);
+  const hint = await page.evaluate(() => document.getElementById("hint").textContent);
+  assert(/A six: throw again\./.test(hint), `the hint says ${hint}`);
+  await page.goto(BASE + "?seed=1&debug");
+  await page.evaluate(() => { Object.assign(mp.state.players[0], { pos: 30, years: 40, life: [30], told: [null] }); mp.plant(12, "lie"); mp.fire(); mp.roll(6); });
+  // the reckoning's card is modal; the line is said once it is closed
+  await page.waitForFunction(() => { if (document.getElementById("folio").open) mp.close({ instant: true }); return /no second throw/.test(document.getElementById("landed").textContent); }, null, { timeout: 15000, polling: 200 });
+  const lost = await page.evaluate(() => document.getElementById("landed").textContent);
+  assert(/The six brought a debt due: no second throw\./.test(lost), `the line says ${lost}`);
+});
+
 // ---- Phase 14: the door and the curse ----
 await check("Phase 14: a refused sannyāsin sits at the door, is asked on a card that holds the game, and the door opens", async page => {
   await page.emulateMedia({ reducedMotion: "reduce" });

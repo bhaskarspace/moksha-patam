@@ -42,7 +42,23 @@ function doorLine(l, { who, door }) {
 // The curse, on the landing it was spoken at (Phase 14): the person's line goes on with the sentence, said once.
 export const landCurse = (who, n) => { last = last?.who === who && last.n === n ? { ...last, curse: true } : { n, who, curse: true, only: true }; drawLanded(); };
 const curseLine = (l, who) => { const p = G.state.players[who]; return curseSaidIn(l, p, pnameIn(p, l)); };
-export const clearLanded = () => { last = null; drawLanded(); };
+export const clearLanded = () => { last = null; six = null; drawLanded(); };
+// A six that throws again, or a six whose throw a reckoning took (Émerson, 30 Oct: "sometimes the same player rolls two
+// times; is this a bug?"), told after the landing for anyone, a computer too. A person's stays until their next throw,
+// as the line does; a computer's until the next computer's throw, so it never takes a person's away. Under a law that
+// veils karma (Nyāya) the cause is a sign, as the reckoning is.
+let six = null; // { who, lost, cpu }
+export const landSix = (who, kind) => {
+  const cpu = who != null && G.state.players[who]?.type !== "human";
+  if (kind) six = { who, lost: kind === "lost", cpu };
+  else if (who == null || six?.cpu === cpu) six = null;
+  drawLanded();
+};
+export const sixOf = () => six;
+export function sixLineIn(l, { who, lost }) {
+  const p = G.state.players[who], own = p.type === "human", k = lost ? (lawOf(G.state, who).veiled ? "SixSign" : "SixLost") : "Six";
+  return fill(tIn(l, (own ? "line" : "lineCpu") + k, { name: pnameIn(p, l) }), { gender: p.gender });
+}
 // Phase 17: a throw in the heavens that offered no die, a person's own; and Śiva's snake, which is public as the door
 // is: anyone's life closed there and the same soul born again in the seat (was, its index in p.past)
 export const landStay = (who, n) => { last = { n, who, stay: true }; drawLanded(); };
@@ -60,9 +76,10 @@ export function drawLanded() {
   const animalLine = n => { const q = squareOf(n); return { title: q?.[lang] || q?.en || "", text: TALES.includes(n) ? q?.mirror?.[lang] || q?.mirror?.en || "" : "" }; };
   let { title, text } = !last || !s ? {} : isAnimal(s) && !last.door ? animalLine(last.n) : last.door ? doorLine(lang, last) : last.stay || last.was != null ? bornLine(lang, last) : last.only ? {} : s.players[last.who]?.pos != null ? momentLine(last.n, last.who, lang, last.told, last.ego) : {};
   if (last?.curse && s) text = [text, curseLine(lang, last.who)].filter(Boolean).join(" ");
+  if (six && s?.players[six.who]) text = [text, sixLineIn(lang, six)].filter(Boolean).join(" ");
   if (!text && !title) { el.dataset.empty = ""; el.innerHTML = ""; el.tabIndex = -1; return; }
   el.innerHTML = `<span class="landed-t">${title ? `<b>${esc(title)}</b> ` : ""}${esc(text)}</span>`;
-  el.dataset.sq = last.n;
+  if (last) el.dataset.sq = last.n; else delete el.dataset.sq;
   delete el.dataset.empty;
   el.tabIndex = 0;
 }
