@@ -667,6 +667,14 @@ function renderSetup() {
   $("ruleRandRow").hidden = !old;
   $("ruleRand").innerHTML = [["own", "randOwn"], ["die", "randDie"]]
     .map(([v, k]) => `<option value="${v}"${(setup.rules.rand ?? "own") === v ? " selected" : ""}>${esc(t(k))}${v === "own" && old ? ` (${esc(t(RAND_NAME[BOARDS[board].rules?.rand] ?? "randDie"))})` : ""}</option>`).join("");
+  // the game's other rules for an old board (Phase 18 step 4): those the board offers, each off unless chosen
+  const vars = old ? BOARDS[board].rules.variants ?? {} : {}, gate = BOARDS[board].rules?.gate ?? {};
+  for (const [k, K] of [["start", "Start"], ["end", "End"]]) {
+    $(`rule${K}Row`).hidden = !vars[k]?.length;
+    $(`rule${K}`).innerHTML = [["", "ruleOwn"], ...(vars[k] ?? []).map(v => [v, k + v[0].toUpperCase() + v.slice(1)])]
+      .map(([v, key]) => `<option value="${v}"${(setup.rules[k] ?? "") === v ? " selected" : ""}>${esc(t(key, gate))}</option>`).join("");
+  }
+  $("ruleOtherAbout").hidden = !Object.keys(vars).length;
   $("ruleSixRow").hidden = old;
   $("ruleBoardAbout").textContent = old ? t("board" + board + "About") : "";
   $("ruleBoardAbout").hidden = !old;
@@ -689,6 +697,7 @@ function readSetup() {
   const board = $("ruleBoard").value, rand = $("ruleRand").value;
   if (board && board !== "110") setup.rules.board = board;
   if (setup.rules.board && rand !== "own") setup.rules.rand = rand;
+  for (const [k, K] of [["start", "Start"], ["end", "End"]]) { const v = $(`rule${K}`).value; if (setup.rules.board && v) setup.rules[k] = v; }
 }
 const RAND_NAME = { cowries: "randCowries", stick: "randStick", die: "randDie" };
 // the setup follows the board as it is chosen: an old board has no laws to choose, and its own randomizer
@@ -1076,11 +1085,12 @@ if (new URLSearchParams(location.search).has("debug")) {
     // Phase 17 step 4: mp.grace(face) is the face grace's next throw shows (Bhakti): on an ego test after the lower choice,
     // or in a year at the door the book cannot answer. mp.grace(1) brings grace; mp.grace(6) withholds it.
     grace(face = 1) { G.state.forceGrace = face; return face; },
-    // Phase 18: mp.board(id) starts a fresh game on that board ("110", the default); mp.board() is the board in play
-    board(id) {
+    // Phase 18: mp.board(id) starts a fresh game on that board ("110", the default); mp.board() is the board in play.
+    // Step 4: mp.board(id, { start: "six", end: "exact" | "roam" }) with the game's other rules, where the board offers them
+    board(id, other = {}) {
       if (id == null) return BOARD_ID;
       if (!Object.hasOwn(BOARDS, String(id))) return null;
-      G.setup.rules = { ...G.setup.rules, board: String(id) === "110" ? undefined : String(id) };
+      G.setup.rules = { ...G.setup.rules, board: String(id) === "110" ? undefined : String(id), start: other.start, end: other.end };
       startGame();
       return BOARD_ID;
     },

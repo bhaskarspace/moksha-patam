@@ -24,6 +24,8 @@
       "top": 72,
       "rand": "cowries",
       "above": "snake",
+      "gate": { "at": 68, "end": 72 },
+      "variants": { "start": ["six"], "end": ["exact", "roam"] },
       "snakes": {
         "12": 8,
         "16": 4,
@@ -216,6 +218,8 @@
       "top": 90,
       "rand": "stick",
       "entry": 1,
+      "gate": { "at": 80, "end": 84 },
+      "variants": { "start": ["six"], "end": ["roam"] },
       "climb": "one",
       "above": "turn",
       "turn": {

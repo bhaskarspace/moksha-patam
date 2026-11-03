@@ -6,7 +6,7 @@
 // The one exception is the door (REDESIGN.md Phase 14): whoever comes to 105, a computer too, is told here, refused, let
 // through, examined a year at a time, or dying there, so nobody's refusal is invisible.
 // Its height is kept when empty, so the turn panel and the Roll under it never move.
-import { GOAL, squareOf } from "../content.js";
+import { GOAL, TOP, squareOf } from "../content.js";
 import { isAnimal, TALES } from "../engine/animal.js";
 import { lang, tIn, fill } from "../i18n.js";
 import { G, pnameIn } from "../state.js";
@@ -66,9 +66,10 @@ export const landStay = (who, n, why = null) => { last = { n, who, stay: true, w
 export const landReborn = (who, was) => { last = { n: 1, who, was }; drawLanded(); };
 function bornLine(l, { who, stay, was, why }) {
   const p = G.state.players[who], w = { name: pnameIn(p, l), gender: p.gender };
-  // an old cloth's pawn that stays (Phase 18): no shell face up, not yet the 1 out of square 1, or above the 84's grid
-  const k = { zero: "cZero", entry: "cEntry", top: "cTop" }[why];
-  if (stay && k) return { title: tIn(l, k + "Title"), text: fill(tIn(l, k + "Line", w), w) };
+  // an old cloth's pawn that stays (Phase 18): no shell face up, not yet the 1 (or the 6) out of square 1, above the 84's
+  // grid, or a throw past the last square lost
+  const k = { zero: "cZero", entry: "cEntry", six: "cSix", top: "cTop", exact: "cExact" }[why];
+  if (stay && k) return { title: tIn(l, k + "Title"), text: fill(tIn(l, k + "Line", { ...w, end: TOP }), w) };
   if (stay) return { title: tIn(l, "stayTitle"), text: fill(tIn(l, "heavenStay", w), w) };
   const q = p.past?.[was];
   return { title: tIn(l, "bornAgainHead"), text: fill(tIn(l, "bornAgainLine", { name: w.name, was: q ? pnameIn(q, l) : "" }), w) };

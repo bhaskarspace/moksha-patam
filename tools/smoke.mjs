@@ -1626,6 +1626,48 @@ await check("Phase 18: the 84 is the cosmic man's body, thrown with the stick di
   assert(back.labs === 110 && back.figure && back.feet === 0, `back on the 110: ${JSON.stringify(back)}`);
 });
 
+await check("Phase 18: the old boards' other rules are chosen in the setup, named by source, off by default, and played", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=1&debug");
+  await until(page, () => !mp.busy);
+  // the setup: nothing on the 110; on the 72 a start and an end, each the board's own unless chosen; on the 84 roam alone
+  const rows = await page.evaluate(() => {
+    document.getElementById("setup").open = true;
+    const pick = id => { const b = document.getElementById("ruleBoard"); b.value = id; b.dispatchEvent(new Event("change")); };
+    const seen = () => ({ start: document.getElementById("ruleStartRow").hidden ? null : [...document.querySelectorAll("#ruleStart option")].map(o => o.value),
+      end: document.getElementById("ruleEndRow").hidden ? null : [...document.querySelectorAll("#ruleEnd option")].map(o => o.value),
+      endText: document.getElementById("ruleEnd").textContent, about: !document.getElementById("ruleOtherAbout").hidden });
+    const r = { 110: seen() };
+    pick("72"); r[72] = seen();
+    pick("84"); r[84] = seen();
+    return r;
+  });
+  assert(rows[110].start === null && rows[110].end === null && !rows[110].about, `the 110: ${JSON.stringify(rows[110])}`);
+  assert(JSON.stringify(rows[72].start) === '["","six"]' && JSON.stringify(rows[72].end) === '["","exact","roam"]' && rows[72].about, `the 72: ${JSON.stringify(rows[72])}`);
+  assert(/Johari, a modern rule/.test(rows[72].endText) && /between 68 and 72/.test(rows[72].endText) && /Harikṛṣṇa/.test(rows[72].endText), `the 72's end, named by source: ${rows[72].endText}`);
+  assert(JSON.stringify(rows[84].end) === '["","roam"]' && /between 80 and 84/.test(rows[84].endText), `the 84: ${JSON.stringify(rows[84])}`);
+  // chosen and started: roam on the 84, and the game carries it
+  await page.evaluate(() => { const e = document.getElementById("ruleEnd"); e.value = "roam"; document.getElementById("newGame").click(); });
+  await until(page, () => mp.board() === "84" && !mp.busy);
+  assert((await page.evaluate(() => mp.state.rules.end)) === "roam", "the game did not carry roam");
+  // 83 and a 6: on to 84, back to 80, and up again to 81, never down to 76
+  await page.evaluate(() => { document.getElementById("naming")?.close?.(); Object.assign(mp.state.players[0], { pos: 83, life: [1, 83] }); delete mp.state.players[0].back; window.__last = mp.state.log[0]; mp.roll(6); });
+  await page.waitForFunction(() => { if (document.getElementById("folio").open) mp.close({ instant: true }); return mp.state.log[0] !== window.__last && !mp.busy && mp.state.turn === 0; }, null, { timeout: 20000, polling: 200 });
+  const roam = await page.evaluate(() => ({ pos: mp.state.players[0].pos, log: mp.state.log.filter(e => e.who === 0).map(e => e.k) }));
+  assert(roam.pos === 81 && roam.log.includes("cRoam"), `roam: ${JSON.stringify(roam)}`);
+  // the 72 with the exact throw: a throw past 72 is lost, and the line under the board says so
+  await page.evaluate(() => mp.board("72", { end: "exact" }));
+  await until(page, () => mp.board() === "72" && !mp.busy);
+  await page.evaluate(() => { Object.assign(mp.state.players[0], { pos: 70, life: [1, 70] }); mp.roll(5); });
+  await page.waitForFunction(() => /A throw past 72 does not count/.test(document.getElementById("landed").textContent), null, { timeout: 15000 });
+  assert((await page.evaluate(() => mp.state.players[0].pos)) === 70, "the lost throw moved the pawn");
+  // and mp.board alone starts the board's own rules again
+  await page.waitForFunction(() => { if (document.getElementById("folio").open) mp.close({ instant: true }); return !mp.busy; }, null, { timeout: 20000, polling: 200 });
+  await page.evaluate(() => mp.board("72"));
+  await until(page, () => mp.board() === "72" && !mp.busy);
+  assert((await page.evaluate(() => mp.state.rules.end ?? null)) === null, "the exact throw outlived its game");
+});
+
 // ---- Phase 14: the door and the curse ----
 await check("Phase 14: a refused sannyāsin sits at the door, is asked on a card that holds the game, and the door opens", async page => {
   await page.emulateMedia({ reducedMotion: "reduce" });

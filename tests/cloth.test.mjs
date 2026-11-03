@@ -81,7 +81,7 @@ test("back on the 110 the game is the 110's", () => {
 
 // ---- The 84, by Jeṭhābhāī's rules (JBRR 1; Schmidt-Madsen 2019, App. F2, pp. 605-6, and ch. 5, p. 217) ----
 const on84 = f => () => { useBoard("84"); try { f(); } finally { useBoard("110"); } };
-const game84 = (seed = 1) => createGame({ players: [{ name: "A", type: "human", gender: "f" }, { name: "", type: "cpu" }], rules: { six: true, board: "84" }, seed });
+const game84 = (seed = 1, rules = {}) => createGame({ players: [{ name: "A", type: "human", gender: "f" }, { name: "", type: "cpu" }], rules: { six: true, board: "84", ...rules }, seed });
 const at = (s, pos, back = false) => { s.turn = 0; Object.assign(s.players[0], { pos }); if (back) s.players[0].back = true; else delete s.players[0].back; };
 
 test("the 84 is laid out as the charts are: a square below, one at each arm, the grid, and the cross of six above", on84(() => {
@@ -136,4 +136,88 @@ test("above the grid only a 1 climbs, square by square, and the 1 from the fifth
   const t = game84(); at(t, 50); p = playTurn(t, 1); assert.ok(p.win);
   // 47's goes to the first square above
   const u = game84(); at(u, 47); playTurn(u, 1); assert.equal(u.players[0].pos, 85);
+}));
+
+// Phase 18 step 4: the game's other rules, each off unless chosen, and only where the board offers it
+test("start six: only a 6 leaves square 1, on the 72 and in place of the 84's 1", () => {
+  on72(() => {
+    const s = game(1, { start: "six" });
+    let plan = playTurn(s, 5);
+    assert.ok(plan.stay && plan.why === "six");
+    assert.equal(s.players[0].pos, 1);
+    s.turn = 0;
+    plan = playTurn(s, 6);
+    assert.equal(s.players[0].pos, 7);
+    // unchosen, the 72 has no wait at all
+    const t = game();
+    playTurn(t, 2);
+    assert.equal(t.players[0].pos, 3);
+  })();
+  on84(() => {
+    const s = game84(1, { start: "six" });
+    assert.ok(playTurn(s, 1).stay);
+    at(s, 1);
+    playTurn(s, 6);
+    assert.equal(s.players[0].pos, 7);
+  })();
+});
+
+test("end exact on the 72: a throw past 72 is lost, and one onto 72 still takes its snake", on72(() => {
+  const s = game(1, { end: "exact" });
+  s.players[0].pos = 70;
+  let plan = playTurn(s, 5);
+  assert.ok(plan.stay && plan.why === "exact");
+  assert.equal(s.players[0].pos, 70);
+  s.turn = 0;
+  plan = playTurn(s, 2);
+  assert.equal(plan.target, 72);
+  assert.equal(s.players[0].pos, 51);
+}));
+
+test("end roam: back and forth between the gate and the row's end until a throw ends on the gate", () => {
+  on72(() => {
+    const s = game(1, { end: "roam" });
+    s.players[0].pos = 70;
+    // 71, 72, turned, 71, 70, 69: passing 72 is no landing, and the pawn keeps coming back
+    let plan = playTurn(s, 5);
+    assert.deepEqual(plan.path, [71, 72, 71, 70, 69]);
+    assert.equal(s.players[0].pos, 69);
+    assert.equal(s.players[0].back, true);
+    s.turn = 0;
+    // 68, turned, 69, 70: passing the gate is no landing either
+    plan = playTurn(s, 3);
+    assert.deepEqual(plan.path, [68, 69, 70]);
+    assert.ok(!plan.win && !s.players[0].back);
+    at(s, 69, true);
+    plan = playTurn(s, 1);
+    assert.ok(plan.win && s.over);
+  })();
+  on84(() => {
+    const s = game84(1, { end: "roam" });
+    at(s, 82);
+    // 83, 84, turned, 83, 82, 81, 80, turned, 81: never down to 76
+    let plan = playTurn(s, 7);
+    assert.deepEqual(plan.path, [83, 84, 83, 82, 81, 80, 81]);
+    at(s, 82, true);
+    plan = playTurn(s, 2);
+    assert.equal(s.players[0].pos, 80);
+    at(s, 82, true);
+    plan = playTurn(s, 6);
+    assert.deepEqual(plan.path, [81, 80, 81, 82, 83, 84]);
+    assert.ok(!plan.then && !s.players[0].back);
+    // on 80 a 1 climbs, as on the board
+    at(s, 80, true);
+    playTurn(s, 1);
+    assert.equal(s.players[0].pos, 85);
+  })();
+});
+
+test("a rule the board does not offer is ignored: no exact throw on the 84", on84(() => {
+  const s = game84(1, { end: "exact" });
+  at(s, 82);
+  const plan = playTurn(s, 6);
+  // the board's own turn: on to 84 and back to 80
+  assert.ok(!plan.stay);
+  assert.equal(s.players[0].pos, 80);
+  assert.equal(s.players[0].back, true);
 }));

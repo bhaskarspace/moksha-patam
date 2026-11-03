@@ -77,13 +77,15 @@ export const livesOf = g => g.players.flatMap((p, i) => [...(p.past ?? []), p].m
 // Where a cloth game's turns go (Phase 18): each turn by the square it begins on. On square 1 (waiting for the 1 that
 // leads out, where the board asks one), at a ladder's foot or on a footprint (where a 1 climbs, on climb: "one"), in the
 // squares above the grid (where only a 1 moves), in the 84's loop (above 80, coming back down to 76, or walking up
-// again from 52 after its snake until past 76: regain), or elsewhere; and how often a game goes down 76's snake.
-const WHERE = ["one", "foot", "top", "loop", "walk"];
-function whereOf(p, regain) {
-  const r = BOARD.rules, n = p.pos;
-  if (r.entry && n === 1) return "one";
+// again from 52 after its snake until past 76: regain), back and forth on the top row (Harikṛṣṇa's roam, chosen), or
+// elsewhere; and how often a game goes down 76's snake.
+const WHERE = ["one", "foot", "top", "loop", "roam", "walk"];
+function whereOf(state, p, regain) {
+  const r = BOARD.rules, n = p.pos, roam = state.rules.end === "roam";
+  if ((r.entry || state.rules.start) && n === 1) return "one";
   if (r.steps?.includes(n)) return "top";
-  if (r.turn && (n > r.turn.from || p.back || regain)) return "loop";
+  if (roam && (n > r.gate.at || p.back)) return "roam";
+  if (!roam && r.turn && (n > r.turn.from || p.back || regain)) return "loop";
   if (r.climb === "one" && (LADDERS[n] || r.footprints?.[n] != null)) return "foot";
   return "walk";
 }
@@ -97,7 +99,7 @@ export function clothRun(games, players, first, rules) {
     while (!state.over && n < CAP * players) {
       const i = state.turn, p = state.players[i];
       if (regain[i] && (p.pos > BOARD.rules.turn.back || p.pos < SNAKES[BOARD.rules.turn.back].to)) regain[i] = false;
-      where[whereOf(p, regain[i])]++;
+      where[whereOf(state, p, regain[i])]++;
       if (playTurn(state).then) { slides++; regain[i] = true; }
       n++;
     }
@@ -218,13 +220,16 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     if (!BOARDS[flags.board]?.rules) throw new Error(`no old board ${flags.board}: ${Object.keys(BOARDS).join(", ")}`);
     useBoard(flags.board);
     for (const rand of (flags.rand ?? "own").split(",")) {
-      const r = clothRun(games, players, first, { ...SIM_RULES, board: flags.board, ...(rand === "own" ? {} : { rand }) });
-      console.log(`board ${flags.board}, ${rand === "own" ? `its own (${BOARDS[flags.board].rules.rand})` : rand}, ${players} player${players > 1 ? "s" : ""}, ${games} games: ` +
+      // --start=six, --end=exact|roam: the game's other rules (Phase 18 step 4), where the board offers them
+      const other = Object.fromEntries(["start", "end"].filter(k => flags[k]).map(k => [k, flags[k]]));
+      for (const [k, v] of Object.entries(other)) if (!BOARDS[flags.board].rules.variants?.[k]?.includes(v)) throw new Error(`board ${flags.board} offers no ${k} ${v}`);
+      const r = clothRun(games, players, first, { ...SIM_RULES, board: flags.board, ...(rand === "own" ? {} : { rand }), ...other });
+      console.log(`board ${flags.board}, ${rand === "own" ? `its own (${BOARDS[flags.board].rules.rand})` : rand}${Object.entries(other).map(([k, v]) => `, ${k} ${v}`).join("")}, ${players} player${players > 1 ? "s" : ""}, ${games} games: ` +
         `turns to the goal median ${r.median}, p95 ${r.p95}, over 100 ${pct(r.over100)}; reached within ${CAP} ${pct(r.reached)}`);
       // where the turns went, by the square each began on (the 84's are the long game's reasons)
-      const NAMES = { one: "on square 1", foot: "at a foot or footprint", top: "above the grid", loop: "in the 80→84→76→52 loop and the walk back up", walk: "walking" };
+      const NAMES = { one: "on square 1", foot: "at a foot or footprint", top: "above the grid", loop: "in the 80→84→76→52 loop and the walk back up", roam: "roaming the top row", walk: "walking" };
       console.log("  turns begun " + WHERE.filter(k => r.where[k]).map(k => `${NAMES[k]} ${pct(r.where[k])} (${r.perGame[k].toFixed(1)} a game)`).join(", ") +
-        (BOARD.rules.turn ? `; down 76's snake ${r.slides.toFixed(2)} times a game` : ""));
+        (BOARD.rules.turn && !other.end ? `; down 76's snake ${r.slides.toFixed(2)} times a game` : ""));
     }
     process.exit(0);
   }

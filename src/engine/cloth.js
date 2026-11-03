@@ -50,15 +50,17 @@ export const entry = (k, v = {}, kind = "", who = null) => ({ k, v, kind, who })
 // snake takes it to 52, "and one should climb up again". The playthrough's rules (ch. 5, p. 217) finish the throw from 52,
 // and a pawn whose throw ends on the way back keeps going back next time (back), so a 1 on 80 coming down still climbs.
 // Returns the squares walked, whether the walk reached the snake on the way back (slide), the count left after it
-// (rest), and whether the pawn is still coming back.
-export function turnWalk(from, v, back, { end, back: low }) {
+// (rest), and whether the pawn is still coming back. With bounce (Harikṛṣṇa's endgame, roam below) the pawn turns at low
+// too, and goes back and forth between low and end for as long as the throw lasts.
+export function turnWalk(from, v, back, { end, back: low, bounce = false }) {
   const path = [];
   let n = from, dir = back ? -1 : 1;
   for (let i = 0; i < v; i++) {
     if (dir > 0 && n === end) dir = -1;
+    else if (bounce && dir < 0 && n === low) dir = 1;
     n += dir;
     path.push(n);
-    if (dir < 0 && n === low) return { path, slide: true, rest: v - i - 1, back: false };
+    if (!bounce && dir < 0 && n === low) return { path, slide: true, rest: v - i - 1, back: false };
   }
   return { path, slide: false, rest: 0, back: dir < 0 };
 }
@@ -73,13 +75,27 @@ function landOn(n) {
 }
 // a square from which a 1 climbs (climb: "one"): a ladder's foot, or a footprint, up to the square above it
 const climbFrom = n => (LADDERS[n] ? { kind: "ladder", to: LADDERS[n].to } : BOARD.rules.footprints?.[n] != null ? { kind: "foot", to: BOARD.rules.footprints[n] } : null);
-// the log's line for a pawn that stays: no shell face up, not yet the 1 that leaves square 1, or in the squares above
-const STAY = { zero: "cZero", entry: "cEntry", top: "cTop" };
+// the log's line for a pawn that stays: no shell face up, not yet the 1 (or the 6) that leaves square 1, in the squares
+// above, or a throw past the last square lost (exact)
+const STAY = { zero: "cZero", entry: "cEntry", six: "cSix", top: "cTop", exact: "cExact" };
+
+// The game's other rules for an old board (Phase 18 step 4), each off unless chosen, and each only where the board offers
+// it (variants in content/boards.json rules). None is the board's own: two are modern and one is another board's.
+// - start "six": only a 6 leaves square 1. Johari's rule for his modern redesign of the 72 (2007: 8), where the pawns
+//   begin in Vaikuṇṭha; "not attested in any other sources" (Schmidt-Madsen 2019, ch. 5, p. 205). On the 84 it takes the
+//   place of Jeṭhābhāī's 1.
+// - end "exact": a throw that would pass the last square is lost, so past 68 the pawn must land exactly on 72 and take its
+//   snake. Johari's again (2007: 9–10), "probably adapted from the modern game" (ibid. p. 208 fn. 353). Not on the 84,
+//   where nothing above 80 goes down and a pawn past it could never move again.
+// - end "roam": Harikṛṣṇa's endgame for an 84-square Vaiṣṇava chart (KK 245, comm.; ibid. p. 208 and fn. 353): a pawn past
+//   the gate (gate.at: the 72's 68, the 84's 80) goes back and forth between it and the row's end until a throw ends on
+//   it; on the 84, a 1 from 80 then climbs. A snake in the row still takes a pawn that ends on its head (the 72's on 72).
+export const variantOf = (state, k) => { const v = state.rules?.[k]; return v && BOARD.rules.variants?.[k]?.includes(v) ? v : null; };
 
 export function planTurn(state, v, dice = [v]) {
   const r = BOARD.rules, idx = state.turn, p = state.players[idx], from = p.pos, pre = [], after = [], end = [];
   const base = { idx, v, dice, spare: [], sit: false, from, jump: null, win: false, died: false, again: false, told: [], cost: 0, pre, after, end, back: false };
-  const stay = why => { after.push(entry(STAY[why], { v, pos: from, sq: from }, "", idx)); return { ...base, stay: true, why, path: [], target: from, final: from, back: !!p.back }; };
+  const stay = why => { after.push(entry(STAY[why], { v, pos: from, sq: from, end: TOP }, "", idx)); return { ...base, stay: true, why, path: [], target: from, final: from, back: !!p.back }; };
   const done = plan => {
     const win = plan.final === GOAL;
     if (win) end.push(entry("cWin", { pos: GOAL, sq: GOAL }, "heaven", idx));
@@ -87,8 +103,9 @@ export function planTurn(state, v, dice = [v]) {
   };
   // no shell face up: the pawn stays where it is, and the turn passes
   if (!v) return stay("zero");
-  // Jeṭhābhāī: one keeps throwing until a 1, and the 1 moves the pawn out of the first square (JBRR 1)
-  if (r.entry && from === 1 && v !== r.entry) return stay("entry");
+  // Jeṭhābhāī: one keeps throwing until a 1, and the 1 moves the pawn out of the first square (JBRR 1); or a 6, chosen
+  const six = variantOf(state, "start") === "six", close = variantOf(state, "end");
+  if (six ? from === 1 && v !== 6 : r.entry && from === 1 && v !== r.entry) return stay(six ? "six" : "entry");
   // the squares above the grid (steps): each 1 climbs one, up to the goal, and nothing else moves the pawn there
   const k = (r.steps ?? []).indexOf(from);
   if (k >= 0) {
@@ -102,6 +119,18 @@ export function planTurn(state, v, dice = [v]) {
   if (up) {
     after.push(entry(up.kind === "foot" ? "cFoot" : "cClimb", { v, pos: from, to: up.to, sq: from }, "ladder", idx));
     return done({ path: [], target: from, jump: up, final: up.to });
+  }
+  // Johari's exact throw: a throw that would pass the last square is lost
+  if (close === "exact" && from + v > TOP) return stay("exact");
+  // Harikṛṣṇa's roam: past the gate, back and forth along the row until a throw ends on it
+  if (close === "roam" && (p.back || from + v > r.gate.at)) {
+    const w = turnWalk(from, v, !!p.back, { end: r.gate.end, back: r.gate.at, bounce: true }), target = w.path.at(-1);
+    const passed = w.path.slice(0, -1);
+    if (passed.length) after.push(entry("lPassed", { passed }, "passed", idx));
+    const jump = landOn(target), wait = !jump && r.climb === "one" && climbFrom(target), roamed = w.back || w.path.includes(r.gate.end);
+    const k2 = jump ? (jump.kind === "snake" ? "cSnake" : "cLadder") : target === GOAL ? "cMove" : wait ? "cMoveFoot" : roamed ? "cRoam" : "cMove";
+    after.push(entry(k2, { v, pos: target, to: jump?.to, sq: target }, jump?.kind ?? (target === GOAL ? "heaven" : ""), idx));
+    return done({ path: w.path, target, jump, final: jump ? jump.to : target, back: !jump && w.back });
   }
   if (r.above === "turn") {
     const w = turnWalk(from, v, !!p.back, r.turn), turned = !p.back && w.path.includes(r.turn.end) && w.path.at(-1) !== r.turn.end;
