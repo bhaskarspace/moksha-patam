@@ -76,6 +76,11 @@ h1 { font-family: var(--f-display); font-weight: 400; font-size: clamp(34px, 6vw
 .vimana .dome { fill: var(--b-gold-hi); stroke: var(--b-lac); stroke-width: 0.45; }
 .vimana .door { fill: var(--b-vermilion); stroke: var(--b-lac); stroke-width: 0.35; }
 .vimana .door.goal { fill: var(--b-indigo); }
+.vimana .arch { fill: var(--b-gold); stroke: var(--b-lac); stroke-width: 0.35; }
+.vimana .niche { fill: var(--b-gold-hi); stroke: var(--b-lac); stroke-width: 0.3; }
+.vimana .emb { fill: none; stroke: var(--b-lac); stroke-width: 0.4; stroke-linecap: round; stroke-linejoin: round; }
+.vimana .emb.dot { fill: var(--b-lac); }
+.vimana .emb.petal { fill: var(--b-vermilion); stroke-width: 0.25; }
 .vimana .finial { fill: var(--b-vermilion); stroke: var(--b-lac); stroke-width: 0.3; }
 /* on a weak device the ornament goes first, before any pigment, and the ageing never does */
 :root.plain .vimana { display: none; }
@@ -623,6 +628,12 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 /* Phase 9: two dice from 94, and the choice between them */
 .dice { display: flex; gap: 8px; flex: none; }
 .dice .die[hidden] { display: none; }
+/* Phase 18: seven cowries, for an old cloth thrown with them; a shell face up shows its slit */
+.shells { width: 112px; height: 72px; display: flex; flex-wrap: wrap; align-content: center; justify-content: center; gap: 4px 5px; }
+.shells[hidden], #ruleRandRow[hidden], #ruleSixRow[hidden] { display: none; }
+.shells span { width: 22px; height: 30px; border-radius: 50%; background: #F1E6CC; border: 2px solid #3B2812; box-shadow: inset -3px -3px 0 rgba(59,40,18,0.18); position: relative; }
+.shells span.up::after { content: ""; position: absolute; left: 50%; top: 18%; bottom: 18%; width: 3px; margin-left: -1.5px; border-radius: 2px; background: #3B2812; }
+.shells.rolling { animation: tumble 0.56s ease-in-out; }
 .dice:has(#die2:not([hidden])) .die { width: 60px; height: 60px; padding: 7px; }
 .pick { display: flex; flex-wrap: wrap; gap: 6px; }
 .pick[hidden] { display: none; }
@@ -698,6 +709,6 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   .gate .spoke, .gate .leaf { transition: none; }
   .cam { transition: none; transform: none !important; }
   #folio.snap, #folio.snap .leaf { transition: none; }
-  .token .body, .die.rolling, .lab.goal .om, .leaf, .leaf *, .flourish *, .toast { animation: none !important; }
+  .token .body, .die.rolling, .shells.rolling, .lab.goal .om, .leaf, .leaf *, .flourish *, .toast { animation: none !important; }
   ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
 }

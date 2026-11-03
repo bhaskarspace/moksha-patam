@@ -61,10 +61,12 @@ export function sixLineIn(l, { who, lost }) {
 }
 // Phase 17: a throw in the heavens that offered no die, a person's own; and Śiva's snake, which is public as the door
 // is: anyone's life closed there and the same soul born again in the seat (was, its index in p.past)
-export const landStay = (who, n) => { last = { n, who, stay: true }; drawLanded(); };
+// why: "zero", an old cloth's throw with no shell face up (Phase 18)
+export const landStay = (who, n, why = null) => { last = { n, who, stay: true, why }; drawLanded(); };
 export const landReborn = (who, was) => { last = { n: 1, who, was }; drawLanded(); };
-function bornLine(l, { who, stay, was }) {
+function bornLine(l, { who, stay, was, why }) {
   const p = G.state.players[who], w = { name: pnameIn(p, l), gender: p.gender };
+  if (stay && why === "zero") return { title: tIn(l, "cZeroTitle"), text: fill(tIn(l, "cZeroLine", w), w) };
   if (stay) return { title: tIn(l, "stayTitle"), text: fill(tIn(l, "heavenStay", w), w) };
   const q = p.past?.[was];
   return { title: tIn(l, "bornAgainHead"), text: fill(tIn(l, "bornAgainLine", { name: w.name, was: q ? pnameIn(q, l) : "" }), w) };

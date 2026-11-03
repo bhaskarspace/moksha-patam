@@ -1,5 +1,5 @@
 // Moksha Patam: the page's wiring. Rules live in engine/, drawing in render/, content in content/*.json.
-import { GOAL, TOP, ROWS, COLS, LAYOUT, BOARD_ID, BOARDS, useBoard, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, STR, squareOf } from "./content.js";
+import { GOAL, TOP, ROWS, COLS, LAYOUT, BOARD_ID, BOARDS, useBoard, legendOf, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, STR, squareOf } from "./content.js";
 import { lang, urlLang, setLangValue, L, num, t, tIn } from "./i18n.js";
 import { G, defaultSetup, pname, pnameIn, cur, newState, loadSelf, saveSelf } from "./state.js";
 import { prefs, setPref, applyTheme, lifeLived, beFirst, freshViewer, firstLife, soulStore, soulFor, keepSoul, setSoulStore, saveGame, loadGame } from "./prefs.js";
@@ -7,6 +7,8 @@ import { $, COLORS, esc, reduced, sleep, quality, forcedQuality, setQuality } fr
 import { die, makeRng, freshSeed } from "./rng.js";
 import { TUMBLE, planTurn, resolveChoice, endTurn, addLog, diceFor, movesFor, moveFor, gone, canSit, createGame, playTurn, spentOf, doorOf, canPractise, practisesNow, zeroOf } from "./engine/turn.js";
 import { optionsFor, situationAt, momentOf } from "./engine/qbn.js";
+import { isCloth, randOf } from "./engine/cloth.js";
+import { throwOf, COWRIES } from "./engine/dice.js";
 import { LAWS, lawOf, choosable, canChoose, setLaw } from "./engine/laws/index.js";
 import { S, colRow, labEls, buildCells, draw, drawAge, fxClear, focusSquare } from "./render/board.js";
 import { lens, wash, stageOf, lookOf, clearOf } from "./render/age.js";
@@ -35,7 +37,21 @@ const PIPS = { 1:[4], 2:[0,8], 3:[0,4,8], 4:[0,2,6,8], 5:[0,2,4,6,8], 6:[0,2,3,5
 // One die below the endgame, two from 94 (REDESIGN.md Phase 9).
 const dieEls = [$("die"), $("die2")];
 for (const d of dieEls) for (let i = 0; i < 9; i++) d.appendChild(document.createElement("span"));
-function showDice(dice) {
+// an old cloth thrown with cowries (Phase 18): the seven shells, each face up or down, in place of the die
+const shellEl = $("shells");
+for (let i = 0; i < COWRIES; i++) shellEl.appendChild(document.createElement("span"));
+const shellsOn = () => isCloth() && randOf(G.state) === "cowries";
+function showDice(dice, up = null) {
+  const shells = shellsOn();
+  shellEl.hidden = !shells; dieEls[0].hidden = shells;
+  if (shells) {
+    // a throw forced by hand (mp.roll) shows as many shells face up as it counts
+    const u = up ?? G.state.shells ?? Array.from({ length: COWRIES }, (_, i) => i < (dice[0] ?? 0));
+    [...shellEl.children].forEach((s, i) => s.classList.toggle("up", !!u[i]));
+    shellEl.setAttribute("aria-label", t("shellsUp", { n: num(u.filter(Boolean).length) }));
+    dieEls[1].hidden = true;
+    return;
+  }
   dieEls[1].hidden = dice.length < 2;
   dice.forEach((v, k) => {
     [...dieEls[k].children].forEach((s, i) => s.classList.toggle("on", PIPS[v].includes(i)));
@@ -43,11 +59,12 @@ function showDice(dice) {
   });
 }
 // the dice also tumble in the card's Roll, since on a phone the panel's dice are off screen behind the card
-const tumble = dice => { showDice(dice); G.face = dice; refreshRoll(); };
+const tumble = (dice, up) => { showDice(dice, up); G.face = dice; refreshRoll(); };
 // Draws exactly what engine/turn.js rollDice does: each frame a face for every die, then each die its value.
 // A forced value (mp.roll) is not drawn; one forced value is every die's.
 async function rollDice(n) {
   const rng = G.state.rng;
+  if (isCloth()) return throwCloth(rng);
   dieEls[1].hidden = n < 2;
   for (const d of dieEls.slice(0, n)) { d.classList.remove("rolling"); void d.offsetWidth; d.classList.add("rolling"); }
   sound.rattle();
@@ -57,6 +74,22 @@ async function rollDice(n) {
   const dice = Array.from({ length: n }, (_, k) => forced?.[k] ?? die(rng));
   tumble(dice);
   return dice;
+}
+
+// An old cloth's throw (Phase 18), drawn exactly as engine/cloth.js rollDice draws it: TUMBLE throws of the board's
+// randomizer, then the one that counts. A forced value is not drawn.
+async function throwCloth(rng) {
+  const kind = randOf(G.state), el = shellsOn() ? shellEl : dieEls[0];
+  dieEls[1].hidden = true;
+  el.classList.remove("rolling"); void el.offsetWidth; el.classList.add("rolling");
+  sound.rattle();
+  for (let i = 0; i < TUMBLE; i++) { const f = throwOf(rng, kind); tumble([f.v], f.up); await sleep(75); }
+  const forced = G.forcedRoll == null ? null : [G.forcedRoll].flat()[0];
+  G.forcedRoll = null;
+  const f = forced != null ? { v: forced, up: kind === "cowries" ? Array.from({ length: COWRIES }, (_, i) => i < forced) : null } : throwOf(rng, kind);
+  G.state.shells = f.up ?? null;
+  tumble([f.v], f.up);
+  return [f.v];
 }
 
 // ---- Choosing between the dice ----
@@ -191,7 +224,8 @@ async function takeTurn({ practice = false } = {}) {
   if (g !== G.gen) return;
   if (dice.length || v == null) state.last = v || dice[0];
   // the drone begins with the first roll
-  setDrone(lens(state).droneStage);
+  // an old cloth has no years to sound (Phase 18)
+  if (!isCloth()) setDrone(lens(state).droneStage);
   const watching = watchFrames();
   // whether the landing is told on its card rather than the line (a situation's outcome is both)
   let onCard = false;
@@ -211,7 +245,7 @@ async function takeTurn({ practice = false } = {}) {
       retrigger(el, "hop");
       place();
       // the Shepard tone follows the walk square by square, rising toward the exit
-      setShepard(lens(state).lead);
+      if (!isCloth()) setShepard(lens(state).lead);
       await sleep(200);
     }
     if (g !== G.gen) return;
@@ -225,11 +259,11 @@ async function takeTurn({ practice = false } = {}) {
       if (g !== G.gen) return;
     } else if (plan.stay) {
       // a throw that offered nothing in the heavens: nothing is walked or landed on, and the line says why
-      if (p.type === "human") landStay(idx, p.pos);
+      if (p.type === "human") landStay(idx, p.pos, plan.why);
       plan.after.forEach(log);
     } else {
       // a new ashrama is seen whole: the one this landing's years bring, not the square's
-      if (stageOf({ ...p, years: ageStep(p.years ?? 0, p.pos) }) !== born) pullBack();
+      if (!isCloth() && stageOf({ ...p, years: ageStep(p.years ?? 0, p.pos) }) !== born) pullBack();
       await waitCard();
       if (g !== G.gen) return;
       // Weighted by what happened (REDESIGN.md Phase 11): a person's situation, snake, ladder, first meeting by name,
@@ -308,7 +342,7 @@ async function takeTurn({ practice = false } = {}) {
       // the door is public (REDESIGN.md Phase 14), the one place a computer's landing writes the line under the board:
       // whoever comes to 105 is refused there or let through, and whoever sits there is examined, a year at a time.
       // A person's year at the door holds the game on its card until it is read, as a reckoning's does.
-      if (!plan.sit && plan.final === GOAL && lawOf(state, idx).exit(state, idx)?.door && !plan.reckon?.to) {
+      if (!plan.sit && plan.final === GOAL && !isCloth() && lawOf(state, idx).exit(state, idx)?.door && !plan.reckon?.to) {
         // a door that opens on no win while the life lasts (Nyāya) says so
         landDoor(idx, plan.refused ? { kind: "refused", refusal: plan.refused, sit: canSit({ ...p, pos: GOAL }) } : { kind: plan.win ? "through" : "open" });
       } else if (plan.infer && p.type === "human") {
@@ -341,7 +375,7 @@ async function takeTurn({ practice = false } = {}) {
   if (!cursed && p.curse && p.type === "human") onCard && cardOpen() ? cardCurse(idx, plan.target) : landCurse(idx, plan.target);
   G.plan = null; G.face = null;
   // the viewer's own life is over: the first life's quiet cards end with it (prefs.js). The fall counts as a death.
-  if (p.type === "human" && (plan.died || plan.win || plan.fell) && firstLife()) { lifeLived(); refreshCard(); }
+  if (p.type === "human" && (plan.died || plan.win || plan.fell) && firstLife() && !isCloth()) { lifeLived(); refreshCard(); }
   // a person whose years run out reads their life at once, rather than watching the others finish; so does one Śiva's
   // snake ended with nothing born of it (Cārvāka: the account is the result)
   if ((plan.died || (plan.fell && p.fell)) && p.type === "human") openLife(idx);
@@ -376,6 +410,8 @@ async function takeTurn({ practice = false } = {}) {
 function fullCard(state, plan, idx) {
   // an animal's landings are the line under the board alone: the squares' moments are a person's (Phase 16)
   if (isAnimal(state)) return false;
+  // an old cloth's square opens its card for a snake, a ladder and the goal (Phase 18); any other is the line
+  if (isCloth()) return prefs.everyCard || !!plan.jump || plan.win;
   if (prefs.everyCard || plan.jump || plan.target === GOAL || plan.win) return true;
   const p = state.players[idx], n = plan.target;
   if (HEAVEN[n]) return !p.life?.includes(n);
@@ -410,10 +446,10 @@ function rollInfo(l) {
   if (G.rollQueued || (G.busy && !G.waitingCard)) {
     const mover = s.players[plan?.idx ?? s.turn];
     const who = mover.type === "cpu" ? tIn(l, "rolling", { name: pnameIn(mover, l) }) : "";
-    return { label: [G.face ? G.face.map(f => FACES[f]).join(" ") : "", who].filter(Boolean).join("  ") || FACES[s.last || 6], ready: false, dot: null };
+    return { label: [G.face ? G.face.map(f => FACES[f] || num(f)).join(" ") : "", who].filter(Boolean).join("  ") || FACES[s.last || 6], ready: false, dot: null };
   }
   const again = plan ? plan.again : s.turn === i && s.log[0]?.k === "lSix";
-  return { label: again ? tIn(l, "rollAgain") : humans > 1 ? tIn(l, "rollFor", { name: pnameIn(p, l) }) : tIn(l, "roll"), ready: true, dot };
+  return { label: again ? tIn(l, "rollAgain") : humans > 1 ? tIn(l, "rollFor", { name: pnameIn(p, l) }) : tIn(l, rollKey()), ready: true, dot };
 }
 function requestRoll() { G.rollQueued = true; refreshRoll(); pump(); }
 function pump() {
@@ -439,6 +475,14 @@ const mix = (a, b, u) => ({ sepia: a.sepia + (b.sepia - a.sepia) * u, dim: a.dim
 const query = new URLSearchParams(location.search);
 let look = lookOf(query.has("debug") ? query.get("look") : null);
 function age(instant = false) {
+  // an old cloth does not age: its squares are painted as they are, and it has no drone or tone (Phase 18)
+  if (isCloth()) {
+    document.getElementById("board")?.style.setProperty("--clear", "0");
+    for (const n of LAYOUT.squares) labEls[n]?.classList.remove("ahead");
+    setDrone(null); setShepard(null, false);
+    aged = null; ageSeq++;
+    return drawAge([]);
+  }
   const L = lens(G.state, null, look), to = Array.from({ length: TOP + 1 }, (_, n) => (n ? wash(n, L) : null));
   document.getElementById("board")?.style.setProperty("--clear", String(clearOf(G.state)));
   for (let n = 1; n <= TOP; n++) labEls[n]?.classList.toggle("ahead", to[n].dim > 0);
@@ -451,6 +495,8 @@ function age(instant = false) {
 }
 
 // ---- Rendering ----
+// what the Roll button says: the die, or an old cloth's own randomizer (Phase 18)
+const rollKey = () => (!isCloth() ? "roll" : { cowries: "rollShells", stick: "rollStick" }[randOf(G.state)] ?? "roll");
 function render() {
   const state = G.state, p = cur();
   $("turnDot").style.background = COLORS[p.color];
@@ -461,7 +507,7 @@ function render() {
   $("practise").hidden = !human || state.over || !!G.choosing || !!G.deciding || !canPractise(state);
   $("practise").disabled = G.busy;
   $("practise").title = t("practiseHint");
-  $("roll").textContent = human ? t("roll") : t("rolling", { name: pname(p) });
+  $("roll").textContent = human ? t(rollKey()) : t("rolling", { name: pname(p) });
   const six = !state.over && sixOf();
   $("hint").textContent = state.over ? t("hintOver") : six ? sixLineIn(lang, six) : isAnimal(state) ? t("animalHint") : human ? t("hintHuman") : t("hintCpu");
   if (G.deciding) drawDecide();
@@ -480,7 +526,16 @@ function render() {
   // the book's footer offers it too, so an open book is repainted when it comes or goes
   if ($("reborn").hidden === reborn) { $("reborn").hidden = $("rebornNote").hidden = !reborn; refreshLife(); }
   drawRebornLaws(reborn);
-  if (w != null) {
+  $("readLife").textContent = t(isCloth() ? "readPath" : "readLife");
+  // the page's few lines about the game are the board's (Phase 18)
+  document.querySelector(".colophon [data-t]").textContent = t(isCloth() ? `board${BOARD_ID}About` : "intro");
+  if (w != null && isCloth()) {
+    // the old game is a race: the first pawn to the goal wins it (Phase 18)
+    const wp = state.players[w], g = legendOf(GOAL);
+    $("winTitle").textContent = t("cWinTitle", { name: pname(wp), goal: g ? L(g.en, g.hi) : "" });
+    $("winText").textContent = t(wp.type === "human" ? "cWinHuman" : "cWinCpu");
+    $("winNote").hidden = true;
+  } else if (w != null) {
     const wp = state.players[w];
     // in the words of the law it was won under (Phase 17: Mīmāṃsā's svarga), with its note
     const tw = lawOf(state, w).text.win;
@@ -513,7 +568,8 @@ function render() {
 const soulKey = p => (p.type !== "human" ? null : p.soul ?? (p.name ? nameKey(p.name) : null));
 // When a game is over, each named person's ended life is kept for the next, and a liberated one is let go. Once a game.
 function keepLives(state) {
-  if (G.kept === state) return;
+  // an old cloth is a race, not a life: nothing is kept (Phase 18)
+  if (G.kept === state || isCloth()) return;
   G.kept = state;
   state.players.forEach((p, i) => {
     const key = soulKey(p);
@@ -534,6 +590,7 @@ function keepLives(state) {
 // person's kept soul waits, untouched, for a life under another law (keepOf)
 const rebornFrom = (state, i) => (endOf(state, i) || state.players[i].past?.length) && lawOf(state, i).rebirth;
 function rebornRows(state) {
+  if (isCloth()) return null;
   let any = false, animal = null;
   const rows = state.players.map((p, i) => {
     const key = soulKey(p), soul = rebornFrom(state, i) && soulFor(key), born = soul && bornOf(soul);
@@ -550,7 +607,7 @@ function rebornRows(state) {
 
 // ---- The laws (Phase 17) ----
 // A law is offered only once there is more than one to choose, and never in a viewer's first life.
-const lawsOffered = () => choosable().length > 1 && !firstLife();
+const lawsOffered = () => choosable().length > 1 && !firstLife() && !G.setup?.rules?.board;
 // at scholar depth a law's explanation adds its sources (Phase 17 step 5)
 const lawButtons = now => choosable().map(w => `<button type="button" class="law" data-law="${w.id}" aria-pressed="${w.id === now}"><b>${esc(t(w.text.name))}</b> <span>${esc(t(w.text.about))}</span>${w.text.scholar && prefs.depth === "scholar" ? ` <small class="law-src">${esc(t(w.text.scholar))}</small>` : ""}</button>`).join("");
 // At Be born again: the law the next life is born under, each explained before it is chosen. It is the first person born
@@ -597,6 +654,16 @@ function renderSetup() {
       <p class="law-about" id="plawAbout${i}">${esc(t((canChoose(r.law) ? LAWS[r.law] : LAWS.board).text.about))}</p>` : ""}
     </div>`).join("");
   $("ruleSix").checked = setup.rules.six;
+  // the board, and what an old one is thrown with (Phase 18); the six's second throw is the 110's rule alone
+  const board = setup.rules.board ?? "110", old = board !== "110";
+  $("ruleBoard").innerHTML = Object.keys(BOARDS).filter(id => STR.en["board" + id]).sort((a, b) => b - a)
+    .map(id => `<option value="${id}"${id === board ? " selected" : ""}>${esc(t("board" + id))}</option>`).join("");
+  $("ruleRandRow").hidden = !old;
+  $("ruleRand").innerHTML = [["own", "randOwn"], ["die", "randDie"]]
+    .map(([v, k]) => `<option value="${v}"${(setup.rules.rand ?? "own") === v ? " selected" : ""}>${esc(t(k))}${v === "own" && old ? ` (${esc(t(RAND_NAME[BOARDS[board].rules?.rand] ?? "randDie"))})` : ""}</option>`).join("");
+  $("ruleSixRow").hidden = old;
+  $("ruleBoardAbout").textContent = old ? t("board" + board + "About") : "";
+  $("ruleBoardAbout").hidden = !old;
   $("prefDepth").innerHTML = [["story", "depthStory"], ["school", "depthSchool"], ["scholar", "depthScholar"]]
     .map(([v, k]) => `<option value="${v}"${v === prefs.depth ? " selected" : ""}>${t(k)}</option>`).join("");
   $("prefEvery").checked = prefs.everyCard;
@@ -612,7 +679,14 @@ function readSetup() {
     if ($("plaw" + i)) { const v = $("plaw" + i).value; r.law = canChoose(v) ? v : undefined; }
   });
   setup.rules = { six: $("ruleSix").checked };
+  // set only off the 110, so the 110's rules are what they always were
+  const board = $("ruleBoard").value, rand = $("ruleRand").value;
+  if (board && board !== "110") setup.rules.board = board;
+  if (setup.rules.board && rand !== "own") setup.rules.rand = rand;
 }
+const RAND_NAME = { cowries: "randCowries", stick: "randStick", die: "randDie" };
+// the setup follows the board as it is chosen: an old board has no laws to choose, and its own randomizer
+$("ruleBoard").addEventListener("change", () => { readSetup(); renderSetup(); $("ruleBoard").focus(); });
 
 // Static text, the ashrama labels on the frame and the language buttons.
 function applyStatic() {
@@ -678,8 +752,9 @@ function startGame({ reborn = false, next = null } = {}) {
   clearLanded();
   if (S) fxClear();
   G.busy = false;
+  // the board first, so the game is set up on it (an old cloth's pawns begin in square 1)
+  boardFor({ rules: born?.rules ?? G.setup.rules });
   G.state = newState(nextSeed ?? freshSeed(), born?.rows, born?.rules);
-  boardFor(G.state);
   nextSeed = null;
   saveGame(G.setup, G.state);
   buildTokens();

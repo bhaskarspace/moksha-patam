@@ -4,10 +4,15 @@ import { L } from "../i18n.js";
 import { P_HEX } from "../ui.js";
 import { ART, STAGES, PAL, ANIMALS, artOf, framesOf, stageHi } from "./art.js";
 import { groundOf } from "./ground.js";
+import { isCloth } from "../engine/cloth.js";
+
+const CLOTH_STAGE = 2;
 
 export { ART, STAGES } from "./art.js";
 // stageOf(player), or stageOf(pos) for a square alone
 export function stageOf(p) {
+  // an old cloth's pawn is of no age: a grown figure, start to end (Phase 18)
+  if (isCloth()) return CLOTH_STAGE;
   const pos = typeof p === "number" ? p : p.pos;
   if (pos > 100) return STAGES.length - 1;
   // never younger than the square: they agree in play, and differ only for a token moved by hand

@@ -1,7 +1,8 @@
 // ---- The board: squares, labels, and the painted snakes and ladders ----
-import { GOAL, TOP, ROWS, COLS, LAYOUT, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, BOARD, onBoard } from "../content.js";
+import { GOAL, TOP, ROWS, COLS, LAYOUT, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, BOARD, onBoard, legendOf } from "../content.js";
+import { isCloth } from "../engine/cloth.js";
 import { lang, L, t, num } from "../i18n.js";
-import { $, art, quality } from "../ui.js";
+import { $, art, esc, quality } from "../ui.js";
 import { groundToken, groundOf, colRow, fills, WASH, snakeHues, sivaPath } from "./ground.js";
 import { cameraOn } from "./camera.js";
 
@@ -12,6 +13,7 @@ export const ashramaOf = n => ashramaIn(lang, n);
 
 // The board's name for square n in the current language.
 export function squareName(n) {
+  if (isCloth()) { const g = legendOf(n); return g ? L(g.en, g.hi) : ""; }
   if (HEAVEN[n]) return L(HEAVEN[n].en, HEAVEN[n].hi);
   const sl = SNAKES[n] || LADDERS[n];
   if (sl) return L(sl.en, sl.hi);
@@ -22,10 +24,13 @@ export function squareName(n) {
 // A square's painted vignette (REDESIGN.md Phase 13): a symbol of the sheet's drawn as a scene for the whole square. It is
 // painted in the cell, under the snakes and ladders and the ageing, as all the art is; its square's label then carries no
 // roundel. A square without one keeps its sprite in the roundel, or its emoji. Moksha's is the card's alone: the board keeps ॐ.
-export const vignette = n => n !== GOAL && !!document.getElementById(`sq-${n}`)?.classList.contains("vg");
+export const vignette = n => !isCloth() && n !== GOAL && !!document.getElementById(`sq-${n}`)?.classList.contains("vg");
 
 function labelHtml(n) {
-  const numEl = `<span class="n">${num(n)}</span>`, vg = vignette(n);
+  const numEl = `<span class="n">${num(n)}</span>`;
+  // an old cloth writes every square's legend in it, as the charts do (Phase 18)
+  if (isCloth()) return numEl + `<span class="nm">${esc(squareName(n))}</span>`;
+  const vg = vignette(n);
   if (n === GOAL) return numEl + `<span class="om">ॐ</span><span class="dv">${t("moksha")}</span>`;
   if (HEAVEN[n]) return numEl + (vg ? "" : `<span class="ic">${art(`sq-${n}`, HEAVEN[n].ic)}</span>`) + `<span class="dv">${L(HEAVEN[n].en, HEAVEN[n].hi)}</span>`;
   const sl = SNAKES[n] || LADDERS[n];
@@ -33,15 +38,41 @@ function labelHtml(n) {
   return numEl;
 }
 
+// The 72's superstructure (Phase 18): a gold arch over each square of the top row, as the painted Vaiṣṇava cloths have
+// it, and the trimūrti over the three realms at its centre, each as its emblem alone, never a likeness: Śiva's
+// trident over his realm (67), Viṣṇu's discus over Vaikuṇṭha (68), Brahmā's lotus over his (69).
+const TRIMURTI = { "-1": "trident", 0: "discus", 1: "lotus" };
+function emblemOf(kind, x) {
+  const cx = x + 5, cy = 5.7;
+  if (kind === "trident") return `<path class="emb" d="M${cx},8.4 V3.4 M${cx - 1.5},4.1 Q${cx - 1.5},6 ${cx},6 Q${cx + 1.5},6 ${cx + 1.5},4.1 M${cx - 0.5},3.9 L${cx},3 L${cx + 0.5},3.9"/>`;
+  if (kind === "discus") return `<circle class="emb" cx="${cx}" cy="${cy}" r="1.7"/><circle class="emb dot" cx="${cx}" cy="${cy}" r="0.45"/>` +
+    Array.from({ length: 8 }, (_, i) => { const a = (i * Math.PI) / 4, c = Math.cos(a), s = Math.sin(a); return `<path class="emb" d="M${+(cx + c * 0.45).toFixed(2)},${+(cy + s * 0.45).toFixed(2)} L${+(cx + c * 1.7).toFixed(2)},${+(cy + s * 1.7).toFixed(2)}"/>`; }).join("");
+  if (kind === "lotus") return [-2, -1, 0, 1, 2].map(k => `<ellipse class="emb petal" cx="${cx}" cy="${cy + 0.2}" rx="0.62" ry="1.9" transform="rotate(${k * 28} ${cx} ${cy + 1.9})"/>`).join("") +
+    `<path class="emb" d="M${cx - 2},${cy + 2.1} H${cx + 2}"/>`;
+  return "";
+}
+const archOf = (x, emblem) =>
+  `<path class="arch" d="M${x + 0.4},9 V1.6 H${x + 9.6} V9 Z"/>` +
+  `<path class="niche" d="M${x + 1.4},9 V5.4 Q${x + 1.4},3.6 ${x + 2.6},3.4 Q${x + 3},2.2 ${x + 4},2.3 Q${x + 5},1 ${x + 6},2.3 Q${x + 7},2.2 ${x + 7.4},3.4 Q${x + 8.6},3.6 ${x + 8.6},5.4 V9 Z"/>` +
+  (emblem ? emblemOf(emblem, x) : "");
+
 // The board's superstructure, from its look (content/boards.json): for the 110, a vimāna over each square of the divine row,
 // as on the 1780 board and the Jain charts, the exit's doorway in indigo. Ornament: it goes first on a weak device.
 function superstructure() {
   const el = $("vimana");
   if (!el) return;
-  el.hidden = BOARD.superstructure !== "vimana";
+  el.hidden = !["vimana", "arches"].includes(BOARD.superstructure);
   if (el.hidden) return;
   const top = ROWS - 1, f = n => +n.toFixed(2);
   let d = "";
+  if (BOARD.superstructure === "arches") {
+    for (let c = 0; c < COLS; c++) {
+      const n = LAYOUT.cell[`${c},${top}`];
+      if (n != null) d += archOf(c * 10, BOARD.panel === "trimurti" ? TRIMURTI[n - GOAL] : null);
+    }
+    el.innerHTML = `<svg viewBox="0 0 ${COLS * 10} 9" preserveAspectRatio="none">${d}</svg>`;
+    return;
+  }
   for (let c = 0; c < COLS; c++) {
     const n = LAYOUT.cell[`${c},${top}`], x = c * 10;
     if (n == null) continue;
@@ -78,7 +109,7 @@ export function buildCells() {
       el.className = "cell" + (heaven ? " heaven" : "") + (n === GOAL ? " goal" : "");
       if (!heaven) el.style.background = `var(--b-${groundToken(n)})`;
       if (vignette(n)) el.innerHTML = `<span class="pic vg">${art(`sq-${n}`, "", "spr vg")}</span>`;
-      else if (SQ[n]) el.innerHTML = `<span class="pic">${art(`sq-${n}`, SQ[n].ic)}</span>`;
+      else if (SQ[n] && !isCloth()) el.innerHTML = `<span class="pic">${art(`sq-${n}`, SQ[n].ic)}</span>`;
       el.style.gridArea = `${ROWS - r} / ${c + 1}`;
       cells.appendChild(el);
 
@@ -305,6 +336,7 @@ export function draw() {
   S = W / COLS;
   for (const [a, l] of Object.entries(LADDERS)) drawLadder(+a, l.to);
   for (const [h, s] of Object.entries(SNAKES)) drawSnake(+h, s.to);
-  drawSiva();
+  // Śiva's snake is the 110's own; an old cloth has only its own snakes
+  if (!isCloth()) drawSiva();
   drawAge();
 }

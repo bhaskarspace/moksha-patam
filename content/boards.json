@@ -1,4 +1,115 @@
 {
+  "72": {
+    "about": "The 72-square Vaiṣṇava board (type a), as Schmidt-Madsen 2019 reads it critically from 23 charts (App. D1): nine wide and eight high, boustrophedon from birth at the bottom left, the seven realms up the centre column to Vaikuṇṭha at 68 between Śiva’s realm and Brahmā’s. A cream ground and gold arches over the top row, the trimūrti above them, as on the painted boards.",
+    "law": "bhakti",
+    "geometry": {
+      "cols": 9,
+      "rows": 8,
+      "track": [
+        {
+          "from": 1,
+          "to": 72,
+          "width": 9,
+          "origin": [
+            0,
+            0
+          ],
+          "path": "boustrophedon"
+        }
+      ]
+    },
+    "rules": {
+      "engine": "cloth",
+      "goal": 68,
+      "top": 72,
+      "rand": "cowries",
+      "above": "snake",
+      "snakes": {
+        "12": 8,
+        "16": 4,
+        "24": 7,
+        "29": 6,
+        "44": 9,
+        "52": 35,
+        "55": 2,
+        "61": 13,
+        "63": 3,
+        "72": 51
+      },
+      "ladders": {
+        "10": 23,
+        "17": 69,
+        "20": 32,
+        "22": 60,
+        "27": 41,
+        "28": 50,
+        "37": 66,
+        "45": 67,
+        "46": 62,
+        "54": 68
+      }
+    },
+    "palette": {
+      "vermilion": "#C8352A",
+      "ochre": "#D9A441",
+      "yellow": "#E3A21A",
+      "indigo": "#2B3A67",
+      "malachite": "#3F7A4E",
+      "black": "#1A1410",
+      "shell": "#F4EDDC",
+      "beetle": "#1F7A5A",
+      "gold": "#B8862B",
+      "gold-hi": "#EDCF72",
+      "cream": "#F5E9C9",
+      "paleochre": "#EDD49B",
+      "palegreen": "#DCE0B4",
+      "cloth": "#E8D7AE",
+      "lac": "#5A1208",
+      "nila": "#1E2740"
+    },
+    "grounds": [
+      [
+        "cream",
+        "shell"
+      ]
+    ],
+    "divine": {
+      "ground": [
+        "gold",
+        "gold-hi"
+      ],
+      "goal": "indigo"
+    },
+    "snakes": [
+      [
+        "vermilion",
+        "yellow"
+      ],
+      [
+        "indigo",
+        "shell"
+      ],
+      [
+        "malachite",
+        "yellow"
+      ],
+      [
+        "yellow",
+        "vermilion"
+      ],
+      [
+        "black",
+        "shell"
+      ]
+    ],
+    "ladder": {
+      "rail": "yellow",
+      "outline": "vermilion"
+    },
+    "border": "scroll",
+    "superstructure": "arches",
+    "panel": "trimurti"
+  },
   "110": {
     "about": "The 110-square board: cream, pale ochre and pale green grounds by band, as the painted boards vary their rows; the pigment is in the figures, the snakes, the ladders, the border and the divine row. Gold is the only gradient (REDESIGN.md Phase 13). Each snake is [body, belly]; no two snakes that come near each other share a body.",
     "geometry": {

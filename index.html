@@ -98,6 +98,11 @@ h1 { font-family: var(--f-display); font-weight: 400; font-size: clamp(34px, 6vw
 .vimana .dome { fill: var(--b-gold-hi); stroke: var(--b-lac); stroke-width: 0.45; }
 .vimana .door { fill: var(--b-vermilion); stroke: var(--b-lac); stroke-width: 0.35; }
 .vimana .door.goal { fill: var(--b-indigo); }
+.vimana .arch { fill: var(--b-gold); stroke: var(--b-lac); stroke-width: 0.35; }
+.vimana .niche { fill: var(--b-gold-hi); stroke: var(--b-lac); stroke-width: 0.3; }
+.vimana .emb { fill: none; stroke: var(--b-lac); stroke-width: 0.4; stroke-linecap: round; stroke-linejoin: round; }
+.vimana .emb.dot { fill: var(--b-lac); }
+.vimana .emb.petal { fill: var(--b-vermilion); stroke-width: 0.25; }
 .vimana .finial { fill: var(--b-vermilion); stroke: var(--b-lac); stroke-width: 0.3; }
 /* on a weak device the ornament goes first, before any pigment, and the ageing never does */
 :root.plain .vimana { display: none; }
@@ -645,6 +650,12 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 /* Phase 9: two dice from 94, and the choice between them */
 .dice { display: flex; gap: 8px; flex: none; }
 .dice .die[hidden] { display: none; }
+/* Phase 18: seven cowries, for an old cloth thrown with them; a shell face up shows its slit */
+.shells { width: 112px; height: 72px; display: flex; flex-wrap: wrap; align-content: center; justify-content: center; gap: 4px 5px; }
+.shells[hidden], #ruleRandRow[hidden], #ruleSixRow[hidden] { display: none; }
+.shells span { width: 22px; height: 30px; border-radius: 50%; background: #F1E6CC; border: 2px solid #3B2812; box-shadow: inset -3px -3px 0 rgba(59,40,18,0.18); position: relative; }
+.shells span.up::after { content: ""; position: absolute; left: 50%; top: 18%; bottom: 18%; width: 3px; margin-left: -1.5px; border-radius: 2px; background: #3B2812; }
+.shells.rolling { animation: tumble 0.56s ease-in-out; }
 .dice:has(#die2:not([hidden])) .die { width: 60px; height: 60px; padding: 7px; }
 .pick { display: flex; flex-wrap: wrap; gap: 6px; }
 .pick[hidden] { display: none; }
@@ -720,7 +731,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   .gate .spoke, .gate .leaf { transition: none; }
   .cam { transition: none; transform: none !important; }
   #folio.snap, #folio.snap .leaf { transition: none; }
-  .token .body, .die.rolling, .lab.goal .om, .leaf, .leaf *, .flourish *, .toast { animation: none !important; }
+  .token .body, .die.rolling, .shells.rolling, .lab.goal .om, .leaf, .leaf *, .flourish *, .toast { animation: none !important; }
   ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
 }
 </style>
@@ -912,7 +923,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         <span class="eyebrow" data-t="turn">Turn</span>
         <div class="turn"><span class="dot" id="turnDot"></span><span id="turnName"></span></div>
         <div class="roll-row">
-          <div class="dice"><div class="die" id="die" aria-label="Die"></div><div class="die" id="die2" aria-label="Die" hidden></div></div>
+          <div class="dice"><div class="die" id="die" aria-label="Die"></div><div class="die" id="die2" aria-label="Die" hidden></div><div class="shells" id="shells" role="img" hidden></div></div>
           <div class="roll-info">
             <button id="roll" type="button">Roll the die</button>
             <button id="practise" type="button" class="ghost" data-t="practise" hidden>Sit in practice</button>
@@ -947,7 +958,10 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         <div class="setup-body">
           <div class="seg" id="count" role="group"></div>
           <div id="prows" class="setup-body"></div>
-          <label class="check"><input type="checkbox" id="ruleSix" checked> <span data-t="ruleSix"></span></label>
+          <label class="pick"><span data-t="ruleBoard"></span><select id="ruleBoard"></select></label>
+          <p class="law-about" id="ruleBoardAbout" hidden></p>
+          <label class="pick" id="ruleRandRow" hidden><span data-t="ruleRand"></span><select id="ruleRand"></select></label>
+          <label class="check" id="ruleSixRow"><input type="checkbox" id="ruleSix" checked> <span data-t="ruleSix"></span></label>
           <label class="pick"><span data-t="depth"></span><select id="prefDepth"></select></label>
           <span class="hint depth-hint" data-t="depthHint"></span>
           <label class="check"><input type="checkbox" id="prefEvery"> <span data-t="everyCard"></span></label>
@@ -1630,7 +1644,38 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         actLetGo: "Let it go",
         actLetGoHint: "Let this throw go, and spend a stillness: the life stays, and the year passes.",
         letGoChoose: "Rolled {a}. Move, or let it go.",
-        diceChooseOr: "Rolled {a} and {b}. Move by either, or: {act}."
+        diceChooseOr: "Rolled {a} and {b}. Move by either, or: {act}.",
+        cMove: "{name} threw {v}: moved to {pos}, {what}.",
+        cSnake: "{name} threw {v}, landed on {pos} and was swallowed by the snake of {what}. Down to {to}.",
+        cLadder: "{name} threw {v} to {pos} and climbed the ladder of {what} to {to}.",
+        cPast: "{name} threw {v}, more than the squares left: stopped on {pos}, {what}.",
+        cZero: "{name} threw: no shell fell face up. No move.",
+        cWin: "{name} reached {what}, square {pos}.",
+        cWinTitle: "{name} reached {goal}",
+        cWinHuman: "The first pawn to the goal wins the old game. Well played.",
+        cWinCpu: "The computer's pawn got there first this time.",
+        cZeroLine: "No shell fell face up: no move for {name}.",
+        cZeroTitle: "Nothing thrown",
+        readPath: "Read the path",
+        pathOf: "{name}'s path",
+        pathIntro: "Every square the pawn stood on, in order, by its legend.",
+        pathCopy: "Copy the path",
+        ruleBoard: "Board",
+        board110: "110 squares: a life (the game's own)",
+        board72: "72 squares: the Vaiṣṇava cloth, under Bhakti",
+        ruleRand: "Thrown with",
+        randOwn: "The board's own",
+        randDie: "A die",
+        randCowries: "Seven cowries",
+        randStick: "The stick die",
+        legendOf: "The legend",
+        legendUncertain: "The reading of this square is uncertain.",
+        legendSq: "Square {n}",
+        shellsUp: "{n} of seven shells face up",
+        rollShells: "Throw the shells",
+        rollStick: "Throw the stick die",
+        board72About: "The old game, as the Vaiṣṇava cloths were played: a race to Vaikuṇṭha on 68, under Bhakti, whose ladder of devotion on 54 climbs straight to it. No years, no moments: the squares are the legends the charts write.",
+        cNew: "New game on the old cloth. Every pawn begins on square 1."
       },
       hi: {
         title: "मोक्ष पटम",
@@ -2077,7 +2122,38 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         actLetGo: "जाने दें",
         actLetGoHint: "इस दाँव को जाने दें, और एक स्थिरता लगाएँ: जीवन यहीं रहता है, और बरस बीतता है।",
         letGoChoose: "{a} आया। चलें, या जाने दें।",
-        diceChooseOr: "{a} और {b} आए। किसी एक से चलें, या: {act}।"
+        diceChooseOr: "{a} और {b} आए। किसी एक से चलें, या: {act}।",
+        cMove: "{name} का {v} आया: {pos}, {what}।",
+        cSnake: "{name} का {v} आया, {pos} पर {what} के साँप ने निगल लिया। नीचे {to} पर।",
+        cLadder: "{name} का {v} आया, {pos} से {what} की सीढ़ी चढ़कर {to} पर।",
+        cPast: "{name} का {v} आया, बचे घरों से ज़्यादा: {pos} पर रुकना, {what}।",
+        cZero: "{name} ने फेंका: एक भी कौड़ी चित नहीं गिरी। कोई चाल नहीं।",
+        cWin: "{name}: घर {pos}, {what}।",
+        cWinTitle: "{name}: {goal}",
+        cWinHuman: "पुराने खेल में जो मोहरा पहले लक्ष्य पर पहुँचे, वही जीतता है। बहुत बढ़िया।",
+        cWinCpu: "इस बार कंप्यूटर का मोहरा पहले पहुँच गया।",
+        cZeroLine: "एक भी कौड़ी चित नहीं गिरी: {name} की कोई चाल नहीं।",
+        cZeroTitle: "कुछ नहीं आया",
+        readPath: "रास्ता पढ़ें",
+        pathOf: "{name} का रास्ता",
+        pathIntro: "हर घर जिस पर मोहरा खड़ा हुआ, क्रम से, उसके लेख के साथ।",
+        pathCopy: "रास्ता कॉपी करें",
+        ruleBoard: "बोर्ड",
+        board110: "110 घर: एक जीवन (खेल का अपना)",
+        board72: "72 घर: वैष्णव पट, भक्ति के नियम में",
+        ruleRand: "किससे फेंकें",
+        randOwn: "बोर्ड का अपना",
+        randDie: "पासा",
+        randCowries: "सात कौड़ियाँ",
+        randStick: "चौपहला पासा",
+        legendOf: "लेख",
+        legendUncertain: "इस घर का पाठ अनिश्चित है।",
+        legendSq: "घर {n}",
+        shellsUp: "सात में से {n} कौड़ियाँ चित",
+        rollShells: "कौड़ियाँ फेंकें",
+        rollStick: "चौपहला पासा फेंकें",
+        board72About: "पुराना खेल, जैसे वैष्णव पट खेले जाते थे: 68 पर वैकुंठ तक की दौड़, भक्ति के नियम में, जिसकी 54 पर भक्ति की सीढ़ी सीधे वहीं ले जाती है। न वर्ष, न क्षण: घरों पर वही लेख हैं जो पटों पर लिखे हैं।",
+        cNew: "पुराने पट पर नया खेल। हर मोहरा घर 1 से शुरू करता है।"
       }
     },
     JOINS: {
@@ -3416,6 +3492,117 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
 
   // content/boards.json
   var boards_default = {
+    "72": {
+      about: "The 72-square Vaiṣṇava board (type a), as Schmidt-Madsen 2019 reads it critically from 23 charts (App. D1): nine wide and eight high, boustrophedon from birth at the bottom left, the seven realms up the centre column to Vaikuṇṭha at 68 between Śiva’s realm and Brahmā’s. A cream ground and gold arches over the top row, the trimūrti above them, as on the painted boards.",
+      law: "bhakti",
+      geometry: {
+        cols: 9,
+        rows: 8,
+        track: [
+          {
+            from: 1,
+            to: 72,
+            width: 9,
+            origin: [
+              0,
+              0
+            ],
+            path: "boustrophedon"
+          }
+        ]
+      },
+      rules: {
+        engine: "cloth",
+        goal: 68,
+        top: 72,
+        rand: "cowries",
+        above: "snake",
+        snakes: {
+          "12": 8,
+          "16": 4,
+          "24": 7,
+          "29": 6,
+          "44": 9,
+          "52": 35,
+          "55": 2,
+          "61": 13,
+          "63": 3,
+          "72": 51
+        },
+        ladders: {
+          "10": 23,
+          "17": 69,
+          "20": 32,
+          "22": 60,
+          "27": 41,
+          "28": 50,
+          "37": 66,
+          "45": 67,
+          "46": 62,
+          "54": 68
+        }
+      },
+      palette: {
+        vermilion: "#C8352A",
+        ochre: "#D9A441",
+        yellow: "#E3A21A",
+        indigo: "#2B3A67",
+        malachite: "#3F7A4E",
+        black: "#1A1410",
+        shell: "#F4EDDC",
+        beetle: "#1F7A5A",
+        gold: "#B8862B",
+        "gold-hi": "#EDCF72",
+        cream: "#F5E9C9",
+        paleochre: "#EDD49B",
+        palegreen: "#DCE0B4",
+        cloth: "#E8D7AE",
+        lac: "#5A1208",
+        nila: "#1E2740"
+      },
+      grounds: [
+        [
+          "cream",
+          "shell"
+        ]
+      ],
+      divine: {
+        ground: [
+          "gold",
+          "gold-hi"
+        ],
+        goal: "indigo"
+      },
+      snakes: [
+        [
+          "vermilion",
+          "yellow"
+        ],
+        [
+          "indigo",
+          "shell"
+        ],
+        [
+          "malachite",
+          "yellow"
+        ],
+        [
+          "yellow",
+          "vermilion"
+        ],
+        [
+          "black",
+          "shell"
+        ]
+      ],
+      ladder: {
+        rail: "yellow",
+        outline: "vermilion"
+      },
+      border: "scroll",
+      superstructure: "arches",
+      panel: "trimurti"
+    },
     "110": {
       about: "The 110-square board: cream, pale ochre and pale green grounds by band, as the painted boards vary their rows; the pigment is in the figures, the snakes, the ladders, the border and the divine row. Gold is the only gradient (REDESIGN.md Phase 13). Each snake is [body, belly]; no two snakes that come near each other share a body.",
       geometry: {
@@ -3559,6 +3746,85 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     ]
   };
 
+  // content/legends.json
+  var legends_default = {
+    "72": {
+      "1": { iast: "janma", en: "Birth", hi: "जन्म", gloss: { en: "Where every pawn begins. A few charts write utpatti, origin; no snake on the board reaches this square.", hi: "हर मोहरा यहीं से चलता है। कुछ चार्ट उत्पत्ति लिखते हैं। बोर्ड का कोई साँप यहाँ तक नहीं पहुँचता।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 1" },
+      "2": { iast: "māyā", en: "Illusion", hi: "माया", gloss: { en: "Phenomenal reality, the world as it appears. Egoity's snake at 55 ends here.", hi: "दृश्य जगत, संसार जैसा दिखता है। 55 पर अहंकार का साँप यहीं उतारता है।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 2" },
+      "3": { iast: "krodh", en: "Anger", hi: "क्रोध", gloss: { en: "The first row is the passions. The snake of darkness at 63 ends here.", hi: "पहली पंक्ति विकारों की है। 63 पर तामस का साँप यहीं उतारता है।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 3" },
+      "4": { iast: "lobh", en: "Greed", hi: "लोभ", gloss: { en: "One of the passions of the first row. Hatred's snake at 16 ends here.", hi: "पहली पंक्ति का एक विकार। 16 पर द्वेष का साँप यहीं उतारता है।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 4" },
+      "5": { iast: "bhūlok", en: "Earth", hi: "भूलोक", gloss: { en: "The first of the seven realms that rise up the centre column to Vaikuṇṭha. Two charts swap it with bhuvarlok above.", hi: "सात लोकों में पहला, जो बीच के स्तंभ से वैकुंठ तक चढ़ते हैं। दो चार्ट इसे ऊपर के भुवर्लोक से बदल देते हैं।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 5" },
+      "6": { iast: "moh", en: "Bewilderment", hi: "मोह", gloss: { en: "Delusion among the passions. Unrighteousness's snake at 29 ends here.", hi: "विकारों में मोह। 29 पर अधर्म का साँप यहीं उतारता है।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 6" },
+      "7": { iast: "mad", en: "Intoxication, pride", hi: "मद", gloss: { en: "Pride as a kind of drunkenness. Bad company's snake at 24 ends here.", hi: "नशे जैसा अहं। 24 पर कुसंग का साँप यहीं उतारता है।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 7" },
+      "8": { iast: "matsar", en: "Jealousy", hi: "मत्सर", gloss: { en: "Envy's snake at 12 ends here, one row down: jealousy is where envy falls.", hi: "12 पर ईर्ष्या का साँप यहीं उतारता है: ईर्ष्या मत्सर पर गिरती है।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 8" },
+      "9": { iast: "kām", en: "Desire", hi: "काम", gloss: { en: "The last of the passions in the first row. Ignorance's snake at 44 ends here.", hi: "पहली पंक्ति का अंतिम विकार। 44 पर अविद्या का साँप यहीं उतारता है।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 9" },
+      "10": { iast: "tap", en: "Austerity", hi: "तप", gloss: { en: "Its ladder rises to heaven at 23. On one chart it reaches 24 instead, and one has no ladder here.", hi: "इसकी सीढ़ी 23 पर स्वर्ग तक जाती है। एक चार्ट पर यह 24 तक जाती है, और एक पर यहाँ सीढ़ी नहीं है।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 10" },
+      "11": { iast: "gandharvlok", en: "Realm of the gandharvas", hi: "गंधर्वलोक", gloss: { en: "The celestial musicians' realm. With antarikṣ and nāglok beside it, a stretch where no snake or ladder starts.", hi: "आकाशी गायकों का लोक। अंतरिक्ष और नागलोक के साथ एक ऐसा हिस्सा जहाँ से कोई साँप या सीढ़ी नहीं चलती।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 11" },
+      "12": { iast: "īrṣyā", en: "Envy", hi: "ईर्ष्या", gloss: { en: "Its snake falls to jealousy at 8. One chart sends it to 7, another to 9.", hi: "इसका साँप 8 पर मत्सर तक गिराता है। एक चार्ट पर 7 तक, एक पर 9 तक।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 12" },
+      "13": { iast: "antarikṣ", en: "Intermediate space", hi: "अंतरिक्ष", gloss: { en: "The space between earth and heaven. Foolishness's snake at 61 ends here.", hi: "धरती और स्वर्ग के बीच का आकाश। 61 पर दुर्बुद्धि का साँप यहीं उतारता है।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 13" },
+      "14": { iast: "bhuvarlok", en: "Atmosphere", hi: "भुवर्लोक", gloss: { en: "The second realm, above earth on the centre column.", hi: "दूसरा लोक, बीच के स्तंभ पर पृथ्वी के ऊपर।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 14" },
+      "15": { iast: "nāglok", en: "Realm of the nāgas", hi: "नागलोक", gloss: { en: "The serpents' realm. One chart reads tāmlok, realm of darkness.", hi: "नागों का लोक। एक चार्ट तामलोक, अँधेरे का लोक, पढ़ता है।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 15" },
+      "16": { iast: "dveṣ", en: "Hatred", hi: "द्वेष", gloss: { en: "Its snake falls to greed at 4. Two charts send it to 3.", hi: "इसका साँप 4 पर लोभ तक गिराता है। दो चार्ट इसे 3 तक भेजते हैं।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 16" },
+      "17": { iast: "dayā", en: "Compassion", hi: "दया", gloss: { en: "Its ladder rises to Brahmā's realm at 69, beside Vaikuṇṭha. One chart sends it to 66, another to 32.", hi: "इसकी सीढ़ी 69 पर ब्रह्मलोक तक जाती है, वैकुंठ के पास। एक चार्ट पर 66 तक, एक पर 32 तक।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 17" },
+      "18": { iast: "harṣ", en: "Joy", hi: "हर्ष", gloss: { en: "Joy, among the squares of feeling. Two charts read ras, taste.", hi: "हर्ष, भावों के घरों में। दो चार्ट रस पढ़ते हैं।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 18" },
+      "19": { iast: "karmyog", en: "Discipline of action", hi: "कर्मयोग", gloss: { en: "The path of action. One chart reads ajñān, ignorance, in its place.", hi: "कर्म का मार्ग। एक चार्ट इसकी जगह अज्ञान पढ़ता है।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 19" },
+      "20": { iast: "dān", en: "Charity", hi: "दान", gloss: { en: "Its ladder rises to maharlok at 32. One chart sends it to 69.", hi: "इसकी सीढ़ी 32 पर महर्लोक तक जाती है। एक चार्ट पर 69 तक।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 20" },
+      "21": { iast: "samān", en: "Equal disposition", hi: "समान", gloss: { en: "Evenness of mind. The reading is uncertain: two charts may mean the digestive breath of the same name.", hi: "मन की समता। पाठ अनिश्चित है: दो चार्ट शायद इसी नाम का पाचन-वायु मानते हैं।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 21", uncertain: true },
+      "22": { iast: "dharm", en: "Religion", hi: "धर्म", gloss: { en: "Its ladder rises to good intellect at 60. One chart sends it to 59, one to 68.", hi: "इसकी सीढ़ी 60 पर सुबुद्धि तक जाती है। एक चार्ट पर 59 तक, एक पर 68 तक।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 22" },
+      "23": { iast: "svarglok", en: "Heaven", hi: "स्वर्गलोक", gloss: { en: "The third realm on the centre column. Austerity's ladder at 10 ends here.", hi: "बीच के स्तंभ पर तीसरा लोक। 10 पर तप की सीढ़ी यहीं पहुँचाती है।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 23" },
+      "24": { iast: "kusaṅg", en: "Bad company", hi: "कुसंग", gloss: { en: "Its snake falls to pride at 7. Some charts send it to 6.", hi: "इसका साँप 7 पर मद तक गिराता है। कुछ चार्ट इसे 6 तक भेजते हैं।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 24" },
+      "25": { iast: "susaṅg", en: "Good company", hi: "सुसंग", gloss: { en: "Association with the good. Some charts read satsaṅg.", hi: "सज्जनों की संगति। कुछ चार्ट सत्संग पढ़ते हैं।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 25" },
+      "26": { iast: "śok", en: "Sorrow", hi: "शोक", gloss: { en: "Grief. The charts spell it sok.", hi: "दुख। चार्ट इसे सोक लिखते हैं।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 26" },
+      "27": { iast: "paramārth", en: "Highest truth", hi: "परमार्थ", gloss: { en: "Its ladder rises to janlok at 41. Its top varies most across the charts, from 30 to 50.", hi: "इसकी सीढ़ी 41 पर जनलोक तक जाती है। चार्टों में इसका सिरा सबसे अधिक बदलता है, 30 से 50 तक।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 27" },
+      "28": { iast: "sudharm", en: "Righteousness", hi: "सुधर्म", gloss: { en: "Its ladder rises to taplok at 50. Some charts send it to 59.", hi: "इसकी सीढ़ी 50 पर तपलोक तक जाती है। कुछ चार्ट इसे 59 तक भेजते हैं।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 28" },
+      "29": { iast: "adharm", en: "Unrighteousness", hi: "अधर्म", gloss: { en: "Its snake falls to bewilderment at 6. Some charts send it to 7, one to 9.", hi: "इसका साँप 6 पर मोह तक गिराता है। कुछ चार्ट इसे 7 तक, एक 9 तक भेजता है।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 29" },
+      "30": { iast: "uttamgati", en: "Best course", hi: "उत्तमगति", gloss: { en: "The highest course a life can take.", hi: "जीवन की सबसे ऊँची गति।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 30" },
+      "31": { iast: "sparś", en: "Touch", hi: "स्पर्श", gloss: { en: "The first of the senses' objects in this row: touch, smell, taste, sound.", hi: "इस पंक्ति में इंद्रियों के विषयों में पहला: स्पर्श, गंध, रस, शब्द।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 31" },
+      "32": { iast: "maharlok", en: "Realm of majesty", hi: "महर्लोक", gloss: { en: "The fourth realm on the centre column. Charity's ladder at 20 ends here.", hi: "बीच के स्तंभ पर चौथा लोक। 20 पर दान की सीढ़ी यहीं पहुँचाती है।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 32" },
+      "33": { iast: "gandh", en: "Smell", hi: "गंध", gloss: { en: "One of the senses' objects.", hi: "इंद्रियों के विषयों में एक।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 33" },
+      "34": { iast: "ras", en: "Taste", hi: "रस", gloss: { en: "One of the senses' objects.", hi: "इंद्रियों के विषयों में एक।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 34" },
+      "35": { iast: "narak", en: "Hell", hi: "नरक", gloss: { en: "Injury's snake at 52 ends here: hiṃsā ripens as hell.", hi: "52 पर हिंसा का साँप यहीं उतारता है: हिंसा का फल नरक।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 35" },
+      "36": { iast: "śabd", en: "Sound", hi: "शब्द", gloss: { en: "The last of the senses' objects in this row.", hi: "इस पंक्ति में इंद्रियों के विषयों में अंतिम।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 36" },
+      "37": { iast: "jñān", en: "Knowledge", hi: "ज्ञान", gloss: { en: "Its ladder rises to bliss at 66, beside the realms of the gods. One chart sends it to 69, one to 68.", hi: "इसकी सीढ़ी 66 पर आनंद तक जाती है, देवों के लोकों के पास। एक चार्ट पर 69 तक, एक पर 68 तक।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 37" },
+      "38": { iast: "prāṇ", en: "Vital breath", hi: "प्राण", gloss: { en: "The first of the bodily winds in this row.", hi: "इस पंक्ति में शरीर के वायुओं में पहला।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 38" },
+      "39": { iast: "apān", en: "Downward breath", hi: "अपान", gloss: { en: "The bodily wind that disposes.", hi: "वह वायु जो नीचे की ओर बाहर निकालता है।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 39" },
+      "40": { iast: "vyān", en: "Circulating breath", hi: "व्यान", gloss: { en: "The bodily wind that circulates.", hi: "शरीर में फैलने वाला वायु।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 40" },
+      "41": { iast: "janlok", en: "Realm of men", hi: "जनलोक", gloss: { en: "The fifth realm on the centre column. Highest truth's ladder at 27 ends here.", hi: "बीच के स्तंभ पर पाँचवाँ लोक। 27 पर परमार्थ की सीढ़ी यहीं पहुँचाती है।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 41" },
+      "42": { iast: "agni", en: "Fire", hi: "अग्नि", gloss: { en: "The digestive fire.", hi: "जठराग्नि, पाचन की आग।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 42" },
+      "43": { iast: "manuṣyajanma", en: "Human birth", hi: "मनुष्यजन्म", gloss: { en: "Birth as a human being.", hi: "मनुष्य के रूप में जन्म।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 43" },
+      "44": { iast: "avidyā", en: "Ignorance", hi: "अविद्या", gloss: { en: "Its snake falls to desire at 9. One chart sends it to 6.", hi: "इसका साँप 9 पर काम तक गिराता है। एक चार्ट पर 6 तक।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 44" },
+      "45": { iast: "suvidyā", en: "Right knowledge", hi: "सुविद्या", gloss: { en: "Its ladder rises to Śiva's realm at 67, beside Vaikuṇṭha. One chart sends it to 47.", hi: "इसकी सीढ़ी 67 पर शिवलोक तक जाती है, वैकुंठ के पास। एक चार्ट पर 47 तक।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 45" },
+      "46": { iast: "vivek", en: "Discrimination", hi: "विवेक", gloss: { en: "Discriminating judgment. Its ladder rises to happiness at 62. One chart sends it to 66.", hi: "विवेक, सही-गलत की पहचान। इसकी सीढ़ी 62 पर सुख तक जाती है। एक चार्ट पर 66 तक।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 46" },
+      "47": { iast: "sarasvatī", en: "Sarasvatī", hi: "सरस्वती", gloss: { en: "A sacred river, and an energy channel of the subtle body: with Yamunā and Gaṅgā beside it, the three rivers.", hi: "एक पवित्र नदी, और सूक्ष्म शरीर की एक नाड़ी: पास में यमुना और गंगा के साथ, तीन नदियाँ।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 47" },
+      "48": { iast: "yamunā", en: "Yamunā", hi: "यमुना", gloss: { en: "A sacred river, and an energy channel of the subtle body.", hi: "एक पवित्र नदी, और सूक्ष्म शरीर की एक नाड़ी।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 48" },
+      "49": { iast: "gaṅgā", en: "Gaṅgā", hi: "गंगा", gloss: { en: "A sacred river, and an energy channel of the subtle body.", hi: "एक पवित्र नदी, और सूक्ष्म शरीर की एक नाड़ी।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 49" },
+      "50": { iast: "taplok", en: "Realm of austerity", hi: "तपलोक", gloss: { en: "The sixth realm on the centre column. Righteousness's ladder at 28 ends here.", hi: "बीच के स्तंभ पर छठा लोक। 28 पर सुधर्म की सीढ़ी यहीं पहुँचाती है।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 50" },
+      "51": { iast: "pṛthvī", en: "Earth", hi: "पृथ्वी", gloss: { en: "The element earth. The snake from the last square, 72, ends here.", hi: "पृथ्वी तत्त्व। अंतिम घर 72 का साँप यहीं उतारता है।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 51" },
+      "52": { iast: "hiṃsā", en: "Injury", hi: "हिंसा", gloss: { en: "Its snake falls to hell at 35. Some charts send it to 34.", hi: "इसका साँप 35 पर नरक तक गिराता है। कुछ चार्ट इसे 34 तक भेजते हैं।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 52" },
+      "53": { iast: "jal", en: "Water", hi: "जल", gloss: { en: "The element water.", hi: "जल तत्त्व।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 53" },
+      "54": { iast: "bhakti", en: "Devotion", hi: "भक्ति", gloss: { en: "Its ladder rises straight to Vaikuṇṭha at 68, the goal. Some charts send it to a square above the grid instead.", hi: "इसकी सीढ़ी सीधे 68 पर वैकुंठ तक जाती है, जो लक्ष्य है। कुछ चार्ट इसे ग्रिड के ऊपर के घर तक भेजते हैं।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 54" },
+      "55": { iast: "ahaṃkār", en: "Egoity", hi: "अहंकार", gloss: { en: "Its snake falls to illusion at 2, almost the whole board. One chart sends it to 1, another to 3.", hi: "इसका साँप 2 पर माया तक गिराता है, लगभग पूरा बोर्ड। एक चार्ट पर 1 तक, एक पर 3 तक।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 55" },
+      "56": { iast: "ākāś", en: "Space", hi: "आकाश", gloss: { en: "The element space.", hi: "आकाश तत्त्व।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 56" },
+      "57": { iast: "vāyu", en: "Air", hi: "वायु", gloss: { en: "The element air.", hi: "वायु तत्त्व।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 57" },
+      "58": { iast: "tej", en: "Fire", hi: "तेज", gloss: { en: "The element fire.", hi: "तेज, अग्नि तत्त्व।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 58" },
+      "59": { iast: "satyalok", en: "Realm of truth", hi: "सत्यलोक", gloss: { en: "The seventh realm on the centre column, below Vaikuṇṭha.", hi: "बीच के स्तंभ पर सातवाँ लोक, वैकुंठ के नीचे।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 59" },
+      "60": { iast: "subuddhi", en: "Good intellect", hi: "सुबुद्धि", gloss: { en: "Religion's ladder at 22 ends here.", hi: "22 पर धर्म की सीढ़ी यहीं पहुँचाती है।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 60" },
+      "61": { iast: "durbuddhi", en: "Foolishness", hi: "दुर्बुद्धि", gloss: { en: "Its snake falls to intermediate space at 13. The charts disagree more here than anywhere: some send it to 3, 5, 6 or 24.", hi: "इसका साँप 13 पर अंतरिक्ष तक गिराता है। यहाँ चार्ट सबसे अधिक असहमत हैं: कुछ इसे 3, 5, 6 या 24 तक भेजते हैं।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 61" },
+      "62": { iast: "sukh", en: "Happiness", hi: "सुख", gloss: { en: "Discrimination's ladder at 46 ends here.", hi: "46 पर विवेक की सीढ़ी यहीं पहुँचाती है।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 62" },
+      "63": { iast: "tāmas", en: "Darkness", hi: "तामस", gloss: { en: "Darkness, ignorance. Its snake falls to anger at 3. Some charts send it to 13, and single charts elsewhere.", hi: "अँधेरा, अज्ञान। इसका साँप 3 पर क्रोध तक गिराता है। कुछ चार्ट इसे 13 तक भेजते हैं, और इक्का-दुक्का कहीं और।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 63" },
+      "64": { iast: "prakṛti", en: "Primordial matter", hi: "प्रकृति", gloss: { en: "Matter, the source of the world in Sāṃkhya.", hi: "प्रकृति, सांख्य में संसार का मूल।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 64" },
+      "65": { iast: "durati", en: "Hidden, distant", hi: "दुरति", gloss: { en: "The reading is uncertain: the charts write durat or durati, perhaps from dūr, far. Nepalese charts read vaivasvat here.", hi: "पाठ अनिश्चित है: चार्ट दुरत या दुरति लिखते हैं, शायद दूर से। नेपाली चार्ट यहाँ वैवस्वत पढ़ते हैं।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 65", uncertain: true },
+      "66": { iast: "ānand", en: "Bliss", hi: "आनंद", gloss: { en: "The realm of bliss. Knowledge's ladder at 37 ends here.", hi: "आनंद का लोक। 37 पर ज्ञान की सीढ़ी यहीं पहुँचाती है।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 66" },
+      "67": { iast: "śivlok", en: "Śiva's realm", hi: "शिवलोक", gloss: { en: "Beside Vaikuṇṭha. Right knowledge's ladder at 45 ends here. Some charts read rudralok.", hi: "वैकुंठ के पास। 45 पर सुविद्या की सीढ़ी यहीं पहुँचाती है। कुछ चार्ट रुद्रलोक पढ़ते हैं।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 67" },
+      "68": { iast: "vaikuṇṭh", en: "Vaikuṇṭha", hi: "वैकुंठ", gloss: { en: "Viṣṇu's heaven, at the top of the centre column: the goal. The first pawn to land here wins.", hi: "विष्णु का धाम, बीच के स्तंभ के शिखर पर: लक्ष्य। जो मोहरा पहले यहाँ पहुँचे, वह जीतता है।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 68" },
+      "69": { iast: "brahmlok", en: "Brahmā's realm", hi: "ब्रह्मलोक", gloss: { en: "Beside Vaikuṇṭha. Compassion's ladder at 17 ends here.", hi: "वैकुंठ के पास। 17 पर दया की सीढ़ी यहीं पहुँचाती है।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 69" },
+      "70": { iast: "satoguṇ", en: "Quality of goodness", hi: "सतोगुण", gloss: { en: "The three qualities stand past the goal: a pawn that overshoots Vaikuṇṭha walks among them.", hi: "तीनों गुण लक्ष्य के आगे खड़े हैं: वैकुंठ से आगे निकला मोहरा इन्हीं के बीच चलता है।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 70" },
+      "71": { iast: "rajoguṇ", en: "Quality of activity", hi: "रजोगुण", gloss: { en: "The second of the three qualities.", hi: "तीन गुणों में दूसरा।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 71" },
+      "72": { iast: "tamoguṇ", en: "Quality of inertia", hi: "तमोगुण", gloss: { en: "The last square. Its snake drops a pawn that overreaches Vaikuṇṭha back to earth at 51. One chart sends it to 33.", hi: "अंतिम घर। इसका साँप वैकुंठ से आगे निकले मोहरे को 51 पर पृथ्वी तक लौटा देता है। एक चार्ट पर 33 तक।" }, src: "Schmidt-Madsen 2019, App. D1, sq. 72" }
+    },
+    about: "The legends of the historical boards (REDESIGN.md Phase 18), square by square, from the critical readings in Schmidt-Madsen 2019, Appendix D. iast is the reading the charts agree on; en and hi translate it; the gloss says what the square is, and where single charts disagree. uncertain marks a reading the thesis itself is unsure of."
+  };
+
   // src/geometry.js
   function layoutOf(geometry) {
     const at2 = {};
@@ -3599,6 +3865,15 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var BOARD_ID = "110";
   var LAYOUT = layoutOf(BOARD.geometry);
   var COLS = LAYOUT.cols;
+  var LEGENDS = legends_default;
+  var legendOf = (n) => LEGENDS[BOARD_ID]?.[n] ?? null;
+  function clothSquares(b, legend = {}) {
+    const r = b.rules, sq = (n) => ({ ...legend[n], skt: legend[n]?.iast ?? "" });
+    const ends = (links = {}) => Object.fromEntries(Object.entries(links).map(([n, to]) => [n, { ...sq(n), to }]));
+    const SNAKES2 = ends(r.snakes), LADDERS2 = ends(r.ladders);
+    const SQ2 = Object.fromEntries(Object.keys(legend).filter((n) => !SNAKES2[n] && !LADDERS2[n] && +n !== r.goal).map((n) => [n, sq(n)]));
+    return { GOAL: r.goal, TOP: r.top, SNAKES: SNAKES2, LADDERS: LADDERS2, SQ: SQ2, MOKSHA: sq(r.goal) };
+  }
   var watchers = [];
   var onBoard = (f2) => {
     watchers.push(f2);
@@ -3606,7 +3881,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   function useBoard(id = "110") {
     if (!Object.hasOwn(boards_default, id)) id = "110";
     if (id === BOARD_ID) return BOARD;
-    const b = boards_default[id], own = id === "110" ? squares_default : b.squares;
+    const b = boards_default[id], own = id === "110" ? squares_default : clothSquares(b, LEGENDS[id]);
     ({ GOAL, TOP, ROWS, ASHRAMAS, LADDERS, SNAKES, HEAVEN, MOKSHA, FALL } = { ASHRAMAS: [], HEAVEN: {}, MOKSHA: null, FALL: null, ...own });
     SQ = own.SQ ?? {};
     BOARD = b;
@@ -4731,12 +5006,79 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     return { v: STORE_V, souls: Object.fromEntries(souls.slice(-KEEP_SOULS)) };
   }
 
-  // src/engine/turn.js
+  // src/engine/dice.js
+  var COWRIES = 7;
+  var COWRIE_UP = 0.45;
+  var STICK = [1, 2, 5, 6];
+  function throwOf(rng, kind = "die") {
+    if (kind === "cowries") {
+      const up = Array.from({ length: COWRIES }, () => next(rng) < COWRIE_UP);
+      return { v: up.filter(Boolean).length, up };
+    }
+    if (kind === "stick") return { v: STICK[Math.floor(next(rng) * STICK.length)] };
+    return { v: die(rng) };
+  }
+
+  // src/engine/cloth.js
   var TUMBLE = 7;
+  var isCloth = () => BOARD.rules?.engine === "cloth";
+  var randOf = (state) => state.rules?.rand && state.rules.rand !== "own" ? state.rules.rand : BOARD.rules?.rand ?? "die";
+  function setup(state) {
+    state.log = [entry2("cNew")];
+    for (const p of state.players) Object.assign(p, { pos: 1, life: [1], told: [null] });
+  }
+  function rollDice(state) {
+    const kind = randOf(state);
+    for (let i = 0; i < TUMBLE; i++) throwOf(state.rng, kind);
+    const t2 = throwOf(state.rng, kind);
+    state.shells = t2.up ?? null;
+    return [t2.v];
+  }
+  var movesFor = (state, dice) => [dice[0]];
+  function walk(from, v) {
+    const to = Math.min(from + v, TOP), path = [];
+    for (let n = from; n < to; ) path.push(++n);
+    return { path, past: from + v > TOP };
+  }
+  var entry2 = (k, v = {}, kind = "", who2 = null) => ({ k, v, kind, who: who2 });
+  function planTurn(state, v, dice = [v]) {
+    const idx = state.turn, p = state.players[idx], from = p.pos, pre = [], after2 = [], end = [];
+    const base = { idx, v, dice, spare: [], sit: false, from, jump: null, win: false, died: false, again: false, told: [], cost: 0, pre, after: after2, end };
+    if (!v) {
+      after2.push(entry2("cZero", { pos: from, sq: from }, "", idx));
+      return { ...base, stay: true, why: "zero", path: [], target: from, final: from };
+    }
+    const { path, past: past2 } = walk(from, v), target = path.at(-1);
+    const passed = path.slice(0, -1);
+    if (passed.length) after2.push(entry2("lPassed", { passed }, "passed", idx));
+    if (past2) after2.push(entry2("cPast", { v, pos: target, sq: target }, "", idx));
+    const s = SNAKES[target], l = LADDERS[target];
+    const jump = s ? { kind: "snake", to: s.to } : l ? { kind: "ladder", to: l.to } : null;
+    const final = jump ? jump.to : target;
+    if (jump) after2.push(entry2(s ? "cSnake" : "cLadder", { v, pos: target, to: jump.to, sq: target }, s ? "snake" : "ladder", idx));
+    else if (!past2) after2.push(entry2("cMove", { v, pos: target, sq: target }, target === GOAL ? "heaven" : "", idx));
+    const win = final === GOAL;
+    if (win) end.push(entry2("cWin", { pos: GOAL, sq: GOAL }, "heaven", idx));
+    return { ...base, path, target, final, jump, win, told: [null, ...jump ? [null] : []] };
+  }
+  function endTurn(state, plan, addLog2) {
+    const p = state.players[plan.idx];
+    p.pos = plan.final;
+    if (!plan.stay) (p.life ||= []).push(plan.target, ...plan.jump ? [plan.jump.to] : []);
+    if (plan.win) {
+      p.won = "cloth";
+      state.winner = plan.idx;
+    } else state.turn = (plan.idx + 1) % state.players.length;
+    state.over = state.winner != null;
+    plan.end.forEach((e) => addLog2(state, e));
+  }
+
+  // src/engine/turn.js
+  var TUMBLE2 = 7;
   var ENDGAME = 94;
-  var diceFor = (p) => p.pos >= ENDGAME ? 2 : 1;
-  function rollDice(rng, n) {
-    for (let i = 0; i < TUMBLE; i++) for (let k = 0; k < n; k++) die(rng);
+  var diceFor = (p) => !isCloth() && p.pos >= ENDGAME ? 2 : 1;
+  function rollDice2(rng, n) {
+    for (let i = 0; i < TUMBLE2; i++) for (let k = 0; k < n; k++) die(rng);
     return Array.from({ length: n }, () => die(rng));
   }
   function toldOn(n, face, dice = [face]) {
@@ -4753,17 +5095,19 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const law = lawOf(state, i);
     return { bound: law.binds(state, i), forgive: (s, n) => law.forgive(state, i, s, n) };
   };
-  function movesFor(state, dice) {
+  function movesFor2(state, dice) {
+    if (isCloth()) return movesFor(state, dice);
     const p = state.players[state.turn], out = [...new Set(dice)].filter((v) => p.pos + v <= TOP);
     if (dice.length > 1 && canSit(p)) out.push(0);
     return lawOf(state).movesFor(state, dice, out);
   }
   function moveFor(state, dice) {
-    const moves = movesFor(state, dice);
+    if (isCloth()) return movesFor(state, dice)[0];
+    const moves = movesFor2(state, dice);
     if (!moves.length) return null;
     const own = lawOf(state).prefer(state, moves, dice);
     if (own != null) return own;
-    const plans = moves.filter(Boolean).map((v) => planTurn(state, v, dice));
+    const plans = moves.filter(Boolean).map((v) => planTurn2(state, v, dice));
     const to = (pl) => pl.reckon?.from ?? pl.final;
     const win = plans.find((pl) => pl.win);
     if (win) return win.v;
@@ -4835,6 +5179,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     state.players.forEach((p, i) => {
       if (p.law && !isDefault(lawOf(state, i))) addLog(state, lawEntry(state, i));
     });
+    if (isCloth()) setup(state);
     return state;
   }
   var lawEntry = (state, i) => entry("lLawOf", { law: lawOf(state, i).id }, "", i);
@@ -4850,7 +5195,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     state.log.unshift(e);
     state.log = state.log.slice(0, 80);
   }
-  function planTurn(state, v, dice = [v]) {
+  function planTurn2(state, v, dice = [v]) {
+    if (isCloth()) return planTurn(state, v, dice);
     const idx = state.turn, p = state.players[idx], from = p.pos, law = lawOf(state, idx);
     const pre = [], after2 = [], end = [], path = [];
     if (spentOf(p) && law.merit(state, idx)) {
@@ -5006,7 +5352,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     plan.again = false;
     return plan;
   }
-  function endTurn(state, plan) {
+  function endTurn2(state, plan) {
+    if (isCloth()) return endTurn(state, plan, addLog);
     const p = state.players[plan.idx];
     p.pos = plan.final;
     if (inHeaven(plan.from) && !plan.spent) p.heavenTurns = (p.heavenTurns ?? 0) + 1;
@@ -5104,14 +5451,14 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     for (const k of Object.keys(p)) delete p[k];
     Object.assign(p, next2);
   }
-  function playTurn(state, roll2 = spentOf(state.players[state.turn]) || practisesNow(state) ? [] : rollDice(state.rng, diceFor(state.players[state.turn])), pick3 = moveFor, choose2 = (s, sit) => lawOf(s).choose(s, sit)) {
-    const dice = typeof roll2 === "number" ? [roll2] : roll2, one = dice.length > 1 ? null : movesFor(state, dice);
+  function playTurn(state, roll2 = isCloth() ? rollDice(state) : spentOf(state.players[state.turn]) || practisesNow(state) ? [] : rollDice2(state.rng, diceFor(state.players[state.turn])), pick3 = moveFor, choose2 = (s, sit) => lawOf(s).choose(s, sit)) {
+    const dice = typeof roll2 === "number" ? [roll2] : roll2, one = dice.length > 1 ? null : movesFor2(state, dice);
     const v = !dice.length && !spentOf(state.players[state.turn]) ? 0 : !one ? pick3(state, dice) : one.length > 1 ? pick3(state, dice) : one[0] ?? dice[0];
     if (dice.length || v == null) state.last = v || dice[0];
-    let plan = planTurn(state, v, dice);
+    let plan = planTurn2(state, v, dice);
     if (plan.situation) plan = resolveChoice(state, plan, choose2(state, plan.situation));
     [...plan.pre, ...plan.after].forEach((e) => addLog(state, e));
-    endTurn(state, plan);
+    endTurn2(state, plan);
     return plan;
   }
 
@@ -5261,7 +5608,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var GAME = "mp-game";
   var GAME_V = 1;
   var gameOk = (s) => !!s && Array.isArray(s.players) && s.players.length > 0 && s.players.every((p) => p && typeof p === "object" && Array.isArray(p.life)) && !!s.rng && Number.isFinite(s.rng.s) && Number.isFinite(s.rng.seed) && Array.isArray(s.log) && Number.isInteger(s.turn) && !s.over;
-  var saveGame = (setup, state) => write(GAME, state && !state.over ? { v: GAME_V, setup, state } : null);
+  var saveGame = (setup2, state) => write(GAME, state && !state.over ? { v: GAME_V, setup: setup2, state } : null);
   function loadGame() {
     const g3 = read(GAME, null);
     return g3?.v === GAME_V && g3.setup && Array.isArray(g3.setup.rows) && gameOk(g3.state) ? g3 : null;
@@ -5407,28 +5754,54 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     return l === "hi" ? a[2] : a[1];
   };
   function squareName(n) {
+    if (isCloth()) {
+      const g3 = legendOf(n);
+      return g3 ? L(g3.en, g3.hi) : "";
+    }
     if (HEAVEN[n]) return L(HEAVEN[n].en, HEAVEN[n].hi);
     const sl = SNAKES[n] || LADDERS[n];
     if (sl) return L(sl.en, sl.hi);
     if (n === GOAL) return t("moksha");
     return SQ[n] ? L(SQ[n].en, SQ[n].hi) : "";
   }
-  var vignette = (n) => n !== GOAL && !!document.getElementById(`sq-${n}`)?.classList.contains("vg");
+  var vignette = (n) => !isCloth() && n !== GOAL && !!document.getElementById(`sq-${n}`)?.classList.contains("vg");
   function labelHtml(n) {
-    const numEl = `<span class="n">${num(n)}</span>`, vg = vignette(n);
+    const numEl = `<span class="n">${num(n)}</span>`;
+    if (isCloth()) return numEl + `<span class="nm">${esc(squareName(n))}</span>`;
+    const vg = vignette(n);
     if (n === GOAL) return numEl + `<span class="om">ॐ</span><span class="dv">${t("moksha")}</span>`;
     if (HEAVEN[n]) return numEl + (vg ? "" : `<span class="ic">${art(`sq-${n}`, HEAVEN[n].ic)}</span>`) + `<span class="dv">${L(HEAVEN[n].en, HEAVEN[n].hi)}</span>`;
     const sl = SNAKES[n] || LADDERS[n];
     if (sl) return numEl + (vg ? "" : `<span class="ic">${art(`sq-${n}`, sl.ic)}</span>`) + `<span class="nm">${L(sl.en, sl.hi)}</span>`;
     return numEl;
   }
+  var TRIMURTI = { "-1": "trident", 0: "discus", 1: "lotus" };
+  function emblemOf(kind, x) {
+    const cx = x + 5, cy = 5.7;
+    if (kind === "trident") return `<path class="emb" d="M${cx},8.4 V3.4 M${cx - 1.5},4.1 Q${cx - 1.5},6 ${cx},6 Q${cx + 1.5},6 ${cx + 1.5},4.1 M${cx - 0.5},3.9 L${cx},3 L${cx + 0.5},3.9"/>`;
+    if (kind === "discus") return `<circle class="emb" cx="${cx}" cy="${cy}" r="1.7"/><circle class="emb dot" cx="${cx}" cy="${cy}" r="0.45"/>` + Array.from({ length: 8 }, (_, i) => {
+      const a = i * Math.PI / 4, c = Math.cos(a), s = Math.sin(a);
+      return `<path class="emb" d="M${+(cx + c * 0.45).toFixed(2)},${+(cy + s * 0.45).toFixed(2)} L${+(cx + c * 1.7).toFixed(2)},${+(cy + s * 1.7).toFixed(2)}"/>`;
+    }).join("");
+    if (kind === "lotus") return [-2, -1, 0, 1, 2].map((k) => `<ellipse class="emb petal" cx="${cx}" cy="${cy + 0.2}" rx="0.62" ry="1.9" transform="rotate(${k * 28} ${cx} ${cy + 1.9})"/>`).join("") + `<path class="emb" d="M${cx - 2},${cy + 2.1} H${cx + 2}"/>`;
+    return "";
+  }
+  var archOf = (x, emblem) => `<path class="arch" d="M${x + 0.4},9 V1.6 H${x + 9.6} V9 Z"/><path class="niche" d="M${x + 1.4},9 V5.4 Q${x + 1.4},3.6 ${x + 2.6},3.4 Q${x + 3},2.2 ${x + 4},2.3 Q${x + 5},1 ${x + 6},2.3 Q${x + 7},2.2 ${x + 7.4},3.4 Q${x + 8.6},3.6 ${x + 8.6},5.4 V9 Z"/>` + (emblem ? emblemOf(emblem, x) : "");
   function superstructure() {
     const el3 = $("vimana");
     if (!el3) return;
-    el3.hidden = BOARD.superstructure !== "vimana";
+    el3.hidden = !["vimana", "arches"].includes(BOARD.superstructure);
     if (el3.hidden) return;
     const top = ROWS - 1, f2 = (n) => +n.toFixed(2);
     let d = "";
+    if (BOARD.superstructure === "arches") {
+      for (let c = 0; c < COLS; c++) {
+        const n = LAYOUT.cell[`${c},${top}`];
+        if (n != null) d += archOf(c * 10, BOARD.panel === "trimurti" ? TRIMURTI[n - GOAL] : null);
+      }
+      el3.innerHTML = `<svg viewBox="0 0 ${COLS * 10} 9" preserveAspectRatio="none">${d}</svg>`;
+      return;
+    }
     for (let c = 0; c < COLS; c++) {
       const n = LAYOUT.cell[`${c},${top}`], x = c * 10;
       if (n == null) continue;
@@ -5461,7 +5834,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         el3.className = "cell" + (heaven ? " heaven" : "") + (n === GOAL ? " goal" : "");
         if (!heaven) el3.style.background = `var(--b-${groundToken(n)})`;
         if (vignette(n)) el3.innerHTML = `<span class="pic vg">${art(`sq-${n}`, "", "spr vg")}</span>`;
-        else if (SQ[n]) el3.innerHTML = `<span class="pic">${art(`sq-${n}`, SQ[n].ic)}</span>`;
+        else if (SQ[n] && !isCloth()) el3.innerHTML = `<span class="pic">${art(`sq-${n}`, SQ[n].ic)}</span>`;
         el3.style.gridArea = `${ROWS - r} / ${c + 1}`;
         cells.appendChild(el3);
         const lab = document.createElement("div");
@@ -5720,7 +6093,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     S = W2 / COLS;
     for (const [a, l] of Object.entries(LADDERS)) drawLadder(+a, l.to);
     for (const [h, s] of Object.entries(SNAKES)) drawSnake(+h, s.to);
-    drawSiva();
+    if (!isCloth()) drawSiva();
     drawAge();
   }
 
@@ -6285,7 +6658,9 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   }
 
   // src/render/sprites.js
+  var CLOTH_STAGE = 2;
   function stageOf2(p) {
+    if (isCloth()) return CLOTH_STAGE;
     const pos = typeof p === "number" ? p : p.pos;
     if (pos > 100) return STAGES.length - 1;
     const years = Math.max(typeof p === "number" ? 0 : p.years ?? 0, squareOf(Math.max(pos, 1)).age);
@@ -6388,6 +6763,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   };
   var ENDED = { ledger: "deadLedger", door: "deadDoor" };
   function stageLine(pl) {
+    if (isCloth()) return esc(squareName(pl.pos));
     if (pl.fell) return t("fell");
     if (pl.pos === 0) return t("notBorn");
     if (pl.dead) return fill(t(ENDED[pl.death?.by] ?? "dead"), { gender: pl.gender });
@@ -6408,7 +6784,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       <span><span class="pname">${esc(pname(pl))}</span><span class="kind">${pl.type === "cpu" ? t("cpu") : ""}</span>
         <span class="stage">${stageLine(pl)}</span>
         ${selfLine(pl) && !gone(pl) ? `<span class="self">${esc(selfLine(pl))}</span>` : ""}${lawLine(pl, i)}</span>
-      <span class="pos">${pl.fell ? "" : pl.pos === 0 ? t("start") : pl.pos === GOAL ? t("moksha") : t("square", { n: pl.pos })}</span>
+      <span class="pos">${pl.fell ? "" : pl.pos === 0 ? t("start") : pl.pos === GOAL && !isCloth() ? t("moksha") : t("square", { n: pl.pos })}</span>
     </li>`).join("");
     renderLedger();
   }
@@ -7440,7 +7816,36 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const gloss = s && (square ? deep("school") && (firstTime || deep("scholar")) : firstTime || deep("scholar"));
     return `<p class="srcline">` + (sid ? `<a class="src" href="#codex/${sid}" data-entry="${sid}">${esc(srcIn(l, src))}</a>` : `<span class="src">${esc(srcIn(l, src))}</span>`) + (gloss ? `<span class="gloss${square ? " more-only" : ""}">${esc(pick2(s.gloss, l))}</span>` : "") + `</p>`;
   }
+  function legendHtml(n, l) {
+    const T2 = (k, v) => tIn(l, k, v), g3 = legendOf(n) ?? {}, o = other(l), up = LADDERS[n], down = SNAKES[n];
+    const kind = n === GOAL ? "goal" : up ? "virtue" : down ? "vice" : "story";
+    let body = `<h2 id="leafTitle">${esc(g3[l] || T2("legendSq", { n: numIn(l, n) }))}</h2>`;
+    const alt = [g3[o], g3.iast].filter(Boolean).join(" · ");
+    if (alt) body += `<p class="alt" lang="${o}">${esc(alt)}</p>`;
+    const unsure = g3.uncertain ? texts(l, tIn("en", "legendUncertain"), tIn("hi", "legendUncertain"), "remedy") : "";
+    const gloss = g3.gloss && { en: g3.gloss.en, hi: numIn("hi", g3.gloss.hi) };
+    body += `<div class="story">${bi(l, gloss, "moment")}${unsure}</div>` + srcLine(g3.src, l, []);
+    return {
+      kind,
+      met: [],
+      metMore: [],
+      html: frame2(l, {
+        kind,
+        eb: T2("legendOf"),
+        big: "",
+        sqn: numIn(l, n),
+        age: "",
+        body,
+        foot: up ? T2("ladderTo", { n: up.to }) : down ? T2("snakeTo", { n: down.to }) : "",
+        prev: n > 1 ? numIn(l, n - 1) : null,
+        next: n < TOP ? numIn(l, n + 1) : null,
+        prevLabel: T2("prevSq"),
+        nextLabel: T2("nextSq")
+      })
+    };
+  }
   function squareHtml(n, l) {
+    if (isCloth()) return legendHtml(n, l);
     const T2 = (k, v) => tIn(l, k, v), info = squareInfo(n, l), r = READINGS[n] || {};
     const src = srcOfSquare(n), met = [];
     const pending = pendingOn(n);
@@ -7897,11 +8302,11 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       paint2();
       return;
     }
-    const entry2 = e.target.closest("[data-entry]")?.dataset.entry;
-    if (entry2) {
+    const entry3 = e.target.closest("[data-entry]")?.dataset.entry;
+    if (entry3) {
       e.preventDefault();
       if (view?.type === "square") backTo = view.n;
-      view = { type: "entry", id: entry2 };
+      view = { type: "entry", id: entry3 };
       paint2();
       turnPage(1);
       return;
@@ -7922,6 +8327,10 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     }
   });
   function momentLine(n, who2, l, told, ego = null) {
+    if (isCloth()) {
+      const g3 = legendOf(n);
+      return { title: g3?.[l] ?? "", text: numIn(l, g3?.gloss?.[l] ?? "") };
+    }
     const keep2 = subject;
     subject = who2;
     try {
@@ -8031,16 +8440,17 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const p = G.state.players[who2], own = p.type === "human", k = lost ? lawOf(G.state, who2).veiled ? "SixSign" : "SixLost" : "Six";
     return fill(tIn(l, (own ? "line" : "lineCpu") + k, { name: pnameIn(p, l) }), { gender: p.gender });
   }
-  var landStay = (who2, n) => {
-    last = { n, who: who2, stay: true };
+  var landStay = (who2, n, why = null) => {
+    last = { n, who: who2, stay: true, why };
     drawLanded();
   };
   var landReborn = (who2, was) => {
     last = { n: 1, who: who2, was };
     drawLanded();
   };
-  function bornLine(l, { who: who2, stay, was }) {
+  function bornLine(l, { who: who2, stay, was, why }) {
     const p = G.state.players[who2], w = { name: pnameIn(p, l), gender: p.gender };
+    if (stay && why === "zero") return { title: tIn(l, "cZeroTitle"), text: fill(tIn(l, "cZeroLine", w), w) };
     if (stay) return { title: tIn(l, "stayTitle"), text: fill(tIn(l, "heavenStay", w), w) };
     const q2 = p.past?.[was];
     return { title: tIn(l, "bornAgainHead"), text: fill(tIn(l, "bornAgainLine", { name: w.name, was: q2 ? pnameIn(q2, l) : "" }), w) };
@@ -8490,7 +8900,31 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
   var past = null;
   var TABS = ["book", "path", "mirror"];
   var TAB_KEY = { book: "lifeBook", path: "lifePath", mirror: "lifeMirror" };
-  var lifeText2 = (state, i, l = lang) => lifeText(state, i, l);
+  var lifeText2 = (state, i, l = lang) => isCloth() ? clothText(state, i, l) : lifeText(state, i, l);
+  var clothRows = (state, i, l) => (state.players[i].life ?? []).map((n) => ({ n: numIn(l, n), sq: legendOf(n)?.[l] ?? "" }));
+  var clothText = (state, i, l) => [tIn(l, "pathOf", { name: pnameIn(state.players[i], l) }), tIn(l, "pathIntro"), "", ...clothRows(state, i, l).map((r) => `${r.n}  ${r.sq}`)].join("\n");
+  function paintCloth() {
+    const state = G.state, l = lang, T2 = (k, v) => tIn(l, k, v);
+    const tabs = state.players.length > 1 ? `<div class="life-who" role="group" aria-label="${T2("lifeWhose")}">` + state.players.map((p, i) => `<button type="button" data-who="${i}" aria-pressed="${i === whose}"><span class="dot" style="background:${COLORS[p.color]}"></span>${esc(pnameIn(p, l))}</button>`).join("") + `</div>` : "";
+    leaf3.innerHTML = `
+    <header class="leaf-top">
+      <span class="eb">${T2("readPath")}</span>
+      <div class="leaf-tools"><button type="button" class="x" data-act="close" aria-label="${T2("close")}" autofocus>×</button></div>
+    </header>
+    ${tabs}
+    <div class="leaf-main life-main">
+      <div class="leaf-text" lang="${l}">
+        <h2 id="lifeTitle">${esc(T2("pathOf", { name: pnameIn(state.players[whose], l) }))}</h2>
+        <p class="life-open">${esc(T2("pathIntro"))}</p>
+        <ol class="life-path">${clothRows(state, whose, l).map((r) => `<li><span class="pa">${esc(r.n)}</span><span class="ps">${esc(r.sq)}</span></li>`).join("")}</ol>
+      </div>
+    </div>
+    <footer class="leaf-foot">
+      <button type="button" class="ghost" data-act="copy">${T2("pathCopy")}</button>
+      <span class="ft">${numIn(l, state.rng.seed)}</span>
+      <button type="button" class="ghost" data-act="save">${T2("lifeSave")}</button>
+    </footer>`;
+  }
   function panel(game, l, T2) {
     const state = pastOf(game, whose, past);
     if (tab === "path") {
@@ -8511,6 +8945,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
         ${fates.length ? `<p class="life-fates">${esc(fates.join(" "))}</p>` : ""}`;
   }
   function paint3(focusTab = false) {
+    if (isCloth()) return paintCloth();
     const state = G.state, l = lang, T2 = (k, v) => tIn(l, k, v), seat = state.players[whose];
     const { title } = lifeOf(pastOf(state, whose, past), whose, l);
     const tabs = state.players.length > 1 ? `<div class="life-who" role="group" aria-label="${T2("lifeWhose")}">` + state.players.map((p, i) => `<button type="button" data-who="${i}" aria-pressed="${i === whose}"><span class="dot" style="background:${COLORS[p.color]}"></span>${esc(pnameIn(p, l))}</button>`).join("") + `</div>` : "";
@@ -8575,7 +9010,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
       dlg3.close();
       return $("reborn").click();
     }
-    const view2 = pastOf(G.state, whose, past), text = lifeText2(view2, whose);
+    const view2 = isCloth() ? G.state : pastOf(G.state, whose, past), text = lifeText2(view2, whose);
     if (act === "copy") {
       try {
         await navigator.clipboard.writeText(text);
@@ -8605,20 +9040,34 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
   var PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
   var dieEls = [$("die"), $("die2")];
   for (const d of dieEls) for (let i = 0; i < 9; i++) d.appendChild(document.createElement("span"));
-  function showDice(dice) {
+  var shellEl = $("shells");
+  for (let i = 0; i < COWRIES; i++) shellEl.appendChild(document.createElement("span"));
+  var shellsOn = () => isCloth() && randOf(G.state) === "cowries";
+  function showDice(dice, up = null) {
+    const shells = shellsOn();
+    shellEl.hidden = !shells;
+    dieEls[0].hidden = shells;
+    if (shells) {
+      const u = up ?? G.state.shells ?? Array.from({ length: COWRIES }, (_, i) => i < (dice[0] ?? 0));
+      [...shellEl.children].forEach((s, i) => s.classList.toggle("up", !!u[i]));
+      shellEl.setAttribute("aria-label", t("shellsUp", { n: num(u.filter(Boolean).length) }));
+      dieEls[1].hidden = true;
+      return;
+    }
     dieEls[1].hidden = dice.length < 2;
     dice.forEach((v, k) => {
       [...dieEls[k].children].forEach((s, i) => s.classList.toggle("on", PIPS[v].includes(i)));
       dieEls[k].setAttribute("aria-label", `🎲 ${num(v)}`);
     });
   }
-  var tumble = (dice) => {
-    showDice(dice);
+  var tumble = (dice, up) => {
+    showDice(dice, up);
     G.face = dice;
     refreshRoll();
   };
-  async function rollDice2(n) {
+  async function rollDice3(n) {
     const rng = G.state.rng;
+    if (isCloth()) return throwCloth(rng);
     dieEls[1].hidden = n < 2;
     for (const d of dieEls.slice(0, n)) {
       d.classList.remove("rolling");
@@ -8626,7 +9075,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
       d.classList.add("rolling");
     }
     sound.rattle();
-    for (let i = 0; i < TUMBLE; i++) {
+    for (let i = 0; i < TUMBLE2; i++) {
       tumble(Array.from({ length: n }, () => die(rng)));
       await sleep(75);
     }
@@ -8636,13 +9085,32 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     tumble(dice);
     return dice;
   }
+  async function throwCloth(rng) {
+    const kind = randOf(G.state), el3 = shellsOn() ? shellEl : dieEls[0];
+    dieEls[1].hidden = true;
+    el3.classList.remove("rolling");
+    void el3.offsetWidth;
+    el3.classList.add("rolling");
+    sound.rattle();
+    for (let i = 0; i < TUMBLE2; i++) {
+      const f3 = throwOf(rng, kind);
+      tumble([f3.v], f3.up);
+      await sleep(75);
+    }
+    const forced = G.forcedRoll == null ? null : [G.forcedRoll].flat()[0];
+    G.forcedRoll = null;
+    const f2 = forced != null ? { v: forced, up: kind === "cowries" ? Array.from({ length: COWRIES }, (_, i) => i < forced) : null } : throwOf(rng, kind);
+    G.state.shells = f2.up ?? null;
+    tumble([f2.v], f2.up);
+    return [f2.v];
+  }
   var atLadder = () => !!LADDERS[G.state.players[G.state.turn]?.pos];
   var actOf = () => G.choosing ? zeroOf(G.state, G.choosing.dice)?.act : null;
   var cap = (x) => x[0].toUpperCase() + x.slice(1);
   var moveLabel = (l, v) => v ? tIn(l, "diceBy", { v }) : actOf() ? tIn(l, "act" + cap(actOf())) : tIn(l, atLadder() ? "footWait" : "sit");
   var zeroHint = () => actOf() ? "act" + cap(actOf()) + "Hint" : atLadder() ? "footWaitHint" : "sitHint";
   function choose(dice) {
-    const moves = movesFor(G.state, dice);
+    const moves = movesFor2(G.state, dice);
     return new Promise((resolve2) => {
       G.choosing = { dice, moves, resolve: resolve2 };
       const pick3 = $("pick"), act = actOf();
@@ -8751,20 +9219,20 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     } else if (sixOf()?.cpu) landSix(null);
     release();
     const spent = spentOf(p), still2 = !spent && (p.type === "human" ? practice && canPractise(state) : practisesNow(state));
-    const dice = spent || still2 ? [] : await rollDice2(diceFor(p));
+    const dice = spent || still2 ? [] : await rollDice3(diceFor(p));
     await shut;
     if (g3 !== G.gen) return;
     state.dice = dice;
-    const moves = spent || still2 ? [] : movesFor(state, dice), auto = lawOf(state, idx).auto;
+    const moves = spent || still2 ? [] : movesFor2(state, dice), auto = lawOf(state, idx).auto;
     const v = still2 ? 0 : moves.length < 2 ? moves[0] ?? null : p.type === "human" && !auto ? await choose(dice) : moveFor(state, dice);
     if (g3 !== G.gen) return;
     if (p.type === "human" && !shut && cardOpen()) await closeCard();
     if (g3 !== G.gen) return;
     if (dice.length || v == null) state.last = v || dice[0];
-    setDrone(lens(state).droneStage);
+    if (!isCloth()) setDrone(lens(state).droneStage);
     const watching = watchFrames();
     let onCard = false;
-    let plan = planTurn(state, v, dice);
+    let plan = planTurn2(state, v, dice);
     G.plan = plan;
     plan.pre.forEach(log);
     {
@@ -8781,7 +9249,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
         el3._frame = 1 - el3._frame;
         retrigger(el3, "hop");
         place();
-        setShepard(lens(state).lead);
+        if (!isCloth()) setShepard(lens(state).lead);
         await sleep(200);
       }
       if (g3 !== G.gen) return;
@@ -8793,10 +9261,10 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
         await sleep(reduced ? 300 : 1200);
         if (g3 !== G.gen) return;
       } else if (plan.stay) {
-        if (p.type === "human") landStay(idx, p.pos);
+        if (p.type === "human") landStay(idx, p.pos, plan.why);
         plan.after.forEach(log);
       } else {
-        if (stageOf({ ...p, years: ageStep(p.years ?? 0, p.pos) }) !== born) pullBack();
+        if (!isCloth() && stageOf({ ...p, years: ageStep(p.years ?? 0, p.pos) }) !== born) pullBack();
         await waitCard();
         if (g3 !== G.gen) return;
         let full = false;
@@ -8876,7 +9344,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
             if (g3 !== G.gen) return;
           }
         }
-        if (!plan.sit && plan.final === GOAL && lawOf(state, idx).exit(state, idx)?.door && !plan.reckon?.to) {
+        if (!plan.sit && plan.final === GOAL && !isCloth() && lawOf(state, idx).exit(state, idx)?.door && !plan.reckon?.to) {
           landDoor(idx, plan.refused ? { kind: "refused", refusal: plan.refused, sit: canSit({ ...p, pos: GOAL }) } : { kind: plan.win ? "through" : "open" });
         } else if (plan.infer && p.type === "human") {
           if (cardOpen() && !cardBlocking()) await closeCard({ instant: true });
@@ -8903,12 +9371,12 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
       }
     }
     const cursed = !!p.curse;
-    endTurn(state, plan);
+    endTurn2(state, plan);
     if (plan.again || plan.sixLost || sixOf()?.who === idx) landSix(idx, plan.again ? "again" : plan.sixLost ? "lost" : null);
     if (!cursed && p.curse && p.type === "human") onCard && cardOpen() ? cardCurse(idx, plan.target) : landCurse(idx, plan.target);
     G.plan = null;
     G.face = null;
-    if (p.type === "human" && (plan.died || plan.win || plan.fell) && firstLife()) {
+    if (p.type === "human" && (plan.died || plan.win || plan.fell) && firstLife() && !isCloth()) {
       lifeLived();
       refreshCard();
     }
@@ -8939,6 +9407,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
   }
   function fullCard(state, plan, idx) {
     if (isAnimal(state)) return false;
+    if (isCloth()) return prefs.everyCard || !!plan.jump || plan.win;
     if (prefs.everyCard || plan.jump || plan.target === GOAL || plan.win) return true;
     const p = state.players[idx], n = plan.target;
     if (HEAVEN[n]) return !p.life?.includes(n);
@@ -8966,10 +9435,10 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     if (G.rollQueued || G.busy && !G.waitingCard) {
       const mover = s.players[plan?.idx ?? s.turn];
       const who2 = mover.type === "cpu" ? tIn(l, "rolling", { name: pnameIn(mover, l) }) : "";
-      return { label: [G.face ? G.face.map((f2) => FACES2[f2]).join(" ") : "", who2].filter(Boolean).join("  ") || FACES2[s.last || 6], ready: false, dot: null };
+      return { label: [G.face ? G.face.map((f2) => FACES2[f2] || num(f2)).join(" ") : "", who2].filter(Boolean).join("  ") || FACES2[s.last || 6], ready: false, dot: null };
     }
     const again = plan ? plan.again : s.turn === i && s.log[0]?.k === "lSix";
-    return { label: again ? tIn(l, "rollAgain") : humans > 1 ? tIn(l, "rollFor", { name: pnameIn(p, l) }) : tIn(l, "roll"), ready: true, dot };
+    return { label: again ? tIn(l, "rollAgain") : humans > 1 ? tIn(l, "rollFor", { name: pnameIn(p, l) }) : tIn(l, rollKey()), ready: true, dot };
   }
   function requestRoll() {
     G.rollQueued = true;
@@ -9003,6 +9472,15 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
   var query = new URLSearchParams(location.search);
   var look = lookOf(query.has("debug") ? query.get("look") : null);
   function age(instant = false) {
+    if (isCloth()) {
+      document.getElementById("board")?.style.setProperty("--clear", "0");
+      for (const n of LAYOUT.squares) labEls[n]?.classList.remove("ahead");
+      setDrone(null);
+      setShepard(null, false);
+      aged = null;
+      ageSeq++;
+      return drawAge([]);
+    }
     const L2 = lens(G.state, null, look), to = Array.from({ length: TOP + 1 }, (_, n) => n ? wash(n, L2) : null);
     document.getElementById("board")?.style.setProperty("--clear", String(clearOf(G.state)));
     for (let n = 1; n <= TOP; n++) labEls[n]?.classList.toggle("ahead", to[n].dim > 0);
@@ -9015,6 +9493,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
       if (seq === ageSeq) drawAge(to.map((w, n) => n ? mix2(from[n], w, u) : null));
     });
   }
+  var rollKey = () => !isCloth() ? "roll" : { cowries: "rollShells", stick: "rollStick" }[randOf(G.state)] ?? "roll";
   function render() {
     const state = G.state, p = cur();
     $("turnDot").style.background = COLORS[p.color];
@@ -9024,7 +9503,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     $("practise").hidden = !human || state.over || !!G.choosing || !!G.deciding || !canPractise(state);
     $("practise").disabled = G.busy;
     $("practise").title = t("practiseHint");
-    $("roll").textContent = human ? t("roll") : t("rolling", { name: pname(p) });
+    $("roll").textContent = human ? t(rollKey()) : t("rolling", { name: pname(p) });
     const six2 = !state.over && sixOf();
     $("hint").textContent = state.over ? t("hintOver") : six2 ? sixLineIn(lang, six2) : isAnimal(state) ? t("animalHint") : human ? t("hintHuman") : t("hintCpu");
     if (G.deciding) drawDecide();
@@ -9043,7 +9522,14 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
       refreshLife();
     }
     drawRebornLaws(reborn);
-    if (w != null) {
+    $("readLife").textContent = t(isCloth() ? "readPath" : "readLife");
+    document.querySelector(".colophon [data-t]").textContent = t(isCloth() ? `board${BOARD_ID}About` : "intro");
+    if (w != null && isCloth()) {
+      const wp = state.players[w], g3 = legendOf(GOAL);
+      $("winTitle").textContent = t("cWinTitle", { name: pname(wp), goal: g3 ? L(g3.en, g3.hi) : "" });
+      $("winText").textContent = t(wp.type === "human" ? "cWinHuman" : "cWinCpu");
+      $("winNote").hidden = true;
+    } else if (w != null) {
       const wp = state.players[w];
       const tw = lawOf(state, w).text.win;
       $("winTitle").textContent = t(tw.title, { name: pname(wp) });
@@ -9065,7 +9551,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
   }
   var soulKey = (p) => p.type !== "human" ? null : p.soul ?? (p.name ? nameKey(p.name) : null);
   function keepLives(state) {
-    if (G.kept === state) return;
+    if (G.kept === state || isCloth()) return;
     G.kept = state;
     state.players.forEach((p, i) => {
       const key = soulKey(p);
@@ -9081,6 +9567,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
   }
   var rebornFrom = (state, i) => (endOf(state, i) || state.players[i].past?.length) && lawOf(state, i).rebirth;
   function rebornRows(state) {
+    if (isCloth()) return null;
     let any = false, animal2 = null;
     const rows = state.players.map((p, i) => {
       const key = soulKey(p), soul = rebornFrom(state, i) && soulFor(key), born = soul && bornOf(soul);
@@ -9093,7 +9580,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     if (animal2) return { rows: [animal2.row], rules: animalRules(animal2.interlude, G.setup.rules) };
     return any ? { rows, rules: G.setup.rules } : null;
   }
-  var lawsOffered = () => choosable().length > 1 && !firstLife();
+  var lawsOffered = () => choosable().length > 1 && !firstLife() && !G.setup?.rules?.board;
   var lawButtons = (now) => choosable().map((w) => `<button type="button" class="law" data-law="${w.id}" aria-pressed="${w.id === now}"><b>${esc(t(w.text.name))}</b> <span>${esc(t(w.text.about))}</span>${w.text.scholar && prefs.depth === "scholar" ? ` <small class="law-src">${esc(t(w.text.scholar))}</small>` : ""}</button>`).join("");
   var rebornSeat = (state) => state.players.findIndex((p, i) => p.type === "human" && rebornFrom(state, i) && soulFor(soulKey(p)));
   function drawRebornLaws(reborn) {
@@ -9121,10 +9608,10 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     $("rebornLaws").querySelector(`[data-law="${b.dataset.law}"]`)?.focus();
   });
   function renderSetup() {
-    const setup = G.setup;
+    const setup2 = G.setup;
     $("count").setAttribute("aria-label", t("players"));
-    $("count").innerHTML = [1, 2, 3, 4].map((n) => `<button type="button" data-n="${n}" aria-pressed="${n === setup.count}">${n === 1 ? t("onePlayer") : t("nPlayers", { n })}</button>`).join("");
-    $("prows").innerHTML = setup.rows.slice(0, setup.count).map((r, i) => `
+    $("count").innerHTML = [1, 2, 3, 4].map((n) => `<button type="button" data-n="${n}" aria-pressed="${n === setup2.count}">${n === 1 ? t("onePlayer") : t("nPlayers", { n })}</button>`).join("");
+    $("prows").innerHTML = setup2.rows.slice(0, setup2.count).map((r, i) => `
     <div class="prow">
       <span class="dot" style="background:${COLORS[i]}"></span>
       <input type="text" id="pname${i}" value="${esc(r.name)}" placeholder="${esc(t("def" + i))}" maxlength="16" aria-label="${t("colour" + i)}">
@@ -9138,15 +9625,22 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
       ${lawsOffered() ? `<select id="plaw${i}" data-about="plawAbout${i}" aria-label="${t("lawPick")} · ${t("colour" + i)}" aria-describedby="plawAbout${i}">${choosable().map((w) => `<option value="${w.id}"${(r.law || "board") === w.id ? " selected" : ""}>${t(w.text.name)}</option>`).join("")}</select>
       <p class="law-about" id="plawAbout${i}">${esc(t((canChoose(r.law) ? LAWS[r.law] : LAWS.board).text.about))}</p>` : ""}
     </div>`).join("");
-    $("ruleSix").checked = setup.rules.six;
+    $("ruleSix").checked = setup2.rules.six;
+    const board4 = setup2.rules.board ?? "110", old = board4 !== "110";
+    $("ruleBoard").innerHTML = Object.keys(BOARDS).filter((id) => STR.en["board" + id]).sort((a, b) => b - a).map((id) => `<option value="${id}"${id === board4 ? " selected" : ""}>${esc(t("board" + id))}</option>`).join("");
+    $("ruleRandRow").hidden = !old;
+    $("ruleRand").innerHTML = [["own", "randOwn"], ["die", "randDie"]].map(([v, k]) => `<option value="${v}"${(setup2.rules.rand ?? "own") === v ? " selected" : ""}>${esc(t(k))}${v === "own" && old ? ` (${esc(t(RAND_NAME[BOARDS[board4].rules?.rand] ?? "randDie"))})` : ""}</option>`).join("");
+    $("ruleSixRow").hidden = old;
+    $("ruleBoardAbout").textContent = old ? t("board" + board4 + "About") : "";
+    $("ruleBoardAbout").hidden = !old;
     $("prefDepth").innerHTML = [["story", "depthStory"], ["school", "depthSchool"], ["scholar", "depthScholar"]].map(([v, k]) => `<option value="${v}"${v === prefs.depth ? " selected" : ""}>${t(k)}</option>`).join("");
     $("prefEvery").checked = prefs.everyCard;
     $("prefBoth").checked = prefs.both;
     $("prefTheme").innerHTML = [["light", "themeLight"], ["dark", "themeDark"]].map(([v, k]) => `<option value="${v}"${v === prefs.theme ? " selected" : ""}>${t(k)}</option>`).join("");
   }
   function readSetup() {
-    const setup = G.setup;
-    setup.rows.slice(0, setup.count).forEach((r, i) => {
+    const setup2 = G.setup;
+    setup2.rows.slice(0, setup2.count).forEach((r, i) => {
       r.name = $("pname" + i).value;
       r.type = $("ptype" + i).value;
       r.gender = $("pgender" + i).value;
@@ -9155,8 +9649,17 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
         r.law = canChoose(v) ? v : void 0;
       }
     });
-    setup.rules = { six: $("ruleSix").checked };
+    setup2.rules = { six: $("ruleSix").checked };
+    const board4 = $("ruleBoard").value, rand = $("ruleRand").value;
+    if (board4 && board4 !== "110") setup2.rules.board = board4;
+    if (setup2.rules.board && rand !== "own") setup2.rules.rand = rand;
   }
+  var RAND_NAME = { cowries: "randCowries", stick: "randStick", die: "randDie" };
+  $("ruleBoard").addEventListener("change", () => {
+    readSetup();
+    renderSetup();
+    $("ruleBoard").focus();
+  });
   function applyStatic() {
     document.documentElement.lang = lang;
     document.title = t("title");
@@ -9224,8 +9727,8 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     clearLanded();
     if (S) fxClear();
     G.busy = false;
+    boardFor({ rules: born?.rules ?? G.setup.rules });
     G.state = newState(nextSeed ?? freshSeed(), born?.rows, born?.rules);
-    boardFor(G.state);
     nextSeed = null;
     saveGame(G.setup, G.state);
     buildTokens();

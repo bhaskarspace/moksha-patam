@@ -10,6 +10,7 @@ import boards from "../content/boards.json" with { type: "json" };
 import door from "../content/door.json" with { type: "json" };
 import curses from "../content/curses.json" with { type: "json" };
 import mirror from "../content/mirror.json" with { type: "json" };
+import legends from "../content/legends.json" with { type: "json" };
 import { layoutOf } from "./geometry.js";
 
 // Every square is { ic, en, hi, age, moment, mirror, callsBack, src } (docs/NARRATIVE.md §11). Snakes and
@@ -53,6 +54,18 @@ export let BOARD = boards["110"];
 export let BOARD_ID = "110";
 export let LAYOUT = layoutOf(BOARD.geometry);
 export let COLS = LAYOUT.cols;
+// An old board's squares (Phase 18), as squares.json gives the 110's: its goal and extent, and every square its legend
+// (content/legends.json), the snakes and ladders theirs with where they go. skt is the reading the charts agree on.
+export const LEGENDS = legends;
+// square n's legend on the board in play, for an old cloth (Phase 18); the 110 has none
+export const legendOf = n => LEGENDS[BOARD_ID]?.[n] ?? null;
+function clothSquares(b, legend = {}) {
+  const r = b.rules, sq = n => ({ ...legend[n], skt: legend[n]?.iast ?? "" });
+  const ends = (links = {}) => Object.fromEntries(Object.entries(links).map(([n, to]) => [n, { ...sq(n), to }]));
+  const SNAKES = ends(r.snakes), LADDERS = ends(r.ladders);
+  const SQ = Object.fromEntries(Object.keys(legend).filter(n => !SNAKES[n] && !LADDERS[n] && +n !== r.goal).map(n => [n, sq(n)]));
+  return { GOAL: r.goal, TOP: r.top, SNAKES, LADDERS, SQ, MOKSHA: sq(r.goal) };
+}
 // The board in play (Phase 18). The 110's squares are squares.json's; another board brings its own from boards.json.
 // Whatever reads the board at import time asks again through onBoard, so it follows the board as it changes.
 const watchers = [];
@@ -60,7 +73,7 @@ export const onBoard = f => { watchers.push(f); };
 export function useBoard(id = "110") {
   if (!Object.hasOwn(boards, id)) id = "110";
   if (id === BOARD_ID) return BOARD;
-  const b = boards[id], own = id === "110" ? squares : b.squares;
+  const b = boards[id], own = id === "110" ? squares : clothSquares(b, LEGENDS[id]);
   ({ GOAL, TOP, ROWS, ASHRAMAS, LADDERS, SNAKES, HEAVEN, MOKSHA, FALL } = { ASHRAMAS: [], HEAVEN: {}, MOKSHA: null, FALL: null, ...own });
   SQ = own.SQ ?? {};
   BOARD = b; BOARD_ID = id; LAYOUT = layoutOf(b.geometry); COLS = LAYOUT.cols; ROWS = LAYOUT.rows;

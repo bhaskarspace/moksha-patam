@@ -9,6 +9,7 @@ import { lawOf, isDefault } from "./laws/index.js";
 import { soulOf, bornOf } from "./samskara.js";
 import { castOf, nameKey } from "./cast.js";
 import { drawName } from "../state.js";
+import * as cloth from "./cloth.js";
 
 // The die shows this many random faces while it tumbles before the real roll. They come from the
 // game's own sequence, so a headless game must draw them too to stay in step with the UI.
@@ -25,7 +26,7 @@ export function rollValue(rng) {
 export let ENDGAME = 94;
 // tools/sim.mjs sweeps it; nothing in the game changes it
 export const setEndgame = n => { ENDGAME = n; };
-export const diceFor = p => (p.pos >= ENDGAME ? 2 : 1);
+export const diceFor = p => (!cloth.isCloth() && p.pos >= ENDGAME ? 2 : 1);
 // The dice tumble together: each frame draws a face for every die, then each die draws its value. One die
 // draws exactly what rollValue does, so a game below the endgame replays as it did before.
 export function rollDice(rng, n) {
@@ -64,6 +65,8 @@ export const doorOf = (state, i) => { const law = lawOf(state, i); return { boun
 // the life past the top: the heavens end at Śiva's square, and only the exact throw reaches it. With nothing offered
 // the life stays where it is in the heavens.
 export function movesFor(state, dice) {
+  // an old cloth (Phase 18): the throw is the move
+  if (cloth.isCloth()) return cloth.movesFor(state, dice);
   const p = state.players[state.turn], out = [...new Set(dice)].filter(v => p.pos + v <= TOP);
   if (dice.length > 1 && canSit(p)) out.push(0);
   return lawOf(state).movesFor(state, dice, out);
@@ -77,6 +80,7 @@ export function movesFor(state, dice) {
 // exactly; Phase 9's whole rule, the bigger die that is not a snake, is kept in tools/sim.mjs as --pick=phase9.
 // It ranks by where the dice take it, before the omen: nobody sees a reckoning coming.
 export function moveFor(state, dice) {
+  if (cloth.isCloth()) return cloth.movesFor(state, dice)[0];
   const moves = movesFor(state, dice);
   if (!moves.length) return null;
   // a law's computer may have a move of its own first (Jain: waiting at a ladder's foot; Yoga: a bad throw let go;
@@ -149,6 +153,8 @@ export function createGame({ players, rules, seed }) {
   state.players.forEach((p, i) => { if (!lawOf(state, i).karma) p.karma = freshKarma(); });
   // whoever lives under a law other than the board's says so in the log (Phase 17); under the board's nothing is added
   state.players.forEach((p, i) => { if (p.law && !isDefault(lawOf(state, i))) addLog(state, lawEntry(state, i)); });
+  // an old cloth (Phase 18): every pawn begins on its first square
+  if (cloth.isCloth()) cloth.setup(state);
   return state;
 }
 // The log's line that player i lives under their law, as a log entry: the law's id, which the log names in its language.
@@ -181,6 +187,7 @@ export function addLog(state, e) {
 // sannyasa they go to practice (src/engine/self.js). v null is the throw that offered nothing (Phase 17): in the heavens
 // no die may pass the top, and then the life stays where it is. The heavens' years stand still, so none pass.
 export function planTurn(state, v, dice = [v]) {
+  if (cloth.isCloth()) return cloth.planTurn(state, v, dice);
   const idx = state.turn, p = state.players[idx], from = p.pos, law = lawOf(state, idx);
   const pre = [], after = [], end = [], path = [];
   // the merit spent: no throw, and Śiva's snake takes the life from the realm it is in, by way of the top
@@ -403,6 +410,7 @@ function resolve(state, plan, years) {
 }
 
 export function endTurn(state, plan) {
+  if (cloth.isCloth()) return cloth.endTurn(state, plan, addLog);
   const p = state.players[plan.idx];
   p.pos = plan.final;
   // a turn begun in the heavens spends merit (Phase 17); the turn the snake takes the spent life is not one of them
@@ -523,7 +531,7 @@ function bornAgain(state, i) {
 // the move from them.
 // With the merit spent nothing is thrown, so nothing is drawn.
 // A year in practice before the throw (Yoga) draws nothing either: its computer decides before any die (practisesNow).
-export function playTurn(state, roll = spentOf(state.players[state.turn]) || practisesNow(state) ? [] : rollDice(state.rng, diceFor(state.players[state.turn])), pick = moveFor, choose = (s, sit) => lawOf(s).choose(s, sit)) {
+export function playTurn(state, roll = cloth.isCloth() ? cloth.rollDice(state) : spentOf(state.players[state.turn]) || practisesNow(state) ? [] : rollDice(state.rng, diceFor(state.players[state.turn])), pick = moveFor, choose = (s, sit) => lawOf(s).choose(s, sit)) {
   // one die is no choice, unless the law offers one (Jain: waiting at a ladder's foot, or moved only by the 1 there)
   const dice = typeof roll === "number" ? [roll] : roll, one = dice.length > 1 ? null : movesFor(state, dice);
   // no dice and the merit not spent: the year sat in practice

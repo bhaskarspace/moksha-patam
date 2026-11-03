@@ -1539,6 +1539,49 @@ await check("Step 18.0: a six says so under the board and in the hint; a six a r
   assert(/The six brought a debt due: no second throw\./.test(lost), `the line says ${lost}`);
 });
 
+// ---- Phase 18: the old boards ----
+await check("Phase 18: the 72 is drawn as the old cloth, thrown with cowries, and a throw past 72 stops there and goes down to 51", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=1&debug");
+  await page.evaluate(() => mp.board("72"));
+  await until(page, () => mp.board() === "72" && !mp.busy);
+  const look = await page.evaluate(() => ({
+    labs: document.querySelectorAll("#labels .lab").length, goal: document.querySelector('#labels .lab[data-n="68"]')?.textContent,
+    arches: document.querySelectorAll("#vimana .arch").length, emblems: document.querySelectorAll("#vimana .emb").length,
+    shells: !document.getElementById("shells").hidden && document.querySelectorAll("#shells span").length, die: document.getElementById("die").hidden,
+    roll: document.getElementById("roll").textContent, pos: mp.state.players.map(p => p.pos),
+  }));
+  assert(look.labs === 72 && /Vaikuṇṭha/.test(look.goal || ""), `the squares: ${JSON.stringify(look)}`);
+  assert(look.arches === 9 && look.emblems > 0, `the arches and the trimūrti: ${JSON.stringify(look)}`);
+  assert(look.shells === 7 && look.die && /Throw the shells/.test(look.roll), `the cowries: ${JSON.stringify(look)}`);
+  assert(look.pos.every(n => n === 1), `every pawn begins in 1: ${look.pos}`);
+  // 70 and a throw of 5: walked to 72, its snake, and the pawn stays on 51
+  await page.evaluate(() => { Object.assign(mp.state.players[0], { pos: 70, life: [1, 70] }); mp.roll(5); });
+  await page.waitForFunction(() => { if (document.getElementById("folio").open) mp.close({ instant: true }); return !mp.busy && mp.state.turn === 0; }, null, { timeout: 20000, polling: 200 });
+  const past = await page.evaluate(() => ({ pos: mp.state.players[0].pos, log: mp.state.log.map(e => e.k) }));
+  assert(past.pos === 51 || past.log.includes("cPast"), `the throw past 72: ${JSON.stringify(past)}`);
+  assert(past.log.includes("cPast") && past.log.includes("cSnake"), `the log: ${past.log.slice(-8)}`);
+  // no shell face up: nothing moves, and the line says why
+  const before = await page.evaluate(() => mp.state.players[0].pos);
+  await page.evaluate(() => mp.roll(0));
+  await page.waitForFunction(() => /No shell fell face up/.test(document.getElementById("landed").textContent), null, { timeout: 15000 });
+  assert((await page.evaluate(() => mp.state.players[0].pos)) === before, "a throw of 0 moved the pawn");
+  // Space throws, the line under the board is still live, and the card is still a dialog
+  await until(page, () => !mp.busy && mp.state.turn === 0);
+  await page.evaluate(() => document.activeElement?.blur());
+  const last = await page.evaluate(() => mp.state.log.length);
+  await page.keyboard.press("Space");
+  await page.waitForFunction(n => mp.state.log.length > n, last, { timeout: 15000 });
+  const a11y = await page.evaluate(() => ({ live: document.getElementById("landed").getAttribute("aria-live"), dlg: document.getElementById("folio").tagName }));
+  assert(a11y.live === "polite" && a11y.dlg === "DIALOG", `aria: ${JSON.stringify(a11y)}`);
+  // back on the 110, which is what it always was
+  await page.waitForFunction(() => { if (document.getElementById("folio").open) mp.close({ instant: true }); return !mp.busy; }, null, { timeout: 20000, polling: 200 });
+  await page.evaluate(() => mp.board("110"));
+  await until(page, () => mp.board() === "110" && !mp.busy);
+  const back = await page.evaluate(() => ({ labs: document.querySelectorAll("#labels .lab").length, shells: document.getElementById("shells").hidden, die: document.getElementById("die").hidden, pos: mp.state.players[0].pos, domes: document.querySelectorAll("#vimana .dome").length }));
+  assert(back.labs === 110 && back.shells && !back.die && back.pos === 0 && back.domes === 10, `back on the 110: ${JSON.stringify(back)}`);
+});
+
 // ---- Phase 14: the door and the curse ----
 await check("Phase 14: a refused sannyāsin sits at the door, is asked on a card that holds the game, and the door opens", async page => {
   await page.emulateMedia({ reducedMotion: "reduce" });
