@@ -12,6 +12,7 @@ import { lawOf } from "../engine/laws/index.js";
 import { prefs } from "../prefs.js";
 import { legendOf } from "../content.js";
 import { isCloth } from "../engine/cloth.js";
+import { sqNumIn } from "./board.js";
 
 const dlg = $("lifeDlg"), leaf = $("lifeLeaf");
 // past: which of the seat's lives closed by Śiva's snake is read (Phase 17, p.past), or null for the one in it now
@@ -23,7 +24,7 @@ export const lifeText = (state, i, l = lang) => (isCloth() ? clothText(state, i,
 
 // On an old cloth (REDESIGN.md Phase 18) there is no life to read, only the path: every square the pawn stood on, in
 // order, by its legend.
-const clothRows = (state, i, l) => (state.players[i].life ?? []).map(n => ({ n: numIn(l, n), sq: legendOf(n)?.[l] ?? "" }));
+const clothRows = (state, i, l) => (state.players[i].life ?? []).map(n => ({ n: sqNumIn(l, n), sq: legendOf(n)?.[l] ?? "" }));
 const clothText = (state, i, l) =>
   [tIn(l, "pathOf", { name: pnameIn(state.players[i], l) }), tIn(l, "pathIntro"), "", ...clothRows(state, i, l).map(r => `${r.n}  ${r.sq}`)].join("\n");
 function paintCloth() {

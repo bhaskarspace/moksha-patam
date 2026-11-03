@@ -63,7 +63,8 @@ function clothSquares(b, legend = {}) {
   const r = b.rules, sq = n => ({ ...legend[n], skt: legend[n]?.iast ?? "" });
   const ends = (links = {}) => Object.fromEntries(Object.entries(links).map(([n, to]) => [n, { ...sq(n), to }]));
   const SNAKES = ends(r.snakes), LADDERS = ends(r.ladders);
-  const SQ = Object.fromEntries(Object.keys(legend).filter(n => !SNAKES[n] && !LADDERS[n] && +n !== r.goal).map(n => [n, sq(n)]));
+  // the legends' squares only (an old board's row titles are kept beside them, under "rows")
+  const SQ = Object.fromEntries(Object.keys(legend).filter(n => /^\d+$/.test(n) && !SNAKES[n] && !LADDERS[n] && +n !== r.goal).map(n => [n, sq(n)]));
   return { GOAL: r.goal, TOP: r.top, SNAKES, LADDERS, SQ, MOKSHA: sq(r.goal) };
 }
 // The board in play (Phase 18). The 110's squares are squares.json's; another board brings its own from boards.json.

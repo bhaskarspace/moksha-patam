@@ -6,9 +6,11 @@ import { GOAL, ROWS, COLS, ASHRAMAS, BOARD, LAYOUT } from "../content.js";
 export const colRow = n => LAYOUT.at[n] ?? { col: 0, row: 0 };
 // Square n's ground as a palette token name (REDESIGN.md Phase 13): pale, by band, the two grounds of a band alternating
 // square by square, as the painted boards vary their rows. The divine row is gold, and the exit indigo.
+// the divine squares: the 110's row above 100, or an old board's squares above its grid (Phase 18: the 84's steps)
+const divine = n => (BOARD.rules?.steps ? BOARD.rules.steps.includes(n) : n > 100);
 export function groundToken(n) {
   if (n === GOAL) return BOARD.divine.goal;
-  if (n > 100) return BOARD.divine.ground[0];
+  if (divine(n)) return BOARD.divine.ground[0];
   const band = Math.max(0, ASHRAMAS.findIndex(([max]) => n <= max)), [a, b] = BOARD.grounds[band % BOARD.grounds.length];
   const { col, row } = colRow(n);
   return (col + row) % 2 ? b : a;
@@ -19,7 +21,7 @@ const hex = t => BOARD.palette[t];
 const mix = (a, b) => "#" + [1, 3, 5].map(i => Math.round((parseInt(a.slice(i, i + 2), 16) + parseInt(b.slice(i, i + 2), 16)) / 2).toString(16).padStart(2, "0")).join("");
 export function groundOf(n) {
   if (n === GOAL) return [hex(BOARD.divine.goal), true];
-  if (n > 100) return [mix(hex(BOARD.divine.ground[0]), hex(BOARD.divine.ground[1])), false];
+  if (divine(n)) return [mix(hex(BOARD.divine.ground[0]), hex(BOARD.divine.ground[1])), false];
   return [hex(groundToken(n)), false];
 }
 

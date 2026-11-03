@@ -110,6 +110,218 @@
     "superstructure": "arches",
     "panel": "trimurti"
   },
+  "84": {
+    "about": "The 84-square Jaina board (type a1), as Schmidt-Madsen 2019 reads it critically from 30 charts (App. D2), played by Jeṭhābhāī's rules (JBRR 1; App. F2): nine by nine inside the body of the cosmic man (lokapuruṣa), the basic lifeforms at his feet, a square at each arm, and the five unsurpassed heavens in his face below the crystal plane of liberation. Rows are realms, from the hell-beings to the graiveyaka heavens.",
+    "law": "jain",
+    "geometry": {
+      "cols": 11,
+      "rows": 14,
+      "track": [
+        {
+          "n": 1,
+          "at": [
+            5,
+            0
+          ]
+        },
+        {
+          "from": 2,
+          "to": 55,
+          "width": 9,
+          "origin": [
+            1,
+            1
+          ],
+          "path": "boustrophedon"
+        },
+        {
+          "n": 56,
+          "at": [
+            0,
+            6
+          ]
+        },
+        {
+          "from": 57,
+          "to": 65,
+          "row": 7,
+          "col": 1,
+          "dir": 1
+        },
+        {
+          "n": 66,
+          "at": [
+            10,
+            7
+          ]
+        },
+        {
+          "from": 67,
+          "to": 84,
+          "width": 9,
+          "origin": [
+            1,
+            8
+          ],
+          "path": "boustrophedon",
+          "dir": -1
+        },
+        {
+          "n": 85,
+          "at": [
+            5,
+            10
+          ]
+        },
+        {
+          "n": 86,
+          "at": [
+            4,
+            11
+          ]
+        },
+        {
+          "n": 87,
+          "at": [
+            5,
+            11
+          ]
+        },
+        {
+          "n": 88,
+          "at": [
+            6,
+            11
+          ]
+        },
+        {
+          "n": 89,
+          "at": [
+            5,
+            12
+          ]
+        },
+        {
+          "n": 90,
+          "at": [
+            5,
+            13
+          ]
+        }
+      ]
+    },
+    "rules": {
+      "engine": "cloth",
+      "goal": 90,
+      "top": 90,
+      "rand": "stick",
+      "entry": 1,
+      "climb": "one",
+      "above": "turn",
+      "turn": {
+        "from": 80,
+        "end": 84,
+        "back": 76
+      },
+      "steps": [
+        85,
+        86,
+        87,
+        88,
+        89,
+        90
+      ],
+      "snakes": {
+        "13": 8,
+        "17": 1,
+        "45": 9,
+        "48": 10,
+        "58": 21,
+        "60": 41,
+        "67": 16,
+        "75": 2,
+        "76": 52
+      },
+      "ladders": {
+        "7": 44,
+        "44": 50,
+        "47": 85,
+        "50": 90,
+        "55": 80,
+        "65": 68
+      },
+      "footprints": {
+        "6": 15,
+        "15": 24,
+        "24": 33,
+        "33": 42,
+        "42": 51,
+        "51": 61,
+        "61": 71,
+        "71": 80,
+        "80": 85
+      }
+    },
+    "palette": {
+      "vermilion": "#C8352A",
+      "ochre": "#D9A441",
+      "yellow": "#E3A21A",
+      "indigo": "#2B3A67",
+      "malachite": "#3F7A4E",
+      "black": "#1A1410",
+      "shell": "#F4EDDC",
+      "beetle": "#1F7A5A",
+      "gold": "#B8862B",
+      "gold-hi": "#EDCF72",
+      "cream": "#F5E9C9",
+      "paleochre": "#EDD49B",
+      "palegreen": "#DCE0B4",
+      "cloth": "#E8D7AE",
+      "lac": "#5A1208",
+      "nila": "#1E2740"
+    },
+    "grounds": [
+      [
+        "cream",
+        "shell"
+      ]
+    ],
+    "divine": {
+      "ground": [
+        "gold",
+        "gold-hi"
+      ],
+      "goal": "indigo"
+    },
+    "snakes": [
+      [
+        "vermilion",
+        "yellow"
+      ],
+      [
+        "indigo",
+        "shell"
+      ],
+      [
+        "malachite",
+        "yellow"
+      ],
+      [
+        "yellow",
+        "vermilion"
+      ],
+      [
+        "black",
+        "shell"
+      ]
+    ],
+    "ladder": {
+      "rail": "yellow",
+      "outline": "vermilion"
+    },
+    "border": "lokapurusa",
+    "superstructure": "none"
+  },
   "110": {
     "about": "The 110-square board: cream, pale ochre and pale green grounds by band, as the painted boards vary their rows; the pigment is in the figures, the snakes, the ladders, the border and the divine row. Gold is the only gradient (REDESIGN.md Phase 13). Each snake is [body, belly]; no two snakes that come near each other share a body.",
     "geometry": {

@@ -1582,6 +1582,50 @@ await check("Phase 18: the 72 is drawn as the old cloth, thrown with cowries, an
   assert(back.labs === 110 && back.shells && !back.die && back.pos === 0 && back.domes === 10, `back on the 110: ${JSON.stringify(back)}`);
 });
 
+await check("Phase 18: the 84 is the cosmic man's body, thrown with the stick die; a 1 leaves 1 and climbs, and past 80 the pawn turns at 84 and slides from 76", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=1&debug");
+  await page.evaluate(() => mp.board("84"));
+  await until(page, () => mp.board() === "84" && !mp.busy);
+  // a forced throw, then every turn after it until it is the first player's again
+  const throwAt = async (v, pos) => {
+    // the log is capped, so the newest entry, not its length, says the throw was taken
+    await page.evaluate(([v, pos]) => { window.__last = mp.state.log[0]; if (pos) { Object.assign(mp.state.players[0], { pos, life: [1, pos] }); delete mp.state.players[0].back; } mp.roll(v); }, [v, pos]);
+    await page.waitForFunction(() => { if (document.getElementById("folio").open) mp.close({ instant: true }); return mp.state.log[0] !== window.__last && !mp.busy && mp.state.turn === 0; }, null, { timeout: 20000, polling: 200 });
+  };
+  const look = await page.evaluate(() => ({
+    labs: document.querySelectorAll("#labels .lab").length, top: document.querySelector('#labels .lab[data-n="90"]')?.textContent,
+    feet: document.querySelectorAll("#labels .lab .foot").length, figure: !document.getElementById("figure").hasAttribute("hidden"),
+    shells: document.getElementById("shells").hidden, roll: document.getElementById("roll").textContent, pos: mp.state.players.map(p => p.pos),
+  }));
+  assert(look.labs === 90 && /top 6/.test(look.top || "") && /Siddhaśilā/.test(look.top || ""), `the squares: ${JSON.stringify(look)}`);
+  assert(look.feet === 9 && look.figure && look.shells && /Throw the stick die/.test(look.roll), `the figure, footprints and stick die: ${JSON.stringify(look)}`);
+  assert(look.pos.every(n => n === 1), `every pawn begins in 1: ${look.pos}`);
+  // a 2 from square 1 waits for the 1, and says so
+  await throwAt(2);
+  assert(await page.evaluate(() => mp.state.log.some(e => e.k === "cEntry")), "no line for the wait on 1");
+  assert((await page.evaluate(() => mp.state.players[0].pos)) === 1, "a 2 left square 1");
+  // the 1 on 80's footprint climbs to top 1; there a 5 waits
+  await throwAt(1, 80);
+  assert((await page.evaluate(() => mp.state.players[0].pos)) === 85, "the 1 on 80 did not climb to top 1");
+  await throwAt(5);
+  assert(await page.evaluate(() => mp.state.players[0].pos === 85 && mp.state.log.some(e => e.k === "cTop")), "a 5 on top 1 moved, or said nothing");
+  // 82 and a 6: on to 84, turned there, and back to 80, still coming back; then a 6 down to 76, its snake to 52, and on to 54
+  await throwAt(6, 82);
+  const turned = await page.evaluate(() => ({ pos: mp.state.players[0].pos, back: mp.state.players[0].back, log: mp.state.log.filter(e => e.who === 0).map(e => e.k) }));
+  assert(turned.pos === 80 && turned.back && turned.log.includes("cTurn"), `the turn at 84: ${JSON.stringify(turned)}`);
+  await throwAt(6);
+  const slide = await page.evaluate(() => ({ pos: mp.state.players[0].pos, back: mp.state.players[0].back, log: mp.state.log.filter(e => e.who === 0).map(e => e.k) }));
+  assert(slide.pos === 54 && !slide.back && slide.log[0] === "cOn" && slide.log.includes("cSlide"), `the slide from 76: ${JSON.stringify(slide)}`);
+  const a11y = await page.evaluate(() => ({ live: document.getElementById("landed").getAttribute("aria-live"), dlg: document.getElementById("folio").tagName }));
+  assert(a11y.live === "polite" && a11y.dlg === "DIALOG", `aria: ${JSON.stringify(a11y)}`);
+  // back on the 110, which has no figure
+  await page.evaluate(() => mp.board("110"));
+  await until(page, () => mp.board() === "110" && !mp.busy);
+  const back = await page.evaluate(() => ({ labs: document.querySelectorAll("#labels .lab").length, figure: document.getElementById("figure").hasAttribute("hidden"), feet: document.querySelectorAll("#labels .lab .foot").length }));
+  assert(back.labs === 110 && back.figure && back.feet === 0, `back on the 110: ${JSON.stringify(back)}`);
+});
+
 // ---- Phase 14: the door and the curse ----
 await check("Phase 14: a refused sannyāsin sits at the door, is asked on a card that holds the game, and the door opens", async page => {
   await page.emulateMedia({ reducedMotion: "reduce" });

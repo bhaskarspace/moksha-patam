@@ -25,7 +25,13 @@ const BASE = `http://127.0.0.1:${server.address().port}/moksha-patam/`;
 // [name, square to stand on, roll]: 5 + 1 lands on the ladder at 6, 13 + 1 on the snake at 14, 40 + 6 walks six squares
 // on the 72 (Phase 18), 30 + 5 walks five plain squares, 53 + 1 climbs bhakti's ladder at 54, 51 + 1 meets the snake at 52
 const BOARD = process.argv.find(a => a.startsWith("--board="))?.slice(8) ?? "110";
-const MOVES = BOARD === "72" ? [["walk", 30, 5], ["climb", 53, 1], ["swallow", 51, 1]] : [["walk", 40, 6], ["climb", 5, 1], ["swallow", 13, 1]];
+// on the 84, 30 + 5 walks five squares, 7 + 1 climbs the ladder at its foot on the 1, 12 + 1 meets the snake at 13
+const MOVES = {
+  72: [["walk", 30, 5], ["climb", 53, 1], ["swallow", 51, 1]],
+  84: [["walk", 30, 5], ["climb", 7, 1], ["swallow", 12, 1]],
+}[BOARD] ?? [["walk", 40, 6], ["climb", 5, 1], ["swallow", 13, 1]];
+// squares the repaint jumps to, all on the board in play
+const REPAINT = BOARD === "110" ? [20, 45, 70, 95, 30, 60] : [20, 45, 70, 25, 30, 60];
 
 const browser = await chromium.launch({ channel: "chrome" });
 const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
@@ -65,7 +71,7 @@ for (let run = 0; run < RUNS; run++) {
     results[name].longest = Math.max(results[name].longest, r.longest);
   }
   // the end of a turn: everything mp.jump redraws, which includes repainting the age of every square
-  repaint.push(...await page.evaluate(() => [20, 45, 70, 95, 30, 60].map(n => { const t = performance.now(); mp.jump(n); return performance.now() - t; })));
+  repaint.push(...await page.evaluate(ns => ns.map(n => { const t = performance.now(); mp.jump(n); return performance.now() - t; }), REPAINT));
   await cdp.send("Emulation.setCPUThrottlingRate", { rate: 1 });
 }
 

@@ -16,7 +16,7 @@ import { prefs, hasMet, meet, firstLife, firstOpened, openFirst, knowsWho, meetW
 import { G, pnameIn } from "../state.js";
 import { $, esc, reduced, art } from "../ui.js";
 import { sound } from "../audio/engine.js";
-import { ashramaIn, labEls } from "./board.js";
+import { ashramaIn, labEls, sqNumIn } from "./board.js";
 import { pullBack } from "./camera.js";
 import { illumined } from "./frame.js";
 import { sheetOn, sheetBefore, sheetIn, sheetOut, sheetAfter, setDetent, toggleDetent, sheetDetent, onSheetClose } from "./sheet.js";
@@ -277,7 +277,7 @@ function srcLine(src, l, met, { square = false } = {}) {
 function legendHtml(n, l) {
   const T = (k, v) => tIn(l, k, v), g = legendOf(n) ?? {}, o = other(l), up = LADDERS[n], down = SNAKES[n];
   const kind = n === GOAL ? "goal" : up ? "virtue" : down ? "vice" : "story";
-  let body = `<h2 id="leafTitle">${esc(g[l] || T("legendSq", { n: numIn(l, n) }))}</h2>`;
+  let body = `<h2 id="leafTitle">${esc(g[l] || T("legendSq", { n: sqNumIn(l, n) }))}</h2>`;
   const alt = [g[o], g.iast].filter(Boolean).join(" · ");
   if (alt) body += `<p class="alt" lang="${o}">${esc(alt)}</p>`;
   const unsure = g.uncertain ? texts(l, tIn("en", "legendUncertain"), tIn("hi", "legendUncertain"), "remedy") : "";
@@ -288,9 +288,9 @@ function legendHtml(n, l) {
   const more = g.scholar && deep("scholar") ? bi(l, g.scholar, "note") + `<p class="srcline"><span class="src">${esc(srcIn(l, g.scholar.src))}</span></p>` : "";
   return {
     kind, met: [], metMore: [],
-    html: frame(l, { kind, eb: T("legendOf"), big: "", sqn: numIn(l, n), age: "", body, more,
-      foot: up ? T("ladderTo", { n: up.to }) : down ? T("snakeTo", { n: down.to }) : "",
-      prev: n > 1 ? numIn(l, n - 1) : null, next: n < TOP ? numIn(l, n + 1) : null, prevLabel: T("prevSq"), nextLabel: T("nextSq") }),
+    html: frame(l, { kind, eb: T("legendOf"), big: "", sqn: sqNumIn(l, n), age: "", body, more,
+      foot: up ? T("ladderTo", { n: sqNumIn(l, up.to) }) : down ? T("snakeTo", { n: down.to }) : "",
+      prev: n > 1 ? sqNumIn(l, n - 1) : null, next: n < TOP ? sqNumIn(l, n + 1) : null, prevLabel: T("prevSq"), nextLabel: T("nextSq") }),
   };
 }
 

@@ -1,7 +1,7 @@
 // ---- The board: squares, labels, and the painted snakes and ladders ----
 import { GOAL, TOP, ROWS, COLS, LAYOUT, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, BOARD, onBoard, legendOf } from "../content.js";
 import { isCloth } from "../engine/cloth.js";
-import { lang, L, t, num } from "../i18n.js";
+import { lang, L, t, num, tIn, numIn } from "../i18n.js";
 import { $, art, esc, quality } from "../ui.js";
 import { groundToken, groundOf, colRow, fills, WASH, snakeHues, sivaPath } from "./ground.js";
 import { cameraOn } from "./camera.js";
@@ -10,6 +10,11 @@ export { colRow };
 
 export const ashramaIn = (l, n) => { const a = ASHRAMAS.find(([max]) => n <= max); return l === "hi" ? a[2] : a[1]; };
 export const ashramaOf = n => ashramaIn(lang, n);
+
+// Square n's number as the board writes it, in language l: on the 84 the squares above the grid are the charts' top 1
+// to 6 (Phase 18), never a number of the track's own.
+export const sqNumIn = (l, n) => { const top = isCloth() && legendOf(n)?.top; return top ? tIn(l, "topSq", { n: top }) : numIn(l, n); };
+export const sqNum = n => sqNumIn(lang, n);
 
 // The board's name for square n in the current language.
 export function squareName(n) {
@@ -27,9 +32,9 @@ export function squareName(n) {
 export const vignette = n => !isCloth() && n !== GOAL && !!document.getElementById(`sq-${n}`)?.classList.contains("vg");
 
 function labelHtml(n) {
-  const numEl = `<span class="n">${num(n)}</span>`;
-  // an old cloth writes every square's legend in it, as the charts do (Phase 18)
-  if (isCloth()) return numEl + `<span class="nm">${esc(squareName(n))}</span>`;
+  const numEl = `<span class="n">${sqNum(n)}</span>`;
+  // an old cloth writes every square's legend in it, as the charts do (Phase 18), and marks a footprint
+  if (isCloth()) return numEl + (BOARD.rules.footprints?.[n] != null ? `<span class="foot" aria-hidden="true">👣</span>` : "") + `<span class="nm">${esc(squareName(n))}</span>`;
   const vg = vignette(n);
   if (n === GOAL) return numEl + `<span class="om">ॐ</span><span class="dv">${t("moksha")}</span>`;
   if (HEAVEN[n]) return numEl + (vg ? "" : `<span class="ic">${art(`sq-${n}`, HEAVEN[n].ic)}</span>`) + `<span class="dv">${L(HEAVEN[n].en, HEAVEN[n].hi)}</span>`;
@@ -83,6 +88,31 @@ function superstructure() {
   el.innerHTML = `<svg viewBox="0 0 ${COLS * 10} 9" preserveAspectRatio="none">${d}</svg>`;
 }
 
+// The 84's frame (Phase 18): the cosmic man (lokapuruṣa) in whom the Jaina charts set the grid, standing in kāyotsarga,
+// arms down at his sides. The grid is his body; his hands hold the squares at the arms (56, 66), the basic lifeforms (1)
+// lie between his feet, the five unsurpassed heavens are in his face, and the crystal crescent of the liberated
+// (īṣatprāgbhāra) is above his forehead (Schmidt-Madsen 2019, App. B2, Ja84#3a,12b,18). A silhouette only: no features.
+// Drawn in cells of ten, on the board's extent; the cells cover him where there are squares.
+function figure() {
+  const el = $("figure");
+  if (!el) return;
+  // an svg has no hidden property: the attribute it is
+  if (el.toggleAttribute("hidden", BOARD.border !== "lokapurusa")) { el.innerHTML = ""; return; }
+  const W = COLS * 10, H = ROWS * 10, y = r => (ROWS - 1 - r) * 10;
+  const g0 = y(9), g1 = y(1) + 10, foot = y(0);
+  el.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  el.setAttribute("preserveAspectRatio", "none");
+  el.innerHTML =
+    `<path class="body" d="M10,${g0} Q0,${g0 + 1} 0,${g0 + 10} L0,${y(6) + 16} Q0,${y(6) + 20} 5,${y(6) + 20} Q10,${y(6) + 20} 10,${y(6) + 16} Z"/>` +
+    `<path class="body" d="M${W - 10},${g0} Q${W},${g0 + 1} ${W},${g0 + 10} L${W},${y(7) + 16} Q${W},${y(7) + 20} ${W - 5},${y(7) + 20} Q${W - 10},${y(7) + 20} ${W - 10},${y(7) + 16} Z"/>` +
+    `<rect class="body" x="9.5" y="${g0 - 0.5}" width="${W - 19}" height="${g1 - g0 + 1}"/>` +
+    `<path class="body" d="M30,${foot} L49,${foot} L49,${foot + 6} Q49,${foot + 10} 45,${foot + 10} L26,${foot + 10} Q23,${foot + 10} 25,${foot + 7} Z"/>` +
+    `<path class="body" d="M${W - 49},${foot} L${W - 30},${foot} L${W - 25},${foot + 7} Q${W - 23},${foot + 10} ${W - 26},${foot + 10} L${W - 45},${foot + 10} Q${W - 49},${foot + 10} ${W - 49},${foot + 6} Z"/>` +
+    `<rect class="body" x="${W / 2 - 9}" y="${g0 - 6}" width="18" height="7"/>` +
+    `<ellipse class="body" cx="${W / 2}" cy="${y(11) + 2}" rx="16" ry="20"/>` +
+    `<path class="moon" d="M${W / 2 - 15},${y(13) + 9} Q${W / 2},${y(13) - 4} ${W / 2 + 15},${y(13) + 9} Q${W / 2},${y(13) + 3} ${W / 2 - 15},${y(13) + 9} Z"/>`;
+}
+
 export const labEls = {};
 let focusN = 1;
 export function focusSquare(n) {
@@ -94,6 +124,7 @@ export function focusSquare(n) {
 export function buildCells() {
   const cells = $("cells"), labels = $("labels");
   superstructure();
+  figure();
   cells.innerHTML = ""; labels.innerHTML = "";
   // the grid is the board's extent (src/geometry.js); each square is placed in its own cell, top-left first, so a board
   // with squares outside its main grid, or cells with none, is drawn as it is
@@ -118,11 +149,11 @@ export function buildCells() {
       lab.className = "lab" + kind + (light && !heaven ? " li" : "");
       lab.innerHTML = labelHtml(n);
       const s = SNAKES[n], l = LADDERS[n];
-      lab.title = s ? `${squareName(n)} (${s.skt}) → ${num(s.to)}` : l ? `${squareName(n)} (${l.skt}) → ${num(l.to)}` : squareName(n);
+      lab.title = s ? `${squareName(n)} (${s.skt}) → ${sqNum(s.to)}` : l ? `${squareName(n)} (${l.skt}) → ${sqNum(l.to)}` : squareName(n);
       // every square opens its card; one square at a time takes Tab, and the arrow keys move between them
       lab.dataset.n = n;
       lab.setAttribute("role", "button");
-      lab.setAttribute("aria-label", t("sqLabel", { n, name: squareName(n) }));
+      lab.setAttribute("aria-label", t("sqLabel", { n: sqNum(n), name: squareName(n) }));
       lab.tabIndex = n === focusN ? 0 : -1;
       lab.style.gridArea = `${ROWS - r} / ${c + 1}`;
       labels.appendChild(lab);

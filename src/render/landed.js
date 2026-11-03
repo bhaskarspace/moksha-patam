@@ -66,7 +66,9 @@ export const landStay = (who, n, why = null) => { last = { n, who, stay: true, w
 export const landReborn = (who, was) => { last = { n: 1, who, was }; drawLanded(); };
 function bornLine(l, { who, stay, was, why }) {
   const p = G.state.players[who], w = { name: pnameIn(p, l), gender: p.gender };
-  if (stay && why === "zero") return { title: tIn(l, "cZeroTitle"), text: fill(tIn(l, "cZeroLine", w), w) };
+  // an old cloth's pawn that stays (Phase 18): no shell face up, not yet the 1 out of square 1, or above the 84's grid
+  const k = { zero: "cZero", entry: "cEntry", top: "cTop" }[why];
+  if (stay && k) return { title: tIn(l, k + "Title"), text: fill(tIn(l, k + "Line", w), w) };
   if (stay) return { title: tIn(l, "stayTitle"), text: fill(tIn(l, "heavenStay", w), w) };
   const q = p.past?.[was];
   return { title: tIn(l, "bornAgainHead"), text: fill(tIn(l, "bornAgainLine", { name: w.name, was: q ? pnameIn(q, l) : "" }), w) };

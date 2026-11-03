@@ -45,26 +45,89 @@ export function walk(from, v) {
 
 export const entry = (k, v = {}, kind = "", who = null) => ({ k, v, kind, who });
 
+// The 84's walk above 80 (above: "turn"), as Jeṭhābhāī gives it (JBRR 1; Schmidt-Madsen 2019, App. F2, p. 606): a pawn
+// that has not thrown the 1 on 80 goes on to the last square, 84, turns there, and comes back down the row to 76, whose
+// snake takes it to 52, "and one should climb up again". The playthrough's rules (ch. 5, p. 217) finish the throw from 52,
+// and a pawn whose throw ends on the way back keeps going back next time (back), so a 1 on 80 coming down still climbs.
+// Returns the squares walked, whether the walk reached the snake on the way back (slide), the count left after it
+// (rest), and whether the pawn is still coming back.
+export function turnWalk(from, v, back, { end, back: low }) {
+  const path = [];
+  let n = from, dir = back ? -1 : 1;
+  for (let i = 0; i < v; i++) {
+    if (dir > 0 && n === end) dir = -1;
+    n += dir;
+    path.push(n);
+    if (dir < 0 && n === low) return { path, slide: true, rest: v - i - 1, back: false };
+  }
+  return { path, slide: false, rest: 0, back: dir < 0 };
+}
+
+// What a move that ends on square n does there: a snake takes the pawn down; a ladder is climbed at once, unless the
+// board climbs on a 1 alone (climb: "one", the 84), when the pawn waits at its foot.
+function landOn(n) {
+  const s = SNAKES[n], l = LADDERS[n];
+  if (s) return { kind: "snake", to: s.to };
+  if (l && BOARD.rules.climb !== "one") return { kind: "ladder", to: l.to };
+  return null;
+}
+// a square from which a 1 climbs (climb: "one"): a ladder's foot, or a footprint, up to the square above it
+const climbFrom = n => (LADDERS[n] ? { kind: "ladder", to: LADDERS[n].to } : BOARD.rules.footprints?.[n] != null ? { kind: "foot", to: BOARD.rules.footprints[n] } : null);
+// the log's line for a pawn that stays: no shell face up, not yet the 1 that leaves square 1, or in the squares above
+const STAY = { zero: "cZero", entry: "cEntry", top: "cTop" };
+
 export function planTurn(state, v, dice = [v]) {
-  const idx = state.turn, p = state.players[idx], from = p.pos, pre = [], after = [], end = [];
-  const base = { idx, v, dice, spare: [], sit: false, from, jump: null, win: false, died: false, again: false, told: [], cost: 0, pre, after, end };
+  const r = BOARD.rules, idx = state.turn, p = state.players[idx], from = p.pos, pre = [], after = [], end = [];
+  const base = { idx, v, dice, spare: [], sit: false, from, jump: null, win: false, died: false, again: false, told: [], cost: 0, pre, after, end, back: false };
+  const stay = why => { after.push(entry(STAY[why], { v, pos: from, sq: from }, "", idx)); return { ...base, stay: true, why, path: [], target: from, final: from, back: !!p.back }; };
+  const done = plan => {
+    const win = plan.final === GOAL;
+    if (win) end.push(entry("cWin", { pos: GOAL, sq: GOAL }, "heaven", idx));
+    return { ...base, ...plan, win, told: [null, ...(plan.jump ? [null] : [])] };
+  };
   // no shell face up: the pawn stays where it is, and the turn passes
-  if (!v) {
-    after.push(entry("cZero", { pos: from, sq: from }, "", idx));
-    return { ...base, stay: true, why: "zero", path: [], target: from, final: from };
+  if (!v) return stay("zero");
+  // Jeṭhābhāī: one keeps throwing until a 1, and the 1 moves the pawn out of the first square (JBRR 1)
+  if (r.entry && from === 1 && v !== r.entry) return stay("entry");
+  // the squares above the grid (steps): each 1 climbs one, up to the goal, and nothing else moves the pawn there
+  const k = (r.steps ?? []).indexOf(from);
+  if (k >= 0) {
+    if (v !== 1) return stay("top");
+    const to = r.steps[k + 1];
+    after.push(entry("cStep", { v, pos: to, sq: to }, to === GOAL ? "heaven" : "", idx));
+    return done({ path: [to], target: to, final: to });
+  }
+  // a 1 thrown at a ladder's foot or on a footprint climbs it, on a board that climbs so (climb: "one")
+  const up = r.climb === "one" && v === 1 ? climbFrom(from) : null;
+  if (up) {
+    after.push(entry(up.kind === "foot" ? "cFoot" : "cClimb", { v, pos: from, to: up.to, sq: from }, "ladder", idx));
+    return done({ path: [], target: from, jump: up, final: up.to });
+  }
+  if (r.above === "turn") {
+    const w = turnWalk(from, v, !!p.back, r.turn), turned = !p.back && w.path.includes(r.turn.end) && w.path.at(-1) !== r.turn.end;
+    const passed = w.path.slice(0, -1);
+    if (passed.length) after.push(entry("lPassed", { passed }, "passed", idx));
+    if (w.slide) {
+      // down 76's snake, and the rest of the throw on from its tail
+      const low = r.turn.back, tail = SNAKES[low].to, then = Array.from({ length: w.rest }, (_, i) => tail + i + 1);
+      after.push(entry("cSlide", { v, pos: low, to: tail, sq: low }, "snake", idx));
+      const last = then.at(-1), jump2 = last != null ? landOn(last) : null;
+      if (last != null) after.push(entry(jump2 ? (jump2.kind === "snake" ? "cOnSnake" : "cOnLadder") : "cOn", { pos: last, to: jump2?.to, sq: last }, jump2?.kind === "snake" ? "snake" : "", idx));
+      return done({ path: w.path, target: low, jump: { kind: "snake", to: tail }, then, jump2, final: jump2 ? jump2.to : last ?? tail });
+    }
+    const target = w.path.at(-1), jump = landOn(target), wait = !jump && r.climb === "one" && climbFrom(target);
+    const k2 = jump ? (jump.kind === "snake" ? "cSnake" : "cLadder") : turned ? "cTurn" : w.back ? "cBack" : wait ? "cMoveFoot" : "cMove";
+    after.push(entry(k2, { v, pos: target, to: jump?.to, sq: target }, jump?.kind ?? (target === GOAL ? "heaven" : ""), idx));
+    return done({ path: w.path, target, jump, final: jump ? jump.to : target, back: w.back });
   }
   const { path, past } = walk(from, v), target = path.at(-1);
   const passed = path.slice(0, -1);
   if (passed.length) after.push(entry("lPassed", { passed }, "passed", idx));
   if (past) after.push(entry("cPast", { v, pos: target, sq: target }, "", idx));
-  const s = SNAKES[target], l = LADDERS[target];
-  const jump = s ? { kind: "snake", to: s.to } : l ? { kind: "ladder", to: l.to } : null;
-  const final = jump ? jump.to : target;
-  if (jump) after.push(entry(s ? "cSnake" : "cLadder", { v, pos: target, to: jump.to, sq: target }, s ? "snake" : "ladder", idx));
-  else if (!past) after.push(entry("cMove", { v, pos: target, sq: target }, target === GOAL ? "heaven" : "", idx));
-  const win = final === GOAL;
-  if (win) end.push(entry("cWin", { pos: GOAL, sq: GOAL }, "heaven", idx));
-  return { ...base, path, target, final, jump, win, told: [null, ...(jump ? [null] : [])] };
+  const jump = landOn(target), wait = !jump && r.climb === "one" && climbFrom(target);
+  if (jump) after.push(entry(jump.kind === "snake" ? "cSnake" : "cLadder", { v, pos: target, to: jump.to, sq: target }, jump.kind, idx));
+  else if (!past) after.push(entry(wait ? "cMoveFoot" : "cMove", { v, pos: target, sq: target }, target === GOAL ? "heaven" : "", idx));
+  return done({ path, target, jump, final: jump ? jump.to : target });
 }
 
 // The turn's end: the pawn where the plan put it, the squares it stood on kept for the path at the end, and the turn
@@ -72,7 +135,9 @@ export function planTurn(state, v, dice = [v]) {
 export function endTurn(state, plan, addLog) {
   const p = state.players[plan.idx];
   p.pos = plan.final;
-  if (!plan.stay) (p.life ||= []).push(plan.target, ...(plan.jump ? [plan.jump.to] : []));
+  // coming back down the 84's top row, or not (p.back: see turnWalk)
+  if (plan.back) p.back = true; else delete p.back;
+  if (!plan.stay) (p.life ||= []).push(...[plan.target, plan.jump?.to, plan.then?.at(-1), plan.jump2?.to].filter(n => n != null));
   if (plan.win) { p.won = "cloth"; state.winner = plan.idx; }
   else state.turn = (plan.idx + 1) % state.players.length;
   state.over = state.winner != null;

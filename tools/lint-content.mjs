@@ -205,7 +205,7 @@ export function lintReport() {
       bilingual(w, g);
       bilingual(`${w} gloss`, g.gloss);
       if (!g.iast) err(w, "no word from the chart (iast)");
-      if (!/App\. D\d, sq\. \d+/.test(g.src ?? "")) err(w, `source "${g.src}" does not name the appendix and square`);
+      if (!/App\. D\d, (top )?sq\. \d+/.test(g.src ?? "")) err(w, `source "${g.src}" does not name the appendix and square`);
       if (g.scholar) { bilingual(`${w} scholar`, g.scholar); if (!g.scholar.src) err(w, "a scholar note needs its source"); }
       for (const t of [g.en, g.hi, g.gloss?.en, g.gloss?.hi]) if (typeof t === "string" && birthRanking(t).length) warn(w, `ranks a birth: "${birthRanking(t).join('", "')}"`);
     }

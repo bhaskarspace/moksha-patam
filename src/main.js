@@ -321,6 +321,12 @@ async function takeTurn({ practice = false } = {}) {
         else await (plan.jump.kind === "snake" ? swallow(idx, p.pos, plan.jump.to) : climb(idx, p.pos, plan.jump.to));
         if (g !== G.gen) return;
       }
+      // the 84 (Phase 18): down 76's snake on the way back, and the rest of the throw walked on from its tail
+      if (plan.then?.length) {
+        for (const n of plan.then) { if (g !== G.gen) return; p.pos = n; retrigger(el, "hop"); place(); await sleep(200); }
+        if (plan.jump2) { (plan.jump2.kind === "snake" ? sound.snake : sound.ladder)(); await (plan.jump2.kind === "snake" ? swallow(idx, p.pos, plan.jump2.to) : climb(idx, p.pos, plan.jump2.to)); }
+        if (g !== G.gen) return;
+      }
       // a reckoning (REDESIGN.md Phase 12): a person's holds the game on its card until it is read; a computer's is in the
       // moves log. At the third tier the token goes back down the board, where the debt's vice would have sent it.
       if (plan.reckon) {
@@ -695,9 +701,11 @@ function applyStatic() {
   document.querySelectorAll("[data-t]").forEach(el => { el.textContent = t(el.dataset.t); });
   document.querySelectorAll("[data-lang]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.lang === lang)));
   renderMute();
-  // band centres, in rows from the bottom: two rows per stage
-  $("ashramas").innerHTML = ASHRAMAS.slice(0, 5).map(([, en, hi], i) => `<span style="top:${((ROWS - (2 * i + 1)) / ROWS) * 100}%">${L(en, hi)}</span>`).join("");
+  drawStrip();
 }
+// The āśramas down the frame, at their band centres in rows from the bottom, two rows per stage; an old board has none
+// (Phase 18), so the strip follows the board as well as the language
+function drawStrip() { $("ashramas").innerHTML = ASHRAMAS.slice(0, 5).map(([, en, hi], i) => `<span style="top:${((ROWS - (2 * i + 1)) / ROWS) * 100}%">${L(en, hi)}</span>`).join(""); }
 
 function setLang(l) {
   if (l === lang) return;
@@ -735,6 +743,7 @@ function boardFor(state) {
   if (id === BOARD_ID) return;
   useBoard(id);
   buildCells();
+  drawStrip();
   if (S) draw();
 }
 function startGame({ reborn = false, next = null } = {}) {

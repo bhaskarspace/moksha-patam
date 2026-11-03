@@ -1,7 +1,7 @@
 // REDESIGN.md Phase 18: the old cloth, a historical board played as the old game (src/engine/cloth.js).
 import test from "node:test";
 import assert from "node:assert/strict";
-import { useBoard, GOAL, TOP } from "../src/content.js";
+import { useBoard, GOAL, TOP, LAYOUT, BOARDS } from "../src/content.js";
 import { createGame, playTurn, planTurn, endTurn, rollDice, diceFor } from "../src/engine/turn.js";
 import { throwOf, oddsOf, COWRIE_UP } from "../src/engine/dice.js";
 import { makeRng } from "../src/rng.js";
@@ -78,3 +78,62 @@ test("back on the 110 the game is the 110's", () => {
   assert.equal(s.players[0].pos, 0);
   assert.equal(GOAL, 105);
 });
+
+// ---- The 84, by Jeṭhābhāī's rules (JBRR 1; Schmidt-Madsen 2019, App. F2, pp. 605-6, and ch. 5, p. 217) ----
+const on84 = f => () => { useBoard("84"); try { f(); } finally { useBoard("110"); } };
+const game84 = (seed = 1) => createGame({ players: [{ name: "A", type: "human", gender: "f" }, { name: "", type: "cpu" }], rules: { six: true, board: "84" }, seed });
+const at = (s, pos, back = false) => { s.turn = 0; Object.assign(s.players[0], { pos }); if (back) s.players[0].back = true; else delete s.players[0].back; };
+
+test("the 84 is laid out as the charts are: a square below, one at each arm, the grid, and the cross of six above", on84(() => {
+  const at = n => LAYOUT.at[n];
+  assert.deepEqual([LAYOUT.cols, LAYOUT.rows, GOAL, TOP], [11, 14, 90, 90]);
+  assert.deepEqual(at(1), { col: 5, row: 0 });
+  assert.deepEqual([at(2), at(10), at(11)], [{ col: 1, row: 1 }, { col: 9, row: 1 }, { col: 9, row: 2 }]);
+  assert.deepEqual([at(55), at(56), at(57), at(65), at(66), at(67), at(84)], [{ col: 1, row: 6 }, { col: 0, row: 6 }, { col: 1, row: 7 }, { col: 9, row: 7 }, { col: 10, row: 7 }, { col: 9, row: 8 }, { col: 9, row: 9 }]);
+  // the footprints are the centre column, each one square straight above the last
+  for (const [a, b] of Object.entries(BOARDS["84"].rules.footprints)) { assert.equal(at(+a).col, 5); assert.equal(at(b).col, 5); assert.equal(at(b).row, at(+a).row + 1); }
+  assert.deepEqual([86, 87, 88].map(at), [{ col: 4, row: 11 }, { col: 5, row: 11 }, { col: 6, row: 11 }]);
+}));
+
+test("on the 84 only a 1 leaves square 1, and it moves the pawn to 2", on84(() => {
+  const s = game84();
+  for (const v of [2, 5, 6]) { at(s, 1); const p = playTurn(s, v); assert.ok(p.stay && p.why === "entry"); assert.equal(s.players[0].pos, 1); }
+  at(s, 1); playTurn(s, 1); assert.equal(s.players[0].pos, 2);
+}));
+
+test("a ladder or a footprint is climbed only on a 1 thrown from its square; landing on one waits", on84(() => {
+  const s = game84();
+  at(s, 5); let p = playTurn(s, 2); assert.equal(s.players[0].pos, 7); assert.equal(p.jump, null);
+  at(s, 7); p = playTurn(s, 1); assert.deepEqual(p.jump, { kind: "ladder", to: 44 }); assert.equal(s.players[0].pos, 44);
+  // 7 to 44 to 50 takes two separate 1s
+  at(s, 44); playTurn(s, 1); assert.equal(s.players[0].pos, 50);
+  at(s, 7); playTurn(s, 2); assert.equal(s.players[0].pos, 9);
+  at(s, 6); p = playTurn(s, 1); assert.deepEqual(p.jump, { kind: "foot", to: 15 });
+  at(s, 51); playTurn(s, 1); assert.equal(s.players[0].pos, 61);
+  // a snake is taken on landing, whatever the throw
+  at(s, 12); playTurn(s, 1); assert.equal(s.players[0].pos, 8);
+}));
+
+test("past 80 without the 1: on to 84, back down to 76, its snake to 52, and the rest of the throw from there", on84(() => {
+  const s = game84();
+  at(s, 80); let p = playTurn(s, 2); assert.equal(s.players[0].pos, 82); assert.ok(!s.players[0].back);
+  at(s, 82); p = playTurn(s, 5); assert.deepEqual(p.path, [83, 84, 83, 82, 81]); assert.ok(s.players[0].back);
+  // coming back, a 1 on 80 still climbs to the first square above
+  at(s, 81, true); playTurn(s, 1); assert.equal(s.players[0].pos, 80); assert.ok(s.players[0].back);
+  at(s, 80, true); p = playTurn(s, 1); assert.deepEqual(p.jump, { kind: "foot", to: 85 }); assert.ok(!s.players[0].back);
+  at(s, 79, true); p = playTurn(s, 6); assert.deepEqual(p.path, [78, 77, 76]); assert.deepEqual(p.jump, { kind: "snake", to: 52 });
+  assert.deepEqual(p.then, [53, 54, 55]); assert.equal(s.players[0].pos, 55); assert.ok(!s.players[0].back);
+  // the most a throw can carry from 52 is five: from 77, one step to 76 and five on to 57
+  at(s, 77, true); p = playTurn(s, 6); assert.deepEqual(p.then, [53, 54, 55, 56, 57]); assert.equal(s.players[0].pos, 57);
+}));
+
+test("above the grid only a 1 climbs, square by square, and the 1 from the fifth reaches the siddhaśilā and wins", on84(() => {
+  const s = game84();
+  at(s, 85); let p = playTurn(s, 2); assert.ok(p.stay && p.why === "top"); assert.equal(s.players[0].pos, 85);
+  for (const n of [85, 86, 87, 88]) { at(s, n); playTurn(s, 1); assert.equal(s.players[0].pos, n + 1); }
+  at(s, 89); p = playTurn(s, 1); assert.ok(p.win); assert.equal(s.winner, 0); assert.ok(s.over);
+  // 50's ladder goes straight there, on a 1
+  const t = game84(); at(t, 50); p = playTurn(t, 1); assert.ok(p.win);
+  // 47's goes to the first square above
+  const u = game84(); at(u, 47); playTurn(u, 1); assert.equal(u.players[0].pos, 85);
+}));
