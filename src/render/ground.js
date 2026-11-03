@@ -1,12 +1,9 @@
 // ---- The painted ground of each square, and how the ageing washes it ----
 // Pure, so tests can check every square's text contrast after the strongest wash (tests/contrast.test.mjs).
-import { GOAL, ROWS, ASHRAMAS, BOARD } from "../content.js";
+import { GOAL, ROWS, COLS, ASHRAMAS, BOARD, LAYOUT } from "../content.js";
 
-export function colRow(n) {
-  const i = n - 1, row = Math.floor(i / 10);
-  const col = row % 2 === 0 ? i % 10 : 9 - (i % 10);
-  return { col, row };
-}
+// Square n's cell on the board in play, from its geometry (src/geometry.js); rows count up from the bottom.
+export const colRow = n => LAYOUT.at[n] ?? { col: 0, row: 0 };
 // Square n's ground as a palette token name (REDESIGN.md Phase 13): pale, by band, the two grounds of a band alternating
 // square by square, as the painted boards vary their rows. The divine row is gold, and the exit indigo.
 export function groundToken(n) {
@@ -25,7 +22,6 @@ export function groundOf(n) {
   if (n > 100) return [mix(hex(BOARD.divine.ground[0]), hex(BOARD.divine.ground[1])), false];
   return [hex(groundToken(n)), false];
 }
-export const SQUARES = ROWS * 10;
 
 // How strongly the ageing paints, at full sepia or full dim. Sepia is ochre, plus lamp black under light ink
 // so a dark square never lightens. Dim pushes each square away from its ink: toward shell white where the
@@ -82,9 +78,9 @@ export function sivaPath(step = 0.05) {
       pts.push({ x: x0 + (x1 - x0) * t + inward.x * o, y: y0 + (y1 - y0) * t + inward.y * o });
     }
   };
-  run(top.x + 0.3, top.y, 10 - E, top.y + 0.5, { x: 0, y: 0 });
-  run(10 - E, top.y + 0.5, 10 - E, ROWS - E, { x: -1, y: 0 });
-  run(10 - E, ROWS - E, one.x + 0.35, ROWS - E, { x: 0, y: -1 });
+  run(top.x + 0.3, top.y, COLS - E, top.y + 0.5, { x: 0, y: 0 });
+  run(COLS - E, top.y + 0.5, COLS - E, ROWS - E, { x: -1, y: 0 });
+  run(COLS - E, ROWS - E, one.x + 0.35, ROWS - E, { x: 0, y: -1 });
   // and the tail, a curl that tightens into square 1
   for (let a = Math.PI * 0.5, r = 0.4; r > 0.06; a += step * 3, r -= step * 0.11) pts.push({ x: one.x - Math.cos(a) * r, y: one.y + Math.sin(a) * r });
   const N = pts.length - 1;

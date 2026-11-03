@@ -93,7 +93,7 @@ h1 { font-family: var(--f-display); font-weight: 400; font-size: clamp(34px, 6vw
   box-shadow: inset 0 0 0 2px var(--frame-gold), 0 10px 30px rgba(10, 12, 40, 0.3);
 }
 /* the vimāna over the divine row: gold domes with their doorways, the exit's in indigo (render/board.js superstructure) */
-.vimana { aspect-ratio: 100 / 9; margin: 0 3px -1px; }
+.vimana { aspect-ratio: calc(var(--cols, 10) * 10) / 9; margin: 0 3px -1px; }
 .vimana svg { display: block; width: 100%; height: 100%; overflow: visible; }
 .vimana .dome { fill: var(--b-gold-hi); stroke: var(--b-lac); stroke-width: 0.45; }
 .vimana .door { fill: var(--b-vermilion); stroke: var(--b-lac); stroke-width: 0.35; }
@@ -102,8 +102,8 @@ h1 { font-family: var(--f-display); font-weight: 400; font-size: clamp(34px, 6vw
 /* on a weak device the ornament goes first, before any pigment, and the ageing never does */
 :root.plain .vimana { display: none; }
 :root.plain .board-frame { background: var(--frame-red); }
-.board-wrap { position: relative; width: 100%; aspect-ratio: 10 / 11; border: 3px solid var(--frame-dark); outline: 2px solid var(--frame-gold); background: var(--frame-dark); container-type: inline-size; }
-.cells, .labels { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(10, 1fr); grid-template-rows: repeat(11, 1fr); }
+.board-wrap { position: relative; width: 100%; aspect-ratio: var(--cols, 10) / var(--rows, 11); border: 3px solid var(--frame-dark); outline: 2px solid var(--frame-gold); background: var(--frame-dark); container-type: inline-size; }
+.cells, .labels { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(var(--cols, 10), 1fr); grid-template-rows: repeat(var(--rows, 11), 1fr); }
 .cell { position: relative; box-shadow: inset 0 0 0 0.5px rgba(40, 18, 4, 0.45); }
 /* The picture on each plain square sits under the snakes and ladders, like the painted boards. */
 .cell .pic { position: absolute; inset: 0; display: grid; place-items: center; padding-top: 8%; font-family: var(--f-emoji); font-size: 4.6cqi; line-height: 1; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.3)); }
@@ -212,7 +212,7 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 /* Players: pixel-art figures that walk, climb and grow. Feet sit on the square, with a shadow in the player's colour. */
 .tokens { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
 .token {
-  position: absolute; width: 7.4%; aspect-ratio: 12 / 16;
+  position: absolute; width: calc(74% / var(--cols, 10)); aspect-ratio: 12 / 16;
   transform: translate(-50%, -92%);
   transition: left 0.14s ease-out, top 0.14s ease-out;
   z-index: 2;
@@ -3418,6 +3418,22 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var boards_default = {
     "110": {
       about: "The 110-square board: cream, pale ochre and pale green grounds by band, as the painted boards vary their rows; the pigment is in the figures, the snakes, the ladders, the border and the divine row. Gold is the only gradient (REDESIGN.md Phase 13). Each snake is [body, belly]; no two snakes that come near each other share a body.",
+      geometry: {
+        cols: 10,
+        rows: 11,
+        track: [
+          {
+            from: 1,
+            to: 110,
+            width: 10,
+            origin: [
+              0,
+              0
+            ],
+            path: "boustrophedon"
+          }
+        ]
+      },
       palette: {
         vermilion: "#C8352A",
         ochre: "#D9A441",
@@ -3543,6 +3559,29 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     ]
   };
 
+  // src/geometry.js
+  function layoutOf(geometry) {
+    const at2 = {};
+    for (const r of geometry.track) {
+      if (r.n != null) {
+        at2[r.n] = { col: r.at[0], row: r.at[1] };
+        continue;
+      }
+      if (r.path === "boustrophedon") {
+        const [c0, r0] = r.origin ?? [0, 0], first = r.dir ?? 1;
+        for (let n = r.from; n <= r.to; n++) {
+          const i = n - r.from, row2 = Math.floor(i / r.width), k = i % r.width, dir = row2 % 2 === 0 ? first : -first;
+          at2[n] = { col: c0 + (dir > 0 ? k : r.width - 1 - k), row: r0 + row2 };
+        }
+        continue;
+      }
+      for (let n = r.from; n <= r.to; n++) at2[n] = { col: r.col + (n - r.from) * (r.dir ?? 1), row: r.row };
+    }
+    const cell = {};
+    for (const [n, p] of Object.entries(at2)) cell[`${p.col},${p.row}`] = +n;
+    return { cols: geometry.cols, rows: geometry.rows, at: at2, cell, squares: Object.keys(at2).map(Number).sort((a, b) => a - b) };
+  }
+
   // src/content.js
   var { GOAL, TOP, ROWS, ASHRAMAS, LADDERS, SNAKES, HEAVEN, MOKSHA, FALL } = squares_default;
   var { SQ } = squares_default;
@@ -3555,7 +3594,29 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var DOOR = door_default.questions;
   var CURSES = { list: curses_default.curses || null };
   var MIRROR = mirror_default;
+  var BOARDS = boards_default;
   var BOARD = boards_default["110"];
+  var BOARD_ID = "110";
+  var LAYOUT = layoutOf(BOARD.geometry);
+  var COLS = LAYOUT.cols;
+  var watchers = [];
+  var onBoard = (f2) => {
+    watchers.push(f2);
+  };
+  function useBoard(id = "110") {
+    if (!Object.hasOwn(boards_default, id)) id = "110";
+    if (id === BOARD_ID) return BOARD;
+    const b = boards_default[id], own = id === "110" ? squares_default : b.squares;
+    ({ GOAL, TOP, ROWS, ASHRAMAS, LADDERS, SNAKES, HEAVEN, MOKSHA, FALL } = { ASHRAMAS: [], HEAVEN: {}, MOKSHA: null, FALL: null, ...own });
+    SQ = own.SQ ?? {};
+    BOARD = b;
+    BOARD_ID = id;
+    LAYOUT = layoutOf(b.geometry);
+    COLS = LAYOUT.cols;
+    ROWS = LAYOUT.rows;
+    for (const f2 of watchers) f2(b);
+    return b;
+  }
   var READINGS = readings_default;
   var CODEX = codex_default;
   var squareOf = (n) => n === GOAL ? MOKSHA : HEAVEN[n] || LADDERS[n] || SNAKES[n] || SQ[n] || null;
@@ -5229,11 +5290,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
 
   // src/render/ground.js
-  function colRow(n) {
-    const i = n - 1, row2 = Math.floor(i / 10);
-    const col = row2 % 2 === 0 ? i % 10 : 9 - i % 10;
-    return { col, row: row2 };
-  }
+  var colRow = (n) => LAYOUT.at[n] ?? { col: 0, row: 0 };
   function groundToken(n) {
     if (n === GOAL) return BOARD.divine.goal;
     if (n > 100) return BOARD.divine.ground[0];
@@ -5248,7 +5305,6 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     if (n > 100) return [mix(hex(BOARD.divine.ground[0]), hex(BOARD.divine.ground[1])), false];
     return [hex(groundToken(n)), false];
   }
-  var SQUARES2 = ROWS * 10;
   var WASH = { ochre: 0.42, deepen: 0.22, dim: 0.5, edge: 0.14 };
   function fills(n, { sepia, dim }) {
     const light = groundOf(n)[1], out = [];
@@ -5296,9 +5352,9 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         pts.push({ x: x0 + (x1 - x0) * t2 + inward.x * o, y: y0 + (y1 - y0) * t2 + inward.y * o });
       }
     };
-    run(top.x + 0.3, top.y, 10 - E, top.y + 0.5, { x: 0, y: 0 });
-    run(10 - E, top.y + 0.5, 10 - E, ROWS - E, { x: -1, y: 0 });
-    run(10 - E, ROWS - E, one.x + 0.35, ROWS - E, { x: 0, y: -1 });
+    run(top.x + 0.3, top.y, COLS - E, top.y + 0.5, { x: 0, y: 0 });
+    run(COLS - E, top.y + 0.5, COLS - E, ROWS - E, { x: -1, y: 0 });
+    run(COLS - E, ROWS - E, one.x + 0.35, ROWS - E, { x: 0, y: -1 });
     for (let a = Math.PI * 0.5, r = 0.4; r > 0.06; a += step * 3, r -= step * 0.11) pts.push({ x: one.x - Math.cos(a) * r, y: one.y + Math.sin(a) * r });
     const N = pts.length - 1;
     return pts.map((p, i) => ({ ...p, w: 0.12 - 0.085 * (i / N) }));
@@ -5314,7 +5370,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var cameraOn = () => !motion.matches && quality !== "low";
   var at = (n) => {
     const { col, row: row2 } = colRow(Math.max(1, n));
-    return { x: (col + 0.5) / 10, y: (ROWS - 1 - row2 + 0.5) / ROWS };
+    return { x: (col + 0.5) / COLS, y: (ROWS - 1 - row2 + 0.5) / ROWS };
   };
   var clamp2 = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
   function set(s, cx = 0.5, cy = 0.5, instant = false) {
@@ -5373,11 +5429,12 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     if (el3.hidden) return;
     const top = ROWS - 1, f2 = (n) => +n.toFixed(2);
     let d = "";
-    for (let c = 0; c < 10; c++) {
-      const n = top % 2 === 0 ? top * 10 + c + 1 : top * 10 + (9 - c) + 1, x = c * 10;
+    for (let c = 0; c < COLS; c++) {
+      const n = LAYOUT.cell[`${c},${top}`], x = c * 10;
+      if (n == null) continue;
       d += `<path class="dome" d="M${x + 1},9 L${x + 1},6.2 Q${x + 1},2.6 ${x + 5},1.9 Q${x + 9},2.6 ${x + 9},6.2 L${x + 9},9 Z"/><path class="door${n === GOAL ? " goal" : ""}" d="M${x + 3.4},9 L${x + 3.4},6.6 Q${x + 5},4.4 ${x + 6.6},6.6 L${x + 6.6},9 Z"/><circle class="finial" cx="${x + 5}" cy="${f2(1.3)}" r="0.75"/>`;
     }
-    el3.innerHTML = `<svg viewBox="0 0 100 9" preserveAspectRatio="none">${d}</svg>`;
+    el3.innerHTML = `<svg viewBox="0 0 ${COLS * 10} 9" preserveAspectRatio="none">${d}</svg>`;
   }
   var labEls = {};
   var focusN = 1;
@@ -5392,15 +5449,20 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     superstructure();
     cells.innerHTML = "";
     labels.innerHTML = "";
+    const board4 = $("board");
+    board4.style.setProperty("--cols", COLS);
+    board4.style.setProperty("--rows", ROWS);
     for (let r = ROWS - 1; r >= 0; r--) {
-      for (let c = 0; c < 10; c++) {
-        const n = r % 2 === 0 ? r * 10 + c + 1 : r * 10 + (9 - c) + 1;
+      for (let c = 0; c < COLS; c++) {
+        const n = LAYOUT.cell[`${c},${r}`];
+        if (n == null) continue;
         const light = groundOf(n)[1], heaven = n > 100;
         const el3 = document.createElement("div");
         el3.className = "cell" + (heaven ? " heaven" : "") + (n === GOAL ? " goal" : "");
         if (!heaven) el3.style.background = `var(--b-${groundToken(n)})`;
         if (vignette(n)) el3.innerHTML = `<span class="pic vg">${art(`sq-${n}`, "", "spr vg")}</span>`;
         else if (SQ[n]) el3.innerHTML = `<span class="pic">${art(`sq-${n}`, SQ[n].ic)}</span>`;
+        el3.style.gridArea = `${ROWS - r} / ${c + 1}`;
         cells.appendChild(el3);
         const lab = document.createElement("div");
         const kind = n === GOAL ? " heaven goal" : heaven ? " heaven" : SNAKES[n] ? " vice" : LADDERS[n] ? " virtue" : "";
@@ -5412,6 +5474,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         lab.setAttribute("role", "button");
         lab.setAttribute("aria-label", t("sqLabel", { n, name: squareName(n) }));
         lab.tabIndex = n === focusN ? 0 : -1;
+        lab.style.gridArea = `${ROWS - r} / ${c + 1}`;
         labels.appendChild(lab);
         labEls[n] = lab;
       }
@@ -5426,8 +5489,12 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const { col, row: row2 } = colRow(n);
     return { x: (col + 0.5) * S, y: (ROWS - 1 - row2 + 0.5) * S };
   };
-  var fxClear = () => fx.clearRect(0, 0, S * 10, S * ROWS);
+  var fxClear = () => fx.clearRect(0, 0, S * COLS, S * ROWS);
   var tokenCache = {};
+  onBoard(() => {
+    for (const k in tokenCache) delete tokenCache[k];
+    hues = null;
+  });
   var paint = (name) => tokenCache[name] ||= getComputedStyle(document.documentElement).getPropertyValue(`--b-${name}`).trim();
   function drawLadder(a, b) {
     const p = center(a), q2 = center(b);
@@ -5600,15 +5667,15 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     washes = next2;
     if (!S || !washes) return;
     tokens ||= Object.fromEntries(["--b-ochre", "--b-black", "--b-shell"].map((t2) => [t2, getComputedStyle(document.documentElement).getPropertyValue(t2).trim()]));
-    const W2 = S * 10, H2 = S * ROWS;
+    const W2 = S * COLS, H2 = S * ROWS;
     agx.clearRect(0, 0, W2, H2);
     if (grain && quality !== "low") {
       agx.fillStyle = grain;
       agx.fillRect(0, 0, W2, H2);
     }
-    for (let n = 1; n <= TOP; n++) {
+    for (const n of LAYOUT.squares) {
       const { col, row: row2 } = colRow(n), x = col * S, y = (ROWS - 1 - row2) * S;
-      for (const [t2, a] of fills(n, washes[n])) {
+      for (const [t2, a] of fills(n, washes[n] ?? {})) {
         agx.globalAlpha = a;
         agx.fillStyle = tokens[t2];
         agx.fillRect(x, y, S, S);
@@ -5650,7 +5717,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       c.setTransform(dpr * k, 0, 0, dpr * k, 0, 0);
     }
     ctx.clearRect(0, 0, W2, H2);
-    S = W2 / 10;
+    S = W2 / COLS;
     for (const [a, l] of Object.entries(LADDERS)) drawLadder(+a, l.to);
     for (const [h, s] of Object.entries(SNAKES)) drawSnake(+h, s.to);
     drawSiva();
@@ -6391,7 +6458,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     el3.classList.toggle("divine", !animal2 && STAGES[stage].art === "divine");
   }
   function setXY(el3, x, y) {
-    el3.style.left = x / (S * 10) * 100 + "%";
+    el3.style.left = x / (S * COLS) * 100 + "%";
     el3.style.top = (y + FEET * S) / (S * ROWS) * 100 + "%";
   }
   function retrigger(el3, cls) {
@@ -6427,7 +6494,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       const group = at2[p.pos], k = group.indexOf(i);
       const [ox, oy] = group.length === 1 ? OFFS[0] : OFFS[k + 1];
       const { col, row: row2 } = colRow(p.pos);
-      el3.style.left = (col + 0.5) * 10 + ox + "%";
+      el3.style.left = ((col + 0.5) * 10 + ox) * (10 / COLS) + "%";
       el3.style.top = ((ROWS - 1 - row2 + 0.5 + FEET) * 10 + oy) * (10 / ROWS) + "%";
     });
     renderPlayers();
@@ -7775,9 +7842,9 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var CONTROL = "button, a, input, select, label, summary, [data-act], [data-cl], [data-entry], [data-sq]";
   document.addEventListener("click", (e) => {
     if (!dlg2.open || blocking || closing || !sheetOn() || e.target.closest(CONTROL)) return;
-    const onBoard = $("board").contains(e.target);
-    if (!onBoard && !leaf2.contains(e.target)) return;
-    if (onBoard) {
+    const onBoard2 = $("board").contains(e.target);
+    if (!onBoard2 && !leaf2.contains(e.target)) return;
+    if (onBoard2) {
       e.stopPropagation();
       e.preventDefault();
     }
@@ -7901,7 +7968,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       return;
     }
     const { col, row: row2 } = colRow(GOAL);
-    el.style.left = col * 10 + "%";
+    el.style.left = col * 100 / COLS + "%";
     el.style.top = (ROWS - 1 - row2) / ROWS * 100 + "%";
     el.style.height = 100 / ROWS + "%";
     const n = w.spokes.length;
@@ -9129,6 +9196,13 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
   });
   var urlSeed = new URLSearchParams(location.search).get("seed");
   var nextSeed = urlSeed != null && /^\d+$/.test(urlSeed) ? +urlSeed >>> 0 : null;
+  function boardFor(state) {
+    const id = state?.rules?.board ?? "110";
+    if (id === BOARD_ID) return;
+    useBoard(id);
+    buildCells();
+    if (S) draw();
+  }
   function startGame({ reborn = false, next: next2 = null } = {}) {
     const born = next2 ?? (reborn && G.state?.over ? rebornRows(G.state) : null);
     G.gen++;
@@ -9151,6 +9225,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     if (S) fxClear();
     G.busy = false;
     G.state = newState(nextSeed ?? freshSeed(), born?.rows, born?.rules);
+    boardFor(G.state);
     nextSeed = null;
     saveGame(G.setup, G.state);
     buildTokens();
@@ -9263,11 +9338,14 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     const lab = e.target.closest(".lab");
     if (lab) openSquare(+lab.dataset.n, { from: lab });
   });
-  var gridIndex = (n) => {
+  function stepFrom(n, dc, dr) {
     const { col, row: row2 } = colRow(n);
-    return (ROWS - 1 - row2) * 10 + col;
-  };
-  var atIndex = (i) => +$("labels").children[i]?.dataset.n;
+    for (let c = col + dc, r = row2 + dr; c >= 0 && c < COLS && r >= 0 && r < ROWS; c += dc, r += dr) {
+      const m = LAYOUT.cell[`${c},${r}`];
+      if (m != null) return m;
+    }
+    return null;
+  }
   $("labels").addEventListener("keydown", (e) => {
     const lab = e.target.closest(".lab");
     if (!lab) return;
@@ -9276,11 +9354,11 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
       e.preventDefault();
       return openSquare(n, { from: lab });
     }
-    const step = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -10, ArrowDown: 10 }[e.key];
+    const step = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, 1], ArrowDown: [0, -1] }[e.key];
     if (!step) return;
     e.preventDefault();
-    const i = gridIndex(n) + step;
-    if (i >= 0 && i < ROWS * 10 && (Math.abs(step) === 10 || Math.floor(i / 10) === Math.floor(gridIndex(n) / 10))) focusSquare(atIndex(i));
+    const m = stepFrom(n, ...step);
+    if (m != null) focusSquare(m);
   });
   $("log").addEventListener("click", (e) => {
     const b = e.target.closest("[data-sq]");
@@ -9581,6 +9659,14 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
       grace(face = 1) {
         G.state.forceGrace = face;
         return face;
+      },
+      // Phase 18: mp.board(id) starts a fresh game on that board ("110", the default); mp.board() is the board in play
+      board(id) {
+        if (id == null) return BOARD_ID;
+        if (!Object.hasOwn(BOARDS, String(id))) return null;
+        G.setup.rules = { ...G.setup.rules, board: String(id) === "110" ? void 0 : String(id) };
+        startGame();
+        return BOARD_ID;
       }
     };
   }
@@ -9596,6 +9682,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     renderSetup();
     if (data?.state) {
       G.state = data.state;
+      boardFor(G.state);
       G.state.rng ||= makeRng(freshSeed());
       G.state.over ??= G.state.winner != null;
       G.busy = false;

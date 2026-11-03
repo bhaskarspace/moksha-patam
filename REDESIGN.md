@@ -2273,7 +2273,12 @@ Board geometry becomes data. The variants are documented, not invented; see
 - 84-square Jain board — from Appendix D2 and Jeṭhābhāī's rules (Appendix F2): a 1 to
   leave square 1, ladders climbed on a 1 from the foot, footprints up the centre column on
   a 1, the vimānas above the grid each on a 1.
-- 101-square Sufi board ending at the throne.
+- 101-square Sufi board ending at the throne. **Deferred to Phase 20** (Bhaskar, 3 Nov): the sources in `research/`
+  are too thin to build it without inventing squares. Schmidt-Madsen 2019 gives only a typology (App. B3: a 10 × 10
+  grid with one square above, play from ʿadam at the bottom left, boustrophedon to the Throne; 13 snakes, 8 to 17
+  ladders) and no transcription or critical reading; Topsfield 1985 and 2006 name about six squares (ʿadam 1, walādat 2,
+  ʿaql 5, fanā fī Allāh 84, the Throne) and give the six-cowrie entry rule (a ten), but no positions for the 13 snakes and
+  17 ladders. It needs the RAS or Ashmolean chart read square by square first.
 - **What each board does above its winning square, as that board's own rule.** The 72:
   the last square's snake to 51, the earth. The Jain 84: walk to 84, turn, and down the
   snake at 76 into 52, the human row, to climb again. Harikṛṣṇa's 84: roam 80–84 until the
@@ -2366,6 +2371,10 @@ mechanics were still moving.*
 - **The "oldest" pass.** Eight text-bridges from Phase 11 lean on *one of the oldest, two
   oldest, longest and among the oldest*. A first-time reader learns nothing from the
   seventh "oldest." Vary them.
+
+- **The 101-square Sufi board** (from Phase 18): build it once a chart (RAS, or the Ashmolean "Hazard", Topsfield
+  2006 no. 16) has been read square by square, with its legends, 13 snakes and 17 ladders, as Appendix D reads the 72
+  and the 84. Never from the six squares the articles name.
 
 **Balancing.**
 - **The ablation harness.** For each snake and ladder, run N games with that element

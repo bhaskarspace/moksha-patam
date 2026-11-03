@@ -1,5 +1,5 @@
 // Moksha Patam: the page's wiring. Rules live in engine/, drawing in render/, content in content/*.json.
-import { GOAL, TOP, ROWS, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, STR, squareOf } from "./content.js";
+import { GOAL, TOP, ROWS, COLS, LAYOUT, BOARD_ID, BOARDS, useBoard, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, STR, squareOf } from "./content.js";
 import { lang, urlLang, setLangValue, L, num, t, tIn } from "./i18n.js";
 import { G, defaultSetup, pname, pnameIn, cur, newState, loadSelf, saveSelf } from "./state.js";
 import { prefs, setPref, applyTheme, lifeLived, beFirst, freshViewer, firstLife, soulStore, soulFor, keepSoul, setSoulStore, saveGame, loadGame } from "./prefs.js";
@@ -654,6 +654,15 @@ let nextSeed = urlSeed != null && /^\d+$/.test(urlSeed) ? +urlSeed >>> 0 : null;
 
 // Play again starts clean; Be born again ({ reborn: true }) begins each kept person's next life (Phase 16), and next
 // ({ rows, rules }) is a game given outright (mp.animal).
+// The board a game is played on (REDESIGN.md Phase 18): its id is in the game's rules, and the 110's when they name none.
+// A different board is laid out and painted again before anything is drawn on it.
+function boardFor(state) {
+  const id = state?.rules?.board ?? "110";
+  if (id === BOARD_ID) return;
+  useBoard(id);
+  buildCells();
+  if (S) draw();
+}
 function startGame({ reborn = false, next = null } = {}) {
   const born = next ?? (reborn && G.state?.over ? rebornRows(G.state) : null);
   G.gen++;
@@ -670,6 +679,7 @@ function startGame({ reborn = false, next = null } = {}) {
   if (S) fxClear();
   G.busy = false;
   G.state = newState(nextSeed ?? freshSeed(), born?.rows, born?.rules);
+  boardFor(G.state);
   nextSeed = null;
   saveGame(G.setup, G.state);
   buildTokens();
@@ -774,19 +784,26 @@ $("labels").addEventListener("click", e => {
   const lab = e.target.closest(".lab");
   if (lab) openSquare(+lab.dataset.n, { from: lab });
 });
-// The board's squares in visual order, top-left first, for the arrow keys.
-const gridIndex = n => { const { col, row } = colRow(n); return (ROWS - 1 - row) * 10 + col; };
-const atIndex = i => +$("labels").children[i]?.dataset.n;
+// The arrow keys move to the square in the next cell that has one, along the row or the column (Phase 18: a board's
+// grid can have cells with no square, and squares outside its main grid).
+function stepFrom(n, dc, dr) {
+  const { col, row } = colRow(n);
+  for (let c = col + dc, r = row + dr; c >= 0 && c < COLS && r >= 0 && r < ROWS; c += dc, r += dr) {
+    const m = LAYOUT.cell[`${c},${r}`];
+    if (m != null) return m;
+  }
+  return null;
+}
 $("labels").addEventListener("keydown", e => {
   const lab = e.target.closest(".lab");
   if (!lab) return;
   const n = +lab.dataset.n;
   if (e.key === "Enter" || e.key === " ") { e.preventDefault(); return openSquare(n, { from: lab }); }
-  const step = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -10, ArrowDown: 10 }[e.key];
+  const step = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, 1], ArrowDown: [0, -1] }[e.key];
   if (!step) return;
   e.preventDefault();
-  const i = gridIndex(n) + step;
-  if (i >= 0 && i < ROWS * 10 && (Math.abs(step) === 10 || Math.floor(i / 10) === Math.floor(gridIndex(n) / 10))) focusSquare(atIndex(i));
+  const m = stepFrom(n, ...step);
+  if (m != null) focusSquare(m);
 });
 $("log").addEventListener("click", e => {
   const b = e.target.closest("[data-sq]");
@@ -975,6 +992,14 @@ if (new URLSearchParams(location.search).has("debug")) {
     // Phase 17 step 4: mp.grace(face) is the face grace's next throw shows (Bhakti): on an ego test after the lower choice,
     // or in a year at the door the book cannot answer. mp.grace(1) brings grace; mp.grace(6) withholds it.
     grace(face = 1) { G.state.forceGrace = face; return face; },
+    // Phase 18: mp.board(id) starts a fresh game on that board ("110", the default); mp.board() is the board in play
+    board(id) {
+      if (id == null) return BOARD_ID;
+      if (!Object.hasOwn(BOARDS, String(id))) return null;
+      G.setup.rules = { ...G.setup.rules, board: String(id) === "110" ? undefined : String(id) };
+      startGame();
+      return BOARD_ID;
+    },
   };
 }
 
@@ -988,6 +1013,7 @@ function start(data) {
   renderSetup();
   if (data?.state) {
     G.state = data.state;
+    boardFor(G.state);
     G.state.rng ||= makeRng(freshSeed()); // saves from before the seeded die
     G.state.over ??= G.state.winner != null; // saves from before a life could end without a winner
     G.busy = false; buildTokens(); render(); age(true); queueCpu();

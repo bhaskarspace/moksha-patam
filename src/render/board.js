@@ -1,5 +1,5 @@
 // ---- The board: squares, labels, and the painted snakes and ladders ----
-import { GOAL, TOP, ROWS, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, BOARD } from "../content.js";
+import { GOAL, TOP, ROWS, COLS, LAYOUT, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, BOARD, onBoard } from "../content.js";
 import { lang, L, t, num } from "../i18n.js";
 import { $, art, quality } from "../ui.js";
 import { groundToken, groundOf, colRow, fills, WASH, snakeHues, sivaPath } from "./ground.js";
@@ -42,13 +42,14 @@ function superstructure() {
   if (el.hidden) return;
   const top = ROWS - 1, f = n => +n.toFixed(2);
   let d = "";
-  for (let c = 0; c < 10; c++) {
-    const n = top % 2 === 0 ? top * 10 + c + 1 : top * 10 + (9 - c) + 1, x = c * 10;
+  for (let c = 0; c < COLS; c++) {
+    const n = LAYOUT.cell[`${c},${top}`], x = c * 10;
+    if (n == null) continue;
     d += `<path class="dome" d="M${x + 1},9 L${x + 1},6.2 Q${x + 1},2.6 ${x + 5},1.9 Q${x + 9},2.6 ${x + 9},6.2 L${x + 9},9 Z"/>` +
       `<path class="door${n === GOAL ? " goal" : ""}" d="M${x + 3.4},9 L${x + 3.4},6.6 Q${x + 5},4.4 ${x + 6.6},6.6 L${x + 6.6},9 Z"/>` +
       `<circle class="finial" cx="${x + 5}" cy="${f(1.3)}" r="0.75"/>`;
   }
-  el.innerHTML = `<svg viewBox="0 0 100 9" preserveAspectRatio="none">${d}</svg>`;
+  el.innerHTML = `<svg viewBox="0 0 ${COLS * 10} 9" preserveAspectRatio="none">${d}</svg>`;
 }
 
 export const labEls = {};
@@ -63,15 +64,22 @@ export function buildCells() {
   const cells = $("cells"), labels = $("labels");
   superstructure();
   cells.innerHTML = ""; labels.innerHTML = "";
+  // the grid is the board's extent (src/geometry.js); each square is placed in its own cell, top-left first, so a board
+  // with squares outside its main grid, or cells with none, is drawn as it is
+  const board = $("board");
+  board.style.setProperty("--cols", COLS);
+  board.style.setProperty("--rows", ROWS);
   for (let r = ROWS - 1; r >= 0; r--) {
-    for (let c = 0; c < 10; c++) {
-      const n = r % 2 === 0 ? r * 10 + c + 1 : r * 10 + (9 - c) + 1;
+    for (let c = 0; c < COLS; c++) {
+      const n = LAYOUT.cell[`${c},${r}`];
+      if (n == null) continue;
       const light = groundOf(n)[1], heaven = n > 100;
       const el = document.createElement("div");
       el.className = "cell" + (heaven ? " heaven" : "") + (n === GOAL ? " goal" : "");
       if (!heaven) el.style.background = `var(--b-${groundToken(n)})`;
       if (vignette(n)) el.innerHTML = `<span class="pic vg">${art(`sq-${n}`, "", "spr vg")}</span>`;
       else if (SQ[n]) el.innerHTML = `<span class="pic">${art(`sq-${n}`, SQ[n].ic)}</span>`;
+      el.style.gridArea = `${ROWS - r} / ${c + 1}`;
       cells.appendChild(el);
 
       const lab = document.createElement("div");
@@ -85,6 +93,7 @@ export function buildCells() {
       lab.setAttribute("role", "button");
       lab.setAttribute("aria-label", t("sqLabel", { n, name: squareName(n) }));
       lab.tabIndex = n === focusN ? 0 : -1;
+      lab.style.gridArea = `${ROWS - r} / ${c + 1}`;
       labels.appendChild(lab);
       labEls[n] = lab;
     }
@@ -96,10 +105,12 @@ const canvas = $("art"), ctx = canvas.getContext("2d");
 export const fxCanvas = $("fx"), fx = fxCanvas.getContext("2d");
 export let S = 0;
 export const center = n => { const { col, row } = colRow(n); return { x: (col + 0.5) * S, y: (ROWS - 1 - row + 0.5) * S }; };
-export const fxClear = () => fx.clearRect(0, 0, S * 10, S * ROWS);
+export const fxClear = () => fx.clearRect(0, 0, S * COLS, S * ROWS);
 
 // A palette colour by token name ("vermilion"), as the page's stylesheet has it (content/boards.json, by the build).
 const tokenCache = {};
+// another board brings another palette and other snakes (Phase 18)
+onBoard(() => { for (const k in tokenCache) delete tokenCache[k]; hues = null; });
 export const paint = name => (tokenCache[name] ||= getComputedStyle(document.documentElement).getPropertyValue(`--b-${name}`).trim());
 
 // Ladders red-outlined, as on the 72-square boards: rails and rungs of Indian yellow inside a thin vermilion line, and that
@@ -240,13 +251,13 @@ export function drawAge(next = washes) {
   washes = next;
   if (!S || !washes) return;
   tokens ||= Object.fromEntries(["--b-ochre", "--b-black", "--b-shell"].map(t => [t, getComputedStyle(document.documentElement).getPropertyValue(t).trim()]));
-  const W = S * 10, H = S * ROWS;
+  const W = S * COLS, H = S * ROWS;
   agx.clearRect(0, 0, W, H);
   // the cloth first, under the washes
   if (grain && quality !== "low") { agx.fillStyle = grain; agx.fillRect(0, 0, W, H); }
-  for (let n = 1; n <= TOP; n++) {
+  for (const n of LAYOUT.squares) {
     const { col, row } = colRow(n), x = col * S, y = (ROWS - 1 - row) * S;
-    for (const [t, a] of fills(n, washes[n])) {
+    for (const [t, a] of fills(n, washes[n] ?? {})) {
       agx.globalAlpha = a; agx.fillStyle = tokens[t];
       agx.fillRect(x, y, S, S);
     }
@@ -291,7 +302,7 @@ export function draw() {
     c.setTransform(dpr * k, 0, 0, dpr * k, 0, 0);
   }
   ctx.clearRect(0, 0, W, H);
-  S = W / 10;
+  S = W / COLS;
   for (const [a, l] of Object.entries(LADDERS)) drawLadder(+a, l.to);
   for (const [h, s] of Object.entries(SNAKES)) drawSnake(+h, s.to);
   drawSiva();

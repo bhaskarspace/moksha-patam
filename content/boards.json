@@ -1,6 +1,22 @@
 {
   "110": {
     "about": "The 110-square board: cream, pale ochre and pale green grounds by band, as the painted boards vary their rows; the pigment is in the figures, the snakes, the ladders, the border and the divine row. Gold is the only gradient (REDESIGN.md Phase 13). Each snake is [body, belly]; no two snakes that come near each other share a body.",
+    "geometry": {
+      "cols": 10,
+      "rows": 11,
+      "track": [
+        {
+          "from": 1,
+          "to": 110,
+          "width": 10,
+          "origin": [
+            0,
+            0
+          ],
+          "path": "boustrophedon"
+        }
+      ]
+    },
     "palette": {
       "vermilion": "#C8352A",
       "ochre": "#D9A441",

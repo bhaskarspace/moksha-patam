@@ -6,7 +6,7 @@
 // only; outside the camera's clip, so the wheel rises into the vimāna's arches over the divine row, and hidden while the
 // camera is zoomed, since it does not move with it. It says nothing a screen reader needs, since the line under the board and the card say it in words. With reduced motion the
 // same states show without the turning (styles.css).
-import { GOAL, ROWS } from "../content.js";
+import { GOAL, ROWS, COLS } from "../content.js";
 import { G } from "../state.js";
 import { $ } from "../ui.js";
 import { debtKey } from "../engine/karma.js";
@@ -41,7 +41,7 @@ export function drawDoor() {
   el.hidden = !w;
   if (!w) { drawn = null; return; }
   const { col, row } = colRow(GOAL);
-  el.style.left = col * 10 + "%";
+  el.style.left = (col * 100) / COLS + "%";
   el.style.top = ((ROWS - 1 - row) / ROWS) * 100 + "%";
   el.style.height = 100 / ROWS + "%";
   const n = w.spokes.length;
