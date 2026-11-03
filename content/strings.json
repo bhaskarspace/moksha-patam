@@ -522,8 +522,8 @@
       "cTopTitle": "Above the grid",
       "cTopLine": "Here only a 1 climbs on: {name} waits for it.",
       "topSq": "top {n}",
-      "board84": "84 squares: the Jaina cloth, by Jeṭhābhāī's rules",
-      "board84About": "The old game, as the Jaina cloths were played: from the basic lifeforms at the cosmic man's feet to the siddhaśilā above his head, under the Jain law. Only a 1 leaves square 1, climbs a ladder or a footprint, or moves through the five heavens above; past 80 without it, the pawn walks to 84 and back down. The rows are realms, not ranks."
+      "board84": "84 squares: the Jaina cloth, by Jeṭhābhāī's rules (a long game)",
+      "board84About": "The old game, as the Jaina cloths were played: from the basic lifeforms at the cosmic man's feet to the siddhaśilā above his head, under the Jain law. Only a 1 leaves square 1, climbs a ladder or a footprint, or moves through the five heavens above; past 80 without it, the pawn walks to 84 and back down. A long game, often more than a hundred throws, as it was played over the days of Paryuṣaṇ. The rows are realms, not ranks."
     },
     "hi": {
       "title": "मोक्ष पटम",
@@ -1004,7 +1004,7 @@
       "cNew": "पुराने पट पर नया खेल। हर मोहरा घर 1 से शुरू करता है।",
       "moreNote": "विद्वान की टिप्पणी",
       "cEntry": "{name} का {v} आया: घर 1 से केवल 1 ही निकालता है।",
-      "cTop": "{name} का {v} आया: जाल के ऊपर केवल 1 ही आगे चढ़ाता है।",
+      "cTop": "{name} का {v} आया: चौखानों के ऊपर केवल 1 ही आगे चढ़ाता है।",
       "cStep": "{name} का 1 आया, {pos} तक चढ़ाई, {what}।",
       "cFoot": "{name} का 1 आया, {pos} पर पदचिह्न से, {what}, {to} तक चढ़ाई।",
       "cClimb": "{name} का 1 आया, {pos} पर सीढ़ी के नीचे से, {what}, {to} तक चढ़ाई।",
@@ -1016,12 +1016,12 @@
       "cOnSnake": "आगे {pos} पर {what} के साँप ने निगल लिया। नीचे {to} पर।",
       "cOnLadder": "आगे {pos}, और {what} की सीढ़ी चढ़कर {to} पर।",
       "cEntryTitle": "अभी 1 नहीं",
-      "cEntryLine": "घर 1 से केवल 1 ही बाहर ले जाता है: {name} उसकी राह देख रहे हैं।",
-      "cTopTitle": "जाल के ऊपर",
+      "cEntryLine": "घर 1 से केवल 1 ही बाहर ले जाता है: {name} को उसी की प्रतीक्षा है।",
+      "cTopTitle": "चौखानों के ऊपर",
       "cTopLine": "यहाँ केवल 1 ही आगे चढ़ाता है: {name} उसकी राह देख रहे हैं।",
       "topSq": "ऊपर {n}",
-      "board84": "84 घर: जैन पट, जेठाभाई के नियमों से",
-      "board84About": "पुराना खेल, जैसे जैन पट खेले जाते थे: लोकपुरुष के पैरों के निगोद से उसके सिर के ऊपर की सिद्धशिला तक, जैन नियम में। केवल 1 ही घर 1 से निकालता है, सीढ़ी या पदचिह्न चढ़ाता है, या ऊपर के पाँच स्वर्गों में आगे ले जाता है; उसके बिना 80 से आगे गया मोहरा 84 तक जाकर लौटता है। पंक्तियाँ लोक हैं, दर्जे नहीं।"
+      "board84": "84 घर: जैन पट, जेठाभाई के नियमों से (लंबा खेल)",
+      "board84About": "पुराना खेल, जैसे जैन पट खेले जाते थे: लोकपुरुष के पैरों के निगोद से उसके सिर के ऊपर की सिद्धशिला तक, जैन नियम में। केवल 1 ही घर 1 से निकालता है, सीढ़ी या पदचिह्न चढ़ाता है, या ऊपर के पाँच स्वर्गों में आगे ले जाता है; उसके बिना 80 से आगे गया मोहरा 84 तक जाकर लौटता है। एक लंबा खेल, अक्सर सौ से अधिक दाँव का, जैसे पर्युषण के दिनों में खेला जाता था। पंक्तियाँ लोक हैं, दर्जे नहीं।"
     }
   },
   "JOINS": {

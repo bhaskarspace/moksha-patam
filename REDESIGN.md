@@ -2358,6 +2358,11 @@ mechanics were still moving.*
   has faced this month. The test: a fifteen-year-old reads the brahmacharya band and
   recognises their week. **No teen mode, no modern skin** — one board, with the present in
   it. The mirrors stay as they are; the contrast is the point.
+- **The old boards' pictures** (Bhaskar, 3 Nov, at Phase 18's review). The 72's and the 84's
+  cards show a legend with an empty picture panel: each square needs a picture, in the
+  vignette idiom (`art/vignettes.mjs`), drawn from what the charts paint there, with no
+  likeness beyond an emblem. And the 84's vimāna domes over top 1–5, which Phase 18 left as
+  gold ground.
 - **Schools as cast** (`docs/NARRATIVE.md` §13.8): each darśana assigned per life, seeded, to
   a cast member — the teacher a Mīmāṃsaka who holds the rite is enough, the friend's uncle a
   Cārvāka who lives as if there is nothing after, the rival late an Advaitin. Research brief

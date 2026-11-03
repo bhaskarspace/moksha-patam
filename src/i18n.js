@@ -14,7 +14,8 @@ const DEV_DIGITS = "०१२३४५६७८९";
 export const numIn = (l, n) => (l === "hi" ? String(n).replace(/\d/g, d => DEV_DIGITS[d]) : String(n));
 export const num = n => numIn(lang, n);
 // Source names, for showing citations in Hindi.
-export const srcIn = (l, s) => (l === "hi" ? numIn(l, SRC_HI.reduce((a, [en, hi]) => a.replace(en, hi), s)) : s);
+// a citation keeps its Latin digits in Hindi, on every board: a reference is given as it is cited (Bhaskar, 3 Nov)
+export const srcIn = (l, s) => (l === "hi" ? SRC_HI.reduce((a, [en, hi]) => a.replace(en, hi), s) : s);
 export const srcText = s => srcIn(lang, s);
 export const tIn = (l, k, v = {}) => (STR[l][k] ?? STR.en[k]).replace(/\{(\w+)\}/g, (_, x) => v[x] ?? "").replace(/\d/g, d => numIn(l, d));
 export const t = (k, v = {}) => tIn(lang, k, v);

@@ -40,7 +40,7 @@
 // CAP turns a pawn.
 import { pathToFileURL } from "node:url";
 import { createGame, playTurn, moveFor, movesFor, planTurn, rollDice, diceFor, setEndgame, ENDGAME, canSit, spentOf, inHeaven } from "../src/engine/turn.js";
-import { SQ, SITUATIONS, CURSES, BOARDS, useBoard } from "../src/content.js";
+import { SQ, SITUATIONS, CURSES, BOARDS, BOARD, LADDERS, SNAKES, useBoard } from "../src/content.js";
 import { curseIn } from "../src/engine/curse.js";
 import { setPolicy, setEgo, worthOf, optionOf } from "../src/engine/qbn.js";
 import { SPAN, setSpan, yearsAlong, BHUMIKA_AT, TURYA, setPractice } from "../src/engine/self.js";
@@ -74,18 +74,40 @@ export const livesOf = g => g.players.flatMap((p, i) => [...(p.past ?? []), p].m
 // plus the number of turns each player took.
 // Phase 18: games on an old board (the board in play, src/content.js useBoard), every pawn a computer. A pawn's turns to
 // the goal, the winner's in a race; a game that hits CAP turns a pawn counts as not reached.
+// Where a cloth game's turns go (Phase 18): each turn by the square it begins on. On square 1 (waiting for the 1 that
+// leads out, where the board asks one), at a ladder's foot or on a footprint (where a 1 climbs, on climb: "one"), in the
+// squares above the grid (where only a 1 moves), in the 84's loop (above 80, coming back down to 76, or walking up
+// again from 52 after its snake until past 76: regain), or elsewhere; and how often a game goes down 76's snake.
+const WHERE = ["one", "foot", "top", "loop", "walk"];
+function whereOf(p, regain) {
+  const r = BOARD.rules, n = p.pos;
+  if (r.entry && n === 1) return "one";
+  if (r.steps?.includes(n)) return "top";
+  if (r.turn && (n > r.turn.from || p.back || regain)) return "loop";
+  if (r.climb === "one" && (LADDERS[n] || r.footprints?.[n] != null)) return "foot";
+  return "walk";
+}
 export function clothRun(games, players, first, rules) {
-  const turns = [];
-  let reached = 0;
+  const turns = [], where = Object.fromEntries(WHERE.map(k => [k, 0]));
+  let reached = 0, slides = 0, all = 0;
   for (let g = 0; g < games; g++) {
     const state = createGame({ players: Array.from({ length: players }, () => ({ name: "", type: "cpu" })), rules, seed: first + g });
     let n = 0;
-    while (!state.over && n < CAP * players) { playTurn(state); n++; }
+    const regain = state.players.map(() => false);
+    while (!state.over && n < CAP * players) {
+      const i = state.turn, p = state.players[i];
+      if (regain[i] && (p.pos > BOARD.rules.turn.back || p.pos < SNAKES[BOARD.rules.turn.back].to)) regain[i] = false;
+      where[whereOf(p, regain[i])]++;
+      if (playTurn(state).then) { slides++; regain[i] = true; }
+      n++;
+    }
+    all += n;
     if (state.winner != null) { reached++; turns.push(Math.ceil(n / players)); }
   }
   turns.sort((a, b) => a - b);
   const at = q => turns[Math.min(turns.length - 1, Math.floor(q * turns.length))] ?? null;
-  return { median: at(0.5), p95: at(0.95), over100: turns.filter(t => t > 100).length / games, reached: reached / games };
+  return { median: at(0.5), p95: at(0.95), over100: turns.filter(t => t > 100).length / games, reached: reached / games,
+    where: Object.fromEntries(WHERE.map(k => [k, where[k] / all])), perGame: Object.fromEntries(WHERE.map(k => [k, where[k] / games / players])), slides: slides / games / players };
 }
 
 export function playGame(seed, { players = 2, rules = SIM_RULES, pick = moveFor, born = null } = {}) {
@@ -199,6 +221,10 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       const r = clothRun(games, players, first, { ...SIM_RULES, board: flags.board, ...(rand === "own" ? {} : { rand }) });
       console.log(`board ${flags.board}, ${rand === "own" ? `its own (${BOARDS[flags.board].rules.rand})` : rand}, ${players} player${players > 1 ? "s" : ""}, ${games} games: ` +
         `turns to the goal median ${r.median}, p95 ${r.p95}, over 100 ${pct(r.over100)}; reached within ${CAP} ${pct(r.reached)}`);
+      // where the turns went, by the square each began on (the 84's are the long game's reasons)
+      const NAMES = { one: "on square 1", foot: "at a foot or footprint", top: "above the grid", loop: "in the 80→84→76→52 loop and the walk back up", walk: "walking" };
+      console.log("  turns begun " + WHERE.filter(k => r.where[k]).map(k => `${NAMES[k]} ${pct(r.where[k])} (${r.perGame[k].toFixed(1)} a game)`).join(", ") +
+        (BOARD.rules.turn ? `; down 76's snake ${r.slides.toFixed(2)} times a game` : ""));
     }
     process.exit(0);
   }
