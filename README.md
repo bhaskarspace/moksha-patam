@@ -29,7 +29,7 @@ The old Indian game of snakes and ladders, played as one life, in English and Hi
   - Clinging → Vairagya
 
   The tail's card says the ladder is one step above.
-- **14 snakes to 11 ladders, on purpose.** The documented historical boards are balanced or ladder-heavy: the Jaina board 15 ladders to 9 snakes, the Vaiṣṇava board 10 to 10, the Mughal board 17 to 13 (`docs/BOARDCRAFT.md`). The popular claim that snakes outnumbered ladders two to one is folklore. This board is more punishing than any of them as a deliberate thesis, that the good path is the harder one, not as a restoration.
+- **14 snakes to 11 ladders, on purpose.** The documented historical boards set no ratio: the Jaina board has 9 snakes to 6 ladders (and 9 footprints), the Marathi 108 40 to 22, the Vaiṣṇava board 10 to 10, the Mughal board 13 to 17 (`docs/BOARDCRAFT.md §1`). The popular claim that snakes outnumbered ladders two to one is folklore, and so is the claim that the old boards were balanced or ladder-heavy. This board is snake-heavy as a deliberate thesis, that the good path is the harder one, not as a restoration.
 
 | Ladder | Virtue | Story |
 |---|---|---|

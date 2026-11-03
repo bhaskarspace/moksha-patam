@@ -150,12 +150,14 @@ recognition rather than arrival.
 ## 4. The historical boards
 
 Not invented. Sectarian variants with different square counts are documented, which
-means Phase 17 restores something rather than adding a gimmick.
+means Phase 18 restores something rather than adding a gimmick. The 72 and the 84 are
+playable since Phase 18, from Schmidt-Madsen's critical readings (2019, App. D1, D2) and
+Jeṭhābhāī's rules (App. F2); REDESIGN.md Phase 18 has what was read and measured.
 
 | Variant | Squares | Notes |
 |---|---|---|
 | Jain (*jñāna bāzī*, *gyān bāzī*) | **84** | Gujarat and Rajasthan; standardised. Earliest dated examples 1797 and 1812 (Schmidt-Madsen 2019). Opaque watercolour on cloth, text in Prākrit, Sanskrit and Gujarati. Popular at Paryuṣaṇ. 9 snakes, 6 ladders, 9 footprints up the centre column; five vimānas and the siddhaśilā above the grid. |
-| Vaiṣṇava, western India | **72** | 9×8; the Nepali form is called *nāgapāśa*. A Lucknow Vaiṣṇava board of the early 1780s is in the British Library. 10 snakes, 8–10 ladders; Vaikuṇṭha at 68, flanked by Śiva (67) and Brahmā (69); the last square's snake drops the overreacher to 51, the earth. |
+| Vaiṣṇava, western India | **72** | 9×8; the Nepali form is called *nāgapāśa*. A Lucknow Vaiṣṇava board of the early 1780s is in the British Library. 10 snakes and 10 ladders as critically read (App. D1; single charts drop or move a ladder or two); Vaikuṇṭha at 68, flanked by Śiva (67) and Brahmā (69); the last square's snake, from 72, drops the overreacher to 51, the earth. |
 | Maharashtra, Marathi | 108 | 1905; 40 snakes, 22 ladders |
 | Maharashtra | 124 | 14×10, divided into four zones |
 | Vaiṣṇava, Punjab Hills | 300+ | split into left and right sections |
@@ -168,19 +170,34 @@ crescent at the top for the Supreme One. Some boards are framed by the *Lok Puru
 the cosmic body.
 
 **Rules worth restoring** (the rules texts are in Schmidt-Madsen 2019, Appendix F: Harikṛṣṇa's
-*Krīḍākauśalya* 241–55 of 1872, and Jeṭhābhāī's Gujarati *Jñān bājī ramvānī rīt* of 1877):
-- Squares reachable only on an exact roll, which also cannot be passed.
+*Krīḍākauśalya* 241–55 of 1872, and Jeṭhābhāī's Gujarati *Jñān bājī ramvānī rīt* of 1877/78):
+- **Not historical: the start on a 6 and the exact throw.** Both are Harish Johari's rules
+  for his modern redesign of the 72 (Johari 2007: 8–10): the pawns begin in Vaikuṇṭha and
+  leave it on a 6, and past 68 a throw must land exactly on 72 or is forfeited. The thesis
+  finds the first "not attested in any other sources" and the second "probably adapted from
+  the modern game" (Schmidt-Madsen 2019, ch. 5, p. 205 and p. 208 fn. 353). An exact
+  square that cannot be passed is the modern game's rule, not the old one's. Phase 18
+  offers both only as "(Johari, a modern rule)", off unless chosen.
 - **What happens above the winning square.** Three of the four surviving rules send the
-  overreacher back to the world: the 72's last snake to 51 (*pṛthvī*, earth), and Dampier
-  (1895) "beyond 72, start again from 1"; Jeṭhābhāī's Jain 84 walks the pawn that misses its
-  1 on 80 to 84, turns it, and drops it down the snake at 76 into 52, the human-birth row,
-  "and one should climb up again"; Harikṛṣṇa's 500-square board sends it round the whole
-  board. Only Harikṛṣṇa's 84 has the pawn roam 80–84 until it throws a 1 — the rule this game
-  had until Phase 12, and the one the thesis faults for disrupting the cycle. Gītā 9.20–21
-  is the doctrine behind the majority rule: merit buys heaven, heaven ends.
-- **The admitting 1.** In the Jain rules a 1 leaves square 1, climbs a ladder only from a
-  pawn already waiting at its foot, moves one square up a footprint, and enters each vimāna
-  in turn; in Harikṛṣṇa's 84 a 1 takes the pawn from Vaikuṇṭha (80) to mokṣa above it. A
+  overreacher back to the world: on the 72, a throw past 72 stops on it and its snake drops
+  the pawn to 51 (*pṛthvī*, earth); Dampier (1895: 25), the only early witness for the 72,
+  has the pawn land on 72 and follow the snake to 51, or pass 72 and play on from 1 (the
+  thesis's playthrough carries the rest of the count on from 51, its reading of Jeṭhābhāī's
+  rule for the 84; Phase 18 plays the conservative reading and does not carry it).
+  Jeṭhābhāī's Jain 84 walks the pawn that misses its 1 on 80 to 84, turns it, and drops it
+  down the snake at 76 into 52, the human-birth row, "and one should climb up again", the
+  rest of the throw played on from 52 (ch. 5, p. 217); Harikṛṣṇa's 500-square board sends it
+  round the whole board. Only Harikṛṣṇa's 84 has the pawn go back and forth between 80 and
+  84 until a throw ends on 80, and then needs a 1 to climb to mokṣa (KK 245, comm.) — the
+  bounce this game had until Phase 12, and the one the thesis hypothesises was made to
+  shorten an otherwise endless game, at the cost of the cycle. Gītā 9.20–21 is the
+  doctrine behind the majority rule: merit buys heaven, heaven ends.
+- **The admitting 1.** In the Jain rules (JBRR 1–3) a 1 leaves square 1; a ladder or a
+  footprint is climbed only on a 1 thrown from its square, any other throw moving on as
+  usual, so a pawn that lands at a foot waits a turn and climbs on the 1 (and 7 → 44 → 50
+  takes two 1s); a footprint climbs one square; and above the grid each vimāna is entered
+  on a 1 in turn, the 1 from the fifth reaching the siddhaśilā. In Harikṛṣṇa's 84 a 1 takes
+  the pawn from Vaikuṇṭha (80) to mokṣa above it. A
   verse on a 72-board names the faces of a four-sided die dharma (1), artha (2), kāma (3),
   mokṣa (4): "by dharma and mokṣa one climbs house by house; because of artha and kāma one
   wanders." The low face is the gate; the game's rule that the 1 is the threshold face and
@@ -190,10 +207,10 @@ the cosmic body.
 - **The counts, corrected 20 Oct.** The critically read 72 has ten snakes and eight to ten
   ladders; the Jain 84 nine snakes, six ladders and nine footprints; the Marathi 108 forty
   snakes and twenty-two ladders; the Mughal 100–101 is 17 ladders to 13 snakes. Snake-heavy
-  is the norm. The earlier claim here that every pre-modern board is balanced or
-  ladder-heavy counted the Jain footprints as ladders and did not have the 108; it was
-  wrong, and `docs/BOARDCRAFT.md §1` still carries it. The popular "two to one" is also
-  unsupported for the 72 and 84.
+  is common, and no ratio is the authentic one. The earlier claim here that every
+  pre-modern board is balanced or ladder-heavy counted the Jain footprints as ladders and
+  did not have the 108; it was wrong, and `docs/BOARDCRAFT.md §1` is corrected (3 Nov).
+  The popular "two to one" is also unsupported for the 72 and 84.
 - Thematic linking of the two ends of a snake or a ladder (ego to illusion, devotion to
   paradise). The existing design already does a version of this.
 

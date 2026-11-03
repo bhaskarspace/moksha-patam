@@ -12,30 +12,32 @@ most of the questions directly.
 
 ---
 
-## 1. The correction: snakes did not outnumber ladders
+## 1. The counts: no rule of balance either way
 
 The claim that snakes outnumbered ladders roughly two to one, "because the good path is
-harder", is everywhere on the popular web. **It does not survive contact with the
-documented boards.** I repeated it in `docs/REFERENCE.md §4` and that line is wrong;
-it has been corrected there.
+harder", is everywhere on the popular web, and it does not hold for the documented boards.
+Nor does the opposite claim this section first made, that every pre-modern board was
+balanced or ladder-heavy: it counted the Jain board's footprints as ladders and did not
+have the Marathi 108 (corrected 3 Nov, from the boards Phase 18 read in Schmidt-Madsen
+2019, App. D1, D2 and F2).
 
 | Board | Ladders | Snakes | Ratio |
 |---|---|---|---|
-| Jaina, 84 squares | **15** | 9 | 1.67 ladders per snake |
+| Jaina, 84 squares | 6, and 9 footprints | 9 | 0.67 ladders per snake |
 | Vaiṣṇava, 72 squares | 10 | 10 | even |
-| Mughal / Sufi, 100–101 squares | **17** | 13 | 1.31 ladders per snake |
+| Marathi, 108 squares (1905) | 22 | 40 | 0.55 |
+| Mughal / Sufi, 100–101 squares | 17 | 13 | 1.31 |
 | Milton Bradley, 100 squares (1998) | 9 | 10 | 0.9 |
 | **Moksha Patam (current)** | **11** | **13** | **0.85** |
 
-Every documented pre-modern board is balanced or ladder-heavy. The Jaina board, the most
-explicitly ascetic of the three, has the *most* ladders of any of them.
+The Jain board's footprints climb one square, and only on a 1 thrown from them, as its
+ladders do (Jeṭhābhāī's rules); counting them as ladders is what gave the old "15 ladders".
+Snake-heavy boards are common, balanced and ladder-heavy ones exist, and no ratio is the
+authentic one.
 
-So the current board is not more authentic for being snake-heavy. It is more punishing
-than any historical board on record, and more punishing than the modern commercial one.
-
-That does not automatically mean it should change. "The path of righteousness is
-difficult" is a defensible design thesis and a snake-heavy board expresses it. But it
-should be adopted as a deliberate choice, not as a restoration, because it is not one.
+So the current board's 13 snakes to 11 ladders is neither a departure from the sources nor
+a restoration of them. "The path of righteousness is difficult" is a defensible design
+thesis and a snake-heavy board expresses it; it should stand as a deliberate choice.
 
 ---
 
@@ -243,10 +245,10 @@ and absorbed into that law later.
    thematically exact, and it fixes a known stalling fault.
 5. **Add the randomizer setting** (§4). Small, historical, changes the feel more per line
    than anything else available.
-6. **Decide the snake/ladder ratio deliberately** (§1). Either keep 13:11 as a stated
-   thesis and say so in the README, or move toward the historical balance. What should
-   not stand is the current README's implication that the snake-heavy board is the
-   authentic one.
+6. **Decide the snake/ladder ratio deliberately** (§1). The sources set no ratio: the
+   Jaina 84 and the Marathi 108 are snake-heavy, the 72 even, the Mughal board
+   ladder-heavy. Keep 13:11 as a stated thesis and say so in the README, rather than as
+   either a departure from history or a restoration of it.
 7. **Move at least one short ladder into the final stretch** (§2), or accept the cost of
    the no-ladder-to-heaven rule with the number in hand.
 
