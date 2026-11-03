@@ -229,7 +229,7 @@ function mirrorHtml(l, mirror, m, hideable = true) {
 }
 
 // The toggle for what a card says beyond its story, or nothing when there is nothing more at this depth.
-const moreBtn = l => `<button type="button" class="more-btn" data-act="more" aria-controls="leafMore" aria-expanded="${expanded}">${tIn(l, expanded ? "less" : deep("scholar") ? "moreScholar" : "moreSchool")}</button>`;
+const moreBtn = l => `<button type="button" class="more-btn" data-act="more" aria-controls="leafMore" aria-expanded="${expanded}">${tIn(l, expanded ? "less" : isCloth() ? "moreNote" : deep("scholar") ? "moreScholar" : "moreSchool")}</button>`;
 
 // On a phone the grip, the × and the Roll sit where a thumb reaches; on a wide screen the × stays top right.
 // Each control that moves is drawn in both places and styles.css hides one, which also takes it out of the
@@ -284,9 +284,11 @@ function legendHtml(n, l) {
   // the gloss's square numbers in the language's digits, as every other line has them
   const gloss = g.gloss && { en: g.gloss.en, hi: numIn("hi", g.gloss.hi) };
   body += `<div class="story">${bi(l, gloss, "moment")}${unsure}</div>` + srcLine(g.src, l, []);
+  // a reading of the legend beyond the chart's word, with its source, in the scholar layer
+  const more = g.scholar && deep("scholar") ? bi(l, g.scholar, "note") + `<p class="srcline"><span class="src">${esc(srcIn(l, g.scholar.src))}</span></p>` : "";
   return {
     kind, met: [], metMore: [],
-    html: frame(l, { kind, eb: T("legendOf"), big: "", sqn: numIn(l, n), age: "", body,
+    html: frame(l, { kind, eb: T("legendOf"), big: "", sqn: numIn(l, n), age: "", body, more,
       foot: up ? T("ladderTo", { n: up.to }) : down ? T("snakeTo", { n: down.to }) : "",
       prev: n > 1 ? numIn(l, n - 1) : null, next: n < TOP ? numIn(l, n + 1) : null, prevLabel: T("prevSq"), nextLabel: T("nextSq") }),
   };

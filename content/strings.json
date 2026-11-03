@@ -503,7 +503,8 @@
       "rollShells": "Throw the shells",
       "rollStick": "Throw the stick die",
       "board72About": "The old game, as the Vaiṣṇava cloths were played: a race to Vaikuṇṭha on 68, under Bhakti, whose ladder of devotion on 54 climbs straight to it. No years, no moments: the squares are the legends the charts write.",
-      "cNew": "New game on the old cloth. Every pawn begins on square 1."
+      "cNew": "New game on the old cloth. Every pawn begins on square 1.",
+      "moreNote": "The scholar's note"
     },
     "hi": {
       "title": "मोक्ष पटम",
@@ -973,15 +974,16 @@
       "randOwn": "बोर्ड का अपना",
       "randDie": "पासा",
       "randCowries": "सात कौड़ियाँ",
-      "randStick": "चौपहला पासा",
+      "randStick": "लंबा पासा",
       "legendOf": "लेख",
       "legendUncertain": "इस घर का पाठ अनिश्चित है।",
       "legendSq": "घर {n}",
       "shellsUp": "सात में से {n} कौड़ियाँ चित",
       "rollShells": "कौड़ियाँ फेंकें",
-      "rollStick": "चौपहला पासा फेंकें",
-      "board72About": "पुराना खेल, जैसे वैष्णव पट खेले जाते थे: 68 पर वैकुंठ तक की दौड़, भक्ति के नियम में, जिसकी 54 पर भक्ति की सीढ़ी सीधे वहीं ले जाती है। न वर्ष, न क्षण: घरों पर वही लेख हैं जो पटों पर लिखे हैं।",
-      "cNew": "पुराने पट पर नया खेल। हर मोहरा घर 1 से शुरू करता है।"
+      "rollStick": "लंबा पासा फेंकें",
+      "board72About": "पुराना खेल, जैसे वैष्णव पट खेले जाते थे: 68 पर वैकुंठ तक की दौड़, भक्ति के नियम में, जिसकी 54 पर भक्ति की सीढ़ी सीधे वहीं ले जाती है। न बरस, न जीवन के प्रसंग: घरों पर वही लेख हैं जो पटों पर लिखे हैं।",
+      "cNew": "पुराने पट पर नया खेल। हर मोहरा घर 1 से शुरू करता है।",
+      "moreNote": "विद्वान की टिप्पणी"
     }
   },
   "JOINS": {
