@@ -2,7 +2,7 @@
 // A transform on #cam, eased by a CSS transition so the compositor runs it. It only ever moves during a move:
 // it is back at the whole board before any card opens, when a turn ends, and the moment anyone touches the
 // board, so reading is never done zoomed. Off under reduced motion and on a low-quality device.
-import { ROWS } from "../content.js";
+import { ROWS, COLS } from "../content.js";
 import { $, quality } from "../ui.js";
 import { colRow } from "./ground.js";
 
@@ -11,7 +11,7 @@ let scale = 1, held = false;
 export const cameraOn = () => !motion.matches && quality !== "low";
 
 // square n's centre as a fraction of the board
-const at = n => { const { col, row } = colRow(Math.max(1, n)); return { x: (col + 0.5) / 10, y: (ROWS - 1 - row + 0.5) / ROWS }; };
+const at = n => { const { col, row } = colRow(Math.max(1, n)); return { x: (col + 0.5) / COLS, y: (ROWS - 1 - row + 0.5) / ROWS }; };
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 
 function set(s, cx = 0.5, cy = 0.5, instant = false) {

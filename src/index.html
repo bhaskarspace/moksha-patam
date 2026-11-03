@@ -44,6 +44,7 @@
         <div class="vimana" id="vimana" aria-hidden="true"></div>
         <div class="board-wrap" id="board">
           <div class="ashramas" id="ashramas" aria-hidden="true"></div>
+          <svg class="figure" id="figure" aria-hidden="true" hidden></svg>
           <!-- the door and the wheel of time on 105 (render/door.js): drawn, and told in words elsewhere. Outside the stage,
                so the wheel rises into the vimāna's arches; under the labels and the tokens, and hidden while the camera zooms -->
           <div class="gate" id="door" aria-hidden="true" hidden></div>
@@ -80,7 +81,7 @@
         <span class="eyebrow" data-t="turn">Turn</span>
         <div class="turn"><span class="dot" id="turnDot"></span><span id="turnName"></span></div>
         <div class="roll-row">
-          <div class="dice"><div class="die" id="die" aria-label="Die"></div><div class="die" id="die2" aria-label="Die" hidden></div></div>
+          <div class="dice"><div class="die" id="die" aria-label="Die"></div><div class="die" id="die2" aria-label="Die" hidden></div><div class="shells" id="shells" role="img" hidden></div></div>
           <div class="roll-info">
             <button id="roll" type="button">Roll the die</button>
             <button id="practise" type="button" class="ghost" data-t="practise" hidden>Sit in practice</button>
@@ -115,7 +116,13 @@
         <div class="setup-body">
           <div class="seg" id="count" role="group"></div>
           <div id="prows" class="setup-body"></div>
-          <label class="check"><input type="checkbox" id="ruleSix" checked> <span data-t="ruleSix"></span></label>
+          <label class="pick"><span data-t="ruleBoard"></span><select id="ruleBoard"></select></label>
+          <p class="law-about" id="ruleBoardAbout" hidden></p>
+          <label class="pick" id="ruleRandRow" hidden><span data-t="ruleRand"></span><select id="ruleRand"></select></label>
+          <p class="law-about" id="ruleOtherAbout" data-t="ruleOtherAbout" hidden></p>
+          <label class="pick" id="ruleStartRow" hidden><span data-t="ruleStart"></span><select id="ruleStart"></select></label>
+          <label class="pick" id="ruleEndRow" hidden><span data-t="ruleEnd"></span><select id="ruleEnd"></select></label>
+          <label class="check" id="ruleSixRow"><input type="checkbox" id="ruleSix" checked> <span data-t="ruleSix"></span></label>
           <label class="pick"><span data-t="depth"></span><select id="prefDepth"></select></label>
           <span class="hint depth-hint" data-t="depthHint"></span>
           <label class="check"><input type="checkbox" id="prefEvery"> <span data-t="everyCard"></span></label>

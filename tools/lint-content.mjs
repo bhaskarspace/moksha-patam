@@ -8,7 +8,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { GOAL, TOP, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, FALL, STR, SRC_HI, JOINS, NUM_HI, READINGS, CODEX, REFS, ENTRY_IDS, srcOfSquare, sourceOf, leadOf, squareOf, SITUATIONS, CAST, CAST_WORDS, BRIDGES, BRIDGE_SAME, whoOf, bridgeOf, BOARDS, DOOR, CURSES, MIRROR } from "../src/content.js";
+import { GOAL, TOP, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, FALL, STR, SRC_HI, JOINS, NUM_HI, READINGS, CODEX, REFS, ENTRY_IDS, srcOfSquare, sourceOf, leadOf, squareOf, SITUATIONS, CAST, CAST_WORDS, BRIDGES, BRIDGE_SAME, whoOf, bridgeOf, BOARDS, DOOR, CURSES, MIRROR, LEGENDS } from "../src/content.js";
 import NAMES from "../content/names.json" with { type: "json" };
 import { ENDGAME, createGame, playTurn } from "../src/engine/turn.js";
 import { destOf, worthOf } from "../src/engine/qbn.js";
@@ -193,6 +193,23 @@ export function lintReport() {
   // Phase 16, the animal interlude: nothing the game says of birth ranks one above another (the mirror, the strings)
   const ranks = [["mirror intro", MIRROR?.intro], ...(MIRROR?.questions ?? []).map(q => [`mirror ${q.id}`, q.q]), ...Object.keys(STR.en).map(k => [`string ${k}`, { en: STR.en[k], hi: STR.hi?.[k] }])];
   for (const [w, t] of ranks) for (const s of [t?.en, t?.hi]) if (typeof s === "string" && birthRanking(s).length) warn(w, `ranks a birth: "${birthRanking(s).join('", "')}" (Chāndogya 5.10.8: animal births, never a ladder of human ones)`);
+  // Phase 18, the old boards' legends (content/legends.json): every square of a board has one, named in both languages
+  // with the chart's own word, glossed in both, and sourced; none ranks a birth (the Jain rows are realms, never ranks)
+  for (const [id, legend] of Object.entries(LEGENDS)) {
+    if (id === "about") continue;
+    const b = BOARDS[id];
+    if (!b?.rules) { err(`legends ${id}`, "no such old board in content/boards.json"); continue; }
+    for (let n = 1; n <= b.rules.top; n++) {
+      const g = legend[n], w = `legend ${id}/${n}`;
+      if (!g) { err(w, "missing"); continue; }
+      bilingual(w, g);
+      bilingual(`${w} gloss`, g.gloss);
+      if (!g.iast) err(w, "no word from the chart (iast)");
+      if (!/App\. D\d, (top )?sq\. \d+/.test(g.src ?? "")) err(w, `source "${g.src}" does not name the appendix and square`);
+      if (g.scholar) { bilingual(`${w} scholar`, g.scholar); if (!g.scholar.src) err(w, "a scholar note needs its source"); }
+      for (const t of [g.en, g.hi, g.gloss?.en, g.gloss?.hi]) if (typeof t === "string" && birthRanking(t).length) warn(w, `ranks a birth: "${birthRanking(t).join('", "')}"`);
+    }
+  }
   // Phase 14, the curses (content/curses.json): said of the player, in both languages, naming a thing and never a square,
   // tied to a family of late squares that exist; and closed both ways
   const curseIds = new Set();

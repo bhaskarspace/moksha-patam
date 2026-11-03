@@ -1,7 +1,8 @@
 // ---- The board: squares, labels, and the painted snakes and ladders ----
-import { GOAL, TOP, ROWS, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, BOARD } from "../content.js";
-import { lang, L, t, num } from "../i18n.js";
-import { $, art, quality } from "../ui.js";
+import { GOAL, TOP, ROWS, COLS, LAYOUT, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, BOARD, onBoard, legendOf } from "../content.js";
+import { isCloth } from "../engine/cloth.js";
+import { lang, L, t, num, tIn, numIn } from "../i18n.js";
+import { $, art, esc, quality } from "../ui.js";
 import { groundToken, groundOf, colRow, fills, WASH, snakeHues, sivaPath } from "./ground.js";
 import { cameraOn } from "./camera.js";
 
@@ -10,8 +11,14 @@ export { colRow };
 export const ashramaIn = (l, n) => { const a = ASHRAMAS.find(([max]) => n <= max); return l === "hi" ? a[2] : a[1]; };
 export const ashramaOf = n => ashramaIn(lang, n);
 
+// Square n's number as the board writes it, in language l: on the 84 the squares above the grid are the charts' top 1
+// to 6 (Phase 18), never a number of the track's own.
+export const sqNumIn = (l, n) => { const top = isCloth() && legendOf(n)?.top; return top ? tIn(l, "topSq", { n: top }) : numIn(l, n); };
+export const sqNum = n => sqNumIn(lang, n);
+
 // The board's name for square n in the current language.
 export function squareName(n) {
+  if (isCloth()) { const g = legendOf(n); return g ? L(g.en, g.hi) : ""; }
   if (HEAVEN[n]) return L(HEAVEN[n].en, HEAVEN[n].hi);
   const sl = SNAKES[n] || LADDERS[n];
   if (sl) return L(sl.en, sl.hi);
@@ -22,10 +29,13 @@ export function squareName(n) {
 // A square's painted vignette (REDESIGN.md Phase 13): a symbol of the sheet's drawn as a scene for the whole square. It is
 // painted in the cell, under the snakes and ladders and the ageing, as all the art is; its square's label then carries no
 // roundel. A square without one keeps its sprite in the roundel, or its emoji. Moksha's is the card's alone: the board keeps ॐ.
-export const vignette = n => n !== GOAL && !!document.getElementById(`sq-${n}`)?.classList.contains("vg");
+export const vignette = n => !isCloth() && n !== GOAL && !!document.getElementById(`sq-${n}`)?.classList.contains("vg");
 
 function labelHtml(n) {
-  const numEl = `<span class="n">${num(n)}</span>`, vg = vignette(n);
+  const numEl = `<span class="n">${sqNum(n)}</span>`;
+  // an old cloth writes every square's legend in it, as the charts do (Phase 18), and marks a footprint
+  if (isCloth()) return numEl + (BOARD.rules.footprints?.[n] != null ? `<span class="foot" aria-hidden="true">👣</span>` : "") + `<span class="nm">${esc(squareName(n))}</span>`;
+  const vg = vignette(n);
   if (n === GOAL) return numEl + `<span class="om">ॐ</span><span class="dv">${t("moksha")}</span>`;
   if (HEAVEN[n]) return numEl + (vg ? "" : `<span class="ic">${art(`sq-${n}`, HEAVEN[n].ic)}</span>`) + `<span class="dv">${L(HEAVEN[n].en, HEAVEN[n].hi)}</span>`;
   const sl = SNAKES[n] || LADDERS[n];
@@ -33,22 +43,74 @@ function labelHtml(n) {
   return numEl;
 }
 
+// The 72's superstructure (Phase 18): a gold arch over each square of the top row, as the painted Vaiṣṇava cloths have
+// it, and the trimūrti over the three realms at its centre, each as its emblem alone, never a likeness: Śiva's
+// trident over his realm (67), Viṣṇu's discus over Vaikuṇṭha (68), Brahmā's lotus over his (69).
+const TRIMURTI = { "-1": "trident", 0: "discus", 1: "lotus" };
+function emblemOf(kind, x) {
+  const cx = x + 5, cy = 5.7;
+  if (kind === "trident") return `<path class="emb" d="M${cx},8.4 V3.4 M${cx - 1.5},4.1 Q${cx - 1.5},6 ${cx},6 Q${cx + 1.5},6 ${cx + 1.5},4.1 M${cx - 0.5},3.9 L${cx},3 L${cx + 0.5},3.9"/>`;
+  if (kind === "discus") return `<circle class="emb" cx="${cx}" cy="${cy}" r="1.7"/><circle class="emb dot" cx="${cx}" cy="${cy}" r="0.45"/>` +
+    Array.from({ length: 8 }, (_, i) => { const a = (i * Math.PI) / 4, c = Math.cos(a), s = Math.sin(a); return `<path class="emb" d="M${+(cx + c * 0.45).toFixed(2)},${+(cy + s * 0.45).toFixed(2)} L${+(cx + c * 1.7).toFixed(2)},${+(cy + s * 1.7).toFixed(2)}"/>`; }).join("");
+  if (kind === "lotus") return [-2, -1, 0, 1, 2].map(k => `<ellipse class="emb petal" cx="${cx}" cy="${cy + 0.2}" rx="0.62" ry="1.9" transform="rotate(${k * 28} ${cx} ${cy + 1.9})"/>`).join("") +
+    `<path class="emb" d="M${cx - 2},${cy + 2.1} H${cx + 2}"/>`;
+  return "";
+}
+const archOf = (x, emblem) =>
+  `<path class="arch" d="M${x + 0.4},9 V1.6 H${x + 9.6} V9 Z"/>` +
+  `<path class="niche" d="M${x + 1.4},9 V5.4 Q${x + 1.4},3.6 ${x + 2.6},3.4 Q${x + 3},2.2 ${x + 4},2.3 Q${x + 5},1 ${x + 6},2.3 Q${x + 7},2.2 ${x + 7.4},3.4 Q${x + 8.6},3.6 ${x + 8.6},5.4 V9 Z"/>` +
+  (emblem ? emblemOf(emblem, x) : "");
+
 // The board's superstructure, from its look (content/boards.json): for the 110, a vimāna over each square of the divine row,
 // as on the 1780 board and the Jain charts, the exit's doorway in indigo. Ornament: it goes first on a weak device.
 function superstructure() {
   const el = $("vimana");
   if (!el) return;
-  el.hidden = BOARD.superstructure !== "vimana";
+  el.hidden = !["vimana", "arches"].includes(BOARD.superstructure);
   if (el.hidden) return;
   const top = ROWS - 1, f = n => +n.toFixed(2);
   let d = "";
-  for (let c = 0; c < 10; c++) {
-    const n = top % 2 === 0 ? top * 10 + c + 1 : top * 10 + (9 - c) + 1, x = c * 10;
+  if (BOARD.superstructure === "arches") {
+    for (let c = 0; c < COLS; c++) {
+      const n = LAYOUT.cell[`${c},${top}`];
+      if (n != null) d += archOf(c * 10, BOARD.panel === "trimurti" ? TRIMURTI[n - GOAL] : null);
+    }
+    el.innerHTML = `<svg viewBox="0 0 ${COLS * 10} 9" preserveAspectRatio="none">${d}</svg>`;
+    return;
+  }
+  for (let c = 0; c < COLS; c++) {
+    const n = LAYOUT.cell[`${c},${top}`], x = c * 10;
+    if (n == null) continue;
     d += `<path class="dome" d="M${x + 1},9 L${x + 1},6.2 Q${x + 1},2.6 ${x + 5},1.9 Q${x + 9},2.6 ${x + 9},6.2 L${x + 9},9 Z"/>` +
       `<path class="door${n === GOAL ? " goal" : ""}" d="M${x + 3.4},9 L${x + 3.4},6.6 Q${x + 5},4.4 ${x + 6.6},6.6 L${x + 6.6},9 Z"/>` +
       `<circle class="finial" cx="${x + 5}" cy="${f(1.3)}" r="0.75"/>`;
   }
-  el.innerHTML = `<svg viewBox="0 0 100 9" preserveAspectRatio="none">${d}</svg>`;
+  el.innerHTML = `<svg viewBox="0 0 ${COLS * 10} 9" preserveAspectRatio="none">${d}</svg>`;
+}
+
+// The 84's frame (Phase 18): the cosmic man (lokapuruṣa) in whom the Jaina charts set the grid, standing in kāyotsarga,
+// arms down at his sides. The grid is his body; his hands hold the squares at the arms (56, 66), the basic lifeforms (1)
+// lie between his feet, the five unsurpassed heavens are in his face, and the crystal crescent of the liberated
+// (īṣatprāgbhāra) is above his forehead (Schmidt-Madsen 2019, App. B2, Ja84#3a,12b,18). A silhouette only: no features.
+// Drawn in cells of ten, on the board's extent; the cells cover him where there are squares.
+function figure() {
+  const el = $("figure");
+  if (!el) return;
+  // an svg has no hidden property: the attribute it is
+  if (el.toggleAttribute("hidden", BOARD.border !== "lokapurusa")) { el.innerHTML = ""; return; }
+  const W = COLS * 10, H = ROWS * 10, y = r => (ROWS - 1 - r) * 10;
+  const g0 = y(9), g1 = y(1) + 10, foot = y(0);
+  el.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  el.setAttribute("preserveAspectRatio", "none");
+  el.innerHTML =
+    `<path class="body" d="M10,${g0} Q0,${g0 + 1} 0,${g0 + 10} L0,${y(6) + 16} Q0,${y(6) + 20} 5,${y(6) + 20} Q10,${y(6) + 20} 10,${y(6) + 16} Z"/>` +
+    `<path class="body" d="M${W - 10},${g0} Q${W},${g0 + 1} ${W},${g0 + 10} L${W},${y(7) + 16} Q${W},${y(7) + 20} ${W - 5},${y(7) + 20} Q${W - 10},${y(7) + 20} ${W - 10},${y(7) + 16} Z"/>` +
+    `<rect class="body" x="9.5" y="${g0 - 0.5}" width="${W - 19}" height="${g1 - g0 + 1}"/>` +
+    `<path class="body" d="M30,${foot} L49,${foot} L49,${foot + 6} Q49,${foot + 10} 45,${foot + 10} L26,${foot + 10} Q23,${foot + 10} 25,${foot + 7} Z"/>` +
+    `<path class="body" d="M${W - 49},${foot} L${W - 30},${foot} L${W - 25},${foot + 7} Q${W - 23},${foot + 10} ${W - 26},${foot + 10} L${W - 45},${foot + 10} Q${W - 49},${foot + 10} ${W - 49},${foot + 6} Z"/>` +
+    `<rect class="body" x="${W / 2 - 9}" y="${g0 - 6}" width="18" height="7"/>` +
+    `<ellipse class="body" cx="${W / 2}" cy="${y(11) + 2}" rx="16" ry="20"/>` +
+    `<path class="moon" d="M${W / 2 - 15},${y(13) + 9} Q${W / 2},${y(13) - 4} ${W / 2 + 15},${y(13) + 9} Q${W / 2},${y(13) + 3} ${W / 2 - 15},${y(13) + 9} Z"/>`;
 }
 
 export const labEls = {};
@@ -62,16 +124,24 @@ export function focusSquare(n) {
 export function buildCells() {
   const cells = $("cells"), labels = $("labels");
   superstructure();
+  figure();
   cells.innerHTML = ""; labels.innerHTML = "";
+  // the grid is the board's extent (src/geometry.js); each square is placed in its own cell, top-left first, so a board
+  // with squares outside its main grid, or cells with none, is drawn as it is
+  const board = $("board");
+  board.style.setProperty("--cols", COLS);
+  board.style.setProperty("--rows", ROWS);
   for (let r = ROWS - 1; r >= 0; r--) {
-    for (let c = 0; c < 10; c++) {
-      const n = r % 2 === 0 ? r * 10 + c + 1 : r * 10 + (9 - c) + 1;
+    for (let c = 0; c < COLS; c++) {
+      const n = LAYOUT.cell[`${c},${r}`];
+      if (n == null) continue;
       const light = groundOf(n)[1], heaven = n > 100;
       const el = document.createElement("div");
       el.className = "cell" + (heaven ? " heaven" : "") + (n === GOAL ? " goal" : "");
       if (!heaven) el.style.background = `var(--b-${groundToken(n)})`;
       if (vignette(n)) el.innerHTML = `<span class="pic vg">${art(`sq-${n}`, "", "spr vg")}</span>`;
-      else if (SQ[n]) el.innerHTML = `<span class="pic">${art(`sq-${n}`, SQ[n].ic)}</span>`;
+      else if (SQ[n] && !isCloth()) el.innerHTML = `<span class="pic">${art(`sq-${n}`, SQ[n].ic)}</span>`;
+      el.style.gridArea = `${ROWS - r} / ${c + 1}`;
       cells.appendChild(el);
 
       const lab = document.createElement("div");
@@ -79,12 +149,13 @@ export function buildCells() {
       lab.className = "lab" + kind + (light && !heaven ? " li" : "");
       lab.innerHTML = labelHtml(n);
       const s = SNAKES[n], l = LADDERS[n];
-      lab.title = s ? `${squareName(n)} (${s.skt}) → ${num(s.to)}` : l ? `${squareName(n)} (${l.skt}) → ${num(l.to)}` : squareName(n);
+      lab.title = s ? `${squareName(n)} (${s.skt}) → ${sqNum(s.to)}` : l ? `${squareName(n)} (${l.skt}) → ${sqNum(l.to)}` : squareName(n);
       // every square opens its card; one square at a time takes Tab, and the arrow keys move between them
       lab.dataset.n = n;
       lab.setAttribute("role", "button");
-      lab.setAttribute("aria-label", t("sqLabel", { n, name: squareName(n) }));
+      lab.setAttribute("aria-label", t("sqLabel", { n: sqNum(n), name: squareName(n) }));
       lab.tabIndex = n === focusN ? 0 : -1;
+      lab.style.gridArea = `${ROWS - r} / ${c + 1}`;
       labels.appendChild(lab);
       labEls[n] = lab;
     }
@@ -96,10 +167,12 @@ const canvas = $("art"), ctx = canvas.getContext("2d");
 export const fxCanvas = $("fx"), fx = fxCanvas.getContext("2d");
 export let S = 0;
 export const center = n => { const { col, row } = colRow(n); return { x: (col + 0.5) * S, y: (ROWS - 1 - row + 0.5) * S }; };
-export const fxClear = () => fx.clearRect(0, 0, S * 10, S * ROWS);
+export const fxClear = () => fx.clearRect(0, 0, S * COLS, S * ROWS);
 
 // A palette colour by token name ("vermilion"), as the page's stylesheet has it (content/boards.json, by the build).
 const tokenCache = {};
+// another board brings another palette and other snakes (Phase 18)
+onBoard(() => { for (const k in tokenCache) delete tokenCache[k]; hues = null; });
 export const paint = name => (tokenCache[name] ||= getComputedStyle(document.documentElement).getPropertyValue(`--b-${name}`).trim());
 
 // Ladders red-outlined, as on the 72-square boards: rails and rungs of Indian yellow inside a thin vermilion line, and that
@@ -240,13 +313,13 @@ export function drawAge(next = washes) {
   washes = next;
   if (!S || !washes) return;
   tokens ||= Object.fromEntries(["--b-ochre", "--b-black", "--b-shell"].map(t => [t, getComputedStyle(document.documentElement).getPropertyValue(t).trim()]));
-  const W = S * 10, H = S * ROWS;
+  const W = S * COLS, H = S * ROWS;
   agx.clearRect(0, 0, W, H);
   // the cloth first, under the washes
   if (grain && quality !== "low") { agx.fillStyle = grain; agx.fillRect(0, 0, W, H); }
-  for (let n = 1; n <= TOP; n++) {
+  for (const n of LAYOUT.squares) {
     const { col, row } = colRow(n), x = col * S, y = (ROWS - 1 - row) * S;
-    for (const [t, a] of fills(n, washes[n])) {
+    for (const [t, a] of fills(n, washes[n] ?? {})) {
       agx.globalAlpha = a; agx.fillStyle = tokens[t];
       agx.fillRect(x, y, S, S);
     }
@@ -291,9 +364,10 @@ export function draw() {
     c.setTransform(dpr * k, 0, 0, dpr * k, 0, 0);
   }
   ctx.clearRect(0, 0, W, H);
-  S = W / 10;
+  S = W / COLS;
   for (const [a, l] of Object.entries(LADDERS)) drawLadder(+a, l.to);
   for (const [h, s] of Object.entries(SNAKES)) drawSnake(+h, s.to);
-  drawSiva();
+  // Śiva's snake is the 110's own; an old cloth has only its own snakes
+  if (!isCloth()) drawSiva();
   drawAge();
 }

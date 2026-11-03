@@ -1,5 +1,5 @@
 // ---- Tokens and their animations ----
-import { ROWS } from "../content.js";
+import { ROWS, COLS } from "../content.js";
 import { t, fill } from "../i18n.js";
 import { G, pname } from "../state.js";
 import { $, COLORS, P_HEX, reduced, sleep, quality } from "../ui.js";
@@ -35,7 +35,7 @@ export function setSprite(el, p, stage) {
 }
 
 function setXY(el, x, y) {
-  el.style.left = (x / (S * 10)) * 100 + "%";
+  el.style.left = (x / (S * COLS)) * 100 + "%";
   el.style.top = ((y + FEET * S) / (S * ROWS)) * 100 + "%";
 }
 
@@ -68,7 +68,7 @@ export function place(silent = false) {
     const group = at[p.pos], k = group.indexOf(i);
     const [ox, oy] = group.length === 1 ? OFFS[0] : OFFS[k + 1];
     const { col, row } = colRow(p.pos);
-    el.style.left = (col + 0.5) * 10 + ox + "%";
+    el.style.left = ((col + 0.5) * 10 + ox) * (10 / COLS) + "%";
     el.style.top = ((ROWS - 1 - row + 0.5 + FEET) * 10 + oy) * (10 / ROWS) + "%";
   });
   renderPlayers();

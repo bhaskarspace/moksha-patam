@@ -2,7 +2,8 @@
 // It no longer holds the game up (REDESIGN.md Phase 11): the dice stay live while it is open, and the next roll takes
 // it away. Only a situation waiting on a choice is modal, until the choice is made, and a reckoning (REDESIGN.md Phase
 // 12), until it is read: a choice's result arriving, the one other thing a turn waits on.
-import { GOAL, TOP, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, READINGS, CODEX, ENTRY_IDS, REFS, entryOf, sourceOf, srcOfSquare, squareOf, fallOn, bridgeOf, EGO } from "../content.js";
+import { GOAL, TOP, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, READINGS, CODEX, ENTRY_IDS, REFS, entryOf, sourceOf, srcOfSquare, squareOf, fallOn, bridgeOf, EGO, legendOf } from "../content.js";
+import { isCloth } from "../engine/cloth.js";
 import { lang, tIn, numIn, srcIn, pick, fill, castFill, ageWordsIn } from "../i18n.js";
 import { ageStep, stageOfYears, bhumikaOf, freshGunas, SANNYASA, yearsAlong, landedYears } from "../engine/self.js";
 import { castOf, castAlong, peopleOf, introIn } from "../engine/cast.js";
@@ -15,7 +16,7 @@ import { prefs, hasMet, meet, firstLife, firstOpened, openFirst, knowsWho, meetW
 import { G, pnameIn } from "../state.js";
 import { $, esc, reduced, art } from "../ui.js";
 import { sound } from "../audio/engine.js";
-import { ashramaIn, labEls } from "./board.js";
+import { ashramaIn, labEls, sqNumIn } from "./board.js";
 import { pullBack } from "./camera.js";
 import { illumined } from "./frame.js";
 import { sheetOn, sheetBefore, sheetIn, sheetOut, sheetAfter, setDetent, toggleDetent, sheetDetent, onSheetClose } from "./sheet.js";
@@ -228,7 +229,7 @@ function mirrorHtml(l, mirror, m, hideable = true) {
 }
 
 // The toggle for what a card says beyond its story, or nothing when there is nothing more at this depth.
-const moreBtn = l => `<button type="button" class="more-btn" data-act="more" aria-controls="leafMore" aria-expanded="${expanded}">${tIn(l, expanded ? "less" : deep("scholar") ? "moreScholar" : "moreSchool")}</button>`;
+const moreBtn = l => `<button type="button" class="more-btn" data-act="more" aria-controls="leafMore" aria-expanded="${expanded}">${tIn(l, expanded ? "less" : isCloth() ? "moreNote" : deep("scholar") ? "moreScholar" : "moreSchool")}</button>`;
 
 // On a phone the grip, the × and the Roll sit where a thumb reaches; on a wide screen the × stays top right.
 // Each control that moves is drawn in both places and styles.css hides one, which also takes it out of the
@@ -270,7 +271,31 @@ function srcLine(src, l, met, { square = false } = {}) {
     (gloss ? `<span class="gloss${square ? " more-only" : ""}">${esc(pick(s.gloss, l))}</span>` : "") + `</p>`;
 }
 
+// A square of an old cloth (REDESIGN.md Phase 18): its legend as the charts write it, in both languages and the chart's
+// own word, its gloss, whether the reading is uncertain, and where it is read from. Nothing of a life: no moment, mirror,
+// voices or age; the cloth has none.
+function legendHtml(n, l) {
+  const T = (k, v) => tIn(l, k, v), g = legendOf(n) ?? {}, o = other(l), up = LADDERS[n], down = SNAKES[n];
+  const kind = n === GOAL ? "goal" : up ? "virtue" : down ? "vice" : "story";
+  let body = `<h2 id="leafTitle">${esc(g[l] || T("legendSq", { n: sqNumIn(l, n) }))}</h2>`;
+  const alt = [g[o], g.iast].filter(Boolean).join(" · ");
+  if (alt) body += `<p class="alt" lang="${o}">${esc(alt)}</p>`;
+  const unsure = g.uncertain ? texts(l, tIn("en", "legendUncertain"), tIn("hi", "legendUncertain"), "remedy") : "";
+  // the gloss's square numbers in the language's digits, as every other line has them
+  const gloss = g.gloss && { en: g.gloss.en, hi: numIn("hi", g.gloss.hi) };
+  body += `<div class="story">${bi(l, gloss, "moment")}${unsure}</div>` + srcLine(g.src, l, []);
+  // a reading of the legend beyond the chart's word, with its source, in the scholar layer
+  const more = g.scholar && deep("scholar") ? bi(l, g.scholar, "note") + `<p class="srcline"><span class="src">${esc(srcIn(l, g.scholar.src))}</span></p>` : "";
+  return {
+    kind, met: [], metMore: [],
+    html: frame(l, { kind, eb: T("legendOf"), big: "", sqn: sqNumIn(l, n), age: "", body, more,
+      foot: up ? T("ladderTo", { n: sqNumIn(l, up.to) }) : down ? T("snakeTo", { n: down.to }) : "",
+      prev: n > 1 ? sqNumIn(l, n - 1) : null, next: n < TOP ? sqNumIn(l, n + 1) : null, prevLabel: T("prevSq"), nextLabel: T("nextSq") }),
+  };
+}
+
 function squareHtml(n, l) {
+  if (isCloth()) return legendHtml(n, l);
   const T = (k, v) => tIn(l, k, v), info = squareInfo(n, l), r = READINGS[n] || {};
   const src = srcOfSquare(n), met = [];
   // the moment, when there is one, is what is happening to the player; the mirror is the text that holds
@@ -756,6 +781,8 @@ dlg.addEventListener("keydown", e => {
 // (REDESIGN.md Phase 11): the square's name and the moment, as the card would say it, without the mirror.
 // ego is the throw on a situation (Phase 15): a rebellion's line goes first.
 export function momentLine(n, who, l, told, ego = null) {
+  // an old cloth's square is told by its legend and gloss (Phase 18)
+  if (isCloth()) { const g = legendOf(n); return { title: g?.[l] ?? "", text: numIn(l, g?.gloss?.[l] ?? "") }; }
   const keep = subject;
   subject = who;
   try {

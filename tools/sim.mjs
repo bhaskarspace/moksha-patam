@@ -34,9 +34,13 @@
 // life is per life. The report adds rebirths a game, and a safety net on the turns of a game (CAP), with how often it
 // was hit, which should be never. --law=id plays every computer under that law. The heavens last as long as the merit (p.merit, one to four turns by the guṇas): the
 // fall is split into the exact throw onto 110 and the merit spent, with the merit lives entered the heavens with.
+// Phase 18 adds the old boards: --board=72 plays the board's own game (src/engine/cloth.js), a race with no life in it,
+// under --rand=own|die|cowries|stick (own, the board's randomizer, by default; a list runs each). It reports a pawn's
+// turns to the goal (median / p95), the share that took more than 100, and the share of games reaching the goal within
+// CAP turns a pawn.
 import { pathToFileURL } from "node:url";
 import { createGame, playTurn, moveFor, movesFor, planTurn, rollDice, diceFor, setEndgame, ENDGAME, canSit, spentOf, inHeaven } from "../src/engine/turn.js";
-import { SQ, SITUATIONS, CURSES } from "../src/content.js";
+import { SQ, SITUATIONS, CURSES, BOARDS, BOARD, LADDERS, SNAKES, useBoard } from "../src/content.js";
 import { curseIn } from "../src/engine/curse.js";
 import { setPolicy, setEgo, worthOf, optionOf } from "../src/engine/qbn.js";
 import { SPAN, setSpan, yearsAlong, BHUMIKA_AT, TURYA, setPractice } from "../src/engine/self.js";
@@ -68,6 +72,46 @@ export const livesOf = g => g.players.flatMap((p, i) => [...(p.past ?? []), p].m
 
 // One game from a seed, every player a computer. Returns the full log, oldest entry first,
 // plus the number of turns each player took.
+// Phase 18: games on an old board (the board in play, src/content.js useBoard), every pawn a computer. A pawn's turns to
+// the goal, the winner's in a race; a game that hits CAP turns a pawn counts as not reached.
+// Where a cloth game's turns go (Phase 18): each turn by the square it begins on. On square 1 (waiting for the 1 that
+// leads out, where the board asks one), at a ladder's foot or on a footprint (where a 1 climbs, on climb: "one"), in the
+// squares above the grid (where only a 1 moves), in the 84's loop (above 80, coming back down to 76, or walking up
+// again from 52 after its snake until past 76: regain), back and forth on the top row (Harikṛṣṇa's roam, chosen), or
+// elsewhere; and how often a game goes down 76's snake.
+const WHERE = ["one", "foot", "top", "loop", "roam", "walk"];
+function whereOf(state, p, regain) {
+  const r = BOARD.rules, n = p.pos, roam = state.rules.end === "roam";
+  if ((r.entry || state.rules.start) && n === 1) return "one";
+  if (r.steps?.includes(n)) return "top";
+  if (roam && (n > r.gate.at || p.back)) return "roam";
+  if (!roam && r.turn && (n > r.turn.from || p.back || regain)) return "loop";
+  if (r.climb === "one" && (LADDERS[n] || r.footprints?.[n] != null)) return "foot";
+  return "walk";
+}
+export function clothRun(games, players, first, rules) {
+  const turns = [], where = Object.fromEntries(WHERE.map(k => [k, 0]));
+  let reached = 0, slides = 0, all = 0;
+  for (let g = 0; g < games; g++) {
+    const state = createGame({ players: Array.from({ length: players }, () => ({ name: "", type: "cpu" })), rules, seed: first + g });
+    let n = 0;
+    const regain = state.players.map(() => false);
+    while (!state.over && n < CAP * players) {
+      const i = state.turn, p = state.players[i];
+      if (regain[i] && (p.pos > BOARD.rules.turn.back || p.pos < SNAKES[BOARD.rules.turn.back].to)) regain[i] = false;
+      where[whereOf(state, p, regain[i])]++;
+      if (playTurn(state).then) { slides++; regain[i] = true; }
+      n++;
+    }
+    all += n;
+    if (state.winner != null) { reached++; turns.push(Math.ceil(n / players)); }
+  }
+  turns.sort((a, b) => a - b);
+  const at = q => turns[Math.min(turns.length - 1, Math.floor(q * turns.length))] ?? null;
+  return { median: at(0.5), p95: at(0.95), over100: turns.filter(t => t > 100).length / games, reached: reached / games,
+    where: Object.fromEntries(WHERE.map(k => [k, where[k] / all])), perGame: Object.fromEntries(WHERE.map(k => [k, where[k] / games / players])), slides: slides / games / players };
+}
+
 export function playGame(seed, { players = 2, rules = SIM_RULES, pick = moveFor, born = null } = {}) {
   const state = createGame({ players: Array.from({ length: players }, (_, i) => ({ name: "", type: "cpu", ...(born && !i ? { born } : {}) })), rules, seed });
   const log = [...state.log], turns = Array(players).fill(0);
@@ -172,6 +216,23 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   if (flags.law && !LAWS[flags.law]) throw new Error(`no law ${flags.law}: ${Object.keys(LAWS).join(", ")}`);
   const rules = flags.law ? { ...SIM_RULES, law: flags.law } : SIM_RULES;
   const pct = x => `${(x * 100).toFixed(1)}%`;
+  if (flags.board && flags.board !== "110") {
+    if (!BOARDS[flags.board]?.rules) throw new Error(`no old board ${flags.board}: ${Object.keys(BOARDS).join(", ")}`);
+    useBoard(flags.board);
+    for (const rand of (flags.rand ?? "own").split(",")) {
+      // --start=six, --end=exact|roam: the game's other rules (Phase 18 step 4), where the board offers them
+      const other = Object.fromEntries(["start", "end"].filter(k => flags[k]).map(k => [k, flags[k]]));
+      for (const [k, v] of Object.entries(other)) if (!BOARDS[flags.board].rules.variants?.[k]?.includes(v)) throw new Error(`board ${flags.board} offers no ${k} ${v}`);
+      const r = clothRun(games, players, first, { ...SIM_RULES, board: flags.board, ...(rand === "own" ? {} : { rand }), ...other });
+      console.log(`board ${flags.board}, ${rand === "own" ? `its own (${BOARDS[flags.board].rules.rand})` : rand}${Object.entries(other).map(([k, v]) => `, ${k} ${v}`).join("")}, ${players} player${players > 1 ? "s" : ""}, ${games} games: ` +
+        `turns to the goal median ${r.median}, p95 ${r.p95}, over 100 ${pct(r.over100)}; reached within ${CAP} ${pct(r.reached)}`);
+      // where the turns went, by the square each began on (the 84's are the long game's reasons)
+      const NAMES = { one: "on square 1", foot: "at a foot or footprint", top: "above the grid", loop: "in the 80→84→76→52 loop and the walk back up", roam: "roaming the top row", walk: "walking" };
+      console.log("  turns begun " + WHERE.filter(k => r.where[k]).map(k => `${NAMES[k]} ${pct(r.where[k])} (${r.perGame[k].toFixed(1)} a game)`).join(", ") +
+        (BOARD.rules.turn && !other.end ? `; down 76's snake ${r.slides.toFixed(2)} times a game` : ""));
+    }
+    process.exit(0);
+  }
   // the words for a law's win and its Śiva's snake (Phase 17): mokṣa is "liberated", Mīmāṃsā's svarga is the law's own,
   // and under Cārvāka nothing is won and the snake is the end
   const LAW = LAWS[flags.law ?? "board"], KIND = LAW.exit()?.kind, WON = KIND === "moksha" ? "liberated" : KIND ? `won (${KIND})` : "won (no exit under this law)";

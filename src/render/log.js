@@ -1,12 +1,13 @@
 // ---- The players list and the move log ----
-import { GOAL, ASHRAMAS } from "../content.js";
+import { GOAL, ASHRAMAS, legendOf } from "../content.js";
 import { t, num, L, fill } from "../i18n.js";
 import { G, pname } from "../state.js";
 import { $, COLORS, esc } from "../ui.js";
-import { squareName } from "./board.js";
+import { squareName, sqNum } from "./board.js";
 import { stageOf, stageName } from "./sprites.js";
 import { stageOf as ashramaOfPlayer } from "./age.js";
 import { gone } from "../engine/turn.js";
+import { isCloth } from "../engine/cloth.js";
 import { isAnimal } from "../engine/animal.js";
 import { renderLedger } from "./ledger.js";
 import { LAWS } from "../engine/laws/index.js";
@@ -27,6 +28,8 @@ const ashramaIn = p => { const s = ashramaOfPlayer(p); return s < ASHRAMAS.lengt
 // animal interlude, or the stage of life and its āśrama.
 const ENDED = { ledger: "deadLedger", door: "deadDoor" };
 function stageLine(pl) {
+  // on an old cloth, the legend of the square the pawn stands on (Phase 18)
+  if (isCloth()) return esc(squareName(pl.pos));
   if (pl.fell) return t("fell");
   if (pl.pos === 0) return t("notBorn");
   if (pl.dead) return fill(t(ENDED[pl.death?.by] ?? "dead"), { gender: pl.gender });
@@ -44,7 +47,7 @@ export function renderPlayers() {
       <span><span class="pname">${esc(pname(pl))}</span><span class="kind">${pl.type === "cpu" ? t("cpu") : ""}</span>
         <span class="stage">${stageLine(pl)}</span>
         ${selfLine(pl) && !gone(pl) ? `<span class="self">${esc(selfLine(pl))}</span>` : ""}${lawLine(pl, i)}</span>
-      <span class="pos">${pl.fell ? "" : pl.pos === 0 ? t("start") : pl.pos === GOAL ? t("moksha") : t("square", { n: pl.pos })}</span>
+      <span class="pos">${pl.fell ? "" : pl.pos === 0 ? t("start") : pl.pos === GOAL && !isCloth() ? t("moksha") : isCloth() && legendOf(pl.pos)?.top ? sqNum(pl.pos) : t("square", { n: pl.pos })}</span>
     </li>`).join("");
   renderLedger();
 }
@@ -61,7 +64,9 @@ export function entryText(e) {
   // Hindi agrees with the life the line is about ({पहुँचा|पहुँची})
   // a law is kept by its id, and named in the page's language (Phase 17)
   const law = e.v?.law && LAWS[e.v.law] ? t(LAWS[e.v.law].text.name) : "";
-  return e.k ? fill(t(e.k, { ...e.v, name: who ? pname(who) : "", what: e.v?.sq ? squareName(e.v.sq) : "", law }), { gender: who?.gender }) : e.text;
+  // an old cloth's squares as the board writes them (the 84's top 1 to 6, Phase 18)
+  const at = isCloth() && e.v ? { pos: e.v.pos != null ? sqNum(e.v.pos) : undefined, to: e.v.to != null ? sqNum(e.v.to) : undefined } : {};
+  return e.k ? fill(t(e.k, { ...e.v, ...at, name: who ? pname(who) : "", what: e.v?.sq ? squareName(e.v.sq) : "", law }), { gender: who?.gender }) : e.text;
 }
 
 export function renderLog() {

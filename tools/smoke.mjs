@@ -1539,6 +1539,135 @@ await check("Step 18.0: a six says so under the board and in the hint; a six a r
   assert(/The six brought a debt due: no second throw\./.test(lost), `the line says ${lost}`);
 });
 
+// ---- Phase 18: the old boards ----
+await check("Phase 18: the 72 is drawn as the old cloth, thrown with cowries, and a throw past 72 stops there and goes down to 51", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=1&debug");
+  await page.evaluate(() => mp.board("72"));
+  await until(page, () => mp.board() === "72" && !mp.busy);
+  const look = await page.evaluate(() => ({
+    labs: document.querySelectorAll("#labels .lab").length, goal: document.querySelector('#labels .lab[data-n="68"]')?.textContent,
+    arches: document.querySelectorAll("#vimana .arch").length, emblems: document.querySelectorAll("#vimana .emb").length,
+    shells: !document.getElementById("shells").hidden && document.querySelectorAll("#shells span").length, die: document.getElementById("die").hidden,
+    roll: document.getElementById("roll").textContent, pos: mp.state.players.map(p => p.pos),
+  }));
+  assert(look.labs === 72 && /Vaikuṇṭha/.test(look.goal || ""), `the squares: ${JSON.stringify(look)}`);
+  assert(look.arches === 9 && look.emblems > 0, `the arches and the trimūrti: ${JSON.stringify(look)}`);
+  assert(look.shells === 7 && look.die && /Throw the shells/.test(look.roll), `the cowries: ${JSON.stringify(look)}`);
+  assert(look.pos.every(n => n === 1), `every pawn begins in 1: ${look.pos}`);
+  // 70 and a throw of 5: walked to 72, its snake, and the pawn stays on 51
+  await page.evaluate(() => { Object.assign(mp.state.players[0], { pos: 70, life: [1, 70] }); mp.roll(5); });
+  await page.waitForFunction(() => { if (document.getElementById("folio").open) mp.close({ instant: true }); return !mp.busy && mp.state.turn === 0; }, null, { timeout: 20000, polling: 200 });
+  const past = await page.evaluate(() => ({ pos: mp.state.players[0].pos, log: mp.state.log.map(e => e.k) }));
+  assert(past.pos === 51 || past.log.includes("cPast"), `the throw past 72: ${JSON.stringify(past)}`);
+  assert(past.log.includes("cPast") && past.log.includes("cSnake"), `the log: ${past.log.slice(-8)}`);
+  // no shell face up: nothing moves, and the line says why
+  const before = await page.evaluate(() => mp.state.players[0].pos);
+  await page.evaluate(() => mp.roll(0));
+  await page.waitForFunction(() => /No shell fell face up/.test(document.getElementById("landed").textContent), null, { timeout: 15000 });
+  assert((await page.evaluate(() => mp.state.players[0].pos)) === before, "a throw of 0 moved the pawn");
+  // Space throws, the line under the board is still live, and the card is still a dialog
+  await until(page, () => !mp.busy && mp.state.turn === 0);
+  await page.evaluate(() => document.activeElement?.blur());
+  const last = await page.evaluate(() => mp.state.log.length);
+  await page.keyboard.press("Space");
+  await page.waitForFunction(n => mp.state.log.length > n, last, { timeout: 15000 });
+  const a11y = await page.evaluate(() => ({ live: document.getElementById("landed").getAttribute("aria-live"), dlg: document.getElementById("folio").tagName }));
+  assert(a11y.live === "polite" && a11y.dlg === "DIALOG", `aria: ${JSON.stringify(a11y)}`);
+  // back on the 110, which is what it always was
+  await page.waitForFunction(() => { if (document.getElementById("folio").open) mp.close({ instant: true }); return !mp.busy; }, null, { timeout: 20000, polling: 200 });
+  await page.evaluate(() => mp.board("110"));
+  await until(page, () => mp.board() === "110" && !mp.busy);
+  const back = await page.evaluate(() => ({ labs: document.querySelectorAll("#labels .lab").length, shells: document.getElementById("shells").hidden, die: document.getElementById("die").hidden, pos: mp.state.players[0].pos, domes: document.querySelectorAll("#vimana .dome").length }));
+  assert(back.labs === 110 && back.shells && !back.die && back.pos === 0 && back.domes === 10, `back on the 110: ${JSON.stringify(back)}`);
+});
+
+await check("Phase 18: the 84 is the cosmic man's body, thrown with the stick die; a 1 leaves 1 and climbs, and past 80 the pawn turns at 84 and slides from 76", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=1&debug");
+  await page.evaluate(() => mp.board("84"));
+  await until(page, () => mp.board() === "84" && !mp.busy);
+  // a forced throw, then every turn after it until it is the first player's again
+  const throwAt = async (v, pos) => {
+    // the log is capped, so the newest entry, not its length, says the throw was taken
+    await page.evaluate(([v, pos]) => { window.__last = mp.state.log[0]; if (pos) { Object.assign(mp.state.players[0], { pos, life: [1, pos] }); delete mp.state.players[0].back; } mp.roll(v); }, [v, pos]);
+    await page.waitForFunction(() => { if (document.getElementById("folio").open) mp.close({ instant: true }); return mp.state.log[0] !== window.__last && !mp.busy && mp.state.turn === 0; }, null, { timeout: 20000, polling: 200 });
+  };
+  const look = await page.evaluate(() => ({
+    labs: document.querySelectorAll("#labels .lab").length, top: document.querySelector('#labels .lab[data-n="90"]')?.textContent,
+    feet: document.querySelectorAll("#labels .lab .foot").length, figure: !document.getElementById("figure").hasAttribute("hidden"),
+    shells: document.getElementById("shells").hidden, roll: document.getElementById("roll").textContent, pos: mp.state.players.map(p => p.pos),
+  }));
+  assert(look.labs === 90 && /top 6/.test(look.top || "") && /Siddhaśilā/.test(look.top || ""), `the squares: ${JSON.stringify(look)}`);
+  assert(look.feet === 9 && look.figure && look.shells && /Throw the stick die/.test(look.roll), `the figure, footprints and stick die: ${JSON.stringify(look)}`);
+  assert(look.pos.every(n => n === 1), `every pawn begins in 1: ${look.pos}`);
+  // a 2 from square 1 waits for the 1, and says so
+  await throwAt(2);
+  assert(await page.evaluate(() => mp.state.log.some(e => e.k === "cEntry")), "no line for the wait on 1");
+  assert((await page.evaluate(() => mp.state.players[0].pos)) === 1, "a 2 left square 1");
+  // the 1 on 80's footprint climbs to top 1; there a 5 waits
+  await throwAt(1, 80);
+  assert((await page.evaluate(() => mp.state.players[0].pos)) === 85, "the 1 on 80 did not climb to top 1");
+  await throwAt(5);
+  assert(await page.evaluate(() => mp.state.players[0].pos === 85 && mp.state.log.some(e => e.k === "cTop")), "a 5 on top 1 moved, or said nothing");
+  // 82 and a 6: on to 84, turned there, and back to 80, still coming back; then a 6 down to 76, its snake to 52, and on to 54
+  await throwAt(6, 82);
+  const turned = await page.evaluate(() => ({ pos: mp.state.players[0].pos, back: mp.state.players[0].back, log: mp.state.log.filter(e => e.who === 0).map(e => e.k) }));
+  assert(turned.pos === 80 && turned.back && turned.log.includes("cTurn"), `the turn at 84: ${JSON.stringify(turned)}`);
+  await throwAt(6);
+  const slide = await page.evaluate(() => ({ pos: mp.state.players[0].pos, back: mp.state.players[0].back, log: mp.state.log.filter(e => e.who === 0).map(e => e.k) }));
+  assert(slide.pos === 54 && !slide.back && slide.log[0] === "cOn" && slide.log.includes("cSlide"), `the slide from 76: ${JSON.stringify(slide)}`);
+  const a11y = await page.evaluate(() => ({ live: document.getElementById("landed").getAttribute("aria-live"), dlg: document.getElementById("folio").tagName }));
+  assert(a11y.live === "polite" && a11y.dlg === "DIALOG", `aria: ${JSON.stringify(a11y)}`);
+  // back on the 110, which has no figure
+  await page.evaluate(() => mp.board("110"));
+  await until(page, () => mp.board() === "110" && !mp.busy);
+  const back = await page.evaluate(() => ({ labs: document.querySelectorAll("#labels .lab").length, figure: document.getElementById("figure").hasAttribute("hidden"), feet: document.querySelectorAll("#labels .lab .foot").length }));
+  assert(back.labs === 110 && back.figure && back.feet === 0, `back on the 110: ${JSON.stringify(back)}`);
+});
+
+await check("Phase 18: the old boards' other rules are chosen in the setup, named by source, off by default, and played", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=1&debug");
+  await until(page, () => !mp.busy);
+  // the setup: nothing on the 110; on the 72 a start and an end, each the board's own unless chosen; on the 84 roam alone
+  const rows = await page.evaluate(() => {
+    document.getElementById("setup").open = true;
+    const pick = id => { const b = document.getElementById("ruleBoard"); b.value = id; b.dispatchEvent(new Event("change")); };
+    const seen = () => ({ start: document.getElementById("ruleStartRow").hidden ? null : [...document.querySelectorAll("#ruleStart option")].map(o => o.value),
+      end: document.getElementById("ruleEndRow").hidden ? null : [...document.querySelectorAll("#ruleEnd option")].map(o => o.value),
+      endText: document.getElementById("ruleEnd").textContent, about: !document.getElementById("ruleOtherAbout").hidden });
+    const r = { 110: seen() };
+    pick("72"); r[72] = seen();
+    pick("84"); r[84] = seen();
+    return r;
+  });
+  assert(rows[110].start === null && rows[110].end === null && !rows[110].about, `the 110: ${JSON.stringify(rows[110])}`);
+  assert(JSON.stringify(rows[72].start) === '["","six"]' && JSON.stringify(rows[72].end) === '["","exact","roam"]' && rows[72].about, `the 72: ${JSON.stringify(rows[72])}`);
+  assert(/Johari, a modern rule/.test(rows[72].endText) && /between 68 and 72/.test(rows[72].endText) && /Harikṛṣṇa/.test(rows[72].endText), `the 72's end, named by source: ${rows[72].endText}`);
+  assert(JSON.stringify(rows[84].end) === '["","roam"]' && /between 80 and 84/.test(rows[84].endText), `the 84: ${JSON.stringify(rows[84])}`);
+  // chosen and started: roam on the 84, and the game carries it
+  await page.evaluate(() => { const e = document.getElementById("ruleEnd"); e.value = "roam"; document.getElementById("newGame").click(); });
+  await until(page, () => mp.board() === "84" && !mp.busy);
+  assert((await page.evaluate(() => mp.state.rules.end)) === "roam", "the game did not carry roam");
+  // 83 and a 6: on to 84, back to 80, and up again to 81, never down to 76
+  await page.evaluate(() => { document.getElementById("naming")?.close?.(); Object.assign(mp.state.players[0], { pos: 83, life: [1, 83] }); delete mp.state.players[0].back; window.__last = mp.state.log[0]; mp.roll(6); });
+  await page.waitForFunction(() => { if (document.getElementById("folio").open) mp.close({ instant: true }); return mp.state.log[0] !== window.__last && !mp.busy && mp.state.turn === 0; }, null, { timeout: 20000, polling: 200 });
+  const roam = await page.evaluate(() => ({ pos: mp.state.players[0].pos, log: mp.state.log.filter(e => e.who === 0).map(e => e.k) }));
+  assert(roam.pos === 81 && roam.log.includes("cRoam"), `roam: ${JSON.stringify(roam)}`);
+  // the 72 with the exact throw: a throw past 72 is lost, and the line under the board says so
+  await page.evaluate(() => mp.board("72", { end: "exact" }));
+  await until(page, () => mp.board() === "72" && !mp.busy);
+  await page.evaluate(() => { Object.assign(mp.state.players[0], { pos: 70, life: [1, 70] }); mp.roll(5); });
+  await page.waitForFunction(() => /A throw past 72 does not count/.test(document.getElementById("landed").textContent), null, { timeout: 15000 });
+  assert((await page.evaluate(() => mp.state.players[0].pos)) === 70, "the lost throw moved the pawn");
+  // and mp.board alone starts the board's own rules again
+  await page.waitForFunction(() => { if (document.getElementById("folio").open) mp.close({ instant: true }); return !mp.busy; }, null, { timeout: 20000, polling: 200 });
+  await page.evaluate(() => mp.board("72"));
+  await until(page, () => mp.board() === "72" && !mp.busy);
+  assert((await page.evaluate(() => mp.state.rules.end ?? null)) === null, "the exact throw outlived its game");
+});
+
 // ---- Phase 14: the door and the curse ----
 await check("Phase 14: a refused sannyāsin sits at the door, is asked on a card that holds the game, and the door opens", async page => {
   await page.emulateMedia({ reducedMotion: "reduce" });

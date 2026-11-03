@@ -71,17 +71,28 @@ h1 { font-family: var(--f-display); font-weight: 400; font-size: clamp(34px, 6vw
   box-shadow: inset 0 0 0 2px var(--frame-gold), 0 10px 30px rgba(10, 12, 40, 0.3);
 }
 /* the vimāna over the divine row: gold domes with their doorways, the exit's in indigo (render/board.js superstructure) */
-.vimana { aspect-ratio: 100 / 9; margin: 0 3px -1px; }
+.vimana { aspect-ratio: calc(var(--cols, 10) * 10) / 9; margin: 0 3px -1px; }
 .vimana svg { display: block; width: 100%; height: 100%; overflow: visible; }
 .vimana .dome { fill: var(--b-gold-hi); stroke: var(--b-lac); stroke-width: 0.45; }
 .vimana .door { fill: var(--b-vermilion); stroke: var(--b-lac); stroke-width: 0.35; }
 .vimana .door.goal { fill: var(--b-indigo); }
+/* Phase 18: the 84's cosmic man, behind the cells */
+.figure { position: absolute; inset: 0; width: 100%; height: 100%; }
+.figure[hidden] { display: none; }
+.figure .body { fill: var(--b-paleochre); stroke: var(--b-lac); stroke-width: 0.6; }
+.figure .moon { fill: var(--b-shell); stroke: var(--b-lac); stroke-width: 0.5; }
+.lab .foot { position: absolute; right: 4%; bottom: 30%; font-size: 2.2cqi; line-height: 1; }
+.vimana .arch { fill: var(--b-gold); stroke: var(--b-lac); stroke-width: 0.35; }
+.vimana .niche { fill: var(--b-gold-hi); stroke: var(--b-lac); stroke-width: 0.3; }
+.vimana .emb { fill: none; stroke: var(--b-lac); stroke-width: 0.4; stroke-linecap: round; stroke-linejoin: round; }
+.vimana .emb.dot { fill: var(--b-lac); }
+.vimana .emb.petal { fill: var(--b-vermilion); stroke-width: 0.25; }
 .vimana .finial { fill: var(--b-vermilion); stroke: var(--b-lac); stroke-width: 0.3; }
 /* on a weak device the ornament goes first, before any pigment, and the ageing never does */
 :root.plain .vimana { display: none; }
 :root.plain .board-frame { background: var(--frame-red); }
-.board-wrap { position: relative; width: 100%; aspect-ratio: 10 / 11; border: 3px solid var(--frame-dark); outline: 2px solid var(--frame-gold); background: var(--frame-dark); container-type: inline-size; }
-.cells, .labels { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(10, 1fr); grid-template-rows: repeat(11, 1fr); }
+.board-wrap { position: relative; width: 100%; aspect-ratio: var(--cols, 10) / var(--rows, 11); border: 3px solid var(--frame-dark); outline: 2px solid var(--frame-gold); background: var(--frame-dark); container-type: inline-size; }
+.cells, .labels { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(var(--cols, 10), 1fr); grid-template-rows: repeat(var(--rows, 11), 1fr); }
 .cell { position: relative; box-shadow: inset 0 0 0 0.5px rgba(40, 18, 4, 0.45); }
 /* The picture on each plain square sits under the snakes and ladders, like the painted boards. */
 .cell .pic { position: absolute; inset: 0; display: grid; place-items: center; padding-top: 8%; font-family: var(--f-emoji); font-size: 4.6cqi; line-height: 1; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.3)); }
@@ -190,7 +201,7 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 /* Players: pixel-art figures that walk, climb and grow. Feet sit on the square, with a shadow in the player's colour. */
 .tokens { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
 .token {
-  position: absolute; width: 7.4%; aspect-ratio: 12 / 16;
+  position: absolute; width: calc(74% / var(--cols, 10)); aspect-ratio: 12 / 16;
   transform: translate(-50%, -92%);
   transition: left 0.14s ease-out, top 0.14s ease-out;
   z-index: 2;
@@ -623,6 +634,12 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 /* Phase 9: two dice from 94, and the choice between them */
 .dice { display: flex; gap: 8px; flex: none; }
 .dice .die[hidden] { display: none; }
+/* Phase 18: seven cowries, for an old cloth thrown with them; a shell face up shows its slit */
+.shells { width: 112px; height: 72px; display: flex; flex-wrap: wrap; align-content: center; justify-content: center; gap: 4px 5px; }
+.shells[hidden], #ruleRandRow[hidden], #ruleSixRow[hidden] { display: none; }
+.shells span { width: 22px; height: 30px; border-radius: 50%; background: #F1E6CC; border: 2px solid #3B2812; box-shadow: inset -3px -3px 0 rgba(59,40,18,0.18); position: relative; }
+.shells span.up::after { content: ""; position: absolute; left: 50%; top: 18%; bottom: 18%; width: 3px; margin-left: -1.5px; border-radius: 2px; background: #3B2812; }
+.shells.rolling { animation: tumble 0.56s ease-in-out; }
 .dice:has(#die2:not([hidden])) .die { width: 60px; height: 60px; padding: 7px; }
 .pick { display: flex; flex-wrap: wrap; gap: 6px; }
 .pick[hidden] { display: none; }
@@ -698,6 +715,6 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   .gate .spoke, .gate .leaf { transition: none; }
   .cam { transition: none; transform: none !important; }
   #folio.snap, #folio.snap .leaf { transition: none; }
-  .token .body, .die.rolling, .lab.goal .om, .leaf, .leaf *, .flourish *, .toast { animation: none !important; }
+  .token .body, .die.rolling, .shells.rolling, .lab.goal .om, .leaf, .leaf *, .flourish *, .toast { animation: none !important; }
   ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
 }

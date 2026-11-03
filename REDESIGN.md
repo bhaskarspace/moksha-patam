@@ -2259,7 +2259,73 @@ computer can be set to a law other than the player's.
 
 ---
 
-### Phase 18 — Historical boards
+### Phase 18 — Historical boards  ✅ SHIPPED
+
+> **Shipped** (3 Nov, branch `phase-18-boards`; decided by Bhaskar 3 Nov). Step 0, on `main`: a six says it throws again,
+> or why it does not (`lineSix`, `lineSixLost`). **Step 1, geometry as data:** `content/boards.json` gives each board its
+> `geometry` (a track of runs and single squares on a grid) and `rules`; `useBoard(id)` in `src/content.js` swaps the
+> live bindings (`GOAL`, `TOP`, `ROWS`, `SNAKES`, `LADDERS`, `SQ`, `BOARD`); `rules.board` picks it, and the 110 is the
+> default and is what it was. **Step 2, the 72** (App. D1) and **step 3, the 84** (App. D2, Jeṭhābhāī's rules, F2), each
+> as the old cloth (`src/engine/cloth.js`, pure): a pawn, the board's own randomizer, its snakes and ladders, its rules,
+> and the legends the charts write (`content/legends.json`, every square cited, uncertain readings said on the card).
+> None of the life the 110 carries: no years, moments, situations, debts, curse, cast, door, omen or rebirth. The 72 is
+> named Bhakti and thrown with seven cowries at p = 0.45 face up, as Schmidt-Madsen measured them (2019, p. 206 fn. 345:
+> a 1 comes 8.7% of the time, a 0 1.5%; the brief's "p = 0.5" gives 5.5%); a throw past 72 stops on it and its snake
+> takes the pawn to 51, with the rest of the count not carried (Dampier 1895: 25, the only early witness). The 84 is named
+> the Jain law and thrown with the 1-2-5-6 stick die: only a 1 leaves square 1; a ladder or one of the nine footprints
+> is climbed only on a 1 thrown from its square; top 1–5 move only on a 1, top 6 (the siddhaśilā) wins; past 80 without
+> the 1, on to 84, turn, back to 76, its snake to 52, and the rest of the throw from there (p. 217). The footprint is on
+> 61, not D2's heading's 62; F2's snake on 30 is left out. The board is drawn on the lokapuruṣa, a silhouette with no
+> features; its rows are realms, not ranks. Citations keep their Latin digits in Hindi, on every board.
+> **Step 4, the game's other rules**, each off unless chosen, each only where the board offers it (`rules.variants`),
+> each named by its source in the setup (`mp.board(id, { start, end })`, `sim --start --end`).
+>
+> **Correction, from the thesis (ch. 5, pp. 205–208).** This section's plan called entry on a six and the exact square
+> "historical rules"; only one of the three is. Entry on a six is Johari's rule for his modern redesign of the 72 (2007: 8),
+> "not attested in any other sources, and … likely to be of Johari's own invention"; the exact throw past 68 onto 72 is
+> Johari's too (2007: 9–10), "probably adapted from the modern game" (fn. 353). Both are offered as "(Johari, a modern
+> rule)". The exact throw is not offered on the 84, where nothing above 80 goes down and a pawn past it could never move
+> again. Harikṛṣṇa's roam (KK 245, comm.) is the historical one, from an 84-square Vaiṣṇava chart: back and forth between
+> the gate (the 72's 68, the 84's 80) and the row's end until a throw ends on the gate; the 72's own snake on 72 still
+> takes a pawn that ends there (Bhaskar).
+>
+> **Measured,** `node tools/sim.mjs 5000 1 --board=… [--rand=die] [--start=six] [--end=…]`, one pawn, turns to the goal,
+> median / p95 (share over 100), every game reaching the goal. The 110's baseline (`npm run sim 5000 1`) is median 47,
+> p95 153, over 100 15.0%, turns a game. The thesis's own measure of the randomizer (64.5 turns to 100.5 with the
+> shells) is beside it: the lever is real, and it belongs with its board.
+>
+> | board | its own | a die |
+> |---|---|---|
+> | 72, its rules (cowries) | 23 / 77 (1.9%) | 25 / 88 (3.1%) |
+> | 72, start on a 6 | 51 / 137 (14.0%) | 30 / 92 (3.5%) |
+> | 72, exact | 31 / 111 (6.5%) | 31 / 108 (6.2%) |
+> | 72, roam | 20 / 59 (0.4%) | 19 / 59 (0.4%) |
+> | 84, its rules (stick die) | 95 / 331 (47.1%) | 139 / 491 (65.3%) |
+> | 84, start on a 6 | 87 / 293 (42.1%) | 134 / 444 (62.4%) |
+> | 84, roam | 83 / 204 (36.8%) | 116 / 287 (59.6%) |
+> | 84, start on a 6 and roam | 76 / 184 (31.3%) | 111 / 279 (56.5%) |
+>
+> A six with the cowries comes 3.2% of the time, so the 72's start on a 6 spends half its turns on square 1. On the 84 a 6
+> is as likely as a 1 on the stick die and lands on 7, a ladder's foot, so it is a little faster than Jeṭhābhāī's 1.
+> **The 84 is a long game, and stays as sourced** (Bhaskar): the setup says so before it is chosen, "a long game, often
+> more than a hundred throws, as it was played over the days of Paryuṣaṇ". Where its turns go, by the square each begins
+> on (`sim --board=84`):
+>
+> | turns begun | stick die | a die | stick die, roam |
+> |---|---|---|---|
+> | on square 1 | 9.3% (11.6 a game) | 10.9% (20.1) | 9.1% (8.6) |
+> | at a ladder's foot or a footprint | 15.9% (19.9) | 15.5% (28.5) | 11.8% (11.2) |
+> | above the grid, top 1–5 | 10.8% (13.5) | 10.4% (19.2) | 17.4% (16.5) |
+> | in the 80→84→76→52 loop and the walk back up past 76 | 5.7% (7.2) | 5.3% (9.8) | — |
+> | roaming 80–84 | — | — | 17.4% (16.5) |
+> | walking the rest | 58.4% (73.2) | 57.9% (106.7) | 44.4% (42.1) |
+>
+> A game goes down 76's snake 1.11 times with the stick die (1.48 with a die). The length is mostly the walk: a ladder that
+> climbs only on a 1 rarely does, so the pawn walks the board and its snakes.
+>
+> **Deferred.** The Sufi 101, to Phase 20 (below, and the reason there). The old boards' card pictures and the 84's vimāna
+> domes, to Phase 20. Perf on every board matches `main` (33.3 ms frames, p50 and p95). Golden and the 2000-seed accounts
+> are identical to `main` throughout: the 110 did not change.
 
 Board geometry becomes data. The variants are documented, not invented; see
 `docs/REFERENCE.md §4`.
@@ -2273,7 +2339,12 @@ Board geometry becomes data. The variants are documented, not invented; see
 - 84-square Jain board — from Appendix D2 and Jeṭhābhāī's rules (Appendix F2): a 1 to
   leave square 1, ladders climbed on a 1 from the foot, footprints up the centre column on
   a 1, the vimānas above the grid each on a 1.
-- 101-square Sufi board ending at the throne.
+- 101-square Sufi board ending at the throne. **Deferred to Phase 20** (Bhaskar, 3 Nov): the sources in `research/`
+  are too thin to build it without inventing squares. Schmidt-Madsen 2019 gives only a typology (App. B3: a 10 × 10
+  grid with one square above, play from ʿadam at the bottom left, boustrophedon to the Throne; 13 snakes, 8 to 17
+  ladders) and no transcription or critical reading; Topsfield 1985 and 2006 name about six squares (ʿadam 1, walādat 2,
+  ʿaql 5, fanā fī Allāh 84, the Throne) and give the six-cowrie entry rule (a ten), but no positions for the 13 snakes and
+  17 ladders. It needs the RAS or Ashmolean chart read square by square first.
 - **What each board does above its winning square, as that board's own rule.** The 72:
   the last square's snake to 51, the earth. The Jain 84: walk to 84, turn, and down the
   snake at 76 into 52, the human row, to climb again. Harikṛṣṇa's 84: roam 80–84 until the
@@ -2353,6 +2424,11 @@ mechanics were still moving.*
   has faced this month. The test: a fifteen-year-old reads the brahmacharya band and
   recognises their week. **No teen mode, no modern skin** — one board, with the present in
   it. The mirrors stay as they are; the contrast is the point.
+- **The old boards' pictures** (Bhaskar, 3 Nov, at Phase 18's review). The 72's and the 84's
+  cards show a legend with an empty picture panel: each square needs a picture, in the
+  vignette idiom (`art/vignettes.mjs`), drawn from what the charts paint there, with no
+  likeness beyond an emblem. And the 84's vimāna domes over top 1–5, which Phase 18 left as
+  gold ground.
 - **Schools as cast** (`docs/NARRATIVE.md` §13.8): each darśana assigned per life, seeded, to
   a cast member — the teacher a Mīmāṃsaka who holds the rite is enough, the friend's uncle a
   Cārvāka who lives as if there is nothing after, the rival late an Advaitin. Research brief
@@ -2366,6 +2442,10 @@ mechanics were still moving.*
 - **The "oldest" pass.** Eight text-bridges from Phase 11 lean on *one of the oldest, two
   oldest, longest and among the oldest*. A first-time reader learns nothing from the
   seventh "oldest." Vary them.
+
+- **The 101-square Sufi board** (from Phase 18): build it once a chart (RAS, or the Ashmolean "Hazard", Topsfield
+  2006 no. 16) has been read square by square, with its legends, 13 snakes and 17 ladders, as Appendix D reads the 72
+  and the 84. Never from the six squares the articles name.
 
 **Balancing.**
 - **The ablation harness.** For each snake and ladder, run N games with that element

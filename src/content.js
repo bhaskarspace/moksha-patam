@@ -10,14 +10,18 @@ import boards from "../content/boards.json" with { type: "json" };
 import door from "../content/door.json" with { type: "json" };
 import curses from "../content/curses.json" with { type: "json" };
 import mirror from "../content/mirror.json" with { type: "json" };
+import legends from "../content/legends.json" with { type: "json" };
+import { layoutOf } from "./geometry.js";
 
 // Every square is { ic, en, hi, age, moment, mirror, callsBack, src } (docs/NARRATIVE.md §11). Snakes and
 // ladders add { to, skt }. The mirror is the Phase 2 lead; the moment, when there is one, sits above it and
 // says what is happening to the player, as { en, hi } with an optional mirror of its own to read after it.
 // GOAL is the exit, where a life is let go; TOP is the last square of the board, the board's extent: the throw past it
 // is the fall (REDESIGN.md Phase 12), whose card is FALL.
-export const { GOAL, TOP, ROWS, ASHRAMAS, LADDERS, SNAKES, HEAVEN, MOKSHA, FALL } = squares;
-export const { SQ } = squares;
+// Since Phase 18 these are the board in play's (useBoard below), live bindings every importer reads as they change; the
+// 110's are squares.json's, as they always were.
+export let { GOAL, TOP, ROWS, ASHRAMAS, LADDERS, SNAKES, HEAVEN, MOKSHA, FALL } = squares;
+export let { SQ } = squares;
 export const { STR, SRC_HI, JOINS, NUM_HI } = strings;
 // What the account says about the cast: introductions, the returns join and the fate lines (src/engine/cast.js).
 export const CAST_WORDS = strings.CAST;
@@ -45,7 +49,38 @@ export const MIRROR = mirror;
 // grounds of each band, the divine row's gold, the snakes' and the ladders' pigments, its border and its superstructure.
 // Content, not code, so another board (Phase 17) is another entry.
 export const BOARDS = boards;
-export const BOARD = boards["110"];
+export let BOARD = boards["110"];
+// The board in play's id, its columns, and where each of its squares is (src/geometry.js): content, so a board is data.
+export let BOARD_ID = "110";
+export let LAYOUT = layoutOf(BOARD.geometry);
+export let COLS = LAYOUT.cols;
+// An old board's squares (Phase 18), as squares.json gives the 110's: its goal and extent, and every square its legend
+// (content/legends.json), the snakes and ladders theirs with where they go. skt is the reading the charts agree on.
+export const LEGENDS = legends;
+// square n's legend on the board in play, for an old cloth (Phase 18); the 110 has none
+export const legendOf = n => LEGENDS[BOARD_ID]?.[n] ?? null;
+function clothSquares(b, legend = {}) {
+  const r = b.rules, sq = n => ({ ...legend[n], skt: legend[n]?.iast ?? "" });
+  const ends = (links = {}) => Object.fromEntries(Object.entries(links).map(([n, to]) => [n, { ...sq(n), to }]));
+  const SNAKES = ends(r.snakes), LADDERS = ends(r.ladders);
+  // the legends' squares only (an old board's row titles are kept beside them, under "rows")
+  const SQ = Object.fromEntries(Object.keys(legend).filter(n => /^\d+$/.test(n) && !SNAKES[n] && !LADDERS[n] && +n !== r.goal).map(n => [n, sq(n)]));
+  return { GOAL: r.goal, TOP: r.top, SNAKES, LADDERS, SQ, MOKSHA: sq(r.goal) };
+}
+// The board in play (Phase 18). The 110's squares are squares.json's; another board brings its own from boards.json.
+// Whatever reads the board at import time asks again through onBoard, so it follows the board as it changes.
+const watchers = [];
+export const onBoard = f => { watchers.push(f); };
+export function useBoard(id = "110") {
+  if (!Object.hasOwn(boards, id)) id = "110";
+  if (id === BOARD_ID) return BOARD;
+  const b = boards[id], own = id === "110" ? squares : clothSquares(b, LEGENDS[id]);
+  ({ GOAL, TOP, ROWS, ASHRAMAS, LADDERS, SNAKES, HEAVEN, MOKSHA, FALL } = { ASHRAMAS: [], HEAVEN: {}, MOKSHA: null, FALL: null, ...own });
+  SQ = own.SQ ?? {};
+  BOARD = b; BOARD_ID = id; LAYOUT = layoutOf(b.geometry); COLS = LAYOUT.cols; ROWS = LAYOUT.rows;
+  for (const f of watchers) f(b);
+  return b;
+}
 // The --b-* custom properties of a board's palette, as CSS declarations.
 export const paletteCss = (b = BOARD) => Object.entries(b.palette).map(([k, v]) => `--b-${k}: ${v};`).join(" ");
 // A board's palette as { "--b-name": "#hex" }, for the lint and the tests.

@@ -10,6 +10,9 @@ import { mirrorOf, mirrorIn, mirrorIntroIn } from "../engine/mirror.js";
 import { pastOf } from "../engine/samskara.js";
 import { lawOf } from "../engine/laws/index.js";
 import { prefs } from "../prefs.js";
+import { legendOf } from "../content.js";
+import { isCloth } from "../engine/cloth.js";
+import { sqNumIn } from "./board.js";
 
 const dlg = $("lifeDlg"), leaf = $("lifeLeaf");
 // past: which of the seat's lives closed by Śiva's snake is read (Phase 17, p.past), or null for the one in it now
@@ -17,7 +20,38 @@ let whose = 0, tab = "book", past = null;
 const TABS = ["book", "path", "mirror"], TAB_KEY = { book: "lifeBook", path: "lifePath", mirror: "lifeMirror" };
 
 export { lifeOf };
-export const lifeText = (state, i, l = lang) => textOf(state, i, l);
+export const lifeText = (state, i, l = lang) => (isCloth() ? clothText(state, i, l) : textOf(state, i, l));
+
+// On an old cloth (REDESIGN.md Phase 18) there is no life to read, only the path: every square the pawn stood on, in
+// order, by its legend.
+const clothRows = (state, i, l) => (state.players[i].life ?? []).map(n => ({ n: sqNumIn(l, n), sq: legendOf(n)?.[l] ?? "" }));
+const clothText = (state, i, l) =>
+  [tIn(l, "pathOf", { name: pnameIn(state.players[i], l) }), tIn(l, "pathIntro"), "", ...clothRows(state, i, l).map(r => `${r.n}  ${r.sq}`)].join("\n");
+function paintCloth() {
+  const state = G.state, l = lang, T = (k, v) => tIn(l, k, v);
+  const tabs = state.players.length > 1
+    ? `<div class="life-who" role="group" aria-label="${T("lifeWhose")}">` + state.players.map((p, i) =>
+      `<button type="button" data-who="${i}" aria-pressed="${i === whose}"><span class="dot" style="background:${COLORS[p.color]}"></span>${esc(pnameIn(p, l))}</button>`).join("") + `</div>`
+    : "";
+  leaf.innerHTML = `
+    <header class="leaf-top">
+      <span class="eb">${T("readPath")}</span>
+      <div class="leaf-tools"><button type="button" class="x" data-act="close" aria-label="${T("close")}" autofocus>×</button></div>
+    </header>
+    ${tabs}
+    <div class="leaf-main life-main">
+      <div class="leaf-text" lang="${l}">
+        <h2 id="lifeTitle">${esc(T("pathOf", { name: pnameIn(state.players[whose], l) }))}</h2>
+        <p class="life-open">${esc(T("pathIntro"))}</p>
+        <ol class="life-path">${clothRows(state, whose, l).map(r => `<li><span class="pa">${esc(r.n)}</span><span class="ps">${esc(r.sq)}</span></li>`).join("")}</ol>
+      </div>
+    </div>
+    <footer class="leaf-foot">
+      <button type="button" class="ghost" data-act="copy">${T("pathCopy")}</button>
+      <span class="ft">${numIn(l, state.rng.seed)}</span>
+      <button type="button" class="ghost" data-act="save">${T("lifeSave")}</button>
+    </footer>`;
+}
 
 // What the open tab shows, in language l.
 function panel(game, l, T) {
@@ -45,6 +79,7 @@ function panel(game, l, T) {
 }
 
 function paint(focusTab = false) {
+  if (isCloth()) return paintCloth();
   const state = G.state, l = lang, T = (k, v) => tIn(l, k, v), seat = state.players[whose];
   const { title } = lifeOf(pastOf(state, whose, past), whose, l);
   const tabs = state.players.length > 1
@@ -108,7 +143,7 @@ leaf.addEventListener("click", async e => {
   if (act === "skip") return showWay("book");
   // Be born again, from the book as from the end of the game (src/main.js)
   if (act === "reborn") { dlg.close(); return $("reborn").click(); }
-  const view = pastOf(G.state, whose, past), text = lifeText(view, whose);
+  const view = isCloth() ? G.state : pastOf(G.state, whose, past), text = lifeText(view, whose);
   if (act === "copy") {
     try { await navigator.clipboard.writeText(text); b.textContent = tIn(lang, "lifeCopied"); } catch {}
   } else if (act === "save") {

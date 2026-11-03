@@ -2,7 +2,7 @@
 // than 4.5:1, or than it was before the wash where the shipped board was already below that.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { TOP, paletteTokens } from "../src/content.js";
+import { TOP, paletteTokens, BOARDS, useBoard, LAYOUT } from "../src/content.js";
 import { groundOf, fills, WASH } from "../src/render/ground.js";
 
 const token = paletteTokens();
@@ -26,6 +26,19 @@ for (const [name, w] of [["full sepia", { sepia: 1, dim: 0 }], ["half sepia", { 
     }
   });
 }
+
+// Phase 18: an old cloth does not age, so its labels are read on the ground as painted, on every board
+test("every board's square numbers are readable on its ground", () => {
+  try {
+    for (const id of Object.keys(BOARDS)) {
+      useBoard(id);
+      for (const n of LAYOUT.squares) {
+        const r = ratio(rgb(groundOf(n)[0]), ink(n));
+        assert.ok(r >= 4.5, `board ${id}, square ${n}: ${r.toFixed(2)}`);
+      }
+    }
+  } finally { useBoard("110"); }
+});
 
 test("the fade at turya (Phase 16) is on the art alone: no label, card or token is in its rule", async () => {
   const css = (await import("node:fs")).readFileSync(new URL("../src/styles.css", import.meta.url), "utf8");
