@@ -967,6 +967,9 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
               <button id="reborn" type="button" data-t="reborn" hidden>Be born again</button>
               <p id="rebornNote" class="note" data-t="rebornNote" hidden>The next life carries this one, half-remembered.</p>
               <button id="compare" type="button" data-t="compareLives" hidden>Compare the lives</button>
+              <button id="sendLife" type="button" class="ghost" data-t="sendLife" hidden>Send your life</button>
+              <button id="shareSeed" type="button" class="ghost" data-t="shareSeed" hidden>Play this seed with someone</button>
+              <p id="shareNote" class="note" aria-live="polite"></p>
               <button id="again" type="button" class="ghost" data-t="again">Play again</button>
             </div>
           </div>
@@ -1034,6 +1037,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           <label class="check"><input type="checkbox" id="prefBoth"> <span data-t="cardBoth"></span></label>
           <label class="pick"><span data-t="theme"></span><select id="prefTheme"></select></label>
           <button id="newGame" type="button" data-t="newGame">Start new game</button>
+          <button id="daily" type="button" class="ghost" data-t="daily">Today's life</button>
+          <span class="hint" data-t="dailyAbout"></span>
           <span class="hint" id="seed"></span>
         </div>
       </details>
@@ -1863,7 +1868,34 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         cmpCopy: "Copy as text",
         cmpCopied: "Copied",
         cmpSaved: "Saved",
-        cmpFoot: "Moksha Patam, the game of snakes and ladders played as a life"
+        cmpFoot: "Moksha Patam, the game of snakes and ladders played as a life",
+        cmpParted: "Where the lives parted",
+        cmpPartMove: "Throw {k}, at {sq}: both rolled {dice}. {a} moved {va}; {b} moved {vb}.",
+        cmpPartChoice: "Throw {k}, at {sq}: {a} chose ‘{va}’; {b} chose ‘{vb}’.",
+        cmpPartBefore: "{a} and {b} rolled the same dice, but by throw {k} they no longer stood on the same square.",
+        cmpPartEnd: "{a} and {b} did the same, throw for throw, until one life ended, at throw {k}.",
+        cmpPartNone: "{a} and {b} rolled the same dice and did the same with them, throw for throw.",
+        cmpPartOther: "{a} and {b} played different seeds, so their dice were never the same.",
+        cmpAnd: "{a} and {b}",
+        cmpPlaySeed: "Play this seed yourself",
+        cmpPlayAbout: "You have not played this seed. Your dice will be the same as theirs, throw for throw.",
+        cmpAdd: "Add another life",
+        cmpAddLabel: "A life's link",
+        cmpAddBad: "That link could not be read.",
+        cmpAddOther: "That life was played on another version of the game, so it cannot be shown truly.",
+        cmpAddSame: "That life is already here.",
+        cmpYou: "{name} (you)",
+        shareSeed: "Play this seed with someone",
+        shareSeedText: "Play Moksha Patam on the same dice as me.",
+        sendLife: "Send your life",
+        sendLifeText: "{name}'s life in Moksha Patam. Open it to see it beside yours.",
+        linkCopied: "Link copied",
+        linkShared: "Shared",
+        daily: "Today's life",
+        dailyAbout: "Everyone who plays today plays the same seed. Nothing leaves this page.",
+        dailyLabel: "Today's life, {date}",
+        seedFromLink: "A seed someone shared: your dice will be theirs.",
+        lifeFromLink: "A life someone sent you"
       },
       hi: {
         title: "मोक्ष पटम",
@@ -2414,15 +2446,15 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         lengthOneAbout: "खेल तब समाप्त होता है जब मेज़ पर हर जीवन पूरा हो जाए। जो आत्मा फिर जन्म लेगी, वह जो छोड़ गई उसे अगले खेल में साथ ले जाती है।",
         togetherOneText: "मेज़ पर हर जीवन पूरा हुआ। जो आत्मा आगे जाती है, वह यह जीवन अगले खेल में साथ ले जाती है।",
         cmpBoard: "हर जीवन कहाँ-कहाँ गया",
-        cmpBoardAlt: "बिसात, जिस पर हर जीवन का रास्ता उसके खिलाड़ी के रंग में खिंचा है।",
+        cmpBoardAlt: "पट, जिस पर हर जीवन का रास्ता उसके खिलाड़ी के रंग में खिंचा है।",
         cmpGunas: "कौन क्या बना",
-        cmpGunasNote: "हर जीवन के बरसों में, बारी-बारी से: ऊपर सत्त्व, बीच में रजस्, नीचे तमस्।",
+        cmpGunasNote: "हर जीवन के बरसों के साथ: ऊपर सत्त्व, बीच में रजस्, नीचे तमस्।",
         cmpNoTrace: "यह खेल तब शुरू हुआ था जब जीवन हर दाँव पर नहीं रखे जाते थे, इसलिए कौन क्या बना, यह नहीं खिंचा।",
         cmpSoul: "{name} की आत्मा",
         cmpLivesOne: "एक जीवन",
         cmpLives: "{n} जीवन",
         cmpEnd_liberated: "मुक्त",
-        cmpEnd_svarga: "स्वर्ग तक",
+        cmpEnd_svarga: "स्वर्ग मिला",
         cmpEnd_years: "बरस पूरे हुए",
         cmpEnd_ledger: "क़र्ज़ की घड़ी आई",
         cmpEnd_door: "द्वार पर मृत्यु",
@@ -2431,7 +2463,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         cmpEnd_animal: "एक पशु का जीवन",
         cmpEnd_living: "अभी जीवित",
         cmpSame: "एक ही घरों पर",
-        cmpSameNone: "किसी घर पर दो जीवनों ने नहीं चुना।",
+        cmpSameNone: "किसी एक घर पर दो जीवनों ने चुनाव नहीं किया।",
         cmpSameRow: "{name}: ‘{took}’",
         cmpSameRebel: "{name} ने ‘{chose}’ चुना; जीवन ने ‘{took}’ किया",
         cmpMet: "जहाँ जीवन मिले",
@@ -2442,7 +2474,34 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         cmpCopy: "पाठ के रूप में कॉपी करें",
         cmpCopied: "कॉपी हुआ",
         cmpSaved: "सहेजा गया",
-        cmpFoot: "मोक्ष पटम, साँप-सीढ़ी का खेल, एक जीवन की तरह खेला गया"
+        cmpFoot: "मोक्ष पटम, साँप-सीढ़ी का खेल, एक जीवन की तरह खेला गया",
+        cmpParted: "जहाँ जीवन अलग हुए",
+        cmpPartMove: "दाँव {k}, घर {sq} पर: दोनों के {dice} आए। {a}: {va} चले; {b}: {vb} चले।",
+        cmpPartChoice: "दाँव {k}, घर {sq} पर: {a}: ‘{va}’; {b}: ‘{vb}’।",
+        cmpPartBefore: "{a} और {b} के पासे एक जैसे आए, पर दाँव {k} तक वे एक ही घर पर नहीं थे।",
+        cmpPartEnd: "{a} और {b} ने दाँव-दर-दाँव एक जैसा किया, जब तक दाँव {k} पर एक जीवन समाप्त नहीं हुआ।",
+        cmpPartNone: "{a} और {b} के पासे एक ही आए, और दोनों ने उनसे दाँव-दर-दाँव एक ही किया।",
+        cmpPartOther: "{a} और {b} ने अलग-अलग बीज खेले, इसलिए उनके पासे कभी एक नहीं थे।",
+        cmpAnd: "{a} और {b}",
+        cmpPlaySeed: "यह बीज खुद खेलें",
+        cmpPlayAbout: "आपने यह बीज नहीं खेला है। आपके पासे दाँव-दर-दाँव वही आएँगे जो उनके आए।",
+        cmpAdd: "एक और जीवन जोड़ें",
+        cmpAddLabel: "किसी जीवन का लिंक",
+        cmpAddBad: "यह लिंक पढ़ा नहीं जा सका।",
+        cmpAddOther: "यह जीवन खेल के किसी दूसरे संस्करण पर खेला गया था, इसलिए इसे सही-सही नहीं दिखाया जा सकता।",
+        cmpAddSame: "यह जीवन पहले से यहाँ है।",
+        cmpYou: "{name} (आप)",
+        shareSeed: "यह बीज किसी के साथ खेलें",
+        shareSeedText: "मेरे ही पासों पर मोक्ष पटम खेलें।",
+        sendLife: "अपना जीवन भेजें",
+        sendLifeText: "मोक्ष पटम में {name} का जीवन। इसे खोलें और अपने जीवन के साथ देखें।",
+        linkCopied: "लिंक कॉपी हुआ",
+        linkShared: "भेजा गया",
+        daily: "आज का जीवन",
+        dailyAbout: "आज खेलने वाले सब एक ही बीज खेलते हैं। इस पन्ने से कुछ बाहर नहीं जाता।",
+        dailyLabel: "आज का जीवन, {date}",
+        seedFromLink: "किसी का भेजा बीज: आपके पासे वही आएँगे जो उनके आए।",
+        lifeFromLink: "किसी का भेजा जीवन"
       }
     },
     JOINS: {
@@ -4718,6 +4777,63 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     return best;
   }
 
+  // src/engine/dice.js
+  var COWRIES = 7;
+  var COWRIE_UP = 0.45;
+  var STICK = [1, 2, 5, 6];
+  function throwOf(rng, kind = "die") {
+    if (kind === "cowries") {
+      const up = Array.from({ length: COWRIES }, () => next(rng) < COWRIE_UP);
+      return { v: up.filter(Boolean).length, up };
+    }
+    if (kind === "stick") return { v: STICK[Math.floor(next(rng) * STICK.length)] };
+    return { v: die(rng) };
+  }
+
+  // src/engine/throws.js
+  var TUMBLE = 7;
+  var DICE = "throw";
+  var diceMode = () => DICE;
+  var lanesOf = (players) => {
+    let people2 = 0;
+    const humans = players.filter((p) => p.type === "human").length;
+    let cpus = 0;
+    return players.map((p) => p.type === "human" ? people2++ : humans + cpus++);
+  };
+  var laneOf = (state, i) => DICE === "stream" ? i : state.players[i]?.lane ?? i;
+  var drawnOf = (state, i, lived) => DICE === "stream" ? lived : state.players[i]?.thrown ?? 0;
+  function mix(...xs) {
+    let h = 2654435769;
+    for (const x of xs) {
+      h = Math.imul(h ^ x >>> 0, 2246822507);
+      h ^= h >>> 13;
+      h = Math.imul(h, 3266489909);
+      h ^= h >>> 16;
+    }
+    return h >>> 0;
+  }
+  var DIE = 1374496513;
+  var TUMBLES = 2068451811;
+  var CLOTH = 1007681253;
+  var throwRng = (state, i, k, what = DIE) => makeRng(mix(state.rng.seed, what, laneOf(state, i) + 1, (state.players[i]?.rebirths ?? 0) + 1, k + 1));
+  function drawThrow(state, n, { i = state.turn, kind = null, forced = null } = {}) {
+    const p = state.players[i], k = p.thrown ?? 0, stream = DICE === "stream";
+    const r = stream ? state.rng : throwRng(state, i, k), rt = stream ? state.rng : throwRng(state, i, k, TUMBLES);
+    let frames, dice, up = null;
+    if (kind) {
+      frames = Array.from({ length: TUMBLE }, () => throwOf(rt, kind));
+      const t2 = forced != null ? null : throwOf(stream ? r : throwRng(state, i, k, CLOTH), kind);
+      dice = [forced?.[0] ?? t2.v];
+      up = t2?.up ?? null;
+      frames = frames.map((f2) => ({ v: [f2.v], up: f2.up ?? null }));
+    } else {
+      frames = Array.from({ length: TUMBLE }, () => ({ v: Array.from({ length: n }, () => die(rt)), up: null }));
+      dice = forced ? Array.from({ length: n }, (_, d) => forced[d] ?? forced[0]) : Array.from({ length: n }, () => die(r));
+    }
+    if (!stream) p.thrown = k + 1;
+    return { frames, dice, up };
+  }
+
   // src/engine/qbn.js
   var situationAt = (n) => n < ENDGAME && SITUATIONS[n]?.options?.length ? SITUATIONS[n] : null;
   var optionOf = (n, id) => situationAt(n)?.options.find((o) => o.id === id) ?? null;
@@ -4746,7 +4862,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     }
     if (policy === "pleasure") return [...open2].sort((a, b) => pleasureOf(b) - pleasureOf(a))[0].id;
     if (policy === "inert") return [...open2].sort((a, b) => (a.cost ?? 0) - (b.cost ?? 0) || worthOf(a) - worthOf(b))[0].id;
-    const rng = makeRng((state.rng.seed ^ 625341585 ^ Math.imul(state.turn + 1, 2654435761) ^ Math.imul((p.life?.length ?? 0) + 1, 2246822507) ^ Math.imul(p.rebirths ?? 0, 1663821227)) >>> 0);
+    const rng = makeRng((state.rng.seed ^ 625341585 ^ Math.imul(laneOf(state, state.turn) + 1, 2654435761) ^ Math.imul((p.life?.length ?? 0) + 1, 2246822507) ^ Math.imul(p.rebirths ?? 0, 1663821227)) >>> 0);
     return open2[Math.floor(next(rng) * open2.length)].id;
   }
   var EGO_ON = true;
@@ -4758,8 +4874,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     return d >= EGO_LEAD ? [6] : d <= -EGO_LEAD ? [4, 5, 6] : [5, 6];
   }
   var egoFacesOn = (state, n) => egoOf(n) ? state.forceEgo ?? egoFaces(state.players[state.turn]) : null;
-  var egoThrow = (state, idx, lived) => die(makeRng((state.rng.seed ^ 461845907 ^ Math.imul(idx + 1, 3432918353) ^ Math.imul(lived + 1, 2146121005) ^ Math.imul(state.players[idx]?.rebirths ?? 0, 1663821227)) >>> 0));
-  var graceThrow = (state, idx, lived) => die(makeRng((state.rng.seed ^ 1759714724 ^ Math.imul(idx + 1, 458671337) ^ Math.imul(lived + 1, 739982445) ^ Math.imul(state.players[idx]?.rebirths ?? 0, 695872825)) >>> 0));
+  var egoThrow = (state, idx, lived) => die(makeRng((state.rng.seed ^ 461845907 ^ Math.imul(laneOf(state, idx) + 1, 3432918353) ^ Math.imul(lived + 1, 2146121005) ^ Math.imul(state.players[idx]?.rebirths ?? 0, 1663821227)) >>> 0));
+  var graceThrow = (state, idx, lived) => die(makeRng((state.rng.seed ^ 1759714724 ^ Math.imul(laneOf(state, idx) + 1, 458671337) ^ Math.imul(lived + 1, 739982445) ^ Math.imul(state.players[idx]?.rebirths ?? 0, 695872825)) >>> 0));
   function momentOf(n, told) {
     const q2 = squareOf(n);
     if (told === "else" && SQ[n]?.roll) return { moment: SQ[n].roll.moment, own: false, key: `${n}:else` };
@@ -4781,7 +4897,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var OMEN = 6;
   var omenGround = (pos) => pos >= 1 && pos <= 100 || pos === GOAL;
   var omenChance = (pos) => 0.1 + 0.8 * (Math.min(Math.max(pos, 0), GOAL) / GOAL) ** 2;
-  var omenDraw = (state, idx, lived) => next(makeRng((state.rng.seed ^ 668265263 ^ Math.imul(idx + 1, 374761393) ^ Math.imul(lived + 1, 2654435761) ^ Math.imul(state.players[idx]?.rebirths ?? 0, 1663821227)) >>> 0));
+  var omenDraw = (state, idx, lived) => next(makeRng((state.rng.seed ^ 668265263 ^ Math.imul(laneOf(state, idx) + 1, 374761393) ^ Math.imul(lived + 1, 2654435761) ^ Math.imul(state.players[idx]?.rebirths ?? 0, 1663821227)) >>> 0));
   var SEVERITY_POW = 1.6;
   var TIERS = [2, 5, 9, 15];
   var DEATH = 4;
@@ -4949,7 +5065,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     if (!list?.length) return null;
     const forced = state.players[idx]?.curseId;
     if (forced) return list.find((c) => c.id === forced) ?? null;
-    const r = makeRng((state.rng.seed ^ 739982445 ^ Math.imul(idx + 1, 695872825) ^ Math.imul(state.players[idx]?.rebirths ?? 0, 1663821227)) >>> 0);
+    const r = makeRng((state.rng.seed ^ 739982445 ^ Math.imul(laneOf(state, idx) + 1, 695872825) ^ Math.imul(state.players[idx]?.rebirths ?? 0, 1663821227)) >>> 0);
     return list[Math.floor(next(r) * list.length)];
   }
   var spokenAt = (c, years) => years >= c.from && stageOfYears(years) <= 1;
@@ -5384,8 +5500,9 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     if (!list) return null;
     const p = state.players[i];
     if (p.castKept !== void 0) return p.castKept;
-    const rng = makeRng((state.rng.seed ^ 739982445 ^ Math.imul(i + 1, 2246822507) ^ Math.imul(life + 1, 3266489909)) >>> 0);
+    const rng = makeRng((state.rng.seed ^ 739982445 ^ Math.imul(laneOf(state, i) + 1, 2246822507) ^ Math.imul(life + 1, 3266489909)) >>> 0);
     const taken = new Set(state.players.flatMap((q2) => [q2.name, q2.alias?.en, q2.alias?.hi]).filter(Boolean).map(nameKey));
+    const table = new Set(taken), inCast = /* @__PURE__ */ new Set(), whole = diceMode() !== "stream";
     const pool = (gd) => [...list[gd], ...list.either || []].filter(([en, hi]) => !taken.has(nameKey(en)) && !taken.has(nameKey(hi)));
     const coin = () => next(rng) < 0.5 ? "m" : "f", span = (a, b) => a + Math.floor(next(rng) * (b - a + 1));
     const carry = life > 0 ? p.prior?.cast ?? [] : [], used = /* @__PURE__ */ new Set();
@@ -5395,14 +5512,27 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       const back = carry.find((c) => RETURNS_AS[c.role] === who2 && !used.has(c) && (c.gender === gender || either) && !taken.has(nameKey(c.en)) && !taken.has(nameKey(c.hi)));
       if (back) {
         used.add(back);
-        [back.en, back.hi].forEach((x) => taken.add(nameKey(x)));
+        [back.en, back.hi].forEach((x) => {
+          taken.add(nameKey(x));
+          inCast.add(nameKey(x));
+        });
         cast2[who2] = { gender: back.gender, en: back.en, hi: back.hi, before: back.role };
         return;
       }
       let gd = gender, names = pool(gd);
       if (!names.length && either) names = pool(gd = gd === "m" ? "f" : "m");
-      const nm = names.length ? names[Math.floor(u * names.length)] : null;
-      if (nm) nm.forEach((x) => taken.add(nameKey(x)));
+      let nm = names.length ? names[Math.floor(u * names.length)] : null;
+      if (nm && whole) {
+        const all = [...list[gd], ...list.either || []];
+        const at2 = ([en, hi]) => [en, hi].some((x) => table.has(nameKey(x)) || inCast.has(nameKey(x)));
+        let j = Math.floor(u * all.length);
+        for (let t2 = 0; t2 < all.length && at2(all[j]); t2++) j = (j + 1) % all.length;
+        nm = at2(all[j]) ? null : all[j];
+      }
+      if (nm) nm.forEach((x) => {
+        taken.add(nameKey(x));
+        inCast.add(nameKey(x));
+      });
       cast2[who2] = { gender: nm ? gd : gender, en: nm?.[0] ?? null, hi: nm?.[1] ?? null };
     };
     draw2("son", "m");
@@ -5617,21 +5747,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     return { v: STORE_V, souls: Object.fromEntries(souls.slice(-KEEP_SOULS)) };
   }
 
-  // src/engine/dice.js
-  var COWRIES = 7;
-  var COWRIE_UP = 0.45;
-  var STICK = [1, 2, 5, 6];
-  function throwOf(rng, kind = "die") {
-    if (kind === "cowries") {
-      const up = Array.from({ length: COWRIES }, () => next(rng) < COWRIE_UP);
-      return { v: up.filter(Boolean).length, up };
-    }
-    if (kind === "stick") return { v: STICK[Math.floor(next(rng) * STICK.length)] };
-    return { v: die(rng) };
-  }
-
   // src/engine/cloth.js
-  var TUMBLE = 7;
   var isCloth = () => BOARD.rules?.engine === "cloth";
   var randOf = (state) => state.rules?.rand && state.rules.rand !== "own" ? state.rules.rand : BOARD.rules?.rand ?? "die";
   function setup(state) {
@@ -5639,11 +5755,9 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     for (const p of state.players) Object.assign(p, { pos: 1, life: [1], told: [null] });
   }
   function rollDice(state) {
-    const kind = randOf(state);
-    for (let i = 0; i < TUMBLE; i++) throwOf(state.rng, kind);
-    const t2 = throwOf(state.rng, kind);
-    state.shells = t2.up ?? null;
-    return [t2.v];
+    const t2 = drawThrow(state, 1, { kind: randOf(state) });
+    state.shells = t2.up;
+    return t2.dice;
   }
   var movesFor = (state, dice) => [dice[0]];
   function walk(from, v) {
@@ -5753,13 +5867,9 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   }
 
   // src/engine/turn.js
-  var TUMBLE2 = 7;
   var ENDGAME = 94;
   var diceFor = (p) => !isCloth() && p.pos >= ENDGAME ? 2 : 1;
-  function rollDice2(rng, n) {
-    for (let i = 0; i < TUMBLE2; i++) for (let k = 0; k < n; k++) die(rng);
-    return Array.from({ length: n }, () => die(rng));
-  }
+  var throwDice = (state, n) => drawThrow(state, n).dice;
   function toldOn(n, face, dice = [face]) {
     const r = SQ[n]?.roll;
     if (!r || dice.length !== 1 || !face || n >= ENDGAME) return null;
@@ -5842,7 +5952,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   });
   function createGame({ players, rules, seed }) {
     const state = {
-      players: players.map(playerOf),
+      // each seat's lane (Phase 19): what its throws and its life's own sequences are keyed by, people first
+      players: ((lanes) => players.map((r, i) => Object.assign(playerOf(r, i), { lane: lanes[i] })))(lanesOf(players)),
       rules: { ...rules },
       // over: someone reached the exit, or nobody is left in the game to
       turn: 0,
@@ -5945,7 +6056,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     delete plan.egoFaces;
     const gf = ego && id === ego.lower ? lawOf(state, plan.idx).grace(state, plan.idx) : null;
     if (gf) {
-      const p2 = state.players[plan.idx], face2 = state.forceGrace ? state.forceGrace : graceThrow(state, plan.idx, p2.life?.length ?? 0);
+      const p2 = state.players[plan.idx], face2 = state.forceGrace ? state.forceGrace : graceThrow(state, plan.idx, drawnOf(state, plan.idx, p2.life?.length ?? 0));
       delete state.forceGrace;
       if (gf.includes(face2)) {
         const best = optionsFor(p2, sit).filter((x) => x.open).sort((a, b) => worthOf(b) - worthOf(a))[0];
@@ -5957,7 +6068,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       }
     }
     if (!ego || id === ego.lower) return finish(state, plan, o);
-    const p = state.players[plan.idx], face = egoThrow(state, plan.idx, p.life?.length ?? 0), rebel = faces.includes(face);
+    const p = state.players[plan.idx], face = egoThrow(state, plan.idx, drawnOf(state, plan.idx, p.life?.length ?? 0)), rebel = faces.includes(face);
     const took = rebel ? optionOf(plan.target, ego.lower) : o;
     plan.ego = { chose: id, took: took.id, face, faces };
     plan.after.push(entry(rebel ? "lEgoRebel" : "lEgoHeld", { pos: plan.target, sq: plan.target }, "", plan.idx));
@@ -5997,11 +6108,11 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const ex = law.exit(state, idx), atExit = !!ex && final === ex.at;
     const refused = atExit && ex.door ? refusalOf(p, law.binds(state, idx)) : null;
     if (refused) after2.push(entry("lRefused", { pos: GOAL, sq: GOAL }, "", idx));
-    const through = atExit && ex.door && !refused && ex.alive === false;
-    if (through) after2.push(entry(ex.through, { pos: GOAL, sq: GOAL }, "", idx));
+    const through2 = atExit && ex.door && !refused && ex.alive === false;
+    if (through2) after2.push(entry(ex.through, { pos: GOAL, sq: GOAL }, "", idx));
     const owed = atExit && !ex.door && carried(karmaOf(p)).length > 0;
     if (owed) after2.push(entry(ex.owed, { pos: final, sq: final }, "", idx));
-    const win = atExit && !refused && !owed && !through;
+    const win = atExit && !refused && !owed && !through2;
     const years = turnYears(p.years ?? 0, { target, final, jump, cost }), died = !win && final <= 100 && years > SPAN;
     const again = !win && !died && v === 6 && state.rules.six;
     if (win) end.push(entry(law.text.win.line, ex.door ? { pos: ex.at } : { pos: ex.at, sq: ex.at }, "heaven", idx));
@@ -6016,7 +6127,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   }
   function resolve(state, plan, years) {
     const { idx } = plan, p = state.players[idx], law = lawOf(state, idx);
-    const omen = plan.win || plan.died || !law.omen(state, idx) ? null : omenFor(state, idx, { dice: plan.dice, pos: plan.final, years, lived: p.life?.length ?? 0, force: !!(state.forceOmen || state.forceDeath) });
+    const omen = plan.win || plan.died || !law.omen(state, idx) ? null : omenFor(state, idx, { dice: plan.dice, pos: plan.final, years, lived: drawnOf(state, idx, p.life?.length ?? 0), force: !!(state.forceOmen || state.forceDeath) });
     if (omen?.reckon && state.forceDeath) Object.assign(omen.reckon, { dies: true, applied: DEATH, form: state.forceDeath, years: 0, holds: null, to: null });
     const rk = omen?.reckon ?? null;
     Object.assign(plan, { omen, reckon: rk && { ...rk, from: plan.final } });
@@ -6134,12 +6245,12 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     delete was.past;
     delete was.choices;
     const rebirths = (p.rebirths ?? 0) + 1;
-    const rng = makeRng((state.rng.seed ^ 1013904242 ^ Math.imul(i + 1, 2246822507) ^ Math.imul(rebirths, 3266489909)) >>> 0);
+    const rng = makeRng((state.rng.seed ^ 1013904242 ^ Math.imul(laneOf(state, i) + 1, 2246822507) ^ Math.imul(rebirths, 3266489909)) >>> 0);
     const taken = new Set([...state.players.flatMap((q2) => [q2.name.trim(), q2.alias?.en]), ...soul.cast.map((c) => c.en)].filter(Boolean));
     const nm = drawName(rng, "", taken) ?? drawName(rng, "", /* @__PURE__ */ new Set());
     const key = p.soul ?? (p.name ? nameKey(p.name) : null);
     const next2 = playerOf({ name: "", type: p.type, gender: nm.gender, alias: { en: nm.en, hi: nm.hi }, born: nb.born ?? null, soul: key, law: nb.law }, p.color);
-    Object.assign(next2, { pos: 1, life: [1], told: [null], past: [...p.past ?? [], was], rebirths, ...nb.animal ? { animal: nb.animal, carry: nb.carry } : {} });
+    Object.assign(next2, { pos: 1, life: [1], told: [null], past: [...p.past ?? [], was], rebirths, ...p.lane != null ? { lane: p.lane } : {}, ...nb.animal ? { animal: nb.animal, carry: nb.carry } : {} });
     if (p.choices) next2.choices = p.choices;
     for (const k of Object.keys(p)) delete p[k];
     Object.assign(p, next2);
@@ -6157,7 +6268,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       mark(q2, p, i);
     });
   }
-  function playTurn(state, roll2 = isCloth() ? rollDice(state) : spentOf(state.players[state.turn]) || practisesNow(state) ? [] : rollDice2(state.rng, diceFor(state.players[state.turn])), pick3 = moveFor, choose2 = (s, sit) => lawOf(s).choose(s, sit)) {
+  function playTurn(state, roll2 = isCloth() ? rollDice(state) : spentOf(state.players[state.turn]) || practisesNow(state) ? [] : throwDice(state, diceFor(state.players[state.turn])), pick3 = moveFor, choose2 = (s, sit) => lawOf(s).choose(s, sit)) {
     const dice = typeof roll2 === "number" ? [roll2] : roll2, one = dice.length > 1 ? null : movesFor2(state, dice);
     const v = !dice.length && !spentOf(state.players[state.turn]) ? 0 : !one ? pick3(state, dice) : one.length > 1 ? pick3(state, dice) : one[0] ?? dice[0];
     if (dice.length || v == null) state.last = v || dice[0];
@@ -6325,6 +6436,21 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     opened = "moment";
     who = /* @__PURE__ */ new Set();
   };
+  var SEEDS = "mp-seeds";
+  var SEEDS_MAX = 20;
+  var seedsMem = [];
+  var seedsKept = () => {
+    const x = freshViewer ? seedsMem : read(SEEDS, []);
+    return Array.isArray(x) ? x : [];
+  };
+  function keepSeed(life) {
+    if (!life) return;
+    const key = `${life.r?.board ?? "110"}.${life.s}`;
+    const list = [{ key, x: life }, ...seedsKept().filter((e) => !(e.key === key && JSON.stringify(e.x) === JSON.stringify(life)))].slice(0, SEEDS_MAX);
+    if (freshViewer) seedsMem = list;
+    else write(SEEDS, list);
+  }
+  var seedLives = (board4, seed) => seedsKept().filter((e) => e.key === `${board4 ?? "110"}.${seed >>> 0}`).map((e) => e.x);
 
   // src/ui.js
   var COLORS = ["var(--p0)", "var(--p1)", "var(--p2)", "var(--p3)"];
@@ -6354,10 +6480,10 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     return (col + row2) % 2 ? b : a;
   }
   var hex = (t2) => BOARD.palette[t2];
-  var mix = (a, b) => "#" + [1, 3, 5].map((i) => Math.round((parseInt(a.slice(i, i + 2), 16) + parseInt(b.slice(i, i + 2), 16)) / 2).toString(16).padStart(2, "0")).join("");
+  var mix2 = (a, b) => "#" + [1, 3, 5].map((i) => Math.round((parseInt(a.slice(i, i + 2), 16) + parseInt(b.slice(i, i + 2), 16)) / 2).toString(16).padStart(2, "0")).join("");
   function groundOf(n) {
     if (n === GOAL) return [hex(BOARD.divine.goal), true];
-    if (divine(n)) return [mix(hex(BOARD.divine.ground[0]), hex(BOARD.divine.ground[1])), false];
+    if (divine(n)) return [mix2(hex(BOARD.divine.ground[0]), hex(BOARD.divine.ground[1])), false];
     return [hex(groundToken(n)), false];
   }
   var WASH = { ochre: 0.42, deepen: 0.22, dim: 0.5, edge: 0.14 };
@@ -9276,7 +9402,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       return x[0].toUpperCase() + x.slice(1);
     };
     const words = (n) => wordsIn(l, Math.floor(n));
-    const rng = makeRng((state.rng.seed ^ 1540483477 ^ Math.imul(i + 1, 2654435761) ^ Math.imul(p.rebirths ?? 0, 1663821227)) >>> 0);
+    const rng = makeRng((state.rng.seed ^ 1540483477 ^ Math.imul(laneOf(state, i) + 1, 2654435761) ^ Math.imul(p.rebirths ?? 0, 1663821227)) >>> 0);
     let lastThen = -1;
     const then = () => {
       let k = Math.floor(next(rng) * JOINS.then.length);
@@ -9627,7 +9753,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     };
     if (d.rebel) add(qs.find((q2) => q2.when === "rebel"));
     const fits = qs.filter((q2) => q2.when !== "rebel" && d[q2.when]);
-    const r = makeRng((state.rng.seed ^ 1831565813 ^ Math.imul(i + 1, 668265261) ^ Math.imul(state.players[i]?.rebirths ?? 0, 1663821227)) >>> 0);
+    const r = makeRng((state.rng.seed ^ 1831565813 ^ Math.imul(laneOf(state, i) + 1, 668265261) ^ Math.imul(state.players[i]?.rebirths ?? 0, 1663821227)) >>> 0);
     const order = fits.map((q2) => [next(r), q2]).sort((a, b) => a[0] - b[0]).map(([, q2]) => q2);
     order.forEach(add);
     for (const id of FALLBACK) add(qs.find((q2) => q2.id === id && q2.when !== "unwritten"));
@@ -9813,17 +9939,20 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
       return x;
     };
     for (let t2 = 0; t2 < inputs.turns && !s.over; t2++) {
-      const i = s.turn, p = s.players[i], human = p.type === "human", auto = lawOf(s, i).auto, life = p.rebirths ?? 0;
+      const i = s.turn, p = s.players[i], human = p.type === "human", auto = lawOf(s, i).auto, life = p.rebirths ?? 0, k = p.thrown ?? 0;
       let prac = false;
       if (human) {
         if (life !== noted[i]) {
           noted[i] = life;
           const x = take(i, (c) => c[0] === "l"), id = x?.slice(1);
-          if (id && id !== (p.law ?? "")) setLaw(s, i, id);
+          if (id && id !== (p.law ?? "")) {
+            if (canChoose(id)) setLaw(s, i, id);
+            else ok = false;
+          }
         }
         if (!spentOf(p) && canPractise(s, i)) prac = take(i, (c) => c === "p" || c === "r") === "p";
       }
-      const roll2 = spentOf(p) || (human ? prac : practisesNow(s)) ? [] : rollDice2(s.rng, diceFor(p));
+      const roll2 = spentOf(p) || (human ? prac : practisesNow(s)) ? [] : throwDice(s, diceFor(p));
       const pick3 = (st, dice) => {
         if (!human || auto) return moveFor(st, dice);
         const m = movesFor2(st, dice);
@@ -9831,8 +9960,20 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
         const x = take(i, (c) => /^\d$/.test(c));
         return x == null || !m.includes(+x) ? m[0] : +x;
       };
-      const choose2 = (st, sit) => !human || auto ? lawOf(st).choose(st, sit) : take(i, (c) => c[0] === "o")?.slice(1) ?? lawOf(st).choose(st, sit);
-      const plan = playTurn(s, roll2, pick3, choose2);
+      const choose2 = (st, sit) => {
+        if (!human || auto) return lawOf(st).choose(st, sit);
+        const id = take(i, (c) => c[0] === "o")?.slice(1);
+        if (id != null && optionsFor(p, sit).some((o) => o.open && o.id === id)) return id;
+        ok = false;
+        return lawOf(st).choose(st, sit);
+      };
+      let plan;
+      try {
+        plan = playTurn(s, roll2, pick3, choose2);
+      } catch {
+        ok = false;
+        break;
+      }
       const q2 = (p.rebirths ?? 0) > life ? p.past.at(-1) : p, tr = traces[i];
       while (tr.length <= life) tr.push([]);
       const g3 = q2.gunas ?? { s: 1, r: 1, t: 1 };
@@ -9841,6 +9982,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
         to: plan.final,
         dice: [...plan.dice ?? []],
         v: plan.v ?? null,
+        k: plan.dice?.length ? k : null,
         chose: plan.ego?.chose ?? plan.grace?.chose ?? plan.choice ?? null,
         took: plan.choice ?? null,
         sq: plan.choice ? plan.target : null,
@@ -9862,11 +10004,13 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     const e = endOf(st, i);
     return e ?? "living";
   }
-  function compareOf(state, traces = null) {
-    const souls = state.players.map((p, i) => ({
+  var soulsOf = (state, traces, seats = state.players.map((_, i) => i)) => seats.map((i) => {
+    const p = state.players[i];
+    return {
       seat: i,
       color: p.color,
       type: p.type,
+      seed: state.rng.seed,
       lives: livesIn(state, i).map((st, k, all) => {
         const q2 = st.players[i], kk = k === all.length - 1 ? null : k;
         return {
@@ -9882,23 +10026,54 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
           witness: q2.witness ?? []
         };
       })
-    }));
+    };
+  });
+  function sameOf(souls) {
     const bySq = /* @__PURE__ */ new Map();
     for (const s of souls) for (const l of s.lives) for (const w of l.witness) {
       if (!optionOf(w.sq, w.took)) continue;
       const row2 = bySq.get(w.sq) ?? [];
-      if (!row2.some((x) => x.seat === s.seat && x.life === l.k)) row2.push({ seat: s.seat, life: l.k, name: l.name, chose: w.chose, took: w.took });
+      if (!row2.some((x) => x.at === s.at && x.life === l.k)) row2.push({ at: s.at, seat: s.seat, life: l.k, name: l.name, chose: w.chose, took: w.took });
       bySq.set(w.sq, row2);
     }
-    const same = [...bySq].filter(([, by]) => new Set(by.map((x) => `${x.seat}.${x.life}`)).size > 1).sort((a, b) => a[0] - b[0]).map(([sq, by]) => ({ sq, by }));
+    return [...bySq].filter(([, by]) => new Set(by.map((x) => `${x.at}.${x.life}`)).size > 1).sort((a, b) => a[0] - b[0]).map(([sq, by]) => ({ sq, by }));
+  }
+  function compareOf(state, traces = null) {
+    const souls = soulsOf(state, traces).map((s, at2) => ({ ...s, at: at2 }));
     const met = [], seen2 = /* @__PURE__ */ new Set();
     for (const s of souls) for (const l of s.lives) for (const m of l.met) {
       const key = [`${s.seat}.${l.k}`, `${m.seat}.${m.life}`].sort().join("|") + "|" + m.sq;
       if (seen2.has(key)) continue;
       seen2.add(key);
-      met.push({ a: { seat: s.seat, life: l.k, name: l.name }, b: { seat: m.seat, life: m.life, name: m.with }, sq: m.sq });
+      met.push({ a: { at: s.at, seat: s.seat, life: l.k, name: l.name }, b: { at: m.seat, seat: m.seat, life: m.life, name: m.with }, sq: m.sq });
     }
-    return { souls, same, met };
+    return { souls, same: sameOf(souls), met, parted: [] };
+  }
+  function compareLives(games) {
+    const souls = games.map((g3, at2) => ({ ...soulsOf(g3.state, g3.traces, [g3.seat])[0], at: at2, color: at2 % 4, board: g3.state.rules?.board ?? "110", mine: !!g3.mine }));
+    const parted = [];
+    for (let a = 0; a < souls.length; a++) for (let b = a + 1; b < souls.length; b++) {
+      if (souls[a].seed !== souls[b].seed || souls[a].board !== souls[b].board) continue;
+      const p = partingOf(souls[a], souls[b]);
+      if (p) parted.push(p);
+    }
+    return { souls, same: sameOf(souls), met: [], parted };
+  }
+  function partingOf(A, B) {
+    const ta = (A.lives[0]?.trace ?? []).filter((x) => x.k != null), tb = (B.lives[0]?.trace ?? []).filter((x) => x.k != null);
+    if (!ta.length || !tb.length) return null;
+    const byK = new Map(tb.map((x) => [x.k, x]));
+    for (const x of ta) {
+      const y = byK.get(x.k);
+      if (!y) break;
+      const base = { a: A.at, b: B.at, k: x.k + 1, sq: x.at, dice: x.dice };
+      if (x.at !== y.at) return { ...base, how: "before" };
+      if (x.dice.join() !== y.dice.join()) return null;
+      if (x.v !== y.v) return { ...base, how: "move", va: x.v, vb: y.v };
+      if ((x.chose ?? x.took) !== (y.chose ?? y.took)) return { ...base, how: "choice", sq: x.sq ?? x.to, va: x.chose ?? x.took, vb: y.chose ?? y.took };
+    }
+    const end = Math.min(ta.length, tb.length);
+    return ta.length === tb.length && ta.every((x, j) => x.to === tb[j].to) ? { a: A.at, b: B.at, k: null } : { a: A.at, b: B.at, k: end + 1, sq: ta[end - 1].to, how: "end" };
   }
 
   // src/render/compare.js
@@ -9907,6 +10082,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
   var model = null;
   var tab2 = 0;
   var note = "";
+  var addNote = "";
   function sqName(n, l) {
     if (n === GOAL) return tIn(l, "moksha");
     const h = HEAVEN[n] ?? SNAKES[n] ?? LADDERS[n] ?? squareOf(n);
@@ -9924,13 +10100,36 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     }
     return { ...compareOf(state, traces), replayed: !!traces };
   }
-  function openCompare(state = G.state) {
-    model = build(state);
+  var hooks = { onPlay: null, onAdd: null };
+  var setCompareHooks = (h) => {
+    hooks = { ...hooks, ...h };
+  };
+  function buildLives(entries, offer) {
+    const games = entries.map((e) => {
+      if (e.state) {
+        const r2 = replayable(e.state) ? replay(inputsOf(e.state)) : null;
+        return { state: e.state, traces: r2?.ok && sameGame(e.state, r2.state) ? r2.traces : null, seat: e.seat, mine: e.mine };
+      }
+      const r = replay(e.inputs);
+      return { state: r.state, traces: r.ok ? r.traces : null, seat: e.seat, mine: e.mine };
+    });
+    return { ...compareLives(games), replayed: games.every((g3) => g3.traces), offer, entries };
+  }
+  function show2() {
     tab2 = 0;
     note = "";
     if (!dlg4.open) dlg4.showModal();
     paint4();
     leaf4.querySelector(".cmp-close")?.focus();
+  }
+  function openCompare(state = G.state) {
+    model = build(state);
+    show2();
+  }
+  function openLives(entries, offer = null) {
+    model = buildLives(entries, offer);
+    show2();
+    return model;
   }
   var closeCompare = () => {
     if (dlg4.open) dlg4.close();
@@ -10037,6 +10236,29 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     c.setTransform(dpr, 0, 0, dpr, 0, 0);
     return c;
   }
+  var soulTitle = (s, l) => s.mine ? tIn(l, "cmpYou", { name: lifeName(s.lives.at(-1), l) }) : tIn(l, "cmpSoul", { name: lifeName(s.lives.at(-1), l) });
+  function partedLines(l) {
+    const out = [], souls = model.souls, nm = (at2) => lifeName(souls[at2].lives[0], l);
+    for (let a = 0; a < souls.length; a++) for (let b = a + 1; b < souls.length; b++) {
+      const p = model.parted.find((x) => x.a === a && x.b === b), v = { a: nm(a), b: nm(b) };
+      if (!p) {
+        if (souls[a].seed !== souls[b].seed) out.push([a, b, tIn(l, "cmpPartOther", v)]);
+        continue;
+      }
+      const lab = (id) => {
+        const o = optionOf(p.sq, id);
+        return o ? o.label[l] || o.label.en : id;
+      };
+      const dice = p.dice?.length > 1 ? tIn(l, "cmpAnd", { a: p.dice[0], b: p.dice[1] }) : String(p.dice?.[0] ?? "");
+      const key = p.k == null ? "cmpPartNone" : { move: "cmpPartMove", choice: "cmpPartChoice", before: "cmpPartBefore", end: "cmpPartEnd" }[p.how];
+      out.push([a, b, tIn(l, key, { ...v, k: p.k ?? "", sq: p.sq ?? "", dice, va: p.how === "choice" ? lab(p.va) : p.va, vb: p.how === "choice" ? lab(p.vb) : p.vb })]);
+    }
+    return out;
+  }
+  function partedHtml(l) {
+    const lines = partedLines(l);
+    return lines.length ? `<h3>${esc(tIn(l, "cmpParted"))}</h3><ul class="cmp-met">` + lines.map(([a, b, x]) => `<li><span class="dot" style="background:${P_HEX[model.souls[a].color]}"></span><span class="dot" style="background:${P_HEX[model.souls[b].color]}"></span>${esc(x)}</li>`).join("") + `</ul>` : "";
+  }
   var beads = (s) => s.lives.map((l) => `<span class="bead${l.animal ? " animal" : ""}${l.end === "liberated" || l.end === "svarga" ? " free" : ""}" aria-hidden="true"></span>`).join("");
   function sameHtml(l) {
     if (!model.same.length) return `<p class="cmp-none">${esc(tIn(l, "cmpSameNone"))}</p>`;
@@ -10045,13 +10267,13 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
         const o = optionOf(sq, id);
         return o ? o.label[l] || o.label.en : id;
       };
-      const s = model.souls[b.seat], k = b.chose !== b.took ? "cmpSameRebel" : "cmpSameRow";
+      const s = model.souls[b.at], k = b.chose !== b.took ? "cmpSameRebel" : "cmpSameRow";
       return `<dd><span class="dot" style="background:${P_HEX[s.color]}"></span>${esc(tIn(l, k, { name: nameIn(b.name, l), chose: lab(b.chose), took: lab(b.took) }))}</dd>`;
     }).join("")).join("") + `</dl>`;
   }
   function metHtml(l) {
     if (!model.met.length) return `<p class="cmp-none">${esc(tIn(l, "cmpMetNone"))}</p>`;
-    return `<ul class="cmp-met">` + model.met.map((m) => `<li><span class="dot" style="background:${P_HEX[model.souls[m.a.seat].color]}"></span><span class="dot" style="background:${P_HEX[model.souls[m.b.seat].color]}"></span>${esc(tIn(l, "cmpMetLine", { a: nameIn(m.a.name, l), b: nameIn(m.b.name, l), sq: sqName(m.sq, l) }))}</li>`).join("") + `</ul>`;
+    return `<ul class="cmp-met">` + model.met.map((m) => `<li><span class="dot" style="background:${P_HEX[model.souls[m.a.at].color]}"></span><span class="dot" style="background:${P_HEX[model.souls[m.b.at].color]}"></span>${esc(tIn(l, "cmpMetLine", { a: nameIn(m.a.name, l), b: nameIn(m.b.name, l), sq: sqName(m.sq, l) }))}</li>`).join("") + `</ul>`;
   }
   function bookHtml(s, l) {
     return s.lives.map((life) => {
@@ -10066,20 +10288,22 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
       <button type="button" class="x cmp-close" aria-label="${esc(tIn(l, "close"))}">×</button></header>
     <div class="cmp-body">
       <h2 id="cmpTitle">${esc(tIn(l, "togetherTitle"))}</h2>
+      ${model.offer ? `<p class="cmp-offer">${esc(tIn(l, "cmpPlayAbout"))} <button type="button" data-act="play">${esc(tIn(l, "cmpPlaySeed"))}</button></p>` : ""}
       <ul class="cmp-souls">${souls.map((s) => {
       const last2 = s.lives.at(-1);
-      return `<li><span class="dot" style="background:${P_HEX[s.color]}"></span><b>${esc(tIn(l, "cmpSoul", { name: lifeName(last2, l) }))}</b> <span class="beads" role="img" aria-label="${esc(livesWord(humanLives(s), l))}">${beads(s)}</span>
+      return `<li><span class="dot" style="background:${P_HEX[s.color]}"></span><b>${esc(soulTitle(s, l))}</b> <span class="beads" role="img" aria-label="${esc(livesWord(humanLives(s), l))}">${beads(s)}</span>
           <span class="cmp-ends">${s.lives.map((x) => `${esc(lifeName(x, l))}: ${esc(tIn(l, "cmpEnd_" + x.end))}`).join(" · ")}</span></li>`;
     }).join("")}</ul>
       <h3>${esc(tIn(l, "cmpBoard"))}</h3>
       <canvas class="cmp-board" role="img" aria-label="${esc(tIn(l, "cmpBoardAlt"))}"></canvas>
       <h3>${esc(tIn(l, "cmpGunas"))}</h3>
-      ${traced ? `<p class="cmp-note">${esc(tIn(l, "cmpGunasNote"))}</p>` + souls.map((s) => `<div class="cmp-gunas"><span class="dot" style="background:${P_HEX[s.color]}"></span><canvas data-seat="${s.seat}" aria-hidden="true"></canvas></div>`).join("") : `<p class="cmp-note">${esc(tIn(l, "cmpNoTrace"))}</p>`}
+      ${traced ? `<p class="cmp-note">${esc(tIn(l, "cmpGunasNote"))}</p>` + souls.map((s) => `<div class="cmp-gunas"><span class="dot" style="background:${P_HEX[s.color]}"></span><canvas data-at="${s.at}" aria-hidden="true"></canvas></div>`).join("") : `<p class="cmp-note">${esc(tIn(l, "cmpNoTrace"))}</p>`}
       <h3>${esc(tIn(l, "cmpSame"))}</h3>${sameHtml(l)}
-      <h3>${esc(tIn(l, "cmpMet"))}</h3>${metHtml(l)}
+      ${model.entries ? partedHtml(l) : `<h3>${esc(tIn(l, "cmpMet"))}</h3>${metHtml(l)}`}
       <h3>${esc(tIn(l, "cmpBooks"))}</h3>
       <div class="cmp-tabs" role="tablist">${souls.map((s, i) => `<button type="button" role="tab" id="cmpTab-${i}" aria-controls="cmpBook-${i}" aria-selected="${i === tab2}" tabindex="${i === tab2 ? 0 : -1}" data-tab="${i}"><span class="dot" style="background:${P_HEX[s.color]}"></span>${esc(lifeName(s.lives.at(-1), l))}</button>`).join("")}</div>
       <div class="cmp-books" style="--n:${souls.length}">${souls.map((s, i) => `<section class="cmp-book${i === tab2 ? " on" : ""}" id="cmpBook-${i}" role="tabpanel" aria-labelledby="cmpTab-${i}">${bookHtml(s, l)}</section>`).join("")}</div>
+      ${model.entries ? `<form class="cmp-add" data-act="add"><label for="cmpAddLink">${esc(tIn(l, "cmpAddLabel"))}</label> <input id="cmpAddLink" type="url" inputmode="url" autocomplete="off" spellcheck="false"> <button type="submit" class="ghost">${esc(tIn(l, "cmpAdd"))}</button> <span class="hint" aria-live="polite">${esc(addNote)}</span></form>` : ""}
       <p class="cmp-acts"><button type="button" data-act="save">${esc(tIn(l, "cmpSave"))}</button> <button type="button" class="ghost" data-act="copy">${esc(tIn(l, "cmpCopy"))}</button> <span class="hint" aria-live="polite">${esc(note)}</span></p>
     </div>`;
     drawAll();
@@ -10091,7 +10315,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     const w = Math.min(inner || 600, 720);
     drawBoard(sized(cv, w, w / COLS * ROWS), w);
     for (const r of leaf4.querySelectorAll(".cmp-gunas canvas")) {
-      const rw = r.parentElement.clientWidth - 24 || 560, s = model.souls[+r.dataset.seat];
+      const rw = r.parentElement.clientWidth - 24 || 560, s = model.souls[+r.dataset.at];
       drawRibbon(sized(r, rw, 30), s, rw, 30);
     }
   }
@@ -10121,7 +10345,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
       c.fill();
       c.fillStyle = pal("black");
       c.font = `600 28px ${font}`;
-      c.fillText(tIn(l, "cmpSoul", { name: lifeName(s.lives.at(-1), l) }), pad + 36, y + 28);
+      c.fillText(soulTitle(s, l), pad + 36, y + 28);
       s.lives.forEach((x, k) => {
         c.beginPath();
         c.arc(W2 - pad - 12 - (s.lives.length - 1 - k) * 26, y + 18, 9, 0, Math.PI * 2);
@@ -10142,15 +10366,20 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
   }
   function textOf(l = lang) {
     const out = [tIn(l, "togetherTitle"), ""];
-    for (const s of model.souls) out.push(`${tIn(l, "cmpSoul", { name: lifeName(s.lives.at(-1), l) })} (${livesWord(humanLives(s), l)}): ` + s.lives.map((x) => `${lifeName(x, l)}, ${tIn(l, "cmpEnd_" + x.end)}`).join("; "));
+    for (const s of model.souls) out.push(`${soulTitle(s, l)} (${livesWord(humanLives(s), l)}): ` + s.lives.map((x) => `${lifeName(x, l)}, ${tIn(l, "cmpEnd_" + x.end)}`).join("; "));
     out.push("", tIn(l, "cmpSame"));
     if (!model.same.length) out.push(tIn(l, "cmpSameNone"));
     for (const { sq, by } of model.same) {
       const lab = (id) => optionOf(sq, id)?.label[l] ?? id;
       out.push(`${sqName(sq, l)}: ` + by.map((b) => tIn(l, b.chose !== b.took ? "cmpSameRebel" : "cmpSameRow", { name: nameIn(b.name, l), chose: lab(b.chose), took: lab(b.took) })).join("; "));
     }
-    out.push("", tIn(l, "cmpMet"));
-    out.push(...model.met.length ? model.met.map((m) => tIn(l, "cmpMetLine", { a: nameIn(m.a.name, l), b: nameIn(m.b.name, l), sq: sqName(m.sq, l) })) : [tIn(l, "cmpMetNone")]);
+    if (model.entries) {
+      const p = partedLines(l);
+      if (p.length) out.push("", tIn(l, "cmpParted"), ...p.map((x) => x[2]));
+    } else {
+      out.push("", tIn(l, "cmpMet"));
+      out.push(...model.met.length ? model.met.map((m) => tIn(l, "cmpMetLine", { a: nameIn(m.a.name, l), b: nameIn(m.b.name, l), sq: sqName(m.sq, l) })) : [tIn(l, "cmpMetNone")]);
+    }
     for (const s of model.souls) for (const life of s.lives) {
       const b = lifeOf(life.st, s.seat, l);
       out.push("", "", [b.title, b.open, ...b.paras.map((p) => `${p.head}
@@ -10202,6 +10431,10 @@ ${p.text}`), [b.end, b.curse].filter(Boolean).join(" "), (b.fates ?? []).join(" 
     if (t2) return showTab2(+t2.dataset.tab, false);
     const act = e.target.closest("[data-act]")?.dataset.act;
     if (act === "save") save();
+    if (act === "play") {
+      closeCompare();
+      hooks.onPlay?.(model.offer);
+    }
     if (act === "copy") copy();
   });
   function showTab2(i, focus = true) {
@@ -10213,6 +10446,14 @@ ${p.text}`), [b.end, b.curse].filter(Boolean).join(" "), (b.fates ?? []).join(" 
     leaf4.querySelectorAll(".cmp-book").forEach((b, k) => b.classList.toggle("on", k === tab2));
     if (focus) leaf4.querySelector(`#cmpTab-${tab2}`)?.focus();
   }
+  leaf4.addEventListener("submit", async (e) => {
+    if (!e.target.closest(".cmp-add")) return;
+    e.preventDefault();
+    const key = await hooks.onAdd?.(leaf4.querySelector("#cmpAddLink").value);
+    addNote = key ? tIn(lang, key) : "";
+    if (dlg4.open) paint4();
+    addNote = "";
+  });
   leaf4.addEventListener("keydown", (e) => {
     if (!e.target.closest(".cmp-tabs")) return;
     const k = { ArrowRight: tab2 + 1, ArrowLeft: tab2 - 1, Home: 0, End: model.souls.length - 1 }[e.key];
@@ -10220,6 +10461,112 @@ ${p.text}`), [b.end, b.curse].filter(Boolean).join(" "), (b.fates ?? []).join(" 
     e.preventDefault();
     showTab2(k);
   });
+
+  // src/share.js
+  var V = 1;
+  var ROW = ["name", "type", "gender", "alias", "law"];
+  var OPTS = () => [...new Set(Object.values(SITUATIONS).flatMap((x) => x.options.map((o) => o.id)))].sort();
+  var LAWIDS = () => Object.keys(LAWS).sort();
+  var UP = "ABCDEFGHIJKLMNOQSTUVWXYZ";
+  var LO = "abcdefghijkmnoqstuvwxyz";
+  function packChoices(list) {
+    const o = OPTS(), w = LAWIDS();
+    return list.map((c) => {
+      if (/^\d$/.test(c) || c === "p" || c === "r") return c;
+      if (c[0] === "o" && o.indexOf(c.slice(1)) >= 0 && o.indexOf(c.slice(1)) < UP.length) return UP[o.indexOf(c.slice(1))];
+      if (c[0] === "l" && w.indexOf(c.slice(1)) >= 0 && w.indexOf(c.slice(1)) < LO.length) return "l" + LO[w.indexOf(c.slice(1))];
+      return "~" + c + ";";
+    }).join("");
+  }
+  function unpackChoices(text) {
+    const o = OPTS(), w = LAWIDS(), out = [];
+    for (let j = 0; j < text.length; j++) {
+      const c = text[j];
+      if (c === "~") {
+        const e = text.indexOf(";", j);
+        out.push(text.slice(j + 1, e));
+        j = e;
+      } else if (c === "l") out.push("l" + (w[LO.indexOf(text[++j])] ?? "?"));
+      else if (UP.includes(c)) out.push("o" + o[UP.indexOf(c)]);
+      else out.push(c);
+    }
+    return out;
+  }
+  var b64 = (bytes) => btoa(String.fromCharCode(...bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  var unb64 = (s) => Uint8Array.from(atob(s.replace(/-/g, "+").replace(/_/g, "/")), (c) => c.charCodeAt(0));
+  async function through(bytes, stream) {
+    const out = new Response(new Blob([bytes]).stream().pipeThrough(stream));
+    return new Uint8Array(await out.arrayBuffer());
+  }
+  async function pack(obj) {
+    const text = new TextEncoder().encode(JSON.stringify(obj));
+    if (typeof CompressionStream === "function") return "z" + b64(await through(text, new CompressionStream("deflate-raw")));
+    return "j" + b64(text);
+  }
+  async function unpack(s) {
+    const kind = s[0], bytes = unb64(s.slice(1));
+    const text = kind === "z" ? await through(bytes, new DecompressionStream("deflate-raw")) : kind === "j" ? bytes : null;
+    if (!text) throw new Error("not a life");
+    return JSON.parse(new TextDecoder().decode(text));
+  }
+  var playHash = ({ board: board4 = "110", law = "board", seed }) => `#play=${board4}.${law || "board"}.${seed >>> 0}`;
+  function readPlay(hash2) {
+    const m = /^#play=(\w+)\.(\w+)\.(\d+)$/.exec(hash2);
+    return m ? { board: m[1], law: m[2], seed: +m[3] >>> 0 } : null;
+  }
+  var dayOf = (date = /* @__PURE__ */ new Date()) => date.toISOString().slice(0, 10);
+  var dailySeed = (day = dayOf()) => mix(1836018547, ...[...day].map((c) => c.charCodeAt(0)));
+  var personOf = (state) => {
+    const at2 = state.players.map((p, i) => p.type === "human" ? i : -1).filter((i) => i >= 0);
+    return at2.length === 1 ? at2[0] : null;
+  };
+  var checkOf = (state, i) => {
+    const p = state.players[i];
+    return [(p.past?.length ?? 0) + 1, p.pos, Math.floor(p.years ?? 0)];
+  };
+  function sendable(state) {
+    if (!state?.over) return "not over";
+    if (!state.table || state.rules?.board) return "not replayable";
+    if (state.tampered) return "set by hand";
+    const i = personOf(state);
+    if (i == null) return "not one person";
+    if (state.table.some((r) => r.born)) return "born of a life before";
+    return null;
+  }
+  function lifeOf2(state) {
+    if (sendable(state)) return null;
+    const i = personOf(state);
+    return {
+      v: V,
+      s: state.rng.seed >>> 0,
+      r: state.rules,
+      n: state.turns,
+      p: i,
+      k: checkOf(state, i),
+      t: state.table.map((r) => Object.fromEntries(ROW.filter((k) => k === "name" || r[k] != null && r[k] !== "").map((k) => [k, k === "name" ? r.name ?? "" : r[k]]))),
+      c: packChoices(state.players[i].choices ?? [])
+    };
+  }
+  var lifeHash = async (state) => {
+    const x = lifeOf2(state);
+    return x ? "#life=" + await pack(x) : null;
+  };
+  function inputsOfLife(x) {
+    if (!x || x.v !== V || !Number.isInteger(x.s) || !Array.isArray(x.t) || !Number.isInteger(x.p) || !x.t[x.p]) throw new Error("not a life");
+    return {
+      inputs: { seed: x.s >>> 0, rules: { ...x.r }, table: x.t, turns: x.n, choices: x.t.map((r, i) => i === x.p ? unpackChoices(x.c ?? "") : r.type === "human" ? [] : null) },
+      seat: x.p,
+      check: x.k
+    };
+  }
+  async function readLife(hash2) {
+    const m = /^#life=([\w-]+)$/.exec(hash2);
+    return m ? inputsOfLife(await unpack(m[1])) : null;
+  }
+  var hashOf = (text) => {
+    const s = String(text).trim(), at2 = s.indexOf("#");
+    return at2 >= 0 ? s.slice(at2) : null;
+  };
 
   // src/main.js
   var PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
@@ -10250,44 +10597,28 @@ ${p.text}`), [b.end, b.curse].filter(Boolean).join(" "), (b.fates ?? []).join(" 
     G.face = dice;
     refreshRoll();
   };
-  async function rollDice3(n) {
-    const rng = G.state.rng;
-    if (isCloth()) return throwCloth(rng);
-    dieEls[1].hidden = n < 2;
-    for (const d of dieEls.slice(0, n)) {
+  async function rollDice2(n) {
+    const cl = isCloth(), kind = cl ? randOf(G.state) : null, el3 = cl && shellsOn() ? shellEl : dieEls[0];
+    const forced = G.forcedRoll == null ? null : [G.forcedRoll].flat();
+    G.forcedRoll = null;
+    if (forced) G.state.tampered = true;
+    if (cl && forced) G.state.shells = null;
+    const t2 = drawThrow(G.state, cl ? 1 : n, { kind, forced: cl ? forced?.slice(0, 1) : forced });
+    if (cl && forced && kind === "cowries") t2.up = Array.from({ length: COWRIES }, (_, i) => i < forced[0]);
+    dieEls[1].hidden = cl || n < 2;
+    for (const d of cl ? [el3] : dieEls.slice(0, n)) {
       d.classList.remove("rolling");
       void d.offsetWidth;
       d.classList.add("rolling");
     }
     sound.rattle();
-    for (let i = 0; i < TUMBLE2; i++) {
-      tumble(Array.from({ length: n }, () => die(rng)));
+    for (const f2 of t2.frames) {
+      tumble(f2.v, f2.up ?? void 0);
       await sleep(75);
     }
-    const forced = G.forcedRoll == null ? null : Array.isArray(G.forcedRoll) ? G.forcedRoll : Array(n).fill(G.forcedRoll);
-    G.forcedRoll = null;
-    const dice = Array.from({ length: n }, (_, k) => forced?.[k] ?? die(rng));
-    tumble(dice);
-    return dice;
-  }
-  async function throwCloth(rng) {
-    const kind = randOf(G.state), el3 = shellsOn() ? shellEl : dieEls[0];
-    dieEls[1].hidden = true;
-    el3.classList.remove("rolling");
-    void el3.offsetWidth;
-    el3.classList.add("rolling");
-    sound.rattle();
-    for (let i = 0; i < TUMBLE2; i++) {
-      const f3 = throwOf(rng, kind);
-      tumble([f3.v], f3.up);
-      await sleep(75);
-    }
-    const forced = G.forcedRoll == null ? null : [G.forcedRoll].flat()[0];
-    G.forcedRoll = null;
-    const f2 = forced != null ? { v: forced, up: kind === "cowries" ? Array.from({ length: COWRIES }, (_, i) => i < forced) : null } : throwOf(rng, kind);
-    G.state.shells = f2.up ?? null;
-    tumble([f2.v], f2.up);
-    return [f2.v];
+    if (cl) G.state.shells = t2.up ?? null;
+    tumble(t2.dice, cl ? t2.up ?? void 0 : void 0);
+    return t2.dice;
   }
   var atLadder = () => !!LADDERS[G.state.players[G.state.turn]?.pos];
   var actOf = () => G.choosing ? zeroOf(G.state, G.choosing.dice)?.act : null;
@@ -10424,7 +10755,7 @@ ${p.text}`), [b.end, b.curse].filter(Boolean).join(" "), (b.fates ?? []).join(" 
       }
       if (!spent && canPractise(state)) noteChoice(p, still2 ? "p" : "r");
     }
-    const dice = spent || still2 ? [] : await rollDice3(diceFor(p));
+    const dice = spent || still2 ? [] : await rollDice2(diceFor(p));
     await shut;
     if (g3 !== G.gen) return;
     state.dice = dice;
@@ -10691,7 +11022,7 @@ ${p.text}`), [b.end, b.curse].filter(Boolean).join(" "), (b.fates ?? []).join(" 
   }
   var aged = null;
   var ageSeq = 0;
-  var mix2 = (a, b, u) => ({ sepia: a.sepia + (b.sepia - a.sepia) * u, dim: a.dim + (b.dim - a.dim) * u });
+  var mix3 = (a, b, u) => ({ sepia: a.sepia + (b.sepia - a.sepia) * u, dim: a.dim + (b.dim - a.dim) * u });
   var query = new URLSearchParams(location.search);
   var look = lookOf(query.has("debug") ? query.get("look") : null);
   function age(instant = false) {
@@ -10713,7 +11044,7 @@ ${p.text}`), [b.end, b.curse].filter(Boolean).join(" "), (b.fates ?? []).join(" 
     aged = to;
     if (instant || !from) return drawAge(to);
     return animate(600, (u) => {
-      if (seq === ageSeq) drawAge(to.map((w, n) => n ? mix2(from[n], w, u) : null));
+      if (seq === ageSeq) drawAge(to.map((w, n) => n ? mix3(from[n], w, u) : null));
     });
   }
   var rollKey = () => !isCloth() ? "roll" : { cowries: "rollShells", stick: "rollStick" }[randOf(G.state)] ?? "roll";
@@ -10734,13 +11065,20 @@ ${p.text}`), [b.end, b.curse].filter(Boolean).join(" "), (b.fates ?? []).join(" 
     if (G.deciding) drawDecide();
     showDice(state.dice?.length ? state.dice : [state.last || 6]);
     refreshRoll();
-    $("seed").textContent = `${t("seed")} ${state.rng.seed}`;
+    $("seed").textContent = state.daily ? t("dailyLabel", { date: dateIn(state.daily) }) : state.fromLink ? `${t("seedFromLink")} ${t("seed")} ${state.rng.seed}` : `${t("seed")} ${state.rng.seed}`;
     place();
     drawDoor();
     renderLog();
     const w = state.winner, humans = state.players.filter((q2) => q2.type === "human");
     $("win").hidden = !state.over;
-    $("compare").hidden = !state.over || state.players.length < 2 || isCloth();
+    $("compare").hidden = !state.over || isCloth() || state.players.length < 2 && !G.received.length;
+    $("sendLife").hidden = !state.over || !!sendable(state);
+    $("shareSeed").hidden = !state.over;
+    if (!state.over) $("shareNote").textContent = "";
+    if (state.over && !state.seedKept && !sendable(state)) {
+      keepSeed(lifeOf2(state));
+      state.seedKept = true;
+    }
     if (state.over) keepLives(state);
     const reborn = !!(state.over && rebornRows(state));
     if ($("reborn").hidden === reborn) {
@@ -11100,7 +11438,11 @@ ${p.text}`), [b.end, b.curse].filter(Boolean).join(" "), (b.fates ?? []).join(" 
     if (who2 === "cpu" && G.setup.rows[1].type !== "cpu") Object.assign(G.setup.rows[1], { name: "", type: "cpu", gender: "" });
     renderSetup();
     nextSeed = G.state.rng.seed;
+    const from = { fromLink: G.state.fromLink, daily: G.state.daily };
     startGame();
+    for (const [k2, v] of Object.entries(from)) if (v) G.state[k2] = v;
+    saveGame(G.setup, G.state);
+    render();
   });
   $("naming").addEventListener("cancel", (e) => e.preventDefault());
   $("roll").addEventListener("click", () => takeTurn());
@@ -11108,7 +11450,13 @@ ${p.text}`), [b.end, b.curse].filter(Boolean).join(" "), (b.fates ?? []).join(" 
   $("stopHere").addEventListener("click", () => {
     if (!G.busy && !G.state.over && together(G.state)) $("stopAsk").showModal();
   });
-  $("compare").addEventListener("click", () => openCompare(G.state));
+  $("compare").addEventListener("click", () => G.received.length ? openReceived() : openCompare(G.state));
+  $("sendLife").addEventListener("click", async () => {
+    const h = await lifeHash(G.state), p = G.state.players[personOf(G.state)];
+    if (h) shareLink(h, t("sendLifeText", { name: pname(p) }));
+  });
+  $("shareSeed").addEventListener("click", () => shareLink(seedHashOf(G.state), t("shareSeedText")));
+  $("daily").addEventListener("click", () => startDaily());
   $("stopAsk").addEventListener("close", () => {
     if ($("stopAsk").returnValue === "yes") stopHere();
   });
@@ -11203,6 +11551,115 @@ ${p.text}`), [b.end, b.curse].filter(Boolean).join(" "), (b.fates ?? []).join(" 
   });
   ["pointerdown", "keydown"].forEach((ev) => document.addEventListener(ev, unlockAudio, { passive: true }));
   onCardChange(renderCodex);
+  G.received = [];
+  var linkOf = (hash2) => location.origin + location.pathname + hash2;
+  var seedHashOf = (state) => {
+    const i = personOf(state) ?? 0;
+    return playHash({ board: state.rules?.board ?? "110", law: state.table?.[i]?.law ?? state.rules?.law ?? "board", seed: state.rng.seed });
+  };
+  async function shareLink(hash2, text) {
+    const url = linkOf(hash2);
+    let said = "";
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: t("title"), text, url });
+        said = t("linkShared");
+      } else {
+        await navigator.clipboard.writeText(url);
+        said = t("linkCopied");
+      }
+    } catch (e) {
+      if (e?.name !== "AbortError") try {
+        await navigator.clipboard.writeText(url);
+        said = t("linkCopied");
+      } catch {
+      }
+    }
+    $("shareNote").textContent = said;
+    return url;
+  }
+  var dateIn = (day) => (/* @__PURE__ */ new Date(day + "T12:00:00Z")).toLocaleDateString(lang === "hi" ? "hi-IN-u-nu-deva" : "en-GB", { day: "numeric", month: "long", timeZone: "UTC" });
+  function seedTable(law) {
+    const rows = G.setup.rows.slice(0, G.setup.count), me = { ...rows.find((r) => r.type === "human") ?? defaultSetup().rows[0] };
+    delete me.born;
+    if (law && law !== "board" && canChoose(law)) me.law = law;
+    else delete me.law;
+    const cpus = rows.filter((r) => r.type === "cpu").map((r) => ({ ...r }));
+    G.setup.rows = [me, ...cpus, ...Array.from({ length: 3 - cpus.length }, () => ({ name: "", type: "cpu", gender: "" }))];
+    G.setup.count = 1 + cpus.length;
+    if (G.setup.count < 2) delete G.setup.rules.mode;
+    else G.setup.rules.mode ??= "together";
+  }
+  function playSeed({ board: board4, law, seed }, from = { fromLink: true }) {
+    seedTable(law);
+    G.setup.rules = { ...G.setup.rules, board: board4 === "110" ? void 0 : board4 };
+    if (G.setup.count >= 2 && G.setup.rules.mode === "together") G.setup.rules.length = lengthFor(G.setup.count);
+    nextSeed = seed >>> 0;
+    startGame();
+    Object.assign(G.state, from);
+    saveGame(G.setup, G.state);
+    renderSetup();
+    render();
+  }
+  function startDaily(day = dayOf()) {
+    playSeed({ board: "110", law: "board", seed: dailySeed(day) }, { daily: day });
+    return G.state.rng.seed;
+  }
+  async function addLife(text) {
+    let got;
+    try {
+      got = await readLife(hashOf(text) ?? "");
+    } catch {
+      got = null;
+    }
+    if (!got) return "cmpAddBad";
+    const r = replay(got.inputs), ok = r.ok && JSON.stringify(checkOf(r.state, got.seat)) === JSON.stringify(got.check);
+    if (!ok) return "cmpAddOther";
+    const key = JSON.stringify(got.inputs);
+    if (G.received.some((x) => JSON.stringify(x.inputs) === key)) return "cmpAddSame";
+    G.received.push(got);
+    render();
+    return null;
+  }
+  function openReceived() {
+    const first = G.received[0], board4 = first.inputs.rules?.board ?? "110", seed = first.inputs.seed;
+    const own = [];
+    const here = G.state, hereOn = here.over && !isCloth() && personOf(here) != null && (here.rules?.board ?? "110") === board4;
+    if (hereOn && here.rng.seed === seed) own.push({ state: here, seat: personOf(here), mine: true });
+    else {
+      const kept = seedLives(board4, seed)[0];
+      if (kept) {
+        try {
+          const g3 = inputsOfLife(kept);
+          own.push({ inputs: g3.inputs, seat: g3.seat, mine: true });
+        } catch {
+        }
+      } else if (hereOn) own.push({ state: here, seat: personOf(here), mine: true });
+    }
+    const lawOfIt = first.inputs.table[first.seat]?.law ?? first.inputs.rules?.law ?? "board";
+    return openLives([...own, ...G.received], own.length ? null : { board: board4, law: lawOfIt, seed });
+  }
+  setCompareHooks({
+    onPlay: (offer) => playSeed(offer),
+    onAdd: async (text) => {
+      const k = await addLife(text);
+      if (!k) openReceived();
+      return k;
+    }
+  });
+  async function openShared() {
+    const h = location.hash, play = readPlay(h);
+    if (!play && !/^#life=/.test(h)) return;
+    history.replaceState(null, "", location.pathname + location.search);
+    if (play) return playSeed(play);
+    const k = await addLife(h);
+    if (k) {
+      $("shareNote").textContent = t(k);
+      return;
+    }
+    openReceived();
+  }
+  addEventListener("hashchange", openShared);
   function openFromHash() {
     const m = location.hash.match(/^#(sq|codex)\/([\w-]+)$/);
     if (!m) return;
@@ -11511,12 +11968,38 @@ ${p.text}`), [b.end, b.curse].filter(Boolean).join(" "), (b.fates ?? []).join(" 
         G.setup.rules = { ...G.setup.rules, board: String(id) === "110" ? void 0 : String(id), start: other2.start, end: other2.end };
         startGame();
         return BOARD_ID;
+      },
+      // Phase 19 step 3: mp.share() is { play, life }, the links this game would share (life null when it cannot be sent);
+      // mp.daily(date) starts today's life, or a given day's ("2026-11-11"), and gives its seed; mp.compare(links) adds the
+      // lives in those links and opens them beside the viewer's own, and gives what each answered (null when added);
+      // mp.setDice is not here: the dice are the tools' to switch (src/engine/throws.js)
+      async share() {
+        return { play: linkOf(seedHashOf(G.state)), life: ((h) => h ? linkOf(h) : null)(await lifeHash(G.state)), why: sendable(G.state) };
+      },
+      daily: (day = dayOf()) => startDaily(day),
+      // mp.compared(): the lives side by side as they are open, each soul's first life's throws in order, and where they parted
+      compared() {
+        const m = compareModel();
+        return m && { souls: m.souls.map((q2) => ({ mine: !!q2.mine, seat: q2.seat, seed: q2.seed, throws: (q2.lives[0].trace ?? []).filter((x) => x.k != null).map((x) => x.dice.join("+")) })), parted: m.parted ?? [] };
+      },
+      async compare(links = []) {
+        const said = [];
+        for (const x of [links].flat()) said.push(await addLife(x));
+        if (G.received.length) openReceived();
+        return said;
       }
     };
+    for (const k of ["jump", "years", "roll", "ego", "fire", "die", "plant", "door", "still", "bhumika", "examine", "curse", "animal", "siva", "law", "grace", "rules", "mode", "play"]) {
+      const f2 = window.mp[k];
+      window.mp[k] = function(...a) {
+        if (G.state) G.state.tampered = true;
+        return f2.apply(this, a);
+      };
+    }
   }
   function start(data) {
     let loaded = false;
-    if (!data?.state && urlSeed == null) {
+    if (!data?.state && urlSeed == null && !readPlay(location.hash)) {
       const g3 = loadGame();
       if (g3) {
         data = { ...data, setup: data?.setup ?? g3.setup, state: g3.state };
@@ -11541,12 +12024,13 @@ ${p.text}`), [b.end, b.curse].filter(Boolean).join(" "), (b.fates ?? []).join(" 
       queueCpu();
     } else {
       startGame();
-      if (freshViewer || !data?.setup && !loadSelf() && !location.hash) openNaming();
+      if (freshViewer || !data?.setup && !loadSelf() && (!location.hash || readPlay(location.hash))) openNaming();
     }
     draw();
     renderCodex();
     showTab("moves");
     openFromHash();
+    openShared();
   }
   window.claude?.hot?.snapshot?.(() => ({ setup: { ...G.setup, lang }, state: G.state }));
   window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});

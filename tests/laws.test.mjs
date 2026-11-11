@@ -37,7 +37,8 @@ test("the interlude plays through the animal law's hooks, as Phase 16 played it"
   const p = s.players[0];
   assert.ok(p.earned || p.short);
   assert.ok(!p.curse && !(p.witness ?? []).length && !(p.reckonings ?? []).length);
-  assert.ok(Math.max(...p.life) <= 40);
+  // every square in the forest; the last may be a ladder's top above its edge, which climbs out of it (turn.js)
+  assert.ok(Math.max(...p.life.slice(0, -1)) <= 40);
 });
 
 test("the law a life lived under is kept in its saṃskāra and offered to the next", () => {

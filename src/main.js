@@ -2,13 +2,15 @@
 import { GOAL, TOP, ROWS, COLS, LAYOUT, BOARD_ID, BOARDS, useBoard, legendOf, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, STR, squareOf } from "./content.js";
 import { lang, urlLang, setLangValue, L, num, t, tIn } from "./i18n.js";
 import { G, defaultSetup, pname, pnameIn, cur, newState, loadSelf, saveSelf } from "./state.js";
+import { keepSeed, seedLives } from "./prefs.js";
 import { prefs, setPref, applyTheme, lifeLived, beFirst, freshViewer, firstLife, soulStore, soulFor, keepSoul, setSoulStore, saveGame, loadGame } from "./prefs.js";
 import { $, COLORS, esc, reduced, sleep, quality, forcedQuality, setQuality } from "./ui.js";
 import { die, makeRng, freshSeed } from "./rng.js";
-import { TUMBLE, ENDGAME, planTurn, resolveChoice, endTurn, addLog, diceFor, movesFor, moveFor, gone, canSit, createGame, playTurn, spentOf, doorOf, canPractise, practisesNow, zeroOf } from "./engine/turn.js";
+import { ENDGAME, planTurn, resolveChoice, endTurn, addLog, diceFor, movesFor, moveFor, gone, canSit, createGame, playTurn, spentOf, doorOf, canPractise, practisesNow, zeroOf } from "./engine/turn.js";
 import { optionsFor, situationAt, momentOf } from "./engine/qbn.js";
+import { drawThrow } from "./engine/throws.js";
 import { isCloth, randOf } from "./engine/cloth.js";
-import { throwOf, COWRIES } from "./engine/dice.js";
+import { COWRIES } from "./engine/dice.js";
 import { LAWS, lawOf, choosable, canChoose, setLaw } from "./engine/laws/index.js";
 import { S, colRow, labEls, buildCells, draw, drawAge, fxClear, focusSquare } from "./render/board.js";
 import { lens, wash, stageOf, lookOf, clearOf } from "./render/age.js";
@@ -30,7 +32,9 @@ import { renderCodex, showTab } from "./render/codex.js";
 import { renderLog } from "./render/log.js";
 import { renderLedger } from "./render/ledger.js";
 import { openLife, refreshLife, closeLife, lifeText } from "./render/life.js";
-import { openCompare, refreshCompare, closeCompare, compareModel, imageOf, textOf } from "./render/compare.js";
+import { openCompare, openLives, setCompareHooks, refreshCompare, closeCompare, compareModel, imageOf, textOf } from "./render/compare.js";
+import { playHash, readPlay, lifeHash, lifeOf as lifeLink, readLife, sendable, personOf, checkOf, hashOf, dailySeed, dayOf, inputsOfLife } from "./share.js";
+import { replay } from "./engine/compare.js";
 import { sound, unlockAudio, setDrone, setShepard, setMuted, audioState } from "./audio/engine.js";
 
 const PIPS = { 1:[4], 2:[0,8], 3:[0,4,8], 4:[0,2,6,8], 5:[0,2,4,6,8], 6:[0,2,3,5,6,8] };
@@ -62,36 +66,24 @@ function showDice(dice, up = null) {
 }
 // the dice also tumble in the card's Roll, since on a phone the panel's dice are off screen behind the card
 const tumble = (dice, up) => { showDice(dice, up); G.face = dice; refreshRoll(); };
-// Draws exactly what engine/turn.js rollDice does: each frame a face for every die, then each die its value.
-// A forced value (mp.roll) is not drawn; one forced value is every die's.
+// Throws exactly what engine/throws.js drawThrow does, and shows it: the tumbling faces a frame at a time, then the dice.
+// A forced value (mp.roll) is not drawn, but counts as a throw; one forced value is every die's. On an old cloth (Phase 18)
+// the throw is the board's randomizer's, its cowries shown as they fell.
 async function rollDice(n) {
-  const rng = G.state.rng;
-  if (isCloth()) return throwCloth(rng);
-  dieEls[1].hidden = n < 2;
-  for (const d of dieEls.slice(0, n)) { d.classList.remove("rolling"); void d.offsetWidth; d.classList.add("rolling"); }
-  sound.rattle();
-  for (let i = 0; i < TUMBLE; i++) { tumble(Array.from({ length: n }, () => die(rng))); await sleep(75); }
-  const forced = G.forcedRoll == null ? null : Array.isArray(G.forcedRoll) ? G.forcedRoll : Array(n).fill(G.forcedRoll);
+  const cl = isCloth(), kind = cl ? randOf(G.state) : null, el = cl && shellsOn() ? shellEl : dieEls[0];
+  const forced = G.forcedRoll == null ? null : [G.forcedRoll].flat();
   G.forcedRoll = null;
-  const dice = Array.from({ length: n }, (_, k) => forced?.[k] ?? die(rng));
-  tumble(dice);
-  return dice;
-}
-
-// An old cloth's throw (Phase 18), drawn exactly as engine/cloth.js rollDice draws it: TUMBLE throws of the board's
-// randomizer, then the one that counts. A forced value is not drawn.
-async function throwCloth(rng) {
-  const kind = randOf(G.state), el = shellsOn() ? shellEl : dieEls[0];
-  dieEls[1].hidden = true;
-  el.classList.remove("rolling"); void el.offsetWidth; el.classList.add("rolling");
+  if (forced) G.state.tampered = true;
+  if (cl && forced) G.state.shells = null;
+  const t = drawThrow(G.state, cl ? 1 : n, { kind, forced: cl ? forced?.slice(0, 1) : forced });
+  if (cl && forced && kind === "cowries") t.up = Array.from({ length: COWRIES }, (_, i) => i < forced[0]);
+  dieEls[1].hidden = cl || n < 2;
+  for (const d of cl ? [el] : dieEls.slice(0, n)) { d.classList.remove("rolling"); void d.offsetWidth; d.classList.add("rolling"); }
   sound.rattle();
-  for (let i = 0; i < TUMBLE; i++) { const f = throwOf(rng, kind); tumble([f.v], f.up); await sleep(75); }
-  const forced = G.forcedRoll == null ? null : [G.forcedRoll].flat()[0];
-  G.forcedRoll = null;
-  const f = forced != null ? { v: forced, up: kind === "cowries" ? Array.from({ length: COWRIES }, (_, i) => i < forced) : null } : throwOf(rng, kind);
-  G.state.shells = f.up ?? null;
-  tumble([f.v], f.up);
-  return [f.v];
+  for (const f of t.frames) { tumble(f.v, f.up ?? undefined); await sleep(75); }
+  if (cl) G.state.shells = t.up ?? null;
+  tumble(t.dice, cl ? t.up ?? undefined : undefined);
+  return t.dice;
 }
 
 // ---- Choosing between the dice ----
@@ -557,7 +549,8 @@ function render() {
   if (G.deciding) drawDecide();
   showDice(state.dice?.length ? state.dice : [state.last || 6]);
   refreshRoll();
-  $("seed").textContent = `${t("seed")} ${state.rng.seed}`;
+  // a seed from a link or today's (Phase 19) says so
+  $("seed").textContent = state.daily ? t("dailyLabel", { date: dateIn(state.daily) }) : state.fromLink ? `${t("seedFromLink")} ${t("seed")} ${state.rng.seed}` : `${t("seed")} ${state.rng.seed}`;
 
   place();
   drawDoor();
@@ -566,7 +559,12 @@ function render() {
   const w = state.winner, humans = state.players.filter(q => q.type === "human");
   $("win").hidden = !state.over;
   // the lives side by side (Phase 19), for any game of two or more seats on the 110
-  $("compare").hidden = !state.over || state.players.length < 2 || isCloth();
+  $("compare").hidden = !state.over || isCloth() || (state.players.length < 2 && !G.received.length);
+  $("sendLife").hidden = !state.over || !!sendable(state);
+  $("shareSeed").hidden = !state.over;
+  if (!state.over) $("shareNote").textContent = "";
+  // a game a person played to its end is kept by its seed, to set beside a life someone sends on it
+  if (state.over && !state.seedKept && !sendable(state)) { keepSeed(lifeLink(state)); state.seedKept = true; }
   if (state.over) keepLives(state);
   const reborn = !!(state.over && rebornRows(state));
   // the book's footer offers it too, so an open book is repainted when it comes or goes
@@ -925,14 +923,25 @@ $("namingForm").addEventListener("submit", e => {
   renderSetup();
   // nothing has been rolled yet, so the same seed gives the same game, now with its names
   nextSeed = G.state.rng.seed;
+  // a seed from a link or today's stays so (Phase 19)
+  const from = { fromLink: G.state.fromLink, daily: G.state.daily };
   startGame();
+  for (const [k, v] of Object.entries(from)) if (v) G.state[k] = v;
+  saveGame(G.setup, G.state);
+  render();
 });
 $("naming").addEventListener("cancel", e => e.preventDefault());
 $("roll").addEventListener("click", () => takeTurn());
 $("practise").addEventListener("click", () => takeTurn({ practice: true }));
 // Stop here (Phase 19): asked once, then the game is over with every life as it stands
 $("stopHere").addEventListener("click", () => { if (!G.busy && !G.state.over && together(G.state)) $("stopAsk").showModal(); });
-$("compare").addEventListener("click", () => openCompare(G.state));
+$("compare").addEventListener("click", () => (G.received.length ? openReceived() : openCompare(G.state)));
+$("sendLife").addEventListener("click", async () => {
+  const h = await lifeHash(G.state), p = G.state.players[personOf(G.state)];
+  if (h) shareLink(h, t("sendLifeText", { name: pname(p) }));
+});
+$("shareSeed").addEventListener("click", () => shareLink(seedHashOf(G.state), t("shareSeedText")));
+$("daily").addEventListener("click", () => startDaily());
 $("stopAsk").addEventListener("close", () => { if ($("stopAsk").returnValue === "yes") stopHere(); });
 function stopHere() {
   const state = G.state;
@@ -1014,6 +1023,101 @@ $("mute").addEventListener("click", () => { setMuted(!prefs.mute); renderMute();
 // browsers start audio only from a gesture
 ["pointerdown", "keydown"].forEach(ev => document.addEventListener(ev, unlockAudio, { passive: true }));
 onCardChange(renderCodex);
+
+// ---- Same dice, two lives: links and today's life (Phase 19 step 3, src/share.js) ----
+// Lives someone sent, this visit: each { inputs, seat, check }. Nothing here is sent anywhere; a link is read from the hash.
+G.received = [];
+const linkOf = hash => location.origin + location.pathname + hash;
+// The seed of a game as a link: its board, the person's law, the seed
+const seedHashOf = state => {
+  const i = personOf(state) ?? 0;
+  return playHash({ board: state.rules?.board ?? "110", law: state.table?.[i]?.law ?? state.rules?.law ?? "board", seed: state.rng.seed });
+};
+// the share sheet where there is one, the clipboard otherwise
+async function shareLink(hash, text) {
+  const url = linkOf(hash);
+  let said = "";
+  try {
+    if (navigator.share) { await navigator.share({ title: t("title"), text, url }); said = t("linkShared"); }
+    else { await navigator.clipboard.writeText(url); said = t("linkCopied"); }
+  } catch (e) {
+    if (e?.name !== "AbortError") try { await navigator.clipboard.writeText(url); said = t("linkCopied"); } catch {}
+  }
+  $("shareNote").textContent = said;
+  return url;
+}
+// A date as the page says it, in its language
+const dateIn = day => new Date(day + "T12:00:00Z").toLocaleDateString(lang === "hi" ? "hi-IN-u-nu-deva" : "en-GB", { day: "numeric", month: "long", timeZone: "UTC" });
+// The table for a seed from elsewhere: the first person in the setup, in the first seat, and the computers as set up
+function seedTable(law) {
+  const rows = G.setup.rows.slice(0, G.setup.count), me = { ...(rows.find(r => r.type === "human") ?? defaultSetup().rows[0]) };
+  delete me.born;
+  if (law && law !== "board" && canChoose(law)) me.law = law; else delete me.law;
+  const cpus = rows.filter(r => r.type === "cpu").map(r => ({ ...r }));
+  G.setup.rows = [me, ...cpus, ...Array.from({ length: 3 - cpus.length }, () => ({ name: "", type: "cpu", gender: "" }))];
+  G.setup.count = 1 + cpus.length;
+  if (G.setup.count < 2) delete G.setup.rules.mode; else G.setup.rules.mode ??= "together";
+}
+// A seed to play, from a link: on its board, under its law
+function playSeed({ board, law, seed }, from = { fromLink: true }) {
+  seedTable(law);
+  G.setup.rules = { ...G.setup.rules, board: board === "110" ? undefined : board };
+  if (G.setup.count >= 2 && G.setup.rules.mode === "together") G.setup.rules.length = lengthFor(G.setup.count);
+  nextSeed = seed >>> 0;
+  startGame();
+  Object.assign(G.state, from);
+  saveGame(G.setup, G.state);
+  renderSetup();
+  render();
+}
+// Today's life: the same seed for everyone today, on the 110 under the board's law
+function startDaily(day = dayOf()) {
+  playSeed({ board: "110", law: "board", seed: dailySeed(day) }, { daily: day });
+  return G.state.rng.seed;
+}
+// A life from a link, played again and checked. Answers with a string key when it cannot be added, or null.
+async function addLife(text) {
+  let got;
+  try { got = await readLife(hashOf(text) ?? ""); } catch { got = null; }
+  if (!got) return "cmpAddBad";
+  const r = replay(got.inputs), ok = r.ok && JSON.stringify(checkOf(r.state, got.seat)) === JSON.stringify(got.check);
+  if (!ok) return "cmpAddOther";
+  const key = JSON.stringify(got.inputs);
+  if (G.received.some(x => JSON.stringify(x.inputs) === key)) return "cmpAddSame";
+  G.received.push(got);
+  render();
+  return null;
+}
+// The lives received, beside the viewer's own on the same seed: this game if it is over and on it, else the last one kept
+function openReceived() {
+  const first = G.received[0], board = first.inputs.rules?.board ?? "110", seed = first.inputs.seed;
+  const own = [];
+  const here = G.state, hereOn = here.over && !isCloth() && personOf(here) != null && (here.rules?.board ?? "110") === board;
+  if (hereOn && here.rng.seed === seed) own.push({ state: here, seat: personOf(here), mine: true });
+  else {
+    const kept = seedLives(board, seed)[0];
+    if (kept) { try { const g = inputsOfLife(kept); own.push({ inputs: g.inputs, seat: g.seat, mine: true }); } catch {} }
+    else if (hereOn) own.push({ state: here, seat: personOf(here), mine: true });
+  }
+  const lawOfIt = first.inputs.table[first.seat]?.law ?? first.inputs.rules?.law ?? "board";
+  return openLives([...own, ...G.received], own.length ? null : { board, law: lawOfIt, seed });
+}
+setCompareHooks({
+  onPlay: offer => playSeed(offer),
+  onAdd: async text => { const k = await addLife(text); if (!k) openReceived(); return k; },
+});
+// #play=… starts that seed; #life=… adds a life and opens the comparison. The hash is taken away once read, so a reload
+// does not play the seed again or add the life twice.
+async function openShared() {
+  const h = location.hash, play = readPlay(h);
+  if (!play && !/^#life=/.test(h)) return;
+  history.replaceState(null, "", location.pathname + location.search);
+  if (play) return playSeed(play);
+  const k = await addLife(h);
+  if (k) { $("shareNote").textContent = t(k); return; }
+  openReceived();
+}
+addEventListener("hashchange", openShared);
 
 // #sq/36 or #codex/nyaya opens that card, so any card can be linked.
 function openFromHash() {
@@ -1202,13 +1306,35 @@ if (new URLSearchParams(location.search).has("debug")) {
       startGame();
       return BOARD_ID;
     },
+    // Phase 19 step 3: mp.share() is { play, life }, the links this game would share (life null when it cannot be sent);
+    // mp.daily(date) starts today's life, or a given day's ("2026-11-11"), and gives its seed; mp.compare(links) adds the
+    // lives in those links and opens them beside the viewer's own, and gives what each answered (null when added);
+    // mp.setDice is not here: the dice are the tools' to switch (src/engine/throws.js)
+    async share() { return { play: linkOf(seedHashOf(G.state)), life: (h => (h ? linkOf(h) : null))(await lifeHash(G.state)), why: sendable(G.state) }; },
+    daily: (day = dayOf()) => startDaily(day),
+    // mp.compared(): the lives side by side as they are open, each soul's first life's throws in order, and where they parted
+    compared() {
+      const m = compareModel();
+      return m && { souls: m.souls.map(q => ({ mine: !!q.mine, seat: q.seat, seed: q.seed, throws: (q.lives[0].trace ?? []).filter(x => x.k != null).map(x => x.dice.join("+")) })), parted: m.parted ?? [] };
+    },
+    async compare(links = []) {
+      const said = [];
+      for (const x of [links].flat()) said.push(await addLife(x));
+      if (G.received.length) openReceived();
+      return said;
+    },
   };
+  // a game a helper set by hand is never sent as a life (it would not play again as it went)
+  for (const k of ["jump", "years", "roll", "ego", "fire", "die", "plant", "door", "still", "bhumika", "examine", "curse", "animal", "siva", "law", "grace", "rules", "mode", "play"]) {
+    const f = window.mp[k];
+    window.mp[k] = function (...a) { if (G.state) G.state.tampered = true; return f.apply(this, a); };
+  }
 }
 
 function start(data) {
   // a game left in progress resumes (Phase 17), unless a seed was asked for or the host brought its own
   let loaded = false;
-  if (!data?.state && urlSeed == null) { const g = loadGame(); if (g) { data = { ...data, setup: data?.setup ?? g.setup, state: g.state }; loaded = true; } }
+  if (!data?.state && urlSeed == null && !readPlay(location.hash)) { const g = loadGame(); if (g) { data = { ...data, setup: data?.setup ?? g.setup, state: g.state }; loaded = true; } }
   G.setup = data?.setup || defaultSetup();
   // a setup kept from before Phase 19 has no mode: its next game is played together, the default, as the panel says
   // (a setup the host brings, as tools/golden.mjs does, is played as it says)
@@ -1227,12 +1353,13 @@ function start(data) {
   else {
     startGame();
     // the naming comes first for someone new, unless they arrived on a link to one card
-    if (freshViewer || (!data?.setup && !loadSelf() && !location.hash)) openNaming();
+    if (freshViewer || (!data?.setup && !loadSelf() && (!location.hash || readPlay(location.hash)))) openNaming();
   }
   draw();
   renderCodex();
   showTab("moves");
   openFromHash();
+  openShared();
 }
 window.claude?.hot?.snapshot?.(() => ({ setup: { ...G.setup, lang }, state: G.state }));
 window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});

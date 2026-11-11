@@ -12,10 +12,10 @@ import { $, P_HEX, esc } from "../ui.js";
 import { colRow, groundOf } from "./ground.js";
 import { lifeOf } from "../engine/account.js";
 import { optionOf } from "../engine/qbn.js";
-import { replay, inputsOf, replayable, sameGame, compareOf } from "../engine/compare.js";
+import { replay, inputsOf, replayable, sameGame, compareOf, compareLives } from "../engine/compare.js";
 
 const dlg = $("compareDlg"), leaf = $("cmpLeaf");
-let model = null, tab = 0, note = "";
+let model = null, tab = 0, note = "", addNote = "";
 
 // the square's name in language l, as the board writes it
 function sqName(n, l) {
@@ -39,12 +39,36 @@ function build(state) {
   return { ...compareOf(state, traces), replayed: !!traces };
 }
 
-export function openCompare(state = G.state) {
-  model = build(state);
+// Lives from several games (Phase 19 step 3): each { inputs, seat, mine } is played again from what a link or the seeds
+// kept carry, or { state, seat, mine } is a game already in hand. offer, if given, is the seed not yet played, with a
+// button to play it (onPlay); onAdd(text) adds another life from a link, and answers with a string key or null.
+let hooks = { onPlay: null, onAdd: null };
+export const setCompareHooks = h => { hooks = { ...hooks, ...h }; };
+function buildLives(entries, offer) {
+  const games = entries.map(e => {
+    if (e.state) {
+      const r = replayable(e.state) ? replay(inputsOf(e.state)) : null;
+      return { state: e.state, traces: r?.ok && sameGame(e.state, r.state) ? r.traces : null, seat: e.seat, mine: e.mine };
+    }
+    const r = replay(e.inputs);
+    return { state: r.state, traces: r.ok ? r.traces : null, seat: e.seat, mine: e.mine };
+  });
+  return { ...compareLives(games), replayed: games.every(g => g.traces), offer, entries };
+}
+function show() {
   tab = 0; note = "";
   if (!dlg.open) dlg.showModal();
   paint();
   leaf.querySelector(".cmp-close")?.focus();
+}
+export function openCompare(state = G.state) {
+  model = build(state);
+  show();
+}
+export function openLives(entries, offer = null) {
+  model = buildLives(entries, offer);
+  show();
+  return model;
 }
 export const closeCompare = () => { if (dlg.open) dlg.close(); };
 export const compareOpen = () => dlg.open;
@@ -136,18 +160,36 @@ function sized(cv, w, h) {
 }
 
 // ---- the leaf ----
+const soulTitle = (s, l) => (s.mine ? tIn(l, "cmpYou", { name: lifeName(s.lives.at(-1), l) }) : tIn(l, "cmpSoul", { name: lifeName(s.lives.at(-1), l) }));
+// Where two lives on the same dice parted (src/engine/compare.js partingOf), in words; lives on different seeds say so
+function partedLines(l) {
+  const out = [], souls = model.souls, nm = at => lifeName(souls[at].lives[0], l);
+  for (let a = 0; a < souls.length; a++) for (let b = a + 1; b < souls.length; b++) {
+    const p = model.parted.find(x => x.a === a && x.b === b), v = { a: nm(a), b: nm(b) };
+    if (!p) { if (souls[a].seed !== souls[b].seed) out.push([a, b, tIn(l, "cmpPartOther", v)]); continue; }
+    const lab = id => { const o = optionOf(p.sq, id); return o ? o.label[l] || o.label.en : id; };
+    const dice = p.dice?.length > 1 ? tIn(l, "cmpAnd", { a: p.dice[0], b: p.dice[1] }) : String(p.dice?.[0] ?? "");
+    const key = p.k == null ? "cmpPartNone" : { move: "cmpPartMove", choice: "cmpPartChoice", before: "cmpPartBefore", end: "cmpPartEnd" }[p.how];
+    out.push([a, b, tIn(l, key, { ...v, k: p.k ?? "", sq: p.sq ?? "", dice, va: p.how === "choice" ? lab(p.va) : p.va, vb: p.how === "choice" ? lab(p.vb) : p.vb })]);
+  }
+  return out;
+}
+function partedHtml(l) {
+  const lines = partedLines(l);
+  return lines.length ? `<h3>${esc(tIn(l, "cmpParted"))}</h3><ul class="cmp-met">` + lines.map(([a, b, x]) => `<li><span class="dot" style="background:${P_HEX[model.souls[a].color]}"></span><span class="dot" style="background:${P_HEX[model.souls[b].color]}"></span>${esc(x)}</li>`).join("") + `</ul>` : "";
+}
 const beads = s => s.lives.map(l => `<span class="bead${l.animal ? " animal" : ""}${l.end === "liberated" || l.end === "svarga" ? " free" : ""}" aria-hidden="true"></span>`).join("");
 function sameHtml(l) {
   if (!model.same.length) return `<p class="cmp-none">${esc(tIn(l, "cmpSameNone"))}</p>`;
   return `<dl class="cmp-same">` + model.same.map(({ sq, by }) => `<dt>${esc(sqName(sq, l))}</dt>` + by.map(b => {
     const lab = id => { const o = optionOf(sq, id); return o ? o.label[l] || o.label.en : id; };
-    const s = model.souls[b.seat], k = b.chose !== b.took ? "cmpSameRebel" : "cmpSameRow";
+    const s = model.souls[b.at], k = b.chose !== b.took ? "cmpSameRebel" : "cmpSameRow";
     return `<dd><span class="dot" style="background:${P_HEX[s.color]}"></span>${esc(tIn(l, k, { name: nameIn(b.name, l), chose: lab(b.chose), took: lab(b.took) }))}</dd>`;
   }).join("")).join("") + `</dl>`;
 }
 function metHtml(l) {
   if (!model.met.length) return `<p class="cmp-none">${esc(tIn(l, "cmpMetNone"))}</p>`;
-  return `<ul class="cmp-met">` + model.met.map(m => `<li><span class="dot" style="background:${P_HEX[model.souls[m.a.seat].color]}"></span><span class="dot" style="background:${P_HEX[model.souls[m.b.seat].color]}"></span>${esc(tIn(l, "cmpMetLine", { a: nameIn(m.a.name, l), b: nameIn(m.b.name, l), sq: sqName(m.sq, l) }))}</li>`).join("") + `</ul>`;
+  return `<ul class="cmp-met">` + model.met.map(m => `<li><span class="dot" style="background:${P_HEX[model.souls[m.a.at].color]}"></span><span class="dot" style="background:${P_HEX[model.souls[m.b.at].color]}"></span>${esc(tIn(l, "cmpMetLine", { a: nameIn(m.a.name, l), b: nameIn(m.b.name, l), sq: sqName(m.sq, l) }))}</li>`).join("") + `</ul>`;
 }
 function bookHtml(s, l) {
   return s.lives.map(life => {
@@ -162,20 +204,22 @@ function paint() {
       <button type="button" class="x cmp-close" aria-label="${esc(tIn(l, "close"))}">×</button></header>
     <div class="cmp-body">
       <h2 id="cmpTitle">${esc(tIn(l, "togetherTitle"))}</h2>
+      ${model.offer ? `<p class="cmp-offer">${esc(tIn(l, "cmpPlayAbout"))} <button type="button" data-act="play">${esc(tIn(l, "cmpPlaySeed"))}</button></p>` : ""}
       <ul class="cmp-souls">${souls.map(s => {
         const last = s.lives.at(-1);
-        return `<li><span class="dot" style="background:${P_HEX[s.color]}"></span><b>${esc(tIn(l, "cmpSoul", { name: lifeName(last, l) }))}</b> <span class="beads" role="img" aria-label="${esc(livesWord(humanLives(s), l))}">${beads(s)}</span>
+        return `<li><span class="dot" style="background:${P_HEX[s.color]}"></span><b>${esc(soulTitle(s, l))}</b> <span class="beads" role="img" aria-label="${esc(livesWord(humanLives(s), l))}">${beads(s)}</span>
           <span class="cmp-ends">${s.lives.map(x => `${esc(lifeName(x, l))}: ${esc(tIn(l, "cmpEnd_" + x.end))}`).join(" · ")}</span></li>`;
       }).join("")}</ul>
       <h3>${esc(tIn(l, "cmpBoard"))}</h3>
       <canvas class="cmp-board" role="img" aria-label="${esc(tIn(l, "cmpBoardAlt"))}"></canvas>
       <h3>${esc(tIn(l, "cmpGunas"))}</h3>
-      ${traced ? `<p class="cmp-note">${esc(tIn(l, "cmpGunasNote"))}</p>` + souls.map(s => `<div class="cmp-gunas"><span class="dot" style="background:${P_HEX[s.color]}"></span><canvas data-seat="${s.seat}" aria-hidden="true"></canvas></div>`).join("") : `<p class="cmp-note">${esc(tIn(l, "cmpNoTrace"))}</p>`}
+      ${traced ? `<p class="cmp-note">${esc(tIn(l, "cmpGunasNote"))}</p>` + souls.map(s => `<div class="cmp-gunas"><span class="dot" style="background:${P_HEX[s.color]}"></span><canvas data-at="${s.at}" aria-hidden="true"></canvas></div>`).join("") : `<p class="cmp-note">${esc(tIn(l, "cmpNoTrace"))}</p>`}
       <h3>${esc(tIn(l, "cmpSame"))}</h3>${sameHtml(l)}
-      <h3>${esc(tIn(l, "cmpMet"))}</h3>${metHtml(l)}
+      ${model.entries ? partedHtml(l) : `<h3>${esc(tIn(l, "cmpMet"))}</h3>${metHtml(l)}`}
       <h3>${esc(tIn(l, "cmpBooks"))}</h3>
       <div class="cmp-tabs" role="tablist">${souls.map((s, i) => `<button type="button" role="tab" id="cmpTab-${i}" aria-controls="cmpBook-${i}" aria-selected="${i === tab}" tabindex="${i === tab ? 0 : -1}" data-tab="${i}"><span class="dot" style="background:${P_HEX[s.color]}"></span>${esc(lifeName(s.lives.at(-1), l))}</button>`).join("")}</div>
       <div class="cmp-books" style="--n:${souls.length}">${souls.map((s, i) => `<section class="cmp-book${i === tab ? " on" : ""}" id="cmpBook-${i}" role="tabpanel" aria-labelledby="cmpTab-${i}">${bookHtml(s, l)}</section>`).join("")}</div>
+      ${model.entries ? `<form class="cmp-add" data-act="add"><label for="cmpAddLink">${esc(tIn(l, "cmpAddLabel"))}</label> <input id="cmpAddLink" type="url" inputmode="url" autocomplete="off" spellcheck="false"> <button type="submit" class="ghost">${esc(tIn(l, "cmpAdd"))}</button> <span class="hint" aria-live="polite">${esc(addNote)}</span></form>` : ""}
       <p class="cmp-acts"><button type="button" data-act="save">${esc(tIn(l, "cmpSave"))}</button> <button type="button" class="ghost" data-act="copy">${esc(tIn(l, "cmpCopy"))}</button> <span class="hint" aria-live="polite">${esc(note)}</span></p>
     </div>`;
   drawAll();
@@ -188,7 +232,7 @@ function drawAll() {
   const w = Math.min(inner || 600, 720);
   drawBoard(sized(cv, w, (w / COLS) * ROWS), w);
   for (const r of leaf.querySelectorAll(".cmp-gunas canvas")) {
-    const rw = r.parentElement.clientWidth - 24 || 560, s = model.souls[+r.dataset.seat];
+    const rw = r.parentElement.clientWidth - 24 || 560, s = model.souls[+r.dataset.at];
     drawRibbon(sized(r, rw, 30), s, rw, 30);
   }
 }
@@ -214,7 +258,7 @@ export function imageOf(l = lang) {
     c.fillStyle = P_HEX[s.color];
     c.beginPath(); c.arc(pad + 12, y + 18, 12, 0, Math.PI * 2); c.fill();
     c.fillStyle = pal("black"); c.font = `600 28px ${font}`;
-    c.fillText(tIn(l, "cmpSoul", { name: lifeName(s.lives.at(-1), l) }), pad + 36, y + 28);
+    c.fillText(soulTitle(s, l), pad + 36, y + 28);
     // a bead a life, filled gold for the life let go
     s.lives.forEach((x, k) => {
       c.beginPath(); c.arc(W - pad - 12 - (s.lives.length - 1 - k) * 26, y + 18, 9, 0, Math.PI * 2);
@@ -234,15 +278,18 @@ export function imageOf(l = lang) {
 // every book, in the page's language
 export function textOf(l = lang) {
   const out = [tIn(l, "togetherTitle"), ""];
-  for (const s of model.souls) out.push(`${tIn(l, "cmpSoul", { name: lifeName(s.lives.at(-1), l) })} (${livesWord(humanLives(s), l)}): ` + s.lives.map(x => `${lifeName(x, l)}, ${tIn(l, "cmpEnd_" + x.end)}`).join("; "));
+  for (const s of model.souls) out.push(`${soulTitle(s, l)} (${livesWord(humanLives(s), l)}): ` + s.lives.map(x => `${lifeName(x, l)}, ${tIn(l, "cmpEnd_" + x.end)}`).join("; "));
   out.push("", tIn(l, "cmpSame"));
   if (!model.same.length) out.push(tIn(l, "cmpSameNone"));
   for (const { sq, by } of model.same) {
     const lab = id => optionOf(sq, id)?.label[l] ?? id;
     out.push(`${sqName(sq, l)}: ` + by.map(b => tIn(l, b.chose !== b.took ? "cmpSameRebel" : "cmpSameRow", { name: nameIn(b.name, l), chose: lab(b.chose), took: lab(b.took) })).join("; "));
   }
-  out.push("", tIn(l, "cmpMet"));
-  out.push(...(model.met.length ? model.met.map(m => tIn(l, "cmpMetLine", { a: nameIn(m.a.name, l), b: nameIn(m.b.name, l), sq: sqName(m.sq, l) })) : [tIn(l, "cmpMetNone")]));
+  if (model.entries) { const p = partedLines(l); if (p.length) out.push("", tIn(l, "cmpParted"), ...p.map(x => x[2])); }
+  else {
+    out.push("", tIn(l, "cmpMet"));
+    out.push(...(model.met.length ? model.met.map(m => tIn(l, "cmpMetLine", { a: nameIn(m.a.name, l), b: nameIn(m.b.name, l), sq: sqName(m.sq, l) })) : [tIn(l, "cmpMetNone")]));
+  }
   for (const s of model.souls) for (const life of s.lives) {
     const b = lifeOf(life.st, s.seat, l);
     out.push("", "", [b.title, b.open, ...b.paras.map(p => `${p.head}\n${p.text}`), [b.end, b.curse].filter(Boolean).join(" "), (b.fates ?? []).join(" ")].filter(Boolean).join("\n\n"));
@@ -276,6 +323,7 @@ leaf.addEventListener("click", e => {
   if (t) return showTab(+t.dataset.tab, false);
   const act = e.target.closest("[data-act]")?.dataset.act;
   if (act === "save") save();
+  if (act === "play") { closeCompare(); hooks.onPlay?.(model.offer); }
   if (act === "copy") copy();
 });
 // the books' tabs (a phone shows one book at a time): the arrow keys, Home and End move between them
@@ -285,6 +333,14 @@ function showTab(i, focus = true) {
   leaf.querySelectorAll(".cmp-book").forEach((b, k) => b.classList.toggle("on", k === tab));
   if (focus) leaf.querySelector(`#cmpTab-${tab}`)?.focus();
 }
+leaf.addEventListener("submit", async e => {
+  if (!e.target.closest(".cmp-add")) return;
+  e.preventDefault();
+  const key = await hooks.onAdd?.(leaf.querySelector("#cmpAddLink").value);
+  addNote = key ? tIn(lang, key) : "";
+  if (dlg.open) paint();
+  addNote = "";
+});
 leaf.addEventListener("keydown", e => {
   if (!e.target.closest(".cmp-tabs")) return;
   const k = { ArrowRight: tab + 1, ArrowLeft: tab - 1, Home: 0, End: model.souls.length - 1 }[e.key];

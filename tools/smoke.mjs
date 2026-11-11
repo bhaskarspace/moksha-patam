@@ -41,6 +41,8 @@ async function check(name, fn, { limit = 90, persistent = false, named = true, p
   } catch (e) {
     failed.push(name);
     console.log(`FAIL  ${name}\n      ${e.message.split("\n")[0]}`);
+    // SMOKE_TRACE=1 says where in the check it failed
+    if (process.env.SMOKE_TRACE) console.log("      " + (e.stack.split("\n").find(x => x.includes("smoke.mjs:")) ?? "").trim());
   } finally {
     await ctx.close();
   }
@@ -177,7 +179,8 @@ await check("a square's school chip opens the Codex, and Back returns to the squ
 });
 
 await check("a human's landing card stays open; Space then rolls", async page => {
-  await page.goto(BASE + "?seed=4");
+  // seed re-pinned for Phase 19 step 3: every throw is keyed by the seed, the lane, the life and the throw (src/engine/throws.js)
+  await page.goto(BASE + "?seed=1");
   await page.keyboard.press("Space");
   await page.waitForFunction(() => document.getElementById("folio").open, null, { timeout: 15000 });
   await page.waitForTimeout(10000);
@@ -1461,7 +1464,8 @@ await check("Phase 6: under reduced motion the sheet comes and goes without movi
 await check("Phase 11: on a phone, rolling from the card takes it away, and each of your landings tells its own, never the computer's", async page => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.addInitScript(() => { const st = window.setTimeout; window.setTimeout = (f, ms, ...r) => st(f, Math.min(ms, 30), ...r); });
-  await page.goto(BASE + "?seed=5&debug");
+  // seed re-pinned for Phase 19 step 3: every throw is keyed by the seed, the lane, the life and the throw (src/engine/throws.js)
+  await page.goto(BASE + "?seed=3&debug");
   await openOn(page, 34);
   // every square a card or the line under the board shows from here on
   await page.evaluate(() => {
@@ -2051,7 +2055,8 @@ const firstTime = async (page, q = "") => {
 
 await check("Phase 11: the die is live under a card: a landing's card keeps the focus off it, and Space rolls it away", async page => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto(BASE + "?seed=1&debug");
+  // seed re-pinned for Phase 19 step 3: every throw is keyed by the seed, the lane, the life and the throw (src/engine/throws.js)
+  await page.goto(BASE + "?seed=4&debug");
   // the ladder at 6 opens the full card
   await page.evaluate(() => { mp.jump(5); mp.roll(1); });
   await page.waitForFunction(() => document.getElementById("folio").open && location.hash === "#sq/6", null, { timeout: 15000 });
@@ -2469,6 +2474,78 @@ await check("Phase 19: the race, at its end, offers the lives side by side", asy
   const r = await page.evaluate(() => { const m = mp.compareOpen(); return { open: document.getElementById("compareDlg").open, souls: m.souls.length, traced: m.replayed }; });
   assert(r.open && r.souls === 2 && r.traced, JSON.stringify(r));
 }, { limit: 180 });
+
+// ---- Phase 19 step 3: same dice, two lives ----
+// Two devices are two browser contexts. Each plays one seed to its end, the second with its person behind a computer and
+// choosing otherwise; each opens the other's life link, and the two lives stand side by side on the same throws.
+const driveLast = (page, cond, timeout = 240000) => page.waitForFunction(cond => {
+  if (document.getElementById("folio").open) mp.close({ instant: true });
+  const life = document.getElementById("lifeDlg");
+  if (life.open) life.close();
+  if (new Function(`return (${cond})()`)()) return true;
+  const bs = [...document.querySelectorAll("#pick:not([hidden]) button:not([aria-disabled=true])")], r = document.getElementById("roll");
+  if (bs.length) bs.at(-1).click(); else if (!r.disabled && !r.hidden) r.click();
+  return false;
+}, cond.toString(), { timeout, polling: 50 });
+async function device(setup, seed, last) {
+  const ctx = await browser.newContext({ viewport: { width: 1200, height: 900 } });
+  await ctx.addInitScript(() => { try { localStorage.setItem("mp-self", JSON.stringify({ name: "", gender: "f" })); } catch {} });
+  const page = await ctx.newPage(), errors = [];
+  page.on("pageerror", e => errors.push(e.message));
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await fast(page, setup);
+  await page.goto(BASE + `?seed=${seed}&debug`);
+  await (last ? driveLast : drive)(page, () => mp.state.over, 200000);
+  return { ctx, page, errors };
+}
+await check("Phase 19: two devices on one seed throw the same dice, whatever the seat, and each sees the other's life beside its own", async () => {
+  const seed = 11;
+  const a = await device({ count: 1, rows: [{ name: "Mira", type: "human", gender: "f" }], rules: { six: true } }, seed, false);
+  const b = await device({ count: 2, rows: [{ name: "", type: "cpu" }, { name: "Ravi", type: "human", gender: "m" }], rules: { six: true, mode: "race" } }, seed, true);
+  try {
+    const la = await a.page.evaluate(() => mp.share()), lb = await b.page.evaluate(() => mp.share());
+    assert(la.life && lb.life, "both lives can be sent: " + JSON.stringify([la.why, lb.why]));
+    assert(la.play === lb.play.replace(/\d+$/, String(seed)) && /#play=110\.board\.11$/.test(la.play), "the seed link is the board, the law and the seed: " + la.play);
+    console.log(`      life links: ${la.life.length - la.life.indexOf("#")} and ${lb.life.length - lb.life.indexOf("#")} characters`);
+    const seen = [];
+    for (const [me, other] of [[a, lb.life], [b, la.life]]) {
+      const said = await me.page.evaluate(l => mp.compare([l]), other);
+      assert(said[0] === null, "the life was added: " + said[0]);
+      seen.push(await me.page.evaluate(() => {
+        const d = document.getElementById("compareDlg");
+        return { open: d.open, text: d.textContent, souls: d.querySelectorAll(".cmp-souls li").length };
+      }));
+    }
+    for (const x of seen) assert(x.open && x.souls === 2 && /\(you\)/.test(x.text) && /Where the lives parted/.test(x.text), "both lives, side by side, with where they parted: " + x.text.slice(0, 200));
+    // the throws: every throw both lives made, by its number in the life, is the same, until one life ended
+    for (const me of [a, b]) {
+      const m = await me.page.evaluate(() => mp.compared());
+      const [x, y] = m.souls.map(q => q.throws);
+      const n = Math.min(x.length, y.length);
+      assert(n > 10, "throws in common: " + n);
+      for (let k = 0; k < n; k++) assert(x[k] === y[k], `throw ${k + 1}: ${x[k]} and ${y[k]}`);
+      assert(m.parted.length === 1, "where they parted: " + JSON.stringify(m.parted));
+    }
+    assert(!a.errors.length && !b.errors.length, "page errors: " + [...a.errors, ...b.errors].join("; "));
+  } finally { await a.ctx.close(); await b.ctx.close(); }
+}, { limit: 450, named: false });
+await check("Phase 19: today's life is the same seed on two devices, and a seed link starts that seed with the person first", async page => {
+  const other = await browser.newContext();
+  try {
+    const p2 = await other.newPage();
+    await page.goto(BASE + "?debug");
+    await p2.goto(BASE + "?debug");
+    const s1 = await page.evaluate(() => mp.daily("2026-11-11")), s2 = await p2.evaluate(() => mp.daily("2026-11-11"));
+    assert(s1 === s2, "the same seed for the same day: " + [s1, s2]);
+    assert(await page.evaluate(() => /11 November/.test(document.getElementById("seed").textContent)), "the day is said");
+    assert(await page.evaluate(() => mp.daily("2026-11-12")) !== s1, "another day, another seed");
+    // a seed link, opened by a viewer whose setup puts a computer first: the person sits first, on that seed
+    await page.evaluate(() => { location.hash = "#play=110.board.424242"; });
+    await page.waitForFunction(() => mp.state.rng.seed === 424242);
+    const r = await page.evaluate(() => ({ first: mp.state.players[0].type, lane: mp.state.players[0].lane, hash: location.hash, line: document.getElementById("seed").textContent }));
+    assert(r.first === "human" && r.lane === 0 && !r.hash && /shared/.test(r.line), JSON.stringify(r));
+  } finally { await other.close(); }
+});
 
 await browser.close();
 server.close();

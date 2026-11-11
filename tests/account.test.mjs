@@ -67,9 +67,13 @@ test("squares lived a second time are folded, not told again", () => {
 });
 
 test("the plain joins are drawn per life from the seed, not by position in a cycle of four", () => {
-  const s = meera(83), a = lifeText(s, 0, "en"), b = lifeText(meera(83), 0, "en");
+  // a life long enough to say a plain join more than eight times (Phase 19's per-throw dice: no longer seed 83's)
+  const thensOf = t => [...t.matchAll(/(?:^|\. )(Then|Later,|After a while,|In time,) /gm)].map(m => m[1]);
+  let seed = 83;
+  while (thensOf(lifeText(meera(seed), 0, "en")).length <= 8) seed++;
+  const s = meera(seed), a = lifeText(s, 0, "en"), b = lifeText(meera(seed), 0, "en");
   assert.equal(a, b);
-  const thens = [...a.matchAll(/(?:^|\. )(Then|Later,|After a while,|In time,) /gm)].map(m => m[1]);
+  const thens = thensOf(a);
   const cycle = thens.every((x, i) => i < 4 || x === thens[i - 4]);
   assert.ok(thens.length > 8 && !cycle, thens.join(" "));
   // and never the same one twice running
@@ -137,7 +141,7 @@ test("the opening knows the shape of the life and says only what happened", () =
 
 test("a life that ran out of years ends on what it was still holding, carried in the state for Phase 12", uncast(() => {
   let s = null;
-  for (let seed = 1; !s; seed++) { const g = meera(seed); if (g.players[0].dead) s = g; }
+  for (let seed = 1; !s; seed++) { const g = meera(seed); if (g.players[0].death?.by === "years" && g.players[0].holding) s = g; }
   const p = s.players[0], { open, end } = lifeOf(s, 0, "en");
   assert.match(open, /^Meera ran out of years at a hundred and/);
   assert.ok(end.startsWith(`Meera's years ran out at ${"a hundred and"}`), end);

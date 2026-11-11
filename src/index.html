@@ -68,6 +68,9 @@
               <button id="reborn" type="button" data-t="reborn" hidden>Be born again</button>
               <p id="rebornNote" class="note" data-t="rebornNote" hidden>The next life carries this one, half-remembered.</p>
               <button id="compare" type="button" data-t="compareLives" hidden>Compare the lives</button>
+              <button id="sendLife" type="button" class="ghost" data-t="sendLife" hidden>Send your life</button>
+              <button id="shareSeed" type="button" class="ghost" data-t="shareSeed" hidden>Play this seed with someone</button>
+              <p id="shareNote" class="note" aria-live="polite"></p>
               <button id="again" type="button" class="ghost" data-t="again">Play again</button>
             </div>
           </div>
@@ -135,6 +138,8 @@
           <label class="check"><input type="checkbox" id="prefBoth"> <span data-t="cardBoth"></span></label>
           <label class="pick"><span data-t="theme"></span><select id="prefTheme"></select></label>
           <button id="newGame" type="button" data-t="newGame">Start new game</button>
+          <button id="daily" type="button" class="ghost" data-t="daily">Today's life</button>
+          <span class="hint" data-t="dailyAbout"></span>
           <span class="hint" id="seed"></span>
         </div>
       </details>

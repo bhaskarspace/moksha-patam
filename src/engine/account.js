@@ -35,6 +35,7 @@
 import { ASHRAMAS, LADDERS, SNAKES, GOAL, JOINS, CAST_WORDS, DOOR, SITUATIONS, squareOf } from "../content.js";
 import { tIn, fill, castFill, wordsIn, ageWordsIn, CAST_ROLES } from "../i18n.js";
 import { makeRng, next } from "../rng.js";
+import { laneOf } from "./throws.js";
 import { pnameIn } from "../state.js";
 import { ageOf, yearsAlong, stageOfYears, titleOf, holdingOf } from "./self.js";
 import { momentOf, optionOf } from "./qbn.js";
@@ -63,7 +64,7 @@ export function lifeOf(state, i, l) {
   const J = (j, v = {}) => { const x = fill((j[l] || j.en).replace(/\{(\w+)\}/g, (_, k) => v[k] ?? `{${k}}`), who); return x[0].toUpperCase() + x.slice(1); };
   const words = n => wordsIn(l, Math.floor(n));
   // the plain joins come from this life's own sequence, never the game's dice
-  const rng = makeRng((state.rng.seed ^ 0x5bd1e995 ^ Math.imul(i + 1, 0x9e3779b1) ^ Math.imul(p.rebirths ?? 0, 0x632be5ab)) >>> 0);
+  const rng = makeRng((state.rng.seed ^ 0x5bd1e995 ^ Math.imul(laneOf(state, i) + 1, 0x9e3779b1) ^ Math.imul(p.rebirths ?? 0, 0x632be5ab)) >>> 0);
   let lastThen = -1;
   const then = () => { let k = Math.floor(next(rng) * JOINS.then.length); if (k === lastThen) k = (k + 1) % JOINS.then.length; lastThen = k; return JOINS.then[k]; };
 

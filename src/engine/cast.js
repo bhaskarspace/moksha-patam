@@ -12,6 +12,7 @@
 import { CAST, CAST_WORDS, SQ, SITUATIONS, TOP, squareOf } from "../content.js";
 import { castFill, fill, wordsIn } from "../i18n.js";
 import { makeRng, next } from "../rng.js";
+import { laneOf, diceMode } from "./throws.js";
 import { liberated } from "./mode.js";
 import { momentOf } from "./qbn.js";
 import { ageOf, yearsAlong } from "./self.js";
@@ -58,9 +59,13 @@ export function castOf(state, i, life = 0) {
   const p = state.players[i];
   // a life closed by Śiva's snake (Phase 17) keeps the cast it had, since the table it was drawn against has changed
   if (p.castKept !== undefined) return p.castKept;
-  const rng = makeRng((state.rng.seed ^ 0x2c1b3c6d ^ Math.imul(i + 1, 0x85ebca6b) ^ Math.imul(life + 1, 0xc2b2ae35)) >>> 0);
+  const rng = makeRng((state.rng.seed ^ 0x2c1b3c6d ^ Math.imul(laneOf(state, i) + 1, 0x85ebca6b) ^ Math.imul(life + 1, 0xc2b2ae35)) >>> 0);
   // nobody at the table lends a name to anyone's cast
   const taken = new Set(state.players.flatMap(q => [q.name, q.alias?.en, q.alias?.hi]).filter(Boolean).map(nameKey));
+  // since Phase 19's per-throw dice each draw is a place in the whole list, and a name taken (by someone at the table, or
+  // by this cast already) is passed over for the next: the cast of one seed is the same whoever sits at the table, but
+  // for a member whose name someone at it has
+  const table = new Set(taken), inCast = new Set(), whole = diceMode() !== "stream";
   const pool = gd => [...list[gd], ...(list.either || [])].filter(([en, hi]) => !taken.has(nameKey(en)) && !taken.has(nameKey(hi)));
   const coin = () => (next(rng) < 0.5 ? "m" : "f"), span = (a, b) => a + Math.floor(next(rng) * (b - a + 1));
   const carry = life > 0 ? p.prior?.cast ?? [] : [], used = new Set();
@@ -71,14 +76,22 @@ export function castOf(state, i, life = 0) {
     const back = carry.find(c => RETURNS_AS[c.role] === who && !used.has(c) && (c.gender === gender || either) && !taken.has(nameKey(c.en)) && !taken.has(nameKey(c.hi)));
     if (back) {
       used.add(back);
-      [back.en, back.hi].forEach(x => taken.add(nameKey(x)));
+      [back.en, back.hi].forEach(x => { taken.add(nameKey(x)); inCast.add(nameKey(x)); });
       cast[who] = { gender: back.gender, en: back.en, hi: back.hi, before: back.role };
       return;
     }
     let gd = gender, names = pool(gd);
     if (!names.length && either) names = pool((gd = gd === "m" ? "f" : "m"));
-    const nm = names.length ? names[Math.floor(u * names.length)] : null;
-    if (nm) nm.forEach(x => taken.add(nameKey(x)));
+    let nm = names.length ? names[Math.floor(u * names.length)] : null;
+    if (nm && whole) {
+      // the name at this draw's place in the whole list, or the next not taken: a name at the table moves only its member
+      const all = [...list[gd], ...(list.either || [])];
+      const at = ([en, hi]) => [en, hi].some(x => table.has(nameKey(x)) || inCast.has(nameKey(x)));
+      let j = Math.floor(u * all.length);
+      for (let t = 0; t < all.length && at(all[j]); t++) j = (j + 1) % all.length;
+      nm = at(all[j]) ? null : all[j];
+    }
+    if (nm) nm.forEach(x => { taken.add(nameKey(x)); inCast.add(nameKey(x)); });
     cast[who] = { gender: nm ? gd : gender, en: nm?.[0] ?? null, hi: nm?.[1] ?? null };
   };
   draw("son", "m");

@@ -6,11 +6,11 @@
 // years after it. compareOf reads a game and its traces into what the comparison screen draws (src/render/compare.js):
 // each soul's lives, how each ended, the situations two lives met and what each did there, and the lives that crossed. The
 // guṇas are kept as numbers here and are only ever drawn as shapes. Pure.
-import { createGame, playTurn, rollDice, diceFor, movesFor, moveFor, spentOf, canPractise, practisesNow } from "./turn.js";
-import { lawOf, setLaw } from "./laws/index.js";
+import { createGame, playTurn, throwDice, diceFor, movesFor, moveFor, spentOf, canPractise, practisesNow } from "./turn.js";
+import { lawOf, setLaw, canChoose } from "./laws/index.js";
 import { pastOf, endOf } from "./samskara.js";
 import { liberated } from "./mode.js";
-import { optionOf } from "./qbn.js";
+import { optionOf, optionsFor } from "./qbn.js";
 import { pnameIn } from "../state.js";
 
 // What game state was made of, for replay (and, in step 3, for a link)
@@ -36,19 +36,19 @@ export function replay(inputs, onTurn = null) {
     return x;
   };
   for (let t = 0; t < inputs.turns && !s.over; t++) {
-    const i = s.turn, p = s.players[i], human = p.type === "human", auto = lawOf(s, i).auto, life = p.rebirths ?? 0;
+    const i = s.turn, p = s.players[i], human = p.type === "human", auto = lawOf(s, i).auto, life = p.rebirths ?? 0, k = p.thrown ?? 0;
     let prac = false;
     if (human) {
       // the law a life born again lives under, as the person left it at its first throw
       if (life !== noted[i]) {
         noted[i] = life;
         const x = take(i, c => c[0] === "l"), id = x?.slice(1);
-        if (id && id !== (p.law ?? "")) setLaw(s, i, id);
+        if (id && id !== (p.law ?? "")) { if (canChoose(id)) setLaw(s, i, id); else ok = false; }
       }
       if (!spentOf(p) && canPractise(s, i)) prac = take(i, c => c === "p" || c === "r") === "p";
     }
     // the throw the page would make: none with the merit spent, or for a year sat in practice
-    const roll = spentOf(p) || (human ? prac : practisesNow(s)) ? [] : rollDice(s.rng, diceFor(p));
+    const roll = spentOf(p) || (human ? prac : practisesNow(s)) ? [] : throwDice(s, diceFor(p));
     const pick = (st, dice) => {
       if (!human || auto) return moveFor(st, dice);
       const m = movesFor(st, dice);
@@ -56,14 +56,22 @@ export function replay(inputs, onTurn = null) {
       const x = take(i, c => /^\d$/.test(c));
       return x == null || !m.includes(+x) ? m[0] : +x;
     };
-    const choose = (st, sit) => (!human || auto ? lawOf(st).choose(st, sit) : take(i, c => c[0] === "o")?.slice(1) ?? lawOf(st).choose(st, sit));
-    const plan = playTurn(s, roll, pick, choose);
+    // an option is taken only where it is open; one that is not was made in another game (another version, or by hand)
+    const choose = (st, sit) => {
+      if (!human || auto) return lawOf(st).choose(st, sit);
+      const id = take(i, c => c[0] === "o")?.slice(1);
+      if (id != null && optionsFor(p, sit).some(o => o.open && o.id === id)) return id;
+      ok = false;
+      return lawOf(st).choose(st, sit);
+    };
+    let plan;
+    try { plan = playTurn(s, roll, pick, choose); } catch { ok = false; break; }
     // the life the turn was about: the one closed by it, if it closed one
     const q = (p.rebirths ?? 0) > life ? p.past.at(-1) : p, tr = traces[i];
     while (tr.length <= life) tr.push([]);
     const g = q.gunas ?? { s: 1, r: 1, t: 1 };
     tr[life].push({
-      at: plan.from, to: plan.final, dice: [...(plan.dice ?? [])], v: plan.v ?? null,
+      at: plan.from, to: plan.final, dice: [...(plan.dice ?? [])], v: plan.v ?? null, k: plan.dice?.length ? k : null,
       chose: plan.ego?.chose ?? plan.grace?.chose ?? plan.choice ?? null, took: plan.choice ?? null, sq: plan.choice ? plan.target : null,
       g: [g.s, g.r, g.t], years: Math.floor(q.years ?? 0),
     });
@@ -91,33 +99,76 @@ export function endKindOf(state, i, k = null) {
 }
 
 // The comparison of a game: { souls, same, met }.
-// souls[i] = { seat, color, type, lives: [{ k, name: {en, hi}, gender, animal, path, end, trace, st }] }, st being the game as
-// it stood for that life, for its book (src/engine/account.js lifeText). same: the situations two or more lives chose on,
-// each { sq, by: [{ seat, life, name, chose, took }] }, by square. met: the lives that crossed, each pair once a square.
-export function compareOf(state, traces = null) {
-  const souls = state.players.map((p, i) => ({
-    seat: i, color: p.color, type: p.type,
+// souls[i] = { at, seat, color, type, seed, lives: [{ k, name: {en, hi}, gender, animal, path, end, trace, st }] }, st being
+// the game as it stood for that life, for its book (src/engine/account.js lifeText); at is the soul's place in souls.
+// same: the situations two or more lives chose on, each { sq, by: [{ at, life, name, chose, took }] }, by square. met: the
+// lives that crossed, each pair once a square.
+const soulsOf = (state, traces, seats = state.players.map((_, i) => i)) => seats.map(i => {
+  const p = state.players[i];
+  return {
+    seat: i, color: p.color, type: p.type, seed: state.rng.seed,
     lives: livesIn(state, i).map((st, k, all) => {
       const q = st.players[i], kk = k === all.length - 1 ? null : k;
       return { k, name: { en: pnameIn(q, "en"), hi: pnameIn(q, "hi") }, gender: q.gender, animal: q.animal?.kind ?? null,
         path: [...(q.life ?? [])], end: endKindOf(state, i, kk), trace: traces?.[i]?.[k] ?? null, st, met: q.met ?? [], witness: q.witness ?? [] };
     }),
-  }));
+  };
+});
+function sameOf(souls) {
   const bySq = new Map();
   for (const s of souls) for (const l of s.lives) for (const w of l.witness) {
     if (!optionOf(w.sq, w.took)) continue;
     const row = bySq.get(w.sq) ?? [];
     // a life that chose there more than once is told by its first choice
-    if (!row.some(x => x.seat === s.seat && x.life === l.k)) row.push({ seat: s.seat, life: l.k, name: l.name, chose: w.chose, took: w.took });
+    if (!row.some(x => x.at === s.at && x.life === l.k)) row.push({ at: s.at, seat: s.seat, life: l.k, name: l.name, chose: w.chose, took: w.took });
     bySq.set(w.sq, row);
   }
-  const same = [...bySq].filter(([, by]) => new Set(by.map(x => `${x.seat}.${x.life}`)).size > 1).sort((a, b) => a[0] - b[0]).map(([sq, by]) => ({ sq, by }));
+  return [...bySq].filter(([, by]) => new Set(by.map(x => `${x.at}.${x.life}`)).size > 1).sort((a, b) => a[0] - b[0]).map(([sq, by]) => ({ sq, by }));
+}
+export function compareOf(state, traces = null) {
+  const souls = soulsOf(state, traces).map((s, at) => ({ ...s, at }));
   const met = [], seen = new Set();
   for (const s of souls) for (const l of s.lives) for (const m of l.met) {
     const key = [`${s.seat}.${l.k}`, `${m.seat}.${m.life}`].sort().join("|") + "|" + m.sq;
     if (seen.has(key)) continue;
     seen.add(key);
-    met.push({ a: { seat: s.seat, life: l.k, name: l.name }, b: { seat: m.seat, life: m.life, name: m.with }, sq: m.sq });
+    met.push({ a: { at: s.at, seat: s.seat, life: l.k, name: l.name }, b: { at: m.seat, seat: m.seat, life: m.life, name: m.with }, sq: m.sq });
   }
-  return { souls, same, met };
+  return { souls, same: sameOf(souls), met, parted: [] };
+}
+
+// Lives from several games side by side (Phase 19 step 3): each game { state, traces, seat }, its person's soul taken
+// (the one who sent it, or the viewer's own). Lives in different games never meet; two on the same seed and board threw
+// the same dice, and where they parted is found (partingOf).
+export function compareLives(games) {
+  const souls = games.map((g, at) => ({ ...soulsOf(g.state, g.traces, [g.seat])[0], at, color: at % 4, board: g.state.rules?.board ?? "110", mine: !!g.mine }));
+  const parted = [];
+  for (let a = 0; a < souls.length; a++) for (let b = a + 1; b < souls.length; b++) {
+    if (souls[a].seed !== souls[b].seed || souls[a].board !== souls[b].board) continue;
+    const p = partingOf(souls[a], souls[b]);
+    if (p) parted.push(p);
+  }
+  return { souls, same: sameOf(souls), met: [], parted };
+}
+
+// Where two first lives on the same dice parted: the first throw at which they stood on the same square, threw the same
+// dice and did otherwise, by the move or by the choice made where they landed; or, when they no longer stood together at
+// a throw, the throw before which they parted (a year sat out, a law's act). { a, b, k, sq, dice, how, va, vb } or, when
+// the two never parted, { a, b, k: null }. k counts from 1, as a person counts throws.
+export function partingOf(A, B) {
+  const ta = (A.lives[0]?.trace ?? []).filter(x => x.k != null), tb = (B.lives[0]?.trace ?? []).filter(x => x.k != null);
+  if (!ta.length || !tb.length) return null;
+  const byK = new Map(tb.map(x => [x.k, x]));
+  for (const x of ta) {
+    const y = byK.get(x.k);
+    if (!y) break;
+    const base = { a: A.at, b: B.at, k: x.k + 1, sq: x.at, dice: x.dice };
+    if (x.at !== y.at) return { ...base, how: "before" };
+    if (x.dice.join() !== y.dice.join()) return null;
+    if (x.v !== y.v) return { ...base, how: "move", va: x.v, vb: y.v };
+    if ((x.chose ?? x.took) !== (y.chose ?? y.took)) return { ...base, how: "choice", sq: x.sq ?? x.to, va: x.chose ?? x.took, vb: y.chose ?? y.took };
+  }
+  // one life ended where the other went on, or they never did otherwise
+  const end = Math.min(ta.length, tb.length);
+  return ta.length === tb.length && ta.every((x, j) => x.to === tb[j].to) ? { a: A.at, b: B.at, k: null } : { a: A.at, b: B.at, k: end + 1, sq: ta[end - 1].to, how: "end" };
 }

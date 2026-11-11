@@ -39,6 +39,7 @@
 // turns to the goal (median / p95), the share that took more than 100, and the share of games reaching the goal within
 // CAP turns a pawn.
 import { pathToFileURL } from "node:url";
+import { setDice } from "../src/engine/throws.js";
 import { createGame, playTurn, moveFor, movesFor, planTurn, rollDice, diceFor, setEndgame, ENDGAME, canSit, spentOf, inHeaven } from "../src/engine/turn.js";
 import { SQ, SITUATIONS, CURSES, BOARDS, BOARD, LADDERS, SNAKES, useBoard } from "../src/content.js";
 import { curseIn } from "../src/engine/curse.js";
@@ -211,6 +212,8 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   if (flags.death === "off") setDeath(false);
   if (flags.penance) setPenance(+flags.penance);
   if (flags.unpaid) setUnpaid(+flags.unpaid);
+  // --dice=stream: every seat's throws off the game's one sequence, as before Phase 19 step 3 (src/engine/throws.js)
+  if (flags.dice === "stream") setDice("stream");
   const pick = PICKS[flags.pick || "plain"];
   // --law: every computer plays under that law (Phase 17, src/engine/laws/index.js); --policy still says how it chooses
   if (flags.law && !LAWS[flags.law]) throw new Error(`no law ${flags.law}: ${Object.keys(LAWS).join(", ")}`);

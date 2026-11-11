@@ -2377,7 +2377,53 @@ board's rules load with it, and the sim reports each board's distribution beside
 
 ---
 
-### Phase 19 — Parallel lives
+### Phase 19 — Parallel lives  ✅ SHIPPED
+
+> **Shipped** (11 Nov, branch `phase-19-parallel-lives`; decided by Bhaskar 11 Nov). **Step 1, together at one screen:**
+> `rules.mode` is `"together"` or `"race"` (`src/engine/mode.js`); a game without it is a race, so the sim, golden,
+> accounts and old saves are what they were, and the setup and the naming write it. Together is the default for any
+> table of two or more seats, "Me and a computer" included. Played together nobody wins by arriving first: a law's own
+> exit frees the seat (`p.free`), every other end of a life is born again in it (`bornAgain`, through
+> `samskara.js nextBirth`), a death by ledger first as an animal in the seat, and a Cārvāka seat has its one life. The
+> game is over when no person is still living; the computers stop where they stand. **How long** (decided 11 Nov):
+> "Until every soul is free" (`length: "free"`, the default for two seats) or "One life each" (`"one"`, the default for
+> three or four), where the game ends when every seat's life has ended and a reborn soul's saṃskāra carries into the
+> next game. Over 4000 all-computer games, turns a seat: until free, two seats median 133 (p95 503), three 172 (576),
+> four 208 (638); one life each, 35 (52), 38 (54), 40 (55). **Stop here** ends the game, after asking, with every
+> life as it stands. Lives that cross keep one meeting in both books (`p.met`), told once a pair a stage of life
+> (`accMet`, `accMetFirst`, `accMetHeaven`). Śiva's snake, a reckoning, a death, a ladder to 94 or above and a
+> liberation are public: the line under the board, whoever's turn it is (`landPublic`). Each person's choices are kept
+> in order (`p.choices`, `noteChoice` in `src/main.js`), with `state.table` and `state.turns`. **Step 2, the lives side
+> by side** (`src/render/compare.js`, `src/engine/compare.js`): at the end of any game of two or more seats on the 110,
+> race or together, the game is played again from its inputs (`replay`) and drawn: every life's path on one board in
+> its player's colour, walked square by square; who each soul became, a three-band guṇa ribbon with no number and no
+> axis; each soul's lives as beads and how each ended in words; what each did on the squares two lives chose on; where
+> the lives crossed; and every book, in columns, or tabs below 768px. It saves as a 1080-wide picture and copies as
+> text. Opening it on a four-seat game of 160 turns takes 62 ms at 4× throttle. **Step 3, same dice, two lives**
+> (`src/engine/throws.js`, `src/share.js`): every throw is its own sequence, keyed by the seed, the seat's **lane**,
+> the life and the throws that life has made (`p.thrown`); the tumble has its own. People take lanes 0, 1, … in the
+> order they sit and computers the lanes after, so a person on their own device is lane 0 wherever a link seats them;
+> the omen, the ego, grace, the curse, the cast, the joins, the mirror and a new birth's name are salted by the lane,
+> and the omen, the ego and grace by the throw rather than the squares walked. The cast draws each member at its place
+> in the whole name list and passes over a name taken, so a name at someone's table moves only that member.
+> `setDice("stream")` (tools only) gives back the shared sequence and the seat's salts: `tools/accounts.mjs 2000 --tag
+> --dice=stream` matches main on all 29,614 accounts; with per-throw dice every game is tagged `dice`. Golden re-pinned
+> once for it. The sim moved only by sampling (4000 games: median 47 → 47, p95 153 → 151, over 100 15.1% → 15.8%,
+> liberated 32.4% → 32.3% a life, lives per liberation 3.09 → 3.09). **Links**, read from the hash and never sent:
+> "Play this seed with someone" is `#play=<board>.<law>.<seed>`, nothing about anyone; "Send your life" is
+> `#life=<payload>`, the game's seed, rules, table, turns and the person's choices a character each, deflated, with a
+> check of how it ended, so a life from another version of the game says so. Opening one plays it again beside the
+> viewer's own life on that seed (kept in `mp-seeds`, the last twenty, in memory only under `?first`), or offers to
+> play it; more can be added, and the screen says where two lives on the same dice parted ("Throw 10, at 28: Mira
+> chose ‘Say so’; Ravi chose ‘Say it was left at home’"). A life is sent only from a game of one person, born fresh,
+> never set by hand (`state.tampered`). Sizes: a life alone median 173 characters (p95 262); a life played together
+> until free, median 265 (p95 821, the longest of thirty 1275, seventy-nine lives). **Today's life** is a seed from the
+> UTC date. Sharing uses the share sheet, or copies the link.
+>
+> **The solo default, decided:** "Me and a computer", played together. **Limits, on the record:** the seed is in the
+> link, so a curious player could work out the throws to come; it is a game among friends. A life replays only on the
+> version of the game it was played on, and its check says when it cannot. Two lives on one seed throw alike only while
+> they have lived the same number of lives. A cast member whose name someone at the table has is another.
 
 - Multiplayer becomes four lives lived side by side rather than a race. Phase 11's
   nāmakaraṇa already asks who is playing and names each in turn; this phase gives that
@@ -2514,7 +2560,8 @@ reason is the thing to re-examine, not the idea.*
   looks like that. A board is a map; maps are flat. Server multiplayer is a different
   product with hosting, moderation and accounts. What adds depth without breaking any of
   this: the board's ageing (built), the translucency at turyā (Phase 16), parallax on the
-  sheet.
+  sheet. **Live play at the same moment** is this decline too: Phase 19 answers the need beneath it (to play a
+  life beside a friend's) with the same dice on two devices and a life sent as a link, with no server and nothing sent.
 - **Physics on the cards.** Quantum mysticism in all its forms — the observer and the
   world, entanglement and interconnection, strings and Om, holography and Indra's net (which
   is Huayan Buddhist). Similarities of vocabulary, not content; the audience they are meant
