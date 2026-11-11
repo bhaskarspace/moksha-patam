@@ -120,7 +120,8 @@ Every throw is keyed by the seed, the seat's lane, the life and `p.thrown` (`src
 shared sequence, tools only; a game without `state.throws === "own"` (saved before step 3) throws off it to its end
 (`streamOf`). Links live in the hash (`src/share.js`): `#play=board.law.seed` and `#life=payload`; a
 person's own finished games are kept in `mp-seeds`; today's life is `dailySeed(dayOf())`. A game a `?debug` helper set by
-hand is `state.tampered` and is never sent.
+hand is `state.tampered` and is never sent. A life born again never takes a name any life in its game has had (`nameAgain`;
+`players.again` in `content/names.json` is drawn only for that).
 Phase 7 was The Exit (REDESIGN.md §4): Moksha is square 105 (`GOAL`), partway
 along the divine row, while the board still ends at 110 (`TOP`). Since Phase 12 nothing above the exit turns back: past 105 the
 heavens (106–110) are walked. Since Phase 17 no throw passes `TOP`, and the exact throw onto it is Śiva's snake, the fall

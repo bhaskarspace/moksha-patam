@@ -2392,7 +2392,11 @@ board's rules load with it, and the sim reports each board's distribution beside
 > four 208 (638); one life each, 35 (52), 38 (54), 40 (55). **Stop here** ends the game, after asking, with every
 > life as it stands. Lives that cross keep one meeting in both books (`p.met`), told once a pair a stage of life
 > (`accMet`, `accMetFirst`, `accMetHeaven`). Śiva's snake, a reckoning, a death, a ladder to 94 or above and a
-> liberation are public: the line under the board, whoever's turn it is (`landPublic`). Each person's choices are kept
+> liberation are public: the line under the board, whoever's turn it is (`landPublic`). **Names** (reviewed 11 Nov): a life born again
+> is never called by a name any life in its game has had (`nameAgain` in `turn.js`, `tests/names.test.mjs`); the draw
+> before is kept whenever its name is new, then the names kept for that (`players.again` in `content/names.json`, forty,
+> for Bhaskar to pass), then the cast's not in a living book. Over 6000 all-computer games played until free, at most
+> 60 lives, none repeated a name. Each person's choices are kept
 > in order (`p.choices`, `noteChoice` in `src/main.js`), with `state.table` and `state.turns`. **Step 2, the lives side
 > by side** (`src/render/compare.js`, `src/engine/compare.js`): at the end of any game of two or more seats on the 110,
 > race or together, the game is played again from its inputs (`replay`) and drawn: every life's path on one board in

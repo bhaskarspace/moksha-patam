@@ -498,6 +498,23 @@ export function lintReport() {
     for (const [a, id] of Object.entries(BRIDGE_SAME)) if (!BRIDGES[id]) err(`bridges.same.${a}`, `sends to "${id}", which has no bridge`);
   }
 
+  // Phase 19: the players' names, and the names kept for a life born again once those are spent: [en, hi], a first name
+  // each, none on both lists, none in the lead lexicon, so no two lives in a game need share one.
+  {
+    const seen = new Set();
+    for (const [k, list] of [["players", NAMES.players], ["players.again", NAMES.players?.again]])
+      for (const gd of ["m", "f"])
+        for (const [i, nm] of (list?.[gd] ?? []).entries()) {
+          const w = `names.${k}.${gd}[${i}]`;
+          if (!Array.isArray(nm) || nm.length !== 2 || !nm[0]?.trim() || !nm[1]?.trim()) { err(w, "is not [en, hi]"); continue; }
+          const [en, hi] = nm;
+          if (/\s/.test(en) || /\s/.test(hi)) err(w, `"${en}" is more than a first name: a surname marks a caste`);
+          if (seen.has(fold(en))) err(w, `"${en}" is a player's name twice`);
+          seen.add(fold(en));
+          if (k !== "players" && NAMED.some(e => e.en.some(f => fold(f) === fold(en)) || e.hi.some(f => f === hi))) err(w, `"${en}" is in the lead lexicon`);
+        }
+  }
+
   // Phase 10C: the cast's names and words. First names only, never repeated, none in the lead lexicon and none in any
   // mirror: the named people of the foreground are not the named people behind the glass (docs/NARRATIVE.md §13.10).
   if (CAST.names) {

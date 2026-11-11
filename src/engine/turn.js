@@ -1,6 +1,6 @@
 // The rules of a turn, with no DOM: the UI animates a plan, and tools/sim.mjs plays plans headless.
-import { GOAL, TOP, LADDERS, SNAKES, HEAVEN, SQ } from "../content.js";
-import { makeRng, die } from "../rng.js";
+import { GOAL, TOP, LADDERS, SNAKES, HEAVEN, SQ, PLAYER_NAMES, CAST } from "../content.js";
+import { makeRng, die, next } from "../rng.js";
 import { SPAN, turnYears, grow, freshGunas, freshAims, holdingOf, slotsFor, stageOfPlayer, SANNYASA } from "./self.js";
 import { optionOf, optionsFor, egoOf, egoFacesOn, egoThrow, graceThrow, worthOf, destOf } from "./qbn.js";
 import { freshKarma, karmaOf, carried, ripen, plantOf, omenFor, refusalOf, examineOf, meet, DEATH } from "./karma.js";
@@ -548,8 +548,7 @@ function bornAgain(state, i) {
   delete was.choices;
   const rebirths = (p.rebirths ?? 0) + 1;
   const rng = makeRng((state.rng.seed ^ 0x3c6ef372 ^ Math.imul(laneOf(state, i) + 1, 0x85ebca6b) ^ Math.imul(rebirths, 0xc2b2ae35)) >>> 0);
-  const taken = new Set([...state.players.flatMap(q => [q.name.trim(), q.alias?.en]), ...soul.cast.map(c => c.en)].filter(Boolean));
-  const nm = drawName(rng, "", taken) ?? drawName(rng, "", new Set());
+  const nm = nameAgain(state, i, rng, soul);
   const key = p.soul ?? (p.name ? nameKey(p.name) : null);
   const next = playerOf({ name: "", type: p.type, gender: nm.gender, alias: { en: nm.en, hi: nm.hi }, born: nb.born ?? null, soul: key, law: nb.law }, p.color);
   Object.assign(next, { pos: 1, life: [1], told: [null], past: [...(p.past ?? []), was], rebirths, ...(p.lane != null ? { lane: p.lane } : {}), ...(nb.animal ? { animal: nb.animal, carry: nb.carry } : {}) });
@@ -557,6 +556,31 @@ function bornAgain(state, i) {
   if (p.choices) next.choices = p.choices;
   for (const k of Object.keys(p)) delete p[k];
   Object.assign(p, next);
+}
+
+// The name of a life born again in seat i: never one any life in this game has had (at the table now, in a seat's lives
+// before, or as the table sat down; compared as names are, nameKey), nor one its soul's cast carries. Drawn from the
+// players' names as before (the same draw, kept whenever its name is new to the game); when a long game has used every one of them, from the names kept for that (players.again in
+// content/names.json), then from the cast's, passing over any name a living life's cast now has, so no book being
+// written loses a member's name. Only if all are spent is a name used again.
+function nameAgain(state, i, rng, soul) {
+  const lived = [...state.players.flatMap(q => [...(q.past ?? []), q]), ...(state.table ?? [])];
+  const keys = new Set([...lived.flatMap(q => [q.name, q.alias?.en, q.alias?.hi]), ...soul.cast.flatMap(c => [c.en, c.hi])].filter(Boolean).map(nameKey));
+  const free = ([en, hi]) => !keys.has(nameKey(en)) && !keys.has(nameKey(hi));
+  // the draw before this rule, which most games keep: only a name used before is drawn again
+  const was = drawName(rng, "", new Set([...state.players.flatMap(q => [q.name.trim(), q.alias?.en]), ...soul.cast.map(c => c.en)].filter(Boolean)));
+  if (was && free([was.en, was.hi])) return was;
+  const of = list => ["m", "f"].flatMap(gd => (list?.[gd] ?? []).map(([en, hi]) => ({ en, hi, gender: gd })));
+  const players = of(PLAYER_NAMES);
+  let pool = players.filter(x => free([x.en, x.hi]));
+  if (!pool.length) pool = of(PLAYER_NAMES.again).filter(x => free([x.en, x.hi]));
+  if (!pool.length && CAST.names) {
+    const casts = state.players.map((q, j) => (gone(q) ? null : castOf(state, j, q.prior?.lives ?? 0)));
+    for (const c of casts) for (const m of Object.values(c ?? {})) [m.en, m.hi].filter(Boolean).forEach(x => keys.add(nameKey(x)));
+    pool = ["m", "f", "either"].flatMap(gd => (CAST.names[gd] ?? []).map(([en, hi]) => ({ en, hi, gender: gd === "either" ? "n" : gd }))).filter(x => free([x.en, x.hi]));
+  }
+  if (!pool.length) pool = players;
+  return pool[Math.floor(next(rng) * pool.length)];
 }
 
 // Lives that cross (Phase 19): player i has just landed where another seat stands. Each keeps the meeting where in its own
