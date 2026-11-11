@@ -62,3 +62,16 @@ test("the name is said as a sentence needs it: lower case inside one, and in Hin
   assert.equal(tIn("en", "lAnimalShort", { name: "Dev" }), "The seasons turn, and Dev is still in the forest.");
   assert.equal(tIn("hi", "lMove", { name: "देव", v: 3, pos: 9, what: "x" }).split(":")[0], "देव का ३ आया");
 });
+
+test("an interlude ended short names the next birth by the bare kind, never the household", async () => {
+  const { animalLifeOf } = await import("../src/engine/animal.js");
+  const want = { tortoise: ["a tortoise's again.", "फिर कछुए का है।"], jackal: ["a jackal's again.", "फिर सियार का है।"], mongoose: ["a mongoose's again.", "फिर नेवले का है।"], cat: ["a cat's again.", "फिर बिल्ली का है।"], lion: ["a lion's again.", "फिर शेर का है।"] };
+  for (const [kind, [en, hi]] of Object.entries(want)) for (const master of [{ en: "Vikram", hi: "विक्रम" }, null]) {
+    const s = createGame({ players: [{ name: "", type: "cpu", gender: "m" }], rules: animalRules({ kind, master, round: 1 }, { six: true }), seed: 2 });
+    s.players[0].short = true;
+    const endEn = animalLifeOf(s, 0, "en").end, endHi = animalLifeOf(s, 0, "hi").end;
+    assert.ok(endEn.endsWith("and the next birth is " + en), endEn);
+    assert.ok(endHi.endsWith("अगला जन्म " + hi), endHi);
+    for (const t of [endEn, endHi]) assert.doesNotMatch(t, /house|घर|village|गाँव/, t);
+  }
+});
