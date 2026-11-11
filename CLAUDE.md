@@ -17,7 +17,7 @@ single static `index.html` at https://codebpr.com/moksha-patam/
 - `docs/REFERENCE.md`: philosophy-to-mechanics mapping and the history of the board.
 - `docs/LANDSCAPE.md`: comparable games.
 
-**State:** Phases 0 to 18 have shipped. Phase 8 was Life State (REDESIGN.md §4): years lived are a clock of their own
+**State:** Phases 0 to 19 have shipped. Phase 8 was Life State (REDESIGN.md §4): years lived are a clock of their own
 (`src/engine/self.js`) that a snake never turns back, moments say their age through `{age}`, a life ends when its years
 pass `SPAN` (110), and the life account (`src/engine/account.js`, pure) chooses each join by how a moment relates to the
 last. Gunas, aims and the bhumika are in state and never shown as numbers. Phase 9 was Dice as currency: from 94
@@ -108,6 +108,20 @@ readings said); no years, moments, debts or rebirth. The 84's top squares are 85
 chosen and only where the board offers them (`rules.variants`, `variantOf`); entry on a six and the exact throw are
 Johari's modern rules, roam is Harikṛṣṇa's, and the setup says so. Citations keep Latin digits in Hindi (`srcIn`); square
 numbers are Devanagari. A row of the 84 is a realm, never a rank.
+Phase 19, Parallel lives, has shipped (REDESIGN.md Phase 19): `rules.mode` is `"together"` (the default for two or more
+seats) or `"race"`, and a game without it is a race (`src/engine/mode.js`: `together`, `oneLife`, `liberated`). Played
+together a law's exit frees the seat (`p.free`) and every other end is born again in it, a death by ledger as an animal
+first; `rules.length` is `"free"` (until every soul is free) or `"one"` (one life each). Lives that cross keep a meeting
+(`p.met`); public moments are the line under the board (`landPublic`); Stop here sets `state.stopped`. Each person's
+choices are kept (`p.choices`, `noteChoice` in `src/main.js`) with `state.table` and `state.turns`, so a game is played
+again from its inputs (`replay` in `src/engine/compare.js`), and the lives are drawn side by side (`src/render/compare.js`).
+Every throw is keyed by the seed, the seat's lane, the life and `p.thrown` (`src/engine/throws.js`); a lane is not a seat
+(people first, then computers), and every sequence of a life's own is salted by the lane. `setDice("stream")` is the old
+shared sequence, tools only; a game without `state.throws === "own"` (saved before step 3) throws off it to its end
+(`streamOf`). Links live in the hash (`src/share.js`): `#play=board.law.seed` and `#life=payload`; a
+person's own finished games are kept in `mp-seeds`; today's life is `dailySeed(dayOf())`. A game a `?debug` helper set by
+hand is `state.tampered` and is never sent. A life born again never takes a name any life in its game has had (`nameAgain`;
+`players.again` in `content/names.json` is drawn only for that).
 Phase 7 was The Exit (REDESIGN.md §4): Moksha is square 105 (`GOAL`), partway
 along the divine row, while the board still ends at 110 (`TOP`). Since Phase 12 nothing above the exit turns back: past 105 the
 heavens (106–110) are walked. Since Phase 17 no throw passes `TOP`, and the exact throw onto it is Śiva's snake, the fall
@@ -169,6 +183,10 @@ illuminated frame (`frame.js`) and a bottom sheet below 768px (`sheet.js`).
   Balance against the p95, the share over 100, liberation per life and lives per liberation. Since Phase 18
   `--board=72|84` plays an old board as the old cloth, `--rand=own,die` by what it is thrown with, and
   `--start=six` / `--end=exact|roam` with the game's other rules; it reports turns to the goal and where they went.
+- Phase 19: `npm run sim -- --mode=together [--length=one]` plays a table together; `--dice=stream` (sim and
+  `tools/accounts.mjs`) throws off the old shared sequence. `tools/accounts.mjs --mode=together` tags `together` and
+  `meet`, and with per-throw dice every game whose throws differ from the stream's is tagged `dice`; with `--dice=stream`
+  every account must be main's. `npm run perf` also times opening the lives side by side on a four-seat game.
 - `npm run smoke [-- --only=text]`: Playwright checks of the built page in a real browser (needs Chrome installed).
   `--only` runs just the checks whose names contain the text, e.g. `--only="Phase 6"`.
 - `npm run golden [seeds]`: the built page and `sim.mjs` must produce the same move log.
@@ -201,7 +219,10 @@ illuminated frame (`frame.js`) and a bottom sheet below 768px (`sheet.js`).
   Its follow-up adds `mp.sprites()` (every figure, by gender, and the animals, side by side on every band's ground) and
   extends `mp.sprite(stage, color, frame, gender, animal)`. Phase 17 adds `mp.law(id[, "all"])` (the current player's law, or the whole game's) and `mp.grace(face)` (the face
   grace's next throw shows under Bhakti: `mp.grace(1)` brings it). Phase 18 adds `mp.board(id[, { start, end }])` (a fresh
-  game on that board, with the game's other rules; `mp.board()` is the board in play).
+  game on that board, with the game's other rules; `mp.board()` is the board in play). Phase 19 adds `mp.mode(m)`,
+  `mp.play(n)` (n turns at once, nobody's choices noted), `mp.compareOpen()`, `mp.compareText(l)`, `mp.compareImage()`,
+  `mp.share()` (`{ play, life, why }`), `mp.daily(date)`, `mp.compare(links)` and `mp.compared()`. A helper that changes the
+  game marks it `state.tampered`.
 - No physics on any card. "Debt" is the only word a player sees for a seed, and the ledger's buckets, weights, fuses
   and chances are never shown as numbers. The 1 is the threshold face and the 6 is the world's (`tests/faces.test.mjs`).
 - Never use `unshift` on anything but the log: `tools/golden.mjs` records every `unshift` of an entry as logged.

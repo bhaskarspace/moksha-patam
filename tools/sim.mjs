@@ -39,6 +39,7 @@
 // turns to the goal (median / p95), the share that took more than 100, and the share of games reaching the goal within
 // CAP turns a pawn.
 import { pathToFileURL } from "node:url";
+import { setDice } from "../src/engine/throws.js";
 import { createGame, playTurn, moveFor, movesFor, planTurn, rollDice, diceFor, setEndgame, ENDGAME, canSit, spentOf, inHeaven } from "../src/engine/turn.js";
 import { SQ, SITUATIONS, CURSES, BOARDS, BOARD, LADDERS, SNAKES, useBoard } from "../src/content.js";
 import { curseIn } from "../src/engine/curse.js";
@@ -211,6 +212,8 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   if (flags.death === "off") setDeath(false);
   if (flags.penance) setPenance(+flags.penance);
   if (flags.unpaid) setUnpaid(+flags.unpaid);
+  // --dice=stream: every seat's throws off the game's one sequence, as before Phase 19 step 3 (src/engine/throws.js)
+  if (flags.dice === "stream") setDice("stream");
   const pick = PICKS[flags.pick || "plain"];
   // --law: every computer plays under that law (Phase 17, src/engine/laws/index.js); --policy still says how it chooses
   if (flags.law && !LAWS[flags.law]) throw new Error(`no law ${flags.law}: ${Object.keys(LAWS).join(", ")}`);
@@ -307,6 +310,37 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     process.exit(0);
   }
   // --lives: one soul's lives a seed (Phase 16)
+  // --mode=together (Phase 19, src/engine/mode.js): every game played together by `players` computers (at least two). Nobody
+  // wins by arriving first: each seat lives on through its rebirths until it is let go. Reports the game's length in turns
+  // a seat (median / p95 / max), the lives a seat took to be let go, how every life ended, the animal lives among them,
+  // the meetings a life (lives that crossed), and the games that hit the cap. --length=one plays one life each (the game
+  // over when every seat's life has ended); without it, until every soul is free.
+  if (flags.mode === "together") {
+    const seats = Math.max(2, players), len = [], lives = [], ends = {}, cap = { n: 0 };
+    let all = 0, animals = 0, met = 0;
+    for (let s = first; s < first + games; s++) {
+      const g = playGame(s, { players: seats, rules: { ...rules, mode: "together", ...(flags.length === "one" ? { length: "one" } : {}) }, pick });
+      if (g.capped) cap.n++;
+      len.push(Math.max(...g.turns));
+      for (const p of g.players) {
+        const ls = [...(p.past ?? []), p];
+        lives.push(ls.filter(q => !q.animal).length);
+        for (const q of ls) {
+          all++; met += q.met?.length ?? 0;
+          if (q.animal) { animals++; continue; }
+          const k = q.free ? "liberated" : q.death ? `died (${q.death.by})` : q.fell ? (q.fellBy === "snake" ? "Śiva's snake" : "merit spent") : "living at the end";
+          ends[k] = (ends[k] ?? 0) + 1;
+        }
+      }
+    }
+    const L = summarise(len), N = summarise(lives);
+    console.log(`${games} games played together, ${flags.length === "one" ? "one life each" : "until every soul is free"}, ${seats} seats, seeds ${first}–${first + games - 1}${flags.law ? `, law ${flags.law}` : ""}${flags.policy ? `, policy ${flags.policy}` : ""}`);
+    console.log(`turns a seat to the end of the game: median ${L.median}, p95 ${L.p95}, max ${L.max}; capped at ${CAP} ${cap.n}`);
+    console.log(`human lives a seat: median ${N.median}, p95 ${N.p95}, max ${N.max}, mean ${N.mean.toFixed(2)}; animal lives ${animals} (${pct(animals / all)} of all lives)`);
+    console.log("how the human lives ended: " + Object.entries(ends).sort((a, b) => b[1] - a[1]).map(([k, c]) => `${k} ${pct(c / (all - animals))}`).join(", "));
+    console.log(`meetings a life ${(met / all).toFixed(2)} (each is in both books)`);
+    process.exit(0);
+  }
   if (flags.lives) {
     const n = +flags.lives, byLife = Array.from({ length: n }, () => ({ lives: 0, freed: 0, ledger: 0, years: 0, door: 0, fell: 0, turns: [] }));
     let capped = 0;

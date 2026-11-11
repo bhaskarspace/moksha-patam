@@ -240,6 +240,7 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 .token.active { z-index: 3; }
 /* Phase 8: a life whose years ran out stays where it fell, in the paint only */
 .token.dead .spr { filter: grayscale(1) drop-shadow(0 1px 1px rgba(0, 0, 0, 0.45)); opacity: 0.7; }
+.token.liberated .spr { opacity: 0.8; }
 .token.active .body { animation: bob 1.1s ease-in-out infinite; }
 .token.hop .body { animation: hop 0.18s ease-out; }
 .token.gulp .body { transform-origin: 50% 30%; animation: gulp 0.34s ease-in forwards; }
@@ -444,6 +445,10 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 .naming-step { margin: 0; font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--l-ink2); }
 .naming-act { display: flex; gap: 10px; align-items: center; }
 .naming #namingBack { background: none; border: 1px solid var(--l-line); color: var(--l-ink); }
+/* Stop here (Phase 19): one question, two answers */
+.ask-leaf { gap: 16px; padding: 22px 24px; font-family: var(--f-card); }
+.ask-leaf p { margin: 0; font-size: 18px; line-height: 1.4; }
+.ask button.ghost[type="submit"] { background: none; border: 1px solid var(--l-line); color: var(--l-ink); }
 
 /* the life account */
 .life-who { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px 24px 0; font-family: var(--f-body); }
@@ -740,6 +745,51 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   .token .body, .die.rolling, .shells.rolling, .lab.goal .om, .leaf, .leaf *, .flourish *, .toast { animation: none !important; }
   ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
 }
+
+/* ---- The lives, side by side (Phase 19) ---- */
+.folio.compare { width: min(1080px, calc(100vw - 24px)); }
+.cmp-leaf { overflow: hidden; }
+.cmp-body { overflow-y: auto; overflow-x: hidden; padding: 4px 24px 22px; }
+.cmp-body h2 { margin: 4px 0 10px; font-weight: 400; font-size: 28px; }
+.cmp-body h3 { margin: 22px 0 6px; font-size: 13px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--l-gold); font-family: var(--f-body); }
+.cmp-body .dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35); flex: none; }
+.cmp-souls { list-style: none; margin: 0; padding: 0; }
+.cmp-souls li { padding: 8px 0; border-bottom: 1px solid var(--l-line); font-size: 17px; line-height: 1.5; }
+.cmp-souls .cmp-ends { display: block; font-size: 15px; color: var(--l-ink2); margin-left: 18px; }
+.cmp-souls .beads { margin-left: 6px; white-space: nowrap; }
+.cmp-body .bead { display: inline-block; width: 9px; height: 9px; margin-right: 3px; border-radius: 50%; border: 1.5px solid var(--l-ink2); }
+.cmp-body .bead.animal { border-style: dotted; }
+.cmp-body .bead.free { background: var(--b-gold); border-color: var(--b-gold); }
+.cmp-leaf canvas { position: static; pointer-events: auto; }
+.cmp-board { display: block; margin: 0 auto; border-radius: 6px; box-shadow: inset 0 0 0 1px var(--l-line); }
+.cmp-note { margin: 0 0 6px; font-size: 15px; font-style: italic; color: var(--l-ink2); }
+.cmp-gunas { display: flex; align-items: center; margin: 4px 0; }
+.cmp-gunas canvas { border-radius: 4px; }
+.cmp-gunas canvas, .cmp-board { inset: auto; }
+.cmp-none { margin: 0; font-size: 15px; color: var(--l-ink2); }
+.cmp-same { margin: 0; }
+.cmp-same dt { margin-top: 10px; font-weight: 600; font-size: 16px; }
+.cmp-same dd { margin: 3px 0 0 0; font-size: 16px; line-height: 1.5; display: flex; align-items: baseline; }
+.cmp-met { margin: 0; padding: 0; list-style: none; }
+.cmp-met li { font-size: 16px; line-height: 1.6; }
+.cmp-tabs { display: none; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+.cmp-tabs button { background: transparent; color: var(--l-ink); border: 1px solid var(--l-line); border-radius: 99px; padding: 4px 12px; font-size: 14px; }
+.cmp-tabs button[aria-selected="true"] { border-color: var(--l-rule); box-shadow: inset 0 0 0 1px var(--l-rule); }
+.cmp-books { display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); gap: 20px; }
+.cmp-book { min-width: 0; }
+.cmp-life { margin-bottom: 16px; }
+.cmp-life h4 { margin: 0 0 4px; font-size: 18px; font-weight: 600; }
+.cmp-life h5 { margin: 10px 0 2px; font-size: 13px; font-weight: 600; color: var(--l-ink2); font-family: var(--f-body); }
+.cmp-life p { margin: 4px 0 0; font-size: 15px; line-height: 1.55; text-wrap: pretty; overflow-wrap: anywhere; }
+.cmp-life .cmp-end { font-style: italic; color: var(--l-ink2); }
+.cmp-acts { margin: 22px 0 0; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.cmp-acts .ghost { color: var(--l-ink); border-color: var(--l-line); }
+@media (max-width: 767px) {
+  .cmp-body { padding: 4px 16px 18px; }
+  .cmp-tabs { display: flex; }
+  .cmp-books { display: block; }
+  .cmp-book:not(.on) { display: none; }
+}
 </style>
 </head>
 <body>
@@ -916,6 +966,10 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
               <div id="rebornLaws" class="laws" role="group" hidden></div>
               <button id="reborn" type="button" data-t="reborn" hidden>Be born again</button>
               <p id="rebornNote" class="note" data-t="rebornNote" hidden>The next life carries this one, half-remembered.</p>
+              <button id="compare" type="button" data-t="compareLives" hidden>Compare the lives</button>
+              <button id="sendLife" type="button" class="ghost" data-t="sendLife" hidden>Send your life</button>
+              <button id="shareSeed" type="button" class="ghost" data-t="shareSeed" hidden>Play the same dice with someone</button>
+              <p id="shareNote" class="note" aria-live="polite"></p>
               <button id="again" type="button" class="ghost" data-t="again">Play again</button>
             </div>
           </div>
@@ -934,6 +988,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           <div class="roll-info">
             <button id="roll" type="button">Roll the die</button>
             <button id="practise" type="button" class="ghost" data-t="practise" hidden>Sit in practice</button>
+            <button id="stopHere" type="button" class="ghost" data-t="stopHere" hidden>Stop here</button>
             <div class="pick" id="pick" role="group" hidden></div>
             <span class="hint" id="hint"></span>
           </div>
@@ -965,6 +1020,10 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         <div class="setup-body">
           <div class="seg" id="count" role="group"></div>
           <div id="prows" class="setup-body"></div>
+          <label class="pick" id="ruleModeRow" hidden><span data-t="modePick"></span><select id="ruleMode"></select></label>
+          <p class="law-about" id="ruleModeAbout" hidden></p>
+          <label class="pick" id="ruleLengthRow" hidden><span data-t="lengthPick"></span><select id="ruleLength"></select></label>
+          <p class="law-about" id="ruleLengthAbout" hidden></p>
           <label class="pick"><span data-t="ruleBoard"></span><select id="ruleBoard"></select></label>
           <p class="law-about" id="ruleBoardAbout" hidden></p>
           <label class="pick" id="ruleRandRow" hidden><span data-t="ruleRand"></span><select id="ruleRand"></select></label>
@@ -978,6 +1037,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           <label class="check"><input type="checkbox" id="prefBoth"> <span data-t="cardBoth"></span></label>
           <label class="pick"><span data-t="theme"></span><select id="prefTheme"></select></label>
           <button id="newGame" type="button" data-t="newGame">Start new game</button>
+          <button id="daily" type="button" class="ghost" data-t="daily">Today's life</button>
+          <span class="hint" data-t="dailyAbout"></span>
           <span class="hint" id="seed"></span>
         </div>
       </details>
@@ -1006,6 +1067,11 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         <legend data-t="namingWho">Who is playing?</legend>
         <div class="naming-genders" id="namingWhoOpts"></div>
       </fieldset>
+      <fieldset class="naming-field" id="namingMode" hidden>
+        <legend data-t="modePick">How to play</legend>
+        <div class="naming-genders" id="namingModeOpts"></div>
+        <div class="naming-genders" id="namingLengthOpts" role="group"></div>
+      </fieldset>
       <p class="naming-step" id="namingStep" hidden></p>
       <label class="naming-field"><span data-t="namingName">Name</span>
         <input type="text" id="namingName" maxlength="16" autocomplete="given-name" spellcheck="false">
@@ -1027,9 +1093,25 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   </form>
 </dialog>
 
+<!-- Stop here (Phase 19): a game played together ends when the people at it say so -->
+<dialog class="folio naming ask" id="stopAsk" aria-labelledby="stopAskText">
+  <form method="dialog" class="leaf ask-leaf">
+    <p id="stopAskText" data-t="stopHereAsk"></p>
+    <div class="naming-act">
+      <button type="submit" value="yes" data-t="stopHereYes">Stop and compare</button>
+      <button type="submit" value="no" class="ghost" data-t="stopHereNo">Play on</button>
+    </div>
+  </form>
+</dialog>
+
 <!-- The life account, at the end of a game (docs/NARRATIVE.md §9) -->
 <dialog class="folio life" id="lifeDlg" aria-labelledby="lifeTitle">
   <article class="leaf life-leaf" id="lifeLeaf"></article>
+</dialog>
+
+<!-- The lives, side by side (Phase 19): at the end of a game of two or more seats -->
+<dialog class="folio compare" id="compareDlg" aria-labelledby="cmpTitle">
+  <article class="leaf cmp-leaf" id="cmpLeaf"></article>
 </dialog>
 
 <script>
@@ -1266,7 +1348,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         ladderTo: "Ladder up to {n}",
         snakeTo: "Snake down to {n}",
         liberation: "Liberation",
-        seed: "Seed",
+        seed: "Dice",
         depth: "Reading depth",
         depthStory: "Story",
         depthSchool: "Story + school",
@@ -1719,7 +1801,101 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         ruleOtherAbout: "Other ways the old boards were and are played, each named by its source. None is this board's own rule.",
         topSq: "top {n}",
         board84: "84 squares: the Jaina cloth, by Jeṭhābhāī's rules (a long game)",
-        board84About: "The old game, as the Jaina cloths were played: from the basic lifeforms at the cosmic man's feet to the siddhaśilā above his head, under the Jain law. Only a 1 leaves square 1, climbs a ladder or a footprint, or moves through the five heavens above; past 80 without it, the pawn walks to 84 and back down. A long game, often more than a hundred throws, as it was played over the days of Paryuṣaṇ. The rows are realms, not ranks."
+        board84About: "The old game, as the Jaina cloths were played: from the basic lifeforms at the cosmic man's feet to the siddhaśilā above his head, under the Jain law. Only a 1 leaves square 1, climbs a ladder or a footprint, or moves through the five heavens above; past 80 without it, the pawn walks to 84 and back down. A long game, often more than a hundred throws, as it was played over the days of Paryuṣaṇ. The rows are realms, not ranks.",
+        modePick: "How to play",
+        modeTogether: "Together",
+        modeTogetherAbout: "Every life is lived to its end, and each soul is born again until it is let go. No one wins by arriving first.",
+        modeRace: "Race",
+        modeRaceAbout: "A shorter game: first to Moksha wins.",
+        stopHere: "Stop here",
+        stopHereAsk: "Stop the game here, and see the lives side by side as they stand?",
+        stopHereYes: "Stop and compare",
+        stopHereNo: "Play on",
+        togetherTitle: "The lives, side by side",
+        togetherText: "Every person's soul has been let go, or has lived the one life its law allows.",
+        stoppedText: "The game was stopped here, with every life as it stands.",
+        compareLives: "Compare the lives",
+        freeStage: "Let go",
+        pub_reckon: "A reckoning",
+        pub_died: "A death",
+        pub_ladder: "A ladder",
+        pub_free: "Let go",
+        lRebornDied: "{name} is born again, the same soul under another name.",
+        lBornAnimal: "{name} is born a {animal}: an animal's life comes before the next human one.",
+        lBornHuman: "{name} is born human again.",
+        bornAgainLineDied: "{was}'s life is over, and the same soul is born again as {name}.",
+        bornAgainLineAnimal: "{was}'s life is over, and the soul is born a {animal} first.",
+        bornAgainLineHuman: "The {animal}'s life is over, and the soul is born human again, as {name}.",
+        bornAgainCardDied: "{was}'s life is over, and it is written in the book.",
+        bornAgainCardAnimal: "A debt came due that {was}'s life could not pay, and the life is written in the book.",
+        bornAgainNewAnimal: "Before another human birth the soul lives once as a {animal}, and must reach the edge of the forest before the seasons turn.",
+        bornAgainCardHuman: "The {animal}'s life is over.",
+        accMet: "At {age}, {name} and {other} stood on the same square: {sq}.",
+        accMetFirst: "In the first year, {name} and {other} were on the same square: {sq}.",
+        accMetHeaven: "In the realm of {sq}, {name} and {other} stood together.",
+        lengthPick: "How long",
+        lengthFree: "Until every soul is free",
+        lengthFreeAbout: "Each soul is born again at the table, as often as it takes, until it is let go.",
+        lengthOne: "One life each",
+        lengthOneAbout: "The game ends when every life at the table has ended. A soul that would be born again carries what it left into the next game.",
+        togetherOneText: "Every life at the table has ended. Each soul that goes on carries this life into the next game.",
+        cmpBoard: "Where each life went",
+        cmpBoardAlt: "The board, with the path of every life drawn on it in its player's colour.",
+        cmpGunas: "Who each became",
+        cmpGunasNote: "Over the years of each life, in turn: sattva above, rajas between, tamas below.",
+        cmpNoTrace: "This game was begun before the lives were kept turn by turn, so who each became is not drawn.",
+        cmpSoul: "{name}'s soul",
+        cmpLivesOne: "one life",
+        cmpLives: "{n} lives",
+        cmpEnd_liberated: "let go",
+        cmpEnd_svarga: "reached svarga",
+        cmpEnd_years: "the years ran out",
+        cmpEnd_ledger: "a debt came due",
+        cmpEnd_door: "died at the door",
+        cmpEnd_siva: "Śiva's snake",
+        cmpEnd_fell: "the merit spent",
+        cmpEnd_animal: "an animal's life",
+        cmpEnd_living: "still living",
+        cmpSame: "At the same squares",
+        cmpSameNone: "No two lives chose on the same square.",
+        cmpSameRow: "{name}: ‘{took}’",
+        cmpSameRebel: "{name} chose ‘{chose}’; the life did ‘{took}’",
+        cmpMet: "Where the lives crossed",
+        cmpMetNone: "No two lives stood on the same square.",
+        cmpMetLine: "{a} and {b}: {sq}",
+        cmpBooks: "The books",
+        cmpSave: "Save as an image",
+        cmpCopy: "Copy as text",
+        cmpCopied: "Copied",
+        cmpSaved: "Saved",
+        cmpFoot: "Moksha Patam, the game of snakes and ladders played as a life",
+        cmpParted: "Where the lives parted",
+        cmpPartMove: "Throw {k}, at {sq}: both rolled {dice}. {a} moved {va}; {b} moved {vb}.",
+        cmpPartChoice: "Throw {k}, at {sq}: {a} chose ‘{va}’; {b} chose ‘{vb}’.",
+        cmpPartBefore: "{a} and {b} rolled the same dice, but by throw {k} they no longer stood on the same square.",
+        cmpPartEnd: "{a} and {b} did the same, throw for throw, until one life ended, at throw {k}.",
+        cmpPartNone: "{a} and {b} rolled the same dice and did the same with them, throw for throw.",
+        cmpPartOther: "{a} and {b} played different dice, so their throws were never the same.",
+        cmpAnd: "{a} and {b}",
+        cmpPlaySeed: "Play these dice yourself",
+        cmpPlayAbout: "You haven’t played these dice yet. Your dice will be the same as theirs, throw for throw.",
+        cmpAdd: "Add another life",
+        cmpAddLabel: "A life's link",
+        cmpAddBad: "That link could not be read.",
+        cmpAddOther: "That life was played on another version of the game, so it cannot be shown truly.",
+        cmpAddSame: "That life is already here.",
+        cmpYou: "{name} (you)",
+        shareSeed: "Play the same dice with someone",
+        shareSeedText: "Play Moksha Patam on the same dice as me.",
+        sendLife: "Send your life",
+        sendLifeText: "{name}'s life in Moksha Patam. Open it to see it beside yours.",
+        linkCopied: "Link copied",
+        linkShared: "Shared",
+        daily: "Today's life",
+        dailyAbout: "Everyone who plays today has the same dice. Nothing leaves this page.",
+        dailyLabel: "Today's life, {date}",
+        seedFromLink: "Dice someone shared: yours will be theirs, throw for throw.",
+        lifeFromLink: "A life someone sent you"
       },
       hi: {
         title: "मोक्ष पटम",
@@ -1778,7 +1954,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         ladderTo: "सीढ़ी: {n} तक",
         snakeTo: "साँप: {n} तक नीचे",
         liberation: "मुक्ति",
-        seed: "बीज",
+        seed: "पासे",
         depth: "पढ़ने की गहराई",
         depthStory: "कथा",
         depthSchool: "कथा + दर्शन",
@@ -2231,7 +2407,101 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         ruleOtherAbout: "पुराने पट खेलने के और तरीक़े, हर एक अपने स्रोत के नाम से। इनमें से कोई इस पट का अपना नियम नहीं।",
         topSq: "ऊपर {n}",
         board84: "84 घर: जैन पट, जेठाभाई के नियमों से (लंबा खेल)",
-        board84About: "पुराना खेल, जैसे जैन पट खेले जाते थे: लोकपुरुष के पैरों के निगोद से उसके सिर के ऊपर की सिद्धशिला तक, जैन नियम में। केवल 1 ही घर 1 से निकालता है, सीढ़ी या पदचिह्न चढ़ाता है, या ऊपर के पाँच स्वर्गों में आगे ले जाता है; उसके बिना 80 से आगे गया मोहरा 84 तक जाकर लौटता है। एक लंबा खेल, अक्सर सौ से अधिक दाँव का, जैसे पर्युषण के दिनों में खेला जाता था। पंक्तियाँ लोक हैं, दर्जे नहीं।"
+        board84About: "पुराना खेल, जैसे जैन पट खेले जाते थे: लोकपुरुष के पैरों के निगोद से उसके सिर के ऊपर की सिद्धशिला तक, जैन नियम में। केवल 1 ही घर 1 से निकालता है, सीढ़ी या पदचिह्न चढ़ाता है, या ऊपर के पाँच स्वर्गों में आगे ले जाता है; उसके बिना 80 से आगे गया मोहरा 84 तक जाकर लौटता है। एक लंबा खेल, अक्सर सौ से अधिक दाँव का, जैसे पर्युषण के दिनों में खेला जाता था। पंक्तियाँ लोक हैं, दर्जे नहीं।",
+        modePick: "कैसे खेलें",
+        modeTogether: "साथ-साथ",
+        modeTogetherAbout: "हर जीवन अपने अंत तक जिया जाता है, और हर आत्मा तब तक फिर-फिर जन्म लेती है जब तक मुक्त न हो जाए। पहले पहुँचने से कोई नहीं जीतता।",
+        modeRace: "दौड़",
+        modeRaceAbout: "छोटा खेल: जो पहले मोक्ष तक पहुँचे, वही जीते।",
+        stopHere: "यहीं रुकें",
+        stopHereAsk: "खेल यहीं रोककर सारे जीवन, जैसे वे अभी हैं, साथ-साथ देखें?",
+        stopHereYes: "रोकें और साथ देखें",
+        stopHereNo: "खेलते रहें",
+        togetherTitle: "जीवन, साथ-साथ",
+        togetherText: "हर व्यक्ति की आत्मा मुक्त हो चुकी है, या उतना एक जीवन जी चुकी है जितना उसका दर्शन देता है।",
+        stoppedText: "खेल यहीं रोका गया, हर जीवन जैसा अभी है।",
+        compareLives: "जीवन साथ-साथ देखें",
+        freeStage: "मुक्त",
+        pub_reckon: "हिसाब",
+        pub_died: "मृत्यु",
+        pub_ladder: "सीढ़ी",
+        pub_free: "मुक्ति",
+        lRebornDied: "{name} का फिर से जन्म होता है: वही आत्मा, दूसरे नाम से।",
+        lBornAnimal: "{name} का जन्म {animalO} के रूप में होता है: अगले मनुष्य-जन्म से पहले एक पशु का जीवन।",
+        lBornHuman: "{name} का फिर से मनुष्य के रूप में जन्म होता है।",
+        bornAgainLineDied: "{was} का जीवन पूरा हुआ, और वही आत्मा {name} बनकर फिर से जन्म लेती है।",
+        bornAgainLineAnimal: "{was} का जीवन पूरा हुआ, और आत्मा पहले {animalO} के रूप में जन्म लेती है।",
+        bornAgainLineHuman: "{animalO} का जीवन पूरा हुआ, और आत्मा {name} बनकर फिर से मनुष्य के रूप में जन्म लेती है।",
+        bornAgainCardDied: "{was} का जीवन पूरा हुआ, और वह बही में लिखा जा चुका है।",
+        bornAgainCardAnimal: "एक ऐसा क़र्ज़ सामने आया जो {was} का जीवन चुका नहीं सका, और वह जीवन बही में लिखा जा चुका है।",
+        bornAgainNewAnimal: "अगले मनुष्य-जन्म से पहले आत्मा एक बार {animalO} के रूप में जीती है, और उसे मौसम बदलने से पहले जंगल के किनारे तक पहुँचना है।",
+        bornAgainCardHuman: "{animalO} का जीवन पूरा हुआ।",
+        accMet: "{age} बरस की उम्र में {name} और {other} एक ही घर पर खड़े थे: {sq}।",
+        accMetFirst: "पहले बरस में {name} और {other} एक ही घर पर थे: {sq}।",
+        accMetHeaven: "{sq} के लोक में {name} और {other} साथ खड़े थे।",
+        lengthPick: "कितना लंबा",
+        lengthFree: "जब तक हर आत्मा मुक्त न हो",
+        lengthFreeAbout: "हर आत्मा इसी खेल में, जितनी बार ज़रूरी हो, फिर जन्म लेती है, जब तक मुक्त न हो जाए।",
+        lengthOne: "हर किसी का एक जीवन",
+        lengthOneAbout: "खेल तब समाप्त होता है जब मेज़ पर हर जीवन पूरा हो जाए। जो आत्मा फिर जन्म लेगी, वह जो छोड़ गई उसे अगले खेल में साथ ले जाती है।",
+        togetherOneText: "मेज़ पर हर जीवन पूरा हुआ। जो आत्मा आगे जाती है, वह यह जीवन अगले खेल में साथ ले जाती है।",
+        cmpBoard: "हर जीवन कहाँ-कहाँ गया",
+        cmpBoardAlt: "पट, जिस पर हर जीवन का रास्ता उसके खिलाड़ी के रंग में खिंचा है।",
+        cmpGunas: "कौन क्या बना",
+        cmpGunasNote: "हर जीवन के बरसों के साथ: ऊपर सत्त्व, बीच में रजस्, नीचे तमस्।",
+        cmpNoTrace: "यह खेल तब शुरू हुआ था जब जीवन हर दाँव पर नहीं रखे जाते थे, इसलिए कौन क्या बना, यह नहीं खिंचा।",
+        cmpSoul: "{name} की आत्मा",
+        cmpLivesOne: "एक जीवन",
+        cmpLives: "{n} जीवन",
+        cmpEnd_liberated: "मुक्त",
+        cmpEnd_svarga: "स्वर्ग मिला",
+        cmpEnd_years: "बरस पूरे हुए",
+        cmpEnd_ledger: "क़र्ज़ की घड़ी आई",
+        cmpEnd_door: "द्वार पर मृत्यु",
+        cmpEnd_siva: "शिव का नाग",
+        cmpEnd_fell: "पुण्य क्षीण हुआ",
+        cmpEnd_animal: "एक पशु का जीवन",
+        cmpEnd_living: "अभी जीवित",
+        cmpSame: "एक ही घरों पर",
+        cmpSameNone: "किसी एक घर पर दो जीवनों ने चुनाव नहीं किया।",
+        cmpSameRow: "{name}: ‘{took}’",
+        cmpSameRebel: "{name} ने ‘{chose}’ चुना; जीवन ने ‘{took}’ किया",
+        cmpMet: "जहाँ जीवन मिले",
+        cmpMetNone: "कोई दो जीवन एक ही घर पर नहीं खड़े हुए।",
+        cmpMetLine: "{a} और {b}: {sq}",
+        cmpBooks: "बहियाँ",
+        cmpSave: "चित्र के रूप में सहेजें",
+        cmpCopy: "पाठ के रूप में कॉपी करें",
+        cmpCopied: "कॉपी हुआ",
+        cmpSaved: "सहेजा गया",
+        cmpFoot: "मोक्ष पटम, साँप-सीढ़ी का खेल, एक जीवन की तरह खेला गया",
+        cmpParted: "जहाँ जीवन अलग हुए",
+        cmpPartMove: "दाँव {k}, घर {sq} पर: दोनों के {dice} आए। {a} ने {va} की चाल चली; {b} ने {vb} की।",
+        cmpPartChoice: "दाँव {k}, घर {sq} पर: {a}: ‘{va}’; {b}: ‘{vb}’।",
+        cmpPartBefore: "{a} और {b} के पासे एक जैसे आए, पर दाँव {k} तक वे एक ही घर पर नहीं थे।",
+        cmpPartEnd: "{a} और {b} ने दाँव-दर-दाँव एक जैसा किया, जब तक दाँव {k} पर एक जीवन समाप्त नहीं हुआ।",
+        cmpPartNone: "{a} और {b} के पासे एक ही आए, और दोनों ने उनसे दाँव-दर-दाँव एक ही किया।",
+        cmpPartOther: "{a} और {b} के पासे अलग थे, इसलिए उनके दाँव कभी एक नहीं थे।",
+        cmpAnd: "{a} और {b}",
+        cmpPlaySeed: "यही पासे खुद खेलें",
+        cmpPlayAbout: "आपने ये पासे अभी नहीं खेले हैं। आपके पासे दाँव-दर-दाँव वही आएँगे जो उनके आए।",
+        cmpAdd: "एक और जीवन जोड़ें",
+        cmpAddLabel: "किसी जीवन का लिंक",
+        cmpAddBad: "यह लिंक पढ़ा नहीं जा सका।",
+        cmpAddOther: "यह जीवन खेल के किसी दूसरे संस्करण पर खेला गया था, इसलिए इसे सही-सही नहीं दिखाया जा सकता।",
+        cmpAddSame: "यह जीवन पहले से यहाँ है।",
+        cmpYou: "{name} (आप)",
+        shareSeed: "यही पासे किसी के साथ खेलें",
+        shareSeedText: "मेरे ही पासों पर मोक्ष पटम खेलें।",
+        sendLife: "अपना जीवन भेजें",
+        sendLifeText: "मोक्ष पटम में {name} का जीवन। इसे खोलें और अपने जीवन के साथ देखें।",
+        linkCopied: "लिंक कॉपी हुआ",
+        linkShared: "भेजा गया",
+        daily: "आज का जीवन",
+        dailyAbout: "आज खेलने वाले सबके पासे एक ही हैं। इस पन्ने से कुछ बाहर नहीं जाता।",
+        dailyLabel: "आज का जीवन, {date}",
+        seedFromLink: "किसी के भेजे पासे: आपके पासे वही आएँगे जो उनके आए।",
+        lifeFromLink: "किसी का भेजा जीवन"
       }
     },
     JOINS: {
@@ -3086,7 +3356,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     players: {
       about: "Names drawn for a computer player, or for anyone left unnamed at the naming (docs/NARRATIVE.md §3), each [en, hi], by the gender the cards agree with. Kept out of the lead lexicon above: these are the players, not people a card can name.",
       m: [["Aarav", "आरव"], ["Kabir", "कबीर"], ["Rohan", "रोहन"], ["Imran", "इमरान"], ["Vikram", "विक्रम"], ["Arjun", "अर्जुन"], ["Dev", "देव"], ["Sameer", "समीर"], ["Anil", "अनिल"], ["Joseph", "जोसेफ़"]],
-      f: [["Asha", "आशा"], ["Meera", "मीरा"], ["Kavya", "काव्या"], ["Ananya", "अनन्या"], ["Zoya", "ज़ोया"], ["Priya", "प्रिया"], ["Lata", "लता"], ["Nandini", "नंदिनी"], ["Farah", "फ़रह"], ["Rhea", "रिया"]]
+      f: [["Asha", "आशा"], ["Meera", "मीरा"], ["Kavya", "काव्या"], ["Ananya", "अनन्या"], ["Zoya", "ज़ोया"], ["Priya", "प्रिया"], ["Lata", "लता"], ["Nandini", "नंदिनी"], ["Farah", "फ़रह"], ["Rhea", "रिया"]],
+      again: { about: "Names for a life born again once a long game played together has used every name above (Phase 19, reviewed 11 Nov): no two lives in one game share a name. Never drawn for a seat as the table sits down, so no first life is named otherwise than before. For Bhaskar to pass.", m: [["Rahul", "राहुल"], ["Nikhil", "निखिल"], ["Manish", "मनीष"], ["Rajesh", "राजेश"], ["Suresh", "सुरेश"], ["Amit", "अमित"], ["Deepak", "दीपक"], ["Sunil", "सुनील"], ["Pankaj", "पंकज"], ["Tushar", "तुषार"], ["Yash", "यश"], ["Kunal", "कुणाल"], ["Neeraj", "नीरज"], ["Faisal", "फ़ैसल"], ["Salim", "सलीम"], ["Tariq", "तारिक़"], ["Farhan", "फ़रहान"], ["Daniel", "डेनियल"], ["Harjeet", "हरजीत"], ["Ashok", "अशोक"]], f: [["Neha", "नेहा"], ["Pooja", "पूजा"], ["Sneha", "स्नेहा"], ["Divya", "दिव्या"], ["Shreya", "श्रेया"], ["Ritu", "रितु"], ["Nisha", "निशा"], ["Pallavi", "पल्लवी"], ["Swati", "स्वाति"], ["Sunita", "सुनीता"], ["Poonam", "पूनम"], ["Komal", "कोमल"], ["Anjali", "अंजलि"], ["Simran", "सिमरन"], ["Harpreet", "हरप्रीत"], ["Shabnam", "शबनम"], ["Ayesha", "आयशा"], ["Sana", "सना"], ["Nasreen", "नसरीन"], ["Mary", "मैरी"]] }
     },
     cast: {
       about: "The cast's names (docs/NARRATIVE.md §13.3; REDESIGN.md Phase 10C), each [en, hi]: the friend, the teacher, the rival, the one the player married and the children, drawn per life. First names only, since a surname marks a caste; ordinary, none mythic, none marked. Bhaskar passes this list. Kept out of the lead lexicon above, and the lint keeps every name here out of every mirror. Without this key the cast stays unnamed and every account reads exactly as it did in Phase 10.",
@@ -4507,6 +4778,64 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     return best;
   }
 
+  // src/engine/dice.js
+  var COWRIES = 7;
+  var COWRIE_UP = 0.45;
+  var STICK = [1, 2, 5, 6];
+  function throwOf(rng, kind = "die") {
+    if (kind === "cowries") {
+      const up = Array.from({ length: COWRIES }, () => next(rng) < COWRIE_UP);
+      return { v: up.filter(Boolean).length, up };
+    }
+    if (kind === "stick") return { v: STICK[Math.floor(next(rng) * STICK.length)] };
+    return { v: die(rng) };
+  }
+
+  // src/engine/throws.js
+  var TUMBLE = 7;
+  var DICE = "throw";
+  var streamOf = (state) => DICE === "stream" || state?.throws !== "own";
+  var throwsNew = () => DICE === "stream" ? {} : { throws: "own" };
+  var lanesOf = (players) => {
+    let people2 = 0;
+    const humans = players.filter((p) => p.type === "human").length;
+    let cpus = 0;
+    return players.map((p) => p.type === "human" ? people2++ : humans + cpus++);
+  };
+  var laneOf = (state, i) => streamOf(state) ? i : state.players[i]?.lane ?? i;
+  var drawnOf = (state, i, lived) => streamOf(state) ? lived : state.players[i]?.thrown ?? 0;
+  function mix(...xs) {
+    let h = 2654435769;
+    for (const x of xs) {
+      h = Math.imul(h ^ x >>> 0, 2246822507);
+      h ^= h >>> 13;
+      h = Math.imul(h, 3266489909);
+      h ^= h >>> 16;
+    }
+    return h >>> 0;
+  }
+  var DIE = 1374496513;
+  var TUMBLES = 2068451811;
+  var CLOTH = 1007681253;
+  var throwRng = (state, i, k, what = DIE) => makeRng(mix(state.rng.seed, what, laneOf(state, i) + 1, (state.players[i]?.rebirths ?? 0) + 1, k + 1));
+  function drawThrow(state, n, { i = state.turn, kind = null, forced = null } = {}) {
+    const p = state.players[i], k = p.thrown ?? 0, stream = streamOf(state);
+    const r = stream ? state.rng : throwRng(state, i, k), rt = stream ? state.rng : throwRng(state, i, k, TUMBLES);
+    let frames, dice, up = null;
+    if (kind) {
+      frames = Array.from({ length: TUMBLE }, () => throwOf(rt, kind));
+      const t2 = forced != null ? null : throwOf(stream ? r : throwRng(state, i, k, CLOTH), kind);
+      dice = [forced?.[0] ?? t2.v];
+      up = t2?.up ?? null;
+      frames = frames.map((f2) => ({ v: [f2.v], up: f2.up ?? null }));
+    } else {
+      frames = Array.from({ length: TUMBLE }, () => ({ v: Array.from({ length: n }, () => die(rt)), up: null }));
+      dice = forced ? Array.from({ length: n }, (_, d) => forced[d] ?? forced[0]) : Array.from({ length: n }, () => die(r));
+    }
+    if (!stream) p.thrown = k + 1;
+    return { frames, dice, up };
+  }
+
   // src/engine/qbn.js
   var situationAt = (n) => n < ENDGAME && SITUATIONS[n]?.options?.length ? SITUATIONS[n] : null;
   var optionOf = (n, id) => situationAt(n)?.options.find((o) => o.id === id) ?? null;
@@ -4535,7 +4864,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     }
     if (policy === "pleasure") return [...open2].sort((a, b) => pleasureOf(b) - pleasureOf(a))[0].id;
     if (policy === "inert") return [...open2].sort((a, b) => (a.cost ?? 0) - (b.cost ?? 0) || worthOf(a) - worthOf(b))[0].id;
-    const rng = makeRng((state.rng.seed ^ 625341585 ^ Math.imul(state.turn + 1, 2654435761) ^ Math.imul((p.life?.length ?? 0) + 1, 2246822507) ^ Math.imul(p.rebirths ?? 0, 1663821227)) >>> 0);
+    const rng = makeRng((state.rng.seed ^ 625341585 ^ Math.imul(laneOf(state, state.turn) + 1, 2654435761) ^ Math.imul((p.life?.length ?? 0) + 1, 2246822507) ^ Math.imul(p.rebirths ?? 0, 1663821227)) >>> 0);
     return open2[Math.floor(next(rng) * open2.length)].id;
   }
   var EGO_ON = true;
@@ -4547,8 +4876,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     return d >= EGO_LEAD ? [6] : d <= -EGO_LEAD ? [4, 5, 6] : [5, 6];
   }
   var egoFacesOn = (state, n) => egoOf(n) ? state.forceEgo ?? egoFaces(state.players[state.turn]) : null;
-  var egoThrow = (state, idx, lived) => die(makeRng((state.rng.seed ^ 461845907 ^ Math.imul(idx + 1, 3432918353) ^ Math.imul(lived + 1, 2146121005) ^ Math.imul(state.players[idx]?.rebirths ?? 0, 1663821227)) >>> 0));
-  var graceThrow = (state, idx, lived) => die(makeRng((state.rng.seed ^ 1759714724 ^ Math.imul(idx + 1, 458671337) ^ Math.imul(lived + 1, 739982445) ^ Math.imul(state.players[idx]?.rebirths ?? 0, 695872825)) >>> 0));
+  var egoThrow = (state, idx, lived) => die(makeRng((state.rng.seed ^ 461845907 ^ Math.imul(laneOf(state, idx) + 1, 3432918353) ^ Math.imul(lived + 1, 2146121005) ^ Math.imul(state.players[idx]?.rebirths ?? 0, 1663821227)) >>> 0));
+  var graceThrow = (state, idx, lived) => die(makeRng((state.rng.seed ^ 1759714724 ^ Math.imul(laneOf(state, idx) + 1, 458671337) ^ Math.imul(lived + 1, 739982445) ^ Math.imul(state.players[idx]?.rebirths ?? 0, 695872825)) >>> 0));
   function momentOf(n, told) {
     const q2 = squareOf(n);
     if (told === "else" && SQ[n]?.roll) return { moment: SQ[n].roll.moment, own: false, key: `${n}:else` };
@@ -4570,7 +4899,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var OMEN = 6;
   var omenGround = (pos) => pos >= 1 && pos <= 100 || pos === GOAL;
   var omenChance = (pos) => 0.1 + 0.8 * (Math.min(Math.max(pos, 0), GOAL) / GOAL) ** 2;
-  var omenDraw = (state, idx, lived) => next(makeRng((state.rng.seed ^ 668265263 ^ Math.imul(idx + 1, 374761393) ^ Math.imul(lived + 1, 2654435761) ^ Math.imul(state.players[idx]?.rebirths ?? 0, 1663821227)) >>> 0));
+  var omenDraw = (state, idx, lived) => next(makeRng((state.rng.seed ^ 668265263 ^ Math.imul(laneOf(state, idx) + 1, 374761393) ^ Math.imul(lived + 1, 2654435761) ^ Math.imul(state.players[idx]?.rebirths ?? 0, 1663821227)) >>> 0));
   var SEVERITY_POW = 1.6;
   var TIERS = [2, 5, 9, 15];
   var DEATH = 4;
@@ -4738,7 +5067,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     if (!list?.length) return null;
     const forced = state.players[idx]?.curseId;
     if (forced) return list.find((c) => c.id === forced) ?? null;
-    const r = makeRng((state.rng.seed ^ 739982445 ^ Math.imul(idx + 1, 695872825) ^ Math.imul(state.players[idx]?.rebirths ?? 0, 1663821227)) >>> 0);
+    const r = makeRng((state.rng.seed ^ 739982445 ^ Math.imul(laneOf(state, idx) + 1, 695872825) ^ Math.imul(state.players[idx]?.rebirths ?? 0, 1663821227)) >>> 0);
     return list[Math.floor(next(r) * list.length)];
   }
   var spokenAt = (c, years) => years >= c.from && stageOfYears(years) <= 1;
@@ -5065,7 +5394,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var masterOf = (cast2) => (cast2 ?? []).find((c) => c.role === "rival") ?? (cast2 ?? []).find((c) => c.role === "friend") ?? null;
   var interludeFor = (holding, cast2) => ({ kind: animalOf(holding), master: masterOf(cast2), round: 1 });
   var animalRules = (animal2, rules = {}) => ({ ...rules, six: false, law: "animal", animal: animal2 });
-  var isAnimal = (state) => state?.rules?.law === "animal";
+  var isAnimal = (state, i) => state?.rules?.law === "animal" || i != null && state?.players?.[i]?.law === "animal";
+  var interludeOf = (state, i) => state?.players?.[i]?.animal ?? state?.rules?.animal ?? null;
   function afterAnimal(soul, earned) {
     const a = soul?.animal;
     if (!a) return soul;
@@ -5074,7 +5404,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   }
   var animalEndOf = (p) => p.earned ? "human" : p.short ? "short" : null;
   function animalLifeOf(state, i, l) {
-    const p = state.players[i], a = state.rules.animal ?? {}, kind = a.kind ?? "tortoise", name = pnameIn(p, l);
+    const p = state.players[i], a = interludeOf(state, i) ?? {}, kind = a.kind ?? "tortoise", name = pnameIn(p, l);
     const T2 = (k, v = {}) => fill(tIn(l, k, { name, animal: tIn(l, "a_" + kind), animalO: tIn(l, "ao_" + kind), ...v }), { name, gender: p.gender });
     const master2 = a.master?.[l] || a.master?.en;
     const told = [], seen2 = /* @__PURE__ */ new Set();
@@ -5139,6 +5469,11 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     if (!lawOf(state, i).karma) p.karma = { sancita: [], agami: [], prarabdha: [] };
   }
 
+  // src/engine/mode.js
+  var together = (state) => state?.rules?.mode === "together";
+  var oneLife = (state) => together(state) && state.rules.length === "one";
+  var liberated = (state, i) => state?.winner === i || !!state?.players?.[i]?.free;
+
   // src/engine/cast.js
   var MEMBERS = ["mother", "father", "teacher", "friend", "spouse", "son", "daughter", "rival"];
   var tokenOf = (who2) => who2 === "son" || who2 === "daughter" ? "child" : who2;
@@ -5167,8 +5502,9 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     if (!list) return null;
     const p = state.players[i];
     if (p.castKept !== void 0) return p.castKept;
-    const rng = makeRng((state.rng.seed ^ 739982445 ^ Math.imul(i + 1, 2246822507) ^ Math.imul(life + 1, 3266489909)) >>> 0);
+    const rng = makeRng((state.rng.seed ^ 739982445 ^ Math.imul(laneOf(state, i) + 1, 2246822507) ^ Math.imul(life + 1, 3266489909)) >>> 0);
     const taken = new Set(state.players.flatMap((q2) => [q2.name, q2.alias?.en, q2.alias?.hi]).filter(Boolean).map(nameKey));
+    const table = new Set(taken), inCast = /* @__PURE__ */ new Set(), whole = !streamOf(state);
     const pool = (gd) => [...list[gd], ...list.either || []].filter(([en, hi]) => !taken.has(nameKey(en)) && !taken.has(nameKey(hi)));
     const coin = () => next(rng) < 0.5 ? "m" : "f", span = (a, b) => a + Math.floor(next(rng) * (b - a + 1));
     const carry = life > 0 ? p.prior?.cast ?? [] : [], used = /* @__PURE__ */ new Set();
@@ -5178,14 +5514,27 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       const back = carry.find((c) => RETURNS_AS[c.role] === who2 && !used.has(c) && (c.gender === gender || either) && !taken.has(nameKey(c.en)) && !taken.has(nameKey(c.hi)));
       if (back) {
         used.add(back);
-        [back.en, back.hi].forEach((x) => taken.add(nameKey(x)));
+        [back.en, back.hi].forEach((x) => {
+          taken.add(nameKey(x));
+          inCast.add(nameKey(x));
+        });
         cast2[who2] = { gender: back.gender, en: back.en, hi: back.hi, before: back.role };
         return;
       }
       let gd = gender, names = pool(gd);
       if (!names.length && either) names = pool(gd = gd === "m" ? "f" : "m");
-      const nm = names.length ? names[Math.floor(u * names.length)] : null;
-      if (nm) nm.forEach((x) => taken.add(nameKey(x)));
+      let nm = names.length ? names[Math.floor(u * names.length)] : null;
+      if (nm && whole) {
+        const all = [...list[gd], ...list.either || []];
+        const at2 = ([en, hi]) => [en, hi].some((x) => table.has(nameKey(x)) || inCast.has(nameKey(x)));
+        let j = Math.floor(u * all.length);
+        for (let t2 = 0; t2 < all.length && at2(all[j]); t2++) j = (j + 1) % all.length;
+        nm = at2(all[j]) ? null : all[j];
+      }
+      if (nm) nm.forEach((x) => {
+        taken.add(nameKey(x));
+        inCast.add(nameKey(x));
+      });
       cast2[who2] = { gender: nm ? gd : gender, en: nm?.[0] ?? null, hi: nm?.[1] ?? null };
     };
     draw2("son", "m");
@@ -5247,7 +5596,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   }
   function castArcs(state, i, along, cc = castAlong(state, i, along)) {
     const p = state.players[i];
-    if (!cc.length || !cc.at(-1).cast || !(p.dead || p.fell || state.winner === i)) return [];
+    if (!cc.length || !cc.at(-1).cast || !(p.dead || p.fell || liberated(state, i))) return [];
     const { life, cast: cast2 } = cc.at(-1), from = cc.findIndex((c) => c.life === life);
     const order = [], seen2 = {}, landed = {}, told = /* @__PURE__ */ new Set();
     let gone2 = null;
@@ -5310,8 +5659,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var NAMED = MEMBERS.filter((w) => w !== "mother" && w !== "father");
   var endOf = (state, i) => {
     const p = state.players[i];
-    if (isAnimal(state)) return animalEndOf(p) && "animal";
-    if (state.winner === i) return p.won === "svarga" ? "svarga" : null;
+    if (isAnimal(state, i)) return animalEndOf(p) && "animal";
+    if (liberated(state, i)) return p.won === "svarga" ? "svarga" : null;
     if (p.dead) return p.death?.by ?? "years";
     if (p.fell) return p.fellBy === "snake" ? "siva" : "fell";
     return null;
@@ -5351,9 +5700,16 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   function keepOf(state, i) {
     const p = state.players[i];
     if (!lawOf(state, i).rebirth) return null;
-    if (state.winner === i && !endOf(state, i)) return { drop: true };
+    if (liberated(state, i) && !endOf(state, i)) return { drop: true };
     const soul = soulOf(state, i) ?? (p.past?.length ? soulOf(pastOf(state, i, p.past.length - 1), i) : null);
     return soul ? { soul } : null;
+  }
+  function nextBirth(state, i) {
+    const p = state.players[i], soul = p.carry ? afterAnimal(p.carry, !!p.earned) : soulOf(state, i);
+    if (!soul) return null;
+    if (soul.animal) return { animal: soul.animal, carry: soul, law: "animal", soul };
+    const born = bornOf(soul);
+    return born && { born, law: p.carry ? born.law : p.law, soul };
   }
   var num2 = (x) => typeof x === "number" && Number.isFinite(x);
   function validSoul(s) {
@@ -5393,21 +5749,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     return { v: STORE_V, souls: Object.fromEntries(souls.slice(-KEEP_SOULS)) };
   }
 
-  // src/engine/dice.js
-  var COWRIES = 7;
-  var COWRIE_UP = 0.45;
-  var STICK = [1, 2, 5, 6];
-  function throwOf(rng, kind = "die") {
-    if (kind === "cowries") {
-      const up = Array.from({ length: COWRIES }, () => next(rng) < COWRIE_UP);
-      return { v: up.filter(Boolean).length, up };
-    }
-    if (kind === "stick") return { v: STICK[Math.floor(next(rng) * STICK.length)] };
-    return { v: die(rng) };
-  }
-
   // src/engine/cloth.js
-  var TUMBLE = 7;
   var isCloth = () => BOARD.rules?.engine === "cloth";
   var randOf = (state) => state.rules?.rand && state.rules.rand !== "own" ? state.rules.rand : BOARD.rules?.rand ?? "die";
   function setup(state) {
@@ -5415,11 +5757,9 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     for (const p of state.players) Object.assign(p, { pos: 1, life: [1], told: [null] });
   }
   function rollDice(state) {
-    const kind = randOf(state);
-    for (let i = 0; i < TUMBLE; i++) throwOf(state.rng, kind);
-    const t2 = throwOf(state.rng, kind);
-    state.shells = t2.up ?? null;
-    return [t2.v];
+    const t2 = drawThrow(state, 1, { kind: randOf(state) });
+    state.shells = t2.up;
+    return t2.dice;
   }
   var movesFor = (state, dice) => [dice[0]];
   function walk(from, v) {
@@ -5529,13 +5869,9 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   }
 
   // src/engine/turn.js
-  var TUMBLE2 = 7;
   var ENDGAME = 94;
   var diceFor = (p) => !isCloth() && p.pos >= ENDGAME ? 2 : 1;
-  function rollDice2(rng, n) {
-    for (let i = 0; i < TUMBLE2; i++) for (let k = 0; k < n; k++) die(rng);
-    return Array.from({ length: n }, () => die(rng));
-  }
+  var throwDice = (state, n) => drawThrow(state, n).dice;
   function toldOn(n, face, dice = [face]) {
     const r = SQ[n]?.roll;
     if (!r || dice.length !== 1 || !face || n >= ENDGAME) return null;
@@ -5585,7 +5921,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   };
   var inHeaven = (n) => n > GOAL && n < TOP;
   var spentOf = (p) => inHeaven(p.pos) && p.merit != null && (p.heavenTurns ?? 0) >= p.merit;
-  var gone = (p) => !!(p.dead || p.fell || p.earned || p.short);
+  var gone = (p) => !!(p.dead || p.fell || p.earned || p.short || p.free);
   var playerOf = (r, i) => ({
     name: r.name.trim(),
     type: r.type,
@@ -5618,7 +5954,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   });
   function createGame({ players, rules, seed }) {
     const state = {
-      players: players.map(playerOf),
+      // each seat's lane (Phase 19): what its throws and its life's own sequences are keyed by, people first
+      players: ((lanes) => players.map((r, i) => Object.assign(playerOf(r, i), { lane: lanes[i] })))(lanesOf(players)),
       rules: { ...rules },
       // over: someone reached the exit, or nobody is left in the game to
       turn: 0,
@@ -5626,7 +5963,13 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       over: false,
       last: null,
       log: [{ k: "lNew", kind: "" }],
-      rng: makeRng(seed)
+      rng: makeRng(seed),
+      // the table as it sat down, and the turns played (Phase 19): with each person's choices (p.choices), all a game needs
+      // to be played again from its seed (src/engine/compare.js replay)
+      table: JSON.parse(JSON.stringify(players)),
+      turns: 0,
+      // how its dice are thrown (src/engine/throws.js): each throw its own; a game without it is from before Phase 19 step 3
+      ...throwsNew()
     };
     state.players.forEach((p, i) => {
       if (!lawOf(state, i).karma) p.karma = freshKarma();
@@ -5717,7 +6060,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     delete plan.egoFaces;
     const gf = ego && id === ego.lower ? lawOf(state, plan.idx).grace(state, plan.idx) : null;
     if (gf) {
-      const p2 = state.players[plan.idx], face2 = state.forceGrace ? state.forceGrace : graceThrow(state, plan.idx, p2.life?.length ?? 0);
+      const p2 = state.players[plan.idx], face2 = state.forceGrace ? state.forceGrace : graceThrow(state, plan.idx, drawnOf(state, plan.idx, p2.life?.length ?? 0));
       delete state.forceGrace;
       if (gf.includes(face2)) {
         const best = optionsFor(p2, sit).filter((x) => x.open).sort((a, b) => worthOf(b) - worthOf(a))[0];
@@ -5729,7 +6072,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       }
     }
     if (!ego || id === ego.lower) return finish(state, plan, o);
-    const p = state.players[plan.idx], face = egoThrow(state, plan.idx, p.life?.length ?? 0), rebel = faces.includes(face);
+    const p = state.players[plan.idx], face = egoThrow(state, plan.idx, drawnOf(state, plan.idx, p.life?.length ?? 0)), rebel = faces.includes(face);
     const took = rebel ? optionOf(plan.target, ego.lower) : o;
     plan.ego = { chose: id, took: took.id, face, faces };
     plan.after.push(entry(rebel ? "lEgoRebel" : "lEgoHeld", { pos: plan.target, sq: plan.target }, "", plan.idx));
@@ -5769,11 +6112,11 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const ex = law.exit(state, idx), atExit = !!ex && final === ex.at;
     const refused = atExit && ex.door ? refusalOf(p, law.binds(state, idx)) : null;
     if (refused) after2.push(entry("lRefused", { pos: GOAL, sq: GOAL }, "", idx));
-    const through = atExit && ex.door && !refused && ex.alive === false;
-    if (through) after2.push(entry(ex.through, { pos: GOAL, sq: GOAL }, "", idx));
+    const through2 = atExit && ex.door && !refused && ex.alive === false;
+    if (through2) after2.push(entry(ex.through, { pos: GOAL, sq: GOAL }, "", idx));
     const owed = atExit && !ex.door && carried(karmaOf(p)).length > 0;
     if (owed) after2.push(entry(ex.owed, { pos: final, sq: final }, "", idx));
-    const win = atExit && !refused && !owed && !through;
+    const win = atExit && !refused && !owed && !through2;
     const years = turnYears(p.years ?? 0, { target, final, jump, cost }), died = !win && final <= 100 && years > SPAN;
     const again = !win && !died && v === 6 && state.rules.six;
     if (win) end.push(entry(law.text.win.line, ex.door ? { pos: ex.at } : { pos: ex.at, sq: ex.at }, "heaven", idx));
@@ -5788,7 +6131,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   }
   function resolve(state, plan, years) {
     const { idx } = plan, p = state.players[idx], law = lawOf(state, idx);
-    const omen = plan.win || plan.died || !law.omen(state, idx) ? null : omenFor(state, idx, { dice: plan.dice, pos: plan.final, years, lived: p.life?.length ?? 0, force: !!(state.forceOmen || state.forceDeath) });
+    const omen = plan.win || plan.died || !law.omen(state, idx) ? null : omenFor(state, idx, { dice: plan.dice, pos: plan.final, years, lived: drawnOf(state, idx, p.life?.length ?? 0), force: !!(state.forceOmen || state.forceDeath) });
     if (omen?.reckon && state.forceDeath) Object.assign(omen.reckon, { dies: true, applied: DEATH, form: state.forceDeath, years: 0, holds: null, to: null });
     const rk = omen?.reckon ?? null;
     Object.assign(plan, { omen, reckon: rk && { ...rk, from: plan.final } });
@@ -5827,6 +6170,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       const before = p.life.length - plan.told.length, kept = (p.told ?? []).slice(0, before);
       p.told = [...kept, ...Array(before - kept.length).fill(null), ...plan.told];
       Object.assign(p, grow(p, plan));
+      if (together(state)) meetAt(state, plan.idx);
       let k = karmaOf(p);
       if (rk && !rk.dies) k = { ...k, prarabdha: k.prarabdha.filter((s) => !rk.seeds.some((f2) => f2.src === s.src && f2.opt === s.opt && f2.at === s.at)), agami: k.agami.filter((s) => !rk.seeds.some((f2) => f2.src === s.src && f2.opt === s.opt && f2.at === s.at)) };
       if (plan.plant) k = { ...k, agami: [...k.agami, { ...plan.plant, i: p.life.length }] };
@@ -5866,12 +6210,18 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       const k = karmaOf(p);
       p.karma = { sancita: [...k.sancita, ...carried(k)], agami: [], prarabdha: [] };
     }
-    if (plan.fell && !plan.freed && lawOf(state, plan.idx).siva(state, plan.idx) === "reborn") {
+    if (together(state) && (plan.win || plan.freed)) p.free = true;
+    const law = lawOf(state, plan.idx), how = !plan.freed && !oneLife(state) && (plan.fell ? law.siva(state, plan.idx) === "reborn" : together(state) && law.rebirth && (plan.died || p.earned || p.short));
+    if (how) {
       plan.end.forEach((e) => {
         if (e.who != null) e.life = p.rebirths ?? 0;
       });
+      const was = p.rebirths ?? 0;
       bornAgain(state, plan.idx);
-      if (p.rebirths) plan.end.push(entry("lReborn", { pos: 1, sq: 1 }, "", plan.idx));
+      if ((p.rebirths ?? 0) > was) {
+        plan.reborn = true;
+        plan.end.push(p.animal ? entry("lBornAnimal", { animal: p.animal.kind, pos: 1, sq: 1 }, "", plan.idx) : entry(plan.fell ? "lReborn" : p.past.at(-1)?.carry ? "lBornHuman" : "lRebornDied", { pos: 1, sq: 1 }, "", plan.idx));
+      }
     }
     delete state.forceOmen;
     delete state.forceDeath;
@@ -5879,7 +6229,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     passTurn(state, plan);
   }
   function passTurn(state, plan) {
-    if (plan.win || plan.freed) state.winner = plan.idx;
+    state.turns = (state.turns ?? 0) + 1;
+    if ((plan.win || plan.freed) && !together(state)) state.winner = plan.idx;
     else if (!plan.again) for (let k = 1; k <= state.players.length; k++) {
       const i = (plan.idx + k) % state.players.length;
       if (!gone(state.players[i])) {
@@ -5888,25 +6239,57 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       }
     }
     const alive = state.players.filter((q2) => !gone(q2)), humans = state.players.some((q2) => q2.type === "human");
-    state.over = state.winner != null || !alive.length || humans && !alive.some((q2) => q2.type === "human");
+    state.over = state.winner != null || !alive.length || humans && !oneLife(state) && !alive.some((q2) => q2.type === "human");
     plan.end.forEach((e) => addLog(state, e));
   }
   function bornAgain(state, i) {
-    const p = state.players[i], soul = soulOf(state, i), born = soul && bornOf(soul);
-    if (!born) return;
+    const p = state.players[i], nb = nextBirth(state, i), soul = nb?.soul;
+    if (!nb) return;
     const was = { ...p, castKept: castOf(state, i, p.prior?.lives ?? 0) };
     delete was.past;
+    delete was.choices;
     const rebirths = (p.rebirths ?? 0) + 1;
-    const rng = makeRng((state.rng.seed ^ 1013904242 ^ Math.imul(i + 1, 2246822507) ^ Math.imul(rebirths, 3266489909)) >>> 0);
-    const taken = new Set([...state.players.flatMap((q2) => [q2.name.trim(), q2.alias?.en]), ...soul.cast.map((c) => c.en)].filter(Boolean));
-    const nm = drawName(rng, "", taken) ?? drawName(rng, "", /* @__PURE__ */ new Set());
+    const rng = makeRng((state.rng.seed ^ 1013904242 ^ Math.imul(laneOf(state, i) + 1, 2246822507) ^ Math.imul(rebirths, 3266489909)) >>> 0);
+    const nm = nameAgain(state, i, rng, soul);
     const key = p.soul ?? (p.name ? nameKey(p.name) : null);
-    const next2 = playerOf({ name: "", type: p.type, gender: nm.gender, alias: { en: nm.en, hi: nm.hi }, born, soul: key, law: p.law }, p.color);
-    Object.assign(next2, { pos: 1, life: [1], told: [null], past: [...p.past ?? [], was], rebirths });
+    const next2 = playerOf({ name: "", type: p.type, gender: nm.gender, alias: { en: nm.en, hi: nm.hi }, born: nb.born ?? null, soul: key, law: nb.law }, p.color);
+    Object.assign(next2, { pos: 1, life: [1], told: [null], past: [...p.past ?? [], was], rebirths, ...p.lane != null ? { lane: p.lane } : {}, ...nb.animal ? { animal: nb.animal, carry: nb.carry } : {} });
+    if (p.choices) next2.choices = p.choices;
     for (const k of Object.keys(p)) delete p[k];
     Object.assign(p, next2);
   }
-  function playTurn(state, roll2 = isCloth() ? rollDice(state) : spentOf(state.players[state.turn]) || practisesNow(state) ? [] : rollDice2(state.rng, diceFor(state.players[state.turn])), pick3 = moveFor, choose2 = (s, sit) => lawOf(s).choose(s, sit)) {
+  function nameAgain(state, i, rng, soul) {
+    const lived = [...state.players.flatMap((q2) => [...q2.past ?? [], q2]), ...state.table ?? []];
+    const keys = new Set([...lived.flatMap((q2) => [q2.name, q2.alias?.en, q2.alias?.hi]), ...soul.cast.flatMap((c) => [c.en, c.hi])].filter(Boolean).map(nameKey));
+    const free = ([en, hi]) => !keys.has(nameKey(en)) && !keys.has(nameKey(hi));
+    const was = drawName(rng, "", new Set([...state.players.flatMap((q2) => [q2.name.trim(), q2.alias?.en]), ...soul.cast.map((c) => c.en)].filter(Boolean)));
+    if (was && free([was.en, was.hi])) return was;
+    const of = (list) => ["m", "f"].flatMap((gd) => (list?.[gd] ?? []).map(([en, hi]) => ({ en, hi, gender: gd })));
+    const players = of(PLAYER_NAMES);
+    let pool = players.filter((x) => free([x.en, x.hi]));
+    if (!pool.length) pool = of(PLAYER_NAMES.again).filter((x) => free([x.en, x.hi]));
+    if (!pool.length && CAST.names) {
+      const casts = state.players.map((q2, j) => gone(q2) ? null : castOf(state, j, q2.prior?.lives ?? 0));
+      for (const c of casts) for (const m of Object.values(c ?? {})) [m.en, m.hi].filter(Boolean).forEach((x) => keys.add(nameKey(x)));
+      pool = ["m", "f", "either"].flatMap((gd) => (CAST.names[gd] ?? []).map(([en, hi]) => ({ en, hi, gender: gd === "either" ? "n" : gd }))).filter((x) => free([x.en, x.hi]));
+    }
+    if (!pool.length) pool = players;
+    return pool[Math.floor(next(rng) * pool.length)];
+  }
+  function meetAt(state, i) {
+    const p = state.players[i], n = p.pos;
+    state.players.forEach((q2, j) => {
+      if (j === i || gone(q2) || q2.pos !== n || !q2.life?.length) return;
+      const seen2 = (p.met ?? []).some((m) => m.sq === n && m.seat === j && m.life === (q2.rebirths ?? 0));
+      if (seen2) return;
+      const mark = (a, b, k) => {
+        a.met = [...a.met ?? [], { i: a.life.length - 1, age: Math.floor(a.years ?? 0), sq: n, seat: k, life: b.rebirths ?? 0, with: { en: pnameIn(b, "en"), hi: pnameIn(b, "hi") } }];
+      };
+      mark(p, q2, j);
+      mark(q2, p, i);
+    });
+  }
+  function playTurn(state, roll2 = isCloth() ? rollDice(state) : spentOf(state.players[state.turn]) || practisesNow(state) ? [] : throwDice(state, diceFor(state.players[state.turn])), pick3 = moveFor, choose2 = (s, sit) => lawOf(s).choose(s, sit)) {
     const dice = typeof roll2 === "number" ? [roll2] : roll2, one = dice.length > 1 ? null : movesFor2(state, dice);
     const v = !dice.length && !spentOf(state.players[state.turn]) ? 0 : !one ? pick3(state, dice) : one.length > 1 ? pick3(state, dice) : one[0] ?? dice[0];
     if (dice.length || v == null) state.last = v || dice[0];
@@ -5939,7 +6322,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     return {
       count: 2,
       rows: [{ name: self?.name || "", type: "human", gender: self?.gender || "" }, { name: "", type: "cpu", gender: "" }, { name: "", type: "cpu", gender: "" }, { name: "", type: "cpu", gender: "" }],
-      rules: { six: true }
+      // me and a computer, played together (Phase 19: the default for any table of two or more seats)
+      rules: { six: true, mode: "together", length: "free" }
     };
   };
   function drawName(rng, gender, taken = /* @__PURE__ */ new Set()) {
@@ -6073,6 +6457,21 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     opened = "moment";
     who = /* @__PURE__ */ new Set();
   };
+  var SEEDS = "mp-seeds";
+  var SEEDS_MAX = 20;
+  var seedsMem = [];
+  var seedsKept = () => {
+    const x = freshViewer ? seedsMem : read(SEEDS, []);
+    return Array.isArray(x) ? x : [];
+  };
+  function keepSeed(life) {
+    if (!life) return;
+    const key = `${life.r?.board ?? "110"}.${life.s}`;
+    const list = [{ key, x: life }, ...seedsKept().filter((e) => !(e.key === key && JSON.stringify(e.x) === JSON.stringify(life)))].slice(0, SEEDS_MAX);
+    if (freshViewer) seedsMem = list;
+    else write(SEEDS, list);
+  }
+  var seedLives = (board4, seed) => seedsKept().filter((e) => e.key === `${board4 ?? "110"}.${seed >>> 0}`).map((e) => e.x);
 
   // src/ui.js
   var COLORS = ["var(--p0)", "var(--p1)", "var(--p2)", "var(--p3)"];
@@ -6102,10 +6501,10 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     return (col + row2) % 2 ? b : a;
   }
   var hex = (t2) => BOARD.palette[t2];
-  var mix = (a, b) => "#" + [1, 3, 5].map((i) => Math.round((parseInt(a.slice(i, i + 2), 16) + parseInt(b.slice(i, i + 2), 16)) / 2).toString(16).padStart(2, "0")).join("");
+  var mix2 = (a, b) => "#" + [1, 3, 5].map((i) => Math.round((parseInt(a.slice(i, i + 2), 16) + parseInt(b.slice(i, i + 2), 16)) / 2).toString(16).padStart(2, "0")).join("");
   function groundOf(n) {
     if (n === GOAL) return [hex(BOARD.divine.goal), true];
-    if (divine(n)) return [mix(hex(BOARD.divine.ground[0]), hex(BOARD.divine.ground[1])), false];
+    if (divine(n)) return [mix2(hex(BOARD.divine.ground[0]), hex(BOARD.divine.ground[1])), false];
     return [hex(groundToken(n)), false];
   }
   var WASH = { ochre: 0.42, deepen: 0.22, dim: 0.5, edge: 0.14 };
@@ -7151,14 +7550,14 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const key = `${stage}|${color}|${frame3}|${gender}|${animal2 ?? ""}`;
     if (spriteCache.has(key)) return spriteCache.get(key);
     const rows = framesOf(animal2 && ART[animal2] ? ART[animal2] : artOf(STAGES[stage].art, gender), frame3);
-    const pal = { ...PAL, C: P_HEX[color], c: shade(P_HEX[color], -0.35) };
+    const pal2 = { ...PAL, C: P_HEX[color], c: shade(P_HEX[color], -0.35) };
     const cv = document.createElement("canvas");
     cv.width = 12;
     cv.height = 16;
     const c = cv.getContext("2d");
     rows.forEach((r, y) => [...r].forEach((ch, x) => {
-      if (pal[ch]) {
-        c.fillStyle = pal[ch];
+      if (pal2[ch]) {
+        c.fillStyle = pal2[ch];
         c.fillRect(x, y, 1, 1);
       }
     }));
@@ -7237,13 +7636,14 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     return s < ASHRAMAS.length ? L(ASHRAMAS[s][1], ASHRAMAS[s][2]) : t("moksha");
   };
   var ENDED = { ledger: "deadLedger", door: "deadDoor" };
-  function stageLine(pl) {
+  function stageLine(pl, i) {
     if (isCloth()) return esc(squareName(pl.pos));
     if (pl.fell) return t("fell");
     if (pl.pos === 0) return t("notBorn");
     if (pl.dead) return fill(t(ENDED[pl.death?.by] ?? "dead"), { gender: pl.gender });
-    if (isAnimal(G.state)) {
-      const a = t("a_" + (G.state.rules.animal?.kind ?? "tortoise"));
+    if (pl.free) return t("freeStage");
+    if (isAnimal(G.state, i)) {
+      const a = t("a_" + (interludeOf(G.state, i)?.kind ?? "tortoise"));
       return a.charAt(0).toUpperCase() + a.slice(1);
     }
     return [...pl.rebirths && stageOf2(pl) === 0 ? [fill(t("bornAgainStage"), { gender: pl.gender })] : [], .../* @__PURE__ */ new Set([stageName(stageOf2(pl), pl.gender), ashramaIn2(pl)])].join(" · ");
@@ -7257,7 +7657,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     <li class="${i === G.state.turn && !G.state.over ? "current" : ""}${gone(pl) ? " dead" : ""}">
       <span class="dot" style="background:${COLORS[pl.color]}"></span>
       <span><span class="pname">${esc(pname(pl))}</span><span class="kind">${pl.type === "cpu" ? t("cpu") : ""}</span>
-        <span class="stage">${stageLine(pl)}</span>
+        <span class="stage">${stageLine(pl, i)}</span>
         ${selfLine(pl) && !gone(pl) ? `<span class="self">${esc(selfLine(pl))}</span>` : ""}${lawLine(pl, i)}</span>
       <span class="pos">${pl.fell ? "" : pl.pos === 0 ? t("start") : pl.pos === GOAL && !isCloth() ? t("moksha") : isCloth() && legendOf(pl.pos)?.top ? sqNum(pl.pos) : t("square", { n: pl.pos })}</span>
     </li>`).join("");
@@ -7271,7 +7671,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const who2 = lifeOfEntry(e);
     const law = e.v?.law && LAWS[e.v.law] ? t(LAWS[e.v.law].text.name) : "";
     const at2 = isCloth() && e.v ? { pos: e.v.pos != null ? sqNum(e.v.pos) : void 0, to: e.v.to != null ? sqNum(e.v.to) : void 0 } : {};
-    return e.k ? fill(t(e.k, { ...e.v, ...at2, name: who2 ? pname(who2) : "", what: e.v?.sq ? squareName(e.v.sq) : "", law }), { gender: who2?.gender }) : e.text;
+    const animal2 = e.v?.animal ? { animal: t("a_" + e.v.animal), animalO: t("ao_" + e.v.animal) } : {};
+    return e.k ? fill(t(e.k, { ...e.v, ...at2, name: who2 ? pname(who2) : "", what: e.v?.sq ? squareName(e.v.sq) : "", law, ...animal2 }), { gender: who2?.gender }) : e.text;
   }
   function renderLog() {
     $("log").innerHTML = G.state.log.map((e) => {
@@ -7305,7 +7706,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     place(true);
   }
   function setSprite(el3, p, stage) {
-    const animal2 = isAnimal(G.state) ? G.state.rules.animal?.kind ?? "tortoise" : null;
+    const i = G.state.players.indexOf(p), animal2 = isAnimal(G.state, i) ? interludeOf(G.state, i)?.kind ?? "tortoise" : null;
     el3.querySelector(".spr").style.backgroundImage = spriteURL(stage, p.color, el3._frame, p.gender, animal2);
     el3.classList.toggle("divine", !animal2 && STAGES[stage].art === "divine");
   }
@@ -7325,11 +7726,12 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       const el3 = tokenEls[i];
       el3.title = pname(p);
       el3.classList.toggle("active", i === G.state.turn && !G.state.over && !G.busy);
-      el3.classList.toggle("dead", gone(p));
+      el3.classList.toggle("dead", gone(p) && !p.free);
+      el3.classList.toggle("liberated", !!p.free);
       el3.classList.toggle("left", p.face === "l" && el3._frame < 2);
       const stage = stageOf2(p);
       if (el3._stage !== stage) {
-        if (el3._stage != null && !silent && !isAnimal(G.state)) {
+        if (el3._stage != null && !silent && !isAnimal(G.state, i)) {
           retrigger(el3, "poof");
           const v = { name: pname(p), stage: stageName(stage, p.gender) }, you = !p.name && p.color === 0;
           const key = stage > el3._stage ? "grew" : "bornAgain";
@@ -7687,7 +8089,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const want = targets(null, false);
     const st = { p: 0, level: 0, rate: want.rate, bright: want.bright, drop: 0 };
     let graph = null, timer = null, at2 = 0, fall = null, quietFor = 0;
-    function build() {
+    function build2() {
       const bus = ctx3.createGain(), lp = ctx3.createBiquadFilter(), now = ctx3.currentTime;
       bus.gain.value = 1;
       lp.type = "lowpass";
@@ -7759,7 +8161,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     }
     function schedule() {
       const now = ctx3.currentTime;
-      if (!graph && (want.level > 0 || fall)) build();
+      if (!graph && (want.level > 0 || fall)) build2();
       if (!graph) return;
       if (at2 < now) {
         graph.parts.forEach((x) => {
@@ -8480,15 +8882,18 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var readPast = false;
   function rebornHtml(was, l) {
     const p = subjectOf(), q2 = p.past?.[was] ?? p, who2 = (x) => ({ name: pnameIn(p, x), gender: p.gender });
-    const line = (x, k) => fill(tIn(x, k, { name: pnameIn(p, x), was: pnameIn(q2, x) }), k === "bornAgainCard" ? { gender: q2.gender } : who2(x));
+    const siva = !!q2.fell, animal2 = !!p.animal, human = !!q2.carry, kind = (p.animal ?? q2.animal)?.kind ?? "tortoise";
+    const [card, next2] = siva ? ["bornAgainCard", "bornAgainNew"] : animal2 ? ["bornAgainCardAnimal", "bornAgainNewAnimal"] : human ? ["bornAgainCardHuman", "bornAgainNew"] : ["bornAgainCardDied", "bornAgainNew"];
+    const line = (x, k) => fill(tIn(x, k, { name: pnameIn(p, x), was: pnameIn(q2, x), animal: tIn(x, "a_" + kind), animalO: tIn(x, "ao_" + kind) }), k === card ? { gender: q2.gender } : who2(x));
     let body = `<h2 id="leafTitle">${esc(tIn(l, "bornAgainHead"))}</h2>`;
-    body += `<div class="story">` + texts(l, line("en", "bornAgainCard"), line("hi", "bornAgainCard"), "moment") + texts(l, line("en", "bornAgainNew"), line("hi", "bornAgainNew"), "remedy") + `</div>`;
-    if (choosable().length > 1 && !firstLife()) {
+    body += `<div class="story">` + texts(l, line("en", card), line("hi", card), "moment") + texts(l, line("en", next2), line("hi", next2), "remedy") + `</div>`;
+    if (choosable().length > 1 && !firstLife() && !animal2) {
       const now = lawOf(G.state, subject).id;
       body += `<div class="laws" role="group" aria-label="${esc(tIn(l, "lawPick"))}">` + choosable().map((w) => `<button type="button" class="law" data-act="law" data-law="${w.id}" aria-pressed="${w.id === now}"><b>${esc(tIn(l, w.text.name))}</b> <span>${esc(tIn(l, w.text.about))}</span>${w.text.scholar && deep("scholar") ? ` <small class="law-src">${esc(tIn(l, w.text.scholar))}</small>` : ""}</button>`).join("") + `</div>`;
     }
     body += `<p class="reborn-acts"><button type="button" class="ghost" data-act="pastLife">${esc(tIn(l, "readPast"))}</button> <button type="button" data-act="close">${esc(tIn(l, "goOn"))}</button></p>`;
-    return { kind: "reborn", met: [], html: frame2(l, { kind: "reborn", eb: esc(tIn(l, "bornAgainHead")), big: art("fall", "🔱", "spr snake-glyph"), sqn: numIn(l, TOP), body, foot: "" }) };
+    const big = siva ? art("fall", "🔱", "spr snake-glyph") : illumined(null, "☸︎");
+    return { kind: "reborn", met: [], html: frame2(l, { kind: "reborn", eb: esc(tIn(l, "bornAgainHead")), big, sqn: numIn(l, siva ? TOP : q2.pos || 1), body, foot: "" }) };
   }
   var metMore = [];
   function paint2({ landing = false } = {}) {
@@ -8833,7 +9238,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   function wheelOf(state, i) {
     const p = state.players[i];
     if (!p || p.pos !== GOAL) return null;
-    const open2 = state.winner === i, ref = p.refusals?.at(-1);
+    const open2 = liberated(state, i), ref = p.refusals?.at(-1);
     if (!ref) return open2 ? { key: `${i}`, spokes: [], open: open2, shut: false } : null;
     if (!p.door && !open2 && !p.dead) return null;
     const sits = (p.sittings ?? []).filter((s) => s.at >= ref.at);
@@ -8926,13 +9331,19 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     last = { n: 1, who: who2, was };
     drawLanded();
   };
+  var landPublic = (who2, kind, e) => {
+    last = { n: e?.v?.sq ?? e?.v?.pos ?? GOAL, who: who2, pub: kind, e };
+    drawLanded();
+  };
   function bornLine(l, { who: who2, stay, was, why }) {
     const p = G.state.players[who2], w = { name: pnameIn(p, l), gender: p.gender };
     const k = { zero: "cZero", entry: "cEntry", six: "cSix", top: "cTop", exact: "cExact" }[why];
     if (stay && k) return { title: tIn(l, k + "Title"), text: fill(tIn(l, k + "Line", { ...w, end: TOP }), w) };
     if (stay) return { title: tIn(l, "stayTitle"), text: fill(tIn(l, "heavenStay", w), w) };
-    const q2 = p.past?.[was];
-    return { title: tIn(l, "bornAgainHead"), text: fill(tIn(l, "bornAgainLine", { name: w.name, was: q2 ? pnameIn(q2, l) : "" }), w) };
+    const q2 = p.past?.[was], i = G.state.players.indexOf(p);
+    const k2 = !q2 || q2.fell ? "bornAgainLine" : p.animal ? "bornAgainLineAnimal" : q2.carry ? "bornAgainLineHuman" : "bornAgainLineDied";
+    const kind = (p.animal ?? q2?.animal)?.kind ?? interludeOf(G.state, i)?.kind ?? "tortoise";
+    return { title: tIn(l, "bornAgainHead"), text: fill(tIn(l, k2, { name: w.name, was: q2 ? pnameIn(q2, l) : "", animal: tIn(l, "a_" + kind), animalO: tIn(l, "ao_" + kind) }), w) };
   }
   function drawLanded() {
     const s = G.state;
@@ -8940,7 +9351,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       const q2 = squareOf(n);
       return { title: q2?.[lang] || q2?.en || "", text: TALES.includes(n) ? q2?.mirror?.[lang] || q2?.mirror?.en || "" : "" };
     };
-    let { title, text } = !last || !s ? {} : isAnimal(s) && !last.door ? animalLine(last.n) : last.door ? doorLine(lang, last) : last.stay || last.was != null ? bornLine(lang, last) : last.only ? {} : s.players[last.who]?.pos != null ? momentLine(last.n, last.who, lang, last.told, last.ego) : {};
+    let { title, text } = !last || !s ? {} : last.pub ? { title: tIn(lang, "pub_" + last.pub), text: entryText(last.e) } : isAnimal(s, last.who) && !last.door && last.was == null ? animalLine(last.n) : last.door ? doorLine(lang, last) : last.stay || last.was != null ? bornLine(lang, last) : last.only ? {} : s.players[last.who]?.pos != null ? momentLine(last.n, last.who, lang, last.told, last.ego) : {};
     if (last?.curse && s) text = [text, curseLine(lang, last.who)].filter(Boolean).join(" ");
     if (six && s?.players[six.who]) text = [text, sixLineIn(lang, six)].filter(Boolean).join(" ");
     if (!text && !title) {
@@ -9004,7 +9415,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var after = (raw, text, l) => l === "en" && !NAMED2.test(raw) && /^(?:\p{Lu}\p{Ll}|(?!I\s)\p{Lu}\s)/u.test(text) ? text[0].toLowerCase() + text.slice(1) : text;
   var stageAt2 = (e) => e.n > EARTH3 ? 5 : stageOfYears(e.years);
   function lifeOf(state, i, l) {
-    if (isAnimal(state)) return animalLifeOf(state, i, l);
+    if (isAnimal(state, i)) return animalLifeOf(state, i, l);
     const p = state.players[i], name = pnameIn(p, l), who2 = { name, gender: p.gender };
     const T2 = (key, v = {}) => fill(tIn(l, key, { name, ...v }), who2);
     const J = (j, v = {}) => {
@@ -9012,7 +9423,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       return x[0].toUpperCase() + x.slice(1);
     };
     const words = (n) => wordsIn(l, Math.floor(n));
-    const rng = makeRng((state.rng.seed ^ 1540483477 ^ Math.imul(i + 1, 2654435761) ^ Math.imul(p.rebirths ?? 0, 1663821227)) >>> 0);
+    const rng = makeRng((state.rng.seed ^ 1540483477 ^ Math.imul(laneOf(state, i) + 1, 2654435761) ^ Math.imul(p.rebirths ?? 0, 1663821227)) >>> 0);
     let lastThen = -1;
     const then = () => {
       let k = Math.floor(next(rng) * JOINS.then.length);
@@ -9043,7 +9454,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     };
     let para = null, seen2 = /* @__PURE__ */ new Set(), lived = /* @__PURE__ */ new Map(), own = /* @__PURE__ */ new Set(), taken = /* @__PURE__ */ new Map(), lastYears = null, fold2 = [], sat = [], skip = false;
     const told = (e) => momentOf(e.n, e.told).key;
-    const note = (e) => {
+    const note2 = (e) => {
       seen2.add(told(e));
       if (momentOf(e.n, e.told).own) own.add(e.n);
       if (!lived.has(e.n)) lived.set(e.n, e.years);
@@ -9076,11 +9487,22 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const all = yearsAlong(p.life || [], p.told || []);
     const curse = curseIn(p);
     const sayings = curse ? [{ at: curse.said + 1, curse: "said" }, ...curse.closedAt != null ? [{ at: curse.closedAt + 1, curse: "landed" }] : []] : [];
-    const recks = [...(p.refusals || []).map((r) => ({ ...r, door: true })), ...p.reckonings || [], ...(p.sittings || []).map((x) => ({ ...x, exam: true })), ...sayings].sort((a, b) => a.at - b.at || !!b.door - !!a.door);
+    const meets = (p.met || []).map((m) => ({ at: m.i + 1, meet: m }));
+    const recks = [...(p.refusals || []).map((r) => ({ ...r, door: true })), ...p.reckonings || [], ...(p.sittings || []).map((x) => ({ ...x, exam: true })), ...sayings, ...meets].sort((a, b) => a.at - b.at || !!b.door - !!a.door);
     let rq = 0;
+    const metPairs = /* @__PURE__ */ new Set();
     const reckon = (upto) => {
       for (; rq < recks.length && recks[rq].at <= upto; rq++) {
         const r = recks[rq];
+        if (r.meet) {
+          if (!para) continue;
+          flush();
+          const m = r.meet, v = { other: m.with[l] || m.with.en, sq: sq(m.sq), age: words(m.age) }, pair = `${m.seat}.${m.life}.${para.s}`;
+          if (metPairs.has(pair)) continue;
+          metPairs.add(pair);
+          para.parts.push(T2(m.sq > EARTH3 ? "accMetHeaven" : m.age < 1 ? "accMetFirst" : "accMet", v));
+          continue;
+        }
         if (r.curse) {
           if (!para) continue;
           flush();
@@ -9132,25 +9554,25 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       const echo = said.own ? q2?.echo : e.told === "else" ? q2?.roll?.echo : null;
       reckon(e.i);
       if (e.via === "reckon") {
-        note(e);
+        note2(e);
         lastYears = e.years;
         continue;
       }
       if (skip) {
         skip = false;
-        note(e);
+        note2(e);
         lastYears = e.years;
         continue;
       }
       if (!m && e.via !== "sit") {
-        note(e);
+        note2(e);
         continue;
       }
       const s = stageAt2(e);
       if (!para || para.s !== s) open2(s);
       if (e.via === "sit" && e.n === GOAL && p.sittings?.length) {
         para.ages.push(Math.floor(e.years));
-        note(e);
+        note2(e);
         lastYears = e.years;
         continue;
       }
@@ -9166,7 +9588,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         flushSat();
         fold2.push(e);
         para.ages.push(Math.floor(e.years));
-        note(e);
+        note2(e);
         continue;
       }
       flush();
@@ -9180,7 +9602,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         if (times > 2) para.tally.set(e.n, { times, years: e.years });
         else if (SNAKES[e.n]) para.parts.push(J(JOINS.snakeAgain, { age: age3, vice: sq(e.n), cost: words(ageOf(e.n) - ageOf(nextE.n)) }));
         else para.parts.push(J(JOINS.ladderAgain, { age: age3, virtue: sq(e.n) }));
-        note(e);
+        note2(e);
         lastYears = e.years;
         skip = true;
         continue;
@@ -9223,7 +9645,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           }
         }
       }
-      note(e);
+      note2(e);
       lastYears = e.years;
     }
     reckon(Infinity);
@@ -9240,9 +9662,9 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         const head = s === 5 || !ages.length ? stage(s) : a === b ? T2("lifeAt", { stage: stage(s), a }) : T2("lifeSpan", { stage: stage(s), a, b });
         return { head, text: parts.join(" ") };
       }),
-      end: lawEnd(state, i, T2, words, state.winner === i ? winEnd(p, T2, words, held2, lawOf(state, i)) : p.fell ? fellEnd(p, along, T2, sq, held2, l, who2, lawOf(state, i)) : !p.life?.length ? T2("lifeUnborn") : p.death?.by === "ledger" ? ledgerEnd(p, T2, words, l, who2, held2) : p.dead && p.pos === GOAL ? doorEnd(p, T2, words, l, who2) : p.dead ? T2("lifeEndDied", { age: words(p.years), holding: held2(SNAKES[p.holding]?.holding) }).replace(/, ([.।])$/, "$1") : T2("lifeEndOpen", { n: p.pos })),
+      end: lawEnd(state, i, T2, words, liberated(state, i) ? winEnd(p, T2, words, held2, lawOf(state, i)) : p.fell ? fellEnd(p, along, T2, sq, held2, l, who2, lawOf(state, i)) : !p.life?.length ? T2("lifeUnborn") : p.death?.by === "ledger" ? ledgerEnd(p, T2, words, l, who2, held2) : p.dead && p.pos === GOAL ? doorEnd(p, T2, words, l, who2) : p.dead ? T2("lifeEndDied", { age: words(p.years), holding: held2(SNAKES[p.holding]?.holding) }).replace(/, ([.।])$/, "$1") : T2("lifeEndOpen", { n: p.pos })),
       // a curse the life never bore out is closed after the end, the other way (Phase 14): empty with none
-      curse: curse && curse.closedAt == null && (state.winner === i || p.fell || p.dead) ? fill(curse.c.not[l] || curse.c.not.en, who2) : "",
+      curse: curse && curse.closedAt == null && (liberated(state, i) || p.fell || p.dead) ? fill(curse.c.not[l] || curse.c.not.en, who2) : "",
       // what the life never found out about the people in it (Phase 10C): empty with no cast
       fates: fatesIn(state, i, l, along, cc, who2),
       // how many cast returns were joined by what they witnessed (Phase 15), for tools/accounts.mjs
@@ -9256,7 +9678,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   }
   function lawEnd(state, i, T2, words, end) {
     const p = state.players[i], k = lawOf(state, i).text.end;
-    return k && (p.dead || p.fell || state.winner === i) ? `${end} ${T2(k)}` : end;
+    return k && (p.dead || p.fell || liberated(state, i)) ? `${end} ${T2(k)}` : end;
   }
   function fellEnd(p, along, T2, sq, held2, l, who2, law) {
     const top = p.fellFrom ?? Math.max(...along.map((e) => e.n)), vice = SNAKES[p.holding]?.holding;
@@ -9312,8 +9734,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       rows.push({ n: e.n, years: e.years, kind: e.via, from: e.from });
     }
     const viaOf = (r) => r.kind === "snake" ? T2("pathSnake", { sq: nameOf(r.from) }) : r.kind === "ladder" ? T2("pathLadder", { sq: nameOf(r.from) }) : r.kind === "reckon" ? T2("pathReckon") : r.kind === "sit" ? r.count === 1 ? T2("pathSat") : T2("pathSatN", { n: words(r.count) }) : r.kind === "stay" ? r.count === 1 ? T2("pathStay") : T2("pathStayN", { n: words(r.count) }) : "";
-    const end = state.winner === i ? T2(lawOf(state, i).text.win.path) : p.fell ? T2("pathFell") : p.dead ? T2("pathDied") : p.earned ? T2("animalEarned") : p.short ? T2(state.rules.animal?.round >= 2 ? "animalLastText" : "animalShortText") : "";
-    return { rows: rows.map((r) => ({ age: isAnimal(state) ? "" : words(r.years), sq: nameOf(r.n), via: viaOf(r) })), end };
+    const end = liberated(state, i) ? T2(lawOf(state, i).text.win.path) : p.fell ? T2("pathFell") : p.dead ? T2("pathDied") : p.earned ? T2("animalEarned") : p.short ? T2(interludeOf(state, i)?.round >= 2 ? "animalLastText" : "animalShortText") : "";
+    return { rows: rows.map((r) => ({ age: isAnimal(state, i) ? "" : words(r.years), sq: nameOf(r.n), via: viaOf(r) })), end };
   }
   function lifeText(state, i, l) {
     const { title, sub, open: open2, paras, end, curse, fates } = lifeOf(state, i, l);
@@ -9352,7 +9774,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     };
     if (d.rebel) add(qs.find((q2) => q2.when === "rebel"));
     const fits = qs.filter((q2) => q2.when !== "rebel" && d[q2.when]);
-    const r = makeRng((state.rng.seed ^ 1831565813 ^ Math.imul(i + 1, 668265261) ^ Math.imul(state.players[i]?.rebirths ?? 0, 1663821227)) >>> 0);
+    const r = makeRng((state.rng.seed ^ 1831565813 ^ Math.imul(laneOf(state, i) + 1, 668265261) ^ Math.imul(state.players[i]?.rebirths ?? 0, 1663821227)) >>> 0);
     const order = fits.map((q2) => [next(r), q2]).sort((a, b) => a[0] - b[0]).map(([, q2]) => q2);
     order.forEach(add);
     for (const id of FALLBACK) add(qs.find((q2) => q2.id === id && q2.when !== "unwritten"));
@@ -9515,6 +9937,682 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     showWay(TABS[(to + TABS.length) % TABS.length]);
   });
 
+  // src/engine/compare.js
+  var inputsOf = (state) => ({
+    seed: state.rng.seed,
+    rules: { ...state.rules },
+    table: state.table,
+    turns: state.turns ?? 0,
+    choices: state.players.map((p) => p.type === "human" ? [...p.choices ?? []] : null),
+    // a game resumed from before Phase 19 step 3 threw off the shared sequence, and is played again so
+    ...state.throws === "own" ? {} : { stream: true }
+  });
+  var replayable = (state) => !!state?.table && !state.rules?.board;
+  function replay(inputs, onTurn = null) {
+    const s = createGame({ players: JSON.parse(JSON.stringify(inputs.table)), rules: { ...inputs.rules }, seed: inputs.seed });
+    if (inputs.stream) delete s.throws;
+    const at2 = s.players.map(() => 0), noted = s.players.map(() => 0), traces = s.players.map(() => [[]]);
+    let ok = true;
+    const take = (i, fits) => {
+      const x = inputs.choices[i]?.[at2[i]];
+      if (x == null || !fits(x)) {
+        ok = false;
+        return null;
+      }
+      at2[i]++;
+      return x;
+    };
+    for (let t2 = 0; t2 < inputs.turns && !s.over; t2++) {
+      const i = s.turn, p = s.players[i], human = p.type === "human", auto = lawOf(s, i).auto, life = p.rebirths ?? 0, k = p.thrown ?? 0;
+      let prac = false;
+      if (human) {
+        if (life !== noted[i]) {
+          noted[i] = life;
+          const x = take(i, (c) => c[0] === "l"), id = x?.slice(1);
+          if (id && id !== (p.law ?? "")) {
+            if (canChoose(id)) setLaw(s, i, id);
+            else ok = false;
+          }
+        }
+        if (!spentOf(p) && canPractise(s, i)) prac = take(i, (c) => c === "p" || c === "r") === "p";
+      }
+      const roll2 = spentOf(p) || (human ? prac : practisesNow(s)) ? [] : throwDice(s, diceFor(p));
+      const pick3 = (st, dice) => {
+        if (!human || auto) return moveFor(st, dice);
+        const m = movesFor2(st, dice);
+        if (m.length < 2) return m[0] ?? null;
+        const x = take(i, (c) => /^\d$/.test(c));
+        return x == null || !m.includes(+x) ? m[0] : +x;
+      };
+      const choose2 = (st, sit) => {
+        if (!human || auto) return lawOf(st).choose(st, sit);
+        const id = take(i, (c) => c[0] === "o")?.slice(1);
+        if (id != null && optionsFor(p, sit).some((o) => o.open && o.id === id)) return id;
+        ok = false;
+        return lawOf(st).choose(st, sit);
+      };
+      let plan;
+      try {
+        plan = playTurn(s, roll2, pick3, choose2);
+      } catch {
+        ok = false;
+        break;
+      }
+      const q2 = (p.rebirths ?? 0) > life ? p.past.at(-1) : p, tr = traces[i];
+      while (tr.length <= life) tr.push([]);
+      const g3 = q2.gunas ?? { s: 1, r: 1, t: 1 };
+      tr[life].push({
+        at: plan.from,
+        to: plan.final,
+        dice: [...plan.dice ?? []],
+        v: plan.v ?? null,
+        k: plan.dice?.length ? k : null,
+        chose: plan.ego?.chose ?? plan.grace?.chose ?? plan.choice ?? null,
+        took: plan.choice ?? null,
+        sq: plan.choice ? plan.target : null,
+        g: [g3.s, g3.r, g3.t],
+        years: Math.floor(q2.years ?? 0)
+      });
+      while (tr.length <= (p.rebirths ?? 0)) tr.push([]);
+      onTurn?.(s, plan, i, life);
+    }
+    return { state: s, traces, ok: ok && inputs.choices.every((c, i) => !c || at2[i] === c.length) };
+  }
+  var livesIn = (state, i) => [...(state.players[i].past ?? []).map((_, k) => pastOf(state, i, k)), state];
+  var shape = (state) => state.players.map((p) => [...p.past ?? [], p].map((q2) => [q2.life ?? [], Math.floor(q2.years ?? 0), q2.pos]));
+  var sameGame = (a, b) => JSON.stringify(shape(a)) === JSON.stringify(shape(b));
+  function endKindOf(state, i, k = null) {
+    const st = pastOf(state, i, k), p = st.players[i];
+    if (p.law === "animal" || p.animal) return "animal";
+    if (k == null && liberated(state, i)) return p.won === "svarga" ? "svarga" : "liberated";
+    const e = endOf(st, i);
+    return e ?? "living";
+  }
+  var soulsOf = (state, traces, seats = state.players.map((_, i) => i)) => seats.map((i) => {
+    const p = state.players[i];
+    return {
+      seat: i,
+      color: p.color,
+      type: p.type,
+      seed: state.rng.seed,
+      lives: livesIn(state, i).map((st, k, all) => {
+        const q2 = st.players[i], kk = k === all.length - 1 ? null : k;
+        return {
+          k,
+          name: { en: pnameIn(q2, "en"), hi: pnameIn(q2, "hi") },
+          gender: q2.gender,
+          animal: q2.animal?.kind ?? null,
+          path: [...q2.life ?? []],
+          end: endKindOf(state, i, kk),
+          trace: traces?.[i]?.[k] ?? null,
+          st,
+          met: q2.met ?? [],
+          witness: q2.witness ?? []
+        };
+      })
+    };
+  });
+  function sameOf(souls) {
+    const bySq = /* @__PURE__ */ new Map();
+    for (const s of souls) for (const l of s.lives) for (const w of l.witness) {
+      if (!optionOf(w.sq, w.took)) continue;
+      const row2 = bySq.get(w.sq) ?? [];
+      if (!row2.some((x) => x.at === s.at && x.life === l.k)) row2.push({ at: s.at, seat: s.seat, life: l.k, name: l.name, chose: w.chose, took: w.took });
+      bySq.set(w.sq, row2);
+    }
+    return [...bySq].filter(([, by]) => new Set(by.map((x) => `${x.at}.${x.life}`)).size > 1).sort((a, b) => a[0] - b[0]).map(([sq, by]) => ({ sq, by }));
+  }
+  function compareOf(state, traces = null) {
+    const souls = soulsOf(state, traces).map((s, at2) => ({ ...s, at: at2 }));
+    const met = [], seen2 = /* @__PURE__ */ new Set();
+    for (const s of souls) for (const l of s.lives) for (const m of l.met) {
+      const key = [`${s.seat}.${l.k}`, `${m.seat}.${m.life}`].sort().join("|") + "|" + m.sq;
+      if (seen2.has(key)) continue;
+      seen2.add(key);
+      met.push({ a: { at: s.at, seat: s.seat, life: l.k, name: l.name }, b: { at: m.seat, seat: m.seat, life: m.life, name: m.with }, sq: m.sq });
+    }
+    return { souls, same: sameOf(souls), met, parted: [] };
+  }
+  function compareLives(games) {
+    const souls = games.map((g3, at2) => ({ ...soulsOf(g3.state, g3.traces, [g3.seat])[0], at: at2, color: at2 % 4, board: g3.state.rules?.board ?? "110", mine: !!g3.mine }));
+    const parted = [];
+    for (let a = 0; a < souls.length; a++) for (let b = a + 1; b < souls.length; b++) {
+      if (souls[a].seed !== souls[b].seed || souls[a].board !== souls[b].board) continue;
+      const p = partingOf(souls[a], souls[b]);
+      if (p) parted.push(p);
+    }
+    return { souls, same: sameOf(souls), met: [], parted };
+  }
+  function partingOf(A, B) {
+    const ta = (A.lives[0]?.trace ?? []).filter((x) => x.k != null), tb = (B.lives[0]?.trace ?? []).filter((x) => x.k != null);
+    if (!ta.length || !tb.length) return null;
+    const byK = new Map(tb.map((x) => [x.k, x]));
+    for (const x of ta) {
+      const y = byK.get(x.k);
+      if (!y) break;
+      const base = { a: A.at, b: B.at, k: x.k + 1, sq: x.at, dice: x.dice };
+      if (x.at !== y.at) return { ...base, how: "before" };
+      if (x.dice.join() !== y.dice.join()) return null;
+      if (x.v !== y.v) return { ...base, how: "move", va: x.v, vb: y.v };
+      if ((x.chose ?? x.took) !== (y.chose ?? y.took)) return { ...base, how: "choice", sq: x.sq ?? x.to, va: x.chose ?? x.took, vb: y.chose ?? y.took };
+    }
+    const end = Math.min(ta.length, tb.length);
+    return ta.length === tb.length && ta.every((x, j) => x.to === tb[j].to) ? { a: A.at, b: B.at, k: null } : { a: A.at, b: B.at, k: end + 1, sq: ta[end - 1].to, how: "end" };
+  }
+
+  // src/render/compare.js
+  var dlg4 = $("compareDlg");
+  var leaf4 = $("cmpLeaf");
+  var model = null;
+  var tab2 = 0;
+  var note = "";
+  var addNote = "";
+  function sqName(n, l) {
+    if (n === GOAL) return tIn(l, "moksha");
+    const h = HEAVEN[n] ?? SNAKES[n] ?? LADDERS[n] ?? squareOf(n);
+    return h ? h[l] || h.en : "";
+  }
+  var nameIn = (x, l) => x[l] || x.en;
+  var lifeName = (life, l) => life.animal ? fill(tIn(l, "animalTitle", { name: nameIn(life.name, l), animal: tIn(l, "a_" + life.animal) }), { gender: life.gender }) : nameIn(life.name, l);
+  var livesWord = (n, l) => n === 1 ? tIn(l, "cmpLivesOne") : tIn(l, "cmpLives", { n: wordsIn(l, n) });
+  var humanLives = (s) => s.lives.filter((x) => !x.animal).length;
+  function build(state) {
+    let traces = null;
+    if (replayable(state)) {
+      const r = replay(inputsOf(state));
+      if (r.ok && sameGame(state, r.state)) traces = r.traces;
+    }
+    return { ...compareOf(state, traces), replayed: !!traces };
+  }
+  var hooks = { onPlay: null, onAdd: null };
+  var setCompareHooks = (h) => {
+    hooks = { ...hooks, ...h };
+  };
+  function buildLives(entries, offer) {
+    const games = entries.map((e) => {
+      if (e.state) {
+        const r2 = replayable(e.state) ? replay(inputsOf(e.state)) : null;
+        return { state: e.state, traces: r2?.ok && sameGame(e.state, r2.state) ? r2.traces : null, seat: e.seat, mine: e.mine };
+      }
+      const r = replay(e.inputs);
+      return { state: r.state, traces: r.ok ? r.traces : null, seat: e.seat, mine: e.mine };
+    });
+    return { ...compareLives(games), replayed: games.every((g3) => g3.traces), offer, entries };
+  }
+  function show2() {
+    tab2 = 0;
+    note = "";
+    if (!dlg4.open) dlg4.showModal();
+    paint4();
+    leaf4.querySelector(".cmp-close")?.focus();
+  }
+  function openCompare(state = G.state) {
+    model = build(state);
+    show2();
+  }
+  function openLives(entries, offer = null) {
+    model = buildLives(entries, offer);
+    show2();
+    return model;
+  }
+  var closeCompare = () => {
+    if (dlg4.open) dlg4.close();
+  };
+  var refreshCompare = () => {
+    if (dlg4.open && model) paint4();
+  };
+  var compareModel = () => model;
+  var pal = (k) => BOARD.palette[k];
+  function routed(path) {
+    const out = [];
+    const walk2 = (a, b) => {
+      for (let n = a + 1; n <= b; n++) out.push({ n, jump: false });
+    };
+    for (const n of path) {
+      if (n < 1 || n > TOP) continue;
+      const a = out.at(-1)?.n;
+      if (a == null || n === a) {
+        if (a == null) out.push({ n, jump: false });
+        continue;
+      }
+      const via = [...Array(12)].map((_, k) => a + 1 + k).find((x) => (LADDERS[x]?.to ?? SNAKES[x]?.to) === n);
+      if (via) {
+        walk2(a, via);
+        out.push({ n, jump: true });
+      } else if (n > a && n - a <= 12) walk2(a, n);
+      else out.push({ n, jump: true });
+    }
+    return out;
+  }
+  function drawBoard(c, W2, x0 = 0, y0 = 0) {
+    const cell = W2 / COLS, H2 = cell * ROWS;
+    c.save();
+    c.translate(x0, y0);
+    for (let n = 1; n <= TOP; n++) {
+      const { col, row: row2 } = colRow(n);
+      c.fillStyle = groundOf(n)[0];
+      c.fillRect(col * cell, (ROWS - 1 - row2) * cell, cell + 0.5, cell + 0.5);
+    }
+    const art2 = $("art");
+    if (art2?.width) c.drawImage(art2, 0, 0, W2, H2);
+    c.fillStyle = "rgba(245, 233, 201, 0.35)";
+    c.fillRect(0, 0, W2, H2);
+    const at2 = (n, off) => {
+      const { col, row: row2 } = colRow(n);
+      return [(col + 0.5) * cell + off, (ROWS - 1 - row2 + 0.5) * cell + off];
+    };
+    const lives2 = model.souls.flatMap((s, si) => s.lives.map((life, k) => ({
+      s,
+      life,
+      last: k === s.lives.length - 1,
+      steps: routed(life.path).map((x) => ({ ...x, p: at2(x.n, (si - (model.souls.length - 1) / 2) * cell * 0.12) }))
+    }))).filter((x) => x.steps.length);
+    c.lineJoin = c.lineCap = "round";
+    const stroke = (pts, w, col, a) => {
+      c.globalAlpha = a;
+      c.strokeStyle = col;
+      c.lineWidth = cell * w;
+      c.beginPath();
+      pts.forEach(([x, y], j) => j ? c.lineTo(x, y) : c.moveTo(x, y));
+      c.stroke();
+    };
+    for (const { s, last: last2, steps } of lives2) {
+      let run = [steps[0].p];
+      const flush = () => {
+        if (run.length > 1) stroke(run, 0.035, P_HEX[s.color], last2 ? 0.45 : 0.22);
+      };
+      for (const x of steps.slice(1)) {
+        if (x.jump) {
+          flush();
+          run = [x.p];
+        } else run.push(x.p);
+      }
+      flush();
+    }
+    for (const { s, last: last2, steps } of lives2) steps.forEach((x, j) => {
+      if (!j || !x.jump) return;
+      const seg = [steps[j - 1].p, x.p];
+      stroke(seg, 0.12, pal("black"), last2 ? 0.4 : 0.2);
+      stroke(seg, 0.075, P_HEX[s.color], last2 ? 0.95 : 0.5);
+    });
+    c.globalAlpha = 1;
+    for (const { s, life, last: last2, steps } of lives2) {
+      const [x, y] = steps.at(-1).p, r = cell * (last2 ? 0.18 : 0.12);
+      c.beginPath();
+      c.arc(x, y, r, 0, Math.PI * 2);
+      c.fillStyle = P_HEX[s.color];
+      c.fill();
+      c.lineWidth = cell * 0.05;
+      c.strokeStyle = life.end === "liberated" || life.end === "svarga" ? pal("gold-hi") : pal("black");
+      c.stroke();
+    }
+    c.restore();
+    return H2;
+  }
+  function drawRibbon(c, s, W2, h, x0 = 0, y0 = 0) {
+    const pts = s.lives.flatMap((life, k) => (life.trace ?? []).map((x) => ({ g: x.g, k })));
+    if (!pts.length) return false;
+    const cols = [pal("yellow"), pal("vermilion"), pal("indigo")], step = W2 / pts.length;
+    pts.forEach(({ g: g3 }, j) => {
+      const sum = g3[0] + g3[1] + g3[2] || 1;
+      let y = y0;
+      for (let b = 0; b < 3; b++) {
+        const bh = g3[b] / sum * h;
+        c.fillStyle = cols[b];
+        c.fillRect(x0 + j * step, y, step + 0.6, bh + 0.6);
+        y += bh;
+      }
+    });
+    c.fillStyle = pal("cream");
+    pts.forEach((x, j) => {
+      if (j && x.k !== pts[j - 1].k) c.fillRect(x0 + j * step - 1, y0, 2, h);
+    });
+    return true;
+  }
+  function sized(cv, w, h) {
+    const dpr = window.devicePixelRatio || 1;
+    cv.width = Math.round(w * dpr);
+    cv.height = Math.round(h * dpr);
+    cv.style.width = w + "px";
+    cv.style.height = h + "px";
+    const c = cv.getContext("2d");
+    c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return c;
+  }
+  var soulTitle = (s, l) => s.mine ? tIn(l, "cmpYou", { name: lifeName(s.lives.at(-1), l) }) : tIn(l, "cmpSoul", { name: lifeName(s.lives.at(-1), l) });
+  function partedLines(l) {
+    const out = [], souls = model.souls, nm = (at2) => lifeName(souls[at2].lives[0], l);
+    for (let a = 0; a < souls.length; a++) for (let b = a + 1; b < souls.length; b++) {
+      const p = model.parted.find((x) => x.a === a && x.b === b), v = { a: nm(a), b: nm(b) };
+      if (!p) {
+        if (souls[a].seed !== souls[b].seed) out.push([a, b, tIn(l, "cmpPartOther", v)]);
+        continue;
+      }
+      const lab = (id) => {
+        const o = optionOf(p.sq, id);
+        return o ? o.label[l] || o.label.en : id;
+      };
+      const dice = p.dice?.length > 1 ? tIn(l, "cmpAnd", { a: p.dice[0], b: p.dice[1] }) : String(p.dice?.[0] ?? "");
+      const key = p.k == null ? "cmpPartNone" : { move: "cmpPartMove", choice: "cmpPartChoice", before: "cmpPartBefore", end: "cmpPartEnd" }[p.how];
+      out.push([a, b, tIn(l, key, { ...v, k: p.k ?? "", sq: p.sq ?? "", dice, va: p.how === "choice" ? lab(p.va) : p.va, vb: p.how === "choice" ? lab(p.vb) : p.vb })]);
+    }
+    return out;
+  }
+  function partedHtml(l) {
+    const lines = partedLines(l);
+    return lines.length ? `<h3>${esc(tIn(l, "cmpParted"))}</h3><ul class="cmp-met">` + lines.map(([a, b, x]) => `<li><span class="dot" style="background:${P_HEX[model.souls[a].color]}"></span><span class="dot" style="background:${P_HEX[model.souls[b].color]}"></span>${esc(x)}</li>`).join("") + `</ul>` : "";
+  }
+  var beads = (s) => s.lives.map((l) => `<span class="bead${l.animal ? " animal" : ""}${l.end === "liberated" || l.end === "svarga" ? " free" : ""}" aria-hidden="true"></span>`).join("");
+  function sameHtml(l) {
+    if (!model.same.length) return `<p class="cmp-none">${esc(tIn(l, "cmpSameNone"))}</p>`;
+    return `<dl class="cmp-same">` + model.same.map(({ sq, by }) => `<dt>${esc(sqName(sq, l))}</dt>` + by.map((b) => {
+      const lab = (id) => {
+        const o = optionOf(sq, id);
+        return o ? o.label[l] || o.label.en : id;
+      };
+      const s = model.souls[b.at], k = b.chose !== b.took ? "cmpSameRebel" : "cmpSameRow";
+      return `<dd><span class="dot" style="background:${P_HEX[s.color]}"></span>${esc(tIn(l, k, { name: nameIn(b.name, l), chose: lab(b.chose), took: lab(b.took) }))}</dd>`;
+    }).join("")).join("") + `</dl>`;
+  }
+  function metHtml(l) {
+    if (!model.met.length) return `<p class="cmp-none">${esc(tIn(l, "cmpMetNone"))}</p>`;
+    return `<ul class="cmp-met">` + model.met.map((m) => `<li><span class="dot" style="background:${P_HEX[model.souls[m.a.at].color]}"></span><span class="dot" style="background:${P_HEX[model.souls[m.b.at].color]}"></span>${esc(tIn(l, "cmpMetLine", { a: nameIn(m.a.name, l), b: nameIn(m.b.name, l), sq: sqName(m.sq, l) }))}</li>`).join("") + `</ul>`;
+  }
+  function bookHtml(s, l) {
+    return s.lives.map((life) => {
+      const b = lifeOf(life.st, s.seat, l);
+      return `<article class="cmp-life"><h4>${esc(b.title)}</h4>${b.open ? `<p>${esc(b.open)}</p>` : ""}${b.paras.map((p) => `<h5>${esc(p.head)}</h5><p>${esc(p.text)}</p>`).join("")}<p class="cmp-end">${esc([b.end, b.curse].filter(Boolean).join(" "))}</p>${b.fates?.length ? `<p class="cmp-fates">${esc(b.fates.join(" "))}</p>` : ""}</article>`;
+    }).join("");
+  }
+  function paint4() {
+    const l = lang, souls = model.souls, traced = souls.some((s) => s.lives.some((x) => x.trace));
+    leaf4.innerHTML = `
+    <header class="leaf-top"><span class="eb">${esc(tIn(l, "title"))}</span>
+      <button type="button" class="x cmp-close" aria-label="${esc(tIn(l, "close"))}">×</button></header>
+    <div class="cmp-body">
+      <h2 id="cmpTitle">${esc(tIn(l, "togetherTitle"))}</h2>
+      ${model.offer ? `<p class="cmp-offer">${esc(tIn(l, "cmpPlayAbout"))} <button type="button" data-act="play">${esc(tIn(l, "cmpPlaySeed"))}</button></p>` : ""}
+      <ul class="cmp-souls">${souls.map((s) => {
+      const last2 = s.lives.at(-1);
+      return `<li><span class="dot" style="background:${P_HEX[s.color]}"></span><b>${esc(soulTitle(s, l))}</b> <span class="beads" role="img" aria-label="${esc(livesWord(humanLives(s), l))}">${beads(s)}</span>
+          <span class="cmp-ends">${s.lives.map((x) => `${esc(lifeName(x, l))}: ${esc(tIn(l, "cmpEnd_" + x.end))}`).join(" · ")}</span></li>`;
+    }).join("")}</ul>
+      <h3>${esc(tIn(l, "cmpBoard"))}</h3>
+      <canvas class="cmp-board" role="img" aria-label="${esc(tIn(l, "cmpBoardAlt"))}"></canvas>
+      <h3>${esc(tIn(l, "cmpGunas"))}</h3>
+      ${traced ? `<p class="cmp-note">${esc(tIn(l, "cmpGunasNote"))}</p>` + souls.map((s) => `<div class="cmp-gunas"><span class="dot" style="background:${P_HEX[s.color]}"></span><canvas data-at="${s.at}" aria-hidden="true"></canvas></div>`).join("") : `<p class="cmp-note">${esc(tIn(l, "cmpNoTrace"))}</p>`}
+      <h3>${esc(tIn(l, "cmpSame"))}</h3>${sameHtml(l)}
+      ${model.entries ? partedHtml(l) : `<h3>${esc(tIn(l, "cmpMet"))}</h3>${metHtml(l)}`}
+      <h3>${esc(tIn(l, "cmpBooks"))}</h3>
+      <div class="cmp-tabs" role="tablist">${souls.map((s, i) => `<button type="button" role="tab" id="cmpTab-${i}" aria-controls="cmpBook-${i}" aria-selected="${i === tab2}" tabindex="${i === tab2 ? 0 : -1}" data-tab="${i}"><span class="dot" style="background:${P_HEX[s.color]}"></span>${esc(lifeName(s.lives.at(-1), l))}</button>`).join("")}</div>
+      <div class="cmp-books" style="--n:${souls.length}">${souls.map((s, i) => `<section class="cmp-book${i === tab2 ? " on" : ""}" id="cmpBook-${i}" role="tabpanel" aria-labelledby="cmpTab-${i}">${bookHtml(s, l)}</section>`).join("")}</div>
+      ${model.entries ? `<form class="cmp-add" data-act="add"><label for="cmpAddLink">${esc(tIn(l, "cmpAddLabel"))}</label> <input id="cmpAddLink" type="url" inputmode="url" autocomplete="off" spellcheck="false"> <button type="submit" class="ghost">${esc(tIn(l, "cmpAdd"))}</button> <span class="hint" aria-live="polite">${esc(addNote)}</span></form>` : ""}
+      <p class="cmp-acts"><button type="button" data-act="save">${esc(tIn(l, "cmpSave"))}</button> <button type="button" class="ghost" data-act="copy">${esc(tIn(l, "cmpCopy"))}</button> <span class="hint" aria-live="polite">${esc(note)}</span></p>
+    </div>`;
+    drawAll();
+  }
+  function drawAll() {
+    const cv = leaf4.querySelector(".cmp-board");
+    if (!cv) return;
+    const b = cv.parentElement, cs = getComputedStyle(b), inner = b.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    const w = Math.min(inner || 600, 720);
+    drawBoard(sized(cv, w, w / COLS * ROWS), w);
+    for (const r of leaf4.querySelectorAll(".cmp-gunas canvas")) {
+      const rw = r.parentElement.clientWidth - 24 || 560, s = model.souls[+r.dataset.at];
+      drawRibbon(sized(r, rw, 30), s, rw, 30);
+    }
+  }
+  addEventListener("resize", () => {
+    if (dlg4.open && model) drawAll();
+  });
+  function imageOf(l = lang) {
+    const W2 = 1080, pad = 48, inner = W2 - 2 * pad, cell = inner / COLS, bh = cell * ROWS, rowH = 120;
+    const H2 = pad + 70 + bh + 30 + model.souls.length * rowH + 70;
+    const cv = document.createElement("canvas");
+    cv.width = W2;
+    cv.height = Math.ceil(H2);
+    const c = cv.getContext("2d"), font = getComputedStyle(document.body).fontFamily;
+    const serif = getComputedStyle(leaf4).fontFamily || font;
+    c.fillStyle = pal("cream");
+    c.fillRect(0, 0, W2, H2);
+    c.fillStyle = pal("black");
+    c.textBaseline = "alphabetic";
+    c.font = `400 44px ${serif}`;
+    c.fillText(tIn(l, "togetherTitle"), pad, pad + 40);
+    drawBoard(c, inner, pad, pad + 70);
+    let y = pad + 70 + bh + 30;
+    for (const s of model.souls) {
+      c.fillStyle = P_HEX[s.color];
+      c.beginPath();
+      c.arc(pad + 12, y + 18, 12, 0, Math.PI * 2);
+      c.fill();
+      c.fillStyle = pal("black");
+      c.font = `600 28px ${font}`;
+      c.fillText(soulTitle(s, l), pad + 36, y + 28);
+      s.lives.forEach((x, k) => {
+        c.beginPath();
+        c.arc(W2 - pad - 12 - (s.lives.length - 1 - k) * 26, y + 18, 9, 0, Math.PI * 2);
+        c.fillStyle = x.end === "liberated" || x.end === "svarga" ? pal("gold") : x.animal ? pal("malachite") : P_HEX[s.color];
+        c.fill();
+      });
+      c.font = `400 20px ${font}`;
+      c.fillStyle = pal("lac");
+      const ends = s.lives.map((x) => `${lifeName(x, l)}: ${tIn(l, "cmpEnd_" + x.end)}`).join(" · ");
+      c.fillText(ends.length > 90 ? ends.slice(0, 88) + "…" : ends, pad + 36, y + 56);
+      drawRibbon(c, s, inner - 36, 26, pad + 36, y + 72);
+      y += rowH;
+    }
+    c.fillStyle = pal("lac");
+    c.font = `italic 400 20px ${serif}`;
+    c.fillText(tIn(l, "cmpFoot"), pad, H2 - pad + 10);
+    return cv;
+  }
+  function textOf(l = lang) {
+    const out = [tIn(l, "togetherTitle"), ""];
+    for (const s of model.souls) out.push(`${soulTitle(s, l)} (${livesWord(humanLives(s), l)}): ` + s.lives.map((x) => `${lifeName(x, l)}, ${tIn(l, "cmpEnd_" + x.end)}`).join("; "));
+    out.push("", tIn(l, "cmpSame"));
+    if (!model.same.length) out.push(tIn(l, "cmpSameNone"));
+    for (const { sq, by } of model.same) {
+      const lab = (id) => optionOf(sq, id)?.label[l] ?? id;
+      out.push(`${sqName(sq, l)}: ` + by.map((b) => tIn(l, b.chose !== b.took ? "cmpSameRebel" : "cmpSameRow", { name: nameIn(b.name, l), chose: lab(b.chose), took: lab(b.took) })).join("; "));
+    }
+    if (model.entries) {
+      const p = partedLines(l);
+      if (p.length) out.push("", tIn(l, "cmpParted"), ...p.map((x) => x[2]));
+    } else {
+      out.push("", tIn(l, "cmpMet"));
+      out.push(...model.met.length ? model.met.map((m) => tIn(l, "cmpMetLine", { a: nameIn(m.a.name, l), b: nameIn(m.b.name, l), sq: sqName(m.sq, l) })) : [tIn(l, "cmpMetNone")]);
+    }
+    for (const s of model.souls) for (const life of s.lives) {
+      const b = lifeOf(life.st, s.seat, l);
+      out.push("", "", [b.title, b.open, ...b.paras.map((p) => `${p.head}
+${p.text}`), [b.end, b.curse].filter(Boolean).join(" "), (b.fates ?? []).join(" ")].filter(Boolean).join("\n\n"));
+    }
+    return out.join("\n") + "\n";
+  }
+  async function save() {
+    const cv = imageOf();
+    const blob = await new Promise((r) => cv.toBlob(r, "image/png"));
+    if (!blob) return;
+    const file = new File([blob], "moksha-patam-lives.png", { type: "image/png" });
+    if (matchMedia("(pointer: coarse)").matches && navigator.canShare?.({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file], title: tIn(lang, "togetherTitle") });
+        note = tIn(lang, "cmpSaved");
+        paintNote();
+        return;
+      } catch {
+        return;
+      }
+    }
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = file.name;
+    document.body.append(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1e3);
+    note = tIn(lang, "cmpSaved");
+    paintNote();
+  }
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(textOf());
+      note = tIn(lang, "cmpCopied");
+    } catch {
+      note = "";
+    }
+    paintNote();
+  }
+  var paintNote = () => {
+    const h = leaf4.querySelector(".cmp-acts .hint");
+    if (h) h.textContent = note;
+  };
+  leaf4.addEventListener("click", (e) => {
+    if (e.target.closest(".cmp-close")) return closeCompare();
+    const t2 = e.target.closest("[data-tab]");
+    if (t2) return showTab2(+t2.dataset.tab, false);
+    const act = e.target.closest("[data-act]")?.dataset.act;
+    if (act === "save") save();
+    if (act === "play") {
+      closeCompare();
+      hooks.onPlay?.(model.offer);
+    }
+    if (act === "copy") copy();
+  });
+  function showTab2(i, focus = true) {
+    tab2 = (i + model.souls.length) % model.souls.length;
+    leaf4.querySelectorAll(".cmp-tabs [role=tab]").forEach((b, k) => {
+      b.setAttribute("aria-selected", String(k === tab2));
+      b.tabIndex = k === tab2 ? 0 : -1;
+    });
+    leaf4.querySelectorAll(".cmp-book").forEach((b, k) => b.classList.toggle("on", k === tab2));
+    if (focus) leaf4.querySelector(`#cmpTab-${tab2}`)?.focus();
+  }
+  leaf4.addEventListener("submit", async (e) => {
+    if (!e.target.closest(".cmp-add")) return;
+    e.preventDefault();
+    const key = await hooks.onAdd?.(leaf4.querySelector("#cmpAddLink").value);
+    addNote = key ? tIn(lang, key) : "";
+    if (dlg4.open) paint4();
+    addNote = "";
+  });
+  leaf4.addEventListener("keydown", (e) => {
+    if (!e.target.closest(".cmp-tabs")) return;
+    const k = { ArrowRight: tab2 + 1, ArrowLeft: tab2 - 1, Home: 0, End: model.souls.length - 1 }[e.key];
+    if (k == null) return;
+    e.preventDefault();
+    showTab2(k);
+  });
+
+  // src/share.js
+  var V = 1;
+  var ROW = ["name", "type", "gender", "alias", "law"];
+  var OPTS = () => [...new Set(Object.values(SITUATIONS).flatMap((x) => x.options.map((o) => o.id)))].sort();
+  var LAWIDS = () => Object.keys(LAWS).sort();
+  var UP = "ABCDEFGHIJKLMNOQSTUVWXYZ";
+  var LO = "abcdefghijkmnoqstuvwxyz";
+  function packChoices(list) {
+    const o = OPTS(), w = LAWIDS();
+    return list.map((c) => {
+      if (/^\d$/.test(c) || c === "p" || c === "r") return c;
+      if (c[0] === "o" && o.indexOf(c.slice(1)) >= 0 && o.indexOf(c.slice(1)) < UP.length) return UP[o.indexOf(c.slice(1))];
+      if (c[0] === "l" && w.indexOf(c.slice(1)) >= 0 && w.indexOf(c.slice(1)) < LO.length) return "l" + LO[w.indexOf(c.slice(1))];
+      return "~" + c + ";";
+    }).join("");
+  }
+  function unpackChoices(text) {
+    const o = OPTS(), w = LAWIDS(), out = [];
+    for (let j = 0; j < text.length; j++) {
+      const c = text[j];
+      if (c === "~") {
+        const e = text.indexOf(";", j);
+        out.push(text.slice(j + 1, e));
+        j = e;
+      } else if (c === "l") out.push("l" + (w[LO.indexOf(text[++j])] ?? "?"));
+      else if (UP.includes(c)) out.push("o" + o[UP.indexOf(c)]);
+      else out.push(c);
+    }
+    return out;
+  }
+  var b64 = (bytes) => btoa(String.fromCharCode(...bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  var unb64 = (s) => Uint8Array.from(atob(s.replace(/-/g, "+").replace(/_/g, "/")), (c) => c.charCodeAt(0));
+  async function through(bytes, stream) {
+    const out = new Response(new Blob([bytes]).stream().pipeThrough(stream));
+    return new Uint8Array(await out.arrayBuffer());
+  }
+  async function pack(obj) {
+    const text = new TextEncoder().encode(JSON.stringify(obj));
+    if (typeof CompressionStream === "function") return "z" + b64(await through(text, new CompressionStream("deflate-raw")));
+    return "j" + b64(text);
+  }
+  async function unpack(s) {
+    const kind = s[0], bytes = unb64(s.slice(1));
+    const text = kind === "z" ? await through(bytes, new DecompressionStream("deflate-raw")) : kind === "j" ? bytes : null;
+    if (!text) throw new Error("not a life");
+    return JSON.parse(new TextDecoder().decode(text));
+  }
+  var playHash = ({ board: board4 = "110", law = "board", seed }) => `#play=${board4}.${law || "board"}.${seed >>> 0}`;
+  function readPlay(hash2) {
+    const m = /^#play=(\w+)\.(\w+)\.(\d+)$/.exec(hash2);
+    return m ? { board: m[1], law: m[2], seed: +m[3] >>> 0 } : null;
+  }
+  var dayOf = (date = /* @__PURE__ */ new Date()) => date.toISOString().slice(0, 10);
+  var dailySeed = (day = dayOf()) => mix(1836018547, ...[...day].map((c) => c.charCodeAt(0)));
+  var personOf = (state) => {
+    const at2 = state.players.map((p, i) => p.type === "human" ? i : -1).filter((i) => i >= 0);
+    return at2.length === 1 ? at2[0] : null;
+  };
+  var checkOf = (state, i) => {
+    const p = state.players[i];
+    return [(p.past?.length ?? 0) + 1, p.pos, Math.floor(p.years ?? 0)];
+  };
+  function sendable(state) {
+    if (!state?.over) return "not over";
+    if (!state.table || state.rules?.board) return "not replayable";
+    if (state.tampered) return "set by hand";
+    const i = personOf(state);
+    if (i == null) return "not one person";
+    if (state.table.some((r) => r.born)) return "born of a life before";
+    return null;
+  }
+  function lifeOf2(state) {
+    if (sendable(state)) return null;
+    const i = personOf(state);
+    return {
+      v: V,
+      s: state.rng.seed >>> 0,
+      r: state.rules,
+      n: state.turns,
+      p: i,
+      k: checkOf(state, i),
+      t: state.table.map((r) => Object.fromEntries(ROW.filter((k) => k === "name" || r[k] != null && r[k] !== "").map((k) => [k, k === "name" ? r.name ?? "" : r[k]]))),
+      c: packChoices(state.players[i].choices ?? []),
+      // a game begun before Phase 19 step 3 and resumed threw off the shared sequence; every link since says nothing
+      ...state.throws === "own" ? {} : { d: "stream" }
+    };
+  }
+  var lifeHash = async (state) => {
+    const x = lifeOf2(state);
+    return x ? "#life=" + await pack(x) : null;
+  };
+  function inputsOfLife(x) {
+    if (!x || x.v !== V || !Number.isInteger(x.s) || !Array.isArray(x.t) || !Number.isInteger(x.p) || !x.t[x.p]) throw new Error("not a life");
+    return {
+      inputs: { seed: x.s >>> 0, rules: { ...x.r }, table: x.t, turns: x.n, ...x.d === "stream" ? { stream: true } : {}, choices: x.t.map((r, i) => i === x.p ? unpackChoices(x.c ?? "") : r.type === "human" ? [] : null) },
+      seat: x.p,
+      check: x.k
+    };
+  }
+  async function readLife(hash2) {
+    const m = /^#life=([\w-]+)$/.exec(hash2);
+    return m ? inputsOfLife(await unpack(m[1])) : null;
+  }
+  var hashOf = (text) => {
+    const s = String(text).trim(), at2 = s.indexOf("#");
+    return at2 >= 0 ? s.slice(at2) : null;
+  };
+
   // src/main.js
   var PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
   var dieEls = [$("die"), $("die2")];
@@ -9544,44 +10642,28 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     G.face = dice;
     refreshRoll();
   };
-  async function rollDice3(n) {
-    const rng = G.state.rng;
-    if (isCloth()) return throwCloth(rng);
-    dieEls[1].hidden = n < 2;
-    for (const d of dieEls.slice(0, n)) {
+  async function rollDice2(n) {
+    const cl = isCloth(), kind = cl ? randOf(G.state) : null, el3 = cl && shellsOn() ? shellEl : dieEls[0];
+    const forced = G.forcedRoll == null ? null : [G.forcedRoll].flat();
+    G.forcedRoll = null;
+    if (forced) G.state.tampered = true;
+    if (cl && forced) G.state.shells = null;
+    const t2 = drawThrow(G.state, cl ? 1 : n, { kind, forced: cl ? forced?.slice(0, 1) : forced });
+    if (cl && forced && kind === "cowries") t2.up = Array.from({ length: COWRIES }, (_, i) => i < forced[0]);
+    dieEls[1].hidden = cl || n < 2;
+    for (const d of cl ? [el3] : dieEls.slice(0, n)) {
       d.classList.remove("rolling");
       void d.offsetWidth;
       d.classList.add("rolling");
     }
     sound.rattle();
-    for (let i = 0; i < TUMBLE2; i++) {
-      tumble(Array.from({ length: n }, () => die(rng)));
+    for (const f2 of t2.frames) {
+      tumble(f2.v, f2.up ?? void 0);
       await sleep(75);
     }
-    const forced = G.forcedRoll == null ? null : Array.isArray(G.forcedRoll) ? G.forcedRoll : Array(n).fill(G.forcedRoll);
-    G.forcedRoll = null;
-    const dice = Array.from({ length: n }, (_, k) => forced?.[k] ?? die(rng));
-    tumble(dice);
-    return dice;
-  }
-  async function throwCloth(rng) {
-    const kind = randOf(G.state), el3 = shellsOn() ? shellEl : dieEls[0];
-    dieEls[1].hidden = true;
-    el3.classList.remove("rolling");
-    void el3.offsetWidth;
-    el3.classList.add("rolling");
-    sound.rattle();
-    for (let i = 0; i < TUMBLE2; i++) {
-      const f3 = throwOf(rng, kind);
-      tumble([f3.v], f3.up);
-      await sleep(75);
-    }
-    const forced = G.forcedRoll == null ? null : [G.forcedRoll].flat()[0];
-    G.forcedRoll = null;
-    const f2 = forced != null ? { v: forced, up: kind === "cowries" ? Array.from({ length: COWRIES }, (_, i) => i < forced) : null } : throwOf(rng, kind);
-    G.state.shells = f2.up ?? null;
-    tumble([f2.v], f2.up);
-    return [f2.v];
+    if (cl) G.state.shells = t2.up ?? null;
+    tumble(t2.dice, cl ? t2.up ?? void 0 : void 0);
+    return t2.dice;
   }
   var atLadder = () => !!LADDERS[G.state.players[G.state.turn]?.pos];
   var actOf = () => G.choosing ? zeroOf(G.state, G.choosing.dice)?.act : null;
@@ -9674,6 +10756,19 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     addLog(G.state, e);
     renderLog();
   }
+  function noteChoice(p, x) {
+    (p.choices ||= []).push(x);
+  }
+  function publicOf(state, plan, p) {
+    if (plan.reborn || isCloth()) return null;
+    const all = [...plan.after, ...plan.end], line = (k) => all.findLast((e) => e.kind === k);
+    if ((plan.win || plan.freed) && together(state)) return { kind: "free", e: line("heaven") };
+    if (plan.died && !(plan.sit && plan.from === GOAL)) return { kind: "died", e: line("death") };
+    if (p.type === "human") return null;
+    if (plan.reckon && !plan.reckon.dies) return { kind: "reckon", e: line("reckon") };
+    if (plan.jump?.kind === "ladder" && plan.jump.to >= ENDGAME) return { kind: "ladder", e: line("ladder") };
+    return null;
+  }
   var canThrow = () => !G.busy && !G.state.over;
   async function takeTurn({ practice = false } = {}) {
     const state = G.state;
@@ -9698,13 +10793,21 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     } else if (sixOf()?.cpu) landSix(null);
     release();
     const spent = spentOf(p), still2 = !spent && (p.type === "human" ? practice && canPractise(state) : practisesNow(state));
-    const dice = spent || still2 ? [] : await rollDice3(diceFor(p));
+    if (p.type === "human") {
+      if ((p.rebirths ?? 0) !== (p.lawNoted ?? 0)) {
+        noteChoice(p, "l" + (p.law ?? ""));
+        p.lawNoted = p.rebirths;
+      }
+      if (!spent && canPractise(state)) noteChoice(p, still2 ? "p" : "r");
+    }
+    const dice = spent || still2 ? [] : await rollDice2(diceFor(p));
     await shut;
     if (g3 !== G.gen) return;
     state.dice = dice;
     const moves = spent || still2 ? [] : movesFor2(state, dice), auto = lawOf(state, idx).auto;
     const v = still2 ? 0 : moves.length < 2 ? moves[0] ?? null : p.type === "human" && !auto ? await choose(dice) : moveFor(state, dice);
     if (g3 !== G.gen) return;
+    if (!still2 && moves.length >= 2 && p.type === "human" && !auto) noteChoice(p, String(v));
     if (p.type === "human" && !shut && cardOpen()) await closeCard();
     if (g3 !== G.gen) return;
     if (dice.length || v == null) state.last = v || dice[0];
@@ -9756,6 +10859,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
           }
           const id = p.type === "human" && !auto ? await decide(plan.situation, p) : lawOf(state, idx).choose(state, plan.situation);
           if (g3 !== G.gen) return;
+          if (p.type === "human" && !auto) noteChoice(p, "o" + id);
           plan = resolveChoice(state, plan, id);
           G.plan = plan;
           if (plan.ego && p.type === "human") {
@@ -9873,8 +10977,10 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
       lifeLived();
       refreshCard();
     }
-    if ((plan.died || plan.fell && p.fell) && p.type === "human") openLife(idx);
-    if (plan.fell && !plan.freed && p.past?.length) {
+    if ((plan.died || plan.fell && p.fell) && p.type === "human" && !plan.reborn) openLife(idx);
+    const pub = publicOf(state, plan, p);
+    if (pub) landPublic(idx, pub.kind, pub.e);
+    if (plan.reborn) {
       const was = p.past.length - 1;
       landReborn(idx, was);
       render();
@@ -9899,7 +11005,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     pump();
   }
   function fullCard(state, plan, idx) {
-    if (isAnimal(state)) return false;
+    if (isAnimal(state, idx)) return false;
     if (isCloth()) return prefs.everyCard || !!plan.jump || plan.win;
     if (prefs.everyCard || plan.jump || plan.target === GOAL || plan.win) return true;
     const p = state.players[idx], n = plan.target;
@@ -9961,7 +11067,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
   }
   var aged = null;
   var ageSeq = 0;
-  var mix2 = (a, b, u) => ({ sepia: a.sepia + (b.sepia - a.sepia) * u, dim: a.dim + (b.dim - a.dim) * u });
+  var mix3 = (a, b, u) => ({ sepia: a.sepia + (b.sepia - a.sepia) * u, dim: a.dim + (b.dim - a.dim) * u });
   var query = new URLSearchParams(location.search);
   var look = lookOf(query.has("debug") ? query.get("look") : null);
   function age(instant = false) {
@@ -9983,7 +11089,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     aged = to;
     if (instant || !from) return drawAge(to);
     return animate(600, (u) => {
-      if (seq === ageSeq) drawAge(to.map((w, n) => n ? mix2(from[n], w, u) : null));
+      if (seq === ageSeq) drawAge(to.map((w, n) => n ? mix3(from[n], w, u) : null));
     });
   }
   var rollKey = () => !isCloth() ? "roll" : { cowries: "rollShells", stick: "rollStick" }[randOf(G.state)] ?? "roll";
@@ -9996,18 +11102,28 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     $("practise").hidden = !human || state.over || !!G.choosing || !!G.deciding || !canPractise(state);
     $("practise").disabled = G.busy;
     $("practise").title = t("practiseHint");
+    $("stopHere").hidden = !together(state) || state.over || !state.players.some((q2) => q2.type === "human");
+    $("stopHere").disabled = G.busy;
     $("roll").textContent = human ? t(rollKey()) : t("rolling", { name: pname(p) });
     const six2 = !state.over && sixOf();
-    $("hint").textContent = state.over ? t("hintOver") : six2 ? sixLineIn(lang, six2) : isAnimal(state) ? t("animalHint") : human ? t("hintHuman") : t("hintCpu");
+    $("hint").textContent = state.over ? t("hintOver") : six2 ? sixLineIn(lang, six2) : isAnimal(state, state.turn) ? t("animalHint") : human ? t("hintHuman") : t("hintCpu");
     if (G.deciding) drawDecide();
     showDice(state.dice?.length ? state.dice : [state.last || 6]);
     refreshRoll();
-    $("seed").textContent = `${t("seed")} ${state.rng.seed}`;
+    $("seed").textContent = state.daily ? t("dailyLabel", { date: dateIn(state.daily) }) : state.fromLink ? `${t("seedFromLink")} ${t("seed")} ${state.rng.seed}` : `${t("seed")} ${state.rng.seed}`;
     place();
     drawDoor();
     renderLog();
     const w = state.winner, humans = state.players.filter((q2) => q2.type === "human");
     $("win").hidden = !state.over;
+    $("compare").hidden = !state.over || isCloth() || state.players.length < 2 && !G.received.length;
+    $("sendLife").hidden = !state.over || !!sendable(state);
+    $("shareSeed").hidden = !state.over;
+    if (!state.over) $("shareNote").textContent = "";
+    if (state.over && !state.seedKept && !sendable(state)) {
+      keepSeed(lifeOf2(state));
+      state.seedKept = true;
+    }
     if (state.over) keepLives(state);
     const reborn = !!(state.over && rebornRows(state));
     if ($("reborn").hidden === reborn) {
@@ -10029,6 +11145,10 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
       $("winText").textContent = wp.type === "human" ? t(tw.human) : t(tw.cpu);
       $("winNote").textContent = tw.note ? t(tw.note) : "";
       $("winNote").hidden = !tw.note;
+    } else if (state.over && together(state)) {
+      $("winTitle").textContent = t("togetherTitle");
+      $("winText").textContent = t(state.stopped ? "stoppedText" : oneLife(state) ? "togetherOneText" : "togetherText");
+      $("winNote").hidden = true;
     } else if (state.over) {
       const one = humans.length === 1 ? humans[0] : null;
       $("winTitle").textContent = one ? t("lifeTitle", { name: pname(one) }) : t("raceNone");
@@ -10119,6 +11239,14 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
       <p class="law-about" id="plawAbout${i}">${esc(t((canChoose(r.law) ? LAWS[r.law] : LAWS.board).text.about))}</p>` : ""}
     </div>`).join("");
     $("ruleSix").checked = setup2.rules.six;
+    const mode = modeOf(setup2), plays = setup2.count >= 2 && !setup2.rules.board;
+    $("ruleModeRow").hidden = $("ruleModeAbout").hidden = !plays;
+    $("ruleMode").innerHTML = MODES.map(([v, k]) => `<option value="${v}"${v === mode ? " selected" : ""}>${esc(t(k))}</option>`).join("");
+    $("ruleModeAbout").textContent = t(mode === "race" ? "modeRaceAbout" : "modeTogetherAbout");
+    const length = lengthOf(setup2), lasts = plays && mode === "together";
+    $("ruleLengthRow").hidden = $("ruleLengthAbout").hidden = !lasts;
+    $("ruleLength").innerHTML = LENGTHS.map(([v, k]) => `<option value="${v}"${v === length ? " selected" : ""}>${esc(t(k))}</option>`).join("");
+    $("ruleLengthAbout").textContent = lengthAbout(length);
     const board4 = setup2.rules.board ?? "110", old = board4 !== "110";
     $("ruleBoard").innerHTML = Object.keys(BOARDS).filter((id) => STR.en["board" + id]).sort((a, b) => b - a).map((id) => `<option value="${id}"${id === board4 ? " selected" : ""}>${esc(t("board" + id))}</option>`).join("");
     $("ruleRandRow").hidden = !old;
@@ -10149,6 +11277,8 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
       }
     });
     setup2.rules = { six: $("ruleSix").checked };
+    if (setup2.count >= 2 && !$("ruleModeRow").hidden) setup2.rules.mode = $("ruleMode").value === "race" ? "race" : "together";
+    if (setup2.rules.mode === "together") setup2.rules.length = $("ruleLength").value === "one" ? "one" : "free";
     const board4 = $("ruleBoard").value, rand = $("ruleRand").value;
     if (board4 && board4 !== "110") setup2.rules.board = board4;
     if (setup2.rules.board && rand !== "own") setup2.rules.rand = rand;
@@ -10158,6 +11288,20 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     }
   }
   var RAND_NAME = { cowries: "randCowries", stick: "randStick", die: "randDie" };
+  var MODES = [["together", "modeTogether"], ["race", "modeRace"]];
+  var modeOf = (setup2) => setup2.rules?.mode === "race" ? "race" : "together";
+  var LENGTHS = [["free", "lengthFree"], ["one", "lengthOne"]];
+  var lengthFor = (n) => n >= 3 ? "one" : "free";
+  var lengthOf = (setup2) => setup2.rules?.length === "one" || setup2.rules?.length === "free" ? setup2.rules.length : lengthFor(setup2.count);
+  var lengthAbout = (v) => t(v === "one" ? "lengthOneAbout" : "lengthFreeAbout");
+  $("ruleMode").addEventListener("change", () => {
+    readSetup();
+    renderSetup();
+    $("ruleMode").focus();
+  });
+  $("ruleLength").addEventListener("change", () => {
+    $("ruleLengthAbout").textContent = lengthAbout($("ruleLength").value);
+  });
   $("ruleBoard").addEventListener("change", () => {
     readSetup();
     renderSetup();
@@ -10192,6 +11336,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     renderCodex();
     refreshCard();
     refreshLife();
+    refreshCompare();
     drawLanded();
     drawNaming();
   }
@@ -10201,6 +11346,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     if (!b) return;
     readSetup();
     G.setup.count = +b.dataset.n;
+    delete G.setup.rules.length;
     renderSetup();
   });
   var urlSeed = new URLSearchParams(location.search).get("seed");
@@ -10230,6 +11376,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     $("roll").hidden = false;
     closeCard({ instant: true });
     closeLife();
+    closeCompare();
     $("toastSlot").innerHTML = "";
     clearLanded();
     if (S) fxClear();
@@ -10262,6 +11409,12 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     const { who: who2, k } = naming, n = people(who2);
     $("namingWhoOpts").innerHTML = WHO2.map((v) => `<label><input type="radio" name="who" value="${v}"${v === who2 ? " checked" : ""}> <span>${esc(v === "1" ? t("whoMe") : v === "cpu" ? t("whoCpu") : t("whoPeople", { n: +v }))}</span></label>`).join("");
     $("namingWho").hidden = k > 0;
+    $("namingMode").hidden = k > 0 || who2 === "1";
+    const n2 = who2 === "cpu" ? 2 : +who2, len = naming.length ?? lengthFor(n2);
+    $("namingLengthOpts").hidden = naming.mode !== "together";
+    $("namingLengthOpts").setAttribute("aria-label", t("lengthPick"));
+    $("namingLengthOpts").innerHTML = LENGTHS.map(([v, key]) => `<label title="${esc(lengthAbout(v))}"><input type="radio" name="length" value="${v}"${v === len ? " checked" : ""}> <span>${esc(t(key))}</span></label>`).join("");
+    $("namingModeOpts").innerHTML = MODES.map(([v, key]) => `<label title="${esc(t(key + "About"))}"><input type="radio" name="mode" value="${v}"${v === naming.mode ? " checked" : ""}> <span>${esc(t(key))}</span></label>`).join("");
     $("namingStep").hidden = n < 2;
     $("namingStep").textContent = n < 2 ? "" : t("namingOf", { k: k + 1, n, colour: t("colour" + k) });
     $("namingBegin").textContent = t(k < n - 1 ? "namingNext" : "namingBegin");
@@ -10277,7 +11430,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
   }
   function openNaming() {
     readSetup();
-    naming = { who: whoOfSetup(G.setup), k: 0 };
+    naming = { who: whoOfSetup(G.setup), k: 0, mode: modeOf(G.setup), length: G.setup.rules?.length ?? null };
     fillNaming(0);
     drawNaming();
     $("naming").showModal();
@@ -10285,8 +11438,18 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
   $("namingWhoOpts").addEventListener("change", (e) => {
     if (naming && e.target.name === "who") {
       naming.who = e.target.value;
+      naming.length = null;
       drawNaming();
     }
+  });
+  $("namingModeOpts").addEventListener("change", (e) => {
+    if (naming && e.target.name === "mode") {
+      naming.mode = e.target.value;
+      drawNaming();
+    }
+  });
+  $("namingLengthOpts").addEventListener("change", (e) => {
+    if (naming && e.target.name === "length") naming.length = e.target.value;
   });
   $("namingBack").addEventListener("click", () => {
     if (!naming?.k) return;
@@ -10310,16 +11473,48 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
       $("namingName").focus();
       return;
     }
+    const mode = naming.mode, length = naming.length;
     naming = null;
     G.setup.count = who2 === "cpu" ? 2 : n;
+    if (G.setup.count >= 2 && !G.setup.rules.board) G.setup.rules.mode = mode;
+    else delete G.setup.rules.mode;
+    if (G.setup.rules.mode === "together") G.setup.rules.length = length ?? lengthFor(G.setup.count);
+    else delete G.setup.rules.length;
     if (who2 === "cpu" && G.setup.rows[1].type !== "cpu") Object.assign(G.setup.rows[1], { name: "", type: "cpu", gender: "" });
     renderSetup();
     nextSeed = G.state.rng.seed;
+    const from = { fromLink: G.state.fromLink, daily: G.state.daily };
     startGame();
+    for (const [k2, v] of Object.entries(from)) if (v) G.state[k2] = v;
+    saveGame(G.setup, G.state);
+    render();
   });
   $("naming").addEventListener("cancel", (e) => e.preventDefault());
   $("roll").addEventListener("click", () => takeTurn());
   $("practise").addEventListener("click", () => takeTurn({ practice: true }));
+  $("stopHere").addEventListener("click", () => {
+    if (!G.busy && !G.state.over && together(G.state)) $("stopAsk").showModal();
+  });
+  $("compare").addEventListener("click", () => G.received.length ? openReceived() : openCompare(G.state));
+  $("sendLife").addEventListener("click", async () => {
+    const h = await lifeHash(G.state), p = G.state.players[personOf(G.state)];
+    if (h) shareLink(h, t("sendLifeText", { name: pname(p) }));
+  });
+  $("shareSeed").addEventListener("click", () => shareLink(seedHashOf(G.state), t("shareSeedText")));
+  $("daily").addEventListener("click", () => startDaily());
+  $("stopAsk").addEventListener("close", () => {
+    if ($("stopAsk").returnValue === "yes") stopHere();
+  });
+  function stopHere() {
+    const state = G.state;
+    if (G.busy || state.over || !together(state)) return;
+    clearTimeout(G.cpuTimer);
+    G.rollQueued = false;
+    state.over = true;
+    state.stopped = true;
+    saveGame(G.setup, state);
+    render();
+  }
   document.addEventListener("keydown", (e) => {
     if (G.deciding && /^[1-3]$/.test(e.key) && !e.target.closest("input, select, textarea") && !e.ctrlKey && !e.metaKey && !e.altKey) {
       const o = G.deciding.opts[+e.key - 1];
@@ -10401,6 +11596,115 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
   });
   ["pointerdown", "keydown"].forEach((ev) => document.addEventListener(ev, unlockAudio, { passive: true }));
   onCardChange(renderCodex);
+  G.received = [];
+  var linkOf = (hash2) => location.origin + location.pathname + hash2;
+  var seedHashOf = (state) => {
+    const i = personOf(state) ?? 0;
+    return playHash({ board: state.rules?.board ?? "110", law: state.table?.[i]?.law ?? state.rules?.law ?? "board", seed: state.rng.seed });
+  };
+  async function shareLink(hash2, text) {
+    const url = linkOf(hash2);
+    let said = "";
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: t("title"), text, url });
+        said = t("linkShared");
+      } else {
+        await navigator.clipboard.writeText(url);
+        said = t("linkCopied");
+      }
+    } catch (e) {
+      if (e?.name !== "AbortError") try {
+        await navigator.clipboard.writeText(url);
+        said = t("linkCopied");
+      } catch {
+      }
+    }
+    $("shareNote").textContent = said;
+    return url;
+  }
+  var dateIn = (day) => (/* @__PURE__ */ new Date(day + "T12:00:00Z")).toLocaleDateString(lang === "hi" ? "hi-IN-u-nu-deva" : "en-GB", { day: "numeric", month: "long", timeZone: "UTC" });
+  function seedTable(law) {
+    const rows = G.setup.rows.slice(0, G.setup.count), me = { ...rows.find((r) => r.type === "human") ?? defaultSetup().rows[0] };
+    delete me.born;
+    if (law && law !== "board" && canChoose(law)) me.law = law;
+    else delete me.law;
+    const cpus = rows.filter((r) => r.type === "cpu").map((r) => ({ ...r }));
+    G.setup.rows = [me, ...cpus, ...Array.from({ length: 3 - cpus.length }, () => ({ name: "", type: "cpu", gender: "" }))];
+    G.setup.count = 1 + cpus.length;
+    if (G.setup.count < 2) delete G.setup.rules.mode;
+    else G.setup.rules.mode ??= "together";
+  }
+  function playSeed({ board: board4, law, seed }, from = { fromLink: true }) {
+    seedTable(law);
+    G.setup.rules = { ...G.setup.rules, board: board4 === "110" ? void 0 : board4 };
+    if (G.setup.count >= 2 && G.setup.rules.mode === "together") G.setup.rules.length = lengthFor(G.setup.count);
+    nextSeed = seed >>> 0;
+    startGame();
+    Object.assign(G.state, from);
+    saveGame(G.setup, G.state);
+    renderSetup();
+    render();
+  }
+  function startDaily(day = dayOf()) {
+    playSeed({ board: "110", law: "board", seed: dailySeed(day) }, { daily: day });
+    return G.state.rng.seed;
+  }
+  async function addLife(text) {
+    let got;
+    try {
+      got = await readLife(hashOf(text) ?? "");
+    } catch {
+      got = null;
+    }
+    if (!got) return "cmpAddBad";
+    const r = replay(got.inputs), ok = r.ok && JSON.stringify(checkOf(r.state, got.seat)) === JSON.stringify(got.check);
+    if (!ok) return "cmpAddOther";
+    const key = JSON.stringify(got.inputs);
+    if (G.received.some((x) => JSON.stringify(x.inputs) === key)) return "cmpAddSame";
+    G.received.push(got);
+    render();
+    return null;
+  }
+  function openReceived() {
+    const first = G.received[0], board4 = first.inputs.rules?.board ?? "110", seed = first.inputs.seed;
+    const own = [];
+    const here = G.state, hereOn = here.over && !isCloth() && personOf(here) != null && (here.rules?.board ?? "110") === board4;
+    if (hereOn && here.rng.seed === seed) own.push({ state: here, seat: personOf(here), mine: true });
+    else {
+      const kept = seedLives(board4, seed)[0];
+      if (kept) {
+        try {
+          const g3 = inputsOfLife(kept);
+          own.push({ inputs: g3.inputs, seat: g3.seat, mine: true });
+        } catch {
+        }
+      } else if (hereOn) own.push({ state: here, seat: personOf(here), mine: true });
+    }
+    const lawOfIt = first.inputs.table[first.seat]?.law ?? first.inputs.rules?.law ?? "board";
+    return openLives([...own, ...G.received], own.length ? null : { board: board4, law: lawOfIt, seed });
+  }
+  setCompareHooks({
+    onPlay: (offer) => playSeed(offer),
+    onAdd: async (text) => {
+      const k = await addLife(text);
+      if (!k) openReceived();
+      return k;
+    }
+  });
+  async function openShared() {
+    const h = location.hash, play = readPlay(h);
+    if (!play && !/^#life=/.test(h)) return;
+    history.replaceState(null, "", location.pathname + location.search);
+    if (play) return playSeed(play);
+    const k = await addLife(h);
+    if (k) {
+      $("shareNote").textContent = t(k);
+      return;
+    }
+    openReceived();
+  }
+  addEventListener("hashchange", openShared);
   function openFromHash() {
     const m = location.hash.match(/^#(sq|codex)\/([\w-]+)$/);
     if (!m) return;
@@ -10513,7 +11817,38 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
         if (r) Object.assign(G.state.rules, r);
         return { ...G.state.rules };
       },
+      // mp.mode("race" | "together") (Phase 19): how the running game, and the next, are played; mp.mode() says which
+      mode(m) {
+        if (m === "race" || m === "together") {
+          G.state.rules.mode = m;
+          G.setup.rules.mode = m;
+          render();
+        }
+        return together(G.state) ? "together" : "race";
+      },
       lifeText: (i = 0, l) => lifeText2(G.state, i, l),
+      // mp.compare() opens the lives side by side for the game in play (Phase 19); mp.compareText(l) is its text, and
+      // mp.compareImage() its picture as a data URL
+      // mp.play(n) plays n turns at once as the computers would, every seat's choices the game's own (none noted), and draws
+      // the board after them
+      play(n = 1) {
+        for (let k = 0; k < n && !G.state.over; k++) playTurn(G.state);
+        saveGame(G.setup, G.state);
+        render();
+        return G.state.turns;
+      },
+      compareOpen: () => {
+        openCompare(G.state);
+        return compareModel();
+      },
+      compareText: (l) => {
+        if (!compareModel()) openCompare(G.state);
+        return textOf(l);
+      },
+      compareImage: () => {
+        if (!compareModel()) openCompare(G.state);
+        return imageOf().toDataURL("image/png");
+      },
       // mp.cast(0) is player 0's cast for this game, names, genders and ages, as the account draws it (Phase 10C)
       cast: (i = 0, life = 0) => castOf(G.state, i, life),
       naming: openNaming,
@@ -10678,15 +12013,46 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
         G.setup.rules = { ...G.setup.rules, board: String(id) === "110" ? void 0 : String(id), start: other2.start, end: other2.end };
         startGame();
         return BOARD_ID;
+      },
+      // Phase 19 step 3: mp.share() is { play, life }, the links this game would share (life null when it cannot be sent);
+      // mp.daily(date) starts today's life, or a given day's ("2026-11-11"), and gives its seed; mp.compare(links) adds the
+      // lives in those links and opens them beside the viewer's own, and gives what each answered (null when added);
+      // mp.setDice is not here: the dice are the tools' to switch (src/engine/throws.js)
+      async share() {
+        return { play: linkOf(seedHashOf(G.state)), life: ((h) => h ? linkOf(h) : null)(await lifeHash(G.state)), why: sendable(G.state) };
+      },
+      daily: (day = dayOf()) => startDaily(day),
+      // mp.compared(): the lives side by side as they are open, each soul's first life's throws in order, and where they parted
+      compared() {
+        const m = compareModel();
+        return m && { souls: m.souls.map((q2) => ({ mine: !!q2.mine, seat: q2.seat, seed: q2.seed, throws: (q2.lives[0].trace ?? []).filter((x) => x.k != null).map((x) => x.dice.join("+")) })), parted: m.parted ?? [] };
+      },
+      async compare(links = []) {
+        const said = [];
+        for (const x of [links].flat()) said.push(await addLife(x));
+        if (G.received.length) openReceived();
+        return said;
       }
     };
+    for (const k of ["jump", "years", "roll", "ego", "fire", "die", "plant", "door", "still", "bhumika", "examine", "curse", "animal", "siva", "law", "grace", "rules", "mode", "play"]) {
+      const f2 = window.mp[k];
+      window.mp[k] = function(...a) {
+        if (G.state) G.state.tampered = true;
+        return f2.apply(this, a);
+      };
+    }
   }
   function start(data) {
-    if (!data?.state && urlSeed == null) {
+    let loaded = false;
+    if (!data?.state && urlSeed == null && !readPlay(location.hash)) {
       const g3 = loadGame();
-      if (g3) data = { ...data, setup: data?.setup ?? g3.setup, state: g3.state };
+      if (g3) {
+        data = { ...data, setup: data?.setup ?? g3.setup, state: g3.state };
+        loaded = true;
+      }
     }
     G.setup = data?.setup || defaultSetup();
+    if (loaded && G.setup.count >= 2 && G.setup.rules && !G.setup.rules.board && !G.setup.rules.mode) Object.assign(G.setup.rules, { mode: "together", length: lengthFor(G.setup.count) });
     if (data?.setup?.lang && !urlLang) setLangValue(data.setup.lang);
     applyStatic();
     buildCells();
@@ -10703,12 +12069,13 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
       queueCpu();
     } else {
       startGame();
-      if (freshViewer || !data?.setup && !loadSelf() && !location.hash) openNaming();
+      if (freshViewer || !data?.setup && !loadSelf() && (!location.hash || readPlay(location.hash))) openNaming();
     }
     draw();
     renderCodex();
     showTab("moves");
     openFromHash();
+    openShared();
   }
   window.claude?.hot?.snapshot?.(() => ({ setup: { ...G.setup, lang }, state: G.state }));
   window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});

@@ -218,6 +218,7 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 .token.active { z-index: 3; }
 /* Phase 8: a life whose years ran out stays where it fell, in the paint only */
 .token.dead .spr { filter: grayscale(1) drop-shadow(0 1px 1px rgba(0, 0, 0, 0.45)); opacity: 0.7; }
+.token.liberated .spr { opacity: 0.8; }
 .token.active .body { animation: bob 1.1s ease-in-out infinite; }
 .token.hop .body { animation: hop 0.18s ease-out; }
 .token.gulp .body { transform-origin: 50% 30%; animation: gulp 0.34s ease-in forwards; }
@@ -422,6 +423,10 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 .naming-step { margin: 0; font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--l-ink2); }
 .naming-act { display: flex; gap: 10px; align-items: center; }
 .naming #namingBack { background: none; border: 1px solid var(--l-line); color: var(--l-ink); }
+/* Stop here (Phase 19): one question, two answers */
+.ask-leaf { gap: 16px; padding: 22px 24px; font-family: var(--f-card); }
+.ask-leaf p { margin: 0; font-size: 18px; line-height: 1.4; }
+.ask button.ghost[type="submit"] { background: none; border: 1px solid var(--l-line); color: var(--l-ink); }
 
 /* the life account */
 .life-who { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px 24px 0; font-family: var(--f-body); }
@@ -717,4 +722,49 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   #folio.snap, #folio.snap .leaf { transition: none; }
   .token .body, .die.rolling, .shells.rolling, .lab.goal .om, .leaf, .leaf *, .flourish *, .toast { animation: none !important; }
   ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
+}
+
+/* ---- The lives, side by side (Phase 19) ---- */
+.folio.compare { width: min(1080px, calc(100vw - 24px)); }
+.cmp-leaf { overflow: hidden; }
+.cmp-body { overflow-y: auto; overflow-x: hidden; padding: 4px 24px 22px; }
+.cmp-body h2 { margin: 4px 0 10px; font-weight: 400; font-size: 28px; }
+.cmp-body h3 { margin: 22px 0 6px; font-size: 13px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--l-gold); font-family: var(--f-body); }
+.cmp-body .dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35); flex: none; }
+.cmp-souls { list-style: none; margin: 0; padding: 0; }
+.cmp-souls li { padding: 8px 0; border-bottom: 1px solid var(--l-line); font-size: 17px; line-height: 1.5; }
+.cmp-souls .cmp-ends { display: block; font-size: 15px; color: var(--l-ink2); margin-left: 18px; }
+.cmp-souls .beads { margin-left: 6px; white-space: nowrap; }
+.cmp-body .bead { display: inline-block; width: 9px; height: 9px; margin-right: 3px; border-radius: 50%; border: 1.5px solid var(--l-ink2); }
+.cmp-body .bead.animal { border-style: dotted; }
+.cmp-body .bead.free { background: var(--b-gold); border-color: var(--b-gold); }
+.cmp-leaf canvas { position: static; pointer-events: auto; }
+.cmp-board { display: block; margin: 0 auto; border-radius: 6px; box-shadow: inset 0 0 0 1px var(--l-line); }
+.cmp-note { margin: 0 0 6px; font-size: 15px; font-style: italic; color: var(--l-ink2); }
+.cmp-gunas { display: flex; align-items: center; margin: 4px 0; }
+.cmp-gunas canvas { border-radius: 4px; }
+.cmp-gunas canvas, .cmp-board { inset: auto; }
+.cmp-none { margin: 0; font-size: 15px; color: var(--l-ink2); }
+.cmp-same { margin: 0; }
+.cmp-same dt { margin-top: 10px; font-weight: 600; font-size: 16px; }
+.cmp-same dd { margin: 3px 0 0 0; font-size: 16px; line-height: 1.5; display: flex; align-items: baseline; }
+.cmp-met { margin: 0; padding: 0; list-style: none; }
+.cmp-met li { font-size: 16px; line-height: 1.6; }
+.cmp-tabs { display: none; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+.cmp-tabs button { background: transparent; color: var(--l-ink); border: 1px solid var(--l-line); border-radius: 99px; padding: 4px 12px; font-size: 14px; }
+.cmp-tabs button[aria-selected="true"] { border-color: var(--l-rule); box-shadow: inset 0 0 0 1px var(--l-rule); }
+.cmp-books { display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); gap: 20px; }
+.cmp-book { min-width: 0; }
+.cmp-life { margin-bottom: 16px; }
+.cmp-life h4 { margin: 0 0 4px; font-size: 18px; font-weight: 600; }
+.cmp-life h5 { margin: 10px 0 2px; font-size: 13px; font-weight: 600; color: var(--l-ink2); font-family: var(--f-body); }
+.cmp-life p { margin: 4px 0 0; font-size: 15px; line-height: 1.55; text-wrap: pretty; overflow-wrap: anywhere; }
+.cmp-life .cmp-end { font-style: italic; color: var(--l-ink2); }
+.cmp-acts { margin: 22px 0 0; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.cmp-acts .ghost { color: var(--l-ink); border-color: var(--l-line); }
+@media (max-width: 767px) {
+  .cmp-body { padding: 4px 16px 18px; }
+  .cmp-tabs { display: flex; }
+  .cmp-books { display: block; }
+  .cmp-book:not(.on) { display: none; }
 }

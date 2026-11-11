@@ -15,6 +15,7 @@
 // stirred to ripen, in fruit) are the same three steps; the scholar layer names both (src/render/ledger.js).
 import { GOAL, SITUATIONS, SNAKES, LADDERS, DOOR, STR } from "../content.js";
 import { makeRng, next } from "../rng.js";
+import { laneOf } from "./throws.js";
 import { tIn, fill, castFill, wordsIn } from "../i18n.js";
 import { SPAN, yearsAlong, stageOfYears, holdingOf } from "./self.js";
 
@@ -43,7 +44,7 @@ export const omenGround = pos => (pos >= 1 && pos <= 100) || pos === GOAL;
 export const omenChance = pos => 0.1 + 0.8 * (Math.min(Math.max(pos, 0), GOAL) / GOAL) ** 2;
 // The omen's own draw for player idx on the turn after `lived` squares of their life: never the game's dice.
 export const omenDraw = (state, idx, lived) =>
-  next(makeRng((state.rng.seed ^ 0x27d4eb2f ^ Math.imul(idx + 1, 0x165667b1) ^ Math.imul(lived + 1, 0x9e3779b1) ^ Math.imul(state.players[idx]?.rebirths ?? 0, 0x632be5ab)) >>> 0));
+  next(makeRng((state.rng.seed ^ 0x27d4eb2f ^ Math.imul(laneOf(state, idx) + 1, 0x165667b1) ^ Math.imul(lived + 1, 0x9e3779b1) ^ Math.imul(state.players[idx]?.rebirths ?? 0, 0x632be5ab)) >>> 0));
 
 // ---- Severity: the ledger's, and only the ledger's ----
 // L is the weight of what fires plus half the weight of everything else still carried; S grows faster than L. The tiers

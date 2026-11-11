@@ -7,7 +7,7 @@ import { S, colRow, center, fx, fxClear, snakePath, snakeColors, drawHood, paint
 import { STAGES, stageOf, stageName, spriteURL } from "./sprites.js";
 import { renderPlayers } from "./log.js";
 import { gone } from "../engine/turn.js";
-import { isAnimal } from "../engine/animal.js";
+import { isAnimal, interludeOf } from "../engine/animal.js";
 
 export const tokenEls = [];
 const OFFS = [[0, 0], [-2.2, -1.2], [2.2, -1.2], [-2.2, 1.2], [2.2, 1.2]];
@@ -29,7 +29,7 @@ export function buildTokens() {
 
 // A person is drawn by their gender; during an animal interlude (Phase 16) as the creature they were born.
 export function setSprite(el, p, stage) {
-  const animal = isAnimal(G.state) ? G.state.rules.animal?.kind ?? "tortoise" : null;
+  const i = G.state.players.indexOf(p), animal = isAnimal(G.state, i) ? interludeOf(G.state, i)?.kind ?? "tortoise" : null;
   el.querySelector(".spr").style.backgroundImage = spriteURL(stage, p.color, el._frame, p.gender, animal);
   el.classList.toggle("divine", !animal && STAGES[stage].art === "divine");
 }
@@ -48,12 +48,14 @@ export function place(silent = false) {
     const el = tokenEls[i];
     el.title = pname(p);
     el.classList.toggle("active", i === G.state.turn && !G.state.over && !G.busy);
-    el.classList.toggle("dead", gone(p));
+    // a life let go in a game played together (Phase 19) stays where it was freed, not greyed as a death is
+    el.classList.toggle("dead", gone(p) && !p.free);
+    el.classList.toggle("liberated", !!p.free);
     el.classList.toggle("left", p.face === "l" && el._frame < 2);
     const stage = stageOf(p);
     if (el._stage !== stage) {
       // an animal does not grow through the stages of a person's life, so its interlude is told no stage
-      if (el._stage != null && !silent && !isAnimal(G.state)) {
+      if (el._stage != null && !silent && !isAnimal(G.state, i)) {
         retrigger(el, "poof");
         // growing up, or, on the Brahmā fall alone, being born again: a snake no longer makes anyone younger
         const v = { name: pname(p), stage: stageName(stage, p.gender) }, you = !p.name && p.color === 0;

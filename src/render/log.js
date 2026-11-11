@@ -8,7 +8,7 @@ import { stageOf, stageName } from "./sprites.js";
 import { stageOf as ashramaOfPlayer } from "./age.js";
 import { gone } from "../engine/turn.js";
 import { isCloth } from "../engine/cloth.js";
-import { isAnimal } from "../engine/animal.js";
+import { isAnimal, interludeOf } from "../engine/animal.js";
 import { renderLedger } from "./ledger.js";
 import { LAWS } from "../engine/laws/index.js";
 
@@ -27,13 +27,14 @@ const ashramaIn = p => { const s = ashramaOfPlayer(p); return s < ASHRAMAS.lengt
 // What the panel says a player is: how the life ended (Phase 16: a debt, the door or the years), the creature of an
 // animal interlude, or the stage of life and its āśrama.
 const ENDED = { ledger: "deadLedger", door: "deadDoor" };
-function stageLine(pl) {
+function stageLine(pl, i) {
   // on an old cloth, the legend of the square the pawn stands on (Phase 18)
   if (isCloth()) return esc(squareName(pl.pos));
   if (pl.fell) return t("fell");
   if (pl.pos === 0) return t("notBorn");
   if (pl.dead) return fill(t(ENDED[pl.death?.by] ?? "dead"), { gender: pl.gender });
-  if (isAnimal(G.state)) { const a = t("a_" + (G.state.rules.animal?.kind ?? "tortoise")); return a.charAt(0).toUpperCase() + a.slice(1); }
+  if (pl.free) return t("freeStage");
+  if (isAnimal(G.state, i)) { const a = t("a_" + (interludeOf(G.state, i)?.kind ?? "tortoise")); return a.charAt(0).toUpperCase() + a.slice(1); }
   // a life born again through Śiva's snake says so while it is a child (Phase 17)
   return [...(pl.rebirths && stageOf(pl) === 0 ? [fill(t("bornAgainStage"), { gender: pl.gender })] : []), ...new Set([stageName(stageOf(pl), pl.gender), ashramaIn(pl)])].join(" · ");
 }
@@ -45,7 +46,7 @@ export function renderPlayers() {
     <li class="${i === G.state.turn && !G.state.over ? "current" : ""}${gone(pl) ? " dead" : ""}">
       <span class="dot" style="background:${COLORS[pl.color]}"></span>
       <span><span class="pname">${esc(pname(pl))}</span><span class="kind">${pl.type === "cpu" ? t("cpu") : ""}</span>
-        <span class="stage">${stageLine(pl)}</span>
+        <span class="stage">${stageLine(pl, i)}</span>
         ${selfLine(pl) && !gone(pl) ? `<span class="self">${esc(selfLine(pl))}</span>` : ""}${lawLine(pl, i)}</span>
       <span class="pos">${pl.fell ? "" : pl.pos === 0 ? t("start") : pl.pos === GOAL && !isCloth() ? t("moksha") : isCloth() && legendOf(pl.pos)?.top ? sqNum(pl.pos) : t("square", { n: pl.pos })}</span>
     </li>`).join("");
@@ -66,7 +67,9 @@ export function entryText(e) {
   const law = e.v?.law && LAWS[e.v.law] ? t(LAWS[e.v.law].text.name) : "";
   // an old cloth's squares as the board writes them (the 84's top 1 to 6, Phase 18)
   const at = isCloth() && e.v ? { pos: e.v.pos != null ? sqNum(e.v.pos) : undefined, to: e.v.to != null ? sqNum(e.v.to) : undefined } : {};
-  return e.k ? fill(t(e.k, { ...e.v, ...at, name: who ? pname(who) : "", what: e.v?.sq ? squareName(e.v.sq) : "", law }), { gender: who?.gender }) : e.text;
+  // an animal born in a seat (Phase 19) is named by its kind, in the page's language
+  const animal = e.v?.animal ? { animal: t("a_" + e.v.animal), animalO: t("ao_" + e.v.animal) } : {};
+  return e.k ? fill(t(e.k, { ...e.v, ...at, name: who ? pname(who) : "", what: e.v?.sq ? squareName(e.v.sq) : "", law, ...animal }), { gender: who?.gender }) : e.text;
 }
 
 export function renderLog() {

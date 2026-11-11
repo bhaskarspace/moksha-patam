@@ -473,18 +473,25 @@ function examHtml(ex, l) {
 // Between lives (Phase 17): Śiva's snake closed the seat's life and the same soul is born again in it. The card holds the
 // game until it is read, and offers the book of the life just closed; there is no Play again on it, since the game goes on.
 let readPast = false;
+// Since Phase 19, in a game played together, every end of a life is followed by this card: its words say how the last life
+// ended (Śiva's snake, an end on earth, the ledger's, which is born an animal first, or an interlude's end), and a law is
+// offered only at a human birth.
 function rebornHtml(was, l) {
   const p = subjectOf(), q = p.past?.[was] ?? p, who = x => ({ name: pnameIn(p, x), gender: p.gender });
-  const line = (x, k) => fill(tIn(x, k, { name: pnameIn(p, x), was: pnameIn(q, x) }), k === "bornAgainCard" ? { gender: q.gender } : who(x));
+  const siva = !!q.fell, animal = !!p.animal, human = !!q.carry, kind = (p.animal ?? q.animal)?.kind ?? "tortoise";
+  const [card, next] = siva ? ["bornAgainCard", "bornAgainNew"] : animal ? ["bornAgainCardAnimal", "bornAgainNewAnimal"] : human ? ["bornAgainCardHuman", "bornAgainNew"] : ["bornAgainCardDied", "bornAgainNew"];
+  const line = (x, k) => fill(tIn(x, k, { name: pnameIn(p, x), was: pnameIn(q, x), animal: tIn(x, "a_" + kind), animalO: tIn(x, "ao_" + kind) }), k === card ? { gender: q.gender } : who(x));
   let body = `<h2 id="leafTitle">${esc(tIn(l, "bornAgainHead"))}</h2>`;
-  body += `<div class="story">` + texts(l, line("en", "bornAgainCard"), line("hi", "bornAgainCard"), "moment") + texts(l, line("en", "bornAgainNew"), line("hi", "bornAgainNew"), "remedy") + `</div>`;
+  body += `<div class="story">` + texts(l, line("en", card), line("hi", card), "moment") + texts(l, line("en", next), line("hi", next), "remedy") + `</div>`;
   // the law the new life plays under, once there is more than one to choose and this is not the viewer's first life
-  if (choosable().length > 1 && !firstLife()) {
+  if (choosable().length > 1 && !firstLife() && !animal) {
     const now = lawOf(G.state, subject).id;
     body += `<div class="laws" role="group" aria-label="${esc(tIn(l, "lawPick"))}">` + choosable().map(w => `<button type="button" class="law" data-act="law" data-law="${w.id}" aria-pressed="${w.id === now}"><b>${esc(tIn(l, w.text.name))}</b> <span>${esc(tIn(l, w.text.about))}</span>${w.text.scholar && deep("scholar") ? ` <small class="law-src">${esc(tIn(l, w.text.scholar))}</small>` : ""}</button>`).join("") + `</div>`;
   }
   body += `<p class="reborn-acts"><button type="button" class="ghost" data-act="pastLife">${esc(tIn(l, "readPast"))}</button> <button type="button" data-act="close">${esc(tIn(l, "goOn"))}</button></p>`;
-  return { kind: "reborn", met: [], html: frame(l, { kind: "reborn", eb: esc(tIn(l, "bornAgainHead")), big: art("fall", "🔱", "spr snake-glyph"), sqn: numIn(l, TOP), body, foot: "" }) };
+  // Śiva's snake is drawn as itself; any other end of a life as the wheel, on the square it ended on
+  const big = siva ? art("fall", "🔱", "spr snake-glyph") : illumined(null, "☸\uFE0E");
+  return { kind: "reborn", met: [], html: frame(l, { kind: "reborn", eb: esc(tIn(l, "bornAgainHead")), big, sqn: numIn(l, siva ? TOP : q.pos || 1), body, foot: "" }) };
 }
 
 // Draws the current view into the leaf. Entries met here are added to the Codex after the

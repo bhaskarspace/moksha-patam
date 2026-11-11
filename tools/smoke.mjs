@@ -41,6 +41,8 @@ async function check(name, fn, { limit = 90, persistent = false, named = true, p
   } catch (e) {
     failed.push(name);
     console.log(`FAIL  ${name}\n      ${e.message.split("\n")[0]}`);
+    // SMOKE_TRACE=1 says where in the check it failed
+    if (process.env.SMOKE_TRACE) console.log("      " + (e.stack.split("\n").find(x => x.includes("smoke.mjs:")) ?? "").trim());
   } finally {
     await ctx.close();
   }
@@ -177,7 +179,8 @@ await check("a square's school chip opens the Codex, and Back returns to the squ
 });
 
 await check("a human's landing card stays open; Space then rolls", async page => {
-  await page.goto(BASE + "?seed=4");
+  // seed re-pinned for Phase 19 step 3: every throw is keyed by the seed, the lane, the life and the throw (src/engine/throws.js)
+  await page.goto(BASE + "?seed=1");
   await page.keyboard.press("Space");
   await page.waitForFunction(() => document.getElementById("folio").open, null, { timeout: 15000 });
   await page.waitForTimeout(10000);
@@ -734,7 +737,7 @@ await check("Phase 8: a person whose years run out reads their life at once, whi
 await check("Phase 8: a game of one person ends on their own account, not on a race nobody won", async page => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto(BASE + "?seed=1&debug");
-  await page.evaluate(() => { const p = mp.state.players[0]; Object.assign(p, { name: "Asha", pos: 91, life: [91] }); mp.years(110); mp.roll(1); });
+  await page.evaluate(() => { mp.mode("race"); const p = mp.state.players[0]; Object.assign(p, { name: "Asha", pos: 91, life: [91] }); mp.years(110); mp.roll(1); });
   await until(page, () => document.getElementById("lifeDlg").open && !document.getElementById("win").hidden);
   const r = await page.evaluate(() => ({ title: document.getElementById("winTitle").textContent, text: document.getElementById("winText").textContent, over: mp.state.over }));
   assert(r.over && r.title === "The life of Asha" && !/no one|nobody/i.test(r.title + r.text), JSON.stringify(r));
@@ -1125,7 +1128,7 @@ await check("Phase 17, step 3: the laws are offered once a life has been lived, 
 await check("Phase 17, step 3: under Mīmāṃsā each option names its debt and when it ripens, the ledger is shown, and 101 owing nothing is svarga", async page => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto(BASE + "?seed=1&debug");
-  await page.evaluate(() => { mp.law("mimamsa"); mp.jump(10); mp.years(9); mp.roll(2); });
+  await page.evaluate(() => { mp.mode("race"); mp.law("mimamsa"); mp.jump(10); mp.years(9); mp.roll(2); });
   await page.waitForFunction(() => document.querySelectorAll("#leaf .opt").length > 1, null, { timeout: 15000 });
   const said = await page.evaluate(() => ({ opts: [...document.querySelectorAll("#leaf .opt-d")].map(x => x.textContent), ledger: !document.getElementById("ledgerCard").hidden }));
   assert(said.opts.some(x => /^Plants a debt, .+, that ripens when .+ is [a-z-]+\.$/.test(x)) && said.opts.includes("Plants no debt."), JSON.stringify(said.opts));
@@ -1461,7 +1464,8 @@ await check("Phase 6: under reduced motion the sheet comes and goes without movi
 await check("Phase 11: on a phone, rolling from the card takes it away, and each of your landings tells its own, never the computer's", async page => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.addInitScript(() => { const st = window.setTimeout; window.setTimeout = (f, ms, ...r) => st(f, Math.min(ms, 30), ...r); });
-  await page.goto(BASE + "?seed=5&debug");
+  // seed re-pinned for Phase 19 step 3: every throw is keyed by the seed, the lane, the life and the throw (src/engine/throws.js)
+  await page.goto(BASE + "?seed=3&debug");
   await openOn(page, 34);
   // every square a card or the line under the board shows from here on
   await page.evaluate(() => {
@@ -1672,7 +1676,7 @@ await check("Phase 18: the old boards' other rules are chosen in the setup, name
 await check("Phase 14: a refused sannyāsin sits at the door, is asked on a card that holds the game, and the door opens", async page => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto(BASE + "?seed=1&debug");
-  await page.evaluate(() => { mp.door(); mp.roll(2, 3); });
+  await page.evaluate(() => { mp.mode("race"); mp.door(); mp.roll(2, 3); });
   await page.waitForFunction(() => mp.choosing, null, { timeout: 15000 });
   await page.evaluate(() => mp.pick(0));
   await page.waitForFunction(() => document.getElementById("folio").open && /The door asks/.test(document.getElementById("leaf").textContent), null, { timeout: 15000 });
@@ -1699,7 +1703,7 @@ await check("Phase 14: a refused sannyāsin sits at the door, is asked on a card
 await check("Phase 16: mp.die(form) ends the life on the reckoning's card, in that form, and the account ends on what was carried", async page => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto(BASE + "?seed=1&debug");
-  await page.evaluate(() => { mp.jump(40); mp.years(70); mp.die("illness"); mp.roll(2); });
+  await page.evaluate(() => { mp.mode("race"); mp.jump(40); mp.years(70); mp.die("illness"); mp.roll(2); });
   await page.waitForFunction(() => document.getElementById("folio").open && /It closes/.test(document.getElementById("leaf").textContent), null, { timeout: 15000 });
   const text = await page.evaluate(() => document.getElementById("leaf").textContent);
   assert(/of the bad chest, after a winter that did not end/.test(text), `the card: ${text.slice(0, 500)}`);
@@ -1719,7 +1723,7 @@ await check("Phase 16: mp.die(form) ends the life on the reckoning's card, in th
 await check("Phase 16: the end of a life is read three ways, the book, the path and the mirror, as tabs the keys move between", async page => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto(BASE + "?seed=1&debug");
-  await page.evaluate(() => { mp.jump(40); mp.years(70); mp.die(); mp.roll(2); });
+  await page.evaluate(() => { mp.mode("race"); mp.jump(40); mp.years(70); mp.die(); mp.roll(2); });
   await page.waitForFunction(() => document.getElementById("folio").open, null, { timeout: 15000 });
   await page.evaluate(() => mp.close());
   await page.waitForFunction(() => document.getElementById("lifeDlg").open, null, { timeout: 15000 });
@@ -1976,7 +1980,7 @@ await check("Phase 14: the wheel of time turns a step a year at the door, and un
 await check("Phase 14: the years running out at the door close it over the token, and the line says what was owed", async page => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto(BASE + "?seed=1&debug");
-  await page.evaluate(() => { mp.plant(59, "strike"); mp.door(); mp.years(109.5); mp.roll(2, 3); });
+  await page.evaluate(() => { mp.mode("race"); mp.plant(59, "strike"); mp.door(); mp.years(109.5); mp.roll(2, 3); });
   await page.waitForFunction(() => mp.choosing, null, { timeout: 15000 });
   await page.evaluate(() => mp.pick(0));
   await until(page, () => !mp.busy && mp.state.players[0].dead);
@@ -2051,7 +2055,8 @@ const firstTime = async (page, q = "") => {
 
 await check("Phase 11: the die is live under a card: a landing's card keeps the focus off it, and Space rolls it away", async page => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto(BASE + "?seed=1&debug");
+  // seed re-pinned for Phase 19 step 3: every throw is keyed by the seed, the lane, the life and the throw (src/engine/throws.js)
+  await page.goto(BASE + "?seed=4&debug");
   // the ladder at 6 opens the full card
   await page.evaluate(() => { mp.jump(5); mp.roll(1); });
   await page.waitForFunction(() => document.getElementById("folio").open && location.hash === "#sq/6", null, { timeout: 15000 });
@@ -2278,6 +2283,268 @@ await check("offline: after one visit the game reloads and plays with no network
   const loaded = await page.evaluate(async () => { await document.fonts.ready; return [...document.fonts].filter(f => f.status === "loaded").map(f => f.family.replace(/"/g, "")); });
   assert(loaded.includes("Crimson Pro"), "card font not available offline: " + loaded.join(", "));
   await ctx.setOffline(false);
+});
+
+// ---- Phase 19: parallel lives ----
+// (checks of one life's end from before Phase 19 call mp.mode("race"): played together, the life is born again instead)
+// A table played to its end: timers collapsed, every card closed as it opens, a person's first offered choice taken, and
+// the Roll pressed whenever it can be. The public line under the board is recorded as it changes.
+const fast = (page, setup) => page.addInitScript(setup => {
+  const st = window.setTimeout;
+  window.setTimeout = (f, ms, ...r) => st(f, 0, ...r);
+  // as tools/golden.mjs does: every frame gets the current time, so no animation waits on a frame from before it began
+  const raf = window.requestAnimationFrame;
+  window.requestAnimationFrame = cb => raf(() => cb(performance.now()));
+  if (setup) window.claude = { hot: { data: { setup } } };
+  window.__pub = [];
+  addEventListener("DOMContentLoaded", () => {
+    const el = document.getElementById("landed");
+    new MutationObserver(() => { const b = el.querySelector("b")?.textContent; if (b && b !== window.__pub.at(-1)) window.__pub.push(b); }).observe(el, { childList: true, subtree: true });
+  });
+}, setup);
+const drive = (page, cond, timeout = 240000) => page.waitForFunction(cond => {
+  if (document.getElementById("folio").open) mp.close({ instant: true });
+  const life = document.getElementById("lifeDlg");
+  if (life.open) life.close();
+  if (new Function(`return (${cond})()`)()) return true;
+  const b = document.querySelector("#pick:not([hidden]) button:not([aria-disabled=true])"), r = document.getElementById("roll");
+  if (b) b.click(); else if (!r.disabled && !r.hidden) r.click();
+  return false;
+}, cond.toString(), { timeout, polling: 50 });
+const four = { count: 4, rows: ["Mira", "Ravi", "Asha", "Dev"].map((name, i) => ({ name, type: "human", gender: i % 2 ? "m" : "f" })), rules: { six: true, mode: "together" } };
+
+await check("Phase 19: Together is the default for two or more seats, offered beside the race in the naming and the setup", async page => {
+  await page.goto(BASE + "?seed=5&debug");
+  assert(await page.evaluate(() => mp.state.rules.mode === "together"), "me and a computer is played together by default");
+  const set = await page.evaluate(() => {
+    document.getElementById("setup").open = true;
+    return { row: !document.getElementById("ruleModeRow").hidden, val: document.getElementById("ruleMode").value, opts: [...document.querySelectorAll("#ruleMode option")].map(o => o.value) };
+  });
+  assert(set.row && set.val === "together" && set.opts.join() === "together,race", "the setup offers Together, chosen, and the race: " + JSON.stringify(set));
+  // how long (11 Nov): until every soul is free for two seats, one life each for three or four
+  assert(await page.evaluate(() => !document.getElementById("ruleLengthRow").hidden && document.getElementById("ruleLength").value === "free"), "two seats: until every soul is free");
+  await page.click('#count button[data-n="4"]');
+  assert(await page.evaluate(() => document.getElementById("ruleLength").value === "one"), "four seats: one life each");
+  await page.selectOption("#ruleMode", "race");
+  assert(await page.evaluate(() => document.getElementById("ruleLengthRow").hidden), "the race has no length");
+  await page.click('#count button[data-n="1"]');
+  assert(await page.evaluate(() => document.getElementById("ruleModeRow").hidden), "one person has no mode to choose");
+  await page.evaluate(() => mp.naming());
+  await page.click('#namingWhoOpts input[value="cpu"]');
+  assert(await page.evaluate(() => !document.getElementById("namingMode").hidden && document.querySelector('#namingModeOpts input[value="together"]').checked), "the naming asks how to play, Together first");
+  assert(await page.evaluate(() => document.querySelector('#namingLengthOpts input[value="free"]').checked), "me and a computer: until every soul is free");
+  await page.click('#namingWhoOpts input[value="3"]');
+  assert(await page.evaluate(() => document.querySelector('#namingLengthOpts input[value="one"]').checked), "three people: one life each");
+  await page.click('#namingWhoOpts input[value="1"]');
+  assert(await page.evaluate(() => document.getElementById("namingMode").hidden), "just me: no mode");
+  await page.click('#namingWhoOpts input[value="cpu"]');
+  await page.click('#namingModeOpts input[value="race"]');
+  await page.fill("#namingName", "Mira");
+  await page.click('#namingGenders input[value="f"]');
+  await page.click("#namingBegin");
+  assert(await page.evaluate(() => mp.state.rules.mode === "race"), "the race, chosen in the naming, is played");
+});
+
+await check("Phase 19: four people played together, with public lines and lives that cross, until Stop here", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await fast(page, four);
+  await page.goto(BASE + "?seed=4&debug");
+  assert(await page.evaluate(() => !document.getElementById("stopHere").hidden), "Stop here is offered in a game played together");
+  await drive(page, () => mp.state.players.some(p => [...(p.past ?? []), p].some(q => q.met?.length)) && mp.state.players.some(p => p.past?.length) && window.__pub.length >= 2);
+  const pub = await page.evaluate(() => window.__pub);
+  assert(pub.length >= 2, "public lines were told: " + pub.join(" | "));
+  // stop here: asked, then over, with every life as it stands
+  await page.evaluate(() => { const w = () => !mp.busy; return new Promise(r => { const t = () => (w() ? r() : setTimeout(t, 20)); t(); }); });
+  await page.click("#stopHere");
+  assert(await page.evaluate(() => document.getElementById("stopAsk").open), "Stop here asks first");
+  await page.click('#stopAsk button[value="yes"]');
+  await page.waitForFunction(() => !document.getElementById("win").hidden);
+  const end = await page.evaluate(() => ({ over: mp.state.over, stopped: mp.state.stopped, winner: mp.state.winner, title: document.getElementById("winTitle").textContent, text: document.getElementById("winText").textContent }));
+  assert(end.over && end.stopped && end.winner == null, "stopped, with no winner: " + JSON.stringify(end));
+  assert(/side by side/.test(end.title) && /stopped here/.test(end.text), "the end says the lives stand side by side: " + JSON.stringify(end));
+  const text = await page.evaluate(() => { const i = mp.state.players.findIndex(p => p.met?.length); return i < 0 ? "" : mp.lifeText(i, "en") + mp.lifeText(i, "hi"); });
+  if (text) assert(/stood on the same square|were on the same square|stood together/.test(text) && /एक ही घर पर|साथ खड़े/.test(text), "the account tells the meeting in both languages");
+}, { limit: 300 });
+
+await check("Phase 19: a person and a computer played together run to the end; nobody wins by arriving first", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await fast(page, { count: 2, rows: [{ name: "Mira", type: "human", gender: "f" }, { name: "", type: "cpu", gender: "" }], rules: { six: true, mode: "together" } });
+  await page.goto(BASE + "?seed=2&debug");
+  await drive(page, () => mp.state.over, 280000);
+  const end = await page.evaluate(() => ({ winner: mp.state.winner, free: mp.state.players[0].free, past: mp.state.players[0].past?.length ?? 0, title: document.getElementById("winTitle").textContent, stop: document.getElementById("stopHere").hidden }));
+  assert(end.winner == null && end.free, "the person was let go, and nobody won: " + JSON.stringify(end));
+  assert(/side by side/.test(end.title) && end.stop, "the end is the lives side by side, and Stop here is gone");
+}, { limit: 300 });
+
+await check("Phase 19: played together, a person's death by ledger is born an animal in the seat, told on the card and the line", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=1&debug");
+  await page.evaluate(() => { mp.mode("together"); mp.jump(40); mp.years(70); mp.die("illness"); mp.roll(2); });
+  await page.waitForFunction(() => document.getElementById("folio").open && /It closes/.test(document.getElementById("leaf").textContent), null, { timeout: 15000 });
+  await page.evaluate(() => mp.close());
+  await page.waitForFunction(() => document.querySelector("#folio[open] .leaf.reborn"), null, { timeout: 15000 });
+  const r = await page.evaluate(() => ({ card: document.getElementById("leaf").textContent, line: mp.landed(), p: mp.state.players[0], over: mp.state.over, laws: !!document.querySelector("#leaf .laws"), stage: document.querySelector("#players li .stage").textContent }));
+  assert(!r.over && r.p.law === "animal" && r.p.animal?.kind && r.p.pos === 1, "born an animal in the seat: " + JSON.stringify({ law: r.p.law, animal: r.p.animal, over: r.over }));
+  assert(/could not pay/.test(r.card) && /lives once as a/.test(r.card) && !r.laws, "the card says the ledger closed the life, and offers no law to an animal: " + r.card.slice(0, 300));
+  assert(/is born a .+ first/.test(r.line || ""), "the line: " + r.line);
+  assert(/^[A-Z][a-z]+$/.test(r.stage), "the panel names the creature: " + r.stage);
+});
+
+await check("Phase 19: four people, one life each, play until every life at the table has ended", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await fast(page, { ...four, rules: { six: true, mode: "together", length: "one" } });
+  await page.goto(BASE + "?seed=6&debug");
+  await drive(page, () => mp.state.over, 200000);
+  const end = await page.evaluate(() => ({ winner: mp.state.winner, lives: mp.state.players.map(p => p.rebirths ?? 0), text: document.getElementById("winText").textContent }));
+  assert(end.winner == null && end.lives.every(n => n === 0) && /Every life at the table has ended/.test(end.text), JSON.stringify(end));
+}, { limit: 240 });
+
+await check("Phase 19: the race is still a choice, and ends on the first through the exit", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await fast(page, { count: 2, rows: [{ name: "", type: "cpu" }, { name: "", type: "cpu" }], rules: { six: true, mode: "race" } });
+  await page.goto(BASE + "?seed=3&debug");
+  await page.waitForFunction(() => mp.state.over, null, { timeout: 170000 });
+  const end = await page.evaluate(() => ({ winner: mp.state.winner, stop: document.getElementById("stopHere").hidden }));
+  assert(end.winner != null && end.stop, "the race was won, and offers no Stop here: " + JSON.stringify(end));
+}, { limit: 180 });
+
+// The comparison screen (step 2): a table played a while, stopped, and the lives drawn side by side
+async function compared(page, l) {
+  await page.waitForFunction(() => !mp.busy);
+  await page.evaluate(() => { if (!mp.state.over) { document.getElementById("stopHere").click(); } });
+  await page.click('#stopAsk button[value="yes"]');
+  await page.waitForFunction(() => !document.getElementById("win").hidden && !document.getElementById("compare").hidden);
+  if (l === "hi") await page.evaluate(() => mp.setLang("hi"));
+  await page.click("#compare");
+  await page.waitForFunction(() => document.getElementById("compareDlg").open);
+  return page.evaluate(() => {
+    const d = document.getElementById("compareDlg"), cv = d.querySelector(".cmp-board"), c = cv.getContext("2d");
+    const px = c.getImageData(0, 0, cv.width, cv.height).data;
+    let inked = 0;
+    for (let k = 0; k < px.length; k += 4 * 97) if (px[k + 3]) inked++;
+    const body = d.querySelector(".cmp-body"), m = mp.compareOpen();
+    return {
+      inked, ribbons: d.querySelectorAll(".cmp-gunas canvas").length, books: d.querySelectorAll(".cmp-book").length,
+      shown: [...d.querySelectorAll(".cmp-book")].filter(b => b.offsetParent).length, text: d.textContent, digits: (body.textContent.match(/[0-9०-९]/g) || []).length,
+      scroll: body.scrollWidth - body.clientWidth, page: document.documentElement.scrollWidth - innerWidth,
+      souls: m.souls.length, traced: m.replayed && m.souls.every(s => s.lives.every(x => Array.isArray(x.trace))), same: m.same.length, met: m.met.length,
+      copy: mp.compareText(), img: mp.compareImage().length, modal: d.matches(":modal"),
+    };
+  });
+}
+await check("Phase 19: the lives side by side: every path on one board, who each became, the same squares, the meetings, and the books", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await fast(page, four);
+  await page.goto(BASE + "?seed=4&debug");
+  await drive(page, () => mp.state.turns > 160 && mp.state.players.some(p => p.past?.length));
+  const r = await compared(page, "en");
+  assert(r.modal && r.souls === 4 && r.inked > 50, "the board is drawn: " + JSON.stringify({ inked: r.inked, souls: r.souls }));
+  assert(r.traced && r.ribbons === 4, "the game was played again, and each soul has its ribbon");
+  assert(r.books === 4 && r.shown === 4, "four books, side by side on a wide screen");
+  assert(r.same > 0 && /chose|took/.test(r.text), "the squares two lives chose on are told: " + r.same);
+  assert(r.page <= 0 && r.scroll <= 0, "no sideways scroll");
+  assert(/Mira/.test(r.copy) && /Dev/.test(r.copy) && r.copy.length > 2000, "the text holds every soul and book");
+  assert(r.img > 20000, "the image is drawn");
+  console.log("      digits on the screen: " + r.digits + "; squares chosen on by two lives: " + r.same + "; meetings: " + r.met);
+}, { limit: 300 });
+await check("Phase 19: the lives side by side at phone width, in Hindi and dark, the books in tabs", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.addInitScript(() => { try { localStorage.setItem("mp-prefs", JSON.stringify({ theme: "dark", mute: true })); } catch {} });
+  await fast(page, { ...four, count: 2, rows: four.rows.slice(0, 2) });
+  await page.goto(BASE + "?seed=7&debug");
+  await drive(page, () => mp.state.turns > 60);
+  const r = await compared(page, "hi");
+  assert(r.souls === 2 && r.inked > 50 && r.ribbons === 2, "drawn: " + JSON.stringify({ souls: r.souls, inked: r.inked, ribbons: r.ribbons }));
+  assert(r.books === 2 && r.shown === 1, "one book at a time below 768px: " + r.shown);
+  assert(r.page <= 0 && r.scroll <= 0, "no sideways scroll at 390px: " + JSON.stringify({ page: r.page, body: r.scroll }));
+  assert(/जीवन, साथ-साथ/.test(r.text) && !/[A-Za-z]{4,}/.test(r.text.replace(/Mira|Ravi|Moksha Patam/g, "")), "all in Hindi");
+  await page.click(".cmp-tabs [role=tab]:nth-child(1)");
+  await page.keyboard.press("ArrowRight");
+  const second = await page.evaluate(() => [...document.querySelectorAll(".cmp-book")].findIndex(b => b.offsetParent));
+  assert(second === 1, "the arrow key shows the next book");
+  await page.click(".cmp-close");
+  assert(await page.evaluate(() => !document.getElementById("compareDlg").open), "the × closes it");
+}, { phone: [390, 844], limit: 240 });
+await check("Phase 19: the race, at its end, offers the lives side by side", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await fast(page, { count: 2, rows: [{ name: "", type: "cpu" }, { name: "", type: "cpu" }], rules: { six: true, mode: "race" } });
+  await page.goto(BASE + "?seed=3&debug");
+  await page.waitForFunction(() => mp.state.over, null, { timeout: 170000 });
+  await page.click("#compare");
+  const r = await page.evaluate(() => { const m = mp.compareOpen(); return { open: document.getElementById("compareDlg").open, souls: m.souls.length, traced: m.replayed }; });
+  assert(r.open && r.souls === 2 && r.traced, JSON.stringify(r));
+}, { limit: 180 });
+
+// ---- Phase 19 step 3: same dice, two lives ----
+// Two devices are two browser contexts. Each plays one seed to its end, the second with its person behind a computer and
+// choosing otherwise; each opens the other's life link, and the two lives stand side by side on the same throws.
+const driveLast = (page, cond, timeout = 240000) => page.waitForFunction(cond => {
+  if (document.getElementById("folio").open) mp.close({ instant: true });
+  const life = document.getElementById("lifeDlg");
+  if (life.open) life.close();
+  if (new Function(`return (${cond})()`)()) return true;
+  const bs = [...document.querySelectorAll("#pick:not([hidden]) button:not([aria-disabled=true])")], r = document.getElementById("roll");
+  if (bs.length) bs.at(-1).click(); else if (!r.disabled && !r.hidden) r.click();
+  return false;
+}, cond.toString(), { timeout, polling: 50 });
+async function device(setup, seed, last) {
+  const ctx = await browser.newContext({ viewport: { width: 1200, height: 900 } });
+  await ctx.addInitScript(() => { try { localStorage.setItem("mp-self", JSON.stringify({ name: "", gender: "f" })); } catch {} });
+  const page = await ctx.newPage(), errors = [];
+  page.on("pageerror", e => errors.push(e.message));
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await fast(page, setup);
+  await page.goto(BASE + `?seed=${seed}&debug`);
+  await (last ? driveLast : drive)(page, () => mp.state.over, 200000);
+  return { ctx, page, errors };
+}
+await check("Phase 19: two devices on one seed throw the same dice, whatever the seat, and each sees the other's life beside its own", async () => {
+  const seed = 11;
+  const a = await device({ count: 1, rows: [{ name: "Mira", type: "human", gender: "f" }], rules: { six: true } }, seed, false);
+  const b = await device({ count: 2, rows: [{ name: "", type: "cpu" }, { name: "Ravi", type: "human", gender: "m" }], rules: { six: true, mode: "race" } }, seed, true);
+  try {
+    const la = await a.page.evaluate(() => mp.share()), lb = await b.page.evaluate(() => mp.share());
+    assert(la.life && lb.life, "both lives can be sent: " + JSON.stringify([la.why, lb.why]));
+    assert(la.play === lb.play.replace(/\d+$/, String(seed)) && /#play=110\.board\.11$/.test(la.play), "the seed link is the board, the law and the seed: " + la.play);
+    console.log(`      life links: ${la.life.length - la.life.indexOf("#")} and ${lb.life.length - lb.life.indexOf("#")} characters`);
+    const seen = [];
+    for (const [me, other] of [[a, lb.life], [b, la.life]]) {
+      const said = await me.page.evaluate(l => mp.compare([l]), other);
+      assert(said[0] === null, "the life was added: " + said[0]);
+      seen.push(await me.page.evaluate(() => {
+        const d = document.getElementById("compareDlg");
+        return { open: d.open, text: d.textContent, souls: d.querySelectorAll(".cmp-souls li").length };
+      }));
+    }
+    for (const x of seen) assert(x.open && x.souls === 2 && /\(you\)/.test(x.text) && /Where the lives parted/.test(x.text), "both lives, side by side, with where they parted: " + x.text.slice(0, 200));
+    // the throws: every throw both lives made, by its number in the life, is the same, until one life ended
+    for (const me of [a, b]) {
+      const m = await me.page.evaluate(() => mp.compared());
+      const [x, y] = m.souls.map(q => q.throws);
+      const n = Math.min(x.length, y.length);
+      assert(n > 10, "throws in common: " + n);
+      for (let k = 0; k < n; k++) assert(x[k] === y[k], `throw ${k + 1}: ${x[k]} and ${y[k]}`);
+      assert(m.parted.length === 1, "where they parted: " + JSON.stringify(m.parted));
+    }
+    assert(!a.errors.length && !b.errors.length, "page errors: " + [...a.errors, ...b.errors].join("; "));
+  } finally { await a.ctx.close(); await b.ctx.close(); }
+}, { limit: 450, named: false });
+await check("Phase 19: today's life is the same seed on two devices, and a seed link starts that seed with the person first", async page => {
+  const other = await browser.newContext();
+  try {
+    const p2 = await other.newPage();
+    await page.goto(BASE + "?debug");
+    await p2.goto(BASE + "?debug");
+    const s1 = await page.evaluate(() => mp.daily("2026-11-11")), s2 = await p2.evaluate(() => mp.daily("2026-11-11"));
+    assert(s1 === s2, "the same seed for the same day: " + [s1, s2]);
+    assert(await page.evaluate(() => /11 November/.test(document.getElementById("seed").textContent)), "the day is said");
+    assert(await page.evaluate(() => mp.daily("2026-11-12")) !== s1, "another day, another seed");
+    // a seed link, opened by a viewer whose setup puts a computer first: the person sits first, on that seed
+    await page.evaluate(() => { location.hash = "#play=110.board.424242"; });
+    await page.waitForFunction(() => mp.state.rng.seed === 424242);
+    const r = await page.evaluate(() => ({ first: mp.state.players[0].type, lane: mp.state.players[0].lane, hash: location.hash, line: document.getElementById("seed").textContent }));
+    assert(r.first === "human" && r.lane === 0 && !r.hash && /shared/.test(r.line), JSON.stringify(r));
+  } finally { await other.close(); }
 });
 
 await browser.close();

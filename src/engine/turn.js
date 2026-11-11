@@ -1,19 +1,21 @@
 // The rules of a turn, with no DOM: the UI animates a plan, and tools/sim.mjs plays plans headless.
-import { GOAL, TOP, LADDERS, SNAKES, HEAVEN, SQ } from "../content.js";
-import { makeRng, die } from "../rng.js";
+import { GOAL, TOP, LADDERS, SNAKES, HEAVEN, SQ, PLAYER_NAMES, CAST } from "../content.js";
+import { makeRng, die, next } from "../rng.js";
 import { SPAN, turnYears, grow, freshGunas, freshAims, holdingOf, slotsFor, stageOfPlayer, SANNYASA } from "./self.js";
 import { optionOf, optionsFor, egoOf, egoFacesOn, egoThrow, graceThrow, worthOf, destOf } from "./qbn.js";
 import { freshKarma, karmaOf, carried, ripen, plantOf, omenFor, refusalOf, examineOf, meet, DEATH } from "./karma.js";
 import { curseOf, spokenAt } from "./curse.js";
 import { lawOf, isDefault } from "./laws/index.js";
-import { soulOf, bornOf } from "./samskara.js";
+import { nextBirth } from "./samskara.js";
+import { together, oneLife } from "./mode.js";
 import { castOf, nameKey } from "./cast.js";
-import { drawName } from "../state.js";
+import { drawName, pnameIn } from "../state.js";
 import * as cloth from "./cloth.js";
+import { TUMBLE, drawThrow, laneOf, lanesOf, drawnOf, throwsNew } from "./throws.js";
 
-// The die shows this many random faces while it tumbles before the real roll. They come from the
-// game's own sequence, so a headless game must draw them too to stay in step with the UI.
-export const TUMBLE = 7;
+// The die shows TUMBLE random faces while it tumbles before the real roll. Before Phase 19 they came from the game's own
+// sequence (setDice("stream")); since, every throw is its own (src/engine/throws.js).
+export { TUMBLE };
 export function rollValue(rng) {
   for (let i = 0; i < TUMBLE; i++) die(rng);
   return die(rng);
@@ -33,6 +35,9 @@ export function rollDice(rng, n) {
   for (let i = 0; i < TUMBLE; i++) for (let k = 0; k < n; k++) die(rng);
   return Array.from({ length: n }, () => die(rng));
 }
+// The current player's next throw of n dice, as the page and tools/sim.mjs both throw it (Phase 19): its own sequence,
+// keyed by the seed, the lane, the life and the throws it has made (src/engine/throws.js)
+export const throwDice = (state, n) => drawThrow(state, n).dice;
 // ---- Roll-dependent squares (REDESIGN.md Phase 10) ----
 // A story square below the endgame may tell one of two moments, by how fast the player arrived: the face of the
 // die moved by, never the distance. A slow arrival noticed what was there; a fast one went straight past it, or it
@@ -118,7 +123,8 @@ export const spentOf = p => inHeaven(p.pos) && p.merit != null && (p.heavenTurns
 // A player still in the game: not dead, and not fallen from the heavens (since Phase 17 a fallen life is reborn in its
 // seat at once, so only a record in p.past is ever fell).
 // since Phase 16 an animal interlude also ends, earned (p.earned) or short of the forest's edge (p.short)
-export const gone = p => !!(p.dead || p.fell || p.earned || p.short);
+// and since Phase 19 a seat whose life was let go in a game played together (p.free): its turns are over
+export const gone = p => !!(p.dead || p.fell || p.earned || p.short || p.free);
 
 // A player has a gender for Hindi agreement (docs/NARRATIVE.md §4), an alias {en, hi} when the name was
 // drawn rather than typed, and a life: every square landed on, in order, for the life account. Phase 8 adds
@@ -142,12 +148,18 @@ export const playerOf = (r, i) => ({ name: r.name.trim(), type: r.type, gender: 
   ...((r.law ?? r.born?.law) ? { law: r.law ?? r.born.law } : {}) });
 export function createGame({ players, rules, seed }) {
   const state = {
-    players: players.map(playerOf),
+    // each seat's lane (Phase 19): what its throws and its life's own sequences are keyed by, people first
+    players: (lanes => players.map((r, i) => Object.assign(playerOf(r, i), { lane: lanes[i] })))(lanesOf(players)),
     rules: { ...rules },
     // over: someone reached the exit, or nobody is left in the game to
     turn: 0, winner: null, over: false, last: null,
     log: [{ k: "lNew", kind: "" }],
     rng: makeRng(seed),
+    // the table as it sat down, and the turns played (Phase 19): with each person's choices (p.choices), all a game needs
+    // to be played again from its seed (src/engine/compare.js replay)
+    table: JSON.parse(JSON.stringify(players)), turns: 0,
+    // how its dice are thrown (src/engine/throws.js): each throw its own; a game without it is from before Phase 19 step 3
+    ...throwsNew(),
   };
   // a law that keeps no ledger (Cārvāka) carries nothing in from a life before
   state.players.forEach((p, i) => { if (!lawOf(state, i).karma) p.karma = freshKarma(); });
@@ -285,7 +297,7 @@ export function resolveChoice(state, plan, id) {
   // its faces the life does the higher, the option of most worth open to it. Never shown before the choice.
   const gf = ego && id === ego.lower ? lawOf(state, plan.idx).grace(state, plan.idx) : null;
   if (gf) {
-    const p = state.players[plan.idx], face = state.forceGrace ? state.forceGrace : graceThrow(state, plan.idx, p.life?.length ?? 0);
+    const p = state.players[plan.idx], face = state.forceGrace ? state.forceGrace : graceThrow(state, plan.idx, drawnOf(state, plan.idx, p.life?.length ?? 0));
     delete state.forceGrace;
     if (gf.includes(face)) {
       const best = optionsFor(p, sit).filter(x => x.open).sort((a, b) => worthOf(b) - worthOf(a))[0];
@@ -297,7 +309,7 @@ export function resolveChoice(state, plan, id) {
     }
   }
   if (!ego || id === ego.lower) return finish(state, plan, o);
-  const p = state.players[plan.idx], face = egoThrow(state, plan.idx, p.life?.length ?? 0), rebel = faces.includes(face);
+  const p = state.players[plan.idx], face = egoThrow(state, plan.idx, drawnOf(state, plan.idx, p.life?.length ?? 0)), rebel = faces.includes(face);
   const took = rebel ? optionOf(plan.target, ego.lower) : o;
   plan.ego = { chose: id, took: took.id, face, faces };
   plan.after.push(entry(rebel ? "lEgoRebel" : "lEgoHeld", { pos: plan.target, sq: plan.target }, "", plan.idx));
@@ -383,7 +395,7 @@ function finish(state, plan, o) {
 // the third tier the square the debt was made on, reached as a snake reaches its tail, taking no time.
 function resolve(state, plan, years) {
   const { idx } = plan, p = state.players[idx], law = lawOf(state, idx);
-  const omen = plan.win || plan.died || !law.omen(state, idx) ? null : omenFor(state, idx, { dice: plan.dice, pos: plan.final, years, lived: p.life?.length ?? 0, force: !!(state.forceOmen || state.forceDeath) });
+  const omen = plan.win || plan.died || !law.omen(state, idx) ? null : omenFor(state, idx, { dice: plan.dice, pos: plan.final, years, lived: drawnOf(state, idx, p.life?.length ?? 0), force: !!(state.forceOmen || state.forceDeath) });
   // mp.die(form) (Phase 16): the omen that fires is the death tier, in that form, whatever the ledger weighs
   if (omen?.reckon && state.forceDeath) Object.assign(omen.reckon, { dies: true, applied: DEATH, form: state.forceDeath, years: 0, holds: null, to: null });
   const rk = omen?.reckon ?? null;
@@ -440,6 +452,8 @@ export function endTurn(state, plan) {
     const before = p.life.length - plan.told.length, kept = (p.told ?? []).slice(0, before);
     p.told = [...kept, ...Array(before - kept.length).fill(null), ...plan.told];
     Object.assign(p, grow(p, plan));
+    // lives that cross (Phase 19): a landing where another seat stands, in a game played together, goes into both books
+    if (together(state)) meetAt(state, plan.idx);
     // the ledger: what fired is met, what was chosen is planted, and whatever the years have reached ripens
     let k = karmaOf(p);
     if (rk && !rk.dies) k = { ...k, prarabdha: k.prarabdha.filter(s => !rk.seeds.some(f => f.src === s.src && f.opt === s.opt && f.at === s.at)), agami: k.agami.filter(s => !rk.seeds.some(f => f.src === s.src && f.opt === s.opt && f.at === s.at)) };
@@ -478,12 +492,22 @@ export function endTurn(state, plan) {
   const freed = (plan.died || plan.fell) && lawOf(state, plan.idx).freed(state, plan.idx, plan);
   if (freed) { p.won = freed; plan.freed = true; plan.end.push(entry(lawOf(state, plan.idx).text.win.line, {}, "heaven", plan.idx)); }
   if (plan.died || plan.fell) { const k = karmaOf(p); p.karma = { sancita: [...k.sancita, ...carried(k)], agami: [], prarabdha: [] }; }
-  // Śiva's snake is rebirth (Phase 17): the same soul, born of the life it closed, at the snake's tail
-  if (plan.fell && !plan.freed && lawOf(state, plan.idx).siva(state, plan.idx) === "reborn") {
+  // a life let go in a game played together frees its seat; the others go on (Phase 19)
+  if (together(state) && (plan.win || plan.freed)) p.free = true;
+  // Śiva's snake is rebirth (Phase 17): the same soul, born of the life it closed, at the snake's tail. Played together
+  // (Phase 19), so is every other end of a life its law lets go on from: the years, the door, the ledger (through the
+  // animal life first) and the interlude's own end
+  // one life each (Phase 19): no end of a life is born again at the table; the soul goes on in the next game
+  const law = lawOf(state, plan.idx), how = !plan.freed && !oneLife(state) && (plan.fell ? law.siva(state, plan.idx) === "reborn" : together(state) && law.rebirth && (plan.died || p.earned || p.short));
+  if (how) {
     // the turn's last lines are logged after the birth, and still belong to the life that ended
     plan.end.forEach(e => { if (e.who != null) e.life = p.rebirths ?? 0; });
+    const was = p.rebirths ?? 0;
     bornAgain(state, plan.idx);
-    if (p.rebirths) plan.end.push(entry("lReborn", { pos: 1, sq: 1 }, "", plan.idx));
+    if ((p.rebirths ?? 0) > was) {
+      plan.reborn = true;
+      plan.end.push(p.animal ? entry("lBornAnimal", { animal: p.animal.kind, pos: 1, sq: 1 }, "", plan.idx) : entry(plan.fell ? "lReborn" : p.past.at(-1)?.carry ? "lBornHuman" : "lRebornDied", { pos: 1, sq: 1 }, "", plan.idx));
+    }
   }
   delete state.forceOmen;
   delete state.forceDeath;
@@ -492,7 +516,9 @@ export function endTurn(state, plan) {
 }
 
 function passTurn(state, plan) {
-  if (plan.win || plan.freed) state.winner = plan.idx;
+  state.turns = (state.turns ?? 0) + 1;
+  // played together nobody wins by arriving first: the freed seat is skipped, and the turn passes (Phase 19)
+  if ((plan.win || plan.freed) && !together(state)) state.winner = plan.idx;
   // the turn passes to the next player still alive; with nobody left, the game is over
   else if (!plan.again) for (let k = 1; k <= state.players.length; k++) {
     const i = (plan.idx + k) % state.players.length;
@@ -501,7 +527,8 @@ function passTurn(state, plan) {
   // Over when someone is through, or nobody is left to be: in a game with people in it, once none of them is
   // alive, since the computers would only be playing on for nobody.
   const alive = state.players.filter(q => !gone(q)), humans = state.players.some(q => q.type === "human");
-  state.over = state.winner != null || !alive.length || (humans && !alive.some(q => q.type === "human"));
+  // One life each (Phase 19) waits for every seat's life, the computers' too: each has only the one.
+  state.over = state.winner != null || !alive.length || (humans && !oneLife(state) && !alive.some(q => q.type === "human"));
   plan.end.forEach(e => addLog(state, e));
 }
 
@@ -511,27 +538,70 @@ function passTurn(state, plan) {
 // newborn has a new name and gender, drawn off a sequence of its own (never the dice), and not the last life's name, nor
 // anyone's at the table, nor any its cast carries. It keeps its colour and its seat, and its saṃskāra key; it begins at
 // the snake's tail, square 1, born. The object is changed in place, so whatever holds the player still holds it.
+// Since Phase 19 the birth is src/engine/samskara.js nextBirth's: in a game played together a death by ledger is born an
+// animal first, in the seat (p.animal, the soul carried through it as p.carry), and the interlude's end born human.
 function bornAgain(state, i) {
-  const p = state.players[i], soul = soulOf(state, i), born = soul && bornOf(soul);
-  if (!born) return;
+  const p = state.players[i], nb = nextBirth(state, i), soul = nb?.soul;
+  if (!nb) return;
   const was = { ...p, castKept: castOf(state, i, p.prior?.lives ?? 0) };
   delete was.past;
+  delete was.choices;
   const rebirths = (p.rebirths ?? 0) + 1;
-  const rng = makeRng((state.rng.seed ^ 0x3c6ef372 ^ Math.imul(i + 1, 0x85ebca6b) ^ Math.imul(rebirths, 0xc2b2ae35)) >>> 0);
-  const taken = new Set([...state.players.flatMap(q => [q.name.trim(), q.alias?.en]), ...soul.cast.map(c => c.en)].filter(Boolean));
-  const nm = drawName(rng, "", taken) ?? drawName(rng, "", new Set());
+  const rng = makeRng((state.rng.seed ^ 0x3c6ef372 ^ Math.imul(laneOf(state, i) + 1, 0x85ebca6b) ^ Math.imul(rebirths, 0xc2b2ae35)) >>> 0);
+  const nm = nameAgain(state, i, rng, soul);
   const key = p.soul ?? (p.name ? nameKey(p.name) : null);
-  const next = playerOf({ name: "", type: p.type, gender: nm.gender, alias: { en: nm.en, hi: nm.hi }, born, soul: key, law: p.law }, p.color);
-  Object.assign(next, { pos: 1, life: [1], told: [null], past: [...(p.past ?? []), was], rebirths });
+  const next = playerOf({ name: "", type: p.type, gender: nm.gender, alias: { en: nm.en, hi: nm.hi }, born: nb.born ?? null, soul: key, law: nb.law }, p.color);
+  Object.assign(next, { pos: 1, life: [1], told: [null], past: [...(p.past ?? []), was], rebirths, ...(p.lane != null ? { lane: p.lane } : {}), ...(nb.animal ? { animal: nb.animal, carry: nb.carry } : {}) });
+  // what a person has chosen across the seat's lives stays with the seat (Phase 19), so the game can be played again from it
+  if (p.choices) next.choices = p.choices;
   for (const k of Object.keys(p)) delete p[k];
   Object.assign(p, next);
+}
+
+// The name of a life born again in seat i: never one any life in this game has had (at the table now, in a seat's lives
+// before, or as the table sat down; compared as names are, nameKey), nor one its soul's cast carries. Drawn from the
+// players' names as before (the same draw, kept whenever its name is new to the game); when a long game has used every one of them, from the names kept for that (players.again in
+// content/names.json), then from the cast's, passing over any name a living life's cast now has, so no book being
+// written loses a member's name. Only if all are spent is a name used again.
+function nameAgain(state, i, rng, soul) {
+  const lived = [...state.players.flatMap(q => [...(q.past ?? []), q]), ...(state.table ?? [])];
+  const keys = new Set([...lived.flatMap(q => [q.name, q.alias?.en, q.alias?.hi]), ...soul.cast.flatMap(c => [c.en, c.hi])].filter(Boolean).map(nameKey));
+  const free = ([en, hi]) => !keys.has(nameKey(en)) && !keys.has(nameKey(hi));
+  // the draw before this rule, which most games keep: only a name used before is drawn again
+  const was = drawName(rng, "", new Set([...state.players.flatMap(q => [q.name.trim(), q.alias?.en]), ...soul.cast.map(c => c.en)].filter(Boolean)));
+  if (was && free([was.en, was.hi])) return was;
+  const of = list => ["m", "f"].flatMap(gd => (list?.[gd] ?? []).map(([en, hi]) => ({ en, hi, gender: gd })));
+  const players = of(PLAYER_NAMES);
+  let pool = players.filter(x => free([x.en, x.hi]));
+  if (!pool.length) pool = of(PLAYER_NAMES.again).filter(x => free([x.en, x.hi]));
+  if (!pool.length && CAST.names) {
+    const casts = state.players.map((q, j) => (gone(q) ? null : castOf(state, j, q.prior?.lives ?? 0)));
+    for (const c of casts) for (const m of Object.values(c ?? {})) [m.en, m.hi].filter(Boolean).forEach(x => keys.add(nameKey(x)));
+    pool = ["m", "f", "either"].flatMap(gd => (CAST.names[gd] ?? []).map(([en, hi]) => ({ en, hi, gender: gd === "either" ? "n" : gd }))).filter(x => free([x.en, x.hi]));
+  }
+  if (!pool.length) pool = players;
+  return pool[Math.floor(next(rng) * pool.length)];
+}
+
+// Lives that cross (Phase 19): player i has just landed where another seat stands. Each keeps the meeting where in its own
+// life it came, at its own age, with the other's name as it is now, for the account; a pair meets once a square in a life.
+// A new birth's square 1 is no landing, and a seat whose turns are over stands nowhere.
+function meetAt(state, i) {
+  const p = state.players[i], n = p.pos;
+  state.players.forEach((q, j) => {
+    if (j === i || gone(q) || q.pos !== n || !q.life?.length) return;
+    const seen = (p.met ?? []).some(m => m.sq === n && m.seat === j && m.life === (q.rebirths ?? 0));
+    if (seen) return;
+    const mark = (a, b, k) => { a.met = [...(a.met ?? []), { i: a.life.length - 1, age: Math.floor(a.years ?? 0), sq: n, seat: k, life: b.rebirths ?? 0, with: { en: pnameIn(b, "en"), hi: pnameIn(b, "hi") } }]; };
+    mark(p, q, j); mark(q, p, i);
+  });
 }
 
 // One whole turn without animation. A number is one die moved by; an array is the dice rolled, and pick chooses
 // the move from them.
 // With the merit spent nothing is thrown, so nothing is drawn.
 // A year in practice before the throw (Yoga) draws nothing either: its computer decides before any die (practisesNow).
-export function playTurn(state, roll = cloth.isCloth() ? cloth.rollDice(state) : spentOf(state.players[state.turn]) || practisesNow(state) ? [] : rollDice(state.rng, diceFor(state.players[state.turn])), pick = moveFor, choose = (s, sit) => lawOf(s).choose(s, sit)) {
+export function playTurn(state, roll = cloth.isCloth() ? cloth.rollDice(state) : spentOf(state.players[state.turn]) || practisesNow(state) ? [] : throwDice(state, diceFor(state.players[state.turn])), pick = moveFor, choose = (s, sit) => lawOf(s).choose(s, sit)) {
   // one die is no choice, unless the law offers one (Jain: waiting at a ladder's foot, or moved only by the 1 there)
   const dice = typeof roll === "number" ? [roll] : roll, one = dice.length > 1 ? null : movesFor(state, dice);
   // no dice and the merit not spent: the year sat in practice

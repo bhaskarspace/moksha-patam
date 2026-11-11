@@ -39,12 +39,14 @@ await ctx.addInitScript(() => {
   try { localStorage.setItem("mp-self", JSON.stringify({ name: "", gender: "f" })); localStorage.setItem("mp-prefs", JSON.stringify({ mute: true })); } catch {}
   // every card that opens closes again, so a move runs straight through
   setInterval(() => { if (document.getElementById("folio")?.open) window.mp?.close({ instant: true }); }, 50);
+  // four computers at the table, for the lives side by side
+  if (location.search.includes("perf4")) { const cpu = { name: "", type: "cpu" }; window.claude = { hot: { data: { setup: { count: 4, rows: [cpu, cpu, cpu, cpu], rules: { six: true, mode: "together" } } } } }; }
 });
 const page = await ctx.newPage();
 const cdp = await ctx.newCDPSession(page);
 
 const q = (xs, p) => { const s = [...xs].sort((a, b) => a - b); return s[Math.min(s.length - 1, Math.floor(p * s.length))] ?? 0; };
-const repaint = [];
+const repaint = [], compare = [];
 const results = Object.fromEntries(MOVES.map(([n]) => [n, { frames: [], longest: 0 }]));
 
 for (let run = 0; run < RUNS; run++) {
@@ -75,11 +77,25 @@ for (let run = 0; run < RUNS; run++) {
   await cdp.send("Emulation.setCPUThrottlingRate", { rate: 1 });
 }
 
+// the lives side by side (Phase 19): four computers played together a hundred and sixty turns, then the screen opened,
+// which plays the game again, and its picture drawn
+for (let run = 0; run < RUNS; run++) if (BOARD === "110" && await page.evaluate(() => !!mp.compareOpen)) {
+  await cdp.send("Emulation.setCPUThrottlingRate", { rate: 1 });
+  await page.goto(BASE + "?debug&seed=4&perf4" + (QUERY ? "&" + QUERY : ""));
+  await page.waitForFunction(() => window.mp && mp.state.players.length === 4);
+  await page.evaluate(() => mp.play(160));
+  await cdp.send("Emulation.setCPUThrottlingRate", { rate: RATE });
+  compare.push(await page.evaluate(() => { let t = performance.now(); mp.compareOpen(); const open = performance.now() - t; t = performance.now(); mp.compareImage(); return [open, performance.now() - t]; }));
+  await page.evaluate(() => document.querySelector(".cmp-close").click());
+}
+
 console.log(`board ${BOARD}, CPU throttle ${RATE}x, 390x844 at DPR 3, ${RUNS} runs`);
 console.log("move      frames   p50 ms   p95 ms   longest frame ms");
 for (const [name, { frames, longest }] of Object.entries(results)) {
   console.log(`${name.padEnd(9)} ${String(frames.length).padStart(6)} ${q(frames, 0.5).toFixed(1).padStart(8)} ${q(frames, 0.95).toFixed(1).padStart(8)} ${longest.toFixed(0).padStart(12)}`);
 }
 if (repaint.length) console.log(`turn-end repaint (players, log and the age of every square): p50 ${q(repaint, 0.5).toFixed(1)} ms, max ${Math.max(...repaint).toFixed(1)} ms`);
+if (compare.length) console.log(`the lives side by side: open p50 ${q(compare.map(x => x[0]), 0.5).toFixed(0)} ms, max ${Math.max(...compare.map(x => x[0])).toFixed(0)} ms; its picture p50 ${q(compare.map(x => x[1]), 0.5).toFixed(0)} ms`);
+else console.log("the lives side by side: n/a");
 await browser.close();
 server.close();

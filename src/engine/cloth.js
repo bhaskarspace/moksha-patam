@@ -5,9 +5,8 @@
 // pre, after and end), so the page animates them as it does any turn; turn.js hands a turn here when the board in play
 // says engine "cloth" (content/boards.json rules). Pure.
 import { BOARD, GOAL, TOP, SNAKES, LADDERS } from "../content.js";
-import { throwOf } from "./dice.js";
+import { drawThrow } from "./throws.js";
 
-const TUMBLE = 7;
 export const isCloth = () => BOARD.rules?.engine === "cloth";
 // what the board is thrown with: the game's setting, else the board's own
 export const randOf = state => (state.rules?.rand && state.rules.rand !== "own" ? state.rules.rand : BOARD.rules?.rand ?? "die");
@@ -19,14 +18,12 @@ export function setup(state) {
   for (const p of state.players) Object.assign(p, { pos: 1, life: [1], told: [null] });
 }
 
-// A throw, tumbling as the page shows it: TUMBLE throws drawn and dropped, then the one that counts, all off the game's
-// sequence so the page and tools/sim.mjs draw alike. The shells of a cowrie throw are kept for the page to show.
+// A throw, tumbling as the page shows it: TUMBLE throws drawn and dropped, then the one that counts, drawn as the page and
+// tools/sim.mjs both draw it (src/engine/throws.js). The shells of a cowrie throw are kept for the page to show.
 export function rollDice(state) {
-  const kind = randOf(state);
-  for (let i = 0; i < TUMBLE; i++) throwOf(state.rng, kind);
-  const t = throwOf(state.rng, kind);
-  state.shells = t.up ?? null;
-  return [t.v];
+  const t = drawThrow(state, 1, { kind: randOf(state) });
+  state.shells = t.up;
+  return t.dice;
 }
 export const movesFor = (state, dice) => [dice[0]];
 

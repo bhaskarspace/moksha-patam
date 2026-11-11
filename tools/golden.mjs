@@ -7,6 +7,9 @@
 // falls. Only the page-against-sim leg is kept, and it holds. Re-pinned 26 Oct: a reckoning takes the throw a 6 would have
 // given, so in a game of two the turn passes where it used to stay. Re-pinned for Phase 14: a landing on 110 is the fall
 // by Śiva's snake, a computer the door refused sits there and is examined, and the door opens when nothing is owed.
+// Re-pinned for Phase 19 step 3: every throw is keyed by the seed, the lane, the life and the throw (src/engine/throws.js)
+// instead of one sequence shared by every seat, so every game's log differs from Phase 18's; the page and the sim still
+// throw alike. The table plays the race, said outright, since a game of two or more is played together by default.
 //   node tools/golden.mjs [seeds=20]
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -40,7 +43,7 @@ function harness({ seed, cards }) {
   const raf = window.requestAnimationFrame;
   window.requestAnimationFrame = cb => raf(() => cb(performance.now()));
   const cpu = { name: "", type: "cpu" };
-  window.claude = { hot: { data: { setup: { count: 2, rows: [cpu, cpu, cpu, cpu], rules: { six: true, cards } } } } };
+  window.claude = { hot: { data: { setup: { count: 2, rows: [cpu, cpu, cpu, cpu], rules: { six: true, cards, mode: "race" } } } } };
 }
 
 async function run(url, seed, cards) {

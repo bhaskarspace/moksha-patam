@@ -30,7 +30,11 @@ export const interludeFor = (holding, cast) => ({ kind: animalOf(holding), maste
 
 // The rules of an interlude's game.
 export const animalRules = (animal, rules = {}) => ({ ...rules, six: false, law: "animal", animal });
-export const isAnimal = state => state?.rules?.law === "animal";
+// Whether the game is an interlude, or (Phase 19, a game played together) seat i's life is one: an animal born in the seat
+// of a life the ledger ended, the interlude it was owed (p.animal), among the others' lives
+export const isAnimal = (state, i) => state?.rules?.law === "animal" || (i != null && state?.players?.[i]?.law === "animal");
+// The interlude seat i is living: { kind, master, round }, its own in a game played together, else the game's
+export const interludeOf = (state, i) => state?.players?.[i]?.animal ?? state?.rules?.animal ?? null;
 
 // What the soul is after the interlude: earned, the next birth is human, nudged toward sattva and dreaming of the animal;
 // short in the first round, an animal once more; short in the second, human regardless.
@@ -47,7 +51,7 @@ export const animalEndOf = p => (p.earned ? "human" : p.short ? "short" : null);
 // The interlude's account, in the shape lifeOf returns (src/engine/account.js): who was born what, into whose house; the
 // fables met, each told once, as the moment; and how it ended. No ages, no numbers: an animal does not count years.
 export function animalLifeOf(state, i, l) {
-  const p = state.players[i], a = state.rules.animal ?? {}, kind = a.kind ?? "tortoise", name = pnameIn(p, l);
+  const p = state.players[i], a = interludeOf(state, i) ?? {}, kind = a.kind ?? "tortoise", name = pnameIn(p, l);
   const T = (k, v = {}) => fill(tIn(l, k, { name, animal: tIn(l, "a_" + kind), animalO: tIn(l, "ao_" + kind), ...v }), { name, gender: p.gender });
   const master = a.master?.[l] || a.master?.en;
   const told = [], seen = new Set();

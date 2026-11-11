@@ -92,3 +92,19 @@ export function loadGame() {
 }
 
 export const beFirst = () => { lives = 0; opened = "moment"; who = new Set(); };
+
+// ---- Seeds played (Phase 19) ----
+// Each game a person played to its end on the 110, kept as what a life link would carry (src/share.js lifeOf), so that a
+// life someone sends on the same seed is shown beside the viewer's own. The last twenty, newest first; ?first keeps them
+// in memory only. Nothing here leaves the page.
+const SEEDS = "mp-seeds", SEEDS_MAX = 20;
+let seedsMem = [];
+export const seedsKept = () => { const x = freshViewer ? seedsMem : read(SEEDS, []); return Array.isArray(x) ? x : []; };
+export function keepSeed(life) {
+  if (!life) return;
+  const key = `${life.r?.board ?? "110"}.${life.s}`;
+  const list = [{ key, x: life }, ...seedsKept().filter(e => !(e.key === key && JSON.stringify(e.x) === JSON.stringify(life)))].slice(0, SEEDS_MAX);
+  if (freshViewer) seedsMem = list; else write(SEEDS, list);
+}
+// the viewer's own lives on a board and seed, newest first
+export const seedLives = (board, seed) => seedsKept().filter(e => e.key === `${board ?? "110"}.${seed >>> 0}`).map(e => e.x);

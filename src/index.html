@@ -67,6 +67,10 @@
               <div id="rebornLaws" class="laws" role="group" hidden></div>
               <button id="reborn" type="button" data-t="reborn" hidden>Be born again</button>
               <p id="rebornNote" class="note" data-t="rebornNote" hidden>The next life carries this one, half-remembered.</p>
+              <button id="compare" type="button" data-t="compareLives" hidden>Compare the lives</button>
+              <button id="sendLife" type="button" class="ghost" data-t="sendLife" hidden>Send your life</button>
+              <button id="shareSeed" type="button" class="ghost" data-t="shareSeed" hidden>Play the same dice with someone</button>
+              <p id="shareNote" class="note" aria-live="polite"></p>
               <button id="again" type="button" class="ghost" data-t="again">Play again</button>
             </div>
           </div>
@@ -85,6 +89,7 @@
           <div class="roll-info">
             <button id="roll" type="button">Roll the die</button>
             <button id="practise" type="button" class="ghost" data-t="practise" hidden>Sit in practice</button>
+            <button id="stopHere" type="button" class="ghost" data-t="stopHere" hidden>Stop here</button>
             <div class="pick" id="pick" role="group" hidden></div>
             <span class="hint" id="hint"></span>
           </div>
@@ -116,6 +121,10 @@
         <div class="setup-body">
           <div class="seg" id="count" role="group"></div>
           <div id="prows" class="setup-body"></div>
+          <label class="pick" id="ruleModeRow" hidden><span data-t="modePick"></span><select id="ruleMode"></select></label>
+          <p class="law-about" id="ruleModeAbout" hidden></p>
+          <label class="pick" id="ruleLengthRow" hidden><span data-t="lengthPick"></span><select id="ruleLength"></select></label>
+          <p class="law-about" id="ruleLengthAbout" hidden></p>
           <label class="pick"><span data-t="ruleBoard"></span><select id="ruleBoard"></select></label>
           <p class="law-about" id="ruleBoardAbout" hidden></p>
           <label class="pick" id="ruleRandRow" hidden><span data-t="ruleRand"></span><select id="ruleRand"></select></label>
@@ -129,6 +138,8 @@
           <label class="check"><input type="checkbox" id="prefBoth"> <span data-t="cardBoth"></span></label>
           <label class="pick"><span data-t="theme"></span><select id="prefTheme"></select></label>
           <button id="newGame" type="button" data-t="newGame">Start new game</button>
+          <button id="daily" type="button" class="ghost" data-t="daily">Today's life</button>
+          <span class="hint" data-t="dailyAbout"></span>
           <span class="hint" id="seed"></span>
         </div>
       </details>
@@ -157,6 +168,11 @@
         <legend data-t="namingWho">Who is playing?</legend>
         <div class="naming-genders" id="namingWhoOpts"></div>
       </fieldset>
+      <fieldset class="naming-field" id="namingMode" hidden>
+        <legend data-t="modePick">How to play</legend>
+        <div class="naming-genders" id="namingModeOpts"></div>
+        <div class="naming-genders" id="namingLengthOpts" role="group"></div>
+      </fieldset>
       <p class="naming-step" id="namingStep" hidden></p>
       <label class="naming-field"><span data-t="namingName">Name</span>
         <input type="text" id="namingName" maxlength="16" autocomplete="given-name" spellcheck="false">
@@ -178,9 +194,25 @@
   </form>
 </dialog>
 
+<!-- Stop here (Phase 19): a game played together ends when the people at it say so -->
+<dialog class="folio naming ask" id="stopAsk" aria-labelledby="stopAskText">
+  <form method="dialog" class="leaf ask-leaf">
+    <p id="stopAskText" data-t="stopHereAsk"></p>
+    <div class="naming-act">
+      <button type="submit" value="yes" data-t="stopHereYes">Stop and compare</button>
+      <button type="submit" value="no" class="ghost" data-t="stopHereNo">Play on</button>
+    </div>
+  </form>
+</dialog>
+
 <!-- The life account, at the end of a game (docs/NARRATIVE.md §9) -->
 <dialog class="folio life" id="lifeDlg" aria-labelledby="lifeTitle">
   <article class="leaf life-leaf" id="lifeLeaf"></article>
+</dialog>
+
+<!-- The lives, side by side (Phase 19): at the end of a game of two or more seats -->
+<dialog class="folio compare" id="compareDlg" aria-labelledby="cmpTitle">
+  <article class="leaf cmp-leaf" id="cmpLeaf"></article>
 </dialog>
 
 <!-- @script -->
