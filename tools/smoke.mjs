@@ -2403,6 +2403,73 @@ await check("Phase 19: the race is still a choice, and ends on the first through
   assert(end.winner != null && end.stop, "the race was won, and offers no Stop here: " + JSON.stringify(end));
 }, { limit: 180 });
 
+// The comparison screen (step 2): a table played a while, stopped, and the lives drawn side by side
+async function compared(page, l) {
+  await page.waitForFunction(() => !mp.busy);
+  await page.evaluate(() => { if (!mp.state.over) { document.getElementById("stopHere").click(); } });
+  await page.click('#stopAsk button[value="yes"]');
+  await page.waitForFunction(() => !document.getElementById("win").hidden && !document.getElementById("compare").hidden);
+  if (l === "hi") await page.evaluate(() => mp.setLang("hi"));
+  await page.click("#compare");
+  await page.waitForFunction(() => document.getElementById("compareDlg").open);
+  return page.evaluate(() => {
+    const d = document.getElementById("compareDlg"), cv = d.querySelector(".cmp-board"), c = cv.getContext("2d");
+    const px = c.getImageData(0, 0, cv.width, cv.height).data;
+    let inked = 0;
+    for (let k = 0; k < px.length; k += 4 * 97) if (px[k + 3]) inked++;
+    const body = d.querySelector(".cmp-body"), m = mp.compareOpen();
+    return {
+      inked, ribbons: d.querySelectorAll(".cmp-gunas canvas").length, books: d.querySelectorAll(".cmp-book").length,
+      shown: [...d.querySelectorAll(".cmp-book")].filter(b => b.offsetParent).length, text: d.textContent, digits: (body.textContent.match(/[0-9०-९]/g) || []).length,
+      scroll: body.scrollWidth - body.clientWidth, page: document.documentElement.scrollWidth - innerWidth,
+      souls: m.souls.length, traced: m.replayed && m.souls.every(s => s.lives.every(x => Array.isArray(x.trace))), same: m.same.length, met: m.met.length,
+      copy: mp.compareText(), img: mp.compareImage().length, modal: d.matches(":modal"),
+    };
+  });
+}
+await check("Phase 19: the lives side by side: every path on one board, who each became, the same squares, the meetings, and the books", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await fast(page, four);
+  await page.goto(BASE + "?seed=4&debug");
+  await drive(page, () => mp.state.turns > 160 && mp.state.players.some(p => p.past?.length));
+  const r = await compared(page, "en");
+  assert(r.modal && r.souls === 4 && r.inked > 50, "the board is drawn: " + JSON.stringify({ inked: r.inked, souls: r.souls }));
+  assert(r.traced && r.ribbons === 4, "the game was played again, and each soul has its ribbon");
+  assert(r.books === 4 && r.shown === 4, "four books, side by side on a wide screen");
+  assert(r.same > 0 && /chose|took/.test(r.text), "the squares two lives chose on are told: " + r.same);
+  assert(r.page <= 0 && r.scroll <= 0, "no sideways scroll");
+  assert(/Mira/.test(r.copy) && /Dev/.test(r.copy) && r.copy.length > 2000, "the text holds every soul and book");
+  assert(r.img > 20000, "the image is drawn");
+  console.log("      digits on the screen: " + r.digits + "; squares chosen on by two lives: " + r.same + "; meetings: " + r.met);
+}, { limit: 300 });
+await check("Phase 19: the lives side by side at phone width, in Hindi and dark, the books in tabs", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.addInitScript(() => { try { localStorage.setItem("mp-prefs", JSON.stringify({ theme: "dark", mute: true })); } catch {} });
+  await fast(page, { ...four, count: 2, rows: four.rows.slice(0, 2) });
+  await page.goto(BASE + "?seed=7&debug");
+  await drive(page, () => mp.state.turns > 60);
+  const r = await compared(page, "hi");
+  assert(r.souls === 2 && r.inked > 50 && r.ribbons === 2, "drawn: " + JSON.stringify({ souls: r.souls, inked: r.inked, ribbons: r.ribbons }));
+  assert(r.books === 2 && r.shown === 1, "one book at a time below 768px: " + r.shown);
+  assert(r.page <= 0 && r.scroll <= 0, "no sideways scroll at 390px: " + JSON.stringify({ page: r.page, body: r.scroll }));
+  assert(/जीवन, साथ-साथ/.test(r.text) && !/[A-Za-z]{4,}/.test(r.text.replace(/Mira|Ravi|Moksha Patam/g, "")), "all in Hindi");
+  await page.click(".cmp-tabs [role=tab]:nth-child(1)");
+  await page.keyboard.press("ArrowRight");
+  const second = await page.evaluate(() => [...document.querySelectorAll(".cmp-book")].findIndex(b => b.offsetParent));
+  assert(second === 1, "the arrow key shows the next book");
+  await page.click(".cmp-close");
+  assert(await page.evaluate(() => !document.getElementById("compareDlg").open), "the × closes it");
+}, { phone: [390, 844], limit: 240 });
+await check("Phase 19: the race, at its end, offers the lives side by side", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await fast(page, { count: 2, rows: [{ name: "", type: "cpu" }, { name: "", type: "cpu" }], rules: { six: true, mode: "race" } });
+  await page.goto(BASE + "?seed=3&debug");
+  await page.waitForFunction(() => mp.state.over, null, { timeout: 170000 });
+  await page.click("#compare");
+  const r = await page.evaluate(() => { const m = mp.compareOpen(); return { open: document.getElementById("compareDlg").open, souls: m.souls.length, traced: m.replayed }; });
+  assert(r.open && r.souls === 2 && r.traced, JSON.stringify(r));
+}, { limit: 180 });
+
 await browser.close();
 server.close();
 console.log(failed.length ? `${failed.length} check(s) failed:\n` + failed.map(n => `  ${n}`).join("\n") : "all checks passed");

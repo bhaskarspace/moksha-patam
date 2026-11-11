@@ -30,6 +30,7 @@ import { renderCodex, showTab } from "./render/codex.js";
 import { renderLog } from "./render/log.js";
 import { renderLedger } from "./render/ledger.js";
 import { openLife, refreshLife, closeLife, lifeText } from "./render/life.js";
+import { openCompare, refreshCompare, closeCompare, compareModel, imageOf, textOf } from "./render/compare.js";
 import { sound, unlockAudio, setDrone, setShepard, setMuted, audioState } from "./audio/engine.js";
 
 const PIPS = { 1:[4], 2:[0,8], 3:[0,4,8], 4:[0,2,6,8], 5:[0,2,4,6,8], 6:[0,2,3,5,6,8] };
@@ -564,6 +565,8 @@ function render() {
 
   const w = state.winner, humans = state.players.filter(q => q.type === "human");
   $("win").hidden = !state.over;
+  // the lives side by side (Phase 19), for any game of two or more seats on the 110
+  $("compare").hidden = !state.over || state.players.length < 2 || isCloth();
   if (state.over) keepLives(state);
   const reborn = !!(state.over && rebornRows(state));
   // the book's footer offers it too, so an open book is repainted when it comes or goes
@@ -793,6 +796,7 @@ function setLang(l) {
   renderCodex();
   refreshCard();
   refreshLife();
+  refreshCompare();
   drawLanded();
   drawNaming();
 }
@@ -830,6 +834,7 @@ function startGame({ reborn = false, next = null } = {}) {
   G.choosing = null; G.deciding = null; $("pick").hidden = true; $("pick").innerHTML = ""; $("roll").hidden = false;
   closeCard({ instant: true });
   closeLife();
+  closeCompare();
   $("toastSlot").innerHTML = "";
   clearLanded();
   if (S) fxClear();
@@ -927,6 +932,7 @@ $("roll").addEventListener("click", () => takeTurn());
 $("practise").addEventListener("click", () => takeTurn({ practice: true }));
 // Stop here (Phase 19): asked once, then the game is over with every life as it stands
 $("stopHere").addEventListener("click", () => { if (!G.busy && !G.state.over && together(G.state)) $("stopAsk").showModal(); });
+$("compare").addEventListener("click", () => openCompare(G.state));
 $("stopAsk").addEventListener("close", () => { if ($("stopAsk").returnValue === "yes") stopHere(); });
 function stopHere() {
   const state = G.state;
@@ -1087,6 +1093,14 @@ if (new URLSearchParams(location.search).has("debug")) {
       return together(G.state) ? "together" : "race";
     },
     lifeText: (i = 0, l) => lifeText(G.state, i, l),
+    // mp.compare() opens the lives side by side for the game in play (Phase 19); mp.compareText(l) is its text, and
+    // mp.compareImage() its picture as a data URL
+    // mp.play(n) plays n turns at once as the computers would, every seat's choices the game's own (none noted), and draws
+    // the board after them
+    play(n = 1) { for (let k = 0; k < n && !G.state.over; k++) playTurn(G.state); saveGame(G.setup, G.state); render(); return G.state.turns; },
+    compareOpen: () => { openCompare(G.state); return compareModel(); },
+    compareText: l => { if (!compareModel()) openCompare(G.state); return textOf(l); },
+    compareImage: () => { if (!compareModel()) openCompare(G.state); return imageOf().toDataURL("image/png"); },
     // mp.cast(0) is player 0's cast for this game, names, genders and ages, as the account draws it (Phase 10C)
     cast: (i = 0, life = 0) => castOf(G.state, i, life),
     naming: openNaming,

@@ -67,6 +67,7 @@
               <div id="rebornLaws" class="laws" role="group" hidden></div>
               <button id="reborn" type="button" data-t="reborn" hidden>Be born again</button>
               <p id="rebornNote" class="note" data-t="rebornNote" hidden>The next life carries this one, half-remembered.</p>
+              <button id="compare" type="button" data-t="compareLives" hidden>Compare the lives</button>
               <button id="again" type="button" class="ghost" data-t="again">Play again</button>
             </div>
           </div>
@@ -202,6 +203,11 @@
 <!-- The life account, at the end of a game (docs/NARRATIVE.md §9) -->
 <dialog class="folio life" id="lifeDlg" aria-labelledby="lifeTitle">
   <article class="leaf life-leaf" id="lifeLeaf"></article>
+</dialog>
+
+<!-- The lives, side by side (Phase 19): at the end of a game of two or more seats -->
+<dialog class="folio compare" id="compareDlg" aria-labelledby="cmpTitle">
+  <article class="leaf cmp-leaf" id="cmpLeaf"></article>
 </dialog>
 
 <!-- @script -->

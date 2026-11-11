@@ -150,6 +150,9 @@ export function createGame({ players, rules, seed }) {
     turn: 0, winner: null, over: false, last: null,
     log: [{ k: "lNew", kind: "" }],
     rng: makeRng(seed),
+    // the table as it sat down, and the turns played (Phase 19): with each person's choices (p.choices), all a game needs
+    // to be played again from its seed (src/engine/compare.js replay)
+    table: JSON.parse(JSON.stringify(players)), turns: 0,
   };
   // a law that keeps no ledger (Cārvāka) carries nothing in from a life before
   state.players.forEach((p, i) => { if (!lawOf(state, i).karma) p.karma = freshKarma(); });
@@ -506,6 +509,7 @@ export function endTurn(state, plan) {
 }
 
 function passTurn(state, plan) {
+  state.turns = (state.turns ?? 0) + 1;
   // played together nobody wins by arriving first: the freed seat is skipped, and the turn passes (Phase 19)
   if ((plan.win || plan.freed) && !together(state)) state.winner = plan.idx;
   // the turn passes to the next player still alive; with nobody left, the game is over

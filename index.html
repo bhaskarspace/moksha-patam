@@ -745,6 +745,51 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   .token .body, .die.rolling, .shells.rolling, .lab.goal .om, .leaf, .leaf *, .flourish *, .toast { animation: none !important; }
   ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
 }
+
+/* ---- The lives, side by side (Phase 19) ---- */
+.folio.compare { width: min(1080px, calc(100vw - 24px)); }
+.cmp-leaf { overflow: hidden; }
+.cmp-body { overflow-y: auto; overflow-x: hidden; padding: 4px 24px 22px; }
+.cmp-body h2 { margin: 4px 0 10px; font-weight: 400; font-size: 28px; }
+.cmp-body h3 { margin: 22px 0 6px; font-size: 13px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--l-gold); font-family: var(--f-body); }
+.cmp-body .dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35); flex: none; }
+.cmp-souls { list-style: none; margin: 0; padding: 0; }
+.cmp-souls li { padding: 8px 0; border-bottom: 1px solid var(--l-line); font-size: 17px; line-height: 1.5; }
+.cmp-souls .cmp-ends { display: block; font-size: 15px; color: var(--l-ink2); margin-left: 18px; }
+.cmp-souls .beads { margin-left: 6px; white-space: nowrap; }
+.cmp-body .bead { display: inline-block; width: 9px; height: 9px; margin-right: 3px; border-radius: 50%; border: 1.5px solid var(--l-ink2); }
+.cmp-body .bead.animal { border-style: dotted; }
+.cmp-body .bead.free { background: var(--b-gold); border-color: var(--b-gold); }
+.cmp-leaf canvas { position: static; pointer-events: auto; }
+.cmp-board { display: block; margin: 0 auto; border-radius: 6px; box-shadow: inset 0 0 0 1px var(--l-line); }
+.cmp-note { margin: 0 0 6px; font-size: 15px; font-style: italic; color: var(--l-ink2); }
+.cmp-gunas { display: flex; align-items: center; margin: 4px 0; }
+.cmp-gunas canvas { border-radius: 4px; }
+.cmp-gunas canvas, .cmp-board { inset: auto; }
+.cmp-none { margin: 0; font-size: 15px; color: var(--l-ink2); }
+.cmp-same { margin: 0; }
+.cmp-same dt { margin-top: 10px; font-weight: 600; font-size: 16px; }
+.cmp-same dd { margin: 3px 0 0 0; font-size: 16px; line-height: 1.5; display: flex; align-items: baseline; }
+.cmp-met { margin: 0; padding: 0; list-style: none; }
+.cmp-met li { font-size: 16px; line-height: 1.6; }
+.cmp-tabs { display: none; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+.cmp-tabs button { background: transparent; color: var(--l-ink); border: 1px solid var(--l-line); border-radius: 99px; padding: 4px 12px; font-size: 14px; }
+.cmp-tabs button[aria-selected="true"] { border-color: var(--l-rule); box-shadow: inset 0 0 0 1px var(--l-rule); }
+.cmp-books { display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); gap: 20px; }
+.cmp-book { min-width: 0; }
+.cmp-life { margin-bottom: 16px; }
+.cmp-life h4 { margin: 0 0 4px; font-size: 18px; font-weight: 600; }
+.cmp-life h5 { margin: 10px 0 2px; font-size: 13px; font-weight: 600; color: var(--l-ink2); font-family: var(--f-body); }
+.cmp-life p { margin: 4px 0 0; font-size: 15px; line-height: 1.55; text-wrap: pretty; overflow-wrap: anywhere; }
+.cmp-life .cmp-end { font-style: italic; color: var(--l-ink2); }
+.cmp-acts { margin: 22px 0 0; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.cmp-acts .ghost { color: var(--l-ink); border-color: var(--l-line); }
+@media (max-width: 767px) {
+  .cmp-body { padding: 4px 16px 18px; }
+  .cmp-tabs { display: flex; }
+  .cmp-books { display: block; }
+  .cmp-book:not(.on) { display: none; }
+}
 </style>
 </head>
 <body>
@@ -921,6 +966,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
               <div id="rebornLaws" class="laws" role="group" hidden></div>
               <button id="reborn" type="button" data-t="reborn" hidden>Be born again</button>
               <p id="rebornNote" class="note" data-t="rebornNote" hidden>The next life carries this one, half-remembered.</p>
+              <button id="compare" type="button" data-t="compareLives" hidden>Compare the lives</button>
               <button id="again" type="button" class="ghost" data-t="again">Play again</button>
             </div>
           </div>
@@ -1056,6 +1102,11 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
 <!-- The life account, at the end of a game (docs/NARRATIVE.md §9) -->
 <dialog class="folio life" id="lifeDlg" aria-labelledby="lifeTitle">
   <article class="leaf life-leaf" id="lifeLeaf"></article>
+</dialog>
+
+<!-- The lives, side by side (Phase 19): at the end of a game of two or more seats -->
+<dialog class="folio compare" id="compareDlg" aria-labelledby="cmpTitle">
+  <article class="leaf cmp-leaf" id="cmpLeaf"></article>
 </dialog>
 
 <script>
@@ -1782,7 +1833,37 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         lengthFreeAbout: "Each soul is born again at the table, as often as it takes, until it is let go.",
         lengthOne: "One life each",
         lengthOneAbout: "The game ends when every life at the table has ended. A soul that would be born again carries what it left into the next game.",
-        togetherOneText: "Every life at the table has ended. Each soul that goes on carries this life into the next game."
+        togetherOneText: "Every life at the table has ended. Each soul that goes on carries this life into the next game.",
+        cmpBoard: "Where each life went",
+        cmpBoardAlt: "The board, with the path of every life drawn on it in its player's colour.",
+        cmpGunas: "Who each became",
+        cmpGunasNote: "Over the years of each life, in turn: sattva above, rajas between, tamas below.",
+        cmpNoTrace: "This game was begun before the lives were kept turn by turn, so who each became is not drawn.",
+        cmpSoul: "{name}'s soul",
+        cmpLivesOne: "one life",
+        cmpLives: "{n} lives",
+        cmpEnd_liberated: "let go",
+        cmpEnd_svarga: "reached svarga",
+        cmpEnd_years: "the years ran out",
+        cmpEnd_ledger: "a debt came due",
+        cmpEnd_door: "died at the door",
+        cmpEnd_siva: "Śiva's snake",
+        cmpEnd_fell: "the merit spent",
+        cmpEnd_animal: "an animal's life",
+        cmpEnd_living: "still living",
+        cmpSame: "At the same squares",
+        cmpSameNone: "No two lives chose on the same square.",
+        cmpSameRow: "{name}: ‘{took}’",
+        cmpSameRebel: "{name} chose ‘{chose}’; the life did ‘{took}’",
+        cmpMet: "Where the lives crossed",
+        cmpMetNone: "No two lives stood on the same square.",
+        cmpMetLine: "{a} and {b}: {sq}",
+        cmpBooks: "The books",
+        cmpSave: "Save as an image",
+        cmpCopy: "Copy as text",
+        cmpCopied: "Copied",
+        cmpSaved: "Saved",
+        cmpFoot: "Moksha Patam, the game of snakes and ladders played as a life"
       },
       hi: {
         title: "मोक्ष पटम",
@@ -2331,7 +2412,37 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         lengthFreeAbout: "हर आत्मा इसी खेल में, जितनी बार ज़रूरी हो, फिर जन्म लेती है, जब तक मुक्त न हो जाए।",
         lengthOne: "हर किसी का एक जीवन",
         lengthOneAbout: "खेल तब समाप्त होता है जब मेज़ पर हर जीवन पूरा हो जाए। जो आत्मा फिर जन्म लेगी, वह जो छोड़ गई उसे अगले खेल में साथ ले जाती है।",
-        togetherOneText: "मेज़ पर हर जीवन पूरा हुआ। जो आत्मा आगे जाती है, वह यह जीवन अगले खेल में साथ ले जाती है।"
+        togetherOneText: "मेज़ पर हर जीवन पूरा हुआ। जो आत्मा आगे जाती है, वह यह जीवन अगले खेल में साथ ले जाती है।",
+        cmpBoard: "हर जीवन कहाँ-कहाँ गया",
+        cmpBoardAlt: "बिसात, जिस पर हर जीवन का रास्ता उसके खिलाड़ी के रंग में खिंचा है।",
+        cmpGunas: "कौन क्या बना",
+        cmpGunasNote: "हर जीवन के बरसों में, बारी-बारी से: ऊपर सत्त्व, बीच में रजस्, नीचे तमस्।",
+        cmpNoTrace: "यह खेल तब शुरू हुआ था जब जीवन हर दाँव पर नहीं रखे जाते थे, इसलिए कौन क्या बना, यह नहीं खिंचा।",
+        cmpSoul: "{name} की आत्मा",
+        cmpLivesOne: "एक जीवन",
+        cmpLives: "{n} जीवन",
+        cmpEnd_liberated: "मुक्त",
+        cmpEnd_svarga: "स्वर्ग तक",
+        cmpEnd_years: "बरस पूरे हुए",
+        cmpEnd_ledger: "क़र्ज़ की घड़ी आई",
+        cmpEnd_door: "द्वार पर मृत्यु",
+        cmpEnd_siva: "शिव का नाग",
+        cmpEnd_fell: "पुण्य क्षीण हुआ",
+        cmpEnd_animal: "एक पशु का जीवन",
+        cmpEnd_living: "अभी जीवित",
+        cmpSame: "एक ही घरों पर",
+        cmpSameNone: "किसी घर पर दो जीवनों ने नहीं चुना।",
+        cmpSameRow: "{name}: ‘{took}’",
+        cmpSameRebel: "{name} ने ‘{chose}’ चुना; जीवन ने ‘{took}’ किया",
+        cmpMet: "जहाँ जीवन मिले",
+        cmpMetNone: "कोई दो जीवन एक ही घर पर नहीं खड़े हुए।",
+        cmpMetLine: "{a} और {b}: {sq}",
+        cmpBooks: "बहियाँ",
+        cmpSave: "चित्र के रूप में सहेजें",
+        cmpCopy: "पाठ के रूप में कॉपी करें",
+        cmpCopied: "कॉपी हुआ",
+        cmpSaved: "सहेजा गया",
+        cmpFoot: "मोक्ष पटम, साँप-सीढ़ी का खेल, एक जीवन की तरह खेला गया"
       }
     },
     JOINS: {
@@ -5739,7 +5850,11 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       over: false,
       last: null,
       log: [{ k: "lNew", kind: "" }],
-      rng: makeRng(seed)
+      rng: makeRng(seed),
+      // the table as it sat down, and the turns played (Phase 19): with each person's choices (p.choices), all a game needs
+      // to be played again from its seed (src/engine/compare.js replay)
+      table: JSON.parse(JSON.stringify(players)),
+      turns: 0
     };
     state.players.forEach((p, i) => {
       if (!lawOf(state, i).karma) p.karma = freshKarma();
@@ -5999,6 +6114,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     passTurn(state, plan);
   }
   function passTurn(state, plan) {
+    state.turns = (state.turns ?? 0) + 1;
     if ((plan.win || plan.freed) && !together(state)) state.winner = plan.idx;
     else if (!plan.again) for (let k = 1; k <= state.players.length; k++) {
       const i = (plan.idx + k) % state.players.length;
@@ -7287,14 +7403,14 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const key = `${stage}|${color}|${frame3}|${gender}|${animal2 ?? ""}`;
     if (spriteCache.has(key)) return spriteCache.get(key);
     const rows = framesOf(animal2 && ART[animal2] ? ART[animal2] : artOf(STAGES[stage].art, gender), frame3);
-    const pal = { ...PAL, C: P_HEX[color], c: shade(P_HEX[color], -0.35) };
+    const pal2 = { ...PAL, C: P_HEX[color], c: shade(P_HEX[color], -0.35) };
     const cv = document.createElement("canvas");
     cv.width = 12;
     cv.height = 16;
     const c = cv.getContext("2d");
     rows.forEach((r, y) => [...r].forEach((ch, x) => {
-      if (pal[ch]) {
-        c.fillStyle = pal[ch];
+      if (pal2[ch]) {
+        c.fillStyle = pal2[ch];
         c.fillRect(x, y, 1, 1);
       }
     }));
@@ -7826,7 +7942,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const want = targets(null, false);
     const st = { p: 0, level: 0, rate: want.rate, bright: want.bright, drop: 0 };
     let graph = null, timer = null, at2 = 0, fall = null, quietFor = 0;
-    function build() {
+    function build2() {
       const bus = ctx3.createGain(), lp = ctx3.createBiquadFilter(), now = ctx3.currentTime;
       bus.gain.value = 1;
       lp.type = "lowpass";
@@ -7898,7 +8014,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     }
     function schedule() {
       const now = ctx3.currentTime;
-      if (!graph && (want.level > 0 || fall)) build();
+      if (!graph && (want.level > 0 || fall)) build2();
       if (!graph) return;
       if (at2 < now) {
         graph.parts.forEach((x) => {
@@ -9191,7 +9307,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     };
     let para = null, seen2 = /* @__PURE__ */ new Set(), lived = /* @__PURE__ */ new Map(), own = /* @__PURE__ */ new Set(), taken = /* @__PURE__ */ new Map(), lastYears = null, fold2 = [], sat = [], skip = false;
     const told = (e) => momentOf(e.n, e.told).key;
-    const note = (e) => {
+    const note2 = (e) => {
       seen2.add(told(e));
       if (momentOf(e.n, e.told).own) own.add(e.n);
       if (!lived.has(e.n)) lived.set(e.n, e.years);
@@ -9291,25 +9407,25 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       const echo = said.own ? q2?.echo : e.told === "else" ? q2?.roll?.echo : null;
       reckon(e.i);
       if (e.via === "reckon") {
-        note(e);
+        note2(e);
         lastYears = e.years;
         continue;
       }
       if (skip) {
         skip = false;
-        note(e);
+        note2(e);
         lastYears = e.years;
         continue;
       }
       if (!m && e.via !== "sit") {
-        note(e);
+        note2(e);
         continue;
       }
       const s = stageAt2(e);
       if (!para || para.s !== s) open2(s);
       if (e.via === "sit" && e.n === GOAL && p.sittings?.length) {
         para.ages.push(Math.floor(e.years));
-        note(e);
+        note2(e);
         lastYears = e.years;
         continue;
       }
@@ -9325,7 +9441,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         flushSat();
         fold2.push(e);
         para.ages.push(Math.floor(e.years));
-        note(e);
+        note2(e);
         continue;
       }
       flush();
@@ -9339,7 +9455,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         if (times > 2) para.tally.set(e.n, { times, years: e.years });
         else if (SNAKES[e.n]) para.parts.push(J(JOINS.snakeAgain, { age: age3, vice: sq(e.n), cost: words(ageOf(e.n) - ageOf(nextE.n)) }));
         else para.parts.push(J(JOINS.ladderAgain, { age: age3, virtue: sq(e.n) }));
-        note(e);
+        note2(e);
         lastYears = e.years;
         skip = true;
         continue;
@@ -9382,7 +9498,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           }
         }
       }
-      note(e);
+      note2(e);
       lastYears = e.years;
     }
     reckon(Infinity);
@@ -9672,6 +9788,437 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     if (to == null) return;
     e.preventDefault();
     showWay(TABS[(to + TABS.length) % TABS.length]);
+  });
+
+  // src/engine/compare.js
+  var inputsOf = (state) => ({
+    seed: state.rng.seed,
+    rules: { ...state.rules },
+    table: state.table,
+    turns: state.turns ?? 0,
+    choices: state.players.map((p) => p.type === "human" ? [...p.choices ?? []] : null)
+  });
+  var replayable = (state) => !!state?.table && !state.rules?.board;
+  function replay(inputs, onTurn = null) {
+    const s = createGame({ players: JSON.parse(JSON.stringify(inputs.table)), rules: { ...inputs.rules }, seed: inputs.seed });
+    const at2 = s.players.map(() => 0), noted = s.players.map(() => 0), traces = s.players.map(() => [[]]);
+    let ok = true;
+    const take = (i, fits) => {
+      const x = inputs.choices[i]?.[at2[i]];
+      if (x == null || !fits(x)) {
+        ok = false;
+        return null;
+      }
+      at2[i]++;
+      return x;
+    };
+    for (let t2 = 0; t2 < inputs.turns && !s.over; t2++) {
+      const i = s.turn, p = s.players[i], human = p.type === "human", auto = lawOf(s, i).auto, life = p.rebirths ?? 0;
+      let prac = false;
+      if (human) {
+        if (life !== noted[i]) {
+          noted[i] = life;
+          const x = take(i, (c) => c[0] === "l"), id = x?.slice(1);
+          if (id && id !== (p.law ?? "")) setLaw(s, i, id);
+        }
+        if (!spentOf(p) && canPractise(s, i)) prac = take(i, (c) => c === "p" || c === "r") === "p";
+      }
+      const roll2 = spentOf(p) || (human ? prac : practisesNow(s)) ? [] : rollDice2(s.rng, diceFor(p));
+      const pick3 = (st, dice) => {
+        if (!human || auto) return moveFor(st, dice);
+        const m = movesFor2(st, dice);
+        if (m.length < 2) return m[0] ?? null;
+        const x = take(i, (c) => /^\d$/.test(c));
+        return x == null || !m.includes(+x) ? m[0] : +x;
+      };
+      const choose2 = (st, sit) => !human || auto ? lawOf(st).choose(st, sit) : take(i, (c) => c[0] === "o")?.slice(1) ?? lawOf(st).choose(st, sit);
+      const plan = playTurn(s, roll2, pick3, choose2);
+      const q2 = (p.rebirths ?? 0) > life ? p.past.at(-1) : p, tr = traces[i];
+      while (tr.length <= life) tr.push([]);
+      const g3 = q2.gunas ?? { s: 1, r: 1, t: 1 };
+      tr[life].push({
+        at: plan.from,
+        to: plan.final,
+        dice: [...plan.dice ?? []],
+        v: plan.v ?? null,
+        chose: plan.ego?.chose ?? plan.grace?.chose ?? plan.choice ?? null,
+        took: plan.choice ?? null,
+        sq: plan.choice ? plan.target : null,
+        g: [g3.s, g3.r, g3.t],
+        years: Math.floor(q2.years ?? 0)
+      });
+      while (tr.length <= (p.rebirths ?? 0)) tr.push([]);
+      onTurn?.(s, plan, i, life);
+    }
+    return { state: s, traces, ok: ok && inputs.choices.every((c, i) => !c || at2[i] === c.length) };
+  }
+  var livesIn = (state, i) => [...(state.players[i].past ?? []).map((_, k) => pastOf(state, i, k)), state];
+  var shape = (state) => state.players.map((p) => [...p.past ?? [], p].map((q2) => [q2.life ?? [], Math.floor(q2.years ?? 0), q2.pos]));
+  var sameGame = (a, b) => JSON.stringify(shape(a)) === JSON.stringify(shape(b));
+  function endKindOf(state, i, k = null) {
+    const st = pastOf(state, i, k), p = st.players[i];
+    if (p.law === "animal" || p.animal) return "animal";
+    if (k == null && liberated(state, i)) return p.won === "svarga" ? "svarga" : "liberated";
+    const e = endOf(st, i);
+    return e ?? "living";
+  }
+  function compareOf(state, traces = null) {
+    const souls = state.players.map((p, i) => ({
+      seat: i,
+      color: p.color,
+      type: p.type,
+      lives: livesIn(state, i).map((st, k, all) => {
+        const q2 = st.players[i], kk = k === all.length - 1 ? null : k;
+        return {
+          k,
+          name: { en: pnameIn(q2, "en"), hi: pnameIn(q2, "hi") },
+          gender: q2.gender,
+          animal: q2.animal?.kind ?? null,
+          path: [...q2.life ?? []],
+          end: endKindOf(state, i, kk),
+          trace: traces?.[i]?.[k] ?? null,
+          st,
+          met: q2.met ?? [],
+          witness: q2.witness ?? []
+        };
+      })
+    }));
+    const bySq = /* @__PURE__ */ new Map();
+    for (const s of souls) for (const l of s.lives) for (const w of l.witness) {
+      if (!optionOf(w.sq, w.took)) continue;
+      const row2 = bySq.get(w.sq) ?? [];
+      if (!row2.some((x) => x.seat === s.seat && x.life === l.k)) row2.push({ seat: s.seat, life: l.k, name: l.name, chose: w.chose, took: w.took });
+      bySq.set(w.sq, row2);
+    }
+    const same = [...bySq].filter(([, by]) => new Set(by.map((x) => `${x.seat}.${x.life}`)).size > 1).sort((a, b) => a[0] - b[0]).map(([sq, by]) => ({ sq, by }));
+    const met = [], seen2 = /* @__PURE__ */ new Set();
+    for (const s of souls) for (const l of s.lives) for (const m of l.met) {
+      const key = [`${s.seat}.${l.k}`, `${m.seat}.${m.life}`].sort().join("|") + "|" + m.sq;
+      if (seen2.has(key)) continue;
+      seen2.add(key);
+      met.push({ a: { seat: s.seat, life: l.k, name: l.name }, b: { seat: m.seat, life: m.life, name: m.with }, sq: m.sq });
+    }
+    return { souls, same, met };
+  }
+
+  // src/render/compare.js
+  var dlg4 = $("compareDlg");
+  var leaf4 = $("cmpLeaf");
+  var model = null;
+  var tab2 = 0;
+  var note = "";
+  function sqName(n, l) {
+    if (n === GOAL) return tIn(l, "moksha");
+    const h = HEAVEN[n] ?? SNAKES[n] ?? LADDERS[n] ?? squareOf(n);
+    return h ? h[l] || h.en : "";
+  }
+  var nameIn = (x, l) => x[l] || x.en;
+  var lifeName = (life, l) => life.animal ? fill(tIn(l, "animalTitle", { name: nameIn(life.name, l), animal: tIn(l, "a_" + life.animal) }), { gender: life.gender }) : nameIn(life.name, l);
+  var livesWord = (n, l) => n === 1 ? tIn(l, "cmpLivesOne") : tIn(l, "cmpLives", { n: wordsIn(l, n) });
+  var humanLives = (s) => s.lives.filter((x) => !x.animal).length;
+  function build(state) {
+    let traces = null;
+    if (replayable(state)) {
+      const r = replay(inputsOf(state));
+      if (r.ok && sameGame(state, r.state)) traces = r.traces;
+    }
+    return { ...compareOf(state, traces), replayed: !!traces };
+  }
+  function openCompare(state = G.state) {
+    model = build(state);
+    tab2 = 0;
+    note = "";
+    if (!dlg4.open) dlg4.showModal();
+    paint4();
+    leaf4.querySelector(".cmp-close")?.focus();
+  }
+  var closeCompare = () => {
+    if (dlg4.open) dlg4.close();
+  };
+  var refreshCompare = () => {
+    if (dlg4.open && model) paint4();
+  };
+  var compareModel = () => model;
+  var pal = (k) => BOARD.palette[k];
+  function routed(path) {
+    const out = [];
+    const walk2 = (a, b) => {
+      for (let n = a + 1; n <= b; n++) out.push(n);
+    };
+    for (const n of path) {
+      if (n < 1 || n > TOP) continue;
+      const a = out.at(-1);
+      if (a == null || n === a) {
+        if (a == null) out.push(n);
+        continue;
+      }
+      const via = [...Array(12)].map((_, k) => a + 1 + k).find((x) => (LADDERS[x]?.to ?? SNAKES[x]?.to) === n);
+      if (via) {
+        walk2(a, via);
+        out.push(n);
+      } else if (n > a && n - a <= 12) walk2(a, n);
+      else out.push(n);
+    }
+    return out;
+  }
+  function drawBoard(c, W2, x0 = 0, y0 = 0) {
+    const cell = W2 / COLS, H2 = cell * ROWS;
+    c.save();
+    c.translate(x0, y0);
+    for (let n = 1; n <= TOP; n++) {
+      const { col, row: row2 } = colRow(n);
+      c.fillStyle = groundOf(n)[0];
+      c.fillRect(col * cell, (ROWS - 1 - row2) * cell, cell + 0.5, cell + 0.5);
+    }
+    const art2 = $("art");
+    if (art2?.width) c.drawImage(art2, 0, 0, W2, H2);
+    c.fillStyle = "rgba(245, 233, 201, 0.35)";
+    c.fillRect(0, 0, W2, H2);
+    const at2 = (n, off) => {
+      const { col, row: row2 } = colRow(n);
+      return [(col + 0.5) * cell + off, (ROWS - 1 - row2 + 0.5) * cell + off];
+    };
+    model.souls.forEach((s, si) => {
+      const off = (si - (model.souls.length - 1) / 2) * cell * 0.09;
+      s.lives.forEach((life, k) => {
+        const pts = routed(life.path).map((n) => at2(n, off));
+        if (pts.length < 2) return;
+        const last2 = k === s.lives.length - 1;
+        c.lineJoin = c.lineCap = "round";
+        for (const [w, col, a] of [[0.11, pal("black"), last2 ? 0.35 : 0.15], [0.065, P_HEX[s.color], last2 ? 0.95 : 0.4]]) {
+          c.globalAlpha = a;
+          c.strokeStyle = col;
+          c.lineWidth = cell * w;
+          c.beginPath();
+          pts.forEach(([x2, y2], j) => j ? c.lineTo(x2, y2) : c.moveTo(x2, y2));
+          c.stroke();
+        }
+        c.globalAlpha = 1;
+        const [x, y] = pts.at(-1), r = cell * (last2 ? 0.17 : 0.11);
+        c.beginPath();
+        c.arc(x, y, r, 0, Math.PI * 2);
+        c.fillStyle = P_HEX[s.color];
+        c.fill();
+        c.lineWidth = cell * 0.04;
+        c.strokeStyle = life.end === "liberated" || life.end === "svarga" ? pal("gold-hi") : pal("black");
+        c.stroke();
+      });
+    });
+    c.restore();
+    return H2;
+  }
+  function drawRibbon(c, s, W2, h, x0 = 0, y0 = 0) {
+    const pts = s.lives.flatMap((life, k) => (life.trace ?? []).map((x) => ({ g: x.g, k })));
+    if (!pts.length) return false;
+    const cols = [pal("yellow"), pal("vermilion"), pal("indigo")], step = W2 / pts.length;
+    pts.forEach(({ g: g3 }, j) => {
+      const sum = g3[0] + g3[1] + g3[2] || 1;
+      let y = y0;
+      for (let b = 0; b < 3; b++) {
+        const bh = g3[b] / sum * h;
+        c.fillStyle = cols[b];
+        c.fillRect(x0 + j * step, y, step + 0.6, bh + 0.6);
+        y += bh;
+      }
+    });
+    c.fillStyle = pal("cream");
+    pts.forEach((x, j) => {
+      if (j && x.k !== pts[j - 1].k) c.fillRect(x0 + j * step - 1, y0, 2, h);
+    });
+    return true;
+  }
+  function sized(cv, w, h) {
+    const dpr = window.devicePixelRatio || 1;
+    cv.width = Math.round(w * dpr);
+    cv.height = Math.round(h * dpr);
+    cv.style.width = w + "px";
+    cv.style.height = h + "px";
+    const c = cv.getContext("2d");
+    c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return c;
+  }
+  var beads = (s) => s.lives.map((l) => `<span class="bead${l.animal ? " animal" : ""}${l.end === "liberated" || l.end === "svarga" ? " free" : ""}" aria-hidden="true"></span>`).join("");
+  function sameHtml(l) {
+    if (!model.same.length) return `<p class="cmp-none">${esc(tIn(l, "cmpSameNone"))}</p>`;
+    return `<dl class="cmp-same">` + model.same.map(({ sq, by }) => `<dt>${esc(sqName(sq, l))}</dt>` + by.map((b) => {
+      const lab = (id) => {
+        const o = optionOf(sq, id);
+        return o ? o.label[l] || o.label.en : id;
+      };
+      const s = model.souls[b.seat], k = b.chose !== b.took ? "cmpSameRebel" : "cmpSameRow";
+      return `<dd><span class="dot" style="background:${P_HEX[s.color]}"></span>${esc(tIn(l, k, { name: nameIn(b.name, l), chose: lab(b.chose), took: lab(b.took) }))}</dd>`;
+    }).join("")).join("") + `</dl>`;
+  }
+  function metHtml(l) {
+    if (!model.met.length) return `<p class="cmp-none">${esc(tIn(l, "cmpMetNone"))}</p>`;
+    return `<ul class="cmp-met">` + model.met.map((m) => `<li><span class="dot" style="background:${P_HEX[model.souls[m.a.seat].color]}"></span><span class="dot" style="background:${P_HEX[model.souls[m.b.seat].color]}"></span>${esc(tIn(l, "cmpMetLine", { a: nameIn(m.a.name, l), b: nameIn(m.b.name, l), sq: sqName(m.sq, l) }))}</li>`).join("") + `</ul>`;
+  }
+  function bookHtml(s, l) {
+    return s.lives.map((life) => {
+      const b = lifeOf(life.st, s.seat, l);
+      return `<article class="cmp-life"><h4>${esc(b.title)}</h4>${b.open ? `<p>${esc(b.open)}</p>` : ""}${b.paras.map((p) => `<h5>${esc(p.head)}</h5><p>${esc(p.text)}</p>`).join("")}<p class="cmp-end">${esc([b.end, b.curse].filter(Boolean).join(" "))}</p>${b.fates?.length ? `<p class="cmp-fates">${esc(b.fates.join(" "))}</p>` : ""}</article>`;
+    }).join("");
+  }
+  function paint4() {
+    const l = lang, souls = model.souls, traced = souls.some((s) => s.lives.some((x) => x.trace));
+    leaf4.innerHTML = `
+    <header class="leaf-top"><span class="eb">${esc(tIn(l, "title"))}</span>
+      <button type="button" class="x cmp-close" aria-label="${esc(tIn(l, "close"))}">×</button></header>
+    <div class="cmp-body">
+      <h2 id="cmpTitle">${esc(tIn(l, "togetherTitle"))}</h2>
+      <ul class="cmp-souls">${souls.map((s) => {
+      const last2 = s.lives.at(-1);
+      return `<li><span class="dot" style="background:${P_HEX[s.color]}"></span><b>${esc(tIn(l, "cmpSoul", { name: lifeName(last2, l) }))}</b> <span class="beads" role="img" aria-label="${esc(livesWord(humanLives(s), l))}">${beads(s)}</span>
+          <span class="cmp-ends">${s.lives.map((x) => `${esc(lifeName(x, l))}: ${esc(tIn(l, "cmpEnd_" + x.end))}`).join(" · ")}</span></li>`;
+    }).join("")}</ul>
+      <h3>${esc(tIn(l, "cmpBoard"))}</h3>
+      <canvas class="cmp-board" role="img" aria-label="${esc(tIn(l, "cmpBoardAlt"))}"></canvas>
+      <h3>${esc(tIn(l, "cmpGunas"))}</h3>
+      ${traced ? `<p class="cmp-note">${esc(tIn(l, "cmpGunasNote"))}</p>` + souls.map((s) => `<div class="cmp-gunas"><span class="dot" style="background:${P_HEX[s.color]}"></span><canvas data-seat="${s.seat}" aria-hidden="true"></canvas></div>`).join("") : `<p class="cmp-note">${esc(tIn(l, "cmpNoTrace"))}</p>`}
+      <h3>${esc(tIn(l, "cmpSame"))}</h3>${sameHtml(l)}
+      <h3>${esc(tIn(l, "cmpMet"))}</h3>${metHtml(l)}
+      <h3>${esc(tIn(l, "cmpBooks"))}</h3>
+      <div class="cmp-tabs" role="tablist">${souls.map((s, i) => `<button type="button" role="tab" id="cmpTab-${i}" aria-controls="cmpBook-${i}" aria-selected="${i === tab2}" tabindex="${i === tab2 ? 0 : -1}" data-tab="${i}"><span class="dot" style="background:${P_HEX[s.color]}"></span>${esc(lifeName(s.lives.at(-1), l))}</button>`).join("")}</div>
+      <div class="cmp-books" style="--n:${souls.length}">${souls.map((s, i) => `<section class="cmp-book${i === tab2 ? " on" : ""}" id="cmpBook-${i}" role="tabpanel" aria-labelledby="cmpTab-${i}">${bookHtml(s, l)}</section>`).join("")}</div>
+      <p class="cmp-acts"><button type="button" data-act="save">${esc(tIn(l, "cmpSave"))}</button> <button type="button" class="ghost" data-act="copy">${esc(tIn(l, "cmpCopy"))}</button> <span class="hint" aria-live="polite">${esc(note)}</span></p>
+    </div>`;
+    drawAll();
+  }
+  function drawAll() {
+    const cv = leaf4.querySelector(".cmp-board");
+    if (!cv) return;
+    const b = cv.parentElement, cs = getComputedStyle(b), inner = b.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    const w = Math.min(inner || 600, 720);
+    drawBoard(sized(cv, w, w / COLS * ROWS), w);
+    for (const r of leaf4.querySelectorAll(".cmp-gunas canvas")) {
+      const rw = r.parentElement.clientWidth - 24 || 560, s = model.souls[+r.dataset.seat];
+      drawRibbon(sized(r, rw, 30), s, rw, 30);
+    }
+  }
+  addEventListener("resize", () => {
+    if (dlg4.open && model) drawAll();
+  });
+  function imageOf(l = lang) {
+    const W2 = 1080, pad = 48, inner = W2 - 2 * pad, cell = inner / COLS, bh = cell * ROWS, rowH = 120;
+    const H2 = pad + 70 + bh + 30 + model.souls.length * rowH + 70;
+    const cv = document.createElement("canvas");
+    cv.width = W2;
+    cv.height = Math.ceil(H2);
+    const c = cv.getContext("2d"), font = getComputedStyle(document.body).fontFamily;
+    const serif = getComputedStyle(leaf4).fontFamily || font;
+    c.fillStyle = pal("cream");
+    c.fillRect(0, 0, W2, H2);
+    c.fillStyle = pal("black");
+    c.textBaseline = "alphabetic";
+    c.font = `400 44px ${serif}`;
+    c.fillText(tIn(l, "togetherTitle"), pad, pad + 40);
+    drawBoard(c, inner, pad, pad + 70);
+    let y = pad + 70 + bh + 30;
+    for (const s of model.souls) {
+      c.fillStyle = P_HEX[s.color];
+      c.beginPath();
+      c.arc(pad + 12, y + 18, 12, 0, Math.PI * 2);
+      c.fill();
+      c.fillStyle = pal("black");
+      c.font = `600 28px ${font}`;
+      c.fillText(tIn(l, "cmpSoul", { name: lifeName(s.lives.at(-1), l) }), pad + 36, y + 28);
+      s.lives.forEach((x, k) => {
+        c.beginPath();
+        c.arc(W2 - pad - 12 - (s.lives.length - 1 - k) * 26, y + 18, 9, 0, Math.PI * 2);
+        c.fillStyle = x.end === "liberated" || x.end === "svarga" ? pal("gold") : x.animal ? pal("malachite") : P_HEX[s.color];
+        c.fill();
+      });
+      c.font = `400 20px ${font}`;
+      c.fillStyle = pal("lac");
+      const ends = s.lives.map((x) => `${lifeName(x, l)}: ${tIn(l, "cmpEnd_" + x.end)}`).join(" · ");
+      c.fillText(ends.length > 90 ? ends.slice(0, 88) + "…" : ends, pad + 36, y + 56);
+      drawRibbon(c, s, inner - 36, 26, pad + 36, y + 72);
+      y += rowH;
+    }
+    c.fillStyle = pal("lac");
+    c.font = `italic 400 20px ${serif}`;
+    c.fillText(tIn(l, "cmpFoot"), pad, H2 - pad + 10);
+    return cv;
+  }
+  function textOf(l = lang) {
+    const out = [tIn(l, "togetherTitle"), ""];
+    for (const s of model.souls) out.push(`${tIn(l, "cmpSoul", { name: lifeName(s.lives.at(-1), l) })} (${livesWord(humanLives(s), l)}): ` + s.lives.map((x) => `${lifeName(x, l)}, ${tIn(l, "cmpEnd_" + x.end)}`).join("; "));
+    out.push("", tIn(l, "cmpSame"));
+    if (!model.same.length) out.push(tIn(l, "cmpSameNone"));
+    for (const { sq, by } of model.same) {
+      const lab = (id) => optionOf(sq, id)?.label[l] ?? id;
+      out.push(`${sqName(sq, l)}: ` + by.map((b) => tIn(l, b.chose !== b.took ? "cmpSameRebel" : "cmpSameRow", { name: nameIn(b.name, l), chose: lab(b.chose), took: lab(b.took) })).join("; "));
+    }
+    out.push("", tIn(l, "cmpMet"));
+    out.push(...model.met.length ? model.met.map((m) => tIn(l, "cmpMetLine", { a: nameIn(m.a.name, l), b: nameIn(m.b.name, l), sq: sqName(m.sq, l) })) : [tIn(l, "cmpMetNone")]);
+    for (const s of model.souls) for (const life of s.lives) {
+      const b = lifeOf(life.st, s.seat, l);
+      out.push("", "", [b.title, b.open, ...b.paras.map((p) => `${p.head}
+${p.text}`), [b.end, b.curse].filter(Boolean).join(" "), (b.fates ?? []).join(" ")].filter(Boolean).join("\n\n"));
+    }
+    return out.join("\n") + "\n";
+  }
+  async function save() {
+    const cv = imageOf();
+    const blob = await new Promise((r) => cv.toBlob(r, "image/png"));
+    if (!blob) return;
+    const file = new File([blob], "moksha-patam-lives.png", { type: "image/png" });
+    if (matchMedia("(pointer: coarse)").matches && navigator.canShare?.({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file], title: tIn(lang, "togetherTitle") });
+        note = tIn(lang, "cmpSaved");
+        paintNote();
+        return;
+      } catch {
+        return;
+      }
+    }
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = file.name;
+    document.body.append(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1e3);
+    note = tIn(lang, "cmpSaved");
+    paintNote();
+  }
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(textOf());
+      note = tIn(lang, "cmpCopied");
+    } catch {
+      note = "";
+    }
+    paintNote();
+  }
+  var paintNote = () => {
+    const h = leaf4.querySelector(".cmp-acts .hint");
+    if (h) h.textContent = note;
+  };
+  leaf4.addEventListener("click", (e) => {
+    if (e.target.closest(".cmp-close")) return closeCompare();
+    const t2 = e.target.closest("[data-tab]");
+    if (t2) return showTab2(+t2.dataset.tab, false);
+    const act = e.target.closest("[data-act]")?.dataset.act;
+    if (act === "save") save();
+    if (act === "copy") copy();
+  });
+  function showTab2(i, focus = true) {
+    tab2 = (i + model.souls.length) % model.souls.length;
+    leaf4.querySelectorAll(".cmp-tabs [role=tab]").forEach((b, k) => {
+      b.setAttribute("aria-selected", String(k === tab2));
+      b.tabIndex = k === tab2 ? 0 : -1;
+    });
+    leaf4.querySelectorAll(".cmp-book").forEach((b, k) => b.classList.toggle("on", k === tab2));
+    if (focus) leaf4.querySelector(`#cmpTab-${tab2}`)?.focus();
+  }
+  leaf4.addEventListener("keydown", (e) => {
+    if (!e.target.closest(".cmp-tabs")) return;
+    const k = { ArrowRight: tab2 + 1, ArrowLeft: tab2 - 1, Home: 0, End: model.souls.length - 1 }[e.key];
+    if (k == null) return;
+    e.preventDefault();
+    showTab2(k);
   });
 
   // src/main.js
@@ -10193,6 +10740,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     renderLog();
     const w = state.winner, humans = state.players.filter((q2) => q2.type === "human");
     $("win").hidden = !state.over;
+    $("compare").hidden = !state.over || state.players.length < 2 || isCloth();
     if (state.over) keepLives(state);
     const reborn = !!(state.over && rebornRows(state));
     if ($("reborn").hidden === reborn) {
@@ -10405,6 +10953,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     renderCodex();
     refreshCard();
     refreshLife();
+    refreshCompare();
     drawLanded();
     drawNaming();
   }
@@ -10444,6 +10993,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     $("roll").hidden = false;
     closeCard({ instant: true });
     closeLife();
+    closeCompare();
     $("toastSlot").innerHTML = "";
     clearLanded();
     if (S) fxClear();
@@ -10558,6 +11108,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
   $("stopHere").addEventListener("click", () => {
     if (!G.busy && !G.state.over && together(G.state)) $("stopAsk").showModal();
   });
+  $("compare").addEventListener("click", () => openCompare(G.state));
   $("stopAsk").addEventListener("close", () => {
     if ($("stopAsk").returnValue === "yes") stopHere();
   });
@@ -10774,6 +11325,28 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
         return together(G.state) ? "together" : "race";
       },
       lifeText: (i = 0, l) => lifeText2(G.state, i, l),
+      // mp.compare() opens the lives side by side for the game in play (Phase 19); mp.compareText(l) is its text, and
+      // mp.compareImage() its picture as a data URL
+      // mp.play(n) plays n turns at once as the computers would, every seat's choices the game's own (none noted), and draws
+      // the board after them
+      play(n = 1) {
+        for (let k = 0; k < n && !G.state.over; k++) playTurn(G.state);
+        saveGame(G.setup, G.state);
+        render();
+        return G.state.turns;
+      },
+      compareOpen: () => {
+        openCompare(G.state);
+        return compareModel();
+      },
+      compareText: (l) => {
+        if (!compareModel()) openCompare(G.state);
+        return textOf(l);
+      },
+      compareImage: () => {
+        if (!compareModel()) openCompare(G.state);
+        return imageOf().toDataURL("image/png");
+      },
       // mp.cast(0) is player 0's cast for this game, names, genders and ages, as the account draws it (Phase 10C)
       cast: (i = 0, life = 0) => castOf(G.state, i, life),
       naming: openNaming,
