@@ -307,6 +307,36 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     process.exit(0);
   }
   // --lives: one soul's lives a seed (Phase 16)
+  // --mode=together (Phase 19, src/engine/mode.js): every game played together by `players` computers (at least two). Nobody
+  // wins by arriving first: each seat lives on through its rebirths until it is let go. Reports the game's length in turns
+  // a seat (median / p95 / max), the lives a seat took to be let go, how every life ended, the animal lives among them,
+  // the meetings a life (lives that crossed), and the games that hit the cap.
+  if (flags.mode === "together") {
+    const seats = Math.max(2, players), len = [], lives = [], ends = {}, cap = { n: 0 };
+    let all = 0, animals = 0, met = 0;
+    for (let s = first; s < first + games; s++) {
+      const g = playGame(s, { players: seats, rules: { ...rules, mode: "together" }, pick });
+      if (g.capped) cap.n++;
+      len.push(Math.max(...g.turns));
+      for (const p of g.players) {
+        const ls = [...(p.past ?? []), p];
+        lives.push(ls.filter(q => !q.animal).length);
+        for (const q of ls) {
+          all++; met += q.met?.length ?? 0;
+          if (q.animal) { animals++; continue; }
+          const k = q.free ? "liberated" : q.death ? `died (${q.death.by})` : q.fell ? (q.fellBy === "snake" ? "Śiva's snake" : "merit spent") : "living at the end";
+          ends[k] = (ends[k] ?? 0) + 1;
+        }
+      }
+    }
+    const L = summarise(len), N = summarise(lives);
+    console.log(`${games} games played together, ${seats} seats, seeds ${first}–${first + games - 1}${flags.law ? `, law ${flags.law}` : ""}${flags.policy ? `, policy ${flags.policy}` : ""}`);
+    console.log(`turns a seat to the end of the game: median ${L.median}, p95 ${L.p95}, max ${L.max}; capped at ${CAP} ${cap.n}`);
+    console.log(`human lives a seat: median ${N.median}, p95 ${N.p95}, max ${N.max}, mean ${N.mean.toFixed(2)}; animal lives ${animals} (${pct(animals / all)} of all lives)`);
+    console.log("how the human lives ended: " + Object.entries(ends).sort((a, b) => b[1] - a[1]).map(([k, c]) => `${k} ${pct(c / (all - animals))}`).join(", "));
+    console.log(`meetings a life ${(met / all).toFixed(2)} (each is in both books)`);
+    process.exit(0);
+  }
   if (flags.lives) {
     const n = +flags.lives, byLife = Array.from({ length: n }, () => ({ lives: 0, freed: 0, ledger: 0, years: 0, door: 0, fell: 0, turns: [] }));
     let capped = 0;

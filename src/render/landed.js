@@ -4,10 +4,12 @@
 // reached, the exit. The line is the person's own: a computer's turn goes to the moves log only, and never writes here,
 // so the moment stays put while the reader watches the others walk. It stays until their next roll, and opens the card.
 // The one exception is the door (REDESIGN.md Phase 14): whoever comes to 105, a computer too, is told here, refused, let
-// through, examined a year at a time, or dying there, so nobody's refusal is invisible.
+// through, examined a year at a time, or dying there, so nobody's refusal is invisible. Since Phase 19 the public moments
+// are too, whoever's turn it is: Śiva's snake and every birth again, a reckoning, a death, a ladder to 94 or above, and a
+// life let go (landPublic), each told by its line in the moves log, so it says what the log says, in the page's language.
 // Its height is kept when empty, so the turn panel and the Roll under it never move.
 import { GOAL, TOP, squareOf } from "../content.js";
-import { isAnimal, TALES } from "../engine/animal.js";
+import { isAnimal, interludeOf, TALES } from "../engine/animal.js";
 import { lang, tIn, fill } from "../i18n.js";
 import { G, pnameIn } from "../state.js";
 import { refusalIn, examLinesIn, debtsIn } from "../engine/karma.js";
@@ -16,6 +18,7 @@ import { lawOf } from "../engine/laws/index.js";
 import { $, esc } from "../ui.js";
 import { labEls } from "./board.js";
 import { momentLine, openSquare } from "./card.js";
+import { entryText } from "./log.js";
 
 const el = $("landed");
 let last = null; // { n, who, told }, the person's last landing, and the option told there if they chose one; or { n, who, door }
@@ -64,6 +67,8 @@ export function sixLineIn(l, { who, lost }) {
 // why: "zero", an old cloth's throw with no shell face up (Phase 18)
 export const landStay = (who, n, why = null) => { last = { n, who, stay: true, why }; drawLanded(); };
 export const landReborn = (who, was) => { last = { n: 1, who, was }; drawLanded(); };
+// A public moment (Phase 19): kind is reckon, died, ladder or free, and e the log's line for it, told in its words
+export const landPublic = (who, kind, e) => { last = { n: e?.v?.sq ?? e?.v?.pos ?? GOAL, who, pub: kind, e }; drawLanded(); };
 function bornLine(l, { who, stay, was, why }) {
   const p = G.state.players[who], w = { name: pnameIn(p, l), gender: p.gender };
   // an old cloth's pawn that stays (Phase 18): no shell face up, not yet the 1 (or the 6) out of square 1, above the 84's
@@ -71,15 +76,19 @@ function bornLine(l, { who, stay, was, why }) {
   const k = { zero: "cZero", entry: "cEntry", six: "cSix", top: "cTop", exact: "cExact" }[why];
   if (stay && k) return { title: tIn(l, k + "Title"), text: fill(tIn(l, k + "Line", { ...w, end: TOP }), w) };
   if (stay) return { title: tIn(l, "stayTitle"), text: fill(tIn(l, "heavenStay", w), w) };
-  const q = p.past?.[was];
-  return { title: tIn(l, "bornAgainHead"), text: fill(tIn(l, "bornAgainLine", { name: w.name, was: q ? pnameIn(q, l) : "" }), w) };
+  const q = p.past?.[was], i = G.state.players.indexOf(p);
+  // how the last life ended says how this one is born (Phase 19): Śiva's snake, an end on earth, the ledger's (an animal
+  // first), or an interlude's end (a human birth again)
+  const k2 = !q || q.fell ? "bornAgainLine" : p.animal ? "bornAgainLineAnimal" : q.carry ? "bornAgainLineHuman" : "bornAgainLineDied";
+  const kind = (p.animal ?? q?.animal)?.kind ?? interludeOf(G.state, i)?.kind ?? "tortoise";
+  return { title: tIn(l, "bornAgainHead"), text: fill(tIn(l, k2, { name: w.name, was: q ? pnameIn(q, l) : "", animal: tIn(l, "a_" + kind), animalO: tIn(l, "ao_" + kind) }), w) };
 }
 
 export function drawLanded() {
   const s = G.state;
   // an animal's landing (Phase 16): the square's name, and on a fable its Panchatantra mirror, told as the moment
   const animalLine = n => { const q = squareOf(n); return { title: q?.[lang] || q?.en || "", text: TALES.includes(n) ? q?.mirror?.[lang] || q?.mirror?.en || "" : "" }; };
-  let { title, text } = !last || !s ? {} : isAnimal(s) && !last.door ? animalLine(last.n) : last.door ? doorLine(lang, last) : last.stay || last.was != null ? bornLine(lang, last) : last.only ? {} : s.players[last.who]?.pos != null ? momentLine(last.n, last.who, lang, last.told, last.ego) : {};
+  let { title, text } = !last || !s ? {} : last.pub ? { title: tIn(lang, "pub_" + last.pub), text: entryText(last.e) } : isAnimal(s, last.who) && !last.door && last.was == null ? animalLine(last.n) : last.door ? doorLine(lang, last) : last.stay || last.was != null ? bornLine(lang, last) : last.only ? {} : s.players[last.who]?.pos != null ? momentLine(last.n, last.who, lang, last.told, last.ego) : {};
   if (last?.curse && s) text = [text, curseLine(lang, last.who)].filter(Boolean).join(" ");
   if (six && s?.players[six.who]) text = [text, sixLineIn(lang, six)].filter(Boolean).join(" ");
   if (!text && !title) { el.dataset.empty = ""; el.innerHTML = ""; el.tabIndex = -1; return; }

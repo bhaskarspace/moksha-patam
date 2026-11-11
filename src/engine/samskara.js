@@ -13,7 +13,8 @@ import { karmaOf, carried, seedOf } from "./karma.js";
 import { worthOf, optionOf } from "./qbn.js";
 import { castOf, MEMBERS } from "./cast.js";
 import { pnameIn } from "../state.js";
-import { interludeFor, animalEndOf, isAnimal, KINDS } from "./animal.js";
+import { interludeFor, animalEndOf, isAnimal, afterAnimal, KINDS } from "./animal.js";
+import { liberated } from "./mode.js";
 import { canChoose, lawOf } from "./laws/index.js";
 
 export const SOUL_V = 1, KEEP_DEBTS = 6;
@@ -24,9 +25,9 @@ const NAMED = MEMBERS.filter(w => w !== "mother" && w !== "father");
 export const endOf = (state, i) => {
   const p = state.players[i];
   // an animal interlude (src/engine/animal.js) ends at the forest's edge or short of it, and is never "let go"
-  if (isAnimal(state)) return animalEndOf(p) && "animal";
+  if (isAnimal(state, i)) return animalEndOf(p) && "animal";
   // a life let go is gone from the wheel; svarga (Mīmāṃsā's exit) lasts as long as its merit, and returns (Gītā 9.21)
-  if (state.winner === i) return p.won === "svarga" ? "svarga" : null;
+  if (liberated(state, i)) return p.won === "svarga" ? "svarga" : null;
   if (p.dead) return p.death?.by ?? "years";
   if (p.fell) return p.fellBy === "snake" ? "siva" : "fell";
   return null;
@@ -74,9 +75,21 @@ export function soulOf(state, i) {
 export function keepOf(state, i) {
   const p = state.players[i];
   if (!lawOf(state, i).rebirth) return null;
-  if (state.winner === i && !endOf(state, i)) return { drop: true };
+  if (liberated(state, i) && !endOf(state, i)) return { drop: true };
   const soul = soulOf(state, i) ?? (p.past?.length ? soulOf(pastOf(state, i, p.past.length - 1), i) : null);
   return soul ? { soul } : null;
+}
+
+// What seat i is born as next in its seat (Phase 17's Śiva's snake; since Phase 19 every end of a life in a game played
+// together), as { born, law } for a human birth, or { animal, carry, law: "animal" } for the interlude a death by ledger is
+// owed, carrying the soul through it (p.carry); or null when nothing is born. An interlude that ends goes on as Be born
+// again would after it (afterAnimal): an animal once more after a first round short, else the human birth.
+export function nextBirth(state, i) {
+  const p = state.players[i], soul = p.carry ? afterAnimal(p.carry, !!p.earned) : soulOf(state, i);
+  if (!soul) return null;
+  if (soul.animal) return { animal: soul.animal, carry: soul, law: "animal", soul };
+  const born = bornOf(soul);
+  return born && { born, law: p.carry ? born.law : p.law, soul };
 }
 
 const num = x => typeof x === "number" && Number.isFinite(x);

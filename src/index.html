@@ -85,6 +85,7 @@
           <div class="roll-info">
             <button id="roll" type="button">Roll the die</button>
             <button id="practise" type="button" class="ghost" data-t="practise" hidden>Sit in practice</button>
+            <button id="stopHere" type="button" class="ghost" data-t="stopHere" hidden>Stop here</button>
             <div class="pick" id="pick" role="group" hidden></div>
             <span class="hint" id="hint"></span>
           </div>
@@ -116,6 +117,8 @@
         <div class="setup-body">
           <div class="seg" id="count" role="group"></div>
           <div id="prows" class="setup-body"></div>
+          <label class="pick" id="ruleModeRow" hidden><span data-t="modePick"></span><select id="ruleMode"></select></label>
+          <p class="law-about" id="ruleModeAbout" hidden></p>
           <label class="pick"><span data-t="ruleBoard"></span><select id="ruleBoard"></select></label>
           <p class="law-about" id="ruleBoardAbout" hidden></p>
           <label class="pick" id="ruleRandRow" hidden><span data-t="ruleRand"></span><select id="ruleRand"></select></label>
@@ -157,6 +160,10 @@
         <legend data-t="namingWho">Who is playing?</legend>
         <div class="naming-genders" id="namingWhoOpts"></div>
       </fieldset>
+      <fieldset class="naming-field" id="namingMode" hidden>
+        <legend data-t="modePick">How to play</legend>
+        <div class="naming-genders" id="namingModeOpts"></div>
+      </fieldset>
       <p class="naming-step" id="namingStep" hidden></p>
       <label class="naming-field"><span data-t="namingName">Name</span>
         <input type="text" id="namingName" maxlength="16" autocomplete="given-name" spellcheck="false">
@@ -174,6 +181,17 @@
         <button type="submit" id="namingBegin">Begin</button>
         <button type="button" id="namingBack" data-t="namingBack" hidden>Back</button>
       </div>
+    </div>
+  </form>
+</dialog>
+
+<!-- Stop here (Phase 19): a game played together ends when the people at it say so -->
+<dialog class="folio naming ask" id="stopAsk" aria-labelledby="stopAskText">
+  <form method="dialog" class="leaf ask-leaf">
+    <p id="stopAskText" data-t="stopHereAsk"></p>
+    <div class="naming-act">
+      <button type="submit" value="yes" data-t="stopHereYes">Stop and compare</button>
+      <button type="submit" value="no" class="ghost" data-t="stopHereNo">Play on</button>
     </div>
   </form>
 </dialog>

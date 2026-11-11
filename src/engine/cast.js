@@ -12,6 +12,7 @@
 import { CAST, CAST_WORDS, SQ, SITUATIONS, TOP, squareOf } from "../content.js";
 import { castFill, fill, wordsIn } from "../i18n.js";
 import { makeRng, next } from "../rng.js";
+import { liberated } from "./mode.js";
 import { momentOf } from "./qbn.js";
 import { ageOf, yearsAlong } from "./self.js";
 
@@ -164,7 +165,7 @@ export function castAlong(state, i, along) {
 // (before 100 says they are gone), and when they did, in the player's years. Only once the life is over.
 export function castArcs(state, i, along, cc = castAlong(state, i, along)) {
   const p = state.players[i];
-  if (!cc.length || !cc.at(-1).cast || !(p.dead || p.fell || state.winner === i)) return [];
+  if (!cc.length || !cc.at(-1).cast || !(p.dead || p.fell || liberated(state, i))) return [];
   const { life, cast } = cc.at(-1), from = cc.findIndex(c => c.life === life);
   const order = [], seen = {}, landed = {}, told = new Set();
   let gone = null;

@@ -240,6 +240,7 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 .token.active { z-index: 3; }
 /* Phase 8: a life whose years ran out stays where it fell, in the paint only */
 .token.dead .spr { filter: grayscale(1) drop-shadow(0 1px 1px rgba(0, 0, 0, 0.45)); opacity: 0.7; }
+.token.liberated .spr { opacity: 0.8; }
 .token.active .body { animation: bob 1.1s ease-in-out infinite; }
 .token.hop .body { animation: hop 0.18s ease-out; }
 .token.gulp .body { transform-origin: 50% 30%; animation: gulp 0.34s ease-in forwards; }
@@ -444,6 +445,10 @@ svg.spr { display: block; width: 1.2em; height: 1.2em; }
 .naming-step { margin: 0; font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--l-ink2); }
 .naming-act { display: flex; gap: 10px; align-items: center; }
 .naming #namingBack { background: none; border: 1px solid var(--l-line); color: var(--l-ink); }
+/* Stop here (Phase 19): one question, two answers */
+.ask-leaf { gap: 16px; padding: 22px 24px; font-family: var(--f-card); }
+.ask-leaf p { margin: 0; font-size: 18px; line-height: 1.4; }
+.ask button.ghost[type="submit"] { background: none; border: 1px solid var(--l-line); color: var(--l-ink); }
 
 /* the life account */
 .life-who { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px 24px 0; font-family: var(--f-body); }
@@ -934,6 +939,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           <div class="roll-info">
             <button id="roll" type="button">Roll the die</button>
             <button id="practise" type="button" class="ghost" data-t="practise" hidden>Sit in practice</button>
+            <button id="stopHere" type="button" class="ghost" data-t="stopHere" hidden>Stop here</button>
             <div class="pick" id="pick" role="group" hidden></div>
             <span class="hint" id="hint"></span>
           </div>
@@ -965,6 +971,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         <div class="setup-body">
           <div class="seg" id="count" role="group"></div>
           <div id="prows" class="setup-body"></div>
+          <label class="pick" id="ruleModeRow" hidden><span data-t="modePick"></span><select id="ruleMode"></select></label>
+          <p class="law-about" id="ruleModeAbout" hidden></p>
           <label class="pick"><span data-t="ruleBoard"></span><select id="ruleBoard"></select></label>
           <p class="law-about" id="ruleBoardAbout" hidden></p>
           <label class="pick" id="ruleRandRow" hidden><span data-t="ruleRand"></span><select id="ruleRand"></select></label>
@@ -1006,6 +1014,10 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         <legend data-t="namingWho">Who is playing?</legend>
         <div class="naming-genders" id="namingWhoOpts"></div>
       </fieldset>
+      <fieldset class="naming-field" id="namingMode" hidden>
+        <legend data-t="modePick">How to play</legend>
+        <div class="naming-genders" id="namingModeOpts"></div>
+      </fieldset>
       <p class="naming-step" id="namingStep" hidden></p>
       <label class="naming-field"><span data-t="namingName">Name</span>
         <input type="text" id="namingName" maxlength="16" autocomplete="given-name" spellcheck="false">
@@ -1023,6 +1035,17 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         <button type="submit" id="namingBegin">Begin</button>
         <button type="button" id="namingBack" data-t="namingBack" hidden>Back</button>
       </div>
+    </div>
+  </form>
+</dialog>
+
+<!-- Stop here (Phase 19): a game played together ends when the people at it say so -->
+<dialog class="folio naming ask" id="stopAsk" aria-labelledby="stopAskText">
+  <form method="dialog" class="leaf ask-leaf">
+    <p id="stopAskText" data-t="stopHereAsk"></p>
+    <div class="naming-act">
+      <button type="submit" value="yes" data-t="stopHereYes">Stop and compare</button>
+      <button type="submit" value="no" class="ghost" data-t="stopHereNo">Play on</button>
     </div>
   </form>
 </dialog>
@@ -1719,7 +1742,38 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         ruleOtherAbout: "Other ways the old boards were and are played, each named by its source. None is this board's own rule.",
         topSq: "top {n}",
         board84: "84 squares: the Jaina cloth, by Jeṭhābhāī's rules (a long game)",
-        board84About: "The old game, as the Jaina cloths were played: from the basic lifeforms at the cosmic man's feet to the siddhaśilā above his head, under the Jain law. Only a 1 leaves square 1, climbs a ladder or a footprint, or moves through the five heavens above; past 80 without it, the pawn walks to 84 and back down. A long game, often more than a hundred throws, as it was played over the days of Paryuṣaṇ. The rows are realms, not ranks."
+        board84About: "The old game, as the Jaina cloths were played: from the basic lifeforms at the cosmic man's feet to the siddhaśilā above his head, under the Jain law. Only a 1 leaves square 1, climbs a ladder or a footprint, or moves through the five heavens above; past 80 without it, the pawn walks to 84 and back down. A long game, often more than a hundred throws, as it was played over the days of Paryuṣaṇ. The rows are realms, not ranks.",
+        modePick: "How to play",
+        modeTogether: "Together",
+        modeTogetherAbout: "Every life is lived to its end, and each soul is born again until it is let go. No one wins by arriving first.",
+        modeRace: "Race",
+        modeRaceAbout: "A shorter game: first to Moksha wins.",
+        stopHere: "Stop here",
+        stopHereAsk: "Stop the game here, and see the lives side by side as they stand?",
+        stopHereYes: "Stop and compare",
+        stopHereNo: "Play on",
+        togetherTitle: "The lives, side by side",
+        togetherText: "Every person's soul has been let go, or has lived the one life its law allows.",
+        stoppedText: "The game was stopped here, with every life as it stands.",
+        compareLives: "Compare the lives",
+        freeStage: "Let go",
+        pub_reckon: "A reckoning",
+        pub_died: "A death",
+        pub_ladder: "A ladder",
+        pub_free: "Let go",
+        lRebornDied: "{name} is born again, the same soul under another name.",
+        lBornAnimal: "{name} is born a {animal}: an animal's life comes before the next human one.",
+        lBornHuman: "{name} is born human again.",
+        bornAgainLineDied: "{was}'s life is over, and the same soul is born again as {name}.",
+        bornAgainLineAnimal: "{was}'s life is over, and the soul is born a {animal} first.",
+        bornAgainLineHuman: "The {animal}'s life is over, and the soul is born human again, as {name}.",
+        bornAgainCardDied: "{was}'s life is over, and it is written in the book.",
+        bornAgainCardAnimal: "A debt came due that {was}'s life could not pay, and the life is written in the book.",
+        bornAgainNewAnimal: "Before another human birth the soul lives once as a {animal}, and must reach the edge of the forest before the seasons turn.",
+        bornAgainCardHuman: "The {animal}'s life is over.",
+        accMet: "At {age}, {name} and {other} stood on the same square: {sq}.",
+        accMetFirst: "In the first year, {name} and {other} were on the same square: {sq}.",
+        accMetHeaven: "In the realm of {sq}, {name} and {other} stood together."
       },
       hi: {
         title: "मोक्ष पटम",
@@ -2231,7 +2285,38 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         ruleOtherAbout: "पुराने पट खेलने के और तरीक़े, हर एक अपने स्रोत के नाम से। इनमें से कोई इस पट का अपना नियम नहीं।",
         topSq: "ऊपर {n}",
         board84: "84 घर: जैन पट, जेठाभाई के नियमों से (लंबा खेल)",
-        board84About: "पुराना खेल, जैसे जैन पट खेले जाते थे: लोकपुरुष के पैरों के निगोद से उसके सिर के ऊपर की सिद्धशिला तक, जैन नियम में। केवल 1 ही घर 1 से निकालता है, सीढ़ी या पदचिह्न चढ़ाता है, या ऊपर के पाँच स्वर्गों में आगे ले जाता है; उसके बिना 80 से आगे गया मोहरा 84 तक जाकर लौटता है। एक लंबा खेल, अक्सर सौ से अधिक दाँव का, जैसे पर्युषण के दिनों में खेला जाता था। पंक्तियाँ लोक हैं, दर्जे नहीं।"
+        board84About: "पुराना खेल, जैसे जैन पट खेले जाते थे: लोकपुरुष के पैरों के निगोद से उसके सिर के ऊपर की सिद्धशिला तक, जैन नियम में। केवल 1 ही घर 1 से निकालता है, सीढ़ी या पदचिह्न चढ़ाता है, या ऊपर के पाँच स्वर्गों में आगे ले जाता है; उसके बिना 80 से आगे गया मोहरा 84 तक जाकर लौटता है। एक लंबा खेल, अक्सर सौ से अधिक दाँव का, जैसे पर्युषण के दिनों में खेला जाता था। पंक्तियाँ लोक हैं, दर्जे नहीं।",
+        modePick: "कैसे खेलें",
+        modeTogether: "साथ-साथ",
+        modeTogetherAbout: "हर जीवन अपने अंत तक जिया जाता है, और हर आत्मा तब तक फिर-फिर जन्म लेती है जब तक मुक्त न हो जाए। पहले पहुँचने से कोई नहीं जीतता।",
+        modeRace: "दौड़",
+        modeRaceAbout: "छोटा खेल: जो पहले मोक्ष तक पहुँचे, वही जीते।",
+        stopHere: "यहीं रुकें",
+        stopHereAsk: "खेल यहीं रोककर सारे जीवन, जैसे वे अभी हैं, साथ-साथ देखें?",
+        stopHereYes: "रोकें और साथ देखें",
+        stopHereNo: "खेलते रहें",
+        togetherTitle: "जीवन, साथ-साथ",
+        togetherText: "हर व्यक्ति की आत्मा मुक्त हो चुकी है, या उतना एक जीवन जी चुकी है जितना उसका दर्शन देता है।",
+        stoppedText: "खेल यहीं रोका गया, हर जीवन जैसा अभी है।",
+        compareLives: "जीवन साथ-साथ देखें",
+        freeStage: "मुक्त",
+        pub_reckon: "हिसाब",
+        pub_died: "मृत्यु",
+        pub_ladder: "सीढ़ी",
+        pub_free: "मुक्ति",
+        lRebornDied: "{name} का फिर से जन्म होता है: वही आत्मा, दूसरे नाम से।",
+        lBornAnimal: "{name} का जन्म {animalO} के रूप में होता है: अगले मनुष्य-जन्म से पहले एक पशु का जीवन।",
+        lBornHuman: "{name} का फिर से मनुष्य के रूप में जन्म होता है।",
+        bornAgainLineDied: "{was} का जीवन पूरा हुआ, और वही आत्मा {name} बनकर फिर से जन्म लेती है।",
+        bornAgainLineAnimal: "{was} का जीवन पूरा हुआ, और आत्मा पहले {animalO} के रूप में जन्म लेती है।",
+        bornAgainLineHuman: "{animalO} का जीवन पूरा हुआ, और आत्मा {name} बनकर फिर से मनुष्य के रूप में जन्म लेती है।",
+        bornAgainCardDied: "{was} का जीवन पूरा हुआ, और वह बही में लिखा जा चुका है।",
+        bornAgainCardAnimal: "एक ऐसा क़र्ज़ सामने आया जो {was} का जीवन चुका नहीं सका, और वह जीवन बही में लिखा जा चुका है।",
+        bornAgainNewAnimal: "अगले मनुष्य-जन्म से पहले आत्मा एक बार {animalO} के रूप में जीती है, और उसे मौसम बदलने से पहले जंगल के किनारे तक पहुँचना है।",
+        bornAgainCardHuman: "{animalO} का जीवन पूरा हुआ।",
+        accMet: "{age} बरस की उम्र में {name} और {other} एक ही घर पर खड़े थे: {sq}।",
+        accMetFirst: "पहले बरस में {name} और {other} एक ही घर पर थे: {sq}।",
+        accMetHeaven: "{sq} के लोक में {name} और {other} साथ खड़े थे।"
       }
     },
     JOINS: {
@@ -5065,7 +5150,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var masterOf = (cast2) => (cast2 ?? []).find((c) => c.role === "rival") ?? (cast2 ?? []).find((c) => c.role === "friend") ?? null;
   var interludeFor = (holding, cast2) => ({ kind: animalOf(holding), master: masterOf(cast2), round: 1 });
   var animalRules = (animal2, rules = {}) => ({ ...rules, six: false, law: "animal", animal: animal2 });
-  var isAnimal = (state) => state?.rules?.law === "animal";
+  var isAnimal = (state, i) => state?.rules?.law === "animal" || i != null && state?.players?.[i]?.law === "animal";
+  var interludeOf = (state, i) => state?.players?.[i]?.animal ?? state?.rules?.animal ?? null;
   function afterAnimal(soul, earned) {
     const a = soul?.animal;
     if (!a) return soul;
@@ -5074,7 +5160,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   }
   var animalEndOf = (p) => p.earned ? "human" : p.short ? "short" : null;
   function animalLifeOf(state, i, l) {
-    const p = state.players[i], a = state.rules.animal ?? {}, kind = a.kind ?? "tortoise", name = pnameIn(p, l);
+    const p = state.players[i], a = interludeOf(state, i) ?? {}, kind = a.kind ?? "tortoise", name = pnameIn(p, l);
     const T2 = (k, v = {}) => fill(tIn(l, k, { name, animal: tIn(l, "a_" + kind), animalO: tIn(l, "ao_" + kind), ...v }), { name, gender: p.gender });
     const master2 = a.master?.[l] || a.master?.en;
     const told = [], seen2 = /* @__PURE__ */ new Set();
@@ -5138,6 +5224,10 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     p.law = id;
     if (!lawOf(state, i).karma) p.karma = { sancita: [], agami: [], prarabdha: [] };
   }
+
+  // src/engine/mode.js
+  var together = (state) => state?.rules?.mode === "together";
+  var liberated = (state, i) => state?.winner === i || !!state?.players?.[i]?.free;
 
   // src/engine/cast.js
   var MEMBERS = ["mother", "father", "teacher", "friend", "spouse", "son", "daughter", "rival"];
@@ -5247,7 +5337,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   }
   function castArcs(state, i, along, cc = castAlong(state, i, along)) {
     const p = state.players[i];
-    if (!cc.length || !cc.at(-1).cast || !(p.dead || p.fell || state.winner === i)) return [];
+    if (!cc.length || !cc.at(-1).cast || !(p.dead || p.fell || liberated(state, i))) return [];
     const { life, cast: cast2 } = cc.at(-1), from = cc.findIndex((c) => c.life === life);
     const order = [], seen2 = {}, landed = {}, told = /* @__PURE__ */ new Set();
     let gone2 = null;
@@ -5310,8 +5400,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var NAMED = MEMBERS.filter((w) => w !== "mother" && w !== "father");
   var endOf = (state, i) => {
     const p = state.players[i];
-    if (isAnimal(state)) return animalEndOf(p) && "animal";
-    if (state.winner === i) return p.won === "svarga" ? "svarga" : null;
+    if (isAnimal(state, i)) return animalEndOf(p) && "animal";
+    if (liberated(state, i)) return p.won === "svarga" ? "svarga" : null;
     if (p.dead) return p.death?.by ?? "years";
     if (p.fell) return p.fellBy === "snake" ? "siva" : "fell";
     return null;
@@ -5351,9 +5441,16 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   function keepOf(state, i) {
     const p = state.players[i];
     if (!lawOf(state, i).rebirth) return null;
-    if (state.winner === i && !endOf(state, i)) return { drop: true };
+    if (liberated(state, i) && !endOf(state, i)) return { drop: true };
     const soul = soulOf(state, i) ?? (p.past?.length ? soulOf(pastOf(state, i, p.past.length - 1), i) : null);
     return soul ? { soul } : null;
+  }
+  function nextBirth(state, i) {
+    const p = state.players[i], soul = p.carry ? afterAnimal(p.carry, !!p.earned) : soulOf(state, i);
+    if (!soul) return null;
+    if (soul.animal) return { animal: soul.animal, carry: soul, law: "animal", soul };
+    const born = bornOf(soul);
+    return born && { born, law: p.carry ? born.law : p.law, soul };
   }
   var num2 = (x) => typeof x === "number" && Number.isFinite(x);
   function validSoul(s) {
@@ -5585,7 +5682,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   };
   var inHeaven = (n) => n > GOAL && n < TOP;
   var spentOf = (p) => inHeaven(p.pos) && p.merit != null && (p.heavenTurns ?? 0) >= p.merit;
-  var gone = (p) => !!(p.dead || p.fell || p.earned || p.short);
+  var gone = (p) => !!(p.dead || p.fell || p.earned || p.short || p.free);
   var playerOf = (r, i) => ({
     name: r.name.trim(),
     type: r.type,
@@ -5827,6 +5924,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       const before = p.life.length - plan.told.length, kept = (p.told ?? []).slice(0, before);
       p.told = [...kept, ...Array(before - kept.length).fill(null), ...plan.told];
       Object.assign(p, grow(p, plan));
+      if (together(state)) meetAt(state, plan.idx);
       let k = karmaOf(p);
       if (rk && !rk.dies) k = { ...k, prarabdha: k.prarabdha.filter((s) => !rk.seeds.some((f2) => f2.src === s.src && f2.opt === s.opt && f2.at === s.at)), agami: k.agami.filter((s) => !rk.seeds.some((f2) => f2.src === s.src && f2.opt === s.opt && f2.at === s.at)) };
       if (plan.plant) k = { ...k, agami: [...k.agami, { ...plan.plant, i: p.life.length }] };
@@ -5866,12 +5964,18 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       const k = karmaOf(p);
       p.karma = { sancita: [...k.sancita, ...carried(k)], agami: [], prarabdha: [] };
     }
-    if (plan.fell && !plan.freed && lawOf(state, plan.idx).siva(state, plan.idx) === "reborn") {
+    if (together(state) && (plan.win || plan.freed)) p.free = true;
+    const law = lawOf(state, plan.idx), how = !plan.freed && (plan.fell ? law.siva(state, plan.idx) === "reborn" : together(state) && law.rebirth && (plan.died || p.earned || p.short));
+    if (how) {
       plan.end.forEach((e) => {
         if (e.who != null) e.life = p.rebirths ?? 0;
       });
+      const was = p.rebirths ?? 0;
       bornAgain(state, plan.idx);
-      if (p.rebirths) plan.end.push(entry("lReborn", { pos: 1, sq: 1 }, "", plan.idx));
+      if ((p.rebirths ?? 0) > was) {
+        plan.reborn = true;
+        plan.end.push(p.animal ? entry("lBornAnimal", { animal: p.animal.kind, pos: 1, sq: 1 }, "", plan.idx) : entry(plan.fell ? "lReborn" : p.past.at(-1)?.carry ? "lBornHuman" : "lRebornDied", { pos: 1, sq: 1 }, "", plan.idx));
+      }
     }
     delete state.forceOmen;
     delete state.forceDeath;
@@ -5879,7 +5983,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     passTurn(state, plan);
   }
   function passTurn(state, plan) {
-    if (plan.win || plan.freed) state.winner = plan.idx;
+    if ((plan.win || plan.freed) && !together(state)) state.winner = plan.idx;
     else if (!plan.again) for (let k = 1; k <= state.players.length; k++) {
       const i = (plan.idx + k) % state.players.length;
       if (!gone(state.players[i])) {
@@ -5892,19 +5996,34 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     plan.end.forEach((e) => addLog(state, e));
   }
   function bornAgain(state, i) {
-    const p = state.players[i], soul = soulOf(state, i), born = soul && bornOf(soul);
-    if (!born) return;
+    const p = state.players[i], nb = nextBirth(state, i), soul = nb?.soul;
+    if (!nb) return;
     const was = { ...p, castKept: castOf(state, i, p.prior?.lives ?? 0) };
     delete was.past;
+    delete was.choices;
     const rebirths = (p.rebirths ?? 0) + 1;
     const rng = makeRng((state.rng.seed ^ 1013904242 ^ Math.imul(i + 1, 2246822507) ^ Math.imul(rebirths, 3266489909)) >>> 0);
     const taken = new Set([...state.players.flatMap((q2) => [q2.name.trim(), q2.alias?.en]), ...soul.cast.map((c) => c.en)].filter(Boolean));
     const nm = drawName(rng, "", taken) ?? drawName(rng, "", /* @__PURE__ */ new Set());
     const key = p.soul ?? (p.name ? nameKey(p.name) : null);
-    const next2 = playerOf({ name: "", type: p.type, gender: nm.gender, alias: { en: nm.en, hi: nm.hi }, born, soul: key, law: p.law }, p.color);
-    Object.assign(next2, { pos: 1, life: [1], told: [null], past: [...p.past ?? [], was], rebirths });
+    const next2 = playerOf({ name: "", type: p.type, gender: nm.gender, alias: { en: nm.en, hi: nm.hi }, born: nb.born ?? null, soul: key, law: nb.law }, p.color);
+    Object.assign(next2, { pos: 1, life: [1], told: [null], past: [...p.past ?? [], was], rebirths, ...nb.animal ? { animal: nb.animal, carry: nb.carry } : {} });
+    if (p.choices) next2.choices = p.choices;
     for (const k of Object.keys(p)) delete p[k];
     Object.assign(p, next2);
+  }
+  function meetAt(state, i) {
+    const p = state.players[i], n = p.pos;
+    state.players.forEach((q2, j) => {
+      if (j === i || gone(q2) || q2.pos !== n || !q2.life?.length) return;
+      const seen2 = (p.met ?? []).some((m) => m.sq === n && m.seat === j && m.life === (q2.rebirths ?? 0));
+      if (seen2) return;
+      const mark = (a, b, k) => {
+        a.met = [...a.met ?? [], { i: a.life.length - 1, age: Math.floor(a.years ?? 0), sq: n, seat: k, life: b.rebirths ?? 0, with: { en: pnameIn(b, "en"), hi: pnameIn(b, "hi") } }];
+      };
+      mark(p, q2, j);
+      mark(q2, p, i);
+    });
   }
   function playTurn(state, roll2 = isCloth() ? rollDice(state) : spentOf(state.players[state.turn]) || practisesNow(state) ? [] : rollDice2(state.rng, diceFor(state.players[state.turn])), pick3 = moveFor, choose2 = (s, sit) => lawOf(s).choose(s, sit)) {
     const dice = typeof roll2 === "number" ? [roll2] : roll2, one = dice.length > 1 ? null : movesFor2(state, dice);
@@ -5939,7 +6058,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     return {
       count: 2,
       rows: [{ name: self?.name || "", type: "human", gender: self?.gender || "" }, { name: "", type: "cpu", gender: "" }, { name: "", type: "cpu", gender: "" }, { name: "", type: "cpu", gender: "" }],
-      rules: { six: true }
+      // me and a computer, played together (Phase 19: the default for any table of two or more seats)
+      rules: { six: true, mode: "together" }
     };
   };
   function drawName(rng, gender, taken = /* @__PURE__ */ new Set()) {
@@ -7237,13 +7357,14 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     return s < ASHRAMAS.length ? L(ASHRAMAS[s][1], ASHRAMAS[s][2]) : t("moksha");
   };
   var ENDED = { ledger: "deadLedger", door: "deadDoor" };
-  function stageLine(pl) {
+  function stageLine(pl, i) {
     if (isCloth()) return esc(squareName(pl.pos));
     if (pl.fell) return t("fell");
     if (pl.pos === 0) return t("notBorn");
     if (pl.dead) return fill(t(ENDED[pl.death?.by] ?? "dead"), { gender: pl.gender });
-    if (isAnimal(G.state)) {
-      const a = t("a_" + (G.state.rules.animal?.kind ?? "tortoise"));
+    if (pl.free) return t("freeStage");
+    if (isAnimal(G.state, i)) {
+      const a = t("a_" + (interludeOf(G.state, i)?.kind ?? "tortoise"));
       return a.charAt(0).toUpperCase() + a.slice(1);
     }
     return [...pl.rebirths && stageOf2(pl) === 0 ? [fill(t("bornAgainStage"), { gender: pl.gender })] : [], .../* @__PURE__ */ new Set([stageName(stageOf2(pl), pl.gender), ashramaIn2(pl)])].join(" · ");
@@ -7257,7 +7378,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     <li class="${i === G.state.turn && !G.state.over ? "current" : ""}${gone(pl) ? " dead" : ""}">
       <span class="dot" style="background:${COLORS[pl.color]}"></span>
       <span><span class="pname">${esc(pname(pl))}</span><span class="kind">${pl.type === "cpu" ? t("cpu") : ""}</span>
-        <span class="stage">${stageLine(pl)}</span>
+        <span class="stage">${stageLine(pl, i)}</span>
         ${selfLine(pl) && !gone(pl) ? `<span class="self">${esc(selfLine(pl))}</span>` : ""}${lawLine(pl, i)}</span>
       <span class="pos">${pl.fell ? "" : pl.pos === 0 ? t("start") : pl.pos === GOAL && !isCloth() ? t("moksha") : isCloth() && legendOf(pl.pos)?.top ? sqNum(pl.pos) : t("square", { n: pl.pos })}</span>
     </li>`).join("");
@@ -7271,7 +7392,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const who2 = lifeOfEntry(e);
     const law = e.v?.law && LAWS[e.v.law] ? t(LAWS[e.v.law].text.name) : "";
     const at2 = isCloth() && e.v ? { pos: e.v.pos != null ? sqNum(e.v.pos) : void 0, to: e.v.to != null ? sqNum(e.v.to) : void 0 } : {};
-    return e.k ? fill(t(e.k, { ...e.v, ...at2, name: who2 ? pname(who2) : "", what: e.v?.sq ? squareName(e.v.sq) : "", law }), { gender: who2?.gender }) : e.text;
+    const animal2 = e.v?.animal ? { animal: t("a_" + e.v.animal), animalO: t("ao_" + e.v.animal) } : {};
+    return e.k ? fill(t(e.k, { ...e.v, ...at2, name: who2 ? pname(who2) : "", what: e.v?.sq ? squareName(e.v.sq) : "", law, ...animal2 }), { gender: who2?.gender }) : e.text;
   }
   function renderLog() {
     $("log").innerHTML = G.state.log.map((e) => {
@@ -7305,7 +7427,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     place(true);
   }
   function setSprite(el3, p, stage) {
-    const animal2 = isAnimal(G.state) ? G.state.rules.animal?.kind ?? "tortoise" : null;
+    const i = G.state.players.indexOf(p), animal2 = isAnimal(G.state, i) ? interludeOf(G.state, i)?.kind ?? "tortoise" : null;
     el3.querySelector(".spr").style.backgroundImage = spriteURL(stage, p.color, el3._frame, p.gender, animal2);
     el3.classList.toggle("divine", !animal2 && STAGES[stage].art === "divine");
   }
@@ -7325,11 +7447,12 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       const el3 = tokenEls[i];
       el3.title = pname(p);
       el3.classList.toggle("active", i === G.state.turn && !G.state.over && !G.busy);
-      el3.classList.toggle("dead", gone(p));
+      el3.classList.toggle("dead", gone(p) && !p.free);
+      el3.classList.toggle("liberated", !!p.free);
       el3.classList.toggle("left", p.face === "l" && el3._frame < 2);
       const stage = stageOf2(p);
       if (el3._stage !== stage) {
-        if (el3._stage != null && !silent && !isAnimal(G.state)) {
+        if (el3._stage != null && !silent && !isAnimal(G.state, i)) {
           retrigger(el3, "poof");
           const v = { name: pname(p), stage: stageName(stage, p.gender) }, you = !p.name && p.color === 0;
           const key = stage > el3._stage ? "grew" : "bornAgain";
@@ -8480,15 +8603,18 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var readPast = false;
   function rebornHtml(was, l) {
     const p = subjectOf(), q2 = p.past?.[was] ?? p, who2 = (x) => ({ name: pnameIn(p, x), gender: p.gender });
-    const line = (x, k) => fill(tIn(x, k, { name: pnameIn(p, x), was: pnameIn(q2, x) }), k === "bornAgainCard" ? { gender: q2.gender } : who2(x));
+    const siva = !!q2.fell, animal2 = !!p.animal, human = !!q2.carry, kind = (p.animal ?? q2.animal)?.kind ?? "tortoise";
+    const [card, next2] = siva ? ["bornAgainCard", "bornAgainNew"] : animal2 ? ["bornAgainCardAnimal", "bornAgainNewAnimal"] : human ? ["bornAgainCardHuman", "bornAgainNew"] : ["bornAgainCardDied", "bornAgainNew"];
+    const line = (x, k) => fill(tIn(x, k, { name: pnameIn(p, x), was: pnameIn(q2, x), animal: tIn(x, "a_" + kind), animalO: tIn(x, "ao_" + kind) }), k === card ? { gender: q2.gender } : who2(x));
     let body = `<h2 id="leafTitle">${esc(tIn(l, "bornAgainHead"))}</h2>`;
-    body += `<div class="story">` + texts(l, line("en", "bornAgainCard"), line("hi", "bornAgainCard"), "moment") + texts(l, line("en", "bornAgainNew"), line("hi", "bornAgainNew"), "remedy") + `</div>`;
-    if (choosable().length > 1 && !firstLife()) {
+    body += `<div class="story">` + texts(l, line("en", card), line("hi", card), "moment") + texts(l, line("en", next2), line("hi", next2), "remedy") + `</div>`;
+    if (choosable().length > 1 && !firstLife() && !animal2) {
       const now = lawOf(G.state, subject).id;
       body += `<div class="laws" role="group" aria-label="${esc(tIn(l, "lawPick"))}">` + choosable().map((w) => `<button type="button" class="law" data-act="law" data-law="${w.id}" aria-pressed="${w.id === now}"><b>${esc(tIn(l, w.text.name))}</b> <span>${esc(tIn(l, w.text.about))}</span>${w.text.scholar && deep("scholar") ? ` <small class="law-src">${esc(tIn(l, w.text.scholar))}</small>` : ""}</button>`).join("") + `</div>`;
     }
     body += `<p class="reborn-acts"><button type="button" class="ghost" data-act="pastLife">${esc(tIn(l, "readPast"))}</button> <button type="button" data-act="close">${esc(tIn(l, "goOn"))}</button></p>`;
-    return { kind: "reborn", met: [], html: frame2(l, { kind: "reborn", eb: esc(tIn(l, "bornAgainHead")), big: art("fall", "🔱", "spr snake-glyph"), sqn: numIn(l, TOP), body, foot: "" }) };
+    const big = siva ? art("fall", "🔱", "spr snake-glyph") : illumined(null, "☸︎");
+    return { kind: "reborn", met: [], html: frame2(l, { kind: "reborn", eb: esc(tIn(l, "bornAgainHead")), big, sqn: numIn(l, siva ? TOP : q2.pos || 1), body, foot: "" }) };
   }
   var metMore = [];
   function paint2({ landing = false } = {}) {
@@ -8833,7 +8959,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   function wheelOf(state, i) {
     const p = state.players[i];
     if (!p || p.pos !== GOAL) return null;
-    const open2 = state.winner === i, ref = p.refusals?.at(-1);
+    const open2 = liberated(state, i), ref = p.refusals?.at(-1);
     if (!ref) return open2 ? { key: `${i}`, spokes: [], open: open2, shut: false } : null;
     if (!p.door && !open2 && !p.dead) return null;
     const sits = (p.sittings ?? []).filter((s) => s.at >= ref.at);
@@ -8926,13 +9052,19 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     last = { n: 1, who: who2, was };
     drawLanded();
   };
+  var landPublic = (who2, kind, e) => {
+    last = { n: e?.v?.sq ?? e?.v?.pos ?? GOAL, who: who2, pub: kind, e };
+    drawLanded();
+  };
   function bornLine(l, { who: who2, stay, was, why }) {
     const p = G.state.players[who2], w = { name: pnameIn(p, l), gender: p.gender };
     const k = { zero: "cZero", entry: "cEntry", six: "cSix", top: "cTop", exact: "cExact" }[why];
     if (stay && k) return { title: tIn(l, k + "Title"), text: fill(tIn(l, k + "Line", { ...w, end: TOP }), w) };
     if (stay) return { title: tIn(l, "stayTitle"), text: fill(tIn(l, "heavenStay", w), w) };
-    const q2 = p.past?.[was];
-    return { title: tIn(l, "bornAgainHead"), text: fill(tIn(l, "bornAgainLine", { name: w.name, was: q2 ? pnameIn(q2, l) : "" }), w) };
+    const q2 = p.past?.[was], i = G.state.players.indexOf(p);
+    const k2 = !q2 || q2.fell ? "bornAgainLine" : p.animal ? "bornAgainLineAnimal" : q2.carry ? "bornAgainLineHuman" : "bornAgainLineDied";
+    const kind = (p.animal ?? q2?.animal)?.kind ?? interludeOf(G.state, i)?.kind ?? "tortoise";
+    return { title: tIn(l, "bornAgainHead"), text: fill(tIn(l, k2, { name: w.name, was: q2 ? pnameIn(q2, l) : "", animal: tIn(l, "a_" + kind), animalO: tIn(l, "ao_" + kind) }), w) };
   }
   function drawLanded() {
     const s = G.state;
@@ -8940,7 +9072,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       const q2 = squareOf(n);
       return { title: q2?.[lang] || q2?.en || "", text: TALES.includes(n) ? q2?.mirror?.[lang] || q2?.mirror?.en || "" : "" };
     };
-    let { title, text } = !last || !s ? {} : isAnimal(s) && !last.door ? animalLine(last.n) : last.door ? doorLine(lang, last) : last.stay || last.was != null ? bornLine(lang, last) : last.only ? {} : s.players[last.who]?.pos != null ? momentLine(last.n, last.who, lang, last.told, last.ego) : {};
+    let { title, text } = !last || !s ? {} : last.pub ? { title: tIn(lang, "pub_" + last.pub), text: entryText(last.e) } : isAnimal(s, last.who) && !last.door && last.was == null ? animalLine(last.n) : last.door ? doorLine(lang, last) : last.stay || last.was != null ? bornLine(lang, last) : last.only ? {} : s.players[last.who]?.pos != null ? momentLine(last.n, last.who, lang, last.told, last.ego) : {};
     if (last?.curse && s) text = [text, curseLine(lang, last.who)].filter(Boolean).join(" ");
     if (six && s?.players[six.who]) text = [text, sixLineIn(lang, six)].filter(Boolean).join(" ");
     if (!text && !title) {
@@ -9004,7 +9136,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var after = (raw, text, l) => l === "en" && !NAMED2.test(raw) && /^(?:\p{Lu}\p{Ll}|(?!I\s)\p{Lu}\s)/u.test(text) ? text[0].toLowerCase() + text.slice(1) : text;
   var stageAt2 = (e) => e.n > EARTH3 ? 5 : stageOfYears(e.years);
   function lifeOf(state, i, l) {
-    if (isAnimal(state)) return animalLifeOf(state, i, l);
+    if (isAnimal(state, i)) return animalLifeOf(state, i, l);
     const p = state.players[i], name = pnameIn(p, l), who2 = { name, gender: p.gender };
     const T2 = (key, v = {}) => fill(tIn(l, key, { name, ...v }), who2);
     const J = (j, v = {}) => {
@@ -9076,11 +9208,22 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const all = yearsAlong(p.life || [], p.told || []);
     const curse = curseIn(p);
     const sayings = curse ? [{ at: curse.said + 1, curse: "said" }, ...curse.closedAt != null ? [{ at: curse.closedAt + 1, curse: "landed" }] : []] : [];
-    const recks = [...(p.refusals || []).map((r) => ({ ...r, door: true })), ...p.reckonings || [], ...(p.sittings || []).map((x) => ({ ...x, exam: true })), ...sayings].sort((a, b) => a.at - b.at || !!b.door - !!a.door);
+    const meets = (p.met || []).map((m) => ({ at: m.i + 1, meet: m }));
+    const recks = [...(p.refusals || []).map((r) => ({ ...r, door: true })), ...p.reckonings || [], ...(p.sittings || []).map((x) => ({ ...x, exam: true })), ...sayings, ...meets].sort((a, b) => a.at - b.at || !!b.door - !!a.door);
     let rq = 0;
+    const metPairs = /* @__PURE__ */ new Set();
     const reckon = (upto) => {
       for (; rq < recks.length && recks[rq].at <= upto; rq++) {
         const r = recks[rq];
+        if (r.meet) {
+          if (!para) continue;
+          flush();
+          const m = r.meet, v = { other: m.with[l] || m.with.en, sq: sq(m.sq), age: words(m.age) }, pair = `${m.seat}.${m.life}.${para.s}`;
+          if (metPairs.has(pair)) continue;
+          metPairs.add(pair);
+          para.parts.push(T2(m.sq > EARTH3 ? "accMetHeaven" : m.age < 1 ? "accMetFirst" : "accMet", v));
+          continue;
+        }
         if (r.curse) {
           if (!para) continue;
           flush();
@@ -9240,9 +9383,9 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         const head = s === 5 || !ages.length ? stage(s) : a === b ? T2("lifeAt", { stage: stage(s), a }) : T2("lifeSpan", { stage: stage(s), a, b });
         return { head, text: parts.join(" ") };
       }),
-      end: lawEnd(state, i, T2, words, state.winner === i ? winEnd(p, T2, words, held2, lawOf(state, i)) : p.fell ? fellEnd(p, along, T2, sq, held2, l, who2, lawOf(state, i)) : !p.life?.length ? T2("lifeUnborn") : p.death?.by === "ledger" ? ledgerEnd(p, T2, words, l, who2, held2) : p.dead && p.pos === GOAL ? doorEnd(p, T2, words, l, who2) : p.dead ? T2("lifeEndDied", { age: words(p.years), holding: held2(SNAKES[p.holding]?.holding) }).replace(/, ([.।])$/, "$1") : T2("lifeEndOpen", { n: p.pos })),
+      end: lawEnd(state, i, T2, words, liberated(state, i) ? winEnd(p, T2, words, held2, lawOf(state, i)) : p.fell ? fellEnd(p, along, T2, sq, held2, l, who2, lawOf(state, i)) : !p.life?.length ? T2("lifeUnborn") : p.death?.by === "ledger" ? ledgerEnd(p, T2, words, l, who2, held2) : p.dead && p.pos === GOAL ? doorEnd(p, T2, words, l, who2) : p.dead ? T2("lifeEndDied", { age: words(p.years), holding: held2(SNAKES[p.holding]?.holding) }).replace(/, ([.।])$/, "$1") : T2("lifeEndOpen", { n: p.pos })),
       // a curse the life never bore out is closed after the end, the other way (Phase 14): empty with none
-      curse: curse && curse.closedAt == null && (state.winner === i || p.fell || p.dead) ? fill(curse.c.not[l] || curse.c.not.en, who2) : "",
+      curse: curse && curse.closedAt == null && (liberated(state, i) || p.fell || p.dead) ? fill(curse.c.not[l] || curse.c.not.en, who2) : "",
       // what the life never found out about the people in it (Phase 10C): empty with no cast
       fates: fatesIn(state, i, l, along, cc, who2),
       // how many cast returns were joined by what they witnessed (Phase 15), for tools/accounts.mjs
@@ -9256,7 +9399,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   }
   function lawEnd(state, i, T2, words, end) {
     const p = state.players[i], k = lawOf(state, i).text.end;
-    return k && (p.dead || p.fell || state.winner === i) ? `${end} ${T2(k)}` : end;
+    return k && (p.dead || p.fell || liberated(state, i)) ? `${end} ${T2(k)}` : end;
   }
   function fellEnd(p, along, T2, sq, held2, l, who2, law) {
     const top = p.fellFrom ?? Math.max(...along.map((e) => e.n)), vice = SNAKES[p.holding]?.holding;
@@ -9312,8 +9455,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       rows.push({ n: e.n, years: e.years, kind: e.via, from: e.from });
     }
     const viaOf = (r) => r.kind === "snake" ? T2("pathSnake", { sq: nameOf(r.from) }) : r.kind === "ladder" ? T2("pathLadder", { sq: nameOf(r.from) }) : r.kind === "reckon" ? T2("pathReckon") : r.kind === "sit" ? r.count === 1 ? T2("pathSat") : T2("pathSatN", { n: words(r.count) }) : r.kind === "stay" ? r.count === 1 ? T2("pathStay") : T2("pathStayN", { n: words(r.count) }) : "";
-    const end = state.winner === i ? T2(lawOf(state, i).text.win.path) : p.fell ? T2("pathFell") : p.dead ? T2("pathDied") : p.earned ? T2("animalEarned") : p.short ? T2(state.rules.animal?.round >= 2 ? "animalLastText" : "animalShortText") : "";
-    return { rows: rows.map((r) => ({ age: isAnimal(state) ? "" : words(r.years), sq: nameOf(r.n), via: viaOf(r) })), end };
+    const end = liberated(state, i) ? T2(lawOf(state, i).text.win.path) : p.fell ? T2("pathFell") : p.dead ? T2("pathDied") : p.earned ? T2("animalEarned") : p.short ? T2(interludeOf(state, i)?.round >= 2 ? "animalLastText" : "animalShortText") : "";
+    return { rows: rows.map((r) => ({ age: isAnimal(state, i) ? "" : words(r.years), sq: nameOf(r.n), via: viaOf(r) })), end };
   }
   function lifeText(state, i, l) {
     const { title, sub, open: open2, paras, end, curse, fates } = lifeOf(state, i, l);
@@ -9674,6 +9817,19 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     addLog(G.state, e);
     renderLog();
   }
+  function noteChoice(p, x) {
+    (p.choices ||= []).push(x);
+  }
+  function publicOf(state, plan, p) {
+    if (plan.reborn || isCloth()) return null;
+    const all = [...plan.after, ...plan.end], line = (k) => all.findLast((e) => e.kind === k);
+    if ((plan.win || plan.freed) && together(state)) return { kind: "free", e: line("heaven") };
+    if (plan.died && !(plan.sit && plan.from === GOAL)) return { kind: "died", e: line("death") };
+    if (p.type === "human") return null;
+    if (plan.reckon && !plan.reckon.dies) return { kind: "reckon", e: line("reckon") };
+    if (plan.jump?.kind === "ladder" && plan.jump.to >= ENDGAME) return { kind: "ladder", e: line("ladder") };
+    return null;
+  }
   var canThrow = () => !G.busy && !G.state.over;
   async function takeTurn({ practice = false } = {}) {
     const state = G.state;
@@ -9698,6 +9854,13 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     } else if (sixOf()?.cpu) landSix(null);
     release();
     const spent = spentOf(p), still2 = !spent && (p.type === "human" ? practice && canPractise(state) : practisesNow(state));
+    if (p.type === "human") {
+      if ((p.rebirths ?? 0) !== (p.lawNoted ?? 0)) {
+        noteChoice(p, "l" + (p.law ?? ""));
+        p.lawNoted = p.rebirths;
+      }
+      if (!spent && canPractise(state)) noteChoice(p, still2 ? "p" : "r");
+    }
     const dice = spent || still2 ? [] : await rollDice3(diceFor(p));
     await shut;
     if (g3 !== G.gen) return;
@@ -9705,6 +9868,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     const moves = spent || still2 ? [] : movesFor2(state, dice), auto = lawOf(state, idx).auto;
     const v = still2 ? 0 : moves.length < 2 ? moves[0] ?? null : p.type === "human" && !auto ? await choose(dice) : moveFor(state, dice);
     if (g3 !== G.gen) return;
+    if (!still2 && moves.length >= 2 && p.type === "human" && !auto) noteChoice(p, String(v));
     if (p.type === "human" && !shut && cardOpen()) await closeCard();
     if (g3 !== G.gen) return;
     if (dice.length || v == null) state.last = v || dice[0];
@@ -9756,6 +9920,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
           }
           const id = p.type === "human" && !auto ? await decide(plan.situation, p) : lawOf(state, idx).choose(state, plan.situation);
           if (g3 !== G.gen) return;
+          if (p.type === "human" && !auto) noteChoice(p, "o" + id);
           plan = resolveChoice(state, plan, id);
           G.plan = plan;
           if (plan.ego && p.type === "human") {
@@ -9873,8 +10038,10 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
       lifeLived();
       refreshCard();
     }
-    if ((plan.died || plan.fell && p.fell) && p.type === "human") openLife(idx);
-    if (plan.fell && !plan.freed && p.past?.length) {
+    if ((plan.died || plan.fell && p.fell) && p.type === "human" && !plan.reborn) openLife(idx);
+    const pub = publicOf(state, plan, p);
+    if (pub) landPublic(idx, pub.kind, pub.e);
+    if (plan.reborn) {
       const was = p.past.length - 1;
       landReborn(idx, was);
       render();
@@ -9899,7 +10066,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     pump();
   }
   function fullCard(state, plan, idx) {
-    if (isAnimal(state)) return false;
+    if (isAnimal(state, idx)) return false;
     if (isCloth()) return prefs.everyCard || !!plan.jump || plan.win;
     if (prefs.everyCard || plan.jump || plan.target === GOAL || plan.win) return true;
     const p = state.players[idx], n = plan.target;
@@ -9996,9 +10163,11 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     $("practise").hidden = !human || state.over || !!G.choosing || !!G.deciding || !canPractise(state);
     $("practise").disabled = G.busy;
     $("practise").title = t("practiseHint");
+    $("stopHere").hidden = !together(state) || state.over || !state.players.some((q2) => q2.type === "human");
+    $("stopHere").disabled = G.busy;
     $("roll").textContent = human ? t(rollKey()) : t("rolling", { name: pname(p) });
     const six2 = !state.over && sixOf();
-    $("hint").textContent = state.over ? t("hintOver") : six2 ? sixLineIn(lang, six2) : isAnimal(state) ? t("animalHint") : human ? t("hintHuman") : t("hintCpu");
+    $("hint").textContent = state.over ? t("hintOver") : six2 ? sixLineIn(lang, six2) : isAnimal(state, state.turn) ? t("animalHint") : human ? t("hintHuman") : t("hintCpu");
     if (G.deciding) drawDecide();
     showDice(state.dice?.length ? state.dice : [state.last || 6]);
     refreshRoll();
@@ -10029,6 +10198,10 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
       $("winText").textContent = wp.type === "human" ? t(tw.human) : t(tw.cpu);
       $("winNote").textContent = tw.note ? t(tw.note) : "";
       $("winNote").hidden = !tw.note;
+    } else if (state.over && together(state)) {
+      $("winTitle").textContent = t("togetherTitle");
+      $("winText").textContent = t(state.stopped ? "stoppedText" : "togetherText");
+      $("winNote").hidden = true;
     } else if (state.over) {
       const one = humans.length === 1 ? humans[0] : null;
       $("winTitle").textContent = one ? t("lifeTitle", { name: pname(one) }) : t("raceNone");
@@ -10119,6 +10292,10 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
       <p class="law-about" id="plawAbout${i}">${esc(t((canChoose(r.law) ? LAWS[r.law] : LAWS.board).text.about))}</p>` : ""}
     </div>`).join("");
     $("ruleSix").checked = setup2.rules.six;
+    const mode = modeOf(setup2), plays = setup2.count >= 2 && !setup2.rules.board;
+    $("ruleModeRow").hidden = $("ruleModeAbout").hidden = !plays;
+    $("ruleMode").innerHTML = MODES.map(([v, k]) => `<option value="${v}"${v === mode ? " selected" : ""}>${esc(t(k))}</option>`).join("");
+    $("ruleModeAbout").textContent = t(mode === "race" ? "modeRaceAbout" : "modeTogetherAbout");
     const board4 = setup2.rules.board ?? "110", old = board4 !== "110";
     $("ruleBoard").innerHTML = Object.keys(BOARDS).filter((id) => STR.en["board" + id]).sort((a, b) => b - a).map((id) => `<option value="${id}"${id === board4 ? " selected" : ""}>${esc(t("board" + id))}</option>`).join("");
     $("ruleRandRow").hidden = !old;
@@ -10149,6 +10326,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
       }
     });
     setup2.rules = { six: $("ruleSix").checked };
+    if (setup2.count >= 2 && !$("ruleModeRow").hidden) setup2.rules.mode = $("ruleMode").value === "race" ? "race" : "together";
     const board4 = $("ruleBoard").value, rand = $("ruleRand").value;
     if (board4 && board4 !== "110") setup2.rules.board = board4;
     if (setup2.rules.board && rand !== "own") setup2.rules.rand = rand;
@@ -10158,6 +10336,11 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     }
   }
   var RAND_NAME = { cowries: "randCowries", stick: "randStick", die: "randDie" };
+  var MODES = [["together", "modeTogether"], ["race", "modeRace"]];
+  var modeOf = (setup2) => setup2.rules?.mode === "race" ? "race" : "together";
+  $("ruleMode").addEventListener("change", () => {
+    $("ruleModeAbout").textContent = t($("ruleMode").value === "race" ? "modeRaceAbout" : "modeTogetherAbout");
+  });
   $("ruleBoard").addEventListener("change", () => {
     readSetup();
     renderSetup();
@@ -10262,6 +10445,8 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     const { who: who2, k } = naming, n = people(who2);
     $("namingWhoOpts").innerHTML = WHO2.map((v) => `<label><input type="radio" name="who" value="${v}"${v === who2 ? " checked" : ""}> <span>${esc(v === "1" ? t("whoMe") : v === "cpu" ? t("whoCpu") : t("whoPeople", { n: +v }))}</span></label>`).join("");
     $("namingWho").hidden = k > 0;
+    $("namingMode").hidden = k > 0 || who2 === "1";
+    $("namingModeOpts").innerHTML = MODES.map(([v, key]) => `<label title="${esc(t(key + "About"))}"><input type="radio" name="mode" value="${v}"${v === naming.mode ? " checked" : ""}> <span>${esc(t(key))}</span></label>`).join("");
     $("namingStep").hidden = n < 2;
     $("namingStep").textContent = n < 2 ? "" : t("namingOf", { k: k + 1, n, colour: t("colour" + k) });
     $("namingBegin").textContent = t(k < n - 1 ? "namingNext" : "namingBegin");
@@ -10277,7 +10462,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
   }
   function openNaming() {
     readSetup();
-    naming = { who: whoOfSetup(G.setup), k: 0 };
+    naming = { who: whoOfSetup(G.setup), k: 0, mode: modeOf(G.setup) };
     fillNaming(0);
     drawNaming();
     $("naming").showModal();
@@ -10287,6 +10472,9 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
       naming.who = e.target.value;
       drawNaming();
     }
+  });
+  $("namingModeOpts").addEventListener("change", (e) => {
+    if (naming && e.target.name === "mode") naming.mode = e.target.value;
   });
   $("namingBack").addEventListener("click", () => {
     if (!naming?.k) return;
@@ -10310,8 +10498,11 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
       $("namingName").focus();
       return;
     }
+    const mode = naming.mode;
     naming = null;
     G.setup.count = who2 === "cpu" ? 2 : n;
+    if (G.setup.count >= 2 && !G.setup.rules.board) G.setup.rules.mode = mode;
+    else delete G.setup.rules.mode;
     if (who2 === "cpu" && G.setup.rows[1].type !== "cpu") Object.assign(G.setup.rows[1], { name: "", type: "cpu", gender: "" });
     renderSetup();
     nextSeed = G.state.rng.seed;
@@ -10320,6 +10511,22 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
   $("naming").addEventListener("cancel", (e) => e.preventDefault());
   $("roll").addEventListener("click", () => takeTurn());
   $("practise").addEventListener("click", () => takeTurn({ practice: true }));
+  $("stopHere").addEventListener("click", () => {
+    if (!G.busy && !G.state.over && together(G.state)) $("stopAsk").showModal();
+  });
+  $("stopAsk").addEventListener("close", () => {
+    if ($("stopAsk").returnValue === "yes") stopHere();
+  });
+  function stopHere() {
+    const state = G.state;
+    if (G.busy || state.over || !together(state)) return;
+    clearTimeout(G.cpuTimer);
+    G.rollQueued = false;
+    state.over = true;
+    state.stopped = true;
+    saveGame(G.setup, state);
+    render();
+  }
   document.addEventListener("keydown", (e) => {
     if (G.deciding && /^[1-3]$/.test(e.key) && !e.target.closest("input, select, textarea") && !e.ctrlKey && !e.metaKey && !e.altKey) {
       const o = G.deciding.opts[+e.key - 1];
@@ -10513,6 +10720,15 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
         if (r) Object.assign(G.state.rules, r);
         return { ...G.state.rules };
       },
+      // mp.mode("race" | "together") (Phase 19): how the running game, and the next, are played; mp.mode() says which
+      mode(m) {
+        if (m === "race" || m === "together") {
+          G.state.rules.mode = m;
+          G.setup.rules.mode = m;
+          render();
+        }
+        return together(G.state) ? "together" : "race";
+      },
       lifeText: (i = 0, l) => lifeText2(G.state, i, l),
       // mp.cast(0) is player 0's cast for this game, names, genders and ages, as the account draws it (Phase 10C)
       cast: (i = 0, life = 0) => castOf(G.state, i, life),
@@ -10682,11 +10898,16 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     };
   }
   function start(data) {
+    let loaded = false;
     if (!data?.state && urlSeed == null) {
       const g3 = loadGame();
-      if (g3) data = { ...data, setup: data?.setup ?? g3.setup, state: g3.state };
+      if (g3) {
+        data = { ...data, setup: data?.setup ?? g3.setup, state: g3.state };
+        loaded = true;
+      }
     }
     G.setup = data?.setup || defaultSetup();
+    if (loaded && G.setup.count >= 2 && G.setup.rules && !G.setup.rules.board && !G.setup.rules.mode) G.setup.rules.mode = "together";
     if (data?.setup?.lang && !urlLang) setLangValue(data.setup.lang);
     applyStatic();
     buildCells();

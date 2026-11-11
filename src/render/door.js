@@ -10,6 +10,7 @@ import { GOAL, ROWS, COLS } from "../content.js";
 import { G } from "../state.js";
 import { $ } from "../ui.js";
 import { debtKey } from "../engine/karma.js";
+import { liberated } from "../engine/mode.js";
 import { colRow } from "./board.js";
 
 const el = $("door");
@@ -19,7 +20,7 @@ let drawn = null; // the key of what is drawn: whose wheel, for which refusal an
 export function wheelOf(state, i) {
   const p = state.players[i];
   if (!p || p.pos !== GOAL) return null;
-  const open = state.winner === i, ref = p.refusals?.at(-1);
+  const open = liberated(state, i), ref = p.refusals?.at(-1);
   if (!ref) return open ? { key: `${i}`, spokes: [], open, shut: false } : null;
   if (!p.door && !open && !p.dead) return null;
   const sits = (p.sittings ?? []).filter(s => s.at >= ref.at);

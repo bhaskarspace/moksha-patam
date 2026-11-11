@@ -41,7 +41,8 @@ import { momentOf, optionOf } from "./qbn.js";
 import { castAlong, peopleOf, introIn, beforeIn, calledIn, fatesIn } from "./cast.js";
 import { reckoningIn, seedOf, refusalIn, carryIn, karmaOf, carried, debtIn, formIn } from "./karma.js";
 import { curseIn } from "./curse.js";
-import { isAnimal, animalLifeOf } from "./animal.js";
+import { isAnimal, animalLifeOf, interludeOf } from "./animal.js";
+import { liberated } from "./mode.js";
 import { lawOf } from "./laws/index.js";
 
 const EARTH = 100, GAP = 8;
@@ -55,7 +56,7 @@ const stageAt = e => (e.n > EARTH ? 5 : stageOfYears(e.years));
 // Player i's life in language l: { title, sub, open, paras: [{ head, text }], end }.
 export function lifeOf(state, i, l) {
   // an animal interlude has an account of its own (Phase 16, src/engine/animal.js)
-  if (isAnimal(state)) return animalLifeOf(state, i, l);
+  if (isAnimal(state, i)) return animalLifeOf(state, i, l);
   const p = state.players[i], name = pnameIn(p, l), who = { name, gender: p.gender };
   const T = (key, v = {}) => fill(tIn(l, key, { name, ...v }), who);
   // a join begins a sentence, even when it begins with a number: "Nine quiet years later, "
@@ -122,12 +123,25 @@ export function lifeOf(state, i, l) {
   // and the years at the door, the curse said and the curse borne out, told likewise before the entry after them
   const curse = curseIn(p);
   const sayings = curse ? [{ at: curse.said + 1, curse: "said" }, ...(curse.closedAt != null ? [{ at: curse.closedAt + 1, curse: "landed" }] : [])] : [];
-  const recks = [...(p.refusals || []).map(r => ({ ...r, door: true })), ...(p.reckonings || []), ...(p.sittings || []).map(x => ({ ...x, exam: true })), ...sayings]
+  // and (Phase 19) the lives that crossed this one in a game played together, each where in this life it came
+  const meets = (p.met || []).map(m => ({ at: m.i + 1, meet: m }));
+  const recks = [...(p.refusals || []).map(r => ({ ...r, door: true })), ...(p.reckonings || []), ...(p.sittings || []).map(x => ({ ...x, exam: true })), ...sayings, ...meets]
     .sort((a, b) => a.at - b.at || !!b.door - !!a.door);
   let rq = 0;
+  const metPairs = new Set();
   const reckon = upto => {
     for (; rq < recks.length && recks[rq].at <= upto; rq++) {
       const r = recks[rq];
+      if (r.meet) {
+        if (!para) continue;
+        flush();
+        // every meeting is kept (the comparison lists them all); the book tells a pair once a stage of the life
+        const m = r.meet, v = { other: m.with[l] || m.with.en, sq: sq(m.sq), age: words(m.age) }, pair = `${m.seat}.${m.life}.${para.s}`;
+        if (metPairs.has(pair)) continue;
+        metPairs.add(pair);
+        para.parts.push(T(m.sq > EARTH ? "accMetHeaven" : m.age < 1 ? "accMetFirst" : "accMet", v));
+        continue;
+      }
       if (r.curse) {
         if (!para) continue;
         flush();
@@ -267,7 +281,7 @@ export function lifeOf(state, i, l) {
       const head = s === 5 || !ages.length ? stage(s) : a === b ? T("lifeAt", { stage: stage(s), a }) : T("lifeSpan", { stage: stage(s), a, b });
       return { head, text: parts.join(" ") };
     }),
-    end: lawEnd(state, i, T, words, state.winner === i ? winEnd(p, T, words, held, lawOf(state, i))
+    end: lawEnd(state, i, T, words, liberated(state, i) ? winEnd(p, T, words, held, lawOf(state, i))
       : p.fell ? fellEnd(p, along, T, sq, held, l, who, lawOf(state, i))
       : !p.life?.length ? T("lifeUnborn")
       : p.death?.by === "ledger" ? ledgerEnd(p, T, words, l, who, held)
@@ -275,7 +289,7 @@ export function lifeOf(state, i, l) {
       : p.dead ? T("lifeEndDied", { age: words(p.years), holding: held(SNAKES[p.holding]?.holding) }).replace(/, ([.।])$/, "$1")
       : T("lifeEndOpen", { n: p.pos })),
     // a curse the life never bore out is closed after the end, the other way (Phase 14): empty with none
-    curse: curse && curse.closedAt == null && (state.winner === i || p.fell || p.dead) ? fill(curse.c.not[l] || curse.c.not.en, who) : "",
+    curse: curse && curse.closedAt == null && (liberated(state, i) || p.fell || p.dead) ? fill(curse.c.not[l] || curse.c.not.en, who) : "",
     // what the life never found out about the people in it (Phase 10C): empty with no cast
     fates: fatesIn(state, i, l, along, cc, who),
     // how many cast returns were joined by what they witnessed (Phase 15), for tools/accounts.mjs
@@ -295,7 +309,7 @@ function winEnd(p, T, words, held, law) {
 // Sāṃkhya: the dancer of Sāṃkhyakārikā 59, won or not).
 function lawEnd(state, i, T, words, end) {
   const p = state.players[i], k = lawOf(state, i).text.end;
-  return k && (p.dead || p.fell || state.winner === i) ? `${end} ${T(k)}` : end;
+  return k && (p.dead || p.fell || liberated(state, i)) ? `${end} ${T(k)}` : end;
 }
 
 // The fall from the heavens (REDESIGN.md Phase 12): the realm the life reached, the merit spent, and what it was still
@@ -374,9 +388,9 @@ export function pathOf(state, i, l) {
   const viaOf = r => r.kind === "snake" ? T("pathSnake", { sq: nameOf(r.from) }) : r.kind === "ladder" ? T("pathLadder", { sq: nameOf(r.from) })
     : r.kind === "reckon" ? T("pathReckon") : r.kind === "sit" ? (r.count === 1 ? T("pathSat") : T("pathSatN", { n: words(r.count) }))
     : r.kind === "stay" ? (r.count === 1 ? T("pathStay") : T("pathStayN", { n: words(r.count) })) : "";
-  const end = state.winner === i ? T(lawOf(state, i).text.win.path) : p.fell ? T("pathFell") : p.dead ? T("pathDied") : p.earned ? T("animalEarned") : p.short ? T(state.rules.animal?.round >= 2 ? "animalLastText" : "animalShortText") : "";
+  const end = liberated(state, i) ? T(lawOf(state, i).text.win.path) : p.fell ? T("pathFell") : p.dead ? T("pathDied") : p.earned ? T("animalEarned") : p.short ? T(interludeOf(state, i)?.round >= 2 ? "animalLastText" : "animalShortText") : "";
   // an animal does not count years, so its path has none
-  return { rows: rows.map(r => ({ age: isAnimal(state) ? "" : words(r.years), sq: nameOf(r.n), via: viaOf(r) })), end };
+  return { rows: rows.map(r => ({ age: isAnimal(state, i) ? "" : words(r.years), sq: nameOf(r.n), via: viaOf(r) })), end };
 }
 
 // The same life as plain text, to copy or save.

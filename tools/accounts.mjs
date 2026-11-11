@@ -29,6 +29,9 @@
 // only the heavens lead there). Every untagged account must be the same as main's.
 // Its step 4 follow-up rewords the Hindi ("बरस पर" → "बरस की उम्र में", "खाना {n}" → "घर {n}"): "wording" marks a Hindi
 // account that says either. Every English account, and every Hindi one untagged wording, must be the same as before.
+// Phase 19 adds --mode=together: the two computers' game is played together (src/engine/mode.js), so each seat lives on
+// through its rebirths until it is let go, every account of it tagged "together", and one that tells a meeting with the
+// other seat "meet". A game of one seat is never played together. Without the flag every account must be main's.
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
@@ -76,13 +79,13 @@ const say = (key, s, i, l) => {
   const past = s.players[i].past ?? [];
   if (!past.length) return sayOne(key, s, i, l);
   [...past.map((_, k) => pastOf(s, i, k)), s].forEach((v, k) => {
-    if (k) v = { ...v, siva: true };
+    if (k) v = { ...v, siva: true, together: s.together };
     sayOne(k ? `${key} siva${k}` : key, v, i, l);
   });
 };
 const sayOne = (key, s, i, l) => {
   const text = lifeText(s, i, l), life = lifeOf(s, i, l);
-  out.push(flags.full ? `## ${key}\n${text}` : `${key} ${hash(text)}${flags.tag ? (s.above ? " above" : "") + (s.karma ? " karma" : "") + (s.door ? " door" : "") + (s.curse ? " curse" : "") + (s.witness || life.witnessed ? " witness" : "") + (s.death ? " death" : "") + (mirrorOf?.(s, i)[0]?.id === "rebel" ? " mirror" : "") + (s.rebirth ? " rebirth" : "") + (s.animal ? " animal" : "") + (s.siva ? " siva" : "") + (l === "hi" && /बरस की उम्र में|घर [०-९\d]/.test(text) ? " wording" : "") : ""}`);
+  out.push(flags.full ? `## ${key}\n${text}` : `${key} ${hash(text)}${flags.tag ? (s.above ? " above" : "") + (s.karma ? " karma" : "") + (s.door ? " door" : "") + (s.curse ? " curse" : "") + (s.witness || life.witnessed ? " witness" : "") + (s.death ? " death" : "") + (mirrorOf?.(s, i)[0]?.id === "rebel" ? " mirror" : "") + (s.rebirth ? " rebirth" : "") + (s.animal ? " animal" : "") + (s.siva ? " siva" : "") + (s.together ? " together" : "") + (s.players[i].met?.length ? " meet" : "") + (l === "hi" && /बरस की उम्र में|घर [०-९\d]/.test(text) ? " wording" : "") : ""}`);
   if (l === "en" && life.fates) {
     tally.lives++;
     tally.fates += life.fates.length;
@@ -110,7 +113,8 @@ for (let seed = 1; seed <= seeds; seed++) {
       for (const l of ["en", "hi"]) say(`${seed} one ${gender} ${l} life2`, t, 0, l);
     }
   }
-  const s = play(cast([{ name: "", type: "cpu", gender: "" }, { name: "", type: "cpu", gender: "" }], seed), seed);
+  const s = play(cast([{ name: "", type: "cpu", gender: "" }, { name: "", type: "cpu", gender: "" }], seed), seed, { six: true, ...(flags.mode === "together" ? { mode: "together" } : {}) });
+  s.together = flags.mode === "together";
   for (const i of [0, 1]) for (const l of ["en", "hi"]) say(`${seed} two p${i} ${l}`, s, i, l);
 }
 process.stdout.write(out.join("\n") + "\n");
