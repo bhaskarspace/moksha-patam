@@ -121,7 +121,9 @@ shared sequence, tools only; a game without `state.throws === "own"` (saved befo
 (`streamOf`). Links live in the hash (`src/share.js`): `#play=board.law.seed` and `#life=payload`; a
 person's own finished games are kept in `mp-seeds`; today's life is `dailySeed(dayOf())`. A game a `?debug` helper set by
 hand is `state.tampered` and is never sent. A life born again never takes a name any life in its game has had (`nameAgain`;
-`players.again` in `content/names.json` is drawn only for that).
+`players.again` in `content/names.json` is drawn only for that). An animal's life carries no person's name: no name is drawn for it, and it is
+called by its kind and household, "the tortoise in Vikram's house" (`animalNameIn` in `src/i18n.js`, through `pnameIn`;
+lower case inside a sentence, Hindi oblique before a postposition); a soul is called by its last human life's name.
 Phase 7 was The Exit (REDESIGN.md §4): Moksha is square 105 (`GOAL`), partway
 along the divine row, while the board still ends at 110 (`TOP`). Since Phase 12 nothing above the exit turns back: past 105 the
 heavens (106–110) are walked. Since Phase 17 no throw passes `TOP`, and the exact throw onto it is Śiva's snake, the fall
@@ -185,7 +187,8 @@ illuminated frame (`frame.js`) and a bottom sheet below 768px (`sheet.js`).
   `--start=six` / `--end=exact|roam` with the game's other rules; it reports turns to the goal and where they went.
 - Phase 19: `npm run sim -- --mode=together [--length=one]` plays a table together; `--dice=stream` (sim and
   `tools/accounts.mjs`) throws off the old shared sequence. `tools/accounts.mjs --mode=together` tags `together` and
-  `meet`, and with per-throw dice every game whose throws differ from the stream's is tagged `dice`; with `--dice=stream`
+  `meet`, and with per-throw dice every game whose throws differ from the stream's is tagged `dice`; a game holding an
+animal's life is tagged `animalname`; with `--dice=stream`
   every account must be main's. `npm run perf` also times opening the lives side by side on a four-seat game.
 - `npm run smoke [-- --only=text]`: Playwright checks of the built page in a real browser (needs Chrome installed).
   `--only` runs just the checks whose names contain the text, e.g. `--only="Phase 6"`.

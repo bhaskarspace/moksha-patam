@@ -1448,14 +1448,14 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         ao_mongoose: "mongoose",
         ao_cat: "cat",
         ao_lion: "lion",
-        animalTitle: "{name}, the {animal}",
-        animalOpen: "{name} was born a {animal} this time, in {master}'s house.",
-        animalOpenNone: "{name} was born a {animal} this time, at the edge of a village.",
+        animalTitle: "{name}",
+        animalOpen: "This time the soul was born a {animal}, in {master}'s house.",
+        animalOpenNone: "This time the soul was born a {animal}, at the edge of a village.",
         animalHead: "Among the animals",
-        animalOwn: "{name} knows this story without being told.",
-        animalEndHuman: "{name} reached the edge of the forest in time, and the next birth is human.",
-        animalEndShort: "The seasons turned before {name} reached the edge of the forest, and the next birth is a {animal}'s again.",
-        animalEndLast: "The seasons turned before {name} reached the edge of the forest; the next birth is human all the same.",
+        animalOwn: "The {animal} knows this story without being told.",
+        animalEndHuman: "The {animal} reached the edge of the forest in time, and the next birth is human.",
+        animalEndShort: "The seasons turned before the {animal} reached the edge of the forest, and the next birth is a {animal}'s again.",
+        animalEndLast: "The seasons turned before the {animal} reached the edge of the forest; the next birth is human all the same.",
         animalDream: "Some nights {name} dreams of being a {animal}.",
         animalEarned: "The next birth is human.",
         animalShortText: "Not this time. The next birth is an animal's again.",
@@ -1821,7 +1821,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         pub_ladder: "A ladder",
         pub_free: "Let go",
         lRebornDied: "{name} is born again, the same soul under another name.",
-        lBornAnimal: "{name} is born a {animal}: an animal's life comes before the next human one.",
+        lBornAnimal: "The soul is born a {animal}: an animal's life comes before the next human one.",
         lBornHuman: "{name} is born human again.",
         bornAgainLineDied: "{was}'s life is over, and the same soul is born again as {name}.",
         bornAgainLineAnimal: "{was}'s life is over, and the soul is born a {animal} first.",
@@ -1895,7 +1895,11 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         dailyAbout: "Everyone who plays today has the same dice. Nothing leaves this page.",
         dailyLabel: "Today's life, {date}",
         seedFromLink: "Dice someone shared: yours will be theirs, throw for throw.",
-        lifeFromLink: "A life someone sent you"
+        lifeFromLink: "A life someone sent you",
+        animalName: "the {animal} in {master}'s house",
+        animalNameO: "the {animal} in {master}'s house",
+        animalNameNone: "the {animal} at the edge of a village",
+        animalNameNoneO: "the {animal} at the edge of a village"
       },
       hi: {
         title: "मोक्ष पटम",
@@ -2054,14 +2058,14 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         ao_mongoose: "नेवले",
         ao_cat: "बिल्ली",
         ao_lion: "शेर",
-        animalTitle: "{animal} {name}",
-        animalOpen: "{name} का जन्म इस बार {animalO} के रूप में हुआ, {master} के घर में।",
-        animalOpenNone: "{name} का जन्म इस बार {animalO} के रूप में हुआ, एक गाँव के किनारे।",
+        animalTitle: "{name}",
+        animalOpen: "इस बार आत्मा का जन्म {animalO} के रूप में हुआ, {master} के घर में।",
+        animalOpenNone: "इस बार आत्मा का जन्म {animalO} के रूप में हुआ, एक गाँव के किनारे।",
         animalHead: "पशुओं के बीच",
-        animalOwn: "{name} को यह कहानी बिना सुनाए ही मालूम है।",
-        animalEndHuman: "{name} के लिए जंगल का किनारा समय रहते आ गया, और अगला जन्म मनुष्य का है।",
-        animalEndShort: "{name} के जंगल के किनारे तक पहुँचने से पहले ही मौसम बदल गए, और अगला जन्म फिर {animalO} का है।",
-        animalEndLast: "{name} के जंगल के किनारे तक पहुँचने से पहले ही मौसम बदल गए; फिर भी अगला जन्म मनुष्य का है।",
+        animalOwn: "{animalO} को यह कहानी बिना सुनाए ही मालूम है।",
+        animalEndHuman: "{animalO} के लिए जंगल का किनारा समय रहते आ गया, और अगला जन्म मनुष्य का है।",
+        animalEndShort: "{animalO} के जंगल के किनारे तक पहुँचने से पहले ही मौसम बदल गए, और अगला जन्म फिर {animalO} का है।",
+        animalEndLast: "{animalO} के जंगल के किनारे तक पहुँचने से पहले ही मौसम बदल गए; फिर भी अगला जन्म मनुष्य का है।",
         animalDream: "कुछ रातों को {name} सपना {देखता|देखती} है कि वह एक {animal} है।",
         animalEarned: "अगला जन्म मनुष्य का है।",
         animalShortText: "इस बार नहीं। अगला जन्म फिर एक पशु का है।",
@@ -2427,7 +2431,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         pub_ladder: "सीढ़ी",
         pub_free: "मुक्ति",
         lRebornDied: "{name} का फिर से जन्म होता है: वही आत्मा, दूसरे नाम से।",
-        lBornAnimal: "{name} का जन्म {animalO} के रूप में होता है: अगले मनुष्य-जन्म से पहले एक पशु का जीवन।",
+        lBornAnimal: "आत्मा का जन्म {animalO} के रूप में होता है: अगले मनुष्य-जन्म से पहले एक पशु का जीवन।",
         lBornHuman: "{name} का फिर से मनुष्य के रूप में जन्म होता है।",
         bornAgainLineDied: "{was} का जीवन पूरा हुआ, और वही आत्मा {name} बनकर फिर से जन्म लेती है।",
         bornAgainLineAnimal: "{was} का जीवन पूरा हुआ, और आत्मा पहले {animalO} के रूप में जन्म लेती है।",
@@ -2501,7 +2505,11 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         dailyAbout: "आज खेलने वाले सबके पासे एक ही हैं। इस पन्ने से कुछ बाहर नहीं जाता।",
         dailyLabel: "आज का जीवन, {date}",
         seedFromLink: "किसी के भेजे पासे: आपके पासे वही आएँगे जो उनके आए।",
-        lifeFromLink: "किसी का भेजा जीवन"
+        lifeFromLink: "किसी का भेजा जीवन",
+        animalName: "{master} के घर {का|की} {animal}",
+        animalNameO: "{master} के घर {के|की} {animalO}",
+        animalNameNone: "गाँव के किनारे {का|की} {animal}",
+        animalNameNoneO: "गाँव के किनारे {के|की} {animalO}"
       }
     },
     JOINS: {
@@ -4626,8 +4634,29 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var numIn = (l, n) => l === "hi" ? String(n).replace(/\d/g, (d) => DEV_DIGITS[d]) : String(n);
   var num = (n) => numIn(lang, n);
   var srcIn = (l, s) => l === "hi" ? SRC_HI.reduce((a, [en, hi]) => a.replace(en, hi), s) : s;
-  var tIn = (l, k, v = {}) => (STR[l][k] ?? STR.en[k]).replace(/\{(\w+)\}/g, (_, x) => v[x] ?? "").replace(/\d/g, (d) => numIn(l, d));
+  var tIn = (l, k, v = {}) => (STR[l][k] ?? STR.en[k]).replace(/\{(\w+)\}/g, (m, x, at2, all) => named(v[x] ?? "", l, all.slice(0, at2), all.slice(at2 + m.length))).replace(/\d/g, (d) => numIn(l, d));
   var t = (k, v = {}) => tIn(lang, k, v);
+  var ANIMAL_F = /* @__PURE__ */ new Set(["cat"]);
+  var animalGender = (kind) => ANIMAL_F.has(kind) ? "f" : "m";
+  var LOWER = /* @__PURE__ */ new Map();
+  var OBLIQUE = /* @__PURE__ */ new Map();
+  var POST = /^\s*(ने|का|की|के|को|से|में|पर|तक)(?![\u0900-\u097F])/u;
+  function named(val, l, before, after2) {
+    if (typeof val !== "string") return val;
+    if (LOWER.has(val) && !(before.trim() === "" || /[.!?:।]\s*$/u.test(before))) return LOWER.get(val);
+    if (l === "hi" && OBLIQUE.has(val) && POST.test(after2)) return OBLIQUE.get(val);
+    return val;
+  }
+  function animalNameIn(l, a) {
+    const kind = a?.kind ?? "tortoise", master2 = a?.master?.[l] || a?.master?.en, gender = animalGender(kind);
+    const k = master2 ? "animalName" : "animalNameNone", v = { master: master2, animal: tIn(l, "a_" + kind), animalO: tIn(l, "ao_" + kind) };
+    const say = (key) => fill(STR[l][key] ?? STR.en[key], { gender }).replace(/\{(\w+)\}/g, (_, x) => v[x] ?? "");
+    const direct = say(k);
+    const label = direct.charAt(0).toUpperCase() + direct.slice(1);
+    if (label !== direct) LOWER.set(label, direct);
+    if (l === "hi") OBLIQUE.set(label, say(k + "O"));
+    return label;
+  }
   var warned = /* @__PURE__ */ new Set();
   function pick2(o, l = lang) {
     if (!o) return "";
@@ -4642,7 +4671,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var fill = (text, { name = "", gender = "m", age: age2 = "" } = {}) => text.replace(/\{([^{}|]*(?:\|[^{}|]*){1,2})\}/g, (_, alts) => {
     const [m, f2, n] = alts.split("|");
     return g(gender, { m, f: f2, n });
-  }).replace(/\{age\}/g, () => age2).replace(/\{name\}/g, () => name);
+  }).replace(/\{age\}/g, () => age2).replace(/\{name\}/g, (m, at2, all) => named(name, /[\u0900-\u097F]/u.test(all) ? "hi" : "en", all.slice(0, at2), all.slice(at2 + m.length)));
   var CAST_ROLES = ["mother", "father", "teacher", "friend", "spouse", "child", "rival", "who"];
   var CAST_AGREE = new RegExp(`\\{(${CAST_ROLES.join("|")}):([^{}|]*)\\|([^{}|]*)\\}`, "g");
   var CAST_REF = new RegExp(`\\{(${CAST_ROLES.join("|")})(?:=((?:[^{}]|\\{name\\})*))?\\}`, "g");
@@ -5952,6 +5981,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     // the law the life plays under (src/engine/laws/index.js), when it is its own: chosen, or kept from the life before
     ...r.law ?? r.born?.law ? { law: r.law ?? r.born.law } : {}
   });
+  var unnamed = (animal2) => ({ name: "", alias: null, animal: animal2, gender: animalGender(animal2.kind) });
   function createGame({ players, rules, seed }) {
     const state = {
       // each seat's lane (Phase 19): what its throws and its life's own sequences are keyed by, people first
@@ -5977,6 +6007,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     state.players.forEach((p, i) => {
       if (p.law && !isDefault(lawOf(state, i))) addLog(state, lawEntry(state, i));
     });
+    if (state.rules.animal) state.players.forEach((p) => Object.assign(p, unnamed(state.rules.animal)));
     if (isCloth()) setup(state);
     return state;
   }
@@ -6250,9 +6281,9 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     delete was.choices;
     const rebirths = (p.rebirths ?? 0) + 1;
     const rng = makeRng((state.rng.seed ^ 1013904242 ^ Math.imul(laneOf(state, i) + 1, 2246822507) ^ Math.imul(rebirths, 3266489909)) >>> 0);
-    const nm = nameAgain(state, i, rng, soul);
+    const nm = nb.animal ? { gender: animalGender(nb.animal.kind) } : nameAgain(state, i, rng, soul);
     const key = p.soul ?? (p.name ? nameKey(p.name) : null);
-    const next2 = playerOf({ name: "", type: p.type, gender: nm.gender, alias: { en: nm.en, hi: nm.hi }, born: nb.born ?? null, soul: key, law: nb.law }, p.color);
+    const next2 = playerOf({ name: "", type: p.type, gender: nm.gender, alias: nm.en ? { en: nm.en, hi: nm.hi } : null, born: nb.born ?? null, soul: key, law: nb.law }, p.color);
     Object.assign(next2, { pos: 1, life: [1], told: [null], past: [...p.past ?? [], was], rebirths, ...p.lane != null ? { lane: p.lane } : {}, ...nb.animal ? { animal: nb.animal, carry: nb.carry } : {} });
     if (p.choices) next2.choices = p.choices;
     for (const k of Object.keys(p)) delete p[k];
@@ -6330,8 +6361,9 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const pool = (gender === "m" || gender === "f" ? [gender] : ["m", "f"]).flatMap((gd) => PLAYER_NAMES[gd].map(([en, hi]) => ({ en, hi, gender: gd }))).filter((nm) => !taken.has(nm.en));
     return pool[Math.floor(next(rng) * pool.length)];
   }
-  function cast(rows, seed) {
+  function cast(rows, seed, rules) {
     const rng = makeRng((seed ^ 2654435769) >>> 0), taken = new Set(rows.map((r) => r.name.trim()).filter(Boolean));
+    if (rules?.animal) return rows.map((r) => ({ ...r }));
     return rows.map((r) => {
       if (r.name.trim()) return { ...r, gender: r.gender || "n" };
       const nm = drawName(rng, r.gender, /* @__PURE__ */ new Set([...taken, ...r.avoid ?? []])) ?? drawName(rng, r.gender, taken);
@@ -6339,11 +6371,11 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       return { ...r, gender: r.gender || nm.gender, alias: { en: nm.en, hi: nm.hi } };
     });
   }
-  var pname = (p) => p.name || (p.alias ? L(p.alias.en, p.alias.hi) : t("def" + p.color));
-  var pnameIn = (p, l) => p.name || p.alias?.[l] || p.alias?.en || tIn(l, "def" + p.color);
+  var pname = (p) => pnameIn(p, lang);
+  var pnameIn = (p, l) => p.animal ? animalNameIn(l, p.animal) : p.name || p.alias?.[l] || p.alias?.en || tIn(l, "def" + p.color);
   var cur = () => G.state.players[G.state.turn];
   function newState(seed = freshSeed(), rows = G.setup.rows.slice(0, G.setup.count), rules = G.setup.rules) {
-    return createGame({ players: cast(rows, seed), rules, seed });
+    return createGame({ players: cast(rows, seed, rules), rules, seed });
   }
 
   // src/prefs.js
@@ -10113,7 +10145,8 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     return h ? h[l] || h.en : "";
   }
   var nameIn = (x, l) => x[l] || x.en;
-  var lifeName = (life, l) => life.animal ? fill(tIn(l, "animalTitle", { name: nameIn(life.name, l), animal: tIn(l, "a_" + life.animal) }), { gender: life.gender }) : nameIn(life.name, l);
+  var lifeName = (life, l) => nameIn(life.name, l);
+  var soulName = (s, l) => lifeName(s.lives.findLast((x) => !x.animal) ?? s.lives.at(-1), l);
   var livesWord = (n, l) => n === 1 ? tIn(l, "cmpLivesOne") : tIn(l, "cmpLives", { n: wordsIn(l, n) });
   var humanLives = (s) => s.lives.filter((x) => !x.animal).length;
   function build(state) {
@@ -10279,7 +10312,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     c.setTransform(dpr, 0, 0, dpr, 0, 0);
     return c;
   }
-  var soulTitle = (s, l) => s.mine ? tIn(l, "cmpYou", { name: lifeName(s.lives.at(-1), l) }) : tIn(l, "cmpSoul", { name: lifeName(s.lives.at(-1), l) });
+  var soulTitle = (s, l) => s.mine ? tIn(l, "cmpYou", { name: soulName(s, l) }) : tIn(l, "cmpSoul", { name: soulName(s, l) });
   function partedLines(l) {
     const out = [], souls = model.souls, nm = (at2) => lifeName(souls[at2].lives[0], l);
     for (let a = 0; a < souls.length; a++) for (let b = a + 1; b < souls.length; b++) {
@@ -10344,7 +10377,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
       <h3>${esc(tIn(l, "cmpSame"))}</h3>${sameHtml(l)}
       ${model.entries ? partedHtml(l) : `<h3>${esc(tIn(l, "cmpMet"))}</h3>${metHtml(l)}`}
       <h3>${esc(tIn(l, "cmpBooks"))}</h3>
-      <div class="cmp-tabs" role="tablist">${souls.map((s, i) => `<button type="button" role="tab" id="cmpTab-${i}" aria-controls="cmpBook-${i}" aria-selected="${i === tab2}" tabindex="${i === tab2 ? 0 : -1}" data-tab="${i}"><span class="dot" style="background:${P_HEX[s.color]}"></span>${esc(lifeName(s.lives.at(-1), l))}</button>`).join("")}</div>
+      <div class="cmp-tabs" role="tablist">${souls.map((s, i) => `<button type="button" role="tab" id="cmpTab-${i}" aria-controls="cmpBook-${i}" aria-selected="${i === tab2}" tabindex="${i === tab2 ? 0 : -1}" data-tab="${i}"><span class="dot" style="background:${P_HEX[s.color]}"></span>${esc(soulName(s, l))}</button>`).join("")}</div>
       <div class="cmp-books" style="--n:${souls.length}">${souls.map((s, i) => `<section class="cmp-book${i === tab2 ? " on" : ""}" id="cmpBook-${i}" role="tabpanel" aria-labelledby="cmpTab-${i}">${bookHtml(s, l)}</section>`).join("")}</div>
       ${model.entries ? `<form class="cmp-add" data-act="add"><label for="cmpAddLink">${esc(tIn(l, "cmpAddLabel"))}</label> <input id="cmpAddLink" type="url" inputmode="url" autocomplete="off" spellcheck="false"> <button type="submit" class="ghost">${esc(tIn(l, "cmpAdd"))}</button> <span class="hint" aria-live="polite">${esc(addNote)}</span></form>` : ""}
       <p class="cmp-acts"><button type="button" data-act="save">${esc(tIn(l, "cmpSave"))}</button> <button type="button" class="ghost" data-act="copy">${esc(tIn(l, "cmpCopy"))}</button> <span class="hint" aria-live="polite">${esc(note)}</span></p>

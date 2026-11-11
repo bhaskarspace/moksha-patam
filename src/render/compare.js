@@ -6,7 +6,7 @@
 // image (a canvas drawn here) and copied as text. The game is played again from its inputs to draw who each became
 // (src/engine/compare.js replay); a game that cannot be (begun before Phase 19, or set by hand) is drawn without it.
 import { COLS, ROWS, TOP, GOAL, BOARD, squareOf, HEAVEN, SNAKES, LADDERS } from "../content.js";
-import { lang, tIn, wordsIn, fill } from "../i18n.js";
+import { lang, tIn, wordsIn } from "../i18n.js";
 import { G } from "../state.js";
 import { $, P_HEX, esc } from "../ui.js";
 import { colRow, groundOf } from "./ground.js";
@@ -24,8 +24,10 @@ function sqName(n, l) {
   return h ? h[l] || h.en : "";
 }
 const nameIn = (x, l) => x[l] || x.en;
-// a life's name as the screen says it: an animal's is the creature's
-const lifeName = (life, l) => (life.animal ? fill(tIn(l, "animalTitle", { name: nameIn(life.name, l), animal: tIn(l, "a_" + life.animal) }), { gender: life.gender }) : nameIn(life.name, l));
+// a life's name as the screen says it: an animal's is its kind and household, never a person's (reviewed 11 Nov)
+const lifeName = (life, l) => nameIn(life.name, l);
+// a soul is called by its last human life's name, though it is an animal now
+const soulName = (s, l) => lifeName(s.lives.findLast(x => !x.animal) ?? s.lives.at(-1), l);
 const livesWord = (n, l) => (n === 1 ? tIn(l, "cmpLivesOne") : tIn(l, "cmpLives", { n: wordsIn(l, n) }));
 const humanLives = s => s.lives.filter(x => !x.animal).length;
 
@@ -171,7 +173,7 @@ function sized(cv, w, h) {
 }
 
 // ---- the leaf ----
-const soulTitle = (s, l) => (s.mine ? tIn(l, "cmpYou", { name: lifeName(s.lives.at(-1), l) }) : tIn(l, "cmpSoul", { name: lifeName(s.lives.at(-1), l) }));
+const soulTitle = (s, l) => (s.mine ? tIn(l, "cmpYou", { name: soulName(s, l) }) : tIn(l, "cmpSoul", { name: soulName(s, l) }));
 // Where two lives on the same dice parted (src/engine/compare.js partingOf), in words; lives on different seeds say so
 function partedLines(l) {
   const out = [], souls = model.souls, nm = at => lifeName(souls[at].lives[0], l);
@@ -228,7 +230,7 @@ function paint() {
       <h3>${esc(tIn(l, "cmpSame"))}</h3>${sameHtml(l)}
       ${model.entries ? partedHtml(l) : `<h3>${esc(tIn(l, "cmpMet"))}</h3>${metHtml(l)}`}
       <h3>${esc(tIn(l, "cmpBooks"))}</h3>
-      <div class="cmp-tabs" role="tablist">${souls.map((s, i) => `<button type="button" role="tab" id="cmpTab-${i}" aria-controls="cmpBook-${i}" aria-selected="${i === tab}" tabindex="${i === tab ? 0 : -1}" data-tab="${i}"><span class="dot" style="background:${P_HEX[s.color]}"></span>${esc(lifeName(s.lives.at(-1), l))}</button>`).join("")}</div>
+      <div class="cmp-tabs" role="tablist">${souls.map((s, i) => `<button type="button" role="tab" id="cmpTab-${i}" aria-controls="cmpBook-${i}" aria-selected="${i === tab}" tabindex="${i === tab ? 0 : -1}" data-tab="${i}"><span class="dot" style="background:${P_HEX[s.color]}"></span>${esc(soulName(s, l))}</button>`).join("")}</div>
       <div class="cmp-books" style="--n:${souls.length}">${souls.map((s, i) => `<section class="cmp-book${i === tab ? " on" : ""}" id="cmpBook-${i}" role="tabpanel" aria-labelledby="cmpTab-${i}">${bookHtml(s, l)}</section>`).join("")}</div>
       ${model.entries ? `<form class="cmp-add" data-act="add"><label for="cmpAddLink">${esc(tIn(l, "cmpAddLabel"))}</label> <input id="cmpAddLink" type="url" inputmode="url" autocomplete="off" spellcheck="false"> <button type="submit" class="ghost">${esc(tIn(l, "cmpAdd"))}</button> <span class="hint" aria-live="polite">${esc(addNote)}</span></form>` : ""}
       <p class="cmp-acts"><button type="button" data-act="save">${esc(tIn(l, "cmpSave"))}</button> <button type="button" class="ghost" data-act="copy">${esc(tIn(l, "cmpCopy"))}</button> <span class="hint" aria-live="polite">${esc(note)}</span></p>

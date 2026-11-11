@@ -10,6 +10,7 @@ import { nextBirth } from "./samskara.js";
 import { together, oneLife } from "./mode.js";
 import { castOf, nameKey } from "./cast.js";
 import { drawName, pnameIn } from "../state.js";
+import { animalGender } from "../i18n.js";
 import * as cloth from "./cloth.js";
 import { TUMBLE, drawThrow, laneOf, lanesOf, drawnOf, throwsNew } from "./throws.js";
 
@@ -146,6 +147,8 @@ export const playerOf = (r, i) => ({ name: r.name.trim(), type: r.type, gender: 
   ...(r.born?.prior ? { prior: r.born.prior } : {}), ...(r.soul ? { soul: r.soul } : {}),
   // the law the life plays under (src/engine/laws/index.js), when it is its own: chosen, or kept from the life before
   ...((r.law ?? r.born?.law) ? { law: r.law ?? r.born.law } : {}) });
+// what an animal's life is, for its name: no name of a person's, the interlude it lives, and its creature's gender
+const unnamed = animal => ({ name: "", alias: null, animal, gender: animalGender(animal.kind) });
 export function createGame({ players, rules, seed }) {
   const state = {
     // each seat's lane (Phase 19): what its throws and its life's own sequences are keyed by, people first
@@ -165,6 +168,9 @@ export function createGame({ players, rules, seed }) {
   state.players.forEach((p, i) => { if (!lawOf(state, i).karma) p.karma = freshKarma(); });
   // whoever lives under a law other than the board's says so in the log (Phase 17); under the board's nothing is added
   state.players.forEach((p, i) => { if (p.law && !isDefault(lawOf(state, i))) addLog(state, lawEntry(state, i)); });
+  // an animal's interlude (Phase 16) is called by its kind and its household, never by a person's name (reviewed 11 Nov):
+  // whatever row it was given, it carries none, and agrees in Hindi as its creature does (बिल्ली)
+  if (state.rules.animal) state.players.forEach(p => Object.assign(p, unnamed(state.rules.animal)));
   // an old cloth (Phase 18): every pawn begins on its first square
   if (cloth.isCloth()) cloth.setup(state);
   return state;
@@ -548,9 +554,10 @@ function bornAgain(state, i) {
   delete was.choices;
   const rebirths = (p.rebirths ?? 0) + 1;
   const rng = makeRng((state.rng.seed ^ 0x3c6ef372 ^ Math.imul(laneOf(state, i) + 1, 0x85ebca6b) ^ Math.imul(rebirths, 0xc2b2ae35)) >>> 0);
-  const nm = nameAgain(state, i, rng, soul);
+  // an animal is named by its kind and household, so no name is drawn for it (reviewed 11 Nov)
+  const nm = nb.animal ? { gender: animalGender(nb.animal.kind) } : nameAgain(state, i, rng, soul);
   const key = p.soul ?? (p.name ? nameKey(p.name) : null);
-  const next = playerOf({ name: "", type: p.type, gender: nm.gender, alias: { en: nm.en, hi: nm.hi }, born: nb.born ?? null, soul: key, law: nb.law }, p.color);
+  const next = playerOf({ name: "", type: p.type, gender: nm.gender, alias: nm.en ? { en: nm.en, hi: nm.hi } : null, born: nb.born ?? null, soul: key, law: nb.law }, p.color);
   Object.assign(next, { pos: 1, life: [1], told: [null], past: [...(p.past ?? []), was], rebirths, ...(p.lane != null ? { lane: p.lane } : {}), ...(nb.animal ? { animal: nb.animal, carry: nb.carry } : {}) });
   // what a person has chosen across the seat's lives stays with the seat (Phase 19), so the game can be played again from it
   if (p.choices) next.choices = p.choices;
