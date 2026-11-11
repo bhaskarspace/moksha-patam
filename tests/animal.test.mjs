@@ -93,12 +93,13 @@ test("two short rounds give a human birth regardless; earned nudges the next lif
   assert.match(lifeOf(firstLives(s), 0, "hi").open, /कुछ रातों को रवि सपना देखता है कि वह एक सियार है।/);
 });
 
-test("the interlude's account names the animal and its master, tells its fables as the moment, and has no years", () => {
+test("the interlude's account names the animal by its kind and its master's house, never a person's name, tells its fables as the moment, and has no years", () => {
   for (let seed = 1; seed <= 60; seed++) {
     const s = interlude(seed, "lion");
     const en = lifeText(s, 0, "en"), hi = lifeText(s, 0, "hi");
-    assert.match(en, /^Ravi, the lion\n\nRavi was born a lion this time, in Nīrā's house\./);
-    assert.match(hi, /रवि का जन्म इस बार शेर के रूप में हुआ, नीरा के घर में।/);
+    assert.match(en, /^The lion in Nīrā's house\n\nThis time the soul was born a lion, in Nīrā's house\./);
+    assert.match(hi, /^नीरा के घर का शेर\n\nइस बार आत्मा का जन्म शेर के रूप में हुआ, नीरा के घर में।/);
+    for (const t of [en, hi]) assert.doesNotMatch(t, /Ravi|रवि/, `seed ${seed}: the row's name is never the animal's`);
     for (const t of [en, hi]) assert.doesNotMatch(t, /[{}]|undefined|null|NaN|\d|[०-९]/, `seed ${seed}`);
     assert.ok(pathOf(s, 0, "en").rows.every(r => r.age === ""));
     for (const t of [en, hi]) assert.deepEqual(birthRanking(t), []);

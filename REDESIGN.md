@@ -2396,7 +2396,11 @@ board's rules load with it, and the sim reports each board's distribution beside
 > is never called by a name any life in its game has had (`nameAgain` in `turn.js`, `tests/names.test.mjs`); the draw
 > before is kept whenever its name is new, then the names kept for that (`players.again` in `content/names.json`, forty,
 > for Bhaskar to pass), then the cast's not in a living book. Over 6000 all-computer games played until free, at most
-> 60 lives, none repeated a name. Each person's choices are kept
+> 60 lives, none repeated a name. **An animal's name** (reviewed 11 Nov): an animal's life carries no person's
+> name, which after "a debt came due" could read as a community reborn as an animal. No name is drawn for it; it is
+> called by its kind and household, "the tortoise in Vikram's house" / "विक्रम के घर का कछुआ", or "the tortoise at the
+> edge of a village" with no master, in the account, the line, the players panel, the comparison and its image; the
+> soul keeps its last human life's name (`tests/animalname.test.mjs`; accounts tagged `animalname`). Each person's choices are kept
 > in order (`p.choices`, `noteChoice` in `src/main.js`), with `state.table` and `state.turns`. **Step 2, the lives side
 > by side** (`src/render/compare.js`, `src/engine/compare.js`): at the end of any game of two or more seats on the 110,
 > race or together, the game is played again from its inputs (`replay`) and drawn: every life's path on one board in

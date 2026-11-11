@@ -17,8 +17,34 @@ export const num = n => numIn(lang, n);
 // a citation keeps its Latin digits in Hindi, on every board: a reference is given as it is cited (Bhaskar, 3 Nov)
 export const srcIn = (l, s) => (l === "hi" ? SRC_HI.reduce((a, [en, hi]) => a.replace(en, hi), s) : s);
 export const srcText = s => srcIn(lang, s);
-export const tIn = (l, k, v = {}) => (STR[l][k] ?? STR.en[k]).replace(/\{(\w+)\}/g, (_, x) => v[x] ?? "").replace(/\d/g, d => numIn(l, d));
+export const tIn = (l, k, v = {}) => (STR[l][k] ?? STR.en[k]).replace(/\{(\w+)\}/g, (m, x, at, all) => named(v[x] ?? "", l, all.slice(0, at), all.slice(at + m.length))).replace(/\d/g, d => numIn(l, d));
 export const t = (k, v = {}) => tIn(lang, k, v);
+
+// ---- An animal's life is named by its kind and its household, never by a person's name (reviewed 11 Nov) ----
+// "The tortoise in Vikram's house" / "विक्रम के घर का कछुआ", or "the tortoise at the edge of a village" with no master.
+// The English is kept with a capital, for a label, and said in lower case inside a sentence; the Hindi is said in its
+// oblique form before a postposition (विक्रम के घर के कछुए ने), as a person's name needs none. named() does both, for
+// the names animalNameIn has made: every other value is left exactly as it was.
+const ANIMAL_F = new Set(["cat"]);
+export const animalGender = kind => (ANIMAL_F.has(kind) ? "f" : "m");
+const LOWER = new Map(), OBLIQUE = new Map();
+const POST = /^\s*(ने|का|की|के|को|से|में|पर|तक)(?![\u0900-\u097F])/u;
+function named(val, l, before, after) {
+  if (typeof val !== "string") return val;
+  if (LOWER.has(val) && !(before.trim() === "" || /[.!?:।]\s*$/u.test(before))) return LOWER.get(val);
+  if (l === "hi" && OBLIQUE.has(val) && POST.test(after)) return OBLIQUE.get(val);
+  return val;
+}
+export function animalNameIn(l, a) {
+  const kind = a?.kind ?? "tortoise", master = a?.master?.[l] || a?.master?.en, gender = animalGender(kind);
+  const k = master ? "animalName" : "animalNameNone", v = { master, animal: tIn(l, "a_" + kind), animalO: tIn(l, "ao_" + kind) };
+  const say = key => fill(STR[l][key] ?? STR.en[key], { gender }).replace(/\{(\w+)\}/g, (_, x) => v[x] ?? "");
+  const direct = say(k);
+  const label = direct.charAt(0).toUpperCase() + direct.slice(1);
+  if (label !== direct) LOWER.set(label, direct);
+  if (l === "hi") OBLIQUE.set(label, say(k + "O"));
+  return label;
+}
 
 // A bilingual {en, hi} field in language l. Missing Hindi falls back to English, with a warning once per text.
 const warned = new Set();
@@ -37,7 +63,7 @@ export const g = (gender, forms) => forms[gender] ?? forms.m;
 // form. The choices go first, so a name with a | or a brace in it is never read as one.
 export const fill = (text, { name = "", gender = "m", age = "" } = {}) =>
   text.replace(/\{([^{}|]*(?:\|[^{}|]*){1,2})\}/g, (_, alts) => { const [m, f, n] = alts.split("|"); return g(gender, { m, f, n }); })
-    .replace(/\{age\}/g, () => age).replace(/\{name\}/g, () => name);
+    .replace(/\{age\}/g, () => age).replace(/\{name\}/g, (m, at, all) => named(name, /[\u0900-\u097F]/u.test(all) ? "hi" : "en", all.slice(0, at), all.slice(at + m.length)));
 
 // ---- The cast (docs/NARRATIVE.md §13.3, REDESIGN.md Phase 10C) ----
 // A moment names a member of the cast in two ways. {friend=the friend} is the friend by name once this life has met

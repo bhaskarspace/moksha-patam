@@ -2388,6 +2388,23 @@ await check("Phase 19: played together, a person's death by ledger is born an an
   assert(/could not pay/.test(r.card) && /lives once as a/.test(r.card) && !r.laws, "the card says the ledger closed the life, and offers no law to an animal: " + r.card.slice(0, 300));
   assert(/is born a .+ first/.test(r.line || ""), "the line: " + r.line);
   assert(/^[A-Z][a-z]+$/.test(r.stage), "the panel names the creature: " + r.stage);
+  // an animal carries no person's name (reviewed 11 Nov): its kind and household on the panel, in both languages, and
+  // in the comparison; the soul is still called by its last human life's name
+  const shape = /^The (tortoise|jackal|mongoose|cat|lion) (in \S+'s house|at the edge of a village)$/;
+  assert(r.p.name === "" && r.p.alias == null, "no name is drawn for an animal: " + JSON.stringify({ name: r.p.name, alias: r.p.alias }));
+  const panel = await page.evaluate(() => document.querySelector("#players li .pname").textContent);
+  assert(shape.test(panel), "the panel: " + panel);
+  await page.evaluate(() => mp.setLang("hi"));
+  const panelHi = await page.evaluate(() => document.querySelector("#players li .pname").textContent);
+  assert(/^(\S+ के घर|गाँव के किनारे) (का|की) (कछुआ|सियार|नेवला|बिल्ली|शेर)$/.test(panelHi), "the panel in Hindi: " + panelHi);
+  await page.evaluate(() => mp.setLang("en"));
+  const human = r.p.past[0].name || r.p.past[0].alias?.en;
+  // the card of the birth holds the game until it is read
+  await page.evaluate(() => mp.close());
+  await compared(page, "en");
+  const text = await page.evaluate(() => mp.compareText("en"));
+  assert(text.includes(panel) && text.includes(human), "the comparison names the animal by its kind and the soul by " + human + ": " + text.slice(0, 400));
+  assert(!new RegExp(`${human}, the (tortoise|jackal|mongoose|cat|lion)`).test(text), "no animal is called by a person's name: " + text.slice(0, 400));
 });
 
 await check("Phase 19: four people, one life each, play until every life at the table has ended", async page => {
