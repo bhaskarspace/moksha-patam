@@ -968,7 +968,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
               <p id="rebornNote" class="note" data-t="rebornNote" hidden>The next life carries this one, half-remembered.</p>
               <button id="compare" type="button" data-t="compareLives" hidden>Compare the lives</button>
               <button id="sendLife" type="button" class="ghost" data-t="sendLife" hidden>Send your life</button>
-              <button id="shareSeed" type="button" class="ghost" data-t="shareSeed" hidden>Play this seed with someone</button>
+              <button id="shareSeed" type="button" class="ghost" data-t="shareSeed" hidden>Play the same dice with someone</button>
               <p id="shareNote" class="note" aria-live="polite"></p>
               <button id="again" type="button" class="ghost" data-t="again">Play again</button>
             </div>
@@ -1348,7 +1348,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         ladderTo: "Ladder up to {n}",
         snakeTo: "Snake down to {n}",
         liberation: "Liberation",
-        seed: "Seed",
+        seed: "Dice",
         depth: "Reading depth",
         depthStory: "Story",
         depthSchool: "Story + school",
@@ -1875,26 +1875,26 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         cmpPartBefore: "{a} and {b} rolled the same dice, but by throw {k} they no longer stood on the same square.",
         cmpPartEnd: "{a} and {b} did the same, throw for throw, until one life ended, at throw {k}.",
         cmpPartNone: "{a} and {b} rolled the same dice and did the same with them, throw for throw.",
-        cmpPartOther: "{a} and {b} played different seeds, so their dice were never the same.",
+        cmpPartOther: "{a} and {b} played different dice, so their throws were never the same.",
         cmpAnd: "{a} and {b}",
-        cmpPlaySeed: "Play this seed yourself",
-        cmpPlayAbout: "You have not played this seed. Your dice will be the same as theirs, throw for throw.",
+        cmpPlaySeed: "Play these dice yourself",
+        cmpPlayAbout: "You haven’t played these dice yet. Your dice will be the same as theirs, throw for throw.",
         cmpAdd: "Add another life",
         cmpAddLabel: "A life's link",
         cmpAddBad: "That link could not be read.",
         cmpAddOther: "That life was played on another version of the game, so it cannot be shown truly.",
         cmpAddSame: "That life is already here.",
         cmpYou: "{name} (you)",
-        shareSeed: "Play this seed with someone",
+        shareSeed: "Play the same dice with someone",
         shareSeedText: "Play Moksha Patam on the same dice as me.",
         sendLife: "Send your life",
         sendLifeText: "{name}'s life in Moksha Patam. Open it to see it beside yours.",
         linkCopied: "Link copied",
         linkShared: "Shared",
         daily: "Today's life",
-        dailyAbout: "Everyone who plays today plays the same seed. Nothing leaves this page.",
+        dailyAbout: "Everyone who plays today has the same dice. Nothing leaves this page.",
         dailyLabel: "Today's life, {date}",
-        seedFromLink: "A seed someone shared: your dice will be theirs.",
+        seedFromLink: "Dice someone shared: yours will be theirs, throw for throw.",
         lifeFromLink: "A life someone sent you"
       },
       hi: {
@@ -1954,7 +1954,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         ladderTo: "सीढ़ी: {n} तक",
         snakeTo: "साँप: {n} तक नीचे",
         liberation: "मुक्ति",
-        seed: "बीज",
+        seed: "पासे",
         depth: "पढ़ने की गहराई",
         depthStory: "कथा",
         depthSchool: "कथा + दर्शन",
@@ -2476,31 +2476,31 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         cmpSaved: "सहेजा गया",
         cmpFoot: "मोक्ष पटम, साँप-सीढ़ी का खेल, एक जीवन की तरह खेला गया",
         cmpParted: "जहाँ जीवन अलग हुए",
-        cmpPartMove: "दाँव {k}, घर {sq} पर: दोनों के {dice} आए। {a}: {va} चले; {b}: {vb} चले।",
+        cmpPartMove: "दाँव {k}, घर {sq} पर: दोनों के {dice} आए। {a} ने {va} की चाल चली; {b} ने {vb} की।",
         cmpPartChoice: "दाँव {k}, घर {sq} पर: {a}: ‘{va}’; {b}: ‘{vb}’।",
         cmpPartBefore: "{a} और {b} के पासे एक जैसे आए, पर दाँव {k} तक वे एक ही घर पर नहीं थे।",
         cmpPartEnd: "{a} और {b} ने दाँव-दर-दाँव एक जैसा किया, जब तक दाँव {k} पर एक जीवन समाप्त नहीं हुआ।",
         cmpPartNone: "{a} और {b} के पासे एक ही आए, और दोनों ने उनसे दाँव-दर-दाँव एक ही किया।",
-        cmpPartOther: "{a} और {b} ने अलग-अलग बीज खेले, इसलिए उनके पासे कभी एक नहीं थे।",
+        cmpPartOther: "{a} और {b} के पासे अलग थे, इसलिए उनके दाँव कभी एक नहीं थे।",
         cmpAnd: "{a} और {b}",
-        cmpPlaySeed: "यह बीज खुद खेलें",
-        cmpPlayAbout: "आपने यह बीज नहीं खेला है। आपके पासे दाँव-दर-दाँव वही आएँगे जो उनके आए।",
+        cmpPlaySeed: "यही पासे खुद खेलें",
+        cmpPlayAbout: "आपने ये पासे अभी नहीं खेले हैं। आपके पासे दाँव-दर-दाँव वही आएँगे जो उनके आए।",
         cmpAdd: "एक और जीवन जोड़ें",
         cmpAddLabel: "किसी जीवन का लिंक",
         cmpAddBad: "यह लिंक पढ़ा नहीं जा सका।",
         cmpAddOther: "यह जीवन खेल के किसी दूसरे संस्करण पर खेला गया था, इसलिए इसे सही-सही नहीं दिखाया जा सकता।",
         cmpAddSame: "यह जीवन पहले से यहाँ है।",
         cmpYou: "{name} (आप)",
-        shareSeed: "यह बीज किसी के साथ खेलें",
+        shareSeed: "यही पासे किसी के साथ खेलें",
         shareSeedText: "मेरे ही पासों पर मोक्ष पटम खेलें।",
         sendLife: "अपना जीवन भेजें",
         sendLifeText: "मोक्ष पटम में {name} का जीवन। इसे खोलें और अपने जीवन के साथ देखें।",
         linkCopied: "लिंक कॉपी हुआ",
         linkShared: "भेजा गया",
         daily: "आज का जीवन",
-        dailyAbout: "आज खेलने वाले सब एक ही बीज खेलते हैं। इस पन्ने से कुछ बाहर नहीं जाता।",
+        dailyAbout: "आज खेलने वाले सबके पासे एक ही हैं। इस पन्ने से कुछ बाहर नहीं जाता।",
         dailyLabel: "आज का जीवन, {date}",
-        seedFromLink: "किसी का भेजा बीज: आपके पासे वही आएँगे जो उनके आए।",
+        seedFromLink: "किसी के भेजे पासे: आपके पासे वही आएँगे जो उनके आए।",
         lifeFromLink: "किसी का भेजा जीवन"
       }
     },
@@ -4793,15 +4793,16 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   // src/engine/throws.js
   var TUMBLE = 7;
   var DICE = "throw";
-  var diceMode = () => DICE;
+  var streamOf = (state) => DICE === "stream" || state?.throws !== "own";
+  var throwsNew = () => DICE === "stream" ? {} : { throws: "own" };
   var lanesOf = (players) => {
     let people2 = 0;
     const humans = players.filter((p) => p.type === "human").length;
     let cpus = 0;
     return players.map((p) => p.type === "human" ? people2++ : humans + cpus++);
   };
-  var laneOf = (state, i) => DICE === "stream" ? i : state.players[i]?.lane ?? i;
-  var drawnOf = (state, i, lived) => DICE === "stream" ? lived : state.players[i]?.thrown ?? 0;
+  var laneOf = (state, i) => streamOf(state) ? i : state.players[i]?.lane ?? i;
+  var drawnOf = (state, i, lived) => streamOf(state) ? lived : state.players[i]?.thrown ?? 0;
   function mix(...xs) {
     let h = 2654435769;
     for (const x of xs) {
@@ -4817,7 +4818,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var CLOTH = 1007681253;
   var throwRng = (state, i, k, what = DIE) => makeRng(mix(state.rng.seed, what, laneOf(state, i) + 1, (state.players[i]?.rebirths ?? 0) + 1, k + 1));
   function drawThrow(state, n, { i = state.turn, kind = null, forced = null } = {}) {
-    const p = state.players[i], k = p.thrown ?? 0, stream = DICE === "stream";
+    const p = state.players[i], k = p.thrown ?? 0, stream = streamOf(state);
     const r = stream ? state.rng : throwRng(state, i, k), rt = stream ? state.rng : throwRng(state, i, k, TUMBLES);
     let frames, dice, up = null;
     if (kind) {
@@ -5502,7 +5503,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     if (p.castKept !== void 0) return p.castKept;
     const rng = makeRng((state.rng.seed ^ 739982445 ^ Math.imul(laneOf(state, i) + 1, 2246822507) ^ Math.imul(life + 1, 3266489909)) >>> 0);
     const taken = new Set(state.players.flatMap((q2) => [q2.name, q2.alias?.en, q2.alias?.hi]).filter(Boolean).map(nameKey));
-    const table = new Set(taken), inCast = /* @__PURE__ */ new Set(), whole = diceMode() !== "stream";
+    const table = new Set(taken), inCast = /* @__PURE__ */ new Set(), whole = !streamOf(state);
     const pool = (gd) => [...list[gd], ...list.either || []].filter(([en, hi]) => !taken.has(nameKey(en)) && !taken.has(nameKey(hi)));
     const coin = () => next(rng) < 0.5 ? "m" : "f", span = (a, b) => a + Math.floor(next(rng) * (b - a + 1));
     const carry = life > 0 ? p.prior?.cast ?? [] : [], used = /* @__PURE__ */ new Set();
@@ -5965,7 +5966,9 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       // the table as it sat down, and the turns played (Phase 19): with each person's choices (p.choices), all a game needs
       // to be played again from its seed (src/engine/compare.js replay)
       table: JSON.parse(JSON.stringify(players)),
-      turns: 0
+      turns: 0,
+      // how its dice are thrown (src/engine/throws.js): each throw its own; a game without it is from before Phase 19 step 3
+      ...throwsNew()
     };
     state.players.forEach((p, i) => {
       if (!lawOf(state, i).karma) p.karma = freshKarma();
@@ -9922,11 +9925,14 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     rules: { ...state.rules },
     table: state.table,
     turns: state.turns ?? 0,
-    choices: state.players.map((p) => p.type === "human" ? [...p.choices ?? []] : null)
+    choices: state.players.map((p) => p.type === "human" ? [...p.choices ?? []] : null),
+    // a game resumed from before Phase 19 step 3 threw off the shared sequence, and is played again so
+    ...state.throws === "own" ? {} : { stream: true }
   });
   var replayable = (state) => !!state?.table && !state.rules?.board;
   function replay(inputs, onTurn = null) {
     const s = createGame({ players: JSON.parse(JSON.stringify(inputs.table)), rules: { ...inputs.rules }, seed: inputs.seed });
+    if (inputs.stream) delete s.throws;
     const at2 = s.players.map(() => 0), noted = s.players.map(() => 0), traces = s.players.map(() => [[]]);
     let ok = true;
     const take = (i, fits) => {
@@ -10142,21 +10148,21 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
   function routed(path) {
     const out = [];
     const walk2 = (a, b) => {
-      for (let n = a + 1; n <= b; n++) out.push(n);
+      for (let n = a + 1; n <= b; n++) out.push({ n, jump: false });
     };
     for (const n of path) {
       if (n < 1 || n > TOP) continue;
-      const a = out.at(-1);
+      const a = out.at(-1)?.n;
       if (a == null || n === a) {
-        if (a == null) out.push(n);
+        if (a == null) out.push({ n, jump: false });
         continue;
       }
       const via = [...Array(12)].map((_, k) => a + 1 + k).find((x) => (LADDERS[x]?.to ?? SNAKES[x]?.to) === n);
       if (via) {
         walk2(a, via);
-        out.push(n);
+        out.push({ n, jump: true });
       } else if (n > a && n - a <= 12) walk2(a, n);
-      else out.push(n);
+      else out.push({ n, jump: true });
     }
     return out;
   }
@@ -10177,32 +10183,51 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
       const { col, row: row2 } = colRow(n);
       return [(col + 0.5) * cell + off, (ROWS - 1 - row2 + 0.5) * cell + off];
     };
-    model.souls.forEach((s, si) => {
-      const off = (si - (model.souls.length - 1) / 2) * cell * 0.09;
-      s.lives.forEach((life, k) => {
-        const pts = routed(life.path).map((n) => at2(n, off));
-        if (pts.length < 2) return;
-        const last2 = k === s.lives.length - 1;
-        c.lineJoin = c.lineCap = "round";
-        for (const [w, col, a] of [[0.11, pal("black"), last2 ? 0.35 : 0.15], [0.065, P_HEX[s.color], last2 ? 0.95 : 0.4]]) {
-          c.globalAlpha = a;
-          c.strokeStyle = col;
-          c.lineWidth = cell * w;
-          c.beginPath();
-          pts.forEach(([x2, y2], j) => j ? c.lineTo(x2, y2) : c.moveTo(x2, y2));
-          c.stroke();
-        }
-        c.globalAlpha = 1;
-        const [x, y] = pts.at(-1), r = cell * (last2 ? 0.17 : 0.11);
-        c.beginPath();
-        c.arc(x, y, r, 0, Math.PI * 2);
-        c.fillStyle = P_HEX[s.color];
-        c.fill();
-        c.lineWidth = cell * 0.04;
-        c.strokeStyle = life.end === "liberated" || life.end === "svarga" ? pal("gold-hi") : pal("black");
-        c.stroke();
-      });
+    const lives2 = model.souls.flatMap((s, si) => s.lives.map((life, k) => ({
+      s,
+      life,
+      last: k === s.lives.length - 1,
+      steps: routed(life.path).map((x) => ({ ...x, p: at2(x.n, (si - (model.souls.length - 1) / 2) * cell * 0.12) }))
+    }))).filter((x) => x.steps.length);
+    c.lineJoin = c.lineCap = "round";
+    const stroke = (pts, w, col, a) => {
+      c.globalAlpha = a;
+      c.strokeStyle = col;
+      c.lineWidth = cell * w;
+      c.beginPath();
+      pts.forEach(([x, y], j) => j ? c.lineTo(x, y) : c.moveTo(x, y));
+      c.stroke();
+    };
+    for (const { s, last: last2, steps } of lives2) {
+      let run = [steps[0].p];
+      const flush = () => {
+        if (run.length > 1) stroke(run, 0.035, P_HEX[s.color], last2 ? 0.45 : 0.22);
+      };
+      for (const x of steps.slice(1)) {
+        if (x.jump) {
+          flush();
+          run = [x.p];
+        } else run.push(x.p);
+      }
+      flush();
+    }
+    for (const { s, last: last2, steps } of lives2) steps.forEach((x, j) => {
+      if (!j || !x.jump) return;
+      const seg = [steps[j - 1].p, x.p];
+      stroke(seg, 0.12, pal("black"), last2 ? 0.4 : 0.2);
+      stroke(seg, 0.075, P_HEX[s.color], last2 ? 0.95 : 0.5);
     });
+    c.globalAlpha = 1;
+    for (const { s, life, last: last2, steps } of lives2) {
+      const [x, y] = steps.at(-1).p, r = cell * (last2 ? 0.18 : 0.12);
+      c.beginPath();
+      c.arc(x, y, r, 0, Math.PI * 2);
+      c.fillStyle = P_HEX[s.color];
+      c.fill();
+      c.lineWidth = cell * 0.05;
+      c.strokeStyle = life.end === "liberated" || life.end === "svarga" ? pal("gold-hi") : pal("black");
+      c.stroke();
+    }
     c.restore();
     return H2;
   }
@@ -10544,7 +10569,9 @@ ${p.text}`), [b.end, b.curse].filter(Boolean).join(" "), (b.fates ?? []).join(" 
       p: i,
       k: checkOf(state, i),
       t: state.table.map((r) => Object.fromEntries(ROW.filter((k) => k === "name" || r[k] != null && r[k] !== "").map((k) => [k, k === "name" ? r.name ?? "" : r[k]]))),
-      c: packChoices(state.players[i].choices ?? [])
+      c: packChoices(state.players[i].choices ?? []),
+      // a game begun before Phase 19 step 3 and resumed threw off the shared sequence; every link since says nothing
+      ...state.throws === "own" ? {} : { d: "stream" }
     };
   }
   var lifeHash = async (state) => {
@@ -10554,7 +10581,7 @@ ${p.text}`), [b.end, b.curse].filter(Boolean).join(" "), (b.fates ?? []).join(" 
   function inputsOfLife(x) {
     if (!x || x.v !== V || !Number.isInteger(x.s) || !Array.isArray(x.t) || !Number.isInteger(x.p) || !x.t[x.p]) throw new Error("not a life");
     return {
-      inputs: { seed: x.s >>> 0, rules: { ...x.r }, table: x.t, turns: x.n, choices: x.t.map((r, i) => i === x.p ? unpackChoices(x.c ?? "") : r.type === "human" ? [] : null) },
+      inputs: { seed: x.s >>> 0, rules: { ...x.r }, table: x.t, turns: x.n, ...x.d === "stream" ? { stream: true } : {}, choices: x.t.map((r, i) => i === x.p ? unpackChoices(x.c ?? "") : r.type === "human" ? [] : null) },
       seat: x.p,
       check: x.k
     };

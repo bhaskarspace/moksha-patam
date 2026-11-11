@@ -117,7 +117,8 @@ choices are kept (`p.choices`, `noteChoice` in `src/main.js`) with `state.table`
 again from its inputs (`replay` in `src/engine/compare.js`), and the lives are drawn side by side (`src/render/compare.js`).
 Every throw is keyed by the seed, the seat's lane, the life and `p.thrown` (`src/engine/throws.js`); a lane is not a seat
 (people first, then computers), and every sequence of a life's own is salted by the lane. `setDice("stream")` is the old
-shared sequence, tools only. Links live in the hash (`src/share.js`): `#play=board.law.seed` and `#life=payload`; a
+shared sequence, tools only; a game without `state.throws === "own"` (saved before step 3) throws off it to its end
+(`streamOf`). Links live in the hash (`src/share.js`): `#play=board.law.seed` and `#life=payload`; a
 person's own finished games are kept in `mp-seeds`; today's life is `dailySeed(dayOf())`. A game a `?debug` helper set by
 hand is `state.tampered` and is never sent.
 Phase 7 was The Exit (REDESIGN.md §4): Moksha is square 105 (`GOAL`), partway

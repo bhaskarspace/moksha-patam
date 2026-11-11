@@ -17,6 +17,8 @@ import { pnameIn } from "../state.js";
 export const inputsOf = state => ({
   seed: state.rng.seed, rules: { ...state.rules }, table: state.table, turns: state.turns ?? 0,
   choices: state.players.map(p => (p.type === "human" ? [...(p.choices ?? [])] : null)),
+  // a game resumed from before Phase 19 step 3 threw off the shared sequence, and is played again so
+  ...(state.throws === "own" ? {} : { stream: true }),
 });
 // whether a game can be played again: it kept its table (every game since Phase 19 does), and is on the 110
 export const replayable = state => !!state?.table && !state.rules?.board;
@@ -26,6 +28,7 @@ export const replayable = state => !!state?.table && !state.rules?.board;
 // out or did not fit where they were asked for (a game set by hand under ?debug, or from another version of the game).
 export function replay(inputs, onTurn = null) {
   const s = createGame({ players: JSON.parse(JSON.stringify(inputs.table)), rules: { ...inputs.rules }, seed: inputs.seed });
+  if (inputs.stream) delete s.throws;
   const at = s.players.map(() => 0), noted = s.players.map(() => 0), traces = s.players.map(() => [[]]);
   let ok = true;
   // the next choice of seat i, if it is of the kind asked for

@@ -12,7 +12,7 @@
 import { CAST, CAST_WORDS, SQ, SITUATIONS, TOP, squareOf } from "../content.js";
 import { castFill, fill, wordsIn } from "../i18n.js";
 import { makeRng, next } from "../rng.js";
-import { laneOf, diceMode } from "./throws.js";
+import { laneOf, streamOf } from "./throws.js";
 import { liberated } from "./mode.js";
 import { momentOf } from "./qbn.js";
 import { ageOf, yearsAlong } from "./self.js";
@@ -65,7 +65,7 @@ export function castOf(state, i, life = 0) {
   // since Phase 19's per-throw dice each draw is a place in the whole list, and a name taken (by someone at the table, or
   // by this cast already) is passed over for the next: the cast of one seed is the same whoever sits at the table, but
   // for a member whose name someone at it has
-  const table = new Set(taken), inCast = new Set(), whole = diceMode() !== "stream";
+  const table = new Set(taken), inCast = new Set(), whole = !streamOf(state);
   const pool = gd => [...list[gd], ...(list.either || [])].filter(([en, hi]) => !taken.has(nameKey(en)) && !taken.has(nameKey(hi)));
   const coin = () => (next(rng) < 0.5 ? "m" : "f"), span = (a, b) => a + Math.floor(next(rng) * (b - a + 1));
   const carry = life > 0 ? p.prior?.cast ?? [] : [], used = new Set();

@@ -2408,7 +2408,10 @@ board's rules load with it, and the sim reports each board's distribution beside
 > in the whole name list and passes over a name taken, so a name at someone's table moves only that member.
 > `setDice("stream")` (tools only) gives back the shared sequence and the seat's salts: `tools/accounts.mjs 2000 --tag
 > --dice=stream` matches main on all 29,614 accounts; with per-throw dice every game is tagged `dice`. Golden re-pinned
-> once for it. The sim moved only by sampling (4000 games: median 47 → 47, p95 153 → 151, over 100 15.1% → 15.8%,
+> once for it. A game knows how it throws (`state.throws: "own"`, written by `createGame`): one saved before step 3 has
+> no such mark and resumes on the old dice to its end, never silently on new ones (600 of 600 games saved part way by
+> main's engine end as main ends them; `tests/resume.test.mjs`), and a life link from such a game says so (`d`), while a
+> link that misstates its dice fails its check and is not shown. The sim moved only by sampling (4000 games: median 47 → 47, p95 153 → 151, over 100 15.1% → 15.8%,
 > liberated 32.4% → 32.3% a life, lives per liberation 3.09 → 3.09). **Links**, read from the hash and never sent:
 > "Play this seed with someone" is `#play=<board>.<law>.<seed>`, nothing about anyone; "Send your life" is
 > `#life=<payload>`, the game's seed, rules, table, turns and the person's choices a character each, deflated, with a

@@ -11,7 +11,7 @@ import { together, oneLife } from "./mode.js";
 import { castOf, nameKey } from "./cast.js";
 import { drawName, pnameIn } from "../state.js";
 import * as cloth from "./cloth.js";
-import { TUMBLE, drawThrow, laneOf, lanesOf, drawnOf } from "./throws.js";
+import { TUMBLE, drawThrow, laneOf, lanesOf, drawnOf, throwsNew } from "./throws.js";
 
 // The die shows TUMBLE random faces while it tumbles before the real roll. Before Phase 19 they came from the game's own
 // sequence (setDice("stream")); since, every throw is its own (src/engine/throws.js).
@@ -158,6 +158,8 @@ export function createGame({ players, rules, seed }) {
     // the table as it sat down, and the turns played (Phase 19): with each person's choices (p.choices), all a game needs
     // to be played again from its seed (src/engine/compare.js replay)
     table: JSON.parse(JSON.stringify(players)), turns: 0,
+    // how its dice are thrown (src/engine/throws.js): each throw its own; a game without it is from before Phase 19 step 3
+    ...throwsNew(),
   };
   // a law that keeps no ledger (Cārvāka) carries nothing in from a life before
   state.players.forEach((p, i) => { if (!lawOf(state, i).karma) p.karma = freshKarma(); });

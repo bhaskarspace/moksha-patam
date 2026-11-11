@@ -16,6 +16,12 @@ export const TUMBLE = 7;
 let DICE = "throw";
 export const setDice = m => { DICE = m === "stream" ? "stream" : "throw"; };
 export const diceMode = () => DICE;
+// Whether game state throws off the shared sequence: under setDice("stream"), or a game begun before Phase 19 step 3,
+// which never says how it throws (state.throws, written by createGame). A game saved before then and resumed goes on
+// throwing as it always did, the same dice to the end, and every salt the seat's.
+export const streamOf = state => DICE === "stream" || state?.throws !== "own";
+// what createGame writes, so a game knows how it throws for as long as it is kept
+export const throwsNew = () => (DICE === "stream" ? {} : { throws: "own" });
 
 // The lanes of a table, from its rows: people first, in order, then computers
 export const lanesOf = players => {
@@ -25,9 +31,9 @@ export const lanesOf = players => {
   return players.map(p => (p.type === "human" ? people++ : humans + cpus++));
 };
 // The lane of seat i: what every sequence of its own is salted by
-export const laneOf = (state, i) => (DICE === "stream" ? i : state.players[i]?.lane ?? i);
+export const laneOf = (state, i) => (streamOf(state) ? i : state.players[i]?.lane ?? i);
 // What the omen, the ego and grace are salted by after a move: the squares walked, before Phase 19, or now the throws made
-export const drawnOf = (state, i, lived) => (DICE === "stream" ? lived : state.players[i]?.thrown ?? 0);
+export const drawnOf = (state, i, lived) => (streamOf(state) ? lived : state.players[i]?.thrown ?? 0);
 
 // a word of 32 bits from several, every bit of each reaching every bit of the result
 export function mix(...xs) {
@@ -50,7 +56,7 @@ export const throwRng = (state, i, k, what = DIE) =>
 // forced (?debug's mp.roll) takes the dice's place; it is not drawn, but it is a throw, and counts.
 // Returns { frames: [[faces]…], dice, up }: up is a cowrie throw's shells.
 export function drawThrow(state, n, { i = state.turn, kind = null, forced = null } = {}) {
-  const p = state.players[i], k = p.thrown ?? 0, stream = DICE === "stream";
+  const p = state.players[i], k = p.thrown ?? 0, stream = streamOf(state);
   const r = stream ? state.rng : throwRng(state, i, k), rt = stream ? state.rng : throwRng(state, i, k, TUMBLES);
   let frames, dice, up = null;
   if (kind) {

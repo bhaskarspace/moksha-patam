@@ -77,21 +77,23 @@ export const compareModel = () => model;
 
 // ---- drawing ----
 const pal = k => BOARD.palette[k];
-// A life's squares as the token went: a throw walks square by square along the rows, a snake or a ladder is one stroke
+// A life's squares as the token went, each { n, jump }: a throw walks square by square along the rows; a snake, a ladder
+// or a fall is one stroke, its square marked jump
 function routed(path) {
   const out = [];
-  const walk = (a, b) => { for (let n = a + 1; n <= b; n++) out.push(n); };
+  const walk = (a, b) => { for (let n = a + 1; n <= b; n++) out.push({ n, jump: false }); };
   for (const n of path) {
     if (n < 1 || n > TOP) continue;
-    const a = out.at(-1);
-    if (a == null || n === a) { if (a == null) out.push(n); continue; }
+    const a = out.at(-1)?.n;
+    if (a == null || n === a) { if (a == null) out.push({ n, jump: false }); continue; }
     // the head or foot this throw reached, if the square it ended on is where that one leads
     const via = [...Array(12)].map((_, k) => a + 1 + k).find(x => (LADDERS[x]?.to ?? SNAKES[x]?.to) === n);
-    if (via) { walk(a, via); out.push(n); } else if (n > a && n - a <= 12) walk(a, n); else out.push(n);
+    if (via) { walk(a, via); out.push({ n, jump: true }); } else if (n > a && n - a <= 12) walk(a, n); else out.push({ n, jump: true });
   }
   return out;
 }
-// The board at width W, with every life's path on it; returns its height
+// The board at width W, with every life's path on it; returns its height. The walks along the rows are thin and faint,
+// each player's a little apart; the snakes and ladders taken, and where each life ended, are drawn bold over them.
 function drawBoard(c, W, x0 = 0, y0 = 0) {
   const cell = W / COLS, H = cell * ROWS;
   c.save();
@@ -107,25 +109,34 @@ function drawBoard(c, W, x0 = 0, y0 = 0) {
   c.fillStyle = "rgba(245, 233, 201, 0.35)";
   c.fillRect(0, 0, W, H);
   const at = (n, off) => { const { col, row } = colRow(n); return [(col + 0.5) * cell + off, (ROWS - 1 - row + 0.5) * cell + off]; };
-  model.souls.forEach((s, si) => {
-    const off = (si - (model.souls.length - 1) / 2) * cell * 0.09;
-    s.lives.forEach((life, k) => {
-      const pts = routed(life.path).map(n => at(n, off));
-      if (pts.length < 2) return;
-      const last = k === s.lives.length - 1;
-      c.lineJoin = c.lineCap = "round";
-      for (const [w, col, a] of [[0.11, pal("black"), last ? 0.35 : 0.15], [0.065, P_HEX[s.color], last ? 0.95 : 0.4]]) {
-        c.globalAlpha = a; c.strokeStyle = col; c.lineWidth = cell * w;
-        c.beginPath(); pts.forEach(([x, y], j) => (j ? c.lineTo(x, y) : c.moveTo(x, y))); c.stroke();
-      }
-      c.globalAlpha = 1;
-      // where the life ended: let go is the gold ring, any other end a dot in the life's colour
-      const [x, y] = pts.at(-1), r = cell * (last ? 0.17 : 0.11);
-      c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2);
-      c.fillStyle = P_HEX[s.color]; c.fill();
-      c.lineWidth = cell * 0.04; c.strokeStyle = life.end === "liberated" || life.end === "svarga" ? pal("gold-hi") : pal("black"); c.stroke();
-    });
+  const lives = model.souls.flatMap((s, si) => s.lives.map((life, k) => ({
+    s, life, last: k === s.lives.length - 1,
+    steps: routed(life.path).map(x => ({ ...x, p: at(x.n, (si - (model.souls.length - 1) / 2) * cell * 0.12) })),
+  }))).filter(x => x.steps.length);
+  c.lineJoin = c.lineCap = "round";
+  const stroke = (pts, w, col, a) => { c.globalAlpha = a; c.strokeStyle = col; c.lineWidth = cell * w; c.beginPath(); pts.forEach(([x, y], j) => (j ? c.lineTo(x, y) : c.moveTo(x, y))); c.stroke(); };
+  // the walks: runs of squares stepped through, thin
+  for (const { s, last, steps } of lives) {
+    let run = [steps[0].p];
+    const flush = () => { if (run.length > 1) stroke(run, 0.035, P_HEX[s.color], last ? 0.45 : 0.22); };
+    for (const x of steps.slice(1)) { if (x.jump) { flush(); run = [x.p]; } else run.push(x.p); }
+    flush();
+  }
+  // the snakes and ladders taken, and the falls: bold, over a dark edge
+  for (const { s, last, steps } of lives) steps.forEach((x, j) => {
+    if (!j || !x.jump) return;
+    const seg = [steps[j - 1].p, x.p];
+    stroke(seg, 0.12, pal("black"), last ? 0.4 : 0.2);
+    stroke(seg, 0.075, P_HEX[s.color], last ? 0.95 : 0.5);
   });
+  c.globalAlpha = 1;
+  // where each life ended: let go is ringed in gold, any other end in black
+  for (const { s, life, last, steps } of lives) {
+    const [x, y] = steps.at(-1).p, r = cell * (last ? 0.18 : 0.12);
+    c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2);
+    c.fillStyle = P_HEX[s.color]; c.fill();
+    c.lineWidth = cell * 0.05; c.strokeStyle = life.end === "liberated" || life.end === "svarga" ? pal("gold-hi") : pal("black"); c.stroke();
+  }
   c.restore();
   return H;
 }

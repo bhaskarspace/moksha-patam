@@ -103,6 +103,8 @@ export function lifeOf(state) {
     v: V, s: state.rng.seed >>> 0, r: state.rules, n: state.turns, p: i, k: checkOf(state, i),
     t: state.table.map(r => Object.fromEntries(ROW.filter(k => k === "name" || (r[k] != null && r[k] !== "")).map(k => [k, k === "name" ? r.name ?? "" : r[k]]))),
     c: packChoices(state.players[i].choices ?? []),
+    // a game begun before Phase 19 step 3 and resumed threw off the shared sequence; every link since says nothing
+    ...(state.throws === "own" ? {} : { d: "stream" }),
   };
 }
 export const lifeHash = async state => {
@@ -113,7 +115,7 @@ export const lifeHash = async state => {
 export function inputsOfLife(x) {
   if (!x || x.v !== V || !Number.isInteger(x.s) || !Array.isArray(x.t) || !Number.isInteger(x.p) || !x.t[x.p]) throw new Error("not a life");
   return {
-    inputs: { seed: x.s >>> 0, rules: { ...x.r }, table: x.t, turns: x.n, choices: x.t.map((r, i) => (i === x.p ? unpackChoices(x.c ?? "") : r.type === "human" ? [] : null)) },
+    inputs: { seed: x.s >>> 0, rules: { ...x.r }, table: x.t, turns: x.n, ...(x.d === "stream" ? { stream: true } : {}), choices: x.t.map((r, i) => (i === x.p ? unpackChoices(x.c ?? "") : r.type === "human" ? [] : null)) },
     seat: x.p, check: x.k,
   };
 }
