@@ -568,7 +568,13 @@
       "bornAgainCardHuman": "The {animal}'s life is over.",
       "accMet": "At {age}, {name} and {other} stood on the same square: {sq}.",
       "accMetFirst": "In the first year, {name} and {other} were on the same square: {sq}.",
-      "accMetHeaven": "In the realm of {sq}, {name} and {other} stood together."
+      "accMetHeaven": "In the realm of {sq}, {name} and {other} stood together.",
+      "lengthPick": "How long",
+      "lengthFree": "Until every soul is free",
+      "lengthFreeAbout": "Each soul is born again at the table, as often as it takes, until it is let go.",
+      "lengthOne": "One life each",
+      "lengthOneAbout": "The game ends when every life at the table has ended. A soul that would be born again carries what it left into the next game.",
+      "togetherOneText": "Every life at the table has ended. Each soul that goes on carries this life into the next game."
     },
     "hi": {
       "title": "मोक्ष पटम",
@@ -1111,7 +1117,13 @@
       "bornAgainCardHuman": "{animalO} का जीवन पूरा हुआ।",
       "accMet": "{age} बरस की उम्र में {name} और {other} एक ही घर पर खड़े थे: {sq}।",
       "accMetFirst": "पहले बरस में {name} और {other} एक ही घर पर थे: {sq}।",
-      "accMetHeaven": "{sq} के लोक में {name} और {other} साथ खड़े थे।"
+      "accMetHeaven": "{sq} के लोक में {name} और {other} साथ खड़े थे।",
+      "lengthPick": "कितना लंबा",
+      "lengthFree": "जब तक हर आत्मा मुक्त न हो",
+      "lengthFreeAbout": "हर आत्मा इसी खेल में, जितनी बार ज़रूरी हो, फिर जन्म लेती है, जब तक मुक्त न हो जाए।",
+      "lengthOne": "हर किसी का एक जीवन",
+      "lengthOneAbout": "खेल तब समाप्त होता है जब मेज़ पर हर जीवन पूरा हो जाए। जो आत्मा फिर जन्म लेगी, वह जो छोड़ गई उसे अगले खेल में साथ ले जाती है।",
+      "togetherOneText": "मेज़ पर हर जीवन पूरा हुआ। जो आत्मा आगे जाती है, वह यह जीवन अगले खेल में साथ ले जाती है।"
     }
   },
   "JOINS": {

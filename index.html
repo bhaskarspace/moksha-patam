@@ -973,6 +973,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           <div id="prows" class="setup-body"></div>
           <label class="pick" id="ruleModeRow" hidden><span data-t="modePick"></span><select id="ruleMode"></select></label>
           <p class="law-about" id="ruleModeAbout" hidden></p>
+          <label class="pick" id="ruleLengthRow" hidden><span data-t="lengthPick"></span><select id="ruleLength"></select></label>
+          <p class="law-about" id="ruleLengthAbout" hidden></p>
           <label class="pick"><span data-t="ruleBoard"></span><select id="ruleBoard"></select></label>
           <p class="law-about" id="ruleBoardAbout" hidden></p>
           <label class="pick" id="ruleRandRow" hidden><span data-t="ruleRand"></span><select id="ruleRand"></select></label>
@@ -1017,6 +1019,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       <fieldset class="naming-field" id="namingMode" hidden>
         <legend data-t="modePick">How to play</legend>
         <div class="naming-genders" id="namingModeOpts"></div>
+        <div class="naming-genders" id="namingLengthOpts" role="group"></div>
       </fieldset>
       <p class="naming-step" id="namingStep" hidden></p>
       <label class="naming-field"><span data-t="namingName">Name</span>
@@ -1773,7 +1776,13 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         bornAgainCardHuman: "The {animal}'s life is over.",
         accMet: "At {age}, {name} and {other} stood on the same square: {sq}.",
         accMetFirst: "In the first year, {name} and {other} were on the same square: {sq}.",
-        accMetHeaven: "In the realm of {sq}, {name} and {other} stood together."
+        accMetHeaven: "In the realm of {sq}, {name} and {other} stood together.",
+        lengthPick: "How long",
+        lengthFree: "Until every soul is free",
+        lengthFreeAbout: "Each soul is born again at the table, as often as it takes, until it is let go.",
+        lengthOne: "One life each",
+        lengthOneAbout: "The game ends when every life at the table has ended. A soul that would be born again carries what it left into the next game.",
+        togetherOneText: "Every life at the table has ended. Each soul that goes on carries this life into the next game."
       },
       hi: {
         title: "मोक्ष पटम",
@@ -2316,7 +2325,13 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         bornAgainCardHuman: "{animalO} का जीवन पूरा हुआ।",
         accMet: "{age} बरस की उम्र में {name} और {other} एक ही घर पर खड़े थे: {sq}।",
         accMetFirst: "पहले बरस में {name} और {other} एक ही घर पर थे: {sq}।",
-        accMetHeaven: "{sq} के लोक में {name} और {other} साथ खड़े थे।"
+        accMetHeaven: "{sq} के लोक में {name} और {other} साथ खड़े थे।",
+        lengthPick: "कितना लंबा",
+        lengthFree: "जब तक हर आत्मा मुक्त न हो",
+        lengthFreeAbout: "हर आत्मा इसी खेल में, जितनी बार ज़रूरी हो, फिर जन्म लेती है, जब तक मुक्त न हो जाए।",
+        lengthOne: "हर किसी का एक जीवन",
+        lengthOneAbout: "खेल तब समाप्त होता है जब मेज़ पर हर जीवन पूरा हो जाए। जो आत्मा फिर जन्म लेगी, वह जो छोड़ गई उसे अगले खेल में साथ ले जाती है।",
+        togetherOneText: "मेज़ पर हर जीवन पूरा हुआ। जो आत्मा आगे जाती है, वह यह जीवन अगले खेल में साथ ले जाती है।"
       }
     },
     JOINS: {
@@ -5227,6 +5242,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
 
   // src/engine/mode.js
   var together = (state) => state?.rules?.mode === "together";
+  var oneLife = (state) => together(state) && state.rules.length === "one";
   var liberated = (state, i) => state?.winner === i || !!state?.players?.[i]?.free;
 
   // src/engine/cast.js
@@ -5965,7 +5981,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       p.karma = { sancita: [...k.sancita, ...carried(k)], agami: [], prarabdha: [] };
     }
     if (together(state) && (plan.win || plan.freed)) p.free = true;
-    const law = lawOf(state, plan.idx), how = !plan.freed && (plan.fell ? law.siva(state, plan.idx) === "reborn" : together(state) && law.rebirth && (plan.died || p.earned || p.short));
+    const law = lawOf(state, plan.idx), how = !plan.freed && !oneLife(state) && (plan.fell ? law.siva(state, plan.idx) === "reborn" : together(state) && law.rebirth && (plan.died || p.earned || p.short));
     if (how) {
       plan.end.forEach((e) => {
         if (e.who != null) e.life = p.rebirths ?? 0;
@@ -5992,7 +6008,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       }
     }
     const alive = state.players.filter((q2) => !gone(q2)), humans = state.players.some((q2) => q2.type === "human");
-    state.over = state.winner != null || !alive.length || humans && !alive.some((q2) => q2.type === "human");
+    state.over = state.winner != null || !alive.length || humans && !oneLife(state) && !alive.some((q2) => q2.type === "human");
     plan.end.forEach((e) => addLog(state, e));
   }
   function bornAgain(state, i) {
@@ -6059,7 +6075,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       count: 2,
       rows: [{ name: self?.name || "", type: "human", gender: self?.gender || "" }, { name: "", type: "cpu", gender: "" }, { name: "", type: "cpu", gender: "" }, { name: "", type: "cpu", gender: "" }],
       // me and a computer, played together (Phase 19: the default for any table of two or more seats)
-      rules: { six: true, mode: "together" }
+      rules: { six: true, mode: "together", length: "free" }
     };
   };
   function drawName(rng, gender, taken = /* @__PURE__ */ new Set()) {
@@ -10200,7 +10216,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
       $("winNote").hidden = !tw.note;
     } else if (state.over && together(state)) {
       $("winTitle").textContent = t("togetherTitle");
-      $("winText").textContent = t(state.stopped ? "stoppedText" : "togetherText");
+      $("winText").textContent = t(state.stopped ? "stoppedText" : oneLife(state) ? "togetherOneText" : "togetherText");
       $("winNote").hidden = true;
     } else if (state.over) {
       const one = humans.length === 1 ? humans[0] : null;
@@ -10296,6 +10312,10 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     $("ruleModeRow").hidden = $("ruleModeAbout").hidden = !plays;
     $("ruleMode").innerHTML = MODES.map(([v, k]) => `<option value="${v}"${v === mode ? " selected" : ""}>${esc(t(k))}</option>`).join("");
     $("ruleModeAbout").textContent = t(mode === "race" ? "modeRaceAbout" : "modeTogetherAbout");
+    const length = lengthOf(setup2), lasts = plays && mode === "together";
+    $("ruleLengthRow").hidden = $("ruleLengthAbout").hidden = !lasts;
+    $("ruleLength").innerHTML = LENGTHS.map(([v, k]) => `<option value="${v}"${v === length ? " selected" : ""}>${esc(t(k))}</option>`).join("");
+    $("ruleLengthAbout").textContent = lengthAbout(length);
     const board4 = setup2.rules.board ?? "110", old = board4 !== "110";
     $("ruleBoard").innerHTML = Object.keys(BOARDS).filter((id) => STR.en["board" + id]).sort((a, b) => b - a).map((id) => `<option value="${id}"${id === board4 ? " selected" : ""}>${esc(t("board" + id))}</option>`).join("");
     $("ruleRandRow").hidden = !old;
@@ -10327,6 +10347,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     });
     setup2.rules = { six: $("ruleSix").checked };
     if (setup2.count >= 2 && !$("ruleModeRow").hidden) setup2.rules.mode = $("ruleMode").value === "race" ? "race" : "together";
+    if (setup2.rules.mode === "together") setup2.rules.length = $("ruleLength").value === "one" ? "one" : "free";
     const board4 = $("ruleBoard").value, rand = $("ruleRand").value;
     if (board4 && board4 !== "110") setup2.rules.board = board4;
     if (setup2.rules.board && rand !== "own") setup2.rules.rand = rand;
@@ -10338,8 +10359,17 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
   var RAND_NAME = { cowries: "randCowries", stick: "randStick", die: "randDie" };
   var MODES = [["together", "modeTogether"], ["race", "modeRace"]];
   var modeOf = (setup2) => setup2.rules?.mode === "race" ? "race" : "together";
+  var LENGTHS = [["free", "lengthFree"], ["one", "lengthOne"]];
+  var lengthFor = (n) => n >= 3 ? "one" : "free";
+  var lengthOf = (setup2) => setup2.rules?.length === "one" || setup2.rules?.length === "free" ? setup2.rules.length : lengthFor(setup2.count);
+  var lengthAbout = (v) => t(v === "one" ? "lengthOneAbout" : "lengthFreeAbout");
   $("ruleMode").addEventListener("change", () => {
-    $("ruleModeAbout").textContent = t($("ruleMode").value === "race" ? "modeRaceAbout" : "modeTogetherAbout");
+    readSetup();
+    renderSetup();
+    $("ruleMode").focus();
+  });
+  $("ruleLength").addEventListener("change", () => {
+    $("ruleLengthAbout").textContent = lengthAbout($("ruleLength").value);
   });
   $("ruleBoard").addEventListener("change", () => {
     readSetup();
@@ -10384,6 +10414,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     if (!b) return;
     readSetup();
     G.setup.count = +b.dataset.n;
+    delete G.setup.rules.length;
     renderSetup();
   });
   var urlSeed = new URLSearchParams(location.search).get("seed");
@@ -10446,6 +10477,10 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     $("namingWhoOpts").innerHTML = WHO2.map((v) => `<label><input type="radio" name="who" value="${v}"${v === who2 ? " checked" : ""}> <span>${esc(v === "1" ? t("whoMe") : v === "cpu" ? t("whoCpu") : t("whoPeople", { n: +v }))}</span></label>`).join("");
     $("namingWho").hidden = k > 0;
     $("namingMode").hidden = k > 0 || who2 === "1";
+    const n2 = who2 === "cpu" ? 2 : +who2, len = naming.length ?? lengthFor(n2);
+    $("namingLengthOpts").hidden = naming.mode !== "together";
+    $("namingLengthOpts").setAttribute("aria-label", t("lengthPick"));
+    $("namingLengthOpts").innerHTML = LENGTHS.map(([v, key]) => `<label title="${esc(lengthAbout(v))}"><input type="radio" name="length" value="${v}"${v === len ? " checked" : ""}> <span>${esc(t(key))}</span></label>`).join("");
     $("namingModeOpts").innerHTML = MODES.map(([v, key]) => `<label title="${esc(t(key + "About"))}"><input type="radio" name="mode" value="${v}"${v === naming.mode ? " checked" : ""}> <span>${esc(t(key))}</span></label>`).join("");
     $("namingStep").hidden = n < 2;
     $("namingStep").textContent = n < 2 ? "" : t("namingOf", { k: k + 1, n, colour: t("colour" + k) });
@@ -10462,7 +10497,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
   }
   function openNaming() {
     readSetup();
-    naming = { who: whoOfSetup(G.setup), k: 0, mode: modeOf(G.setup) };
+    naming = { who: whoOfSetup(G.setup), k: 0, mode: modeOf(G.setup), length: G.setup.rules?.length ?? null };
     fillNaming(0);
     drawNaming();
     $("naming").showModal();
@@ -10470,11 +10505,18 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
   $("namingWhoOpts").addEventListener("change", (e) => {
     if (naming && e.target.name === "who") {
       naming.who = e.target.value;
+      naming.length = null;
       drawNaming();
     }
   });
   $("namingModeOpts").addEventListener("change", (e) => {
-    if (naming && e.target.name === "mode") naming.mode = e.target.value;
+    if (naming && e.target.name === "mode") {
+      naming.mode = e.target.value;
+      drawNaming();
+    }
+  });
+  $("namingLengthOpts").addEventListener("change", (e) => {
+    if (naming && e.target.name === "length") naming.length = e.target.value;
   });
   $("namingBack").addEventListener("click", () => {
     if (!naming?.k) return;
@@ -10498,11 +10540,13 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
       $("namingName").focus();
       return;
     }
-    const mode = naming.mode;
+    const mode = naming.mode, length = naming.length;
     naming = null;
     G.setup.count = who2 === "cpu" ? 2 : n;
     if (G.setup.count >= 2 && !G.setup.rules.board) G.setup.rules.mode = mode;
     else delete G.setup.rules.mode;
+    if (G.setup.rules.mode === "together") G.setup.rules.length = length ?? lengthFor(G.setup.count);
+    else delete G.setup.rules.length;
     if (who2 === "cpu" && G.setup.rows[1].type !== "cpu") Object.assign(G.setup.rows[1], { name: "", type: "cpu", gender: "" });
     renderSetup();
     nextSeed = G.state.rng.seed;
@@ -10907,7 +10951,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
       }
     }
     G.setup = data?.setup || defaultSetup();
-    if (loaded && G.setup.count >= 2 && G.setup.rules && !G.setup.rules.board && !G.setup.rules.mode) G.setup.rules.mode = "together";
+    if (loaded && G.setup.count >= 2 && G.setup.rules && !G.setup.rules.board && !G.setup.rules.mode) Object.assign(G.setup.rules, { mode: "together", length: lengthFor(G.setup.count) });
     if (data?.setup?.lang && !urlLang) setLangValue(data.setup.lang);
     applyStatic();
     buildCells();

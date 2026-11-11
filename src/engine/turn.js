@@ -7,7 +7,7 @@ import { freshKarma, karmaOf, carried, ripen, plantOf, omenFor, refusalOf, exami
 import { curseOf, spokenAt } from "./curse.js";
 import { lawOf, isDefault } from "./laws/index.js";
 import { nextBirth } from "./samskara.js";
-import { together } from "./mode.js";
+import { together, oneLife } from "./mode.js";
 import { castOf, nameKey } from "./cast.js";
 import { drawName, pnameIn } from "../state.js";
 import * as cloth from "./cloth.js";
@@ -487,7 +487,8 @@ export function endTurn(state, plan) {
   // Śiva's snake is rebirth (Phase 17): the same soul, born of the life it closed, at the snake's tail. Played together
   // (Phase 19), so is every other end of a life its law lets go on from: the years, the door, the ledger (through the
   // animal life first) and the interlude's own end
-  const law = lawOf(state, plan.idx), how = !plan.freed && (plan.fell ? law.siva(state, plan.idx) === "reborn" : together(state) && law.rebirth && (plan.died || p.earned || p.short));
+  // one life each (Phase 19): no end of a life is born again at the table; the soul goes on in the next game
+  const law = lawOf(state, plan.idx), how = !plan.freed && !oneLife(state) && (plan.fell ? law.siva(state, plan.idx) === "reborn" : together(state) && law.rebirth && (plan.died || p.earned || p.short));
   if (how) {
     // the turn's last lines are logged after the birth, and still belong to the life that ended
     plan.end.forEach(e => { if (e.who != null) e.life = p.rebirths ?? 0; });
@@ -515,7 +516,8 @@ function passTurn(state, plan) {
   // Over when someone is through, or nobody is left to be: in a game with people in it, once none of them is
   // alive, since the computers would only be playing on for nobody.
   const alive = state.players.filter(q => !gone(q)), humans = state.players.some(q => q.type === "human");
-  state.over = state.winner != null || !alive.length || (humans && !alive.some(q => q.type === "human"));
+  // One life each (Phase 19) waits for every seat's life, the computers' too: each has only the one.
+  state.over = state.winner != null || !alive.length || (humans && !oneLife(state) && !alive.some(q => q.type === "human"));
   plan.end.forEach(e => addLog(state, e));
 }
 

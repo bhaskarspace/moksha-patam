@@ -2316,11 +2316,20 @@ await check("Phase 19: Together is the default for two or more seats, offered be
     return { row: !document.getElementById("ruleModeRow").hidden, val: document.getElementById("ruleMode").value, opts: [...document.querySelectorAll("#ruleMode option")].map(o => o.value) };
   });
   assert(set.row && set.val === "together" && set.opts.join() === "together,race", "the setup offers Together, chosen, and the race: " + JSON.stringify(set));
+  // how long (11 Nov): until every soul is free for two seats, one life each for three or four
+  assert(await page.evaluate(() => !document.getElementById("ruleLengthRow").hidden && document.getElementById("ruleLength").value === "free"), "two seats: until every soul is free");
+  await page.click('#count button[data-n="4"]');
+  assert(await page.evaluate(() => document.getElementById("ruleLength").value === "one"), "four seats: one life each");
+  await page.selectOption("#ruleMode", "race");
+  assert(await page.evaluate(() => document.getElementById("ruleLengthRow").hidden), "the race has no length");
   await page.click('#count button[data-n="1"]');
   assert(await page.evaluate(() => document.getElementById("ruleModeRow").hidden), "one person has no mode to choose");
   await page.evaluate(() => mp.naming());
   await page.click('#namingWhoOpts input[value="cpu"]');
   assert(await page.evaluate(() => !document.getElementById("namingMode").hidden && document.querySelector('#namingModeOpts input[value="together"]').checked), "the naming asks how to play, Together first");
+  assert(await page.evaluate(() => document.querySelector('#namingLengthOpts input[value="free"]').checked), "me and a computer: until every soul is free");
+  await page.click('#namingWhoOpts input[value="3"]');
+  assert(await page.evaluate(() => document.querySelector('#namingLengthOpts input[value="one"]').checked), "three people: one life each");
   await page.click('#namingWhoOpts input[value="1"]');
   assert(await page.evaluate(() => document.getElementById("namingMode").hidden), "just me: no mode");
   await page.click('#namingWhoOpts input[value="cpu"]');
@@ -2375,6 +2384,15 @@ await check("Phase 19: played together, a person's death by ledger is born an an
   assert(/is born a .+ first/.test(r.line || ""), "the line: " + r.line);
   assert(/^[A-Z][a-z]+$/.test(r.stage), "the panel names the creature: " + r.stage);
 });
+
+await check("Phase 19: four people, one life each, play until every life at the table has ended", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await fast(page, { ...four, rules: { six: true, mode: "together", length: "one" } });
+  await page.goto(BASE + "?seed=6&debug");
+  await drive(page, () => mp.state.over, 200000);
+  const end = await page.evaluate(() => ({ winner: mp.state.winner, lives: mp.state.players.map(p => p.rebirths ?? 0), text: document.getElementById("winText").textContent }));
+  assert(end.winner == null && end.lives.every(n => n === 0) && /Every life at the table has ended/.test(end.text), JSON.stringify(end));
+}, { limit: 240 });
 
 await check("Phase 19: the race is still a choice, and ends on the first through the exit", async page => {
   await page.emulateMedia({ reducedMotion: "reduce" });

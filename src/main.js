@@ -18,7 +18,7 @@ import { curseOf } from "./engine/curse.js";
 import { castOf, meetsNamed, nameKey } from "./engine/cast.js";
 import { soulOf, bornOf, endOf, keepOf } from "./engine/samskara.js";
 import { isAnimal, animalRules, afterAnimal, KINDS, masterOf } from "./engine/animal.js";
-import { together } from "./engine/mode.js";
+import { together, oneLife } from "./engine/mode.js";
 import { frame, pullBack, hold, release } from "./render/camera.js";
 import { spriteURL, spriteSheet } from "./render/sprites.js";
 import { tokenEls, buildTokens, place, retrigger, climb, swallow, animate } from "./render/tokens.js";
@@ -589,7 +589,7 @@ function render() {
   } else if (state.over && together(state)) {
     // played together (Phase 19): every person's soul let go or done, or the game stopped here, with every life as it stands
     $("winTitle").textContent = t("togetherTitle");
-    $("winText").textContent = t(state.stopped ? "stoppedText" : "togetherText");
+    $("winText").textContent = t(state.stopped ? "stoppedText" : oneLife(state) ? "togetherOneText" : "togetherText");
     $("winNote").hidden = true;
   } else if (state.over) {
     // A life that ran out of years, or fell from the heavens, ends on its own account, not on a race nobody won
@@ -707,6 +707,10 @@ function renderSetup() {
   $("ruleModeRow").hidden = $("ruleModeAbout").hidden = !plays;
   $("ruleMode").innerHTML = MODES.map(([v, k]) => `<option value="${v}"${v === mode ? " selected" : ""}>${esc(t(k))}</option>`).join("");
   $("ruleModeAbout").textContent = t(mode === "race" ? "modeRaceAbout" : "modeTogetherAbout");
+  const length = lengthOf(setup), lasts = plays && mode === "together";
+  $("ruleLengthRow").hidden = $("ruleLengthAbout").hidden = !lasts;
+  $("ruleLength").innerHTML = LENGTHS.map(([v, k]) => `<option value="${v}"${v === length ? " selected" : ""}>${esc(t(k))}</option>`).join("");
+  $("ruleLengthAbout").textContent = lengthAbout(length);
   // the board, and what an old one is thrown with (Phase 18); the six's second throw is the 110's rule alone
   const board = setup.rules.board ?? "110", old = board !== "110";
   $("ruleBoard").innerHTML = Object.keys(BOARDS).filter(id => STR.en["board" + id]).sort((a, b) => b - a)
@@ -742,6 +746,7 @@ function readSetup() {
   setup.rules = { six: $("ruleSix").checked };
   // the mode is kept for a table of two or more on the 110 (Phase 19); one person, or an old cloth, has none
   if (setup.count >= 2 && !$("ruleModeRow").hidden) setup.rules.mode = $("ruleMode").value === "race" ? "race" : "together";
+  if (setup.rules.mode === "together") setup.rules.length = $("ruleLength").value === "one" ? "one" : "free";
   // set only off the 110, so the 110's rules are what they always were
   const board = $("ruleBoard").value, rand = $("ruleRand").value;
   if (board && board !== "110") setup.rules.board = board;
@@ -752,7 +757,13 @@ const RAND_NAME = { cowries: "randCowries", stick: "randStick", die: "randDie" }
 // Together is the default whenever two or more seats are filled (Phase 19, decided 11 Nov); the race is a choice
 const MODES = [["together", "modeTogether"], ["race", "modeRace"]];
 const modeOf = setup => (setup.rules?.mode === "race" ? "race" : "together");
-$("ruleMode").addEventListener("change", () => { $("ruleModeAbout").textContent = t($("ruleMode").value === "race" ? "modeRaceAbout" : "modeTogetherAbout"); });
+// and how long it lasts (11 Nov): until every soul is free for two seats, one life each for three or four, unless chosen
+const LENGTHS = [["free", "lengthFree"], ["one", "lengthOne"]];
+const lengthFor = n => (n >= 3 ? "one" : "free");
+const lengthOf = setup => (setup.rules?.length === "one" || setup.rules?.length === "free" ? setup.rules.length : lengthFor(setup.count));
+const lengthAbout = v => t(v === "one" ? "lengthOneAbout" : "lengthFreeAbout");
+$("ruleMode").addEventListener("change", () => { readSetup(); renderSetup(); $("ruleMode").focus(); });
+$("ruleLength").addEventListener("change", () => { $("ruleLengthAbout").textContent = lengthAbout($("ruleLength").value); });
 // the setup follows the board as it is chosen: an old board has no laws to choose, and its own randomizer
 $("ruleBoard").addEventListener("change", () => { readSetup(); renderSetup(); $("ruleBoard").focus(); });
 
@@ -789,7 +800,7 @@ document.querySelectorAll("[data-lang]").forEach(b => b.addEventListener("click"
 
 $("count").addEventListener("click", e => {
   const b = e.target.closest("button[data-n]"); if (!b) return;
-  readSetup(); G.setup.count = +b.dataset.n; renderSetup();
+  readSetup(); G.setup.count = +b.dataset.n; delete G.setup.rules.length; renderSetup();
 });
 
 // ?seed=N fixes the first game's dice, so a life can be replayed or a bug reported with its seed.
@@ -858,6 +869,10 @@ function drawNaming() {
   $("namingWho").hidden = k > 0;
   // together or the race, for any table of two or more seats, asked with who is playing (Phase 19)
   $("namingMode").hidden = k > 0 || who === "1";
+  const n2 = who === "cpu" ? 2 : +who, len = naming.length ?? lengthFor(n2);
+  $("namingLengthOpts").hidden = naming.mode !== "together";
+  $("namingLengthOpts").setAttribute("aria-label", t("lengthPick"));
+  $("namingLengthOpts").innerHTML = LENGTHS.map(([v, key]) => `<label title="${esc(lengthAbout(v))}"><input type="radio" name="length" value="${v}"${v === len ? " checked" : ""}> <span>${esc(t(key))}</span></label>`).join("");
   $("namingModeOpts").innerHTML = MODES.map(([v, key]) => `<label title="${esc(t(key + "About"))}"><input type="radio" name="mode" value="${v}"${v === naming.mode ? " checked" : ""}> <span>${esc(t(key))}</span></label>`).join("");
   $("namingStep").hidden = n < 2;
   $("namingStep").textContent = n < 2 ? "" : t("namingOf", { k: k + 1, n, colour: t("colour" + k) });
@@ -873,13 +888,15 @@ function fillNaming(k) {
 }
 function openNaming() {
   readSetup();
-  naming = { who: whoOfSetup(G.setup), k: 0, mode: modeOf(G.setup) };
+  naming = { who: whoOfSetup(G.setup), k: 0, mode: modeOf(G.setup), length: G.setup.rules?.length ?? null };
   fillNaming(0);
   drawNaming();
   $("naming").showModal();
 }
-$("namingWhoOpts").addEventListener("change", e => { if (naming && e.target.name === "who") { naming.who = e.target.value; drawNaming(); } });
-$("namingModeOpts").addEventListener("change", e => { if (naming && e.target.name === "mode") naming.mode = e.target.value; });
+// a new table takes the length its size has by default, until one is chosen for it
+$("namingWhoOpts").addEventListener("change", e => { if (naming && e.target.name === "who") { naming.who = e.target.value; naming.length = null; drawNaming(); } });
+$("namingModeOpts").addEventListener("change", e => { if (naming && e.target.name === "mode") { naming.mode = e.target.value; drawNaming(); } });
+$("namingLengthOpts").addEventListener("change", e => { if (naming && e.target.name === "length") naming.length = e.target.value; });
 $("namingBack").addEventListener("click", () => {
   if (!naming?.k) return;
   naming.k--; fillNaming(naming.k); drawNaming();
@@ -893,10 +910,11 @@ $("namingForm").addEventListener("submit", e => {
   if (k === 0) saveSelf(r.name, r.gender);
   // the next person's naming, in the same dialog
   if (k < n - 1) { e.preventDefault(); naming.k++; fillNaming(naming.k); drawNaming(); $("namingName").focus(); return; }
-  const mode = naming.mode;
+  const mode = naming.mode, length = naming.length;
   naming = null;
   G.setup.count = who === "cpu" ? 2 : n;
   if (G.setup.count >= 2 && !G.setup.rules.board) G.setup.rules.mode = mode; else delete G.setup.rules.mode;
+  if (G.setup.rules.mode === "together") G.setup.rules.length = length ?? lengthFor(G.setup.count); else delete G.setup.rules.length;
   // against a computer, the second seat is the computer's, unnamed unless it was one already
   if (who === "cpu" && G.setup.rows[1].type !== "cpu") Object.assign(G.setup.rows[1], { name: "", type: "cpu", gender: "" });
   renderSetup();
@@ -1180,7 +1198,7 @@ function start(data) {
   G.setup = data?.setup || defaultSetup();
   // a setup kept from before Phase 19 has no mode: its next game is played together, the default, as the panel says
   // (a setup the host brings, as tools/golden.mjs does, is played as it says)
-  if (loaded && G.setup.count >= 2 && G.setup.rules && !G.setup.rules.board && !G.setup.rules.mode) G.setup.rules.mode = "together";
+  if (loaded && G.setup.count >= 2 && G.setup.rules && !G.setup.rules.board && !G.setup.rules.mode) Object.assign(G.setup.rules, { mode: "together", length: lengthFor(G.setup.count) });
   if (data?.setup?.lang && !urlLang) setLangValue(data.setup.lang);
   applyStatic();
   buildCells();

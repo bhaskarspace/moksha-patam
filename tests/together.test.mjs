@@ -100,3 +100,14 @@ test("the race is as it was: the first through the exit wins, and nobody is born
     }
   }
 });
+
+test("one life each: no life is born again at the table, the game waits for every seat's life, and nobody wins", () => {
+  for (let seed = 1; seed <= 40; seed++) {
+    const s = play([{ name: "Meera", type: "human", gender: "f" }, cpu(), cpu(), cpu()], seed, { six: true, mode: "together", length: "one" });
+    assert.equal(s.winner, null);
+    for (const p of s.players) {
+      assert.equal(p.rebirths ?? 0, 0, `seed ${seed}: one life a seat`);
+      assert.ok(p.free || p.dead || p.fell, `seed ${seed}: every seat's life has ended`);
+    }
+  }
+});

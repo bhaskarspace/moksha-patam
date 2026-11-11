@@ -310,12 +310,13 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   // --mode=together (Phase 19, src/engine/mode.js): every game played together by `players` computers (at least two). Nobody
   // wins by arriving first: each seat lives on through its rebirths until it is let go. Reports the game's length in turns
   // a seat (median / p95 / max), the lives a seat took to be let go, how every life ended, the animal lives among them,
-  // the meetings a life (lives that crossed), and the games that hit the cap.
+  // the meetings a life (lives that crossed), and the games that hit the cap. --length=one plays one life each (the game
+  // over when every seat's life has ended); without it, until every soul is free.
   if (flags.mode === "together") {
     const seats = Math.max(2, players), len = [], lives = [], ends = {}, cap = { n: 0 };
     let all = 0, animals = 0, met = 0;
     for (let s = first; s < first + games; s++) {
-      const g = playGame(s, { players: seats, rules: { ...rules, mode: "together" }, pick });
+      const g = playGame(s, { players: seats, rules: { ...rules, mode: "together", ...(flags.length === "one" ? { length: "one" } : {}) }, pick });
       if (g.capped) cap.n++;
       len.push(Math.max(...g.turns));
       for (const p of g.players) {
@@ -330,7 +331,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       }
     }
     const L = summarise(len), N = summarise(lives);
-    console.log(`${games} games played together, ${seats} seats, seeds ${first}–${first + games - 1}${flags.law ? `, law ${flags.law}` : ""}${flags.policy ? `, policy ${flags.policy}` : ""}`);
+    console.log(`${games} games played together, ${flags.length === "one" ? "one life each" : "until every soul is free"}, ${seats} seats, seeds ${first}–${first + games - 1}${flags.law ? `, law ${flags.law}` : ""}${flags.policy ? `, policy ${flags.policy}` : ""}`);
     console.log(`turns a seat to the end of the game: median ${L.median}, p95 ${L.p95}, max ${L.max}; capped at ${CAP} ${cap.n}`);
     console.log(`human lives a seat: median ${N.median}, p95 ${N.p95}, max ${N.max}, mean ${N.mean.toFixed(2)}; animal lives ${animals} (${pct(animals / all)} of all lives)`);
     console.log("how the human lives ended: " + Object.entries(ends).sort((a, b) => b[1] - a[1]).map(([k, c]) => `${k} ${pct(c / (all - animals))}`).join(", "));
