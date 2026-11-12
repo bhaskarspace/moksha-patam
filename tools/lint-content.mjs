@@ -638,6 +638,24 @@ export function lintReport() {
     walk(JSON.parse(fs.readFileSync(path.join(root, "content", f), "utf8")), f.replace(".json", ""), false);
   }
 
+  // No varṇa word in what a player reads (Bhaskar, 12 Nov): क्षत्रिय, ब्राह्मण, वैश्य, शूद्र, वर्ण, and kṣatriya, brahmin,
+  // brāhmaṇa, vaiśya, śūdra, varṇa, caste, in either language, anywhere but the Codex (which says what the texts held)
+  // and a file's own "about" note. The places below were found on 12 Nov and wait for Bhaskar's word, place by place:
+  // each is a warning until it is changed or kept, and then leaves this list.
+  const VARNA_PENDING = new Set(["readings.20.scholar.en","readings.20.scholar.hi","readings.20.schools.1.en","readings.20.schools.1.hi","readings.28.scholar.en","readings.28.scholar.hi","readings.54.scholar.hi","readings.54.schools.1.en","readings.54.schools.1.hi","readings.59.schools.0.en","readings.59.schools.0.hi","readings.64.scholar.en","readings.64.scholar.hi","situations.59.options.1.outcome.mirror.en","situations.59.options.1.outcome.mirror.hi","squares.SNAKES.59.mirror.en","squares.SNAKES.59.mirror.hi","squares.SNAKES.59.moment.mirror.en","squares.SNAKES.59.moment.mirror.hi","squares.SQ.50.moment.mirror.hi","squares.SQ.50.roll.moment.mirror.en","squares.SQ.50.roll.moment.mirror.hi"]);
+  for (const f of fs.readdirSync(path.join(root, "content")).filter(f => f.endsWith(".json") && f !== "codex.json")) {
+    const walk = (v, where) => {
+      if (typeof v === "string") {
+        const m = v.match(VARNA);
+        if (m) (VARNA_PENDING.has(where) ? warn : err)(where, `says "${m[0]}": no varṇa word in what a player reads`);
+        return;
+      }
+      if (!v || typeof v !== "object") return;
+      for (const [k, x] of Object.entries(v)) if (k !== "about") walk(x, `${where}.${k}`);
+    };
+    walk(JSON.parse(fs.readFileSync(path.join(root, "content", f), "utf8")), f.replace(".json", ""));
+  }
+
   // REFERENCE.md §6: the board's own history is medieval, not ancient
   const all = JSON.stringify([READINGS, CODEX, STR]);
   if (/\bancient\b/i.test(all)) err("content", 'says "ancient"; the board\'s history is medieval');
@@ -650,6 +668,8 @@ export function lintReport() {
 const DEV = "\\u0900-\\u0963\\u0971-\\u097F"; // the letters and signs, not the dandas or the digits
 const SQUARE_KHANA = new RegExp(`(?<![${DEV}])(?:हर|इस|यह|यही|कोई|एक|अगला|पिछला|अंतिम|किसी भी)\\s+खान[ाेों](?![${DEV}])|(?<![${DEV}])खान[ाेों]\\s*[०-९\\d{]`, "u");
 const BOARD_WORD = /बोर्ड/u;
+// varṇa words, whole words only: not वर्णन (a description) or स्वर्ण (gold); ब्राह्मणी is one
+const VARNA = new RegExp(`(?<![${DEV}])(?:क्षत्रिय|ब्राह्मण|वैश्य|शूद्र|वर्ण)(?:ों|ो|ी|ियों|े)?(?![${DEV}])|\\bk[sṣ]h?atriyas?\\b|\\bbrahmins?\\b|\\bbr[aā]hma[nṇ]as?\\b|\\bvai[sś]yas?\\b|\\b[sś]h?[uū]dras?\\b|\\bvar[nṇ]as?\\b|\\bcastes?\\b`, "iu");
 // devices, apps and brands, in English and Hindi (Phase 20, the present-tense pass)
 const DEVICES = new RegExp([
   "\\b(?:phones?|mobiles?|smartphones?|apps?|screens?|laptops?|tablets?|computers?|TVs?|televisions?|internet|online|e-?mails?|selfies?|texts? messages?|WhatsApp|Instagram|Facebook|YouTube|Google|Snapchat|TikTok|Twitter|iPhone|Android|Wi-?Fi|Bluetooth|emoji|DMs?)\\b",
