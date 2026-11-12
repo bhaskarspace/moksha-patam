@@ -640,14 +640,12 @@ export function lintReport() {
 
   // No varṇa word in what a player reads (Bhaskar, 12 Nov): क्षत्रिय, ब्राह्मण, वैश्य, शूद्र, वर्ण, and kṣatriya, brahmin,
   // brāhmaṇa, vaiśya, śūdra, varṇa, caste, in either language, anywhere but the Codex (which says what the texts held)
-  // and a file's own "about" note. The places below were found on 12 Nov and wait for Bhaskar's word, place by place:
-  // each is a warning until it is changed or kept, and then leaves this list.
-  const VARNA_PENDING = new Set(["readings.20.scholar.en","readings.20.scholar.hi","readings.20.schools.1.en","readings.20.schools.1.hi","readings.28.scholar.en","readings.28.scholar.hi","readings.54.scholar.hi","readings.54.schools.1.en","readings.54.schools.1.hi","readings.59.schools.0.en","readings.59.schools.0.hi","readings.64.scholar.en","readings.64.scholar.hi","situations.59.options.1.outcome.mirror.en","situations.59.options.1.outcome.mirror.hi","squares.SNAKES.59.mirror.en","squares.SNAKES.59.mirror.hi","squares.SNAKES.59.moment.mirror.en","squares.SNAKES.59.moment.mirror.hi","squares.SQ.50.moment.mirror.hi","squares.SQ.50.roll.moment.mirror.en","squares.SQ.50.roll.moment.mirror.hi"]);
+  // and a file's own "about" note. The thirteen found on 12 Nov were all rewritten (Bhaskar's ruling).
   for (const f of fs.readdirSync(path.join(root, "content")).filter(f => f.endsWith(".json") && f !== "codex.json")) {
     const walk = (v, where) => {
       if (typeof v === "string") {
         const m = v.match(VARNA);
-        if (m) (VARNA_PENDING.has(where) ? warn : err)(where, `says "${m[0]}": no varṇa word in what a player reads`);
+        if (m) err(where, `says "${m[0]}": no varṇa word in what a player reads`);
         return;
       }
       if (!v || typeof v !== "object") return;
