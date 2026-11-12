@@ -623,6 +623,21 @@ export function lintReport() {
     if (hit) warn(where, `names a device, an app or a brand ("${hit[0]}"): say the gesture`);
   }
 
+  // A reference keeps its Latin digits in Hindi (Bhaskar, 12 Nov): every citation (a square's src, a snake's, the Hindi
+  // names of SRC_HI, a strings key ending Src), and every reference inside a Hindi line (३.२७, सांख्यकारिका ५९). A
+  // figure's dates are dates, and a square's number is said in Devanagari; neither is a reference.
+  const DEV_CITE = /[०-९]+(?:[.–][०-९]+)+|(?:सांख्यकारिका|मंत्र) [०-९]+/u;
+  const srcs = [...Object.entries({ ...SQ, ...LADDERS, ...SNAKES }).flatMap(([n, q]) => [[`square ${n} src`, q.src]]), ...SRC_HI.map(([en, hi]) => [`strings.SRC_HI ${en}`, hi]), ...Object.entries(STR.hi).filter(([k]) => /Src$/.test(k)).map(([k, v]) => [`strings.${k}`, v])];
+  for (const [w, s] of srcs) if (typeof s === "string" && /[०-९]/.test(s)) err(w, `a citation with Devanagari digits ("${s}"): a reference keeps its Latin digits`);
+  for (const f of fs.readdirSync(path.join(root, "content")).filter(f => f.endsWith(".json"))) {
+    const walk = (v, where, hi) => {
+      if (typeof v === "string") { const m = hi && v.match(DEV_CITE); if (m) err(where, `cites "${m[0]}" in Devanagari digits: a reference keeps its Latin digits`); return; }
+      if (!v || typeof v !== "object") return;
+      for (const [k, x] of Object.entries(v)) if (k !== "NUM_HI" && k !== "dates") walk(x, `${where}.${k}`, hi || k === "hi");
+    };
+    walk(JSON.parse(fs.readFileSync(path.join(root, "content", f), "utf8")), f.replace(".json", ""), false);
+  }
+
   // REFERENCE.md §6: the board's own history is medieval, not ancient
   const all = JSON.stringify([READINGS, CODEX, STR]);
   if (/\bancient\b/i.test(all)) err("content", 'says "ancient"; the board\'s history is medieval');
