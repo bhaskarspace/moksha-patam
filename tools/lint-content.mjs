@@ -595,6 +595,14 @@ export function lintReport() {
       if (line.includes("\uFFFD")) err(`content/${f}:${i + 1}`, "has a replacement character (U+FFFD): a character was lost in an encoding round trip");
       // a square in Hindi is a घर, or said by its number alone ("{pos} पर"); "खाना" is food (Bhaskar, 29 Oct)
       if (line.includes("खाना {")) err(`content/${f}:${i + 1}`, 'calls a square "खाना {…}": say "घर {…}" or "{…} पर"');
+      // Phase 20, warnings for a reader (Bhaskar, 12 Nov): खाना as a square in any other form, and the board as a बोर्ड
+      // (the cloth is a पट). खाना is also food, so only its square-like uses are flagged: before a number, after a
+      // word that counts or points at squares, and चौखाना.
+      if (f !== "boards.json") {
+        const sq = line.match(SQUARE_KHANA);
+        if (sq) warn(`content/${f}:${i + 1}`, `may call a square "${sq[0].trim()}": a square is a घर`);
+        if (BOARD_WORD.test(line)) warn(`content/${f}:${i + 1}`, 'says "बोर्ड": the board is the पट');
+      }
     });
   }
 
@@ -604,6 +612,12 @@ export function lintReport() {
 
   return { errors, warnings, moments };
 }
+
+// खाना/खाने/खानों as a square (Phase 20): before a number, after a word that counts or points, or in चौखाना; a whole word
+// only, so सिखाने and दिखाने are not read as it
+const DEV = "\\u0900-\\u0963\\u0971-\\u097F"; // the letters and signs, not the dandas or the digits
+const SQUARE_KHANA = new RegExp(`(?<![${DEV}])(?:हर|इस|यह|यही|कोई|एक|अगला|पिछला|अंतिम|किसी भी)\\s+खान[ाेों](?![${DEV}])|(?<![${DEV}])खान[ाेों]\\s*[०-९\\d{]|चौखान`, "u");
+const BOARD_WORD = /बोर्ड/u;
 
 export const lintContent = () => lintReport().errors;
 

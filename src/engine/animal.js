@@ -69,7 +69,7 @@ export function animalLifeOf(state, i, l) {
     title: T("animalTitle"),
     sub: "",
     open: master ? T("animalOpen", { master }) : T("animalOpenNone"),
-    paras: told.length ? [{ head: T("animalHead"), text: told.join(" ") }] : [],
+    paras: told.length ? [{ head: T("animalHead"), text: told.join(" "), parts: told }] : [],
     end: end === "human" ? T("animalEndHuman") : end === "short" ? T(a.round >= 2 ? "animalEndLast" : "animalEndShort") : "",
     curse: "",
     fates: [],

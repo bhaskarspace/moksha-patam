@@ -568,11 +568,21 @@ function bornAgain(state, i) {
 // The name of a life born again in seat i: never one any life in this game has had (at the table now, in a seat's lives
 // before, or as the table sat down; compared as names are, nameKey), nor one its soul's cast carries. Drawn from the
 // players' names as before (the same draw, kept whenever its name is new to the game); when a long game has used every one of them, from the names kept for that (players.again in
-// content/names.json), then from the cast's, passing over any name a living life's cast now has, so no book being
-// written loses a member's name. Only if all are spent is a name used again.
+// content/names.json), then from the cast's. Never a name any other living life's cast now has (Phase 20): the cast
+// passes over a name at the table, so such a name would rename a member some book, finished or not, has named, and the book
+// beside the board is never rewritten. Only if all are spent is a name used again.
 function nameAgain(state, i, rng, soul) {
   const lived = [...state.players.flatMap(q => [...(q.past ?? []), q]), ...(state.table ?? [])];
   const keys = new Set([...lived.flatMap(q => [q.name, q.alias?.en, q.alias?.hi]), ...soul.cast.flatMap(c => [c.en, c.hi])].filter(Boolean).map(nameKey));
+  const living = new Set();
+  if (CAST.names) {
+    state.players.forEach((q, j) => {
+      // a life that has ended is still read, so its cast keeps its names too
+      if (j === i) return;
+      for (const m of Object.values(castOf(state, j, q.prior?.lives ?? 0) ?? {})) [m.en, m.hi].filter(Boolean).forEach(x => living.add(nameKey(x)));
+    });
+  }
+  living.forEach(k => keys.add(k));
   const free = ([en, hi]) => !keys.has(nameKey(en)) && !keys.has(nameKey(hi));
   // the draw before this rule, which most games keep: only a name used before is drawn again
   const was = drawName(rng, "", new Set([...state.players.flatMap(q => [q.name.trim(), q.alias?.en]), ...soul.cast.map(c => c.en)].filter(Boolean)));
@@ -582,10 +592,10 @@ function nameAgain(state, i, rng, soul) {
   let pool = players.filter(x => free([x.en, x.hi]));
   if (!pool.length) pool = of(PLAYER_NAMES.again).filter(x => free([x.en, x.hi]));
   if (!pool.length && CAST.names) {
-    const casts = state.players.map((q, j) => (gone(q) ? null : castOf(state, j, q.prior?.lives ?? 0)));
-    for (const c of casts) for (const m of Object.values(c ?? {})) [m.en, m.hi].filter(Boolean).forEach(x => keys.add(nameKey(x)));
     pool = ["m", "f", "either"].flatMap(gd => (CAST.names[gd] ?? []).map(([en, hi]) => ({ en, hi, gender: gd === "either" ? "n" : gd }))).filter(x => free([x.en, x.hi]));
   }
+  // all spent: a name used before, but still none a living book's cast has
+  if (!pool.length) pool = players.filter(x => !living.has(nameKey(x.en)) && !living.has(nameKey(x.hi)));
   if (!pool.length) pool = players;
   return pool[Math.floor(next(rng) * pool.length)];
 }

@@ -76,8 +76,9 @@ export function renderLog() {
   $("log").innerHTML = G.state.log.map(e => {
     const who = e.who == null ? null : G.state.players[e.who];
     // the squares a move walked over, each opening its card, so a game shows far more of the board than it lands on
+    // each "·" goes with the name after it, so a line never ends on one (Phase 20)
     if (e.k === "lPassed") return `
-    <li class="passed"><span class="dot" style="background:transparent;border-color:transparent;box-shadow:none"></span><span>${esc(t("lPassed"))} ${e.v.passed.map(n => `<button type="button" class="logbtn" data-sq="${n}">${esc(squareName(n) || num(n))}</button>`).join(" · ")}</span></li>`;
+    <li class="passed"><span class="dot" style="background:transparent;border-color:transparent;box-shadow:none"></span><span>${esc(t("lPassed"))} ${e.v.passed.map((n, k) => `${k ? `<span class="sep">· ` : ""}<button type="button" class="logbtn" data-sq="${n}">${esc(squareName(n) || num(n))}</button>${k ? "</span>" : ""}`).join(" ")}</span></li>`;
     const text = entryText(e);
     // each move reopens the card of the square it landed on
     const sq = e.v?.sq ?? (e.k === "lWin" ? GOAL : null);

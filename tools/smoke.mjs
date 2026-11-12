@@ -2580,6 +2580,15 @@ await check("Phase 20: 1400px and wider the book is written beside the board, po
   // only what was added is written: the first paragraph is the same node after another turn
   const same = await page.evaluate(async () => { const p = document.querySelector("#bookText p"); mp.play(4); await new Promise(r => setTimeout(r, 50)); return document.querySelector("#bookText p") === p; });
   assert(same, "the book's first line was written again");
+  // a turn is its own paragraph, and the life's āśramas are named where it enters them
+  const parts = await page.evaluate(() => ({ stages: [...document.querySelectorAll("#bookText h3.book-stage")].map(h => h.textContent), paras: document.querySelectorAll("#bookText p").length }));
+  assert(parts.stages.length >= 1 && parts.paras >= 4, JSON.stringify(parts));
+  // no Devanagari is set italic, in the book or anywhere on the page
+  await page.evaluate(() => mp.setLang("hi"));
+  await page.waitForTimeout(200);
+  const italic = await page.evaluate(() => [...document.querySelectorAll("body *")].filter(e => /[\u0900-\u097F]/.test([...e.childNodes].filter(n => n.nodeType === 3).map(n => n.textContent).join("")) && getComputedStyle(e).fontStyle === "italic").map(e => e.className || e.tagName));
+  assert(!italic.length, "italic Devanagari: " + italic.join(", "));
+  await page.evaluate(() => mp.setLang("en"));
   await page.setViewportSize({ width: 1280, height: 800 });
   const mid = await page.evaluate(() => { const bd = document.querySelector(".board-col").getBoundingClientRect(), pn = document.querySelector(".panel").getBoundingClientRect(); return { book: getComputedStyle(document.getElementById("book")).display, left: bd.left, right: innerWidth - pn.right, colophon: getComputedStyle(document.querySelector(".panel .colophon")).display }; });
   assert(mid.book === "none" && Math.abs(mid.left - mid.right) < 24 && mid.colophon !== "none", JSON.stringify(mid));

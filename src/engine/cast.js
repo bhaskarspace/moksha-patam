@@ -60,8 +60,10 @@ export function castOf(state, i, life = 0) {
   // a life closed by Śiva's snake (Phase 17) keeps the cast it had, since the table it was drawn against has changed
   if (p.castKept !== undefined) return p.castKept;
   const rng = makeRng((state.rng.seed ^ 0x2c1b3c6d ^ Math.imul(laneOf(state, i) + 1, 0x85ebca6b) ^ Math.imul(life + 1, 0xc2b2ae35)) >>> 0);
-  // nobody at the table lends a name to anyone's cast
-  const taken = new Set(state.players.flatMap(q => [q.name, q.alias?.en, q.alias?.hi]).filter(Boolean).map(nameKey));
+  // nobody at the table lends a name to anyone's cast, nor any life the game has had (Phase 20): a seat born again
+  // under a new name gives its old one back to no one, so no cast member a book has named is renamed
+  const lives = [...state.players.flatMap(q => [...(q.past ?? []), q]), ...(state.table ?? [])];
+  const taken = new Set(lives.flatMap(q => [q.name, q.alias?.en, q.alias?.hi]).filter(Boolean).map(nameKey));
   // since Phase 19's per-throw dice each draw is a place in the whole list, and a name taken (by someone at the table, or
   // by this cast already) is passed over for the next: the cast of one seed is the same whoever sits at the table, but
   // for a member whose name someone at it has

@@ -283,7 +283,8 @@ export function imageOf(l = lang) {
     drawRibbon(c, s, inner - 36, 26, pad + 36, y + 72);
     y += rowH;
   }
-  c.fillStyle = pal("lac"); c.font = `italic 400 20px ${serif}`;
+  // no italic Devanagari (Phase 20)
+  c.fillStyle = pal("lac"); c.font = `${l === "hi" ? "" : "italic "}400 20px ${serif}`;
   c.fillText(tIn(l, "cmpFoot"), pad, H - pad + 10);
   return cv;
 }

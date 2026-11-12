@@ -54,8 +54,11 @@ const NAMED = new RegExp(`^\\{(?:name|${CAST_ROLES.join("|")})[}=]`);
 const after = (raw, text, l) => (l === "en" && !NAMED.test(raw) && /^(?:\p{Lu}\p{Ll}|(?!I\s)\p{Lu}\s)/u.test(text) ? text[0].toLowerCase() + text.slice(1) : text);
 const stageAt = e => (e.n > EARTH ? 5 : stageOfYears(e.years));
 
-// Player i's life in language l: { title, sub, open, paras: [{ head, text }], end }.
-export function lifeOf(state, i, l) {
+// Player i's life in language l: { title, sub, open, paras: [{ head, text, s, parts }], end }.
+// live (Phase 20, the book beside the board): the life as far as it is written for good. A run of squares lived again,
+// years sat out and the count of a snake or ladder taken three times are told when the run or the paragraph is over,
+// so while the life goes on they are held back, and every part already returned stays as it is.
+export function lifeOf(state, i, l, { live = false } = {}) {
   // an animal interlude has an account of its own (Phase 16, src/engine/animal.js)
   if (isAnimal(state, i)) return animalLifeOf(state, i, l);
   const p = state.players[i], name = pnameIn(p, l), who = { name, gender: p.gender };
@@ -267,7 +270,7 @@ export function lifeOf(state, i, l) {
     lastYears = e.years;
   }
   reckon(Infinity);
-  close();
+  if (!live) close();
 
   const stage = s => (l === "hi" ? ASHRAMAS[s][2] : ASHRAMAS[s][1]);
   // what the closing holds or puts down may name someone this life met: the son, the rival
@@ -280,7 +283,7 @@ export function lifeOf(state, i, l) {
     paras: paras.map(({ s, ages, parts }) => {
       const a = Math.min(...ages), b = Math.max(...ages);
       const head = s === 5 || !ages.length ? stage(s) : a === b ? T("lifeAt", { stage: stage(s), a }) : T("lifeSpan", { stage: stage(s), a, b });
-      return { head, text: parts.join(" ") };
+      return { head, text: parts.join(" "), s, parts };
     }),
     end: lawEnd(state, i, T, words, liberated(state, i) ? winEnd(p, T, words, held, lawOf(state, i))
       : p.fell ? fellEnd(p, along, T, sq, held, l, who, lawOf(state, i))
@@ -392,6 +395,24 @@ export function pathOf(state, i, l) {
   const end = liberated(state, i) ? T(lawOf(state, i).text.win.path) : p.fell ? T("pathFell") : p.dead ? T("pathDied") : p.earned ? T("animalEarned") : p.short ? T(interludeOf(state, i)?.round >= 2 ? "animalLastText" : "animalShortText") : "";
   // an animal does not count years, so its path has none
   return { rows: rows.map(r => ({ age: isAnimal(state, i) ? "" : words(r.years), sq: nameOf(r.n), via: viaOf(r) })), end };
+}
+
+// The book as it is written (Phase 20, src/render/book.js): player i's life in language l as blocks, a stage's name
+// where the life enters an āśrama ({ stage }), then a block for each part ({ text }), and once the game is over its
+// ending ({ text, end }). Only ever added to while the same life goes on (tests/book.test.mjs).
+export function bookOf(state, i, l) {
+  const L = lifeOf(state, i, l, { live: !state.over }), out = [];
+  if (isAnimal(state, i) && L.open) out.push({ text: L.open });
+  for (const q of L.paras) {
+    out.push({ stage: q.s != null ? (l === "hi" ? ASHRAMAS[q.s][2] : ASHRAMAS[q.s][1]) : q.head });
+    for (const t of q.parts ?? [q.text]) out.push({ text: t });
+  }
+  if (state.over) {
+    const e = [L.end, L.curse].filter(Boolean).join(" ");
+    if (e) out.push({ text: e, end: true });
+    if (L.fates.length) out.push({ text: L.fates.join(" "), end: true });
+  }
+  return out;
 }
 
 // The same life as plain text, to copy or save.

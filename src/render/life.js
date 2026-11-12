@@ -10,7 +10,7 @@ import { mirrorOf, mirrorIn, mirrorIntroIn } from "../engine/mirror.js";
 import { pastOf } from "../engine/samskara.js";
 import { lawOf } from "../engine/laws/index.js";
 import { prefs } from "../prefs.js";
-import { legendOf } from "../content.js";
+import { legendOf, BOARD } from "../content.js";
 import { isCloth } from "../engine/cloth.js";
 import { sqNumIn } from "./board.js";
 
@@ -24,9 +24,18 @@ export const lifeText = (state, i, l = lang) => (isCloth() ? clothText(state, i,
 
 // On an old cloth (REDESIGN.md Phase 18) there is no life to read, only the path: every square the pawn stood on, in
 // order, by its legend.
-const clothRows = (state, i, l) => (state.players[i].life ?? []).map(n => ({ n: sqNumIn(l, n), sq: legendOf(n)?.[l] ?? "" }));
+// A square reached by a snake is marked ↓ and one reached by a ladder or a footprint ↑ (Phase 20), said in words to a
+// screen reader ("fell to", "climbed to").
+const moveTo = (from, n) => {
+  const r = BOARD.rules ?? {};
+  return from == null ? null : r.snakes?.[from] === n ? "fell" : r.ladders?.[from] === n || r.footprints?.[from] === n ? "climbed" : null;
+};
+export const clothRows = (state, i, l) => (state.players[i].life ?? []).map((n, k, life) => ({ n: sqNumIn(l, n), sq: legendOf(n)?.[l] ?? "", mv: moveTo(life[k - 1], n) }));
+const MARK = { fell: ["↓", "pathFellTo"], climbed: ["↑", "pathClimbedTo"] };
+// the mark as html: the arrow seen, the words heard
+export const markHtml = (mv, l) => (mv ? `<span class="mv" aria-hidden="true">${MARK[mv][0]}</span><span class="sr">${esc(tIn(l, MARK[mv][1]))} </span>` : "");
 const clothText = (state, i, l) =>
-  [tIn(l, "pathOf", { name: pnameIn(state.players[i], l) }), tIn(l, "pathIntro"), "", ...clothRows(state, i, l).map(r => `${r.n}  ${r.sq}`)].join("\n");
+  [tIn(l, "pathOf", { name: pnameIn(state.players[i], l) }), tIn(l, "pathIntro"), "", ...clothRows(state, i, l).map(r => `${r.mv ? MARK[r.mv][0] + " " : ""}${r.n}  ${r.sq}`)].join("\n");
 function paintCloth() {
   const state = G.state, l = lang, T = (k, v) => tIn(l, k, v);
   const tabs = state.players.length > 1
@@ -43,7 +52,7 @@ function paintCloth() {
       <div class="leaf-text" lang="${l}">
         <h2 id="lifeTitle">${esc(T("pathOf", { name: pnameIn(state.players[whose], l) }))}</h2>
         <p class="life-open">${esc(T("pathIntro"))}</p>
-        <ol class="life-path">${clothRows(state, whose, l).map(r => `<li><span class="pa">${esc(r.n)}</span><span class="ps">${esc(r.sq)}</span></li>`).join("")}</ol>
+        <ol class="life-path">${clothRows(state, whose, l).map(r => `<li><span class="pa">${markHtml(r.mv, l)}${esc(r.n)}</span><span class="ps">${esc(r.sq)}</span></li>`).join("")}</ol>
       </div>
     </div>
     <footer class="leaf-foot">

@@ -33,7 +33,8 @@
 // through its rebirths until it is let go, every account of it tagged "together", and one that tells a meeting with the
 // other seat "meet". A game of one seat is never played together. Without the flag every account must be main's.
 // Its follow-up (11 Nov) names an animal's life by its kind and household, drawing it no name: every game holding one is
-// tagged "animalname", and every account untagged animalname must be main's.
+// tagged "animalname", and every account untagged animalname must be main's. Phase 20 tags "reborn" every account of a
+// game in which a seat was born again: names are no longer handed back, so every account untagged reborn must be main's.
 // Phase 19 step 3 keys every throw by the seed, the lane, the life and the throw (src/engine/throws.js): "dice" marks an
 // account whose game the per-throw dice played otherwise than the old shared stream did. --dice=stream plays the old
 // stream, and then every account must be main's, byte for byte.
@@ -90,6 +91,9 @@ const playOne = (players, seed, rules) => {
   // an animal's life is named by its kind and household, and no name is drawn for it (reviewed 11 Nov): a game that
   // holds one is tagged "animalname", for its own account, a meeting with it, and a human name after it the draw shifts
   s.animalname = s.players.some(p => [...(p.past ?? []), p].some(q => q.animal));
+  // Phase 20: the cast passes over every name the game has had, and a life born again takes none a living cast has, so
+  // no member a book has named is renamed: every account of a game in which a seat was born again is tagged "reborn"
+  s.reborn = s.players.some(p => p.past?.length);
   return s;
 };
 const hash = t => crypto.createHash("sha256").update(t).digest("hex");
@@ -101,13 +105,13 @@ const say = (key, s, i, l) => {
   if (!past.length) return sayOne(key, s, i, l);
   [...past.map((_, k) => pastOf(s, i, k)), s].forEach((v, k) => {
     if (k) v = { ...v, siva: true, together: s.together, dice: s.dice };
-    v = { ...v, animalname: s.animalname };
+    v = { ...v, animalname: s.animalname, reborn: s.reborn };
     sayOne(k ? `${key} siva${k}` : key, v, i, l);
   });
 };
 const sayOne = (key, s, i, l) => {
   const text = lifeText(s, i, l), life = lifeOf(s, i, l);
-  out.push(flags.full ? `## ${key}\n${text}` : `${key} ${hash(text)}${flags.tag ? (s.above ? " above" : "") + (s.karma ? " karma" : "") + (s.door ? " door" : "") + (s.curse ? " curse" : "") + (s.witness || life.witnessed ? " witness" : "") + (s.death ? " death" : "") + (mirrorOf?.(s, i)[0]?.id === "rebel" ? " mirror" : "") + (s.rebirth ? " rebirth" : "") + (s.animal ? " animal" : "") + (s.siva ? " siva" : "") + (s.together ? " together" : "") + (s.players[i].met?.length ? " meet" : "") + (s.dice ? " dice" : "") + (s.animalname ? " animalname" : "") + (l === "hi" && /बरस की उम्र में|घर [०-९\d]/.test(text) ? " wording" : "") : ""}`);
+  out.push(flags.full ? `## ${key}\n${text}` : `${key} ${hash(text)}${flags.tag ? (s.above ? " above" : "") + (s.karma ? " karma" : "") + (s.door ? " door" : "") + (s.curse ? " curse" : "") + (s.witness || life.witnessed ? " witness" : "") + (s.death ? " death" : "") + (mirrorOf?.(s, i)[0]?.id === "rebel" ? " mirror" : "") + (s.rebirth ? " rebirth" : "") + (s.animal ? " animal" : "") + (s.siva ? " siva" : "") + (s.together ? " together" : "") + (s.players[i].met?.length ? " meet" : "") + (s.dice ? " dice" : "") + (s.animalname ? " animalname" : "") + (s.reborn ? " reborn" : "") + (l === "hi" && /बरस की उम्र में|घर [०-९\d]/.test(text) ? " wording" : "") : ""}`);
   if (l === "en" && life.fates) {
     tally.lives++;
     tally.fates += life.fates.length;

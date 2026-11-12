@@ -88,7 +88,9 @@ h1 { font-family: var(--f-display); font-weight: 400; font-size: clamp(34px, 6vw
    821–1400px: the board and the panel are centred as a pair (up to 820px, a phone held sideways among them, the page
    is one column, as before). 1400px and wider: the book on the left (render/book.js). */
 @media (min-width: 821px) {
-  .wrap { max-width: none; }
+  /* the page is as wide as its columns, so the title stands over the left edge of the first (the book, or the board)
+     and the tools over the right edge of the panel */
+  .wrap { max-width: 100%; width: fit-content; margin-inline: auto; }
   .game { --side: 272px; --gaps: 28px; --book: 0px; grid-template-columns: auto var(--side); justify-content: center; }
   .board-col { width: min(calc(100vw - 32px - var(--book) - var(--side) - var(--gaps)), calc((100dvh - 164px) * var(--ar, 0.84) + 50px)); }
 }
@@ -98,6 +100,13 @@ h1 { font-family: var(--f-display); font-weight: 400; font-size: clamp(34px, 6vw
   .book { display: flex; position: sticky; top: 16px; height: calc(100dvh - 114px); min-height: 420px; }
   .panel .colophon { display: none; }
 }
+/* Phase 20: Devanagari is never set italic, anywhere: what italic marks in English (a verse, an aside, an ending) is
+   carried in Hindi by the face and the colour alone. A note whose lang is left open takes the page's. */
+:lang(hi), html[lang="hi"] [lang=""], html[lang="hi"] [lang=""] * { font-style: normal !important; }
+/* the moves list's squares passed: a separator never ends a line (render/log.js) */
+.log .passed .sep { white-space: nowrap; }
+/* words for a screen reader only */
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 /* the book is a leaf of the life's account, lighter on the page than a card over it */
 .book-leaf { flex: 1; min-height: 0; max-height: none; box-shadow: inset 0 0 0 1px rgba(110, 70, 20, 0.35), inset 0 0 34px rgba(120, 72, 20, 0.22), 0 6px 18px rgba(0, 0, 0, 0.18); }
 .book-leaf .leaf-main { flex: 1; padding: 6px 16px 14px; }
@@ -106,7 +115,21 @@ h1 { font-family: var(--f-display); font-weight: 400; font-size: clamp(34px, 6vw
 .book-leaf .leaf-text h2 { font-size: 28px; }
 .book-leaf .leaf-text p { font-size: 16px; line-height: 1.55; }
 .book-leaf .leaf-text p.book-intro { margin-top: 4px; }
+.book-leaf .leaf-text p { margin: 8px 0 0; }
 .book-leaf .leaf-text p.book-path { margin: 2px 0 0; }
+.book-leaf .leaf-text p.life-end { margin-top: 16px; }
+/* where the life enters an āśrama: a label in the idiom of the board's edge (.ashramas), gold on the frame's red */
+.book-leaf .leaf-text h3.book-stage {
+  display: table; margin: 18px 0 2px; padding: 4px 9px 3px;
+  font: 700 11px/1 var(--f-body); letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--frame-gold); background: var(--frame-red);
+}
+.book-leaf .leaf-text h3.book-stage:lang(hi) { font-family: var(--f-body); font-size: 12px; letter-spacing: 0; }
+.book-leaf .leaf-text h2 + h3.book-stage { margin-top: 12px; }
+/* on an old board's path, the square a snake or a ladder brought the pawn to */
+.mv { display: inline-block; width: 1.1em; margin-inline-start: -1.1em; color: var(--l-rule); font-weight: 700; }
+.book-leaf .leaf-text p.book-path { padding-inline-start: 1.1em; }
+.life-path .pa .mv { margin-inline-start: 0; }
 .board-frame {
   --fp: clamp(8px, 2.6vw, 18px);
   width: 100%;
@@ -1785,6 +1808,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         readPath: "Read the path",
         pathOf: "{name}'s path",
         pathIntro: "Every square the pawn stood on, in order, by its legend.",
+        pathFellTo: "fell to",
+        pathClimbedTo: "climbed to",
         pathCopy: "Copy the path",
         ruleBoard: "Board",
         board110: "110 squares: a life (the game's own)",
@@ -2395,6 +2420,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         readPath: "रास्ता पढ़ें",
         pathOf: "{name} का रास्ता",
         pathIntro: "हर घर जिस पर मोहरा खड़ा हुआ, क्रम से, उसके लेख के साथ।",
+        pathFellTo: "नीचे गिरकर",
+        pathClimbedTo: "ऊपर चढ़कर",
         pathCopy: "रास्ता कॉपी करें",
         ruleBoard: "बोर्ड",
         board110: "110 घर: एक जीवन (खेल का अपना)",
@@ -5487,7 +5514,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       title: T2("animalTitle"),
       sub: "",
       open: master2 ? T2("animalOpen", { master: master2 }) : T2("animalOpenNone"),
-      paras: told.length ? [{ head: T2("animalHead"), text: told.join(" ") }] : [],
+      paras: told.length ? [{ head: T2("animalHead"), text: told.join(" "), parts: told }] : [],
       end: end === "human" ? T2("animalEndHuman") : end === "short" ? T2(a.round >= 2 ? "animalEndLast" : "animalEndShort") : "",
       curse: "",
       fates: []
@@ -5566,7 +5593,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const p = state.players[i];
     if (p.castKept !== void 0) return p.castKept;
     const rng = makeRng((state.rng.seed ^ 739982445 ^ Math.imul(laneOf(state, i) + 1, 2246822507) ^ Math.imul(life + 1, 3266489909)) >>> 0);
-    const taken = new Set(state.players.flatMap((q2) => [q2.name, q2.alias?.en, q2.alias?.hi]).filter(Boolean).map(nameKey));
+    const lives2 = [...state.players.flatMap((q2) => [...q2.past ?? [], q2]), ...state.table ?? []];
+    const taken = new Set(lives2.flatMap((q2) => [q2.name, q2.alias?.en, q2.alias?.hi]).filter(Boolean).map(nameKey));
     const table = new Set(taken), inCast = /* @__PURE__ */ new Set(), whole = !streamOf(state);
     const pool = (gd) => [...list[gd], ...list.either || []].filter(([en, hi]) => !taken.has(nameKey(en)) && !taken.has(nameKey(hi)));
     const coin = () => next(rng) < 0.5 ? "m" : "f", span = (a, b) => a + Math.floor(next(rng) * (b - a + 1));
@@ -6326,6 +6354,14 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   function nameAgain(state, i, rng, soul) {
     const lived = [...state.players.flatMap((q2) => [...q2.past ?? [], q2]), ...state.table ?? []];
     const keys = new Set([...lived.flatMap((q2) => [q2.name, q2.alias?.en, q2.alias?.hi]), ...soul.cast.flatMap((c) => [c.en, c.hi])].filter(Boolean).map(nameKey));
+    const living = /* @__PURE__ */ new Set();
+    if (CAST.names) {
+      state.players.forEach((q2, j) => {
+        if (j === i) return;
+        for (const m of Object.values(castOf(state, j, q2.prior?.lives ?? 0) ?? {})) [m.en, m.hi].filter(Boolean).forEach((x) => living.add(nameKey(x)));
+      });
+    }
+    living.forEach((k) => keys.add(k));
     const free = ([en, hi]) => !keys.has(nameKey(en)) && !keys.has(nameKey(hi));
     const was = drawName(rng, "", new Set([...state.players.flatMap((q2) => [q2.name.trim(), q2.alias?.en]), ...soul.cast.map((c) => c.en)].filter(Boolean)));
     if (was && free([was.en, was.hi])) return was;
@@ -6334,10 +6370,9 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     let pool = players.filter((x) => free([x.en, x.hi]));
     if (!pool.length) pool = of(PLAYER_NAMES.again).filter((x) => free([x.en, x.hi]));
     if (!pool.length && CAST.names) {
-      const casts = state.players.map((q2, j) => gone(q2) ? null : castOf(state, j, q2.prior?.lives ?? 0));
-      for (const c of casts) for (const m of Object.values(c ?? {})) [m.en, m.hi].filter(Boolean).forEach((x) => keys.add(nameKey(x)));
       pool = ["m", "f", "either"].flatMap((gd) => (CAST.names[gd] ?? []).map(([en, hi]) => ({ en, hi, gender: gd === "either" ? "n" : gd }))).filter((x) => free([x.en, x.hi]));
     }
+    if (!pool.length) pool = players.filter((x) => !living.has(nameKey(x.en)) && !living.has(nameKey(x.hi)));
     if (!pool.length) pool = players;
     return pool[Math.floor(next(rng) * pool.length)];
   }
@@ -7745,7 +7780,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     $("log").innerHTML = G.state.log.map((e) => {
       const who3 = e.who == null ? null : G.state.players[e.who];
       if (e.k === "lPassed") return `
-    <li class="passed"><span class="dot" style="background:transparent;border-color:transparent;box-shadow:none"></span><span>${esc(t("lPassed"))} ${e.v.passed.map((n) => `<button type="button" class="logbtn" data-sq="${n}">${esc(squareName(n) || num(n))}</button>`).join(" · ")}</span></li>`;
+    <li class="passed"><span class="dot" style="background:transparent;border-color:transparent;box-shadow:none"></span><span>${esc(t("lPassed"))} ${e.v.passed.map((n, k) => `${k ? `<span class="sep">· ` : ""}<button type="button" class="logbtn" data-sq="${n}">${esc(squareName(n) || num(n))}</button>${k ? "</span>" : ""}`).join(" ")}</span></li>`;
       const text2 = entryText(e);
       const sq = e.v?.sq ?? (e.k === "lWin" ? GOAL : null);
       return `
@@ -9481,7 +9516,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var NAMED2 = new RegExp(`^\\{(?:name|${CAST_ROLES.join("|")})[}=]`);
   var after = (raw, text2, l) => l === "en" && !NAMED2.test(raw) && /^(?:\p{Lu}\p{Ll}|(?!I\s)\p{Lu}\s)/u.test(text2) ? text2[0].toLowerCase() + text2.slice(1) : text2;
   var stageAt2 = (e) => e.n > EARTH3 ? 5 : stageOfYears(e.years);
-  function lifeOf(state, i, l) {
+  function lifeOf(state, i, l, { live = false } = {}) {
     if (isAnimal(state, i)) return animalLifeOf(state, i, l);
     const p = state.players[i], name = pnameIn(p, l), who3 = { name, gender: p.gender };
     const T2 = (key2, v = {}) => fill(tIn(l, key2, { name, ...v }), who3);
@@ -9716,7 +9751,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       lastYears = e.years;
     }
     reckon(Infinity);
-    close();
+    if (!live) close();
     const stage = (s) => l === "hi" ? ASHRAMAS[s][2] : ASHRAMAS[s][1];
     const last2 = cc.at(-1), people2 = last2 ? peopleOf(last2.cast, /* @__PURE__ */ new Set([...last2.before, ...last2.meets ? [last2.about] : []]), l) : {};
     const held2 = (t2) => fill(castFill(t2 ? t2[l] || t2.en : "", people2), who3);
@@ -9727,7 +9762,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       paras: paras.map(({ s, ages, parts }) => {
         const a = Math.min(...ages), b = Math.max(...ages);
         const head = s === 5 || !ages.length ? stage(s) : a === b ? T2("lifeAt", { stage: stage(s), a }) : T2("lifeSpan", { stage: stage(s), a, b });
-        return { head, text: parts.join(" ") };
+        return { head, text: parts.join(" "), s, parts };
       }),
       end: lawEnd(state, i, T2, words, liberated(state, i) ? winEnd(p, T2, words, held2, lawOf(state, i)) : p.fell ? fellEnd(p, along, T2, sq, held2, l, who3, lawOf(state, i)) : !p.life?.length ? T2("lifeUnborn") : p.death?.by === "ledger" ? ledgerEnd(p, T2, words, l, who3, held2) : p.dead && p.pos === GOAL ? doorEnd(p, T2, words, l, who3) : p.dead ? T2("lifeEndDied", { age: words(p.years), holding: held2(SNAKES[p.holding]?.holding) }).replace(/, ([.।])$/, "$1") : T2("lifeEndOpen", { n: p.pos })),
       // a curse the life never bore out is closed after the end, the other way (Phase 14): empty with none
@@ -9804,6 +9839,20 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const end = liberated(state, i) ? T2(lawOf(state, i).text.win.path) : p.fell ? T2("pathFell") : p.dead ? T2("pathDied") : p.earned ? T2("animalEarned") : p.short ? T2(interludeOf(state, i)?.round >= 2 ? "animalLastText" : "animalShortText") : "";
     return { rows: rows.map((r) => ({ age: isAnimal(state, i) ? "" : words(r.years), sq: nameOf(r.n), via: viaOf(r) })), end };
   }
+  function bookOf(state, i, l) {
+    const L2 = lifeOf(state, i, l, { live: !state.over }), out = [];
+    if (isAnimal(state, i) && L2.open) out.push({ text: L2.open });
+    for (const q2 of L2.paras) {
+      out.push({ stage: q2.s != null ? l === "hi" ? ASHRAMAS[q2.s][2] : ASHRAMAS[q2.s][1] : q2.head });
+      for (const t2 of q2.parts ?? [q2.text]) out.push({ text: t2 });
+    }
+    if (state.over) {
+      const e = [L2.end, L2.curse].filter(Boolean).join(" ");
+      if (e) out.push({ text: e, end: true });
+      if (L2.fates.length) out.push({ text: L2.fates.join(" "), end: true });
+    }
+    return out;
+  }
   function lifeText(state, i, l) {
     const { title, sub, open: open2, paras, end, curse, fates } = lifeOf(state, i, l);
     return [[title, sub].filter(Boolean).join("\n"), open2, ...paras.map((p) => `${p.head}
@@ -9869,8 +9918,14 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
   var TABS = ["book", "path", "mirror"];
   var TAB_KEY = { book: "lifeBook", path: "lifePath", mirror: "lifeMirror" };
   var lifeText2 = (state, i, l = lang) => isCloth() ? clothText(state, i, l) : lifeText(state, i, l);
-  var clothRows = (state, i, l) => (state.players[i].life ?? []).map((n) => ({ n: sqNumIn(l, n), sq: legendOf(n)?.[l] ?? "" }));
-  var clothText = (state, i, l) => [tIn(l, "pathOf", { name: pnameIn(state.players[i], l) }), tIn(l, "pathIntro"), "", ...clothRows(state, i, l).map((r) => `${r.n}  ${r.sq}`)].join("\n");
+  var moveTo = (from, n) => {
+    const r = BOARD.rules ?? {};
+    return from == null ? null : r.snakes?.[from] === n ? "fell" : r.ladders?.[from] === n || r.footprints?.[from] === n ? "climbed" : null;
+  };
+  var clothRows = (state, i, l) => (state.players[i].life ?? []).map((n, k, life) => ({ n: sqNumIn(l, n), sq: legendOf(n)?.[l] ?? "", mv: moveTo(life[k - 1], n) }));
+  var MARK = { fell: ["↓", "pathFellTo"], climbed: ["↑", "pathClimbedTo"] };
+  var markHtml = (mv, l) => mv ? `<span class="mv" aria-hidden="true">${MARK[mv][0]}</span><span class="sr">${esc(tIn(l, MARK[mv][1]))} </span>` : "";
+  var clothText = (state, i, l) => [tIn(l, "pathOf", { name: pnameIn(state.players[i], l) }), tIn(l, "pathIntro"), "", ...clothRows(state, i, l).map((r) => `${r.mv ? MARK[r.mv][0] + " " : ""}${r.n}  ${r.sq}`)].join("\n");
   function paintCloth() {
     const state = G.state, l = lang, T2 = (k, v) => tIn(l, k, v);
     const tabs2 = state.players.length > 1 ? `<div class="life-who" role="group" aria-label="${T2("lifeWhose")}">` + state.players.map((p, i) => `<button type="button" data-who="${i}" aria-pressed="${i === whose}"><span class="dot" style="background:${COLORS[p.color]}"></span>${esc(pnameIn(p, l))}</button>`).join("") + `</div>` : "";
@@ -9884,7 +9939,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
       <div class="leaf-text" lang="${l}">
         <h2 id="lifeTitle">${esc(T2("pathOf", { name: pnameIn(state.players[whose], l) }))}</h2>
         <p class="life-open">${esc(T2("pathIntro"))}</p>
-        <ol class="life-path">${clothRows(state, whose, l).map((r) => `<li><span class="pa">${esc(r.n)}</span><span class="ps">${esc(r.sq)}</span></li>`).join("")}</ol>
+        <ol class="life-path">${clothRows(state, whose, l).map((r) => `<li><span class="pa">${markHtml(r.mv, l)}${esc(r.n)}</span><span class="ps">${esc(r.sq)}</span></li>`).join("")}</ol>
       </div>
     </div>
     <footer class="leaf-foot">
@@ -10020,31 +10075,30 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     if (isCloth()) {
       return [
         { tag: "h2", cls: "", text: T2("pathOf", { name: pnameIn(p, l) }) },
-        ...p.life.map((n) => ({ tag: "p", cls: "book-path", text: `${sqNumIn(l, n)}  ${legendOf(n)?.[l] ?? ""}` }))
+        ...clothRows(state, i, l).map((r) => ({ tag: "p", cls: "book-path", html: `${markHtml(r.mv, l)}${esc(`${r.n}  ${r.sq}`)}` }))
       ];
     }
-    const { title, paras, end, curse, fates } = lifeOf(state, i, l);
-    const out = [{ tag: "h2", cls: "", text: title }];
-    for (const q2 of paras) out.push({ tag: "h3", cls: "sub", text: q2.head }, { tag: "p", cls: "", text: q2.text });
-    if (state.over) {
-      const e = [end, curse].filter(Boolean).join(" ");
-      if (e) out.push({ tag: "p", cls: "life-end", text: e });
-      if (fates.length) out.push({ tag: "p", cls: "life-fates", text: fates.join(" ") });
-    }
-    return out;
+    return [
+      { tag: "h2", cls: "", text: tIn(l, isAnimal(state, i) ? "animalTitle" : "lifeTitle", { name: pnameIn(p, l) }) },
+      ...bookOf(state, i, l).map((b) => b.stage ? { tag: "h3", cls: "book-stage", text: b.stage } : { tag: "p", cls: b.end ? "life-end" : "", text: b.text })
+    ];
   }
   function write2(blocks) {
     const kids = text.children;
     for (let k = 0; k < blocks.length; k++) {
       const b = blocks[k], el3 = kids[k];
       if (el3 && el3.tagName === b.tag.toUpperCase() && el3.className === b.cls) {
-        if (el3.textContent !== b.text) el3.textContent = b.text;
+        if (b.html != null ? el3.innerHTML !== b.html : el3.textContent !== b.text) {
+          if (b.html != null) el3.innerHTML = b.html;
+          else el3.textContent = b.text;
+        }
         continue;
       }
       while (kids.length > k) text.lastChild.remove();
       const n = document.createElement(b.tag);
       if (b.cls) n.className = b.cls;
-      n.textContent = b.text;
+      if (b.html != null) n.innerHTML = b.html;
+      else n.textContent = b.text;
       text.appendChild(n);
     }
     while (kids.length > blocks.length) text.lastChild.remove();
@@ -10569,7 +10623,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
       y += rowH;
     }
     c.fillStyle = pal("lac");
-    c.font = `italic 400 20px ${serif}`;
+    c.font = `${l === "hi" ? "" : "italic "}400 20px ${serif}`;
     c.fillText(tIn(l, "cmpFoot"), pad, H2 - pad + 10);
     return cv;
   }

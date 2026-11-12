@@ -8,35 +8,30 @@
 import { lang, tIn } from "../i18n.js";
 import { G, pnameIn } from "../state.js";
 import { $, COLORS, esc, reduced } from "../ui.js";
-import { lifeOf } from "../engine/account.js";
+import { bookOf } from "../engine/account.js";
+import { isAnimal } from "../engine/animal.js";
+import { clothRows, markHtml } from "./life.js";
 import { isCloth } from "../engine/cloth.js";
-import { BOARD_ID, legendOf } from "../content.js";
-import { sqNumIn } from "./board.js";
+import { BOARD_ID } from "../content.js";
 
 const wide = matchMedia("(min-width: 1400px)");
 const who = $("bookWho"), text = $("bookText"), scroller = $("bookScroll");
 // the seat shown, the game it belongs to, the turn last seen, and what was last written, to write only what changed
 let whose = 0, game = null, lastTurn = -1, key = "";
 
-// The book's blocks for seat i, in language l: [{ tag, cls, text }]
+// The book's blocks for seat i, in language l: [{ tag, cls, text } or { tag, cls, html }]. A block is never changed
+// once written while the same life goes on (bookOf, tests/book.test.mjs); a turn adds its own paragraphs, and a stage's
+// name where the life enters an āśrama.
 function blocksOf(state, i, l) {
   const p = state.players[i], T = (k, v) => tIn(l, k, v);
   const intro = [{ tag: "p", cls: "life-open book-intro", text: T(isCloth() ? `board${BOARD_ID}About` : "intro") }];
   if (!p.life?.length) return intro;
   if (isCloth()) {
     return [{ tag: "h2", cls: "", text: T("pathOf", { name: pnameIn(p, l) }) },
-      ...p.life.map(n => ({ tag: "p", cls: "book-path", text: `${sqNumIn(l, n)}  ${legendOf(n)?.[l] ?? ""}` }))];
+      ...clothRows(state, i, l).map(r => ({ tag: "p", cls: "book-path", html: `${markHtml(r.mv, l)}${esc(`${r.n}  ${r.sq}`)}` }))];
   }
-  const { title, paras, end, curse, fates } = lifeOf(state, i, l);
-  const out = [{ tag: "h2", cls: "", text: title }];
-  for (const q of paras) out.push({ tag: "h3", cls: "sub", text: q.head }, { tag: "p", cls: "", text: q.text });
-  // a life still being lived has no ending yet; one the game has closed is read to its end, as the book reads it
-  if (state.over) {
-    const e = [end, curse].filter(Boolean).join(" ");
-    if (e) out.push({ tag: "p", cls: "life-end", text: e });
-    if (fates.length) out.push({ tag: "p", cls: "life-fates", text: fates.join(" ") });
-  }
-  return out;
+  return [{ tag: "h2", cls: "", text: tIn(l, isAnimal(state, i) ? "animalTitle" : "lifeTitle", { name: pnameIn(p, l) }) },
+    ...bookOf(state, i, l).map(b => (b.stage ? { tag: "h3", cls: "book-stage", text: b.stage } : { tag: "p", cls: b.end ? "life-end" : "", text: b.text }))];
 }
 
 // Write only what changed: a block whose text grew is rewritten in place, new blocks are added, stale ones removed.
@@ -45,13 +40,13 @@ function write(blocks) {
   for (let k = 0; k < blocks.length; k++) {
     const b = blocks[k], el = kids[k];
     if (el && el.tagName === b.tag.toUpperCase() && el.className === b.cls) {
-      if (el.textContent !== b.text) el.textContent = b.text;
+      if (b.html != null ? el.innerHTML !== b.html : el.textContent !== b.text) { if (b.html != null) el.innerHTML = b.html; else el.textContent = b.text; }
       continue;
     }
     while (kids.length > k) text.lastChild.remove();
     const n = document.createElement(b.tag);
     if (b.cls) n.className = b.cls;
-    n.textContent = b.text;
+    if (b.html != null) n.innerHTML = b.html; else n.textContent = b.text;
     text.appendChild(n);
   }
   while (kids.length > blocks.length) text.lastChild.remove();
