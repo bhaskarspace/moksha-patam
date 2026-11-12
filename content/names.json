@@ -44,7 +44,9 @@
     {"en":["Savitri","Sāvitrī"],"hi":["सावित्री"]},
     {"en":["Jajali","Jājali"],"hi":["जाजलि"]},
     {"en":["Jaratkaru","Jaratkāru"],"hi":["जरत्कारु"]},
-    {"en":["Dasharatha","Daśaratha"],"hi":["दशरथ"]}
+    {"en":["Dasharatha","Daśaratha"],"hi":["दशरथ"]},
+    {"en":["Draupadi","Draupadī"],"hi":["द्रौपदी"]},
+    {"en":["Nahusha","Nahuṣa"],"hi":["नहुष"]}
   ],
   "gods": [
     {"en":["Yama"],"hi":["यम","यमराज"]},
@@ -81,7 +83,8 @@
     {"en":["Gayatri","Gāyatrī"],"hi":["गायत्री"]},
     {"en":["Vedanta","Vedānta"],"hi":["वेदांत"]},
     {"en":["Gṛhya Sūtras"],"hi":["गृह्यसूत्र"]},
-    {"en":["Panchatantra","Pañcatantra"],"hi":["पंचतंत्र"]}
+    {"en":["Panchatantra","Pañcatantra"],"hi":["पंचतंत्र"]},
+    {"en":["Samnyasa Upanishads","Saṃnyāsa Upaniṣads"],"hi":["संन्यास उपनिषदों","संन्यास उपनिषद्"]}
   ],
   "fable": [
     {"en":["jackal"],"hi":["सियार"]},

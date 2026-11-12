@@ -184,7 +184,7 @@
   },
   "42": {
     "iast": "Gṛha",
-    "scholar": {"en":"Manu calls the householder the highest āśrama, because all the others live on what it gives. The same text's rules on caste and on women have been contested from its own time to now.","hi":"मनु गृहस्थ को सबसे श्रेष्ठ आश्रम कहते हैं, क्योंकि बाकी सब उसी के दिए पर जीते हैं। इसी ग्रंथ के जाति और स्त्रियों संबंधी नियम अपने समय से आज तक विवादित रहे हैं।"},
+    "scholar": {"en":"The householder is called the highest āśrama because all the others live on what it gives (Manusmṛti 3.77–78).","hi":"गृहस्थ को सबसे श्रेष्ठ आश्रम कहा गया है, क्योंकि बाकी सब उसी के दिए पर जीते हैं (मनुस्मृति 3.77–78)।"},
     "schools": [{"id":"mimamsa","en":"The dharma texts rank the householder highest of the four stages: as every creature lives on air, the other three live on the householder (Manu 3.77–78). Mīmāṃsā takes the same side completely: the householder's rites are dharma, and doing them well is the whole of a good life.","hi":"धर्मशास्त्र चारों आश्रमों में गृहस्थ को सबसे ऊँचा रखते हैं: जैसे सब प्राणी वायु के सहारे जीते हैं, वैसे ही बाकी तीनों आश्रम गृहस्थ के सहारे (मनु 3.77–78)। मीमांसा पूरी तरह इसी पक्ष में है: गृहस्थ के कर्म धर्म हैं, और उन्हें अच्छे से करना ही अच्छे जीवन का सार है।"},{"id":"samkhya","en":"Sāṃkhya would ask whether those acts bind or free. Every act of the household is prakṛti busy with itself, and none of it touches the witness.","hi":"सांख्य पूछता कि वे कर्म बाँधते हैं या मुक्त करते हैं। घर का हर कर्म प्रकृति का अपने आप में व्यस्त होना है, और उसमें से कुछ भी साक्षी को नहीं छूता।"}],
     "texts": ["manusmriti"]
   },
@@ -298,7 +298,7 @@
   },
   "67": {
     "schools": [{"id":"vishishtadvaita","en":"Rāmānuja gives the Īśa's verse a body: every being is part of the body of God. To hate any one of them is to wound God's own body.","hi":"रामानुज ईश के मंत्र को एक शरीर देते हैं: हर प्राणी ईश्वर के शरीर का अंग है। किसी एक से घृणा करना ईश्वर के अपने शरीर को घायल करना है।"},{"id":"advaita","en":"Advaita reads the Īśa's verse as identity: there is no hatred because there is no other left to hate.","hi":"अद्वैत ईश के मंत्र को अभेद पढ़ता है: घृणा नहीं है क्योंकि घृणा करने को कोई दूसरा बचा ही नहीं।"}],
-    "scholar": {"en":"The Īśa's sixth verse: one who sees all beings in the Self, and the Self in all beings, hates no one. It does not say how you would know you had seen it, except that the hatred stops.","hi":"ईश का छठा मंत्र: जो सब प्राणियों को आत्मा में और आत्मा को सब में देखता है, वह किसी से घृणा नहीं करता। यह नहीं बताता कि देख लेने का पता कैसे चले, सिवाय इसके कि घृणा रुक जाती है।"},
+    "scholar": {"en":"The Īśa's sixth verse: one who sees all beings in the Self, and the Self in all beings, hates no one. It does not say how you would know you had seen it, except that the hatred stops. The next verses say Duryodhana earned heaven by a warrior's duty, and Yudhiṣṭhira is shown worse before he accepts it.","hi":"ईश का छठा मंत्र: जो सब प्राणियों को आत्मा में और आत्मा को सब में देखता है, वह किसी से घृणा नहीं करता। यह नहीं बताता कि देख लेने का पता कैसे चले, सिवाय इसके कि घृणा रुक जाती है। आगे के श्लोक कहते हैं कि दुर्योधन ने क्षत्रिय धर्म से स्वर्ग पाया, और युधिष्ठिर को इसे मानने से पहले इससे भी बुरा दिखाया जाता है।"},
     "texts": ["isha"]
   },
   "68": {
@@ -424,8 +424,9 @@
   },
   "95": {
     "iast": "Ayam ātmā brahma",
-    "schools": [{"id":"advaita","en":"The Atharva Veda's great sentence. Advaita hears in it the whole teaching in three words: this, here, now, is that.","hi":"अथर्ववेद का महावाक्य। अद्वैत इसमें तीन शब्दों में पूरी शिक्षा सुनता है: यह, यहीं, अभी, वही है।"},{"id":"vishishtadvaita","en":"Rāmānuja reads it through the body: this self is Brahman the way a hand is the person, a real part and not an illusion.","hi":"रामानुज इसे शरीर के रूप में पढ़ते हैं: यह आत्मा ब्रह्म है जैसे हाथ व्यक्ति है, एक वास्तविक अंश, भ्रम नहीं।"}],
-    "figures": ["gaudapada"]
+    "schools": [{"id":"advaita","en":"The Māṇḍūkya's second verse: this Self is Brahman. Then it says at once that this Self has four quarters, and spends the rest of the text on three you already know. Advaita hears in the great sentence the whole teaching in three words: this, here, now, is that.","hi":"माण्डूक्य का दूसरा मंत्र: यह आत्मा ब्रह्म है। फिर तुरंत कहता है कि इस आत्मा के चार पाद हैं, और बाकी ग्रंथ उन तीन पर लगाता है जिन्हें तुम पहले से जानते हो। अद्वैत इस महावाक्य में तीन शब्दों में पूरी शिक्षा सुनता है: यह, यहीं, अभी, वही है।"},{"id":"vishishtadvaita","en":"Rāmānuja reads it through the body: this self is Brahman the way a hand is the person, a real part and not an illusion.","hi":"रामानुज इसे शरीर के रूप में पढ़ते हैं: यह आत्मा ब्रह्म है जैसे हाथ व्यक्ति है, एक वास्तविक अंश, भ्रम नहीं।"}],
+    "figures": ["gaudapada"],
+    "texts": ["mandukya"]
   },
   "96": {
     "iast": "Sarvaṃ khalv idaṃ brahma",
@@ -434,12 +435,13 @@
   },
   "97": {
     "iast": "Pūrṇam adaḥ pūrṇam idam",
-    "scholar": {"en":"The peace invocation (śānti-pāṭha) recited before the Īśa and the Bṛhadāraṇyaka. Its arithmetic, whole minus whole leaves whole, is the arithmetic of the infinite.","hi":"ईश और बृहदारण्यक से पहले पढ़ा जाने वाला शांति पाठ। इसका गणित, पूर्ण से पूर्ण घटाने पर पूर्ण शेष, अनंत का गणित है।"},
-    "schools": [{"id":"vaisheshika","en":"Vaiśeṣika would ask what kind of thing 'the whole' is. Its list of substances has space and time, which are infinite, but no infinite thing you could take from another.","hi":"वैशेषिक पूछता कि 'पूर्ण' किस प्रकार की वस्तु है। उसकी द्रव्य-सूची में आकाश और काल हैं, जो अनंत हैं, पर ऐसी कोई अनंत वस्तु नहीं जिसे दूसरी से निकाला जा सके।"},{"id":"advaita","en":"Advaita reads the verse as a definition: the whole is what nothing can be added to or taken from. Brahman, in one line of arithmetic.","hi":"अद्वैत इस मंत्र को परिभाषा पढ़ता है: पूर्ण वह है जिसमें न कुछ जोड़ा जा सके, न घटाया। एक पंक्ति के गणित में ब्रह्म।"}]
+    "scholar": {"en":"The peace invocation (śānti-pāṭha) recited before the Īśa and the Bṛhadāraṇyaka. Its arithmetic, whole minus whole leaves whole, is the arithmetic of the infinite. The cloth that does not run out is in the vulgate Mahābhārata; the critical edition leaves the miracle out, as a later addition.","hi":"ईश और बृहदारण्यक से पहले पढ़ा जाने वाला शांति पाठ। इसका गणित, पूर्ण से पूर्ण घटाने पर पूर्ण शेष, अनंत का गणित है। कभी ख़त्म न होने वाला वस्त्र महाभारत के प्रचलित पाठ में है; समीक्षित संस्करण इस चमत्कार को बाद का जोड़ मानकर छोड़ देता है।"},
+    "schools": [{"id":"vaisheshika","en":"Vaiśeṣika would ask what kind of thing 'the whole' is. Its list of substances has space and time, which are infinite, but no infinite thing you could take from another.","hi":"वैशेषिक पूछता कि 'पूर्ण' किस प्रकार की वस्तु है। उसकी द्रव्य-सूची में आकाश और काल हैं, जो अनंत हैं, पर ऐसी कोई अनंत वस्तु नहीं जिसे दूसरी से निकाला जा सके।"},{"id":"advaita","en":"Advaita reads the verse as a definition: the whole is what nothing can be added to or taken from. Brahman, in one line of arithmetic.","hi":"अद्वैत इस मंत्र को परिभाषा पढ़ता है: पूर्ण वह है जिसमें न कुछ जोड़ा जा सके, न घटाया। एक पंक्ति के गणित में ब्रह्म।"}],
+    "texts": ["isha"]
   },
   "98": {
     "iast": "Om śāntiḥ śāntiḥ śāntiḥ",
-    "scholar": {"en":"Said three times, one for each kind of trouble: from oneself (ādhyātmika), from other beings (ādhibhautika), and from the powers above (ādhidaivika).","hi":"तीन बार कहा जाता है, हर प्रकार के ताप के लिए एक: अपने से (आध्यात्मिक), अन्य प्राणियों से (आधिभौतिक), और ऊपर की शक्तियों से (आधिदैविक)।"},
+    "scholar": {"en":"Said three times, one for each kind of trouble: from oneself (ādhyātmika), from other beings (ādhibhautika), and from the powers above (ādhidaivika). The third is the one the verse cannot promise.","hi":"तीन बार कहा जाता है, हर प्रकार के ताप के लिए एक: अपने से (आध्यात्मिक), अन्य प्राणियों से (आधिभौतिक), और ऊपर की शक्तियों से (आधिदैविक)। तीसरी का वचन यह मंत्र नहीं दे सकता।"},
     "schools": [{"id":"yoga","en":"Yoga maps the three troubles onto its obstacles: illness and dullness from within, distraction from without, and the rest from what cannot be helped (Yoga Sūtra 1.30–31).","hi":"योग तीन कष्टों को अपने विघ्नों पर रखता है: रोग और जड़ता भीतर से, विक्षेप बाहर से, और बाकी उससे जिसका कोई उपाय नहीं (योगसूत्र 1.30–31)।"},{"id":"nyaya","en":"Nyāya would say the third kind is why liberation cannot be had by effort alone. Some suffering only ends when the body that receives it does.","hi":"न्याय कहता कि तीसरे प्रकार के कारण ही मुक्ति केवल प्रयत्न से नहीं मिल सकती। कुछ दुःख तभी खत्म होते हैं जब उन्हें झेलने वाला शरीर खत्म होता है।"}]
   },
   "99": {
@@ -448,7 +450,8 @@
     "scholar": {"en":"The Upaniṣad calls Virocana's teaching 'the doctrine of the asuras'. Later writers sometimes named it as the ancestor of the Cārvāka view that the body is the self.","hi":"उपनिषद् विरोचन के मत को 'असुरों का उपनिषद्' कहता है। बाद के लेखकों ने कभी-कभी इसे चार्वाक के देहात्मवाद का पूर्वज बताया।"}
   },
   "100": {
-    "schools": [{"id":"nyaya","en":"Nyāya: heaven is a reward, and rewards are finite. Merit is spent like money.","hi":"न्याय: स्वर्ग एक पुरस्कार है, और पुरस्कार सीमित होते हैं। पुण्य धन की तरह खर्च होता है।"},{"id":"mimamsa","en":"Mīmāṃsā: for centuries that was enough. Heaven was the goal, and mokṣa was not on the board.","hi":"मीमांसा: सदियों तक यही पर्याप्त था। स्वर्ग ही लक्ष्य था, और मोक्ष पट पर था ही नहीं।"},{"id":"advaita","en":"Advaita: which is exactly why everything above this line is still saṃsāra, however bright it looks.","hi":"अद्वैत: ठीक इसीलिए इस रेखा के ऊपर सब कुछ अब भी संसार है, चाहे जितना उजला दिखे।"}]
+    "schools": [{"id":"nyaya","en":"Nyāya: heaven is a reward, and rewards are finite. Merit is spent like money.","hi":"न्याय: स्वर्ग एक पुरस्कार है, और पुरस्कार सीमित होते हैं। पुण्य धन की तरह खर्च होता है।"},{"id":"mimamsa","en":"Mīmāṃsā: for centuries that was enough. Heaven was the goal, and mokṣa was not on the board.","hi":"मीमांसा: सदियों तक यही पर्याप्त था। स्वर्ग ही लक्ष्य था, और मोक्ष पट पर था ही नहीं।"},{"id":"advaita","en":"Advaita: which is exactly why everything above this line is still saṃsāra, however bright it looks.","hi":"अद्वैत: ठीक इसीलिए इस रेखा के ऊपर सब कुछ अब भी संसार है, चाहे जितना उजला दिखे।"}],
+    "scholar": {"en":"The last square of the world. Everything above it is a reward, and Nyāya, Mīmāṃsā and Advaita agree on exactly one thing: rewards run out.","hi":"संसार का अंतिम घर। इसके ऊपर सब कुछ पुरस्कार है, और न्याय, मीमांसा और अद्वैत ठीक एक बात पर सहमत हैं: पुरस्कार चुक जाते हैं।"}
   },
   "101": {
     "line2": {"en":"When the merit is spent, the soul returns to earth. Heaven is a holiday, not a home.","hi":"पुण्य समाप्त होते ही जीव पृथ्वी पर लौटता है। स्वर्ग छुट्टी है, घर नहीं।"},
