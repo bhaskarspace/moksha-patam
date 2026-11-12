@@ -65,7 +65,9 @@
     "Kaca": {"en":"Kaca, sent by the gods to learn from their enemies' teacher","hi":"कच, जिन्हें देवताओं ने अपने शत्रुओं के गुरु से सीखने भेजा"},
     "Yudhishthira": {"en":"Yudhiṣṭhira, the eldest Pāṇḍava, known for never lying","hi":"युधिष्ठिर, सबसे बड़े पांडव, जो कभी झूठ न बोलने के लिए जाने जाते थे"},
     "Savitri": {"en":"Sāvitrī, who argued with Death for her husband's life","hi":"सावित्री, जिन्होंने पति के प्राणों के लिए मृत्यु से तर्क किया"},
-    "Jajali": {"en":"Jājali, an ascetic in the Mahābhārata who is taught by a trader","hi":"जाजलि, महाभारत के एक तपस्वी, जिन्हें एक व्यापारी ने सिखाया"}
+    "Jajali": {"en":"Jājali, an ascetic in the Mahābhārata who is taught by a trader","hi":"जाजलि, महाभारत के एक तपस्वी, जिन्हें एक व्यापारी ने सिखाया"},
+    "Jaratkaru": {"en":"Jaratkāru, an ascetic in the Mahābhārata who meant never to marry","hi":"जरत्कारु, महाभारत के एक तपस्वी, जो कभी विवाह नहीं करना चाहते थे"},
+    "Dasharatha": {"en":"Daśaratha, the king of Ayodhyā and Rāma's father","hi":"दशरथ, अयोध्या के राजा और राम के पिता"}
   },
   "same": {
     "crow": "panchatantra",

@@ -42,7 +42,9 @@
     {"en":["Kaca","Kacha"],"hi":["कच"]},
     {"en":["Yudhishthira","Yudhiṣṭhira"],"hi":["युधिष्ठिर"]},
     {"en":["Savitri","Sāvitrī"],"hi":["सावित्री"]},
-    {"en":["Jajali","Jājali"],"hi":["जाजलि"]}
+    {"en":["Jajali","Jājali"],"hi":["जाजलि"]},
+    {"en":["Jaratkaru","Jaratkāru"],"hi":["जरत्कारु"]},
+    {"en":["Dasharatha","Daśaratha"],"hi":["दशरथ"]}
   ],
   "gods": [
     {"en":["Yama"],"hi":["यम","यमराज"]},
