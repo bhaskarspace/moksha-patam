@@ -39,6 +39,16 @@
   </header>
 
   <div class="game">
+    <!-- the life's book as it is written (Phase 20, render/book.js): drawn only 1400px and wider -->
+    <aside class="book" id="book" aria-labelledby="bookHead">
+      <div class="leaf life-leaf book-leaf">
+        <header class="leaf-top"><span class="eb" id="bookHead" data-t="lifeBook">The book</span></header>
+        <div class="life-who" id="bookWho" role="group" hidden></div>
+        <div class="leaf-main life-main" id="bookScroll">
+          <div class="leaf-text" id="bookText" aria-live="polite" aria-relevant="additions text"></div>
+        </div>
+      </div>
+    </aside>
     <div class="board-col">
       <div class="board-frame">
         <div class="vimana" id="vimana" aria-hidden="true"></div>

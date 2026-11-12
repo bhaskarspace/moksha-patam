@@ -32,6 +32,7 @@ import { renderCodex, showTab } from "./render/codex.js";
 import { renderLog } from "./render/log.js";
 import { renderLedger } from "./render/ledger.js";
 import { openLife, refreshLife, closeLife, lifeText } from "./render/life.js";
+import { drawBook } from "./render/book.js";
 import { openCompare, openLives, setCompareHooks, refreshCompare, closeCompare, compareModel, imageOf, textOf } from "./render/compare.js";
 import { playHash, readPlay, lifeHash, lifeOf as lifeLink, readLife, sendable, personOf, checkOf, hashOf, dailySeed, dayOf, inputsOfLife } from "./share.js";
 import { replay } from "./engine/compare.js";
@@ -555,6 +556,7 @@ function render() {
   place();
   drawDoor();
   renderLog();
+  drawBook();
 
   const w = state.winner, humans = state.players.filter(q => q.type === "human");
   $("win").hidden = !state.over;

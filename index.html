@@ -81,8 +81,32 @@ h1 { font-family: var(--f-display); font-weight: 400; font-size: clamp(34px, 6vw
 @media (max-width: 820px) { .game { grid-template-columns: 1fr; } }
 
 /* Board: an ornate red-and-gold printed frame around a 10 x 11 grid (100 earthly squares + a row of heavenly realms). */
-.board-col { display: flex; flex-direction: column; gap: 10px; width: min(100%, calc((100dvh - 110px) * 0.84)); margin-left: auto; }
-@media (max-width: 820px) { .board-col { width: 100%; } }
+.board-col { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+/* Phase 20: on every desktop width the board fills the screen's height, at its own board's shape (--ar, the width for
+   the height, set by render/board.js), as wide as the page leaves it. The frame's border and padding (50px) are not
+   in proportion, and above the frame are the page's padding and header (90px), below it a little air (24px).
+   821–1400px: the board and the panel are centred as a pair (up to 820px, a phone held sideways among them, the page
+   is one column, as before). 1400px and wider: the book on the left (render/book.js). */
+@media (min-width: 821px) {
+  .wrap { max-width: none; }
+  .game { --side: 272px; --gaps: 28px; --book: 0px; grid-template-columns: auto var(--side); justify-content: center; }
+  .board-col { width: min(calc(100vw - 32px - var(--book) - var(--side) - var(--gaps)), calc((100dvh - 164px) * var(--ar, 0.84) + 50px)); }
+}
+.book { display: none; }
+@media (min-width: 1400px) {
+  .game { --book: clamp(300px, 22vw, 420px); --gaps: 56px; grid-template-columns: var(--book) auto var(--side); }
+  .book { display: flex; position: sticky; top: 16px; height: calc(100dvh - 114px); min-height: 420px; }
+  .panel .colophon { display: none; }
+}
+/* the book is a leaf of the life's account, lighter on the page than a card over it */
+.book-leaf { flex: 1; min-height: 0; max-height: none; box-shadow: inset 0 0 0 1px rgba(110, 70, 20, 0.35), inset 0 0 34px rgba(120, 72, 20, 0.22), 0 6px 18px rgba(0, 0, 0, 0.18); }
+.book-leaf .leaf-main { flex: 1; padding: 6px 16px 14px; }
+.book-leaf .life-who { padding: 6px 16px 0; }
+.book-leaf .leaf-text { padding: 4px 12px 8px 16px; border-right: 0; }
+.book-leaf .leaf-text h2 { font-size: 28px; }
+.book-leaf .leaf-text p { font-size: 16px; line-height: 1.55; }
+.book-leaf .leaf-text p.book-intro { margin-top: 4px; }
+.book-leaf .leaf-text p.book-path { margin: 2px 0 0; }
 .board-frame {
   --fp: clamp(8px, 2.6vw, 18px);
   width: 100%;
@@ -938,6 +962,16 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   </header>
 
   <div class="game">
+    <!-- the life's book as it is written (Phase 20, render/book.js): drawn only 1400px and wider -->
+    <aside class="book" id="book" aria-labelledby="bookHead">
+      <div class="leaf life-leaf book-leaf">
+        <header class="leaf-top"><span class="eb" id="bookHead" data-t="lifeBook">The book</span></header>
+        <div class="life-who" id="bookWho" role="group" hidden></div>
+        <div class="leaf-main life-main" id="bookScroll">
+          <div class="leaf-text" id="bookText" aria-live="polite" aria-relevant="additions text"></div>
+        </div>
+      </div>
+    </aside>
     <div class="board-col">
       <div class="board-frame">
         <div class="vimana" id="vimana" aria-hidden="true"></div>
@@ -4579,19 +4613,19 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     if (!mirror?.en) return null;
     if (mirror.who) return mirror.who;
     if (whoSeen.has(mirror)) return whoSeen.get(mirror);
-    const text = fold(mirror.en), words = [...text.matchAll(/\p{L}+/gu)];
+    const text2 = fold(mirror.en), words = [...text2.matchAll(/\p{L}+/gu)];
     let best = null;
     for (let w = 0; w < words.length && !best; w++) for (const k of [2, 1]) {
       const last2 = words[w + k - 1];
-      if (!last2 || k === 2 && text.slice(words[w].index + words[w][0].length, last2.index) !== " ") continue;
-      for (const e of WHO_FORMS.get(text.slice(words[w].index, last2.index + last2[0].length)) || [])
+      if (!last2 || k === 2 && text2.slice(words[w].index + words[w][0].length, last2.index) !== " ") continue;
+      for (const e of WHO_FORMS.get(text2.slice(words[w].index, last2.index + last2[0].length)) || [])
         if (!best || e.len > best.len || e.len === best.len && e.codex > best.codex) best = e;
     }
     whoSeen.set(mirror, best?.id ?? null);
     return best?.id ?? null;
   }
   function bridgeOf(mirror) {
-    const who2 = whoOf(mirror), id = BRIDGE_SAME[who2] ?? who2;
+    const who3 = whoOf(mirror), id = BRIDGE_SAME[who3] ?? who3;
     return id && BRIDGES[id] ? { id, ...BRIDGES[id] } : null;
   }
   var srcOfSquare = (n) => squareOf(n)?.src || "";
@@ -4650,7 +4684,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   function animalNameIn(l, a) {
     const kind = a?.kind ?? "tortoise", master2 = a?.master?.[l] || a?.master?.en, gender = animalGender(kind);
     const k = master2 ? "animalName" : "animalNameNone", v = { master: master2, animal: tIn(l, "a_" + kind), animalO: tIn(l, "ao_" + kind) };
-    const say = (key) => fill(STR[l][key] ?? STR.en[key], { gender }).replace(/\{(\w+)\}/g, (_, x) => v[x] ?? "");
+    const say = (key2) => fill(STR[l][key2] ?? STR.en[key2], { gender }).replace(/\{(\w+)\}/g, (_, x) => v[x] ?? "");
     const direct = say(k);
     const label = direct.charAt(0).toUpperCase() + direct.slice(1);
     if (label !== direct) LOWER.set(label, direct);
@@ -4668,14 +4702,14 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     return o.en || "";
   }
   var g = (gender, forms) => forms[gender] ?? forms.m;
-  var fill = (text, { name = "", gender = "m", age: age2 = "" } = {}) => text.replace(/\{([^{}|]*(?:\|[^{}|]*){1,2})\}/g, (_, alts) => {
+  var fill = (text2, { name = "", gender = "m", age: age2 = "" } = {}) => text2.replace(/\{([^{}|]*(?:\|[^{}|]*){1,2})\}/g, (_, alts) => {
     const [m, f2, n] = alts.split("|");
     return g(gender, { m, f: f2, n });
   }).replace(/\{age\}/g, () => age2).replace(/\{name\}/g, (m, at2, all) => named(name, /[\u0900-\u097F]/u.test(all) ? "hi" : "en", all.slice(0, at2), all.slice(at2 + m.length)));
   var CAST_ROLES = ["mother", "father", "teacher", "friend", "spouse", "child", "rival", "who"];
   var CAST_AGREE = new RegExp(`\\{(${CAST_ROLES.join("|")}):([^{}|]*)\\|([^{}|]*)\\}`, "g");
   var CAST_REF = new RegExp(`\\{(${CAST_ROLES.join("|")})(?:=((?:[^{}]|\\{name\\})*))?\\}`, "g");
-  var castFill = (text, people2 = {}) => text.replace(CAST_AGREE, (_, r, m, f2) => people2[r]?.gender === "f" ? f2 : m).replace(CAST_REF, (_, r, words = "") => people2[r]?.name ?? words);
+  var castFill = (text2, people2 = {}) => text2.replace(CAST_AGREE, (_, r, m, f2) => people2[r]?.gender === "f" ? f2 : m).replace(CAST_REF, (_, r, words = "") => people2[r]?.name ?? words);
   var ONES = "zero one two three four five six seven eight nine ten eleven twelve thirteen fourteen fifteen sixteen seventeen eighteen nineteen".split(" ");
   var TENS = ["", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"];
   var wordsEn = (n) => n < 20 ? ONES[n] : n < 100 ? TENS[Math.floor(n / 10)] + (n % 10 ? "-" + ONES[n % 10] : "") : "a hundred" + (n % 100 ? " and " + wordsEn(n % 100) : "");
@@ -4999,7 +5033,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       if (!bound) return null;
       return { merit: bound, key: MERIT_KEY, n: 1, pass: false, answer: null, cleared: true, never: false, weight: 0, open: !refusalOf(p) };
     }
-    const key = debtKey(s), n = (p.exam?.[key] ?? 0) + 1, answer = n === 1 ? answerOf(p, s) : null, pass = !!answer;
+    const key2 = debtKey(s), n = (p.exam?.[key2] ?? 0) + 1, answer = n === 1 ? answerOf(p, s) : null, pass = !!answer;
     const graced = !pass && !!forgive?.(s, n);
     const never = !pass && !graced && (s.weight ?? 1) >= UNPAID;
     const cleared = pass || graced || !never && n >= Math.ceil(PENANCE * (s.weight ?? 1)), left = carried(karmaOf(p)).length - (cleared ? 1 : 0);
@@ -5008,7 +5042,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       opt: s.opt,
       at: s.at,
       ...s.prior ? { prior: true } : {},
-      key,
+      key: key2,
       n,
       pass,
       answer: answer?.age ?? null,
@@ -5019,75 +5053,75 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       open: cleared && !left && !refusalOf({ ...p, karma: freshKarma() }, bound)
     };
   }
-  var meet = (k, key) => ({ ...k, agami: k.agami.filter((s) => debtKey(s) !== key), prarabdha: k.prarabdha.filter((s) => debtKey(s) !== key) });
-  var sayIn = (l, text, at2, who2) => fill(text.replaceAll("{at}", wordsIn(l, Math.floor(at2 ?? 0))), who2);
-  var T = (l, key, who2, v = {}) => fill(tIn(l, key, { name: who2.name, ...v }), who2);
+  var meet = (k, key2) => ({ ...k, agami: k.agami.filter((s) => debtKey(s) !== key2), prarabdha: k.prarabdha.filter((s) => debtKey(s) !== key2) });
+  var sayIn = (l, text2, at2, who3) => fill(text2.replaceAll("{at}", wordsIn(l, Math.floor(at2 ?? 0))), who3);
+  var T = (l, key2, who3, v = {}) => fill(tIn(l, key2, { name: who3.name, ...v }), who3);
   var debtAtIn = (l) => STR[l]?.debtAt ?? STR.en.debtAt;
-  function debtIn(l, { src, opt, at: at2, prior }, who2) {
+  function debtIn(l, { src, opt, at: at2, prior }, who3) {
     const t2 = seedOf(src, opt)?.debt, raw = t2 ? t2[l] || t2.en : "", lang2 = t2?.[l] ? l : "en";
-    return raw ? sayIn(lang2, prior ? raw.replace(debtAtIn(lang2), STR[lang2]?.debtBefore ?? STR.en.debtBefore) : raw, at2, who2) : "";
+    return raw ? sayIn(lang2, prior ? raw.replace(debtAtIn(lang2), STR[lang2]?.debtBefore ?? STR.en.debtBefore) : raw, at2, who3) : "";
   }
-  function reckoningIn(l, rk, who2) {
+  function reckoningIn(l, rk, who3) {
     const t2 = seedOf(rk.src, rk.opt)?.reckoning;
-    return t2 ? sayIn(l, t2[l] || t2.en, rk.planted, who2) : "";
+    return t2 ? sayIn(l, t2[l] || t2.en, rk.planted, who3) : "";
   }
-  function reckonLinesIn(l, rk, who2) {
-    const from = T(l, "reckonFrom", who2, { src: rk.src, debt: debtIn(l, { src: rk.src, opt: rk.opt, at: rk.planted, prior: rk.prior }, who2) });
-    if (rk.dies) return [T(l, "reckonClose", who2), reckoningIn(l, rk, who2), from, T(l, "reckonDies", who2, { age: wordsIn(l, Math.floor(rk.age)), form: formIn(l, rk.form, who2) })];
-    const out = [T(l, "reckonFloor", who2), reckoningIn(l, rk, who2), from];
-    if (!rk.applied) out.push(T(l, "reckonNone", who2));
-    if (rk.years) out.push(rk.years === 1 ? T(l, "reckonYear", who2) : T(l, "reckonYears", who2, { years: wordsIn(l, rk.years) }));
+  function reckonLinesIn(l, rk, who3) {
+    const from = T(l, "reckonFrom", who3, { src: rk.src, debt: debtIn(l, { src: rk.src, opt: rk.opt, at: rk.planted, prior: rk.prior }, who3) });
+    if (rk.dies) return [T(l, "reckonClose", who3), reckoningIn(l, rk, who3), from, T(l, "reckonDies", who3, { age: wordsIn(l, Math.floor(rk.age)), form: formIn(l, rk.form, who3) })];
+    const out = [T(l, "reckonFloor", who3), reckoningIn(l, rk, who3), from];
+    if (!rk.applied) out.push(T(l, "reckonNone", who3));
+    if (rk.years) out.push(rk.years === 1 ? T(l, "reckonYear", who3) : T(l, "reckonYears", who3, { years: wordsIn(l, rk.years) }));
     const held2 = rk.holds && SNAKES[rk.holds]?.holding;
-    if (held2) out.push(T(l, "reckonHeld", who2, { holding: castFill(held2[l] || held2.en) }));
-    if (rk.to) out.push(T(l, "reckonBack", who2, { to: rk.to }));
+    if (held2) out.push(T(l, "reckonHeld", who3, { holding: castFill(held2[l] || held2.en) }));
+    if (rk.to) out.push(T(l, "reckonBack", who3, { to: rk.to }));
     return out;
   }
-  function reckonSignIn(l, rk, who2) {
-    if (rk.dies) return [T(l, "reckonClose", who2), T(l, "reckonDies", who2, { age: wordsIn(l, Math.floor(rk.age)), form: formIn(l, rk.form, who2) })];
-    return reckonLinesIn(l, rk, who2).filter((_, i) => i !== 1 && i !== 2);
+  function reckonSignIn(l, rk, who3) {
+    if (rk.dies) return [T(l, "reckonClose", who3), T(l, "reckonDies", who3, { age: wordsIn(l, Math.floor(rk.age)), form: formIn(l, rk.form, who3) })];
+    return reckonLinesIn(l, rk, who3).filter((_, i) => i !== 1 && i !== 2);
   }
-  function inferLinesIn(l, sign, who2) {
-    const reason = sign.kind === "door" ? T(l, "inferDoor", who2) : T(l, "inferFloor", who2, { age: wordsIn(l, Math.floor(sign.age ?? 0)) });
-    const deed = sign.kind === "door" ? debtsIn(l, sign.debts, who2) : debtIn(l, { src: sign.src, opt: sign.opt, at: sign.planted, prior: sign.prior }, who2);
-    return [T(l, "inferClaim", who2), reason, T(l, "inferExample", who2), T(l, "inferApply", who2), T(l, "inferConclude", who2, { deed })];
+  function inferLinesIn(l, sign, who3) {
+    const reason = sign.kind === "door" ? T(l, "inferDoor", who3) : T(l, "inferFloor", who3, { age: wordsIn(l, Math.floor(sign.age ?? 0)) });
+    const deed = sign.kind === "door" ? debtsIn(l, sign.debts, who3) : debtIn(l, { src: sign.src, opt: sign.opt, at: sign.planted, prior: sign.prior }, who3);
+    return [T(l, "inferClaim", who3), reason, T(l, "inferExample", who3), T(l, "inferApply", who3), T(l, "inferConclude", who3, { deed })];
   }
-  var formIn = (l, form, who2) => T(l, "death" + form[0].toUpperCase() + form.slice(1), who2);
-  function refusalIn(l, refusal, who2, sit = false, veiled = false) {
+  var formIn = (l, form, who3) => T(l, "death" + form[0].toUpperCase() + form.slice(1), who3);
+  function refusalIn(l, refusal, who3, sit = false, veiled = false) {
     if (!refusal) return [];
-    if (veiled) return [T(l, "doorSign", who2), T(l, "doorOn", who2)];
-    const on2 = T(l, sit && !refusal.aim ? "doorSit" : "doorOn", who2);
-    if (refusal.aim) return [T(l, refusal.aim === "artha" ? "doorArtha" : "doorKama", who2), on2];
-    if (refusal.merit) return [T(l, "doorMerit", who2, { deed: meritIn(l, refusal.merit, who2) }), T(l, sit ? "doorSit" : "doorOn", who2)];
-    return [T(l, "doorRefused", who2, { debts: debtsIn(l, refusal.debts, who2) }), on2];
+    if (veiled) return [T(l, "doorSign", who3), T(l, "doorOn", who3)];
+    const on2 = T(l, sit && !refusal.aim ? "doorSit" : "doorOn", who3);
+    if (refusal.aim) return [T(l, refusal.aim === "artha" ? "doorArtha" : "doorKama", who3), on2];
+    if (refusal.merit) return [T(l, "doorMerit", who3, { deed: meritIn(l, refusal.merit, who3) }), T(l, sit ? "doorSit" : "doorOn", who3)];
+    return [T(l, "doorRefused", who3, { debts: debtsIn(l, refusal.debts, who3) }), on2];
   }
-  function examLinesIn(l, ex, who2) {
-    if (ex.merit) return [T(l, "examMerit", who2, { deed: meritIn(l, ex.merit, who2) }), T(l, "examMeritShed", who2), ...ex.open ? [T(l, "doorOpens", who2)] : []];
-    const q2 = DOOR[seedOf(ex.src, ex.opt)?.holds], debt = debtIn(l, ex, who2);
+  function examLinesIn(l, ex, who3) {
+    if (ex.merit) return [T(l, "examMerit", who3, { deed: meritIn(l, ex.merit, who3) }), T(l, "examMeritShed", who3), ...ex.open ? [T(l, "doorOpens", who3)] : []];
+    const q2 = DOOR[seedOf(ex.src, ex.opt)?.holds], debt = debtIn(l, ex, who3);
     if (!q2) return [];
-    const out = [T(l, "examAsks", who2, { q: q2.q[l] || q2.q.en })];
-    if (ex.graced) out.push(T(l, "examFail", who2, { a: q2.a[l] || q2.a.en, debt }), T(l, "examGrace", who2, { debt }));
-    else if (ex.pass) out.push(T(l, "examPass", who2, { a: q2.a[l] || q2.a.en, age: wordsIn(l, Math.floor(ex.answer)), answered: fill(q2.answered[l] || q2.answered.en, who2) }), T(l, "examMet", who2, { debt }));
+    const out = [T(l, "examAsks", who3, { q: q2.q[l] || q2.q.en })];
+    if (ex.graced) out.push(T(l, "examFail", who3, { a: q2.a[l] || q2.a.en, debt }), T(l, "examGrace", who3, { debt }));
+    else if (ex.pass) out.push(T(l, "examPass", who3, { a: q2.a[l] || q2.a.en, age: wordsIn(l, Math.floor(ex.answer)), answered: fill(q2.answered[l] || q2.answered.en, who3) }), T(l, "examMet", who3, { debt }));
     else {
-      if (ex.never) out.push(T(l, ex.n === 1 ? "examFailNever" : "examAgainNever", who2, { a: q2.a[l] || q2.a.en, debt }), T(l, "examNever", who2, { debt }), ...ex.died ? [] : [T(l, "examNeverOn", who2)]);
+      if (ex.never) out.push(T(l, ex.n === 1 ? "examFailNever" : "examAgainNever", who3, { a: q2.a[l] || q2.a.en, debt }), T(l, "examNever", who3, { debt }), ...ex.died ? [] : [T(l, "examNeverOn", who3)]);
       else {
-        out.push(T(l, ex.n === 1 ? "examFail" : "examPenance", who2, { a: q2.a[l] || q2.a.en, debt }));
-        out.push(T(l, ex.cleared ? "examPaid" : "examOwing", who2, { debt }));
+        out.push(T(l, ex.n === 1 ? "examFail" : "examPenance", who3, { a: q2.a[l] || q2.a.en, debt }));
+        out.push(T(l, ex.cleared ? "examPaid" : "examOwing", who3, { debt }));
       }
     }
-    if (ex.open) out.push(T(l, "doorOpens", who2));
+    if (ex.open) out.push(T(l, "doorOpens", who3));
     return out;
   }
-  function meritIn(l, { sq, opt }, who2) {
+  function meritIn(l, { sq, opt }, who3) {
     const d = SITUATIONS[sq]?.options.find((o) => o.id === opt)?.dream;
-    return d ? fill(castFill(d[l] || d.en), who2) : "";
+    return d ? fill(castFill(d[l] || d.en), who3) : "";
   }
-  function debtsIn(l, debts, who2) {
-    const ds = debts.map((d) => debtIn(l, d, who2)), and = tIn(l, "listAnd");
+  function debtsIn(l, debts, who3) {
+    const ds = debts.map((d) => debtIn(l, d, who3)), and = tIn(l, "listAnd");
     return ds.length > 1 ? ds.slice(0, -1).join(", ") + and + ds.at(-1) : ds[0] ?? "";
   }
-  function carryIn(l, debts, aim, who2) {
-    if (debts.length) return T(l, "carryDebts", who2, { debts: debtsIn(l, debts, who2) });
-    return aim ? T(l, aim === "artha" ? "carryArtha" : "carryKama", who2) : "";
+  function carryIn(l, debts, aim, who3) {
+    if (debts.length) return T(l, "carryDebts", who3, { debts: debtsIn(l, debts, who3) });
+    return aim ? T(l, aim === "artha" ? "carryArtha" : "carryKama", who3) : "";
   }
 
   // src/engine/curse.js
@@ -5505,7 +5539,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
 
   // src/engine/cast.js
   var MEMBERS = ["mother", "father", "teacher", "friend", "spouse", "son", "daughter", "rival"];
-  var tokenOf = (who2) => who2 === "son" || who2 === "daughter" ? "child" : who2;
+  var tokenOf = (who3) => who3 === "son" || who3 === "daughter" ? "child" : who3;
   var PARENTS = /* @__PURE__ */ new Set(["mother", "father"]);
   var CHILDREN = /* @__PURE__ */ new Set(["son", "daughter"]);
   var MOMENTS = [];
@@ -5538,16 +5572,16 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const coin = () => next(rng) < 0.5 ? "m" : "f", span = (a, b) => a + Math.floor(next(rng) * (b - a + 1));
     const carry = life > 0 ? p.prior?.cast ?? [] : [], used = /* @__PURE__ */ new Set();
     const cast2 = { mother: { gender: "f", en: null, hi: null }, father: { gender: "m", en: null, hi: null } };
-    const draw2 = (who2, gender, either = false) => {
+    const draw2 = (who3, gender, either = false) => {
       const u = next(rng);
-      const back = carry.find((c) => RETURNS_AS[c.role] === who2 && !used.has(c) && (c.gender === gender || either) && !taken.has(nameKey(c.en)) && !taken.has(nameKey(c.hi)));
+      const back = carry.find((c) => RETURNS_AS[c.role] === who3 && !used.has(c) && (c.gender === gender || either) && !taken.has(nameKey(c.en)) && !taken.has(nameKey(c.hi)));
       if (back) {
         used.add(back);
         [back.en, back.hi].forEach((x) => {
           taken.add(nameKey(x));
           inCast.add(nameKey(x));
         });
-        cast2[who2] = { gender: back.gender, en: back.en, hi: back.hi, before: back.role };
+        cast2[who3] = { gender: back.gender, en: back.en, hi: back.hi, before: back.role };
         return;
       }
       let gd = gender, names = pool(gd);
@@ -5564,12 +5598,12 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         taken.add(nameKey(x));
         inCast.add(nameKey(x));
       });
-      cast2[who2] = { gender: nm ? gd : gender, en: nm?.[0] ?? null, hi: nm?.[1] ?? null };
+      cast2[who3] = { gender: nm ? gd : gender, en: nm?.[0] ?? null, hi: nm?.[1] ?? null };
     };
     draw2("son", "m");
     draw2("daughter", "f");
     draw2("spouse", p.gender === "m" ? "f" : p.gender === "f" ? "m" : coin());
-    for (const who2 of ["teacher", "friend", "rival"]) draw2(who2, coin(), true);
+    for (const who3 of ["teacher", "friend", "rival"]) draw2(who3, coin(), true);
     cast2.mother.older = span(20, 38);
     cast2.father.older = span(20, 38);
     cast2.teacher.older = span(20, 35);
@@ -5578,31 +5612,31 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     cast2.spouse.older = span(-4, 4);
     cast2.son.gap = span(1, 4);
     cast2.daughter.gap = span(1, 4);
-    for (const who2 of MEMBERS) cast2[who2].fate = [next(rng), next(rng)];
+    for (const who3 of MEMBERS) cast2[who3].fate = [next(rng), next(rng)];
     return cast2;
   }
-  function calledIn(cast2, who2, l) {
-    const c = cast2?.[who2];
+  function calledIn(cast2, who3, l) {
+    const c = cast2?.[who3];
     if (!c?.en) return null;
-    const call = CAST_WORDS.call[who2];
+    const call = CAST_WORDS.call[who3];
     return (call ? call[l] || call.en : "{n}").replace("{n}", c[l] || c.en);
   }
   function peopleOf(cast2, met, l, about = null) {
     if (!cast2) return {};
     const out = {}, child = about === "daughter" ? "daughter" : "son";
-    for (const who2 of MEMBERS) {
-      if (CHILDREN.has(who2) && who2 !== child) continue;
-      out[tokenOf(who2)] = { gender: cast2[who2].gender, name: met.has(who2) ? calledIn(cast2, who2, l) : null };
+    for (const who3 of MEMBERS) {
+      if (CHILDREN.has(who3) && who3 !== child) continue;
+      out[tokenOf(who3)] = { gender: cast2[who3].gender, name: met.has(who3) ? calledIn(cast2, who3, l) : null };
     }
     return out;
   }
-  function introIn(cast2, who2, l) {
-    const c = cast2?.[who2], t2 = CAST_WORDS.intro[who2];
+  function introIn(cast2, who3, l) {
+    const c = cast2?.[who3], t2 = CAST_WORDS.intro[who3];
     if (!c?.en || !t2) return "";
     return castFill((t2[l] || t2.en).replace("{n}", c[l] || c.en), { who: { gender: c.gender } });
   }
-  function beforeIn(cast2, who2, l) {
-    const c = cast2?.[who2], t2 = CAST_WORDS.before, role = CAST_WORDS.was?.[c?.before];
+  function beforeIn(cast2, who3, l) {
+    const c = cast2?.[who3], t2 = CAST_WORDS.before, role = CAST_WORDS.was?.[c?.before];
     if (!c?.en || !t2 || !role) return "";
     return castFill((t2[l] || t2.en).replace("{n}", c[l] || c.en).replace("{role}", role[l] || role.en), { who: { gender: c.gender } });
   }
@@ -5637,18 +5671,18 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         seen2[c.about] = Math.max(seen2[c.about] ?? 0, e.years);
         told.add(e.via === "sit" ? null : momentOf(e.n, e.told).moment);
       }
-      for (const who2 of MEMBERS) if (SQUARES[who2]?.has(e.n) && !gone2?.who.has(who2)) landed[who2] = Math.max(landed[who2] ?? 0, e.years);
+      for (const who3 of MEMBERS) if (SQUARES[who3]?.has(e.n) && !gone2?.who.has(who3)) landed[who3] = Math.max(landed[who3] ?? 0, e.years);
       const m = e.via === "sit" ? null : momentOf(e.n, e.told).moment;
       if (m?.gone && gone2 == null) gone2 = { years: e.years, who: new Set(m.gone) };
     }
     const end = p.years ?? 0;
-    return order.map((who2) => {
-      const c = cast2[who2], older = c.older ?? 0, floor = Math.max(FLOOR[who2] ?? 0, landed[who2] ?? 0), ceil = gone2?.who.has(who2) ? gone2.years : null;
-      const arc = { who: who2, seen: seen2[who2], floor, ceil, end, older, coda: c.fate[1] };
-      if (CHILDREN.has(who2)) return { ...arc, death: null, kind: "outlived" };
-      if (DIES[who2] != null) {
-        const saw = MOMENTS.some(({ m }) => m.dies && m.cast === who2 && told.has(m));
-        return { ...arc, death: DIES[who2], kind: saw ? "seen" : DIES[who2] > end ? "outlived" : "died" };
+    return order.map((who3) => {
+      const c = cast2[who3], older = c.older ?? 0, floor = Math.max(FLOOR[who3] ?? 0, landed[who3] ?? 0), ceil = gone2?.who.has(who3) ? gone2.years : null;
+      const arc = { who: who3, seen: seen2[who3], floor, ceil, end, older, coda: c.fate[1] };
+      if (CHILDREN.has(who3)) return { ...arc, death: null, kind: "outlived" };
+      if (DIES[who3] != null) {
+        const saw = MOMENTS.some(({ m }) => m.dies && m.cast === who3 && told.has(m));
+        return { ...arc, death: DIES[who3], kind: saw ? "seen" : DIES[who3] > end ? "outlived" : "died" };
       }
       const lo = Math.floor(floor) + 1, hi = ceil == null ? Infinity : Math.ceil(ceil) - 1;
       let a = Math.max(lo, 60 - older), b = Math.min(hi, 95 - older);
@@ -5662,21 +5696,21 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   }
   var FATES = 4;
   var FULL = 3;
-  function fatesIn(state, i, l, along, cc, who2) {
+  function fatesIn(state, i, l, along, cc, who3) {
     const cast2 = cc.at(-1)?.cast, W2 = CAST_WORDS, words = (n) => wordsIn(l, Math.floor(n)), pick3 = (t2) => t2[l] || t2.en;
     let coded = false;
-    const say = (t2, member, v) => fill(castFill(pick3(t2), { who: member }).replace(/\{(seen|at|by|pos)\}/g, (_, k) => v[k] ?? ""), who2);
+    const say = (t2, member, v) => fill(castFill(pick3(t2), { who: member }).replace(/\{(seen|at|by|pos)\}/g, (_, k) => v[k] ?? ""), who3);
     const arcs = castArcs(state, i, along, cc).filter((a) => a.kind !== "seen" && (PARENTS.has(a.who) || calledIn(cast2, a.who, l)));
     return arcs.slice(0, FATES).map((a, at2) => {
       const c = cast2[a.who], family = PARENTS.has(a.who) || a.who === "spouse" || CHILDREN.has(a.who);
-      const name = PARENTS.has(a.who) ? fill(pick3(W2.family[a.who]), who2) : calledIn(cast2, a.who, l);
+      const name = PARENTS.has(a.who) ? fill(pick3(W2.family[a.who]), who3) : calledIn(cast2, a.who, l);
       const member = { name, gender: c.gender }, n = a.death - a.end;
       const by = n === 1 ? pick3(W2.year) : pick3(W2.years).replace("{n}", words(n));
       if (at2 >= FULL) return a.kind === "outlived" ? say(W2.childOutlived, member, {}) : say(W2.familyDied, member, { at: words(a.death) });
       if (CHILDREN.has(a.who)) return say(W2.childOutlived, member, {});
       if (family) return a.kind === "died" ? say(W2.familyDied, member, { at: words(a.death) }) : say(W2.familyOutlived, member, { by });
       if (a.kind === "outlived") return say(a.who === "teacher" ? W2.outlivedHon : W2.outlived, member, { seen: words(a.seen), by });
-      const k = Math.floor(a.coda * (W2.codas.length + 2)), coda = k < W2.codas.length && !coded ? " " + fill(pick3(W2.codas[k]), who2) : "";
+      const k = Math.floor(a.coda * (W2.codas.length + 2)), coda = k < W2.codas.length && !coded ? " " + fill(pick3(W2.codas[k]), who3) : "";
       if (coda) coded = true;
       return say(W2.died, member, { seen: words(a.seen), at: words(a.death + a.older), pos: pick3(a.who === "teacher" ? W2.posHon : W2.pos) }) + coda;
     });
@@ -5772,9 +5806,9 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const keys = Object.keys(raw.souls).filter((k) => k && validSoul(raw.souls[k])).slice(-KEEP_SOULS);
     return { v: STORE_V, souls: Object.fromEntries(keys.map((k) => [k, raw.souls[k]])) };
   }
-  function storeWith(store, key, soul) {
-    const souls = Object.entries(storeOf(store).souls).filter(([k]) => k !== key);
-    if (soul && key) souls.push([key, soul]);
+  function storeWith(store, key2, soul) {
+    const souls = Object.entries(storeOf(store).souls).filter(([k]) => k !== key2);
+    if (soul && key2) souls.push([key2, soul]);
     return { v: STORE_V, souls: Object.fromEntries(souls.slice(-KEEP_SOULS)) };
   }
 
@@ -5796,7 +5830,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     for (let n = from; n < to; ) path.push(++n);
     return { path, past: from + v > TOP };
   }
-  var entry2 = (k, v = {}, kind = "", who2 = null) => ({ k, v, kind, who: who2 });
+  var entry2 = (k, v = {}, kind = "", who3 = null) => ({ k, v, kind, who: who3 });
   function turnWalk(from, v, back, { end, back: low, bounce = false }) {
     const path = [];
     let n = from, dir = back ? -1 : 1;
@@ -6017,7 +6051,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     if (top?.k === "lLawOf" && top.who === i) state.log[0] = { ...e, ...top.life != null ? { life: top.life } : {} };
     else addLog(state, e);
   }
-  var entry = (k, v = {}, kind = "", who2 = null) => ({ k, v, kind, who: who2 });
+  var entry = (k, v = {}, kind = "", who3 = null) => ({ k, v, kind, who: who3 });
   function addLog(state, e) {
     const p = e.who == null ? null : state.players[e.who];
     if (p?.rebirths && e.life == null) e.life = p.rebirths;
@@ -6282,8 +6316,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const rebirths = (p.rebirths ?? 0) + 1;
     const rng = makeRng((state.rng.seed ^ 1013904242 ^ Math.imul(laneOf(state, i) + 1, 2246822507) ^ Math.imul(rebirths, 3266489909)) >>> 0);
     const nm = nb.animal ? { gender: animalGender(nb.animal.kind) } : nameAgain(state, i, rng, soul);
-    const key = p.soul ?? (p.name ? nameKey(p.name) : null);
-    const next2 = playerOf({ name: "", type: p.type, gender: nm.gender, alias: nm.en ? { en: nm.en, hi: nm.hi } : null, born: nb.born ?? null, soul: key, law: nb.law }, p.color);
+    const key2 = p.soul ?? (p.name ? nameKey(p.name) : null);
+    const next2 = playerOf({ name: "", type: p.type, gender: nm.gender, alias: nm.en ? { en: nm.en, hi: nm.hi } : null, born: nb.born ?? null, soul: key2, law: nb.law }, p.color);
     Object.assign(next2, { pos: 1, life: [1], told: [null], past: [...p.past ?? [], was], rebirths, ...p.lane != null ? { lane: p.lane } : {}, ...nb.animal ? { animal: nb.animal, carry: nb.carry } : {} });
     if (p.choices) next2.choices = p.choices;
     for (const k of Object.keys(p)) delete p[k];
@@ -6472,9 +6506,9 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var SAMSKARA = "mp-samskara";
   var mem = null;
   var soulStore = () => storeOf(freshViewer ? mem : read(SAMSKARA, null));
-  var soulFor = (key) => key && soulStore().souls[key] || null;
+  var soulFor = (key2) => key2 && soulStore().souls[key2] || null;
   var keep = (store) => freshViewer ? mem = store : write(SAMSKARA, store);
-  var keepSoul = (key, soul) => keep(storeWith(soulStore(), key, soul));
+  var keepSoul = (key2, soul) => keep(storeWith(soulStore(), key2, soul));
   var setSoulStore = (raw) => keep(storeOf(raw));
   var GAME = "mp-game";
   var GAME_V = 1;
@@ -6498,8 +6532,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   };
   function keepSeed(life) {
     if (!life) return;
-    const key = `${life.r?.board ?? "110"}.${life.s}`;
-    const list = [{ key, x: life }, ...seedsKept().filter((e) => !(e.key === key && JSON.stringify(e.x) === JSON.stringify(life)))].slice(0, SEEDS_MAX);
+    const key2 = `${life.r?.board ?? "110"}.${life.s}`;
+    const list = [{ key: key2, x: life }, ...seedsKept().filter((e) => !(e.key === key2 && JSON.stringify(e.x) === JSON.stringify(life)))].slice(0, SEEDS_MAX);
     if (freshViewer) seedsMem = list;
     else write(SEEDS, list);
   }
@@ -6731,6 +6765,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const board4 = $("board");
     board4.style.setProperty("--cols", COLS);
     board4.style.setProperty("--rows", ROWS);
+    board4.closest(".board-col")?.style.setProperty("--ar", (COLS / (ROWS + ($("vimana")?.hidden === false ? 0.9 : 0))).toFixed(4));
     for (let r = ROWS - 1; r >= 0; r--) {
       for (let c = 0; c < COLS; c++) {
         const n = LAYOUT.cell[`${c},${r}`];
@@ -7579,8 +7614,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     return "#" + ch.map((v) => Math.max(0, Math.min(255, v)).toString(16).padStart(2, "0")).join("");
   }
   function spriteURL(stage, color, frame3, gender = "m", animal2 = null) {
-    const key = `${stage}|${color}|${frame3}|${gender}|${animal2 ?? ""}`;
-    if (spriteCache.has(key)) return spriteCache.get(key);
+    const key2 = `${stage}|${color}|${frame3}|${gender}|${animal2 ?? ""}`;
+    if (spriteCache.has(key2)) return spriteCache.get(key2);
     const rows = framesOf(animal2 && ART[animal2] ? ART[animal2] : artOf(STAGES[stage].art, gender), frame3);
     const pal2 = { ...PAL, C: P_HEX[color], c: shade(P_HEX[color], -0.35) };
     const cv = document.createElement("canvas");
@@ -7594,18 +7629,18 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       }
     }));
     const url = `url(${cv.toDataURL()})`;
-    spriteCache.set(key, url);
+    spriteCache.set(key2, url);
     return url;
   }
   var BAND_SQUARES = [1, 21, 41, 61, 81, 101, GOAL];
   function spriteSheet() {
     document.getElementById("mpSprites")?.remove();
     const urls = {}, cell = (url, ground2) => `<span style="display:inline-block;background:${ground2};padding:2px;margin:1px"><span style="display:block;width:48px;height:64px;background:${url} 0 0/100% 100%;image-rendering:pixelated"></span></span>`;
-    const row2 = (label, key, make) => {
-      urls[key] = [0, 1, 2, 3].map((f2) => [0, 1, 2, 3].map((color) => make(color, f2)));
-      const frames = [0, 1, 2, 3].map((f2) => cell(urls[key][f2][0], groundOf(BAND_SQUARES[f2 + 1])[0])).join("");
-      const colours = [1, 2, 3].map((color) => cell(urls[key][0][color], groundOf(BAND_SQUARES[0])[0])).join("");
-      const grounds = BAND_SQUARES.map((n) => cell(urls[key][0][0], groundOf(n)[0])).join("");
+    const row2 = (label, key2, make) => {
+      urls[key2] = [0, 1, 2, 3].map((f2) => [0, 1, 2, 3].map((color) => make(color, f2)));
+      const frames = [0, 1, 2, 3].map((f2) => cell(urls[key2][f2][0], groundOf(BAND_SQUARES[f2 + 1])[0])).join("");
+      const colours = [1, 2, 3].map((color) => cell(urls[key2][0][color], groundOf(BAND_SQUARES[0])[0])).join("");
+      const grounds = BAND_SQUARES.map((n) => cell(urls[key2][0][0], groundOf(n)[0])).join("");
       return `<div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:4px 0"><b style="width:150px;font:600 13px system-ui">${label}</b>${frames}<i style="width:8px"></i>${colours}<i style="width:8px"></i>${grounds}</div>`;
     };
     let html = `<div style="font:12px system-ui;margin-bottom:8px">Frames 0–3 (walk, walk, climb, climb) · the other three colours · on every band's ground</div>`;
@@ -7626,12 +7661,12 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   }
 
   // src/render/ledger.js
-  var row = (text, state) => `<span class="stage">${esc(text)}<br>${esc(state)}</span>`;
+  var row = (text2, state) => `<span class="stage">${esc(text2)}<br>${esc(state)}</span>`;
   function ledgerOf(p, law) {
     if (!law.karma) return `<span class="stage">${esc(t("ledgerNone"))}</span>`;
     if (law.veiled) return `<span class="stage">${esc(t("ledgerVeiled"))}</span>`;
-    const who2 = { name: pname(p), gender: p.gender }, k = karmaOf(p);
-    const debt = (s) => debtIn(lang, s, who2);
+    const who3 = { name: pname(p), gender: p.gender }, k = karmaOf(p);
+    const debt = (s) => debtIn(lang, s, who3);
     const met = (p.reckonings ?? []).filter((r) => !r.dies).map((r) => row(debt({ src: r.src, opt: r.opt, at: r.planted }), t("ledgerMet", { age: wordsIn(lang, Math.floor(r.age ?? 0)) })));
     const lines = [
       ...k.agami.map((s) => row(debt(s), law.foresight ? t("ledgerRipens", { age: wordsIn(lang, Math.floor(s.at + s.fuse)) }) : t("ledgerHeld"))),
@@ -7700,21 +7735,21 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     return p && (e.life ?? 0) !== (p.rebirths ?? 0) ? p.past?.[e.life ?? 0] ?? p : p;
   };
   function entryText(e) {
-    const who2 = lifeOfEntry(e);
+    const who3 = lifeOfEntry(e);
     const law = e.v?.law && LAWS[e.v.law] ? t(LAWS[e.v.law].text.name) : "";
     const at2 = isCloth() && e.v ? { pos: e.v.pos != null ? sqNum(e.v.pos) : void 0, to: e.v.to != null ? sqNum(e.v.to) : void 0 } : {};
     const animal2 = e.v?.animal ? { animal: t("a_" + e.v.animal), animalO: t("ao_" + e.v.animal) } : {};
-    return e.k ? fill(t(e.k, { ...e.v, ...at2, name: who2 ? pname(who2) : "", what: e.v?.sq ? squareName(e.v.sq) : "", law, ...animal2 }), { gender: who2?.gender }) : e.text;
+    return e.k ? fill(t(e.k, { ...e.v, ...at2, name: who3 ? pname(who3) : "", what: e.v?.sq ? squareName(e.v.sq) : "", law, ...animal2 }), { gender: who3?.gender }) : e.text;
   }
   function renderLog() {
     $("log").innerHTML = G.state.log.map((e) => {
-      const who2 = e.who == null ? null : G.state.players[e.who];
+      const who3 = e.who == null ? null : G.state.players[e.who];
       if (e.k === "lPassed") return `
     <li class="passed"><span class="dot" style="background:transparent;border-color:transparent;box-shadow:none"></span><span>${esc(t("lPassed"))} ${e.v.passed.map((n) => `<button type="button" class="logbtn" data-sq="${n}">${esc(squareName(n) || num(n))}</button>`).join(" · ")}</span></li>`;
-      const text = entryText(e);
+      const text2 = entryText(e);
       const sq = e.v?.sq ?? (e.k === "lWin" ? GOAL : null);
       return `
-    <li class="${e.kind}"><span class="dot" style="background:${who2 ? COLORS[who2.color] : "transparent"};${who2 ? "" : "border-color:transparent;box-shadow:none"}"></span>${sq ? `<button type="button" class="logbtn" data-sq="${sq}">${esc(text)}</button>` : `<span>${esc(text)}</span>`}</li>`;
+    <li class="${e.kind}"><span class="dot" style="background:${who3 ? COLORS[who3.color] : "transparent"};${who3 ? "" : "border-color:transparent;box-shadow:none"}"></span>${sq ? `<button type="button" class="logbtn" data-sq="${sq}">${esc(text2)}</button>` : `<span>${esc(text2)}</span>`}</li>`;
     }).join("");
   }
 
@@ -7766,8 +7801,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         if (el3._stage != null && !silent && !isAnimal(G.state, i)) {
           retrigger(el3, "poof");
           const v = { name: pname(p), stage: stageName(stage, p.gender) }, you = !p.name && p.color === 0;
-          const key = stage > el3._stage ? "grew" : "bornAgain";
-          toast(fill(t(key + (you && key !== "grew" ? "You" : ""), v), { name: v.name, gender: p.gender }));
+          const key2 = stage > el3._stage ? "grew" : "bornAgain";
+          toast(fill(t(key2 + (you && key2 !== "grew" ? "You" : ""), v), { name: v.name, gender: p.gender }));
         }
         el3._stage = stage;
       }
@@ -7785,12 +7820,12 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     });
     renderPlayers();
   }
-  function toast(text) {
+  function toast(text2) {
     const slot = $("toastSlot");
     slot.innerHTML = "";
     const el3 = document.createElement("div");
     el3.className = "toast";
-    el3.textContent = text;
+    el3.textContent = text2;
     slot.appendChild(el3);
     setTimeout(() => el3.remove(), 2500);
   }
@@ -8556,9 +8591,9 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   }
   function foresight(l, o) {
     if (!G.plan || !lawOf(G.state, G.plan.idx).foresight) return "";
-    const p = G.state.players[G.plan.idx], who2 = { name: pnameIn(p, l), gender: p.gender }, s = foresee(G.state, G.plan, o);
-    const text = s ? fill(tIn(l, "optDebt", { debt: debtIn(l, s, who2), name: who2.name, age: ageWordsIn(l, Math.floor(s.ripe)) }), who2) : tIn(l, "optNoDebt");
-    return `<span class="opt-d">${esc(text)}</span>`;
+    const p = G.state.players[G.plan.idx], who3 = { name: pnameIn(p, l), gender: p.gender }, s = foresee(G.state, G.plan, o);
+    const text2 = s ? fill(tIn(l, "optDebt", { debt: debtIn(l, s, who3), name: who3.name, age: ageWordsIn(l, Math.floor(s.ripe)) }), who3) : tIn(l, "optNoDebt");
+    return `<span class="opt-d">${esc(text2)}</span>`;
   }
   var climbTo = (n) => G.state ? lawOf(G.state, G.state.players.indexOf(subjectOf())).ladderTo(G.state, G.state.players.indexOf(subjectOf()), n) : LADDERS[n].to;
   function squareInfo(n, l) {
@@ -8653,14 +8688,14 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     return p ? { name: pnameIn(p, l), gender: p.gender, age: age2 } : { name: "", gender: "m", age: age2 };
   }
   function momentIn(m, l, n, meeting = true) {
-    const p = subjectOf(), text = (s) => fill(s, person(l, n));
-    if (!p) return text(castFill(m[l] || m.en));
+    const p = subjectOf(), text2 = (s) => fill(s, person(l, n));
+    if (!p) return text2(castFill(m[l] || m.en));
     const i = G.state.players.indexOf(p), here = livedOn(n), planning = G.plan && G.state.players[G.plan.idx] === p;
     const along = yearsAlong(p.life || [], p.told || []).filter((e) => e.via !== "stay"), upto = here && !planning ? along.length - 1 : along.length;
     const cc = castAlong(G.state, i, along.slice(0, Math.max(upto, 0))), last2 = cc.at(-1);
     const cast2 = last2 ? last2.cast : castOf(G.state, i, 0), met = new Set(last2 ? [...last2.before, ...last2.meets ? [last2.about] : []] : []);
     const intro = meeting && here && m.cast && !met.has(m.cast) && m.introduces !== false ? introIn(cast2, m.cast, l) : "";
-    return text(castFill(m[l] || m.en, peopleOf(cast2, met, l, m.cast))) + (intro ? " " + intro : "");
+    return text2(castFill(m[l] || m.en, peopleOf(cast2, met, l, m.cast))) + (intro ? " " + intro : "");
   }
   function stageIn(l, n) {
     const here = livedOn(n);
@@ -8900,11 +8935,11 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     return { kind: "infer", met: [], html: frame2(l, { kind: "exam", eb: esc(tIn(l, "inferTitle")), big: "🔥︎", sqn: "", body, foot: "" }) };
   }
   function examHtml(ex, l) {
-    const p = subjectOf(), who2 = (x) => ({ name: pnameIn(p, x), gender: p.gender });
+    const p = subjectOf(), who3 = (x) => ({ name: pnameIn(p, x), gender: p.gender });
     const lines = (x) => {
-      const out = examLinesIn(x, ex, who2(x));
+      const out = examLinesIn(x, ex, who3(x));
       if (!ex.died) return out;
-      return [...out, fill(tIn(x, "doorDied", { name: who2(x).name, debts: debtsIn(x, ex.debts ?? [], who2(x)) }), who2(x))];
+      return [...out, fill(tIn(x, "doorDied", { name: who3(x).name, debts: debtsIn(x, ex.debts ?? [], who3(x)) }), who3(x))];
     };
     const en = lines("en"), hi = lines("hi"), src = ex.src ?? ex.merit?.sq;
     let body = `<h2 id="leafTitle">${esc(tIn(l, "examHead"))}</h2>`;
@@ -8913,10 +8948,10 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   }
   var readPast = false;
   function rebornHtml(was, l) {
-    const p = subjectOf(), q2 = p.past?.[was] ?? p, who2 = (x) => ({ name: pnameIn(p, x), gender: p.gender });
+    const p = subjectOf(), q2 = p.past?.[was] ?? p, who3 = (x) => ({ name: pnameIn(p, x), gender: p.gender });
     const siva = !!q2.fell, animal2 = !!p.animal, human = !!q2.carry, kind = (p.animal ?? q2.animal)?.kind ?? "tortoise";
     const [card, next2] = siva ? ["bornAgainCard", "bornAgainNew"] : animal2 ? ["bornAgainCardAnimal", "bornAgainNewAnimal"] : human ? ["bornAgainCardHuman", "bornAgainNew"] : ["bornAgainCardDied", "bornAgainNew"];
-    const line = (x, k) => fill(tIn(x, k, { name: pnameIn(p, x), was: pnameIn(q2, x), animal: tIn(x, "a_" + kind), animalO: tIn(x, "ao_" + kind) }), k === card ? { gender: q2.gender } : who2(x));
+    const line = (x, k) => fill(tIn(x, k, { name: pnameIn(p, x), was: pnameIn(q2, x), animal: tIn(x, "a_" + kind), animalO: tIn(x, "ao_" + kind) }), k === card ? { gender: q2.gender } : who3(x));
     let body = `<h2 id="leafTitle">${esc(tIn(l, "bornAgainHead"))}</h2>`;
     body += `<div class="story">` + texts(l, line("en", card), line("hi", card), "moment") + texts(l, line("en", next2), line("hi", next2), "remedy") + `</div>`;
     if (choosable().length > 1 && !firstLife() && !animal2) {
@@ -9040,10 +9075,10 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     setBlocking(false);
     waiters.splice(0).forEach((r) => r());
   }
-  async function open(next2, { landing = false, from = null, who: who2 = null, focus = true } = {}) {
+  async function open(next2, { landing = false, from = null, who: who3 = null, focus = true } = {}) {
     const wasOpen = dlg2.open, was = view;
     view = next2;
-    subject = who2;
+    subject = who3;
     const block = next2.type === "reckon" || next2.type === "exam" || next2.type === "infer" || next2.type === "reborn" || next2.type === "square" && !!pendingOn(next2.n);
     if (wasOpen) {
       setBlocking(block);
@@ -9068,12 +9103,12 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     return cardIdle();
   }
   var openSquare = (n, opts) => open({ type: "square", n }, opts);
-  var openReckoning = (rk, who2) => open({ type: "reckon", rk }, { landing: true, who: who2 });
-  var openExam = (ex, who2) => open({ type: "exam", ex }, { landing: true, who: who2 });
-  var openInfer = (sign, who2) => open({ type: "infer", sign }, { landing: true, who: who2 });
-  function openReborn(was, who2) {
+  var openReckoning = (rk, who3) => open({ type: "reckon", rk }, { landing: true, who: who3 });
+  var openExam = (ex, who3) => open({ type: "exam", ex }, { landing: true, who: who3 });
+  var openInfer = (sign, who3) => open({ type: "infer", sign }, { landing: true, who: who3 });
+  function openReborn(was, who3) {
     readPast = false;
-    return open({ type: "reborn", was }, { landing: true, who: who2 }).then(() => readPast);
+    return open({ type: "reborn", was }, { landing: true, who: who3 }).then(() => readPast);
   }
   var openEntry = (id, opts) => entryOf(id) ? open({ type: "entry", id }, opts) : Promise.resolve();
   async function closeCard({ instant = false } = {}) {
@@ -9241,13 +9276,13 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       go(e.key === "ArrowLeft" ? -1 : 1);
     }
   });
-  function momentLine(n, who2, l, told, ego = null) {
+  function momentLine(n, who3, l, told, ego = null) {
     if (isCloth()) {
       const g3 = legendOf(n);
       return { title: g3?.[l] ?? "", text: numIn(l, g3?.gloss?.[l] ?? "") };
     }
     const keep2 = subject;
-    subject = who2;
+    subject = who3;
     try {
       const m = momentOf(n, told !== void 0 ? told : toldHere(n)).moment ?? squareOf(n)?.moment;
       const meant = ego && ego.chose !== ego.took && egoOf(n) ? momentIn(egoOf(n).card, l, n, false) + " " : "";
@@ -9256,8 +9291,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       subject = keep2;
     }
   }
-  function cardCurse(who2, n) {
-    spoken = { who: who2, n };
+  function cardCurse(who3, n) {
+    spoken = { who: who3, n };
     refreshCard();
   }
   function refreshCard() {
@@ -9275,9 +9310,9 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     if (!p.door && !open2 && !p.dead) return null;
     const sits = (p.sittings ?? []).filter((s) => s.at >= ref.at);
     const spokes = (ref.debts ?? []).map((d) => {
-      const key = debtKey(d), c = sits.findIndex((s) => s.cleared && `${s.src}:${s.opt}:${s.planted}` === key);
+      const key2 = debtKey(d), c = sits.findIndex((s) => s.cleared && `${s.src}:${s.opt}:${s.planted}` === key2);
       if (c >= 0) return { step: c, gold: true };
-      const rk = p.reckonings?.find((r) => r.at >= ref.at && `${r.src}:${r.opt}:${r.planted}` === key);
+      const rk = p.reckonings?.find((r) => r.at >= ref.at && `${r.src}:${r.opt}:${r.planted}` === key2);
       return rk ? { step: sits.filter((s) => s.at < rk.at).length, gold: true } : { step: sits.length, gold: false };
     });
     return { key: `${i}:${ref.at}:${spokes.length}`, spokes, open: open2, shut: !!p.dead };
@@ -9313,29 +9348,29 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   // src/render/landed.js
   var el2 = $("landed");
   var last = null;
-  var landHuman = (n, who2, told, ego = null) => {
-    last = { n, who: who2, told, ego };
+  var landHuman = (n, who3, told, ego = null) => {
+    last = { n, who: who3, told, ego };
     drawLanded();
   };
-  var landDoor = (who2, door) => {
-    last = { n: GOAL, who: who2, door };
+  var landDoor = (who3, door) => {
+    last = { n: GOAL, who: who3, door };
     drawLanded();
   };
-  function doorLine(l, { who: who2, door }) {
-    const p = G.state.players[who2], w = { name: pnameIn(p, l), gender: p.gender };
-    if (door.kind === "refused") return { title: tIn(l, "endRefused"), text: refusalIn(l, door.refusal, w, door.sit, lawOf(G.state, who2).veiled).join(" ") };
+  function doorLine(l, { who: who3, door }) {
+    const p = G.state.players[who3], w = { name: pnameIn(p, l), gender: p.gender };
+    if (door.kind === "refused") return { title: tIn(l, "endRefused"), text: refusalIn(l, door.refusal, w, door.sit, lawOf(G.state, who3).veiled).join(" ") };
     if (door.kind === "through") return { title: tIn(l, "moksha"), text: fill(tIn(l, "doorThrough", w), w) };
     if (door.kind === "open") return { title: tIn(l, "moksha"), text: fill(tIn(l, "doorOpenOn", w), w) };
     if (door.kind === "died") return { title: tIn(l, "moksha"), text: fill(tIn(l, "doorDied", { name: w.name, debts: debtsIn(l, door.debts, w) }), w) };
     const died = door.ex.died ? [fill(tIn(l, "doorDied", { name: w.name, debts: debtsIn(l, door.ex.debts, w) }), w)] : [];
     return { title: tIn(l, "moksha"), text: [...examLinesIn(l, door.ex, w), ...died].join(" ") };
   }
-  var landCurse = (who2, n) => {
-    last = last?.who === who2 && last.n === n ? { ...last, curse: true } : { n, who: who2, curse: true, only: true };
+  var landCurse = (who3, n) => {
+    last = last?.who === who3 && last.n === n ? { ...last, curse: true } : { n, who: who3, curse: true, only: true };
     drawLanded();
   };
-  var curseLine = (l, who2) => {
-    const p = G.state.players[who2];
+  var curseLine = (l, who3) => {
+    const p = G.state.players[who3];
     return curseSaidIn(l, p, pnameIn(p, l));
   };
   var clearLanded = () => {
@@ -9344,31 +9379,31 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     drawLanded();
   };
   var six = null;
-  var landSix = (who2, kind) => {
-    const cpu = who2 != null && G.state.players[who2]?.type !== "human";
-    if (kind) six = { who: who2, lost: kind === "lost", cpu };
-    else if (who2 == null || six?.cpu === cpu) six = null;
+  var landSix = (who3, kind) => {
+    const cpu = who3 != null && G.state.players[who3]?.type !== "human";
+    if (kind) six = { who: who3, lost: kind === "lost", cpu };
+    else if (who3 == null || six?.cpu === cpu) six = null;
     drawLanded();
   };
   var sixOf = () => six;
-  function sixLineIn(l, { who: who2, lost }) {
-    const p = G.state.players[who2], own = p.type === "human", k = lost ? lawOf(G.state, who2).veiled ? "SixSign" : "SixLost" : "Six";
+  function sixLineIn(l, { who: who3, lost }) {
+    const p = G.state.players[who3], own = p.type === "human", k = lost ? lawOf(G.state, who3).veiled ? "SixSign" : "SixLost" : "Six";
     return fill(tIn(l, (own ? "line" : "lineCpu") + k, { name: pnameIn(p, l) }), { gender: p.gender });
   }
-  var landStay = (who2, n, why = null) => {
-    last = { n, who: who2, stay: true, why };
+  var landStay = (who3, n, why = null) => {
+    last = { n, who: who3, stay: true, why };
     drawLanded();
   };
-  var landReborn = (who2, was) => {
-    last = { n: 1, who: who2, was };
+  var landReborn = (who3, was) => {
+    last = { n: 1, who: who3, was };
     drawLanded();
   };
-  var landPublic = (who2, kind, e) => {
-    last = { n: e?.v?.sq ?? e?.v?.pos ?? GOAL, who: who2, pub: kind, e };
+  var landPublic = (who3, kind, e) => {
+    last = { n: e?.v?.sq ?? e?.v?.pos ?? GOAL, who: who3, pub: kind, e };
     drawLanded();
   };
-  function bornLine(l, { who: who2, stay, was, why }) {
-    const p = G.state.players[who2], w = { name: pnameIn(p, l), gender: p.gender };
+  function bornLine(l, { who: who3, stay, was, why }) {
+    const p = G.state.players[who3], w = { name: pnameIn(p, l), gender: p.gender };
     const k = { zero: "cZero", entry: "cEntry", six: "cSix", top: "cTop", exact: "cExact" }[why];
     if (stay && k) return { title: tIn(l, k + "Title"), text: fill(tIn(l, k + "Line", { ...w, end: TOP }), w) };
     if (stay) return { title: tIn(l, "stayTitle"), text: fill(tIn(l, "heavenStay", w), w) };
@@ -9383,16 +9418,16 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       const q2 = squareOf(n);
       return { title: q2?.[lang] || q2?.en || "", text: TALES.includes(n) ? q2?.mirror?.[lang] || q2?.mirror?.en || "" : "" };
     };
-    let { title, text } = !last || !s ? {} : last.pub ? { title: tIn(lang, "pub_" + last.pub), text: entryText(last.e) } : isAnimal(s, last.who) && !last.door && last.was == null ? animalLine(last.n) : last.door ? doorLine(lang, last) : last.stay || last.was != null ? bornLine(lang, last) : last.only ? {} : s.players[last.who]?.pos != null ? momentLine(last.n, last.who, lang, last.told, last.ego) : {};
-    if (last?.curse && s) text = [text, curseLine(lang, last.who)].filter(Boolean).join(" ");
-    if (six && s?.players[six.who]) text = [text, sixLineIn(lang, six)].filter(Boolean).join(" ");
-    if (!text && !title) {
+    let { title, text: text2 } = !last || !s ? {} : last.pub ? { title: tIn(lang, "pub_" + last.pub), text: entryText(last.e) } : isAnimal(s, last.who) && !last.door && last.was == null ? animalLine(last.n) : last.door ? doorLine(lang, last) : last.stay || last.was != null ? bornLine(lang, last) : last.only ? {} : s.players[last.who]?.pos != null ? momentLine(last.n, last.who, lang, last.told, last.ego) : {};
+    if (last?.curse && s) text2 = [text2, curseLine(lang, last.who)].filter(Boolean).join(" ");
+    if (six && s?.players[six.who]) text2 = [text2, sixLineIn(lang, six)].filter(Boolean).join(" ");
+    if (!text2 && !title) {
       el2.dataset.empty = "";
       el2.innerHTML = "";
       el2.tabIndex = -1;
       return;
     }
-    el2.innerHTML = `<span class="landed-t">${title ? `<b>${esc(title)}</b> ` : ""}${esc(text)}</span>`;
+    el2.innerHTML = `<span class="landed-t">${title ? `<b>${esc(title)}</b> ` : ""}${esc(text2)}</span>`;
     if (last) el2.dataset.sq = last.n;
     else delete el2.dataset.sq;
     delete el2.dataset.empty;
@@ -9444,14 +9479,14 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
   var EARTH3 = 100;
   var GAP = 8;
   var NAMED2 = new RegExp(`^\\{(?:name|${CAST_ROLES.join("|")})[}=]`);
-  var after = (raw, text, l) => l === "en" && !NAMED2.test(raw) && /^(?:\p{Lu}\p{Ll}|(?!I\s)\p{Lu}\s)/u.test(text) ? text[0].toLowerCase() + text.slice(1) : text;
+  var after = (raw, text2, l) => l === "en" && !NAMED2.test(raw) && /^(?:\p{Lu}\p{Ll}|(?!I\s)\p{Lu}\s)/u.test(text2) ? text2[0].toLowerCase() + text2.slice(1) : text2;
   var stageAt2 = (e) => e.n > EARTH3 ? 5 : stageOfYears(e.years);
   function lifeOf(state, i, l) {
     if (isAnimal(state, i)) return animalLifeOf(state, i, l);
-    const p = state.players[i], name = pnameIn(p, l), who2 = { name, gender: p.gender };
-    const T2 = (key, v = {}) => fill(tIn(l, key, { name, ...v }), who2);
+    const p = state.players[i], name = pnameIn(p, l), who3 = { name, gender: p.gender };
+    const T2 = (key2, v = {}) => fill(tIn(l, key2, { name, ...v }), who3);
     const J = (j, v = {}) => {
-      const x = fill((j[l] || j.en).replace(/\{(\w+)\}/g, (_, k) => v[k] ?? `{${k}}`), who2);
+      const x = fill((j[l] || j.en).replace(/\{(\w+)\}/g, (_, k) => v[k] ?? `{${k}}`), who3);
       return x[0].toUpperCase() + x.slice(1);
     };
     const words = (n) => wordsIn(l, Math.floor(n));
@@ -9475,10 +9510,10 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       const t2 = w && SITUATIONS[w.sq]?.ego?.account;
       return t2 ? J(t2) : "";
     };
-    const witnessOf = (who3, e) => {
+    const witnessOf = (who4, e) => {
       for (let k = choices.length - 1; k >= 0; k--) {
-        const w = choices[k], lines = SITUATIONS[w.sq]?.witness?.[who3];
-        if (!lines || w.i >= e.i || !(metI[who3] < w.i) || usedWit.has(k)) continue;
+        const w = choices[k], lines = SITUATIONS[w.sq]?.witness?.[who4];
+        if (!lines || w.i >= e.i || !(metI[who4] < w.i) || usedWit.has(k)) continue;
         const t2 = w.chose !== w.took && !w.grace && lines.rebel || lines[w.took];
         if (t2) return { k, t: t2 };
       }
@@ -9539,15 +9574,15 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
           if (!para) continue;
           flush();
           const t3 = r.curse === "said" ? curse.c.line : curse.c.landed, raw = t3[l] || t3.en;
-          const text = fill(raw, { ...who2, age: words(curse.age) });
-          para.parts.push(r.curse === "said" ? J(JOINS.curse) + after(raw, text, l) : text);
+          const text2 = fill(raw, { ...who3, age: words(curse.age) });
+          para.parts.push(r.curse === "said" ? J(JOINS.curse) + after(raw, text2, l) : text2);
           continue;
         }
         if (r.exam) {
           const q2 = DOOR[seedOf(r.src, r.opt)?.holds];
           if (!para || !q2 || r.n > 1 && !r.cleared) continue;
           flush();
-          const v = { age: words(r.age), q: q2.q[l] || q2.q.en, debt: debtIn(l, { src: r.src, opt: r.opt, at: r.planted, prior: r.prior }, who2) };
+          const v = { age: words(r.age), q: q2.q[l] || q2.q.en, debt: debtIn(l, { src: r.src, opt: r.opt, at: r.planted, prior: r.prior }, who3) };
           if (r.pass) para.parts.push(J(JOINS.examPass, { ...v, answer: words(r.answer), answered: q2.answered[l] || q2.answered.en }));
           else para.parts.push(J(r.n > 1 ? JOINS.examPaid : r.cleared ? JOINS.examFailPaid : r.never ? JOINS.examNever : JOINS.examFail, v));
           lastYears = r.age;
@@ -9556,7 +9591,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         if (r.door) {
           if (!para) continue;
           flush();
-          const said = refusalIn(l, r, who2)[0], age2 = all[r.at - 1]?.years ?? p.years;
+          const said = refusalIn(l, r, who3)[0], age2 = all[r.at - 1]?.years ?? p.years;
           para.parts.push(J(JOINS.door, { age: words(age2) }) + after(said, said, l));
           lastYears = age2;
           continue;
@@ -9564,7 +9599,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         const t2 = seedOf(r.src, r.opt)?.reckoning;
         if (!para || !t2) continue;
         flush();
-        para.parts.push(J(r.dies ? JOINS.reckonDeath : JOINS.reckon, { age: words(r.age) }) + after(t2[l] || t2.en, reckoningIn(l, r, who2), l));
+        para.parts.push(J(r.dies ? JOINS.reckonDeath : JOINS.reckon, { age: words(r.age) }) + after(t2[l] || t2.en, reckoningIn(l, r, who3), l));
         lastYears = r.age + r.years;
       }
     };
@@ -9651,10 +9686,10 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         if (wit) {
           usedWit.add(wit.k);
           witnessed++;
-          join = fill(castFill(wit.t[l] || wit.t.en, member), who2);
+          join = fill(castFill(wit.t[l] || wit.t.en, member), who3);
         } else {
           const t2 = CAST_WORDS.returns[back] || CAST_WORDS.returns.friend, rec = metAt[back].recall;
-          join = fill(castFill((t2[l] || t2.en).replace("{recall}", rec[l] || rec.en), member), who2);
+          join = fill(castFill((t2[l] || t2.en).replace("{recall}", rec[l] || rec.en), member), who3);
         }
       } else if (e.via === "ladder") join = J(JOINS.ladder);
       else if (repeat) join = J(JOINS.again);
@@ -9665,8 +9700,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
       const raw = repeat && e.via ? (JOINS.backTo[l] || JOINS.backTo.en).replace("{first}", words(lived.get(e.n))) : m[l] || m.en;
       const intro = c.meets && !repeat ? [introIn(c.cast, c.about, l), beforeIn(c.cast, c.about, l)].filter(Boolean).join(" ") : "";
       const held3 = e.told === "upasama" ? " " + T2("accUpasama") : "";
-      const text = fill(castFill(raw, peopleOf(c.cast, c.before, l, c.about)), { ...who2, age: age2 }) + (intro ? " " + intro : "") + held3;
-      para.parts.push(rebel ? rebel + " " + text : join ? join + after(raw, text, l) : text);
+      const text2 = fill(castFill(raw, peopleOf(c.cast, c.before, l, c.about)), { ...who3, age: age2 }) + (intro ? " " + intro : "") + held3;
+      para.parts.push(rebel ? rebel + " " + text2 : join ? join + after(raw, text2, l) : text2);
       if (!(repeat && e.via)) {
         toldN++;
         if (c.about) {
@@ -9684,7 +9719,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     close();
     const stage = (s) => l === "hi" ? ASHRAMAS[s][2] : ASHRAMAS[s][1];
     const last2 = cc.at(-1), people2 = last2 ? peopleOf(last2.cast, /* @__PURE__ */ new Set([...last2.before, ...last2.meets ? [last2.about] : []]), l) : {};
-    const held2 = (t2) => fill(castFill(t2 ? t2[l] || t2.en : "", people2), who2);
+    const held2 = (t2) => fill(castFill(t2 ? t2[l] || t2.en : "", people2), who3);
     return {
       title: T2("lifeTitle"),
       sub: p.peak != null ? tIn(l, "title" + titleOf(p.peak)) : "",
@@ -9694,11 +9729,11 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         const head = s === 5 || !ages.length ? stage(s) : a === b ? T2("lifeAt", { stage: stage(s), a }) : T2("lifeSpan", { stage: stage(s), a, b });
         return { head, text: parts.join(" ") };
       }),
-      end: lawEnd(state, i, T2, words, liberated(state, i) ? winEnd(p, T2, words, held2, lawOf(state, i)) : p.fell ? fellEnd(p, along, T2, sq, held2, l, who2, lawOf(state, i)) : !p.life?.length ? T2("lifeUnborn") : p.death?.by === "ledger" ? ledgerEnd(p, T2, words, l, who2, held2) : p.dead && p.pos === GOAL ? doorEnd(p, T2, words, l, who2) : p.dead ? T2("lifeEndDied", { age: words(p.years), holding: held2(SNAKES[p.holding]?.holding) }).replace(/, ([.।])$/, "$1") : T2("lifeEndOpen", { n: p.pos })),
+      end: lawEnd(state, i, T2, words, liberated(state, i) ? winEnd(p, T2, words, held2, lawOf(state, i)) : p.fell ? fellEnd(p, along, T2, sq, held2, l, who3, lawOf(state, i)) : !p.life?.length ? T2("lifeUnborn") : p.death?.by === "ledger" ? ledgerEnd(p, T2, words, l, who3, held2) : p.dead && p.pos === GOAL ? doorEnd(p, T2, words, l, who3) : p.dead ? T2("lifeEndDied", { age: words(p.years), holding: held2(SNAKES[p.holding]?.holding) }).replace(/, ([.।])$/, "$1") : T2("lifeEndOpen", { n: p.pos })),
       // a curse the life never bore out is closed after the end, the other way (Phase 14): empty with none
-      curse: curse && curse.closedAt == null && (liberated(state, i) || p.fell || p.dead) ? fill(curse.c.not[l] || curse.c.not.en, who2) : "",
+      curse: curse && curse.closedAt == null && (liberated(state, i) || p.fell || p.dead) ? fill(curse.c.not[l] || curse.c.not.en, who3) : "",
       // what the life never found out about the people in it (Phase 10C): empty with no cast
-      fates: fatesIn(state, i, l, along, cc, who2),
+      fates: fatesIn(state, i, l, along, cc, who3),
       // how many cast returns were joined by what they witnessed (Phase 15), for tools/accounts.mjs
       witnessed
     };
@@ -9712,28 +9747,28 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     const p = state.players[i], k = lawOf(state, i).text.end;
     return k && (p.dead || p.fell || liberated(state, i)) ? `${end} ${T2(k)}` : end;
   }
-  function fellEnd(p, along, T2, sq, held2, l, who2, law) {
+  function fellEnd(p, along, T2, sq, held2, l, who3, law) {
     const top = p.fellFrom ?? Math.max(...along.map((e) => e.n)), vice = SNAKES[p.holding]?.holding;
     if (law.text.fell) return T2(law.text.fell, { realm: sq(top) });
     const k = karmaOf(p), unmet = [...carried(k), ...k.sancita], aim = (p.refusals || []).findLast((r) => r.aim)?.aim;
-    const carry = carryIn(l, unmet, aim, who2), and = tIn(l, "listAnd");
+    const carry = carryIn(l, unmet, aim, who3), and = tIn(l, "listAnd");
     const holding = vice || carry ? [vice && held2(vice), carry].filter(Boolean).join(and) : null;
     return holding ? T2("lifeEndFell", { realm: sq(top), holding }) : T2("lifeEndFellFree", { realm: sq(top) });
   }
-  function doorEnd(p, T2, words, l, who2) {
-    const k = karmaOf(p), carry = carryIn(l, [...carried(k), ...k.sancita], null, who2);
+  function doorEnd(p, T2, words, l, who3) {
+    const k = karmaOf(p), carry = carryIn(l, [...carried(k), ...k.sancita], null, who3);
     return T2("lifeEndDoor", { age: words(p.years), carry }).replace(/, ([.।])$/, "$1");
   }
-  function ledgerEnd(p, T2, words, l, who2, held2) {
-    const k = karmaOf(p), carry = carryIn(l, [...carried(k), ...k.sancita], null, who2) || held2(SNAKES[p.holding]?.holding);
-    return T2("lifeEndLedger", { age: words(p.death.age ?? p.years), form: formIn(l, p.death.form, who2), carry }).replace(/, ([.।])$/, "$1");
+  function ledgerEnd(p, T2, words, l, who3, held2) {
+    const k = karmaOf(p), carry = carryIn(l, [...carried(k), ...k.sancita], null, who3) || held2(SNAKES[p.holding]?.holding);
+    return T2("lifeEndLedger", { age: words(p.death.age ?? p.years), form: formIn(l, p.death.form, who3), carry }).replace(/, ([.।])$/, "$1");
   }
   function dreamOf(p, l, name) {
     const prev = p.prior?.last;
     if (!prev) return [];
     const them = { name, gender: prev.gender }, deed = p.prior.dream && optionOf(p.prior.dream.sq, p.prior.dream.opt)?.dream;
     const v = { prev: prev.name?.[l] || prev.name?.en || "", dream: deed ? fill(deed[l] || deed.en, them) : "" };
-    const say = (key) => fill(tIn(l, key, { name, ...v }), them);
+    const say = (key2) => fill(tIn(l, key2, { name, ...v }), them);
     const forgot = SNAKES[prev.holding]?.forgot, uneasy = forgot && fill(forgot[l] || forgot.en, { name, gender: p.gender });
     const was = p.prior.was ? fill(tIn(l, "animalDream", { name, animal: tIn(l, "a_" + p.prior.was) }), { name, gender: p.gender }) : "";
     return [say(deed ? "lifeDream" : "lifeDreamNone"), was, uneasy ? tIn(l, "lifeForgot", { forgot: uneasy[0].toUpperCase() + uneasy.slice(1) }) : ""];
@@ -9838,13 +9873,13 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
   var clothText = (state, i, l) => [tIn(l, "pathOf", { name: pnameIn(state.players[i], l) }), tIn(l, "pathIntro"), "", ...clothRows(state, i, l).map((r) => `${r.n}  ${r.sq}`)].join("\n");
   function paintCloth() {
     const state = G.state, l = lang, T2 = (k, v) => tIn(l, k, v);
-    const tabs = state.players.length > 1 ? `<div class="life-who" role="group" aria-label="${T2("lifeWhose")}">` + state.players.map((p, i) => `<button type="button" data-who="${i}" aria-pressed="${i === whose}"><span class="dot" style="background:${COLORS[p.color]}"></span>${esc(pnameIn(p, l))}</button>`).join("") + `</div>` : "";
+    const tabs2 = state.players.length > 1 ? `<div class="life-who" role="group" aria-label="${T2("lifeWhose")}">` + state.players.map((p, i) => `<button type="button" data-who="${i}" aria-pressed="${i === whose}"><span class="dot" style="background:${COLORS[p.color]}"></span>${esc(pnameIn(p, l))}</button>`).join("") + `</div>` : "";
     leaf3.innerHTML = `
     <header class="leaf-top">
       <span class="eb">${T2("readPath")}</span>
       <div class="leaf-tools"><button type="button" class="x" data-act="close" aria-label="${T2("close")}" autofocus>×</button></div>
     </header>
-    ${tabs}
+    ${tabs2}
     <div class="leaf-main life-main">
       <div class="leaf-text" lang="${l}">
         <h2 id="lifeTitle">${esc(T2("pathOf", { name: pnameIn(state.players[whose], l) }))}</h2>
@@ -9858,8 +9893,8 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
       <button type="button" class="ghost" data-act="save">${T2("lifeSave")}</button>
     </footer>`;
   }
-  function panel(game, l, T2) {
-    const state = pastOf(game, whose, past);
+  function panel(game2, l, T2) {
+    const state = pastOf(game2, whose, past);
     if (tab === "path") {
       const { rows, end: end2 } = pathOf(state, whose, l);
       return `<ol class="life-path">${rows.map((r) => `<li><span class="pa">${esc(r.age)}</span><span class="ps">${esc(r.sq)}</span>${r.via ? `<span class="pv">${esc(r.via)}</span>` : ""}</li>`).join("")}</ol>` + (end2 ? `<p class="life-end">${esc(end2)}</p>` : "");
@@ -9881,7 +9916,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     if (isCloth()) return paintCloth();
     const state = G.state, l = lang, T2 = (k, v) => tIn(l, k, v), seat = state.players[whose];
     const { title } = lifeOf(pastOf(state, whose, past), whose, l);
-    const tabs = state.players.length > 1 ? `<div class="life-who" role="group" aria-label="${T2("lifeWhose")}">` + state.players.map((p, i) => `<button type="button" data-who="${i}" aria-pressed="${i === whose}"><span class="dot" style="background:${COLORS[p.color]}"></span>${esc(pnameIn(p, l))}</button>`).join("") + `</div>` : "";
+    const tabs2 = state.players.length > 1 ? `<div class="life-who" role="group" aria-label="${T2("lifeWhose")}">` + state.players.map((p, i) => `<button type="button" data-who="${i}" aria-pressed="${i === whose}"><span class="dot" style="background:${COLORS[p.color]}"></span>${esc(pnameIn(p, l))}</button>`).join("") + `</div>` : "";
     const lives2 = seat.past?.length ? `<div class="life-who life-lives" role="group" aria-label="${T2("lifeLives")}">` + [...seat.past.map((q2, k) => [k, q2]), [-1, seat]].map(([k, q2]) => `<button type="button" data-life="${k}" aria-pressed="${(past ?? -1) === k}">${esc(pnameIn(q2, l))}</button>`).join("") + `</div>` : "";
     const ways = `<div class="life-tabs tabs" role="tablist" aria-label="${T2("lifeTabs")}">` + TABS.map((k) => `<button type="button" role="tab" id="lifeTab-${k}" data-tab="${k}" aria-controls="lifePanel" aria-selected="${k === tab}" tabindex="${k === tab ? 0 : -1}">${T2(TAB_KEY[k])}</button>`).join("") + `</div>`;
     leaf3.innerHTML = `
@@ -9889,7 +9924,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
       <span class="eb">${T2("readLife")}</span>
       <div class="leaf-tools"><button type="button" class="x" data-act="close" aria-label="${T2("close")}" autofocus>×</button></div>
     </header>
-    ${tabs}
+    ${tabs2}
     ${lives2}
     ${ways}
     <div class="leaf-main life-main">
@@ -9943,16 +9978,16 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
       dlg3.close();
       return $("reborn").click();
     }
-    const view2 = isCloth() ? G.state : pastOf(G.state, whose, past), text = lifeText2(view2, whose);
+    const view2 = isCloth() ? G.state : pastOf(G.state, whose, past), text2 = lifeText2(view2, whose);
     if (act === "copy") {
       try {
-        await navigator.clipboard.writeText(text);
+        await navigator.clipboard.writeText(text2);
         b.textContent = tIn(lang, "lifeCopied");
       } catch {
       }
     } else if (act === "save") {
       const a = document.createElement("a");
-      a.href = URL.createObjectURL(new Blob([text], { type: "text/plain;charset=utf-8" }));
+      a.href = URL.createObjectURL(new Blob([text2], { type: "text/plain;charset=utf-8" }));
       a.download = `${pnameIn(view2.players[whose], "en").replace(/[^\w-]+/g, "-") || "life"}-${G.state.rng.seed}.txt`;
       a.click();
       setTimeout(() => URL.revokeObjectURL(a.href), 1e3);
@@ -9967,6 +10002,104 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     if (to == null) return;
     e.preventDefault();
     showWay(TABS[(to + TABS.length) % TABS.length]);
+  });
+
+  // src/render/book.js
+  var wide = matchMedia("(min-width: 1400px)");
+  var who2 = $("bookWho");
+  var text = $("bookText");
+  var scroller = $("bookScroll");
+  var whose2 = 0;
+  var game = null;
+  var lastTurn = -1;
+  var key = "";
+  function blocksOf(state, i, l) {
+    const p = state.players[i], T2 = (k, v) => tIn(l, k, v);
+    const intro = [{ tag: "p", cls: "life-open book-intro", text: T2(isCloth() ? `board${BOARD_ID}About` : "intro") }];
+    if (!p.life?.length) return intro;
+    if (isCloth()) {
+      return [
+        { tag: "h2", cls: "", text: T2("pathOf", { name: pnameIn(p, l) }) },
+        ...p.life.map((n) => ({ tag: "p", cls: "book-path", text: `${sqNumIn(l, n)}  ${legendOf(n)?.[l] ?? ""}` }))
+      ];
+    }
+    const { title, paras, end, curse, fates } = lifeOf(state, i, l);
+    const out = [{ tag: "h2", cls: "", text: title }];
+    for (const q2 of paras) out.push({ tag: "h3", cls: "sub", text: q2.head }, { tag: "p", cls: "", text: q2.text });
+    if (state.over) {
+      const e = [end, curse].filter(Boolean).join(" ");
+      if (e) out.push({ tag: "p", cls: "life-end", text: e });
+      if (fates.length) out.push({ tag: "p", cls: "life-fates", text: fates.join(" ") });
+    }
+    return out;
+  }
+  function write2(blocks) {
+    const kids = text.children;
+    for (let k = 0; k < blocks.length; k++) {
+      const b = blocks[k], el3 = kids[k];
+      if (el3 && el3.tagName === b.tag.toUpperCase() && el3.className === b.cls) {
+        if (el3.textContent !== b.text) el3.textContent = b.text;
+        continue;
+      }
+      while (kids.length > k) text.lastChild.remove();
+      const n = document.createElement(b.tag);
+      if (b.cls) n.className = b.cls;
+      n.textContent = b.text;
+      text.appendChild(n);
+    }
+    while (kids.length > blocks.length) text.lastChild.remove();
+  }
+  function tabs(state, l) {
+    if (state.players.length < 2) {
+      who2.hidden = true;
+      who2.innerHTML = "";
+      return;
+    }
+    who2.hidden = false;
+    who2.setAttribute("aria-label", tIn(l, "lifeWhose"));
+    who2.innerHTML = state.players.map((p, i) => `<button type="button" data-who="${i}" aria-pressed="${i === whose2}"><span class="dot" style="background:${COLORS[p.color]}"></span>${esc(pnameIn(p, l))}</button>`).join("");
+  }
+  function drawBook() {
+    if (!wide.matches) return;
+    const state = G.state;
+    if (!state) return;
+    if (state !== game) {
+      game = state;
+      lastTurn = -1;
+      key = "";
+      whose2 = Math.max(0, state.players.findIndex((p2) => p2.type === "human"));
+    }
+    if (state.turn !== lastTurn) {
+      lastTurn = state.turn;
+      if (state.players[state.turn]?.type === "human" && !state.over) whose2 = state.turn;
+    }
+    if (whose2 >= state.players.length) whose2 = 0;
+    const p = state.players[whose2], l = lang;
+    const k = [state.rng.seed, BOARD_ID, whose2, l, state.players.length, p.name, p.rebirths ?? 0, p.past?.length ?? 0, p.life?.length ?? 0, p.told?.length ?? 0, p.years, !!state.over, state.players.map((q2) => q2.name).join()].join("|");
+    if (k === key) return;
+    const sameLife = key.split("|").slice(0, 8).join("|") === k.split("|").slice(0, 8).join("|");
+    key = k;
+    tabs(state, l);
+    text.lang = l;
+    const atEnd = scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight < 32;
+    if (!sameLife) {
+      text.setAttribute("aria-live", "off");
+      text.replaceChildren();
+    }
+    write2(blocksOf(state, whose2, l));
+    if (!sameLife) requestAnimationFrame(() => text.setAttribute("aria-live", "polite"));
+    if (atEnd || !sameLife) scroller.scrollTo({ top: scroller.scrollHeight, behavior: reduced || !sameLife ? "instant" : "smooth" });
+  }
+  who2.addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-who]");
+    if (!b) return;
+    whose2 = +b.dataset.who;
+    key = "";
+    drawBook();
+  });
+  wide.addEventListener("change", () => {
+    key = "";
+    drawBook();
   });
 
   // src/engine/compare.js
@@ -10098,9 +10231,9 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
     const souls = soulsOf(state, traces).map((s, at2) => ({ ...s, at: at2 }));
     const met = [], seen2 = /* @__PURE__ */ new Set();
     for (const s of souls) for (const l of s.lives) for (const m of l.met) {
-      const key = [`${s.seat}.${l.k}`, `${m.seat}.${m.life}`].sort().join("|") + "|" + m.sq;
-      if (seen2.has(key)) continue;
-      seen2.add(key);
+      const key2 = [`${s.seat}.${l.k}`, `${m.seat}.${m.life}`].sort().join("|") + "|" + m.sq;
+      if (seen2.has(key2)) continue;
+      seen2.add(key2);
       met.push({ a: { at: s.at, seat: s.seat, life: l.k, name: l.name }, b: { at: m.seat, seat: m.seat, life: m.life, name: m.with }, sq: m.sq });
     }
     return { souls, same: sameOf(souls), met, parted: [] };
@@ -10326,8 +10459,8 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boo
         return o ? o.label[l] || o.label.en : id;
       };
       const dice = p.dice?.length > 1 ? tIn(l, "cmpAnd", { a: p.dice[0], b: p.dice[1] }) : String(p.dice?.[0] ?? "");
-      const key = p.k == null ? "cmpPartNone" : { move: "cmpPartMove", choice: "cmpPartChoice", before: "cmpPartBefore", end: "cmpPartEnd" }[p.how];
-      out.push([a, b, tIn(l, key, { ...v, k: p.k ?? "", sq: p.sq ?? "", dice, va: p.how === "choice" ? lab(p.va) : p.va, vb: p.how === "choice" ? lab(p.vb) : p.vb })]);
+      const key2 = p.k == null ? "cmpPartNone" : { move: "cmpPartMove", choice: "cmpPartChoice", before: "cmpPartBefore", end: "cmpPartEnd" }[p.how];
+      out.push([a, b, tIn(l, key2, { ...v, k: p.k ?? "", sq: p.sq ?? "", dice, va: p.how === "choice" ? lab(p.va) : p.va, vb: p.how === "choice" ? lab(p.vb) : p.vb })]);
     }
     return out;
   }
@@ -10525,8 +10658,8 @@ ${p.text}`), [b.end, b.curse].filter(Boolean).join(" "), (b.fates ?? []).join(" 
   leaf4.addEventListener("submit", async (e) => {
     if (!e.target.closest(".cmp-add")) return;
     e.preventDefault();
-    const key = await hooks.onAdd?.(leaf4.querySelector("#cmpAddLink").value);
-    addNote = key ? tIn(lang, key) : "";
+    const key2 = await hooks.onAdd?.(leaf4.querySelector("#cmpAddLink").value);
+    addNote = key2 ? tIn(lang, key2) : "";
     if (dlg4.open) paint4();
     addNote = "";
   });
@@ -10554,15 +10687,15 @@ ${p.text}`), [b.end, b.curse].filter(Boolean).join(" "), (b.fates ?? []).join(" 
       return "~" + c + ";";
     }).join("");
   }
-  function unpackChoices(text) {
+  function unpackChoices(text2) {
     const o = OPTS(), w = LAWIDS(), out = [];
-    for (let j = 0; j < text.length; j++) {
-      const c = text[j];
+    for (let j = 0; j < text2.length; j++) {
+      const c = text2[j];
       if (c === "~") {
-        const e = text.indexOf(";", j);
-        out.push(text.slice(j + 1, e));
+        const e = text2.indexOf(";", j);
+        out.push(text2.slice(j + 1, e));
         j = e;
-      } else if (c === "l") out.push("l" + (w[LO.indexOf(text[++j])] ?? "?"));
+      } else if (c === "l") out.push("l" + (w[LO.indexOf(text2[++j])] ?? "?"));
       else if (UP.includes(c)) out.push("o" + o[UP.indexOf(c)]);
       else out.push(c);
     }
@@ -10575,15 +10708,15 @@ ${p.text}`), [b.end, b.curse].filter(Boolean).join(" "), (b.fates ?? []).join(" 
     return new Uint8Array(await out.arrayBuffer());
   }
   async function pack(obj) {
-    const text = new TextEncoder().encode(JSON.stringify(obj));
-    if (typeof CompressionStream === "function") return "z" + b64(await through(text, new CompressionStream("deflate-raw")));
-    return "j" + b64(text);
+    const text2 = new TextEncoder().encode(JSON.stringify(obj));
+    if (typeof CompressionStream === "function") return "z" + b64(await through(text2, new CompressionStream("deflate-raw")));
+    return "j" + b64(text2);
   }
   async function unpack(s) {
     const kind = s[0], bytes = unb64(s.slice(1));
-    const text = kind === "z" ? await through(bytes, new DecompressionStream("deflate-raw")) : kind === "j" ? bytes : null;
-    if (!text) throw new Error("not a life");
-    return JSON.parse(new TextDecoder().decode(text));
+    const text2 = kind === "z" ? await through(bytes, new DecompressionStream("deflate-raw")) : kind === "j" ? bytes : null;
+    if (!text2) throw new Error("not a life");
+    return JSON.parse(new TextDecoder().decode(text2));
   }
   var playHash = ({ board: board4 = "110", law = "board", seed }) => `#play=${board4}.${law || "board"}.${seed >>> 0}`;
   function readPlay(hash2) {
@@ -10641,8 +10774,8 @@ ${p.text}`), [b.end, b.curse].filter(Boolean).join(" "), (b.fates ?? []).join(" 
     const m = /^#life=([\w-]+)$/.exec(hash2);
     return m ? inputsOfLife(await unpack(m[1])) : null;
   }
-  var hashOf = (text) => {
-    const s = String(text).trim(), at2 = s.indexOf("#");
+  var hashOf = (text2) => {
+    const s = String(text2).trim(), at2 = s.indexOf("#");
     return at2 >= 0 ? s.slice(at2) : null;
   };
 
@@ -11066,8 +11199,8 @@ ${p.text}`), [b.end, b.curse].filter(Boolean).join(" "), (b.fates ?? []).join(" 
     const p = s.players[i], dot = humans > 1 ? COLORS[p.color] : null;
     if (G.rollQueued || G.busy && !G.waitingCard) {
       const mover = s.players[plan?.idx ?? s.turn];
-      const who2 = mover.type === "cpu" ? tIn(l, "rolling", { name: pnameIn(mover, l) }) : "";
-      return { label: [G.face ? G.face.map((f2) => FACES2[f2] || num(f2)).join(" ") : "", who2].filter(Boolean).join("  ") || FACES2[s.last || 6], ready: false, dot: null };
+      const who3 = mover.type === "cpu" ? tIn(l, "rolling", { name: pnameIn(mover, l) }) : "";
+      return { label: [G.face ? G.face.map((f2) => FACES2[f2] || num(f2)).join(" ") : "", who3].filter(Boolean).join("  ") || FACES2[s.last || 6], ready: false, dot: null };
     }
     const again = plan ? plan.again : s.turn === i && s.log[0]?.k === "lSix";
     return { label: again ? tIn(l, "rollAgain") : humans > 1 ? tIn(l, "rollFor", { name: pnameIn(p, l) }) : tIn(l, rollKey()), ready: true, dot };
@@ -11147,6 +11280,7 @@ ${p.text}`), [b.end, b.curse].filter(Boolean).join(" "), (b.fates ?? []).join(" 
     place();
     drawDoor();
     renderLog();
+    drawBook();
     const w = state.winner, humans = state.players.filter((q2) => q2.type === "human");
     $("win").hidden = !state.over;
     $("compare").hidden = !state.over || isCloth() || state.players.length < 2 && !G.received.length;
@@ -11200,15 +11334,15 @@ ${p.text}`), [b.end, b.curse].filter(Boolean).join(" "), (b.fates ?? []).join(" 
     if (G.kept === state || isCloth()) return;
     G.kept = state;
     state.players.forEach((p, i) => {
-      const key = soulKey(p);
-      if (!key) return;
+      const key2 = soulKey(p);
+      if (!key2) return;
       if (isAnimal(state)) {
-        const s = soulFor(key);
-        if (s?.animal) keepSoul(key, afterAnimal(s, !!p.earned));
+        const s = soulFor(key2);
+        if (s?.animal) keepSoul(key2, afterAnimal(s, !!p.earned));
         return;
       }
       const k = keepOf(state, i);
-      if (k) keepSoul(key, k.drop ? null : k.soul);
+      if (k) keepSoul(key2, k.drop ? null : k.soul);
     });
   }
   var rebornFrom = (state, i) => (endOf(state, i) || state.players[i].past?.length) && lawOf(state, i).rebirth;
@@ -11216,10 +11350,10 @@ ${p.text}`), [b.end, b.curse].filter(Boolean).join(" "), (b.fates ?? []).join(" 
     if (isCloth()) return null;
     let any = false, animal2 = null;
     const rows = state.players.map((p, i) => {
-      const key = soulKey(p), soul = rebornFrom(state, i) && soulFor(key), born = soul && bornOf(soul);
+      const key2 = soulKey(p), soul = rebornFrom(state, i) && soulFor(key2), born = soul && bornOf(soul);
       if (!born) return { ...G.setup.rows[i] };
       any = true;
-      const row2 = { name: "", type: "human", gender: "", born, soul: key, avoid: [pnameIn(p, "en"), ...soul.cast.map((c) => c.en)], law: G.setup.rows[i]?.law ?? born.law };
+      const row2 = { name: "", type: "human", gender: "", born, soul: key2, avoid: [pnameIn(p, "en"), ...soul.cast.map((c) => c.en)], law: G.setup.rows[i]?.law ?? born.law };
       if (soul.animal && !animal2) animal2 = { row: { ...row2, born: null }, interlude: soul.animal };
       return row2;
     });
@@ -11287,7 +11421,7 @@ ${p.text}`), [b.end, b.curse].filter(Boolean).join(" "), (b.fates ?? []).join(" 
     const vars = old ? BOARDS[board4].rules.variants ?? {} : {}, gate = BOARDS[board4].rules?.gate ?? {};
     for (const [k, K] of [["start", "Start"], ["end", "End"]]) {
       $(`rule${K}Row`).hidden = !vars[k]?.length;
-      $(`rule${K}`).innerHTML = [["", "ruleOwn"], ...(vars[k] ?? []).map((v) => [v, k + v[0].toUpperCase() + v.slice(1)])].map(([v, key]) => `<option value="${v}"${(setup2.rules[k] ?? "") === v ? " selected" : ""}>${esc(t(key, gate))}</option>`).join("");
+      $(`rule${K}`).innerHTML = [["", "ruleOwn"], ...(vars[k] ?? []).map((v) => [v, k + v[0].toUpperCase() + v.slice(1)])].map(([v, key2]) => `<option value="${v}"${(setup2.rules[k] ?? "") === v ? " selected" : ""}>${esc(t(key2, gate))}</option>`).join("");
     }
     $("ruleOtherAbout").hidden = !Object.keys(vars).length;
     $("ruleSixRow").hidden = old;
@@ -11432,22 +11566,22 @@ ${p.text}`), [b.end, b.curse].filter(Boolean).join(" "), (b.fates ?? []).join(" 
   $("readLife").addEventListener("click", () => openLife());
   var WHO2 = ["1", "cpu", "2", "3", "4"];
   var naming = null;
-  var people = (who2) => who2 === "1" || who2 === "cpu" ? 1 : +who2;
+  var people = (who3) => who3 === "1" || who3 === "cpu" ? 1 : +who3;
   function whoOfSetup({ count, rows }) {
     if (count === 1 && rows[0].type === "human") return "1";
     return count > 1 && rows.slice(0, count).every((r) => r.type === "human") ? String(count) : "cpu";
   }
   function drawNaming() {
     if (!naming) return;
-    const { who: who2, k } = naming, n = people(who2);
-    $("namingWhoOpts").innerHTML = WHO2.map((v) => `<label><input type="radio" name="who" value="${v}"${v === who2 ? " checked" : ""}> <span>${esc(v === "1" ? t("whoMe") : v === "cpu" ? t("whoCpu") : t("whoPeople", { n: +v }))}</span></label>`).join("");
+    const { who: who3, k } = naming, n = people(who3);
+    $("namingWhoOpts").innerHTML = WHO2.map((v) => `<label><input type="radio" name="who" value="${v}"${v === who3 ? " checked" : ""}> <span>${esc(v === "1" ? t("whoMe") : v === "cpu" ? t("whoCpu") : t("whoPeople", { n: +v }))}</span></label>`).join("");
     $("namingWho").hidden = k > 0;
-    $("namingMode").hidden = k > 0 || who2 === "1";
-    const n2 = who2 === "cpu" ? 2 : +who2, len = naming.length ?? lengthFor(n2);
+    $("namingMode").hidden = k > 0 || who3 === "1";
+    const n2 = who3 === "cpu" ? 2 : +who3, len = naming.length ?? lengthFor(n2);
     $("namingLengthOpts").hidden = naming.mode !== "together";
     $("namingLengthOpts").setAttribute("aria-label", t("lengthPick"));
-    $("namingLengthOpts").innerHTML = LENGTHS.map(([v, key]) => `<label title="${esc(lengthAbout(v))}"><input type="radio" name="length" value="${v}"${v === len ? " checked" : ""}> <span>${esc(t(key))}</span></label>`).join("");
-    $("namingModeOpts").innerHTML = MODES.map(([v, key]) => `<label title="${esc(t(key + "About"))}"><input type="radio" name="mode" value="${v}"${v === naming.mode ? " checked" : ""}> <span>${esc(t(key))}</span></label>`).join("");
+    $("namingLengthOpts").innerHTML = LENGTHS.map(([v, key2]) => `<label title="${esc(lengthAbout(v))}"><input type="radio" name="length" value="${v}"${v === len ? " checked" : ""}> <span>${esc(t(key2))}</span></label>`).join("");
+    $("namingModeOpts").innerHTML = MODES.map(([v, key2]) => `<label title="${esc(t(key2 + "About"))}"><input type="radio" name="mode" value="${v}"${v === naming.mode ? " checked" : ""}> <span>${esc(t(key2))}</span></label>`).join("");
     $("namingStep").hidden = n < 2;
     $("namingStep").textContent = n < 2 ? "" : t("namingOf", { k: k + 1, n, colour: t("colour" + k) });
     $("namingBegin").textContent = t(k < n - 1 ? "namingNext" : "namingBegin");
@@ -11493,7 +11627,7 @@ ${p.text}`), [b.end, b.curse].filter(Boolean).join(" "), (b.fates ?? []).join(" 
   });
   $("namingForm").addEventListener("submit", (e) => {
     if (!naming) return;
-    const { who: who2, k } = naming, n = people(who2), r = G.setup.rows[k];
+    const { who: who3, k } = naming, n = people(who3), r = G.setup.rows[k];
     r.name = $("namingName").value.trim();
     r.type = "human";
     r.gender = new FormData($("namingForm")).get("gender");
@@ -11508,12 +11642,12 @@ ${p.text}`), [b.end, b.curse].filter(Boolean).join(" "), (b.fates ?? []).join(" 
     }
     const mode = naming.mode, length = naming.length;
     naming = null;
-    G.setup.count = who2 === "cpu" ? 2 : n;
+    G.setup.count = who3 === "cpu" ? 2 : n;
     if (G.setup.count >= 2 && !G.setup.rules.board) G.setup.rules.mode = mode;
     else delete G.setup.rules.mode;
     if (G.setup.rules.mode === "together") G.setup.rules.length = length ?? lengthFor(G.setup.count);
     else delete G.setup.rules.length;
-    if (who2 === "cpu" && G.setup.rows[1].type !== "cpu") Object.assign(G.setup.rows[1], { name: "", type: "cpu", gender: "" });
+    if (who3 === "cpu" && G.setup.rows[1].type !== "cpu") Object.assign(G.setup.rows[1], { name: "", type: "cpu", gender: "" });
     renderSetup();
     nextSeed = G.state.rng.seed;
     const from = { fromLink: G.state.fromLink, daily: G.state.daily };
@@ -11635,12 +11769,12 @@ ${p.text}`), [b.end, b.curse].filter(Boolean).join(" "), (b.fates ?? []).join(" 
     const i = personOf(state) ?? 0;
     return playHash({ board: state.rules?.board ?? "110", law: state.table?.[i]?.law ?? state.rules?.law ?? "board", seed: state.rng.seed });
   };
-  async function shareLink(hash2, text) {
+  async function shareLink(hash2, text2) {
     const url = linkOf(hash2);
     let said = "";
     try {
       if (navigator.share) {
-        await navigator.share({ title: t("title"), text, url });
+        await navigator.share({ title: t("title"), text: text2, url });
         said = t("linkShared");
       } else {
         await navigator.clipboard.writeText(url);
@@ -11683,18 +11817,18 @@ ${p.text}`), [b.end, b.curse].filter(Boolean).join(" "), (b.fates ?? []).join(" 
     playSeed({ board: "110", law: "board", seed: dailySeed(day) }, { daily: day });
     return G.state.rng.seed;
   }
-  async function addLife(text) {
+  async function addLife(text2) {
     let got;
     try {
-      got = await readLife(hashOf(text) ?? "");
+      got = await readLife(hashOf(text2) ?? "");
     } catch {
       got = null;
     }
     if (!got) return "cmpAddBad";
     const r = replay(got.inputs), ok = r.ok && JSON.stringify(checkOf(r.state, got.seat)) === JSON.stringify(got.check);
     if (!ok) return "cmpAddOther";
-    const key = JSON.stringify(got.inputs);
-    if (G.received.some((x) => JSON.stringify(x.inputs) === key)) return "cmpAddSame";
+    const key2 = JSON.stringify(got.inputs);
+    if (G.received.some((x) => JSON.stringify(x.inputs) === key2)) return "cmpAddSame";
     G.received.push(got);
     render();
     return null;
@@ -11719,8 +11853,8 @@ ${p.text}`), [b.end, b.curse].filter(Boolean).join(" "), (b.fates ?? []).join(" 
   }
   setCompareHooks({
     onPlay: (offer) => playSeed(offer),
-    onAdd: async (text) => {
-      const k = await addLife(text);
+    onAdd: async (text2) => {
+      const k = await addLife(text2);
       if (!k) openReceived();
       return k;
     }
@@ -12012,9 +12146,9 @@ ${p.text}`), [b.end, b.curse].filter(Boolean).join(" "), (b.fates ?? []).join(" 
         if (!born) return null;
         const t2 = createGame({ players: [{ name: "", alias: { en: "Ravi", hi: "रवि" }, type: "cpu", gender: "m", born }], rules: G.setup.rules, seed: s.rng.seed + 1 >>> 0 });
         while (!t2.over) playTurn(t2);
-        const text = lifeText2(t2, 0, l);
-        console.log(text);
-        return text;
+        const text2 = lifeText2(t2, 0, l);
+        console.log(text2);
+        return text2;
       },
       siva() {
         const v = TOP - cur().pos;

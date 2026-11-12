@@ -2564,6 +2564,35 @@ await check("Phase 19: today's life is the same seed on two devices, and a seed 
   } finally { await other.close(); }
 });
 
+// ---- Phase 20: the desktop layout ----
+await check("Phase 20: 1400px and wider the book is written beside the board, polite, never focused; narrower it is not drawn", async page => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto(BASE + "?debug&seed=3");
+  const before = await page.evaluate(() => ({ shown: getComputedStyle(document.getElementById("book")).display !== "none", intro: document.querySelector("#bookText .book-intro")?.textContent ?? "", live: document.getElementById("bookText").getAttribute("aria-live"), colophon: getComputedStyle(document.querySelector(".panel .colophon")).display }));
+  assert(before.shown && before.intro.length > 40 && before.live === "polite" && before.colophon === "none", JSON.stringify(before));
+  await page.evaluate(() => mp.play(30));
+  await page.waitForTimeout(900);
+  const after = await page.evaluate(() => {
+    const t = document.getElementById("bookText"), sc = document.getElementById("bookScroll"), b = document.getElementById("book").getBoundingClientRect(), bd = document.querySelector(".board-col").getBoundingClientRect(), pn = document.querySelector(".panel").getBoundingClientRect();
+    return { h2: t.querySelector("h2")?.textContent, paras: t.querySelectorAll("p").length, intro: !!t.querySelector(".book-intro"), focus: document.activeElement?.closest?.("#book") ? document.activeElement.tagName : null, tab: [document.getElementById("book"), sc, t].map(e => e.tabIndex), bottom: Math.abs(sc.scrollHeight - sc.scrollTop - sc.clientHeight) < 40, order: b.right <= bd.left && bd.right <= pn.left, tabs: document.querySelectorAll("#bookWho button").length };
+  });
+  assert(after.h2 && after.paras >= 1 && !after.intro && !after.focus && after.tab.every(x => x < 0) && after.bottom && after.order && after.tabs === 2, JSON.stringify(after));
+  // only what was added is written: the first paragraph is the same node after another turn
+  const same = await page.evaluate(async () => { const p = document.querySelector("#bookText p"); mp.play(4); await new Promise(r => setTimeout(r, 50)); return document.querySelector("#bookText p") === p; });
+  assert(same, "the book's first line was written again");
+  await page.setViewportSize({ width: 1280, height: 800 });
+  const mid = await page.evaluate(() => { const bd = document.querySelector(".board-col").getBoundingClientRect(), pn = document.querySelector(".panel").getBoundingClientRect(); return { book: getComputedStyle(document.getElementById("book")).display, left: bd.left, right: innerWidth - pn.right, colophon: getComputedStyle(document.querySelector(".panel .colophon")).display }; });
+  assert(mid.book === "none" && Math.abs(mid.left - mid.right) < 24 && mid.colophon !== "none", JSON.stringify(mid));
+  // the board fills the height on every desktop width, on every board's shape, and never overflows the screen's
+  for (const [w, h, b] of [[1280, 800, "110"], [1920, 1080, "110"], [1440, 900, "84"], [1440, 900, "72"]]) {
+    await page.setViewportSize({ width: w, height: h });
+    if (b !== "110") await page.evaluate(id => mp.board(id), b);
+    await page.waitForTimeout(100);
+    const f = await page.evaluate(() => document.querySelector(".board-frame").getBoundingClientRect().bottom);
+    assert(f <= h && f > h - 90, `${b} at ${w}×${h}: the frame ends at ${f}`);
+  }
+});
+
 await browser.close();
 server.close();
 console.log(failed.length ? `${failed.length} check(s) failed:\n` + failed.map(n => `  ${n}`).join("\n") : "all checks passed");

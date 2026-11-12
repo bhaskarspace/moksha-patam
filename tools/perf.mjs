@@ -1,5 +1,6 @@
 // Frame times of the board's animations in a real browser, on a throttled phone-sized page (REDESIGN.md §4 Phase 5).
-//   node tools/perf.mjs [--rate=4] [--runs=3] [--query=quality=low] [--board=72]
+//   node tools/perf.mjs [--rate=4] [--runs=3] [--query=quality=low] [--board=72] [--desktop=1440x900]
+// --desktop plays on a desktop page of that size at DPR 2 (Phase 20: the book beside the board from 1400px)
 // Reports p50 and p95 frame time and the longest animation frame for a walk, a climb and a swallow.
 // It reports and never fails: the budget lives in the Phase 5 plan, and a laptop is only a proxy for a phone.
 import fs from "node:fs";
@@ -34,7 +35,8 @@ const MOVES = {
 const REPAINT = BOARD === "110" ? [20, 45, 70, 95, 30, 60] : [20, 45, 70, 25, 30, 60];
 
 const browser = await chromium.launch({ channel: "chrome" });
-const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
+const DESKTOP = process.argv.find(a => a.startsWith("--desktop="))?.slice(10).split("x").map(Number);
+const ctx = await browser.newContext(DESKTOP ? { viewport: { width: DESKTOP[0], height: DESKTOP[1] }, deviceScaleFactor: 2 } : { viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
 await ctx.addInitScript(() => {
   try { localStorage.setItem("mp-self", JSON.stringify({ name: "", gender: "f" })); localStorage.setItem("mp-prefs", JSON.stringify({ mute: true })); } catch {}
   // every card that opens closes again, so a move runs straight through
@@ -89,7 +91,7 @@ for (let run = 0; run < RUNS; run++) if (BOARD === "110" && await page.evaluate(
   await page.evaluate(() => document.querySelector(".cmp-close").click());
 }
 
-console.log(`board ${BOARD}, CPU throttle ${RATE}x, 390x844 at DPR 3, ${RUNS} runs`);
+console.log(`board ${BOARD}, CPU throttle ${RATE}x, ${DESKTOP ? `${DESKTOP.join("x")} at DPR 2` : "390x844 at DPR 3"}, ${RUNS} runs`);
 console.log("move      frames   p50 ms   p95 ms   longest frame ms");
 for (const [name, { frames, longest }] of Object.entries(results)) {
   console.log(`${name.padEnd(9)} ${String(frames.length).padStart(6)} ${q(frames, 0.5).toFixed(1).padStart(8)} ${q(frames, 0.95).toFixed(1).padStart(8)} ${longest.toFixed(0).padStart(12)}`);

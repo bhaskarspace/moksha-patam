@@ -131,6 +131,9 @@ export function buildCells() {
   const board = $("board");
   board.style.setProperty("--cols", COLS);
   board.style.setProperty("--rows", ROWS);
+  // the board's width for its height (Phase 20): the grid and, over it, the superstructure's 0.9 of a row, so a desktop
+  // page sizes the column to fill the screen's height on any board (styles.css .board-col)
+  board.closest(".board-col")?.style.setProperty("--ar", (COLS / (ROWS + ($("vimana")?.hidden === false ? 0.9 : 0))).toFixed(4));
   for (let r = ROWS - 1; r >= 0; r--) {
     for (let c = 0; c < COLS; c++) {
       const n = LAYOUT.cell[`${c},${r}`];
