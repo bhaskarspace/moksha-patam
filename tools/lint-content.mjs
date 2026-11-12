@@ -365,6 +365,13 @@ export function lintReport() {
   // one bilingual and agreeing in Hindi, at least one never withheld, and every gate one a life can pass. The
   // structural rule: the option worth least advances more cheaply, never further, than the one worth most.
   const GUNAS = ["s", "r", "t"], AIMS = ["dharma", "artha", "kama"];
+  // Phase 20: a situation's Hindi outcome is told in the present, like the English ("{name} is {age} and …"); its dream,
+  // recall, debt and witness lines stay past. Checked clause by clause after the age: the head of a clause (up to a कि,
+  // जो, जिस-, जब or जैसे, which open a clause told in its own time) may not end on a past or perfective verb; quoted
+  // speech keeps its own tense, and a participle (ठिठुरते हुए) or a subjunctive (सो सके) is not a past.
+  const PAST_HI = /(?:^|\s)(?:था|थी|थे|थीं|गया|गई|गए|गईं|लिया|ली|लिए|दिया|दी|दिए|किया|की|हुआ|हुई|हुए|चुका|चुकी|चुके|पाया|पाई|सका|सकी|पड़ा|पड़ी|पड़े|आया|आई|आए|उठा|उठी|बैठा|बैठी|निकला|निकली|रहा|रही|रहे|सुने|सुना|कहा|मारा|देखा|खाई)$/;
+  const plainHi = hi => hi.replace(/\{[a-z]+=([^{}]*)\}/g, "$1").replace(/\{[a-z]+:([^{}|]*)\|[^{}]*\}/g, "$1").replace(/\{([^{}|]*)\|[^{}]*\}/g, "$1");
+  const pastHi = hi => plainHi(hi).replace(/“[^”]*”/g, "“…”").split("।").slice(1).flatMap(x => x.split(/[,;]/)).flatMap(c => c.split(/ कि | जो | जिस| जब | जैसे /)[0].split(/ और /)).map(c => c.replace(/[“”"’‘]/g, "").trim()).filter(c => c && PAST_HI.test(c) && !/ते हुए$/.test(c));
   const range = (where, r, lo, hi) => {
     if (r.min != null && !(r.min >= lo && r.min < hi)) err(where, `min ${r.min} cannot be passed`);
     if (r.max != null && !(r.max > lo && r.max <= hi)) err(where, `max ${r.max} cannot be passed`);
@@ -391,7 +398,14 @@ export function lintReport() {
       if (!(Number.isInteger(o.cost) && o.cost >= 0 && o.cost <= 8)) err(ow, `cost ${o.cost} is not a whole number of years, 0 to 8`);
       if (!GUNAS.includes(o.guna)) err(ow, `guna "${o.guna}" is not s, r or t`);
       for (const [k, d] of Object.entries(o.aims || {})) if (!AIMS.includes(k) || typeof d !== "number") err(ow, `aims.${k} is not an aim with a number`);
-      if (o.outcome) { if (!o.outcome.en?.trim() || !o.outcome.hi?.trim()) err(`${ow} outcome`, "needs both languages"); else momentText(`${ow} outcome`, o.outcome, q); }
+      if (o.outcome) {
+        if (!o.outcome.en?.trim() || !o.outcome.hi?.trim()) err(`${ow} outcome`, "needs both languages");
+        else {
+          momentText(`${ow} outcome`, o.outcome, q);
+          const past = pastHi(o.outcome.hi);
+          if (past.length) err(`${ow} outcome`, `the Hindi is told in the past, not the present: ${past.map(c => `"…${c.slice(-24)}"`).join(", ")}`);
+        }
+      }
       else if (!q.moment) err(ow, "has no outcome, and the square has no moment of its own to tell");
       if (o.require) {
         // §2.5: a withheld option says why, or the player loses the thread
@@ -403,8 +417,12 @@ export function lintReport() {
       } else if (o.why) err(ow, "has a reason for being withheld, but no gate");
       // Phase 12: the seed a choice plants (src/engine/karma.js). One ledger: a debt is planted only by a choice that also
       // moves the player toward rajas or tamas and away from dharma, so what is coming and what they are becoming agree.
+      // Phase 20: and only by a wrong done to someone, said in `wrong`: a lie, of any guna, or a harm to another person.
+      // A self-regarding choice teaches by its outcome and its dream, and plants nothing; one that slides down a snake has
+      // had its consequence, unless it is also a lie or a harm (one consequence for one act).
       if (o.seed) {
         const sd = o.seed, sw = `${ow} seed`;
+        if (!["lie", "harm"].includes(sd.wrong)) err(sw, `wrong "${sd.wrong}" is not "lie" or "harm": a debt is planted only by a lie or by a harm to another`);
         if (!["r", "t"].includes(o.guna)) err(sw, `plants a debt on a choice whose guna is "${o.guna}", not r or t`);
         if ((o.aims?.dharma ?? 0) > 0) err(sw, "plants a debt on a choice that adds dharma");
         if (!(Number.isInteger(sd.fuse) && sd.fuse > 0)) err(sw, `fuse ${sd.fuse} is not a positive whole number of years`);
@@ -438,13 +456,12 @@ export function lintReport() {
         if (lo.cost > hi.cost) err(w, `the option worth least (${lo.id}) costs more years than the one worth most (${hi.id})`);
       }
     }
-    // Phase 15: an ego test names its lower option, the one the ego takes the life to, which plants a debt and is worth
-    // least; and says, in the moment's voice and in the account's, what the life meant and did instead
+    // Phase 15: an ego test names its lower option, the one the ego takes the life to, which is worth least (since
+    // Phase 20 it plants a debt only by the seed rule above, like any option); and says, in the moment's voice and in the account's, what the life meant and did instead
     if (sit.ego) {
       const ew = `${w} ego`, lower = opts.find(o => o.id === sit.ego.lower);
       if (!lower) err(ew, `lower "${sit.ego.lower}" is not an option here`);
       else {
-        if (!lower.seed) err(ew, `lower "${lower.id}" plants no debt: the ego pulls toward a debt`);
         if (opts.some(o => worthOf(o) < worthOf(lower))) err(ew, `lower "${lower.id}" is not the option worth least`);
       }
       bilingual(`${ew} card`, sit.ego.card);

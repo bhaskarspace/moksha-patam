@@ -305,6 +305,16 @@ is good or a shell.
 6. **Sanskrit terms in code and UI**, glossed on first appearance, not translated away.
    `prarabdha`, not `pendingKarma`.
 7. **Say "medieval" not "ancient"** about the board's own history, per §4.
+8. **Address (Phase 20).** An option's label is the player speaking to their own character, in तुम ("कह दो",
+   "लौटकर दे दो"); the mirrors and every system line address the player as आप, with no gendered verb.
+9. **Tense (Phase 20).** A situation's outcome is told in the present in both languages, like the English moment
+   ("{name} is {age} and …"); its dream, recall, debt and witness lines stay past. The lint holds the Hindi, clause by
+   clause (`pastHi` in `tools/lint-content.mjs`).
+10. **The seed rule (Phase 20).** A debt is planted only by a wrong done to someone, said in `seed.wrong`: a lie, of any
+    guṇa, or a harm to another person. A self-regarding choice teaches by its outcome and its dream and plants nothing,
+    and one that slides down a snake has had its consequence unless it is also a lie or a harm (one consequence for one
+    act). Harms weigh 2 on purpose: the difference between a fib and hurting someone is the moral content of the rule.
+    Intention variants (44, 51, 56) carry no new state; the account tells them apart.
 
 ---
 
@@ -322,6 +332,17 @@ Markovian, since the fuse queue and the guṇa state both carry history. The
 liberation-time distribution under Mīmāṃsā (deterministic consequence, full
 information) against Cārvāka (no memory at all) should differ in shape, not only in
 mean. If they do not, the laws are flavour text and the design has failed its own test.
+
+**Phase 20, the situations at 28.** The gate the content was balanced against, in its real terms: honest > mixed >
+dishonest under every law; mixed souls liberated within ten lives ≥ 80% under every law but Mīmāṃsā and Advaita; no game
+over 100 turns; and a soul dishonest for three lives and honest from the fourth (`REFORM` in `tools/sim.mjs`) liberated
+within ten under every law but Cārvāka. The per-life ±4 points it began with was a working gate. Harms weigh 2 on
+purpose (§6 rule 10), and Jain ten-life 86.8 → 83.6 and Bhakti per-life 37.9 → 32.7 are its cost. More choices widen
+honest from dishonest, which is the point of them: Mīmāṃsā's dishonest svarga falls under the 5% floor Phase 17 set,
+and the floor is 3% (`tests/balance.test.mjs`): svarga stays reachable, rarely. Under Advaita an always-dishonest
+soul never recognises (ten-life 0): recognition needs the sixth bhūmikā, which rests on sattva's share of a life, and
+a life that never once chooses sattva does not get there; that is the law's answer, not a lock, and a reformed soul
+gets out more often than before (63.6 → 82.2%).
 
 ---
 

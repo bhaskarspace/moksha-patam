@@ -22,9 +22,10 @@ test("liberation per life: honest > mixed > dishonest", () => {
 });
 
 // Phase 17, step 3: under Mīmāṃsā the exit is svarga, the exact landing on 101 with nothing owed, and every consequence is
-// shown; the order still holds, and the win stays between the floor and the ceiling (5% and 60% of lives). A game holds
+// shown; the order still holds, and the win stays between the floor and the ceiling (3% and 60% of lives). A game holds
 // every life of the seat since Śiva's snake became rebirth, so this counts lives; 20,000 games each gave 24.9%, 14.0%
-// and 7.6% of lives when this was written.
+// and 7.6% of lives when this was written. Phase 20 lowered the floor from 5%: more choices widen honest from
+// dishonest, and svarga stays reachable, rarely (docs/REFERENCE.md §7).
 test("Mīmāṃsā's svarga per life: honest > mixed > dishonest, within the floor and the ceiling", () => {
   const svarga = policy => {
     setPolicy(policy);
@@ -36,5 +37,5 @@ test("Mīmāṃsā's svarga per life: honest > mixed > dishonest, within the flo
   };
   const [honest, mixed, dishonest] = ["honest", "mixed", "dishonest"].map(svarga);
   assert.ok(honest > mixed && mixed > dishonest, JSON.stringify({ honest, mixed, dishonest }));
-  assert.ok(dishonest >= 0.05 && honest <= 0.6, JSON.stringify({ honest, dishonest }));
+  assert.ok(dishonest >= 0.03 && honest <= 0.6, JSON.stringify({ honest, dishonest }));
 });

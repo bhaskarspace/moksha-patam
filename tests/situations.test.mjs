@@ -27,15 +27,16 @@ const lived = (life, told) => {
 const all = (s, l = "en") => lifeOf(s, 0, l).paras.map(p => p.text).join(" ");
 const policy = (x, fn) => { setPolicy(x); try { return fn(); } finally { setPolicy(null); } };
 
-test("ten squares offer a choice: four snakes, three ladders and three story squares", () => {
-  assert.deepEqual(Object.keys(SITUATIONS).map(Number), [12, 19, 28, 47, 49, 51, 54, 55, 56, 59]);
-  assert.equal(situationAt(44), null);
+test("the squares that offer a choice", () => {
+  // Phase 10 B: ten, four snakes, three ladders and three story squares; Phase 20 brings them to 28
+  assert.deepEqual(Object.keys(SITUATIONS).map(Number), [11, 12, 14, 15, 19, 22, 23, 24, 28, 29, 34, 39, 44, 47, 49, 51, 52, 54, 55, 56, 59]);
+  assert.equal(situationAt(40), null);
 });
 
 test("a square without a situation is resolved at once, exactly as before", () => {
-  const plan = planTurn(game(40), 4);
+  const plan = planTurn(game(68), 4); // 44 is a situation since Phase 20; 72 is not
   assert.equal(plan.situation, undefined);
-  assert.deepEqual(plan.jump, { kind: "ladder", to: 63 });
+  assert.deepEqual(plan.jump, { kind: "ladder", to: 89 });
 });
 
 test("on a situation the turn waits for the choice, and the choice is the move", () => {

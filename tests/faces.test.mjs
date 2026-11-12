@@ -35,7 +35,7 @@ test("only a 6 gives the omen a chance, and on the ground that chance is never z
 
 test("every square told by the roll brings its misfortune on the high faces, never on a 1", () => {
   const rolls = Object.entries(SQ).filter(([, q]) => q.roll);
-  assert.ok(rolls.length >= 10);
+  assert.ok(rolls.length >= 8); // Phase 20: 11 and 52 became situations
   for (const [n, q] of rolls) {
     assert.equal(q.roll.valence, "bad", `square ${n}`);
     assert.equal(toldOn(+n, 1), "else", `square ${n}: a 1 tells the noticing moment`);

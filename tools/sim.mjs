@@ -168,10 +168,14 @@ export const lifeSeed = (seed, k) => (k ? (Math.imul(seed ^ 0x85ebca6b, 0x27d4eb
 // One soul's lives from a seed: each a single computer's game, born of the last, until a liberation or n lives.
 // A death by ledger is followed by its animal interlude (src/engine/animal.js) before the next human life: each is kept
 // on the life it follows, as interludes [{ kind, round, earned, throws }].
-export function playLives(seed, n, { rules = SIM_RULES, pick = moveFor } = {}) {
+// policyAt(k), when given, is how the computer chooses in the soul's life k (from 0): REFORM is dishonest for three
+// lives and honest from the fourth (Phase 20), to show that a soul that changes can still get out
+export const REFORM = k => (k < 3 ? "dishonest" : "honest");
+export function playLives(seed, n, { rules = SIM_RULES, pick = moveFor, policyAt = null } = {}) {
   const out = [];
   let born = null;
   for (let k = 0; k < n; k++) {
+    if (policyAt) setPolicy(policyAt(k));
     const g = playGame(lifeSeed(seed, k), { players: 1, rules, pick, born });
     out.push(g);
     // the law's win ends the soul's count, as liberation does (svarga's return is the page's, not the measure's); a law
@@ -271,6 +275,12 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
         }
         cols.push(c);
       }
+      // a soul dishonest for its first three lives and honest from the fourth: won within ten, and of those after life 3
+      const reform = { ten: 0, late: 0 };
+      for (let s = first; s < first + souls; s++) {
+        const lives = playLives(s, 10, { rules, pick, policyAt: REFORM }).flatMap(livesOf).slice(0, 10), w = lives.findIndex(x => x.won);
+        reform.ten += w >= 0; reform.late += w >= 3;
+      }
       setPolicy(null);
       const row = (label, f) => console.log(`  ${label.padEnd(30)}${cols.map(c => String(f(c)).padStart(15)).join("")}`);
       const md = xs => summarise(xs.length ? xs : [0]);
@@ -280,6 +290,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       row("lives per win", c => (c.won ? (c.lives / c.won).toFixed(2) : "—"));
       row("win by life 1 / 3 / 5 / 10", c => c.at.map((n, j) => (n ? Math.round((100 * c.by[j]) / n) : "—")).join("/"));
       row("souls won within ten lives", c => pct(c.ten / souls));
+      console.log(`  ${"reformed (dishonest 1–3, then honest)".padEnd(30)}${pct(reform.ten / souls).padStart(15)} within ten lives, ${pct(reform.late / souls)} from life 4 on`);
       row("turns a life, median / p95", c => `${md(c.turns).median} / ${md(c.turns).p95}`);
       row("years a life, median / p95", c => `${md(c.years).median} / ${md(c.years).p95}`);
       row("died: ledger / years / door", c => [c.ledger, c.yearsOut, c.door].map(n => (100 * n / c.lives).toFixed(1)).join("/"));

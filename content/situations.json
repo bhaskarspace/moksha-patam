@@ -1,4 +1,42 @@
 {
+  "11": {
+    "prompt": {
+      "en": "{name} is {age}. Something is broken, it was {name}, and everyone in the room is looking.",
+      "hi": "{name} {age} बरस {का|की} है। कुछ टूट गया है, तोड़ा {name} ने ही है, और कमरे में सब उसी की ओर देख रहे हैं।"
+    },
+    "options": [
+      {
+        "id": "wasnt",
+        "label": {"en":"Say it wasn't you","hi":"कह दो कि तुमने नहीं किया"},
+        "move": "here",
+        "cost": 0,
+        "guna": "r",
+        "aims": {"dharma":-5},
+        "seed": {"wrong":"lie","fuse":15,"weight":1,"holds":19,"debt":{"en":"the “it wasn’t me”, at {at}","hi":"{at} बरस की उम्र में कहा गया वह “मैंने नहीं तोड़ा”"},"reckoning":{"en":"Something goes missing at work, and {name} says it was not {him|her|them}, and it was not, and nobody in the room believes it.","hi":"दफ़्तर से कुछ ग़ायब हो जाता है। {name} {कहता|कहती} है कि उसने नहीं लिया, और सच में नहीं लिया, पर कमरे में कोई नहीं मानता।"}},
+        "dream": {"en":"said it was not {him|her|them}, when it was","hi":"जिसने कहा था कि उसने नहीं किया, जबकि किया उसी ने था"}
+      },
+      {
+        "id": "was",
+        "label": {"en":"Say it was you","hi":"मान लो कि तुमने किया"},
+        "move": "here",
+        "cost": 1,
+        "guna": "s",
+        "aims": {"dharma":5},
+        "outcome": {"en":"{name} is {age}, begins to say it was someone else, stops, and says, “It was me.” Nobody shouts.","hi":"{name} {age} बरस {का|की} है। कहने ही {वाला होता|वाली होती} है कि किसी और ने किया, फिर रुककर {name} {कहता|कहती} है, “मैंने किया था।” कोई नहीं चिल्लाता।","mirror":{"en":"The blue jackal never got to say it. The howl said it for him.","hi":"नीले सियार को यह कहने का मौक़ा ही नहीं मिला। हुआँ-हुआँ ने ही सब कह दिया।"}},
+        "dream": {"en":"said, “It was me,” and nobody shouted","hi":"जिसने कहा था, “मैंने किया था,” और कोई नहीं चिल्लाया था"}
+      },
+      {
+        "id": "hide",
+        "label": {"en":"Hide until it blows over","hi":"छिप जाओ, जब तक बात ठंडी न हो जाए"},
+        "move": "here",
+        "cost": 0,
+        "guna": "t",
+        "aims": {"kama":-5},
+        "outcome": {"en":"{name} is {age} and hides behind the water tank until the shouting stops, and comes out at dinner, and nobody mentions it, and {name} waits all week for someone to.","hi":"{name} {age} बरस {का|की} है। {name} पानी की टंकी के पीछे तब तक {छिपा रहता|छिपी रहती} है जब तक डाँट-डपट थम न जाए, खाने के वक़्त बाहर {आता|आती} है, कोई कुछ नहीं कहता, और {name} पूरे हफ़्ते इंतज़ार {करता|करती} है कि कोई कहेगा।"},
+        "dream": {"en":"hid behind the water tank until it blew over","hi":"जिसने बात ठंडी होने तक पानी की टंकी के पीछे छिपकर दिन काटा था"}
+      }
+    ]
+  },
   "12": {
     "prompt": {
       "en": "{name} is {age}, cornered by a bigger child who wants the lunch.",
@@ -12,7 +50,7 @@
         "cost": 0,
         "guna": "r",
         "aims": {"artha":5,"dharma":-5},
-        "seed": {"fuse":15,"weight":1,"holds":19,"debt":{"en":"the teacher who was coming, at {at}","hi":"{at} बरस की उम्र में वे मास्टरजी जो आ रहे थे"},"reckoning":{"en":"The bigger child from the lunch break is grown, and sits in the office {name} needs a paper from, and remembers that the teacher never came.","hi":"टिफ़िन छीनने वाला वह बड़ा बच्चा अब बड़ा हो गया है, उसी दफ़्तर में बैठता है जहाँ से {name} को एक काग़ज़ चाहिए, और उसे याद है कि मास्टरजी कभी आए ही नहीं थे।"}},
+        "seed": {"wrong":"lie","fuse":15,"weight":1,"holds":19,"debt":{"en":"the teacher who was coming, at {at}","hi":"{at} बरस की उम्र में वे मास्टरजी जो आ रहे थे"},"reckoning":{"en":"The bigger child from the lunch break is grown, and sits in the office {name} needs a paper from, and remembers that the teacher never came.","hi":"टिफ़िन छीनने वाला वह बड़ा बच्चा अब बड़ा हो गया है, उसी दफ़्तर में बैठता है जहाँ से {name} को एक काग़ज़ चाहिए, और उसे याद है कि मास्टरजी कभी आए ही नहीं थे।"}},
         "dream": {"en":"said a teacher was coming when none was","hi":"जिसने कहा था कि मास्टरजी आ रहे हैं, जबकि कोई नहीं आ रहा था"}
       },
       {
@@ -22,7 +60,7 @@
         "cost": 1,
         "guna": "s",
         "aims": {"dharma":5},
-        "outcome": {"en":"{name} is {age}, cornered by a bigger child who wants the lunch, and does the headmaster's walk so well that the bigger child laughs, and sits down, and they split the lunch. It takes the whole break.","hi":"{name} {age} बरस {का|की} है। टिफ़िन छीनने को घेरे खड़े बड़े बच्चे के सामने {name} ने हेडमास्टर की चाल की ऐसी नक़ल की कि वह हँस पड़ा, बैठ गया, और दोनों ने टिफ़िन बाँट लिया। पूरी छुट्टी इसी में निकल गई।"},
+        "outcome": {"en":"{name} is {age}, cornered by a bigger child who wants the lunch, and does the headmaster's walk so well that the bigger child laughs, and sits down, and they split the lunch. It takes the whole break.","hi":"{name} {age} बरस {का|की} है। टिफ़िन छीनने को घेरे खड़े बड़े बच्चे के सामने {name} हेडमास्टर की चाल की ऐसी नक़ल {करता|करती} है कि वह हँस पड़ता है, बैठ जाता है, और दोनों टिफ़िन बाँट लेते हैं। पूरी छुट्टी इसी में निकल जाती है।"},
         "dream": {"en":"made a bigger child laugh instead of handing over the lunch","hi":"जिसने खाना देने के बजाय एक बड़े बच्चे को हँसा दिया था"}
       },
       {
@@ -32,10 +70,84 @@
         "cost": 0,
         "guna": "t",
         "aims": {"kama":-5},
-        "outcome": {"en":"{name} is {age} and hands over the lunch without a word, and is hungry all afternoon, and tells nobody.","hi":"{name} {age} बरस {का|की} है। {name} ने चुपचाप टिफ़िन दे दिया, दोपहर भर भूख लगती रही, और किसी से कुछ नहीं कहा।"},
+        "outcome": {"en":"{name} is {age} and hands over the lunch without a word, and is hungry all afternoon, and tells nobody.","hi":"{name} {age} बरस {का|की} है। {name} चुपचाप टिफ़िन दे {देता|देती} है, दोपहर भर भूख लगती रहती है, और {name} किसी से कुछ नहीं {कहता|कहती}।"},
         "dream": {"en":"handed over the lunch and told nobody","hi":"जिसने अपना खाना दे दिया था और किसी को बताया नहीं था"}
       }
     ]
+  },
+  "14": {
+    "prompt": {
+      "en": "{name} is {age} and has been told a secret, and has held it all through lunch.",
+      "hi": "{name} {age} बरस {का|की} है। किसी ने एक राज़ बताया है, और {name} ने उसे दोपहर के खाने तक सँभाले रखा है।"
+    },
+    "options": [
+      {
+        "id": "tell",
+        "label": {"en":"Tell it","hi":"बता दो"},
+        "move": "snake",
+        "cost": 0,
+        "guna": "r",
+        "aims": {"dharma":-5},
+        "dream": {"en":"told in the afternoon the secret held through lunch","hi":"जिसने दोपहर तक सँभाला राज़ शाम को बता दिया था"}
+      },
+      {
+        "id": "keep",
+        "label": {"en":"Keep it","hi":"राज़ रखो"},
+        "move": "here",
+        "cost": 2,
+        "guna": "s",
+        "aims": {"dharma":5},
+        "outcome": {"en":"{name} is {age} and keeps the secret all afternoon, and all the next day, and by the end of the week has forgotten wanting to tell it.","hi":"{name} {age} बरस {का|की} है। {name} राज़ पूरी शाम अपने पास {रखता|रखती} है, अगले दिन भी, और हफ़्ता बीतते-बीतते बताने की चाह ही मिट चुकी होती है।","mirror":{"en":"The tortoise on the geese's stick would have crossed the whole sky this way.","hi":"हंसों की डंडी पर लटका कछुआ ऐसे ही पूरा आकाश पार कर जाता।"}},
+        "dream": {"en":"kept a secret until the wanting to tell it went","hi":"जिसने राज़ तब तक रखा जब तक बताने की चाह न मिट गई"}
+      }
+    ]
+  },
+  "15": {
+    "prompt": {
+      "en": "{name} is {age} and in trouble at school for something {friend=the friend} did too, and {friend=the friend} has just owned up.",
+      "hi": "{name} {age} बरस {का|की} है। स्कूल में {name} को उस बात पर डाँट पड़ रही है जो {friend=दोस्त} ने भी की थी, और {friend=दोस्त} ने अभी-अभी आगे आकर मान लिया है।",
+      "cast": "friend"
+    },
+    "options": [
+      {
+        "id": "too",
+        "label": {"en":"Own up too","hi":"तुम भी मान लो"},
+        "move": "here",
+        "cost": 1,
+        "guna": "s",
+        "aims": {"dharma":5},
+        "dream": {"en":"owned up beside a friend","hi":"जिसने एक दोस्त के साथ खड़े होकर ग़लती मानी थी"}
+      },
+      {
+        "id": "alone",
+        "label": {"en":"Let your friend take it alone","hi":"दोस्त को अकेले झेलने दो"},
+        "move": "here",
+        "cost": 0,
+        "guna": "r",
+        "aims": {"dharma":-5},
+        "outcome": {"en":"{name} is {age} and says nothing while {friend=the friend} is scolded alone, and walks home a different way that evening.","hi":"{name} {age} बरस {का|की} है। {friend=दोस्त} को अकेले डाँट पड़ती है और {name} चुप {रहता|रहती} है, और उस शाम {name} दूसरे रास्ते से घर {जाता|जाती} है।","cast":"friend","recall":{"en":"who was once scolded alone at school while {name} said nothing","hi":"जिसे कभी स्कूल में अकेले डाँट पड़ी थी, जब {name} ने कुछ नहीं कहा था"}},
+        "seed": {"wrong":"harm","fuse":20,"weight":1,"holds":19,"debt":{"en":"the scolding a friend took alone, at {at}","hi":"{at} बरस की उम्र में वह डाँट जो दोस्त ने अकेले खाई"},"reckoning":{"en":"Years on, it is {name} who is in trouble, and looks round the room for someone to stand beside {him|her|them}, and remembers a walk home by a different way.","hi":"बरसों बाद इस बार मुसीबत {name} पर है। {name} कमरे में नज़र {दौड़ाता|दौड़ाती} है कि कोई साथ खड़ा हो, और घर लौटने का वह दूसरा रास्ता याद आता है।"}},
+        "dream": {"en":"let a friend take the scolding alone","hi":"जिसने दोस्त को अकेले डाँट खाने दी थी"}
+      },
+      {
+        "id": "didnt",
+        "label": {"en":"Say you didn't know","hi":"कह दो कि तुम्हें पता ही नहीं था"},
+        "move": "here",
+        "cost": 0,
+        "guna": "t",
+        "aims": {"dharma":-5},
+        "outcome": {"en":"{name} is {age} and says {he|she|they} didn't know anything about it, and everyone looks at {friend=the friend}.","hi":"{name} {age} बरस {का|की} है। {name} {कह देता|कह देती} है कि उसे इस बारे में कुछ पता ही नहीं था, और सबकी नज़र {friend=दोस्त} पर टिक जाती है।","cast":"friend","recall":{"en":"who was once left to answer alone at school, when {name} knew nothing about it","hi":"जिसे कभी स्कूल में अकेले जवाब देना पड़ा था, जब {name} को “कुछ पता ही नहीं था”"}},
+        "seed": {"wrong":"lie","fuse":15,"weight":1,"holds":19,"debt":{"en":"the “I didn't know”, at {at}","hi":"{at} बरस की उम्र में कहा गया वह “मुझे पता नहीं था”"},"reckoning":{"en":"A child in {name}'s house, in trouble at school, says, “I didn't know anything about it,” exactly as {name} once did.","hi":"{name} के घर का एक बच्चा स्कूल में मुसीबत में है, और ठीक वैसे ही कहता है, “मुझे तो कुछ पता ही नहीं था,” जैसे कभी {name} ने कहा था।"}},
+        "dream": {"en":"said {he|she|they} hadn't known","hi":"जिसने कहा था कि उसे पता ही नहीं था"}
+      }
+    ],
+    "witness": {
+      "friend": {
+        "too": {"en":"{who}, who had taken the scolding at school side by side with {name}, was waiting: ","hi":"{who}, जिसने स्कूल में {name} के साथ बराबर डाँट खाई थी, {who:इंतज़ार कर रहा था|इंतज़ार कर रही थी}: "},
+        "alone": {"en":"{who}, who had taken the scolding at school alone while {name} said nothing, was waiting: ","hi":"{who}, जिसने स्कूल में अकेले डाँट खाई थी, जब {name} ने कुछ नहीं कहा था, {who:इंतज़ार कर रहा था|इंतज़ार कर रही थी}: "},
+        "didnt": {"en":"{who}, who had heard {name} say at school that {name} knew nothing about it, was waiting: ","hi":"{who}, जिसने स्कूल में {name} को कहते सुना था कि उसे कुछ पता ही नहीं था, {who:इंतज़ार कर रहा था|इंतज़ार कर रही थी}: "}
+      }
+    }
   },
   "19": {
     "prompt": {
@@ -50,7 +162,7 @@
         "cost": 0,
         "guna": "r",
         "aims": {"dharma":-10},
-        "seed": {"fuse":20,"weight":1,"holds":19,"debt":{"en":"the sea described to the class at {at}","hi":"{at} बरस की उम्र में कक्षा को सुनाया गया समुद्र का क़िस्सा"},"reckoning":{"en":"Someone from that class turns up and asks, in front of everyone, about the sea, and {name} has to describe it again, and cannot remember which boat it was.","hi":"उस कक्षा का कोई मिल जाता है और सबके सामने समुद्र के बारे में पूछता है, और {name} को उसका क़िस्सा फिर सुनाना पड़ता है, और याद नहीं आता कि नाव कौन-सी थी।"}},
+        "seed": {"wrong":"lie","fuse":20,"weight":1,"holds":19,"debt":{"en":"the sea described to the class at {at}","hi":"{at} बरस की उम्र में कक्षा को सुनाया गया समुद्र का क़िस्सा"},"reckoning":{"en":"Someone from that class turns up and asks, in front of everyone, about the sea, and {name} has to describe it again, and cannot remember which boat it was.","hi":"उस कक्षा का कोई मिल जाता है और सबके सामने समुद्र के बारे में पूछता है, और {name} को उसका क़िस्सा फिर सुनाना पड़ता है, और याद नहीं आता कि नाव कौन-सी थी।"}},
         "dream": {"en":"told a class about a sea that was never there","hi":"जिसने कक्षा को एक ऐसे समुद्र के बारे में बताया था जो था ही नहीं"}
       },
       {
@@ -60,10 +172,153 @@
         "cost": 4,
         "guna": "s",
         "aims": {"dharma":5},
-        "outcome": {"en":"{name} is {age} and tells the class about a holiday at home where nothing happened, and somebody laughs, and {name} is the child with the boring holiday for years after.","hi":"{name} {age} बरस {का|की} है। {name} ने कक्षा को घर पर बीती उस छुट्टी के बारे में बताया जिसमें कुछ नहीं हुआ, कोई हँस पड़ा, और बरसों तक {name} {वही बच्चा रहा|वही बच्ची रही} जिसकी छुट्टियाँ फीकी थीं।","mirror":{"en":"The blue jackal could have stayed a jackal, and been left alone.","hi":"नीला सियार चाहता तो सियार ही बना रह सकता था, और उसे कोई कुछ न कहता।"}},
+        "outcome": {"en":"{name} is {age} and tells the class about a holiday at home where nothing happened, and somebody laughs, and {name} is the child with the boring holiday for years after.","hi":"{name} {age} बरस {का|की} है। {name} कक्षा को घर वाली छुट्टी का हाल {सुनाता|सुनाती} है, जिसमें कुछ भी ख़ास नहीं, कोई हँस पड़ता है, और बरसों तक {name} {वही बच्चा रहता|वही बच्ची रहती} है जिसकी छुट्टियाँ फीकी थीं।","mirror":{"en":"The blue jackal could have stayed a jackal, and been left alone.","hi":"नीला सियार चाहता तो सियार ही बना रह सकता था, और उसे कोई कुछ न कहता।"}},
         "dream": {"en":"told the class about a holiday where nothing happened","hi":"जिसने कक्षा को उन छुट्टियों के बारे में बताया था जिनमें कुछ नहीं हुआ था"}
       }
     ]
+  },
+  "22": {
+    "prompt": {
+      "en": "{name} is {age} and has been passed a picture of a classmate that was never meant for {name}.",
+      "hi": "{name} {age} बरस {का|की} है। {name} तक एक सहपाठी की तस्वीर पहुँची है जो उसके लिए कभी थी ही नहीं।"
+    },
+    "options": [
+      {
+        "id": "forward",
+        "label": {"en":"Pass it on","hi":"आगे भेज दो"},
+        "move": "here",
+        "cost": 0,
+        "guna": "r",
+        "aims": {"dharma":-10},
+        "outcome": {"en":"{name} is {age} and passes the picture on, to show it can be done, and by the evening it has gone further than {name} can follow, and cannot be called back.","hi":"{name} {age} बरस {का|की} है। {name} तस्वीर आगे भेज {देता|देती} है, बस यह दिखाने को कि ऐसा हो सकता है, और शाम तक वह इतनी दूर जा चुकी होती है कि {name} न उसके पीछे जा {सकता|सकती} है, न उसे लौटा {सकता|सकती} है।","mirror":{"en":"The brothers only wanted to show they could raise a lion. It got up.","hi":"भाई बस यह दिखाना चाहते थे कि शेर को जिला सकते हैं। शेर उठ खड़ा हुआ।"}},
+        "seed": {"wrong":"harm","fuse":20,"weight":2,"holds":14,"debt":{"en":"the picture passed on, at {at}","hi":"{at} बरस की उम्र में आगे भेजी गई वह तस्वीर"},"reckoning":{"en":"Something of {name}'s own, never meant for anyone, is going round, and {name} learns it from the way people stop talking.","hi":"{name} की अपनी कोई बात, जो किसी के लिए नहीं थी, सबमें घूम रही है, और {name} को इसका पता लोगों के अचानक चुप हो जाने से चलता है।"}},
+        "dream": {"en":"passed on a picture that was not meant for {him|her|them}","hi":"जिसने वह तस्वीर आगे भेज दी थी जो उसके लिए थी ही नहीं"}
+      },
+      {
+        "id": "delete",
+        "label": {"en":"Get rid of it and say nothing","hi":"उसे हटा दो और चुप रहो"},
+        "move": "here",
+        "cost": 0,
+        "guna": "t",
+        "aims": {},
+        "outcome": {"en":"{name} is {age}, gets rid of the picture and says nothing, and it reaches everyone else anyway by Friday.","hi":"{name} {age} बरस {का|की} है। {name} तस्वीर हटा {देता|देती} है और कुछ नहीं {कहता|कहती}, और शुक्रवार तक वह बाक़ी सब तक फिर भी पहुँच जाती है।"},
+        "dream": {"en":"got rid of the picture and said nothing","hi":"जिसने तस्वीर हटा दी थी और कुछ नहीं कहा था"}
+      },
+      {
+        "id": "reply",
+        "label": {"en":"Tell the one who sent it to stop","hi":"भेजने वाले से कहो कि बस करे"},
+        "move": "here",
+        "cost": 1,
+        "guna": "s",
+        "aims": {"dharma":5},
+        "outcome": {"en":"{name} is {age} and tells the one who sent the picture that it stops here, and is called names for a week, and it stops there.","hi":"{name} {age} बरस {का|की} है। {name} भेजने वाले से कह {देता|देती} है कि बात यहीं रुकेगी, हफ़्ते भर ताने {सुनता|सुनती} है, और बात वहीं रुक जाती है।","mirror":{"en":"The fourth brother told them not to raise the lion, and was laughed at, and climbed a tree.","hi":"चौथे भाई ने कहा था कि शेर को मत जिलाओ, सबने उसकी हँसी उड़ाई, और वह पेड़ पर चढ़ गया।"}},
+        "dream": {"en":"told the one who sent the picture that it stopped there","hi":"जिसने भेजने वाले से कहा था कि बात यहीं रुकेगी"}
+      }
+    ],
+    "witness": {
+      "friend": {
+        "forward": {"en":"{who}, who had seen {name} pass the picture on, was waiting: ","hi":"{who}, जिसने {name} को वह तस्वीर आगे भेजते देखा था, {who:इंतज़ार कर रहा था|इंतज़ार कर रही थी}: "},
+        "delete": {"en":"{who}, who had seen {name} get rid of the picture and say nothing, was waiting: ","hi":"{who}, जिसने {name} को तस्वीर हटाकर चुप रहते देखा था, {who:इंतज़ार कर रहा था|इंतज़ार कर रही थी}: "},
+        "reply": {"en":"{who}, who had seen {name} tell the sender it stopped there, was waiting: ","hi":"{who}, जिसने {name} को भेजने वाले से यह कहते देखा था कि बात यहीं रुकेगी, {who:इंतज़ार कर रहा था|इंतज़ार कर रही थी}: "}
+      }
+    }
+  },
+  "23": {
+    "prompt": {
+      "en": "{name} is {age}. {teacher=The teacher} said to keep the rain off the books, and the rain will not stop.",
+      "hi": "{name} {age} बरस {का|की} है। {teacher=गुरुजी} ने कहा था कि किताबों को बारिश से बचाना, और बारिश है कि रुकती ही नहीं।",
+      "cast": "teacher"
+    },
+    "options": [
+      {
+        "id": "stay",
+        "label": {"en":"Stay until it stops","hi":"बारिश रुकने तक वहीं रहो"},
+        "move": "ladder",
+        "cost": 1,
+        "guna": "s",
+        "aims": {"dharma":5},
+        "dream": {"en":"kept the rain off the books for an hour, and was forgotten","hi":"जिसने घंटे भर किताबों को बारिश से बचाया था, और यह बात किसी को याद न रही"}
+      },
+      {
+        "id": "said",
+        "label": {"en":"Go in, and say you stayed","hi":"अंदर जाओ, और कह दो कि किताबें भीगने नहीं दीं"},
+        "move": "ladder",
+        "cost": 0,
+        "guna": "r",
+        "aims": {"dharma":-5},
+        "outcome": {"en":"{name} is {age} and goes in when the rain gets heavy, and later says {he|she|they} stayed till it stopped, and {teacher=the teacher} is pleased, and the books are wet.","hi":"{name} {age} बरस {का|की} है। बारिश तेज़ होते ही {name} अंदर {चला जाता|चली जाती} है, बाद में कह {देता|देती} है कि बारिश थमने तक वहीं {था|थी}, {teacher=गुरुजी} {teacher:ख़ुश हो जाते हैं|ख़ुश हो जाती हैं}, और किताबें भीगी हुई हैं।","mirror":{"en":"Āruṇi was found in the breach only because his teacher went out to the field calling for him.","hi":"आरुणि मेड़ की दरार में इसलिए मिले कि गुरु उन्हें पुकारते हुए ख़ुद खेत तक गए।"},"cast":"teacher","recall":{"en":"who once believed {name} about an hour in the rain","hi":"जिन्होंने कभी बारिश के एक घंटे के बारे में {name} की बात मान ली थी"}},
+        "seed": {"wrong":"lie","fuse":15,"weight":1,"holds":19,"debt":{"en":"the hour in the rain that never was, at {at}","hi":"{at} बरस की उम्र में बारिश का वह घंटा जो बिताया ही नहीं गया"},"reckoning":{"en":"{name} is told the work was watched over all night, and knows from the way it is said that it was not, because the way is {name}'s own.","hi":"{name} को बताया जाता है कि काम पर रात भर नज़र रखी गई थी, और कहने के ढंग से ही {name} को समझ आ जाता है कि ऐसा नहीं हुआ, क्योंकि यह ढंग {name} का अपना है।"}},
+        "dream": {"en":"said {he|she|they} had stayed out in the rain with the books","hi":"जिसने कहा था कि किताबें भीगने नहीं दीं"}
+      },
+      {
+        "id": "go",
+        "label": {"en":"Go in","hi":"अंदर चले जाओ"},
+        "move": "here",
+        "cost": 0,
+        "guna": "t",
+        "aims": {},
+        "outcome": {"en":"{name} is {age} and goes in out of the rain, and the books are wet, and {teacher=the teacher} has forgotten asking.","hi":"{name} {age} बरस {का|की} है। {name} बारिश से बचकर अंदर {चला जाता|चली जाती} है, किताबें भीग जाती हैं, और {teacher=गुरुजी} कहकर {teacher:भूल चुके हैं|भूल चुकी हैं}।","cast":"teacher","recall":{"en":"who once found the books {name} was minding wet with rain","hi":"जिन्हें कभी {name} की देखरेख वाली किताबें बारिश में भीगी मिली थीं"}},
+        "dream": {"en":"went in out of the rain and left the books to it","hi":"जिसने किताबें बारिश में छोड़ दी थीं"}
+      }
+    ],
+    "witness": {
+      "teacher": {
+        "stay": {"en":"{who}, who had found out years later how long {name} kept the rain off the books, was waiting: ","hi":"{who}, जिन्हें बरसों बाद पता चला था कि {name} ने कितनी देर किताबों को बारिश से बचाया था, {who:इंतज़ार कर रहे थे|इंतज़ार कर रही थीं}: "},
+        "said": {"en":"{who}, who had believed {name} about the hour in the rain, was waiting: ","hi":"{who}, जिन्होंने बारिश वाले घंटे के बारे में {name} की बात मान ली थी, {who:इंतज़ार कर रहे थे|इंतज़ार कर रही थीं}: "},
+        "go": {"en":"{who}, who had found the books {name} left out in the rain wet, was waiting: ","hi":"{who}, जिन्हें {name} की छोड़ी हुई किताबें बारिश में भीगी मिली थीं, {who:इंतज़ार कर रहे थे|इंतज़ार कर रही थीं}: "}
+      }
+    }
+  },
+  "24": {
+    "prompt": {
+      "en": "{name} is {age} and in an argument in front of everyone, and the other side is getting it wrong.",
+      "hi": "{name} {age} बरस {का|की} है। सबके सामने बहस चल रही है, और सामने वाला ग़लती पर ग़लती कर रहा है।"
+    },
+    "options": [
+      {
+        "id": "talk",
+        "label": {"en":"Let them talk","hi":"उन्हें बोलने दो"},
+        "move": "here",
+        "cost": 1,
+        "guna": "s",
+        "aims": {"dharma":5},
+        "mirror": {"chose":{"en":"to let them talk","hi":"उन्हें बोलने देना"}},
+        "dream": {"en":"won an argument by letting the other side talk","hi":"जिसने सामने वाले को बोलने देकर बहस जीती थी"}
+      },
+      {
+        "id": "score",
+        "label": {"en":"Cut in and score the point","hi":"बीच में टोककर बात जीत लो"},
+        "move": "here",
+        "cost": 0,
+        "guna": "r",
+        "aims": {"dharma":-5},
+        "outcome": {"en":"{name} is {age}, cuts in, scores the point neatly, and enjoys it a little longer than the point deserves.","hi":"{name} {age} बरस {का|की} है। {name} बीच में टोककर बात जीत {लेता|लेती} है, और उस जीत का मज़ा बात से कुछ ज़्यादा देर तक {लेता रहता|लेती रहती} है।","mirror":{"en":"The lion, too, could not leave the last word to the lion in the well.","hi":"कुएँ वाले शेर को आख़िरी बात कहने देना शेर से भी नहीं हुआ था।"}},
+        "mirror": {"took":{"en":"cut in and scored the point","hi":"बीच में टोककर बात जीत ली"}},
+        "dream": {"en":"scored a point and enjoyed it too long","hi":"जिसने बात जीतकर उसका मज़ा देर तक लिया था"}
+      },
+      {
+        "id": "drop",
+        "label": {"en":"Let it drop","hi":"बात छोड़ दो"},
+        "move": "here",
+        "cost": 0,
+        "guna": "t",
+        "aims": {},
+        "outcome": {"en":"{name} is {age} and lets the argument drop, and goes home sure of being right, and goes over it in bed until late.","hi":"{name} {age} बरस {का|की} है। {name} बहस वहीं छोड़ {देता|देती} है, इस यक़ीन के साथ घर {जाता|जाती} है कि सही {name} ही {था|थी}, और देर रात तक बिस्तर में उसे मन ही मन {दोहराता रहता|दोहराती रहती} है।"},
+        "dream": {"en":"let an argument drop and went over it all night","hi":"जिसने बहस छोड़ दी थी और रात भर उसे मन में दोहराया था"},
+        "mirror": {"chose":{"en":"to let it drop","hi":"बात छोड़ देना"}}
+      }
+    ],
+    "ego": {
+      "lower": "score",
+      "card": {
+        "en": "{name} is {age} and means to let them talk, and hears {name}'s own voice cutting in.",
+        "hi": "{name} {age} बरस {का|की} है और उन्हें बोलने देना {चाहता|चाहती} है, और अपनी ही आवाज़ को बीच में टोकते {सुनता|सुनती} है।"
+      },
+      "account": {
+        "en": "{name} meant to let them talk, and heard {name}'s own voice cut in.",
+        "hi": "{name} उन्हें बोलने देना {चाहता था|चाहती थी}, और {name} ने अपनी ही आवाज़ को बीच में टोकते सुना।"
+      }
+    }
   },
   "28": {
     "prompt": {
@@ -87,8 +342,8 @@
         "cost": 0,
         "guna": "r",
         "aims": {"dharma":-5},
-        "outcome": {"en":"{name} is {age} and says the homework was done and left at home, and is believed, and does it that night in a hurry, badly.","hi":"{name} {age} बरस {का|की} है। {name} ने कह दिया कि गृहकार्य हो गया था, घर पर छूट गया, और बात मान ली गई। उसी रात {name} ने जल्दी-जल्दी, आधा-अधूरा, उसे पूरा किया।","mirror":{"en":"Satyakama could have named any father he liked. The teacher would have had no way to check.","hi":"सत्यकाम चाहते तो कोई भी पिता का नाम ले सकते थे। गुरु के पास जाँचने का कोई रास्ता नहीं था।"}},
-        "seed": {"fuse":15,"weight":1,"holds":29,"debt":{"en":"the homework left at home, at {at}","hi":"{at} बरस की उम्र में घर पर छूटा होमवर्क"},"reckoning":{"en":"The thing {name} never learned properly, because it was done that night in a hurry, is the thing the work turns on now, in front of everyone.","hi":"जो बात {name} ने कभी ठीक से नहीं सीखी, क्योंकि वह उस रात जल्दी में निपटा दी गई थी, आज सबके सामने काम उसी पर टिका है।"}},
+        "outcome": {"en":"{name} is {age} and says the homework was done and left at home, and is believed, and does it that night in a hurry, badly.","hi":"{name} {age} बरस {का|की} है। {name} कह {देता|देती} है कि गृहकार्य हो गया था और घर पर छूट गया, और बात मान ली जाती है। उसी रात {name} जल्दी-जल्दी, आधा-अधूरा, उसे पूरा {करता|करती} है।","mirror":{"en":"Satyakama could have named any father he liked. The teacher would have had no way to check.","hi":"सत्यकाम चाहते तो कोई भी पिता का नाम ले सकते थे। गुरु के पास जाँचने का कोई रास्ता नहीं था।"}},
+        "seed": {"wrong":"lie","fuse":15,"weight":1,"holds":29,"debt":{"en":"the homework left at home, at {at}","hi":"{at} बरस की उम्र में घर पर छूटा होमवर्क"},"reckoning":{"en":"The thing {name} never learned properly, because it was done that night in a hurry, is the thing the work turns on now, in front of everyone.","hi":"जो बात {name} ने कभी ठीक से नहीं सीखी, क्योंकि वह उस रात जल्दी में निपटा दी गई थी, आज सबके सामने काम उसी पर टिका है।"}},
         "dream": {"en":"said the homework had been left at home","hi":"जिसने कहा था कि गृहकार्य घर पर छूट गया"}
       }
     ],
@@ -98,6 +353,158 @@
         "lie": {"en":"{who}, who had believed {name} about the homework left at home, was waiting: ","hi":"{who}, जिन्होंने {name} की यह बात मान ली थी कि होमवर्क घर पर छूट गया था, {who:इंतज़ार कर रहे थे|इंतज़ार कर रही थीं}: "}
       }
     }
+  },
+  "29": {
+    "prompt": {
+      "en": "{name} is {age}, the exam is in a week, and the books are on the table.",
+      "hi": "{name} {age} बरस {का|की} है। परीक्षा में एक हफ़्ता बचा है, और किताबें मेज़ पर रखी हैं।"
+    },
+    "options": [
+      {
+        "id": "start",
+        "label": {"en":"Start tonight","hi":"आज रात से शुरू करो"},
+        "move": "here",
+        "cost": 2,
+        "guna": "s",
+        "aims": {"dharma":5},
+        "outcome": {"en":"{name} is {age} and starts that night, at the beginning, and by the end of the week has been through all of it once, slowly.","hi":"{name} {age} बरस {का|की} है। {name} उसी रात पहले पन्ने से {बैठ जाता|बैठ जाती} है, और हफ़्ता ख़त्म होते-होते सब कुछ एक बार, धीरे-धीरे, {पढ़ चुका होता|पढ़ चुकी होती} है।","mirror":{"en":"The man in the Pañcatantra never got up from under his pot to sell the barley meal. Getting up was the whole of it.","hi":"पंचतंत्र का वह आदमी सत्तू बेचने के लिए घड़े के नीचे से कभी उठा ही नहीं। सारी बात उठने की ही थी।","who":"panchatantra"}},
+        "dream": {"en":"started that night, at the beginning","hi":"जिसने उसी रात शुरू से पढ़ना शुरू किया था"}
+      },
+      {
+        "id": "small",
+        "label": {"en":"One small thing first","hi":"पहले कोई छोटा-सा काम"},
+        "move": "snake",
+        "cost": 0,
+        "guna": "t",
+        "aims": {"dharma":-5},
+        "dream": {"en":"looked at one small thing first, then the next","hi":"जिसने पहले एक छोटी चीज़ देखी थी, फिर अगली"}
+      },
+      {
+        "id": "copy",
+        "label": {"en":"Copy a friend's notes the night before","hi":"आख़िरी रात दोस्त के नोट्स उतार लो"},
+        "move": "here",
+        "cost": 0,
+        "guna": "r",
+        "aims": {"dharma":-5},
+        "outcome": {"en":"{name} is {age}, does nothing all week, copies a friend's notes the night before, and passes, and could not now say what any of it was about.","hi":"{name} {age} बरस {का|की} है। हफ़्ते भर {name} कुछ नहीं {करता|करती}, आख़िरी रात दोस्त के नोट्स {उतारता|उतारती} है, पास हो {जाता|जाती} है, और अब बता नहीं {सकता|सकती} कि वह सब किस बारे में था।"},
+        "dream": {"en":"copied a friend's notes the night before","hi":"जिसने आख़िरी रात दोस्त के नोट्स उतारे थे"}
+      }
+    ]
+  },
+  "34": {
+    "prompt": {
+      "en": "{name} is {age} and has waited two days outside an office for an answer.",
+      "hi": "{name} {age} बरस {का|की} है। एक जवाब के लिए {name} को दो दिन से एक दफ़्तर के बाहर बैठना पड़ रहा है।"
+    },
+    "options": [
+      {
+        "id": "wait",
+        "label": {"en":"Wait the third day","hi":"तीसरा दिन भी रुको"},
+        "move": "ladder",
+        "cost": 3,
+        "guna": "s",
+        "aims": {"dharma":5,"artha":5},
+        "dream": {"en":"waited three days outside an office for an answer","hi":"जो एक जवाब के लिए तीन दिन एक दफ़्तर के बाहर {बैठा रहा था|बैठी रही थी}"}
+      },
+      {
+        "id": "someone",
+        "label": {"en":"Get in through someone who knows someone","hi":"किसी जान-पहचान वाले के ज़रिये अंदर पहुँचो"},
+        "move": "ladder",
+        "cost": 0,
+        "guna": "r",
+        "aims": {"dharma":-5,"artha":5},
+        "outcome": {"en":"{name} is {age}, has a word put in by a cousin who knows a clerk, is inside within the hour, gets the answer, and has forgotten it within the week.","hi":"{name} {age} बरस {का|की} है। {name} एक रिश्तेदार से, जो एक बाबू को जानता है, कहलवा {देता|देती} है, घंटे भर में भीतर पहुँच {जाता|जाती} है, जवाब भी मिल जाता है, और हफ़्ते भर में वह जवाब भूल भी जाता है।","mirror":{"en":"Death offered Nachiketa horses, gold and a long life instead of the answer. He wanted the answer.","hi":"यमराज ने नचिकेता को उत्तर के बदले घोड़े, सोना और लंबी आयु देनी चाही। नचिकेता को उत्तर ही चाहिए था।"}},
+        "dream": {"en":"got in through someone who knew someone","hi":"जिसने जान-पहचान के ज़रिये भीतर जाने का रास्ता निकाला था"}
+      },
+      {
+        "id": "home",
+        "label": {"en":"Go home","hi":"घर लौट जाओ"},
+        "move": "here",
+        "cost": 0,
+        "guna": "t",
+        "aims": {},
+        "outcome": {"en":"{name} is {age}, goes home on the second evening, and never finds out what the answer would have been.","hi":"{name} {age} बरस {का|की} है। दूसरी शाम {name} घर लौट {जाता|जाती} है, और कभी पता नहीं चलता कि जवाब क्या होता।"},
+        "dream": {"en":"went home on the second evening without the answer","hi":"जिसने दूसरी शाम जवाब का इंतज़ार छोड़ दिया था"}
+      }
+    ]
+  },
+  "39": {
+    "prompt": {
+      "en": "{name} is {age}, has read more than anyone at the table, and is halfway through explaining the bridge when it turns out the person across the table built it.",
+      "hi": "{name} {age} बरस {का|की} है। मेज़ पर सबसे ज़्यादा {name} ने ही पढ़ा है, और पुल समझाते-समझाते पता चलता है कि सामने बैठे व्यक्ति ने ही वह पुल बनाया था।"
+    },
+    "options": [
+      {
+        "id": "ask",
+        "label": {"en":"Stop, and ask how it was built","hi":"रुककर पूछो कि पुल बना कैसे"},
+        "move": "here",
+        "cost": 2,
+        "guna": "s",
+        "aims": {"dharma":5},
+        "outcome": {"en":"{name} is {age}, stops halfway, asks how it was built, and listens until the tea is cold.","hi":"{name} {age} बरस {का|की} है। {name} बीच में रुककर {पूछता|पूछती} है कि पुल बना कैसे, और चाय ठंडी होने तक {सुनता रहता|सुनती रहती} है।","mirror":{"en":"Śvetaketu came home proud of his learning, and his father asked him one question he could not answer, and he asked to be taught.","hi":"श्वेतकेतु अपनी विद्या पर इतराते घर लौटे। पिता ने एक ऐसा प्रश्न पूछा जिसका उत्तर श्वेतकेतु के पास नहीं था, और श्वेतकेतु ने सिखाने की विनती की।"}},
+        "mirror": {"chose":{"en":"to stop and ask how it was built","hi":"रुककर पूछना कि पुल बना कैसे"}},
+        "dream": {"en":"stopped explaining the bridge and asked how it was built","hi":"जिसने पुल समझाना छोड़कर पूछा था कि वह बना कैसे"}
+      },
+      {
+        "id": "keep",
+        "label": {"en":"Keep explaining","hi":"समझाते रहो"},
+        "move": "snake",
+        "cost": 0,
+        "guna": "r",
+        "aims": {"dharma":-5},
+        "mirror": {"took":{"en":"kept explaining the bridge","hi":"पुल समझाना जारी रखा"}},
+        "dream": {"en":"explained the bridge to the one who built it","hi":"जिसने पुल बनाने वाले को ही पुल समझाया था"}
+      }
+    ],
+    "ego": {
+      "lower": "keep",
+      "card": {
+        "en": "{name} is {age} and means to stop and ask, and hears {name}'s own voice going on about the bridge.",
+        "hi": "{name} {age} बरस {का|की} है और रुककर पूछना {चाहता|चाहती} है, और अपनी ही आवाज़ को पुल के बारे में बोलते जाते {सुनता|सुनती} है।"
+      },
+      "account": {
+        "en": "{name} meant to stop and ask, and heard {name}'s own voice go on about the bridge.",
+        "hi": "{name} रुककर पूछना {चाहता था|चाहती थी}, और {name} ने अपनी ही आवाज़ को पुल के बारे में बोलते जाते सुना।"
+      }
+    }
+  },
+  "44": {
+    "prompt": {
+      "en": "{name} is {age}, has two blankets for the winter, and the person at the door has none.",
+      "hi": "{name} {age} बरस {का|की} है। सर्दियों के लिए दो कंबल हैं, और दरवाज़े पर खड़े व्यक्ति के पास एक भी नहीं।"
+    },
+    "options": [
+      {
+        "id": "quiet",
+        "label": {"en":"Give the better one, quietly","hi":"अच्छा वाला दे दो, चुपचाप"},
+        "move": "ladder",
+        "cost": 2,
+        "guna": "s",
+        "aims": {"dharma":10,"artha":-10},
+        "outcome": {"en":"{name} is {age}, gives the better blanket at the door without a word, sleeps under the thin one all winter, and does not think about it much.","hi":"{name} {age} बरस {का|की} है। {name} दरवाज़े पर बिना कुछ कहे अच्छा कंबल दे {देता|देती} है, सारी सर्दी पतले वाले में {सोता|सोती} है, और इस बारे में ज़्यादा {सोचता|सोचती} भी नहीं।"},
+        "dream": {"en":"gave the better blanket away without a word","hi":"जिसने बिना कुछ कहे अच्छा कंबल दे दिया था"}
+      },
+      {
+        "id": "front",
+        "label": {"en":"Give it where everyone can see","hi":"सबके सामने दो"},
+        "move": "ladder",
+        "cost": 0,
+        "guna": "r",
+        "aims": {"dharma":-5,"artha":-10},
+        "outcome": {"en":"{name} is {age}, gives the better blanket on the front step at the hour the street is busiest, and is told for weeks how good that was.","hi":"{name} {age} बरस {का|की} है। {name} अच्छा कंबल ठीक उस वक़्त दरवाज़े की सीढ़ी पर {देता|देती} है जब गली में सबसे ज़्यादा लोग होते हैं, और हफ़्तों तक {सुनता|सुनती} है कि कितना अच्छा किया।","mirror":{"en":"The mongoose rolled in the dust of Yudhiṣṭhira's great sacrifice and stayed half grey. It had turned gold in the flour a poor family gave away.","hi":"युधिष्ठिर के महायज्ञ की धूल में लोटकर भी नेवला आधा भूरा ही रहा। सुनहरा वह उस सत्तू में हुआ था जो एक ग़रीब परिवार ने दान कर दिया था।"}},
+        "dream": {"en":"gave the better blanket where everyone could see","hi":"जिसने सबके सामने अच्छा कंबल दिया था"}
+      },
+      {
+        "id": "resent",
+        "label": {"en":"Give it, and resent it all winter","hi":"दे दो, और सारी सर्दी कुढ़ते रहो"},
+        "move": "ladder",
+        "cost": 1,
+        "guna": "t",
+        "aims": {"artha":-10},
+        "outcome": {"en":"{name} is {age}, gives the better blanket, and lies awake under the thin one all winter, cold, and counting.","hi":"{name} {age} बरस {का|की} है। {name} अच्छा कंबल दे तो {देता|देती} है, पर सारी सर्दी पतले कंबल में ठिठुरते हुए, हिसाब लगाते हुए, {जागता|जागती} है।"},
+        "dream": {"en":"gave the better blanket and minded it all winter","hi":"जिसने अच्छा कंबल देकर सारी सर्दी उसका हिसाब रखा था"}
+      }
+    ]
   },
   "47": {
     "prompt": {
@@ -112,7 +519,6 @@
         "cost": 0,
         "guna": "r",
         "aims": {"kama":10,"artha":-5},
-        "seed": {"fuse":15,"weight":1,"holds":47,"debt":{"en":"the thing bought at {at}","hi":"{at} बरस की उम्र में ख़रीदी गई वह चीज़"},"reckoning":{"en":"The thing {name} bought is in a cupboard somewhere, and the money it took is the money that is short now.","hi":"{name} की ख़रीदी वह चीज़ कहीं किसी अलमारी में पड़ी है, और उस पर लगा पैसा वही पैसा है जो आज कम पड़ रहा है।"}},
         "dream": {"en":"bought the thing wanted for a year","hi":"जिसने साल भर से चाही हुई चीज़ ख़रीद ली थी"}
       },
       {
@@ -124,7 +530,7 @@
         "aims": {},
         "require": {"guna":{"r":{"max":0.6}}},
         "why": {"en":"Too restless to wait for anything.","hi":"किसी चीज़ का इंतज़ार करने लायक़ धीरज नहीं बचा।"},
-        "outcome": {"en":"{name} is {age} and decides to wait a month, and then another, and another, and somewhere in those years stops wanting it, and cannot say when.","hi":"{name} {age} बरस {का|की} है। {name} ने एक महीना रुकने का फ़ैसला किया, फिर एक और, फिर एक और, और उन्हीं बरसों में कहीं वह चाह छूट गई। कब, यह {name} {बता नहीं सकता|बता नहीं सकती}।","mirror":{"en":"Yayati never once tried waiting.","hi":"ययाति ने एक बार भी रुककर नहीं देखा।"}},
+        "outcome": {"en":"{name} is {age} and decides to wait a month, and then another, and another, and somewhere in those years stops wanting it, and cannot say when.","hi":"{name} {age} बरस {का|की} है। {name} एक महीना रुकने का फ़ैसला {करता|करती} है, फिर एक और, फिर एक और, और उन्हीं बरसों में कहीं वह चाह छूट जाती है। कब, यह {name} {बता नहीं सकता|बता नहीं सकती}।","mirror":{"en":"Yayati never once tried waiting.","hi":"ययाति ने एक बार भी रुककर नहीं देखा।"}},
         "dream": {"en":"waited a month, and then another, until the wanting stopped","hi":"जिसने एक महीना इंतज़ार किया, फिर एक और, जब तक चाह ख़त्म नहीं हो गई"}
       }
     ]
@@ -154,8 +560,8 @@
         "cost": 0,
         "guna": "r",
         "aims": {"kama":5},
-        "outcome": {"en":"{name} is {age} and eats first tonight, standing up in the kitchen, and the others eat after, and nobody says anything.","hi":"{name} {age} बरस {का|की} है। आज रात {name} ने रसोई में खड़े-खड़े पहले ख़ुद खा लिया, बाक़ी सबने बाद में खाया, और किसी ने कुछ नहीं कहा।"},
-        "seed": {"fuse":20,"weight":2,"holds":47,"debt":{"en":"the night of eating first, at {at}","hi":"{at} बरस की उम्र में सबसे पहले खा लेने वाली वह रात"},"reckoning":{"en":"There is just enough in the house again, and this time someone else eats first, standing up in the kitchen, and {name} recognises it.","hi":"घर में फिर बस उतना ही है, और इस बार कोई और रसोई में खड़े-खड़े सबसे पहले खा लेता है, और {name} उसे {पहचान लेता|पहचान लेती} है।"}},
+        "outcome": {"en":"{name} is {age} and eats first tonight, standing up in the kitchen, and the others eat after, and nobody says anything.","hi":"{name} {age} बरस {का|की} है। आज रात {name} रसोई में खड़े-खड़े पहले ख़ुद खा {लेता|लेती} है, बाक़ी सब बाद में खाते हैं, और कोई कुछ नहीं कहता।"},
+        "seed": {"wrong":"harm","fuse":20,"weight":2,"holds":47,"debt":{"en":"the night of eating first, at {at}","hi":"{at} बरस की उम्र में सबसे पहले खा लेने वाली वह रात"},"reckoning":{"en":"There is just enough in the house again, and this time someone else eats first, standing up in the kitchen, and {name} recognises it.","hi":"घर में फिर बस उतना ही है, और इस बार कोई और रसोई में खड़े-खड़े सबसे पहले खा लेता है, और {name} उसे {पहचान लेता|पहचान लेती} है।"}},
         "mirror": {"took":{"en":"ate first","hi":"पहले ख़ुद खा लिया"}},
         "dream": {"en":"ate first one night, standing up in the kitchen","hi":"जिसने एक रात रसोई में खड़े-खड़े पहले ख़ुद खा लिया था"}
       }
@@ -192,19 +598,91 @@
         "cost": 1,
         "guna": "s",
         "aims": {"dharma":10},
-        "dream": {"en":"sat up all night with a neighbour's sick child","hi":"जो पड़ोसी के बीमार बच्चे के पास रात भर {जागता रहा था|जागती रही थी}"}
+        "dream": {"en":"sat up all night with a neighbour's sick child","hi":"जो पड़ोसी के बीमार बच्चे के पास रात भर {जागता रहा था|जागती रही थी}"},
+        "outcome": {"en":"{name} is {age}, sits up all night with the neighbour's sick child so that the neighbour can sleep, and goes home at dawn before anyone is up.","hi":"{name} {age} बरस {का|की} है। पड़ोसी सो सके, इसलिए {name} रात भर उसके बीमार बच्चे के पास {जागता|जागती} है, और भोर में सबके उठने से पहले घर लौट {जाता|जाती} है।"}
       },
       {
-        "id": "send",
-        "label": {"en":"Send someone to help","hi":"मदद के लिए किसी को भेज दो"},
+        "id": "street",
+        "label": {"en":"Sit up, and make sure the street hears of it","hi":"रात भर जागो, और ध्यान रखो कि पूरी गली को पता चले"},
         "move": "ladder",
         "cost": 0,
         "guna": "r",
-        "aims": {"artha":-5},
-        "outcome": {"en":"{name} is {age} and pays the woman two streets over to sit up with the neighbour's sick child, and is thanked at the door for days.","hi":"{name} {age} बरस {का|की} है। {name} ने दो गली दूर वाली एक औरत को पैसे देकर पड़ोसी के बीमार बच्चे के पास बिठा दिया, और कई दिन तक दरवाज़े पर धन्यवाद मिलता रहा।"},
-        "dream": {"en":"paid someone to sit up with a neighbour's sick child","hi":"जिसने पड़ोसी के बीमार बच्चे के पास बैठने के लिए किसी को पैसे दिए थे"}
+        "aims": {"dharma":-5},
+        "outcome": {"en":"{name} is {age}, sits up all night with the neighbour's sick child, and by noon has told it at the shop, at the tap and at the bus stop.","hi":"{name} {age} बरस {का|की} है। {name} रात भर पड़ोसी के बीमार बच्चे के पास {जागता|जागती} है, और दोपहर तक यह बात दुकान पर, नल पर और बस-अड्डे पर {सुना चुका होता|सुना चुकी होती} है।","mirror":{"en":"The gods heard the same 'da' from Prajāpati as dāmyata: restrain yourselves.","hi":"देवताओं ने प्रजापति के उसी 'द' को दाम्यत सुना: संयम करो।"}},
+        "dream": {"en":"sat up with a sick child and made sure the street heard of it","hi":"जिसने बीमार बच्चे के पास रात जागकर यह बात पूरी गली को सुनाई थी"}
+      },
+      {
+        "id": "hours",
+        "label": {"en":"Sit up, counting the hours","hi":"रात भर जागो, घंटे गिनते हुए"},
+        "move": "ladder",
+        "cost": 1,
+        "guna": "t",
+        "aims": {},
+        "outcome": {"en":"{name} is {age}, sits up all night with the neighbour's sick child, and looks at the clock every few minutes until it is light.","hi":"{name} {age} बरस {का|की} है। {name} रात भर पड़ोसी के बीमार बच्चे के पास {जागता|जागती} है, और उजाला होने तक हर कुछ मिनट में घड़ी {देखता|देखती} है।"},
+        "dream": {"en":"sat up with a sick child, counting the hours","hi":"जिसने बीमार बच्चे के पास घंटे गिन-गिनकर रात काटी थी"}
       }
     ]
+  },
+  "52": {
+    "prompt": {
+      "en": "{name} is {age}, and {rival=the rival} offers a bet that cannot be won, in front of everyone.",
+      "hi": "{name} {age} बरस {का|की} है, और {rival=प्रतिद्वंद्वी} सबके सामने ऐसी शर्त {rival:रखता|रखती} है जो जीती ही नहीं जा सकती।",
+      "cast": "rival"
+    },
+    "options": [
+      {
+        "id": "take",
+        "label": {"en":"Take it, rather than look like losing","hi":"शर्त मान लो, हार जैसा न लगे"},
+        "move": "here",
+        "cost": 0,
+        "guna": "r",
+        "aims": {"dharma":-10},
+        "outcome": {"en":"{name} is {age} and takes the bet, because refusing would look like losing, and puts up what is not {name}'s alone to put up, and loses it.","hi":"{name} {age} बरस {का|की} है। मना करना हार जैसा लगता, इसलिए {name} शर्त मान {लेता|लेती} है, उसमें वह भी दाँव पर {लगाता|लगाती} है जो अकेले {name} का नहीं है, और हार {जाता|जाती} है।","mirror":{"en":"Yudhiṣṭhira staked his brothers, then himself, then Draupadī, because refusing would look like losing.","hi":"युधिष्ठिर ने भाइयों को, फिर ख़ुद को, फिर द्रौपदी को दाँव पर लगा दिया, क्योंकि मना करना हार जैसा लगता।"},"cast":"rival","recall":{"en":"with whom {name} once took a bet that could not be won","hi":"जिससे {name} ने कभी ऐसी शर्त लगाई थी जो जीती ही नहीं जा सकती थी"}},
+        "seed": {"wrong":"harm","fuse":15,"weight":2,"holds":69,"debt":{"en":"the bet that could not be won, at {at}","hi":"{at} बरस की उम्र में लगाई वह शर्त जो जीती ही नहीं जा सकती थी"},"reckoning":{"en":"The one in {name}'s house who paid for that bet does well at last, and is praised at dinner, and {name} finds no gladness anywhere in {him|her|them} for it.","hi":"{name} के घर का वह व्यक्ति, जिसने उस शर्त की क़ीमत चुकाई थी, आख़िरकार कामयाब होता है, खाने पर उसकी तारीफ़ होती है, और {name} को अपने भीतर इसकी ज़रा भी ख़ुशी नहीं मिलती।"}},
+        "mirror": {"took":{"en":"took the bet","hi":"शर्त मान ली"}},
+        "dream": {"en":"took a bet that could not be won, and staked what was not {his|her|their} alone","hi":"जिसने न जीती जा सकने वाली शर्त में वह भी दाँव पर लगा दिया था जो अकेले उसका नहीं था"}
+      },
+      {
+        "id": "refuse",
+        "label": {"en":"Say no, and look like losing","hi":"मना कर दो, चाहे हार जैसा लगे"},
+        "move": "here",
+        "cost": 1,
+        "guna": "s",
+        "aims": {"dharma":5},
+        "outcome": {"en":"{name} is {age}. {rival=The rival} offers a bet that cannot be won. {name} takes long enough answering to see that, and says no, and it looks exactly like losing.","hi":"{name} {age} बरस {का|की} है। {rival=प्रतिद्वंद्वी} ऐसी शर्त सामने {rival:रखता|रखती} है जो जीती ही नहीं जा सकती। {name} जवाब देने में इतनी देर {लगाता|लगाती} है कि यह दिख जाता है, और मना कर {देता|देती} है। यह ठीक हार जैसा ही लगता है।","mirror":{"en":"Duryodhana asked Yudhishthira the same way, and Yudhishthira could not say no.","hi":"दुर्योधन ने युधिष्ठिर से भी ऐसे ही पूछा था, और युधिष्ठिर मना नहीं कर पाए।"},"cast":"rival","recall":{"en":"who once offered {name} a bet that could not be won","hi":"जिसने कभी {name} के सामने ऐसी शर्त रखी थी जो जीती ही नहीं जा सकती थी"}},
+        "mirror": {"chose":{"en":"to say no","hi":"मना करना"}},
+        "dream": {"en":"said no to a bet that could not be won, and looked like losing","hi":"जिसने न जीती जा सकने वाली शर्त को मना किया था, चाहे वह हार जैसा लगा"}
+      },
+      {
+        "id": "joke",
+        "label": {"en":"Make a joke of it and leave","hi":"मज़ाक़ में टाल दो और चल दो"},
+        "move": "here",
+        "cost": 0,
+        "guna": "t",
+        "aims": {},
+        "outcome": {"en":"{name} is {age}, makes a joke of the bet, and leaves before anyone can answer, and the joke is told back for a month, a little differently each time.","hi":"{name} {age} बरस {का|की} है। {name} शर्त को मज़ाक़ में टाल {देता|देती} है और किसी के जवाब देने से पहले चल {देता|देती} है, और महीने भर वह मज़ाक़ हर बार थोड़ा बदलकर लौटकर सुनाया जाता है।"},
+        "mirror": {"chose":{"en":"to make a joke of it","hi":"मज़ाक़ में टाल देना"}},
+        "dream": {"en":"made a joke of a bet and left","hi":"जिसने एक शर्त को मज़ाक़ में टालकर बात ख़त्म की थी"}
+      }
+    ],
+    "ego": {
+      "lower": "take",
+      "card": {
+        "en": "{name} is {age} and means to say no, and hears {name}'s own voice saying, “Done.”",
+        "hi": "{name} {age} बरस {का|की} है और मना करना {चाहता|चाहती} है, और अपनी ही आवाज़ को कहते {सुनता|सुनती} है, “मंज़ूर।”"
+      },
+      "account": {
+        "en": "{name} meant to say no, and heard {name}'s own voice say, “Done.”",
+        "hi": "{name} मना करना {चाहता था|चाहती थी}, और {name} ने अपनी ही आवाज़ को कहते सुना, “मंज़ूर।”"
+      }
+    },
+    "witness": {
+      "rival": {
+        "take": {"en":"{who}, who had won from {name} a bet that could not be won, was waiting: ","hi":"{who}, जिसने {name} से वह शर्त जीती थी जो जीती ही नहीं जा सकती थी, {who:इंतज़ार कर रहा था|इंतज़ार कर रही थी}: "},
+        "refuse": {"en":"{who}, who had watched {name} say no to the bet, and look like losing, was waiting: ","hi":"{who}, जिसने {name} को वह शर्त मना करते देखा था, चाहे वह हार जैसा लगा, {who:इंतज़ार कर रहा था|इंतज़ार कर रही थी}: "},
+        "joke": {"en":"{who}, who had heard {name} make a joke of the bet and leave, was waiting: ","hi":"{who}, जिसने {name} को वह शर्त मज़ाक़ में टालकर जाते देखा था, {who:इंतज़ार कर रहा था|इंतज़ार कर रही थी}: "}
+      }
+    }
   },
   "54": {
     "prompt": {
@@ -219,7 +697,7 @@
         "cost": 1,
         "guna": "s",
         "aims": {"dharma":5},
-        "outcome": {"en":"{name} is {age} and tells everyone the answer came from the man who mends bicycles, and has to explain it twice, and is believed the second time.","hi":"{name} {age} बरस {का|की} है। {name} ने सबको बताया कि हल साइकिल ठीक करने वाले से मिला, दो बार समझाना पड़ा, और दूसरी बार में बात मानी गई।","mirror":{"en":"King Janashruti went looking for Raikva under his cart, and asked.","hi":"राजा जानश्रुति रैक्व को उनकी गाड़ी के नीचे ढूँढते हुए पहुँचे, और पूछा।"}},
+        "outcome": {"en":"{name} is {age} and tells everyone the answer came from the man who mends bicycles, and has to explain it twice, and is believed the second time.","hi":"{name} {age} बरस {का|की} है। {name} सबको {बताता|बताती} है कि हल साइकिल ठीक करने वाले से मिला, दो बार समझाना पड़ता है, और दूसरी बार में बात मानी जाती है।","mirror":{"en":"King Janashruti went looking for Raikva under his cart, and asked.","hi":"राजा जानश्रुति रैक्व को उनकी गाड़ी के नीचे ढूँढते हुए पहुँचे, और पूछा।"}},
         "mirror": {"chose":{"en":"to say where the answer came from","hi":"यह बताना कि हल कहाँ से आया"}},
         "dream": {"en":"said the answer came from the man who mends bicycles","hi":"जिसने कहा था कि हल साइकिल ठीक करने वाले से आया था"}
       },
@@ -230,8 +708,8 @@
         "cost": 0,
         "guna": "r",
         "aims": {"artha":5,"dharma":-5},
-        "outcome": {"en":"{name} is {age} and brings the answer in as {name}'s own, and is praised for it, and walks the long way round the bicycle stall for weeks.","hi":"{name} {age} बरस {का|की} है। {name} ने वह हल अपना बताकर पेश किया, तारीफ़ भी मिली, और कई हफ़्ते साइकिल वाले की दुकान से कतराकर, घूमकर निकलना पड़ा।"},
-        "seed": {"fuse":15,"weight":2,"holds":77,"debt":{"en":"the answer from the bicycle stall, at {at}","hi":"{at} बरस की उम्र में साइकिल वाले से मिला वह हल"},"reckoning":{"en":"Someone asks {name} to solve it again, the way {name} did at {at}, in front of the people who praised it, and {name} cannot, and the man who mends bicycles has gone.","hi":"कोई {name} से कहता है कि वह हल फिर निकालो, जैसे {at} बरस की उम्र में निकाला था, उन्हीं लोगों के सामने जिन्होंने तारीफ़ की थी, और {name} से नहीं होता, और साइकिल ठीक करने वाला जा चुका है।"}},
+        "outcome": {"en":"{name} is {age} and brings the answer in as {name}'s own, and is praised for it, and walks the long way round the bicycle stall for weeks.","hi":"{name} {age} बरस {का|की} है। {name} वह हल अपना बताकर पेश {करता|करती} है, तारीफ़ भी मिलती है, और कई हफ़्ते साइकिल वाले की दुकान से कतराकर, घूमकर निकलना पड़ता है।"},
+        "seed": {"wrong":"lie","fuse":15,"weight":2,"holds":77,"debt":{"en":"the answer from the bicycle stall, at {at}","hi":"{at} बरस की उम्र में साइकिल वाले से मिला वह हल"},"reckoning":{"en":"Someone asks {name} to solve it again, the way {name} did at {at}, in front of the people who praised it, and {name} cannot, and the man who mends bicycles has gone.","hi":"कोई {name} से कहता है कि वह हल फिर निकालो, जैसे {at} बरस की उम्र में निकाला था, उन्हीं लोगों के सामने जिन्होंने तारीफ़ की थी, और {name} से नहीं होता, और साइकिल ठीक करने वाला जा चुका है।"}},
         "mirror": {"took":{"en":"presented it as its own","hi":"उसे अपना बताकर पेश कर दिया"}},
         "dream": {"en":"passed off the bicycle man's answer as {his|her|their} own","hi":"जिसने साइकिल वाले का हल अपना बता दिया था"}
       }
@@ -261,7 +739,7 @@
         "cost": 0,
         "guna": "r",
         "aims": {"artha":10,"dharma":-10},
-        "seed": {"fuse":15,"weight":2,"holds":55,"debt":{"en":"the extra change pocketed at {at}","hi":"{at} बरस की उम्र में जेब में रखा फ़ालतू छुट्टा"},"reckoning":{"en":"A shopkeeper gives {name} too little change and has already turned to the next customer, and {name} knows exactly how it was done.","hi":"एक दुकानदार {name} को कम छुट्टा लौटाता है और अगले ग्राहक की ओर मुड़ चुका है, और {name} ठीक-ठीक {जानता|जानती} है कि यह कैसे हुआ।"}},
+        "seed": {"wrong":"harm","fuse":15,"weight":2,"holds":55,"debt":{"en":"the extra change pocketed at {at}","hi":"{at} बरस की उम्र में जेब में रखा फ़ालतू छुट्टा"},"reckoning":{"en":"A shopkeeper gives {name} too little change and has already turned to the next customer, and {name} knows exactly how it was done.","hi":"एक दुकानदार {name} को कम छुट्टा लौटाता है और अगले ग्राहक की ओर मुड़ चुका है, और {name} ठीक-ठीक {जानता|जानती} है कि यह कैसे हुआ।"}},
         "mirror": {"took":{"en":"kept it","hi":"उसे रख लिया"}},
         "dream": {"en":"pocketed the extra change","hi":"जिसने ज़्यादा लौटाया गया छुट्टा जेब में रख लिया था"}
       },
@@ -272,7 +750,7 @@
         "cost": 7,
         "guna": "s",
         "aims": {"dharma":5},
-        "outcome": {"en":"{name} is {age} and goes back to the counter with the extra change, and waits while the shopkeeper counts it twice. For years after, {name} counts the change again at every counter, and is the slowest in every queue.","hi":"{name} {age} बरस {का|की} है। {name} ज़्यादा पैसे लेकर काउंटर पर {लौट आया|लौट आई}, और दुकानदार के दो बार गिनने तक {खड़ा रहा|खड़ी रही}। उसके बाद बरसों तक {name} हर काउंटर पर पैसे दोबारा {गिनता रहा|गिनती रही}, और हर क़तार में {सबसे धीमा रहा|सबसे धीमी रही}।","mirror":{"en":"The jackal could have eaten the boar and left the bowstring alone.","hi":"सियार चाहता तो सूअर खाकर धनुष की डोरी को छोड़ सकता था।"}},
+        "outcome": {"en":"{name} is {age} and goes back to the counter with the extra change, and waits while the shopkeeper counts it twice. For years after, {name} counts the change again at every counter, and is the slowest in every queue.","hi":"{name} {age} बरस {का|की} है। {name} ज़्यादा पैसे लेकर काउंटर पर {लौट आता|लौट आती} है, और दुकानदार के दो बार गिनने तक {खड़ा रहता|खड़ी रहती} है। उसके बाद बरसों तक {name} हर काउंटर पर पैसे दोबारा {गिनता|गिनती} है, और हर क़तार में {सबसे धीमा होता|सबसे धीमी होती} है।","mirror":{"en":"The jackal could have eaten the boar and left the bowstring alone.","hi":"सियार चाहता तो सूअर खाकर धनुष की डोरी को छोड़ सकता था।"}},
         "mirror": {"chose":{"en":"to give the change back","hi":"छुट्टा लौटाना"}},
         "dream": {"en":"went back to the counter with the extra change","hi":"जो ज़्यादा छुट्टा लेकर काउंटर पर {लौटा था|लौटी थी}"}
       }
@@ -314,8 +792,8 @@
         "cost": 0,
         "guna": "r",
         "aims": {"dharma":-5},
-        "outcome": {"en":"{name} is {age} and says at the door that everyone has eaten already, and the guest says of course, and goes, and dinner goes on a little quieter than before.","hi":"{name} {age} बरस {का|की} है। {name} ने दरवाज़े पर ही कह दिया कि सब खा चुके हैं; मेहमान ने कहा, ठीक है, और चला गया, और खाना पहले से थोड़ा चुपचाप चलता रहा।"},
-        "seed": {"fuse":20,"weight":2,"holds":55,"debt":{"en":"the guest turned away at dinner, at {at}","hi":"{at} बरस की उम्र में खाने के समय लौटाया गया मेहमान"},"reckoning":{"en":"{name} arrives somewhere at dinner time, tired from the road, and is told at the door that everyone has eaten already.","hi":"{name} रास्ते से {थका हुआ|थकी हुई} कहीं खाने के समय {पहुँचता|पहुँचती} है, और दरवाज़े पर ही कह दिया जाता है कि सब खा चुके हैं।"}},
+        "outcome": {"en":"{name} is {age} and says at the door that everyone has eaten already, and the guest says of course, and goes, and dinner goes on a little quieter than before.","hi":"{name} {age} बरस {का|की} है। {name} दरवाज़े पर ही कह {देता|देती} है कि सब खा चुके हैं; मेहमान कहता है, ठीक है, और चला जाता है, और खाना पहले से थोड़ा चुपचाप चलता रहता है।"},
+        "seed": {"wrong":"lie","fuse":20,"weight":2,"holds":55,"debt":{"en":"the guest turned away at dinner, at {at}","hi":"{at} बरस की उम्र में खाने के समय लौटाया गया मेहमान"},"reckoning":{"en":"{name} arrives somewhere at dinner time, tired from the road, and is told at the door that everyone has eaten already.","hi":"{name} रास्ते से {थका हुआ|थकी हुई} कहीं खाने के समय {पहुँचता|पहुँचती} है, और दरवाज़े पर ही कह दिया जाता है कि सब खा चुके हैं।"}},
         "mirror": {"took":{"en":"said everyone had eaten","hi":"कह दिया कि सब खा चुके हैं"}},
         "dream": {"en":"told a guest at the door that everyone had eaten","hi":"जिसने दरवाज़े पर मेहमान से कह दिया था कि सब खा चुके हैं"}
       }
@@ -353,7 +831,7 @@
         "cost": 0,
         "guna": "r",
         "aims": {"dharma":-10},
-        "seed": {"fuse":10,"weight":3,"holds":59,"debt":{"en":"the hand that fell, at {at}","hi":"{at} बरस की उम्र में उठकर गिरा वह हाथ"},"reckoning":{"en":"Something breaks in a house {name} is visiting, and a child flinches before anyone has moved, and {name} knows where that is learned.","hi":"जिस घर में {name} मेहमान है, वहाँ कुछ टूटता है, और किसी के हिलने से पहले ही एक बच्चा सहम जाता है, और {name} {जानता|जानती} है कि यह कहाँ सीखा जाता है।"}},
+        "seed": {"wrong":"harm","fuse":10,"weight":3,"holds":59,"debt":{"en":"the hand that fell, at {at}","hi":"{at} बरस की उम्र में उठकर गिरा वह हाथ"},"reckoning":{"en":"Something breaks in a house {name} is visiting, and a child flinches before anyone has moved, and {name} knows where that is learned.","hi":"जिस घर में {name} मेहमान है, वहाँ कुछ टूटता है, और किसी के हिलने से पहले ही एक बच्चा सहम जाता है, और {name} {जानता|जानती} है कि यह कहाँ सीखा जाता है।"}},
         "mirror": {"took":{"en":"let the hand fall","hi":"हाथ गिर जाने दिया"}},
         "dream": {"en":"struck a child over something broken","hi":"जिसने कुछ टूट जाने पर एक बच्ची को मारा था"}
       },
@@ -366,7 +844,7 @@
         "aims": {"dharma":5},
         "require": {"guna":{"r":{"max":0.5}}},
         "why": {"en":"Too restless to stop the hand in time.","hi":"इतनी बेचैनी है कि हाथ समय पर नहीं रुकेगा।"},
-        "outcome": {"en":"{name} is {age}, and with the hand already up looks at {child=the daughter} first, and sees that she is more frightened of the broken thing than of {name}. The hand comes down onto her head, and stays there. It takes years before looking first is quicker than the hand.","hi":"{name} {age} बरस {का|की} है। हाथ उठ चुका था, पर {name} ने पहले {child=बेटी} की ओर देखा, और दिखा कि वह {name} से ज़्यादा उस टूटी चीज़ से डरी हुई है। हाथ उसके सिर पर आकर रुक गया, और वहीं रहा। पहले देखना हाथ से तेज़ होने में बरसों लगे।","mirror":{"en":"The mother looked in the cradle only after the mongoose was dead.","hi":"माँ ने पालने में तब झाँका जब नेवला मर चुका था।"},"cast":"daughter","recall":{"en":"at whom {name} once looked first, with the hand already up","hi":"जिसकी ओर कभी {name} ने उठे हाथ के साथ पहले देखा था"}},
+        "outcome": {"en":"{name} is {age}, and with the hand already up looks at {child=the daughter} first, and sees that she is more frightened of the broken thing than of {name}. The hand comes down onto her head, and stays there. It takes years before looking first is quicker than the hand.","hi":"{name} {age} बरस {का|की} है। हाथ उठ चुका है, पर {name} पहले {child=बेटी} की ओर {देखता|देखती} है, और दिखता है कि वह {name} से ज़्यादा उस टूटी चीज़ से डरी हुई है। हाथ उसके सिर पर आकर रुक जाता है, और वहीं रहता है। पहले देखना हाथ से तेज़ होने में बरसों लगते हैं।","mirror":{"en":"The mother looked in the cradle only after the mongoose was dead.","hi":"माँ ने पालने में तब झाँका जब नेवला मर चुका था।"},"cast":"daughter","recall":{"en":"at whom {name} once looked first, with the hand already up","hi":"जिसकी ओर कभी {name} ने उठे हाथ के साथ पहले देखा था"}},
         "mirror": {"chose":{"en":"to look at her first","hi":"पहले उसकी ओर देखना"}},
         "dream": {"en":"looked at a frightened child before the hand came down","hi":"जिसने हाथ नीचे आने से पहले डरी हुई बच्ची की ओर देखा था"}
       },
@@ -377,7 +855,7 @@
         "cost": 4,
         "guna": "t",
         "aims": {"kama":-5},
-        "outcome": {"en":"{name} is {age}, walks out of the room with the hand still raised, and stands outside until it comes down by itself. Nobody mentions the broken thing again, for years.","hi":"{name} {age} बरस {का|की} है। उठा हुआ हाथ लिए {name} कमरे से बाहर {चला गया|चली गई}, और तब तक बाहर {खड़ा रहा|खड़ी रही} जब तक हाथ अपने-आप नीचे नहीं आ गया। टूटी चीज़ की बात बरसों तक किसी ने नहीं की।"},
+        "outcome": {"en":"{name} is {age}, walks out of the room with the hand still raised, and stands outside until it comes down by itself. Nobody mentions the broken thing again, for years.","hi":"{name} {age} बरस {का|की} है। उठा हुआ हाथ लिए {name} कमरे से बाहर {चला जाता|चली जाती} है, और तब तक बाहर {खड़ा रहता|खड़ी रहती} है जब तक हाथ अपने-आप नीचे नहीं आ जाता। टूटी चीज़ की बात बरसों तक कोई नहीं करता।"},
         "mirror": {"chose":{"en":"to walk out of the room","hi":"कमरे से बाहर चले जाना"}},
         "dream": {"en":"walked out of a room with the hand still raised","hi":"जो उठे हुए हाथ के साथ कमरे से बाहर {चला गया था|चली गई थी}"}
       }
