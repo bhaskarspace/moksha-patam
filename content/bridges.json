@@ -60,7 +60,12 @@
     "Ashtavakra": {"en":"Aṣṭāvakra, the sage born bent, who later taught King Janaka","hi":"अष्टावक्र, टेढ़े जन्मे ऋषि, जिन्होंने आगे चलकर राजा जनक को उपदेश दिया"},
     "Krishna": {"en":"Kṛṣṇa, who speaks the Gītā to his friend before a battle","hi":"कृष्ण, जो युद्ध से पहले अपने मित्र को गीता सुनाते हैं"},
     "Yashoda": {"en":"Yaśodā, who raised Kṛṣṇa in a village of cowherds","hi":"यशोदा, जिन्होंने ग्वालों के गाँव में कृष्ण को पाला"},
-    "mahabhashya": {"en":"Patañjali the grammarian, whose Great Commentary explains Pāṇini's rules","hi":"वैयाकरण पतंजलि, जिनका महाभाष्य पाणिनि के सूत्र समझाता है"}
+    "mahabhashya": {"en":"Patañjali the grammarian, whose Great Commentary explains Pāṇini's rules","hi":"वैयाकरण पतंजलि, जिनका महाभाष्य पाणिनि के सूत्र समझाता है"},
+    "Kumbhakarna": {"en":"Kumbhakarṇa, Rāvaṇa's giant brother in the Rāmāyaṇa","hi":"कुंभकर्ण, रामायण में रावण का विशाल भाई"},
+    "Kaca": {"en":"Kaca, sent by the gods to learn from their enemies' teacher","hi":"कच, जिन्हें देवताओं ने अपने शत्रुओं के गुरु से सीखने भेजा"},
+    "Yudhishthira": {"en":"Yudhiṣṭhira, the eldest Pāṇḍava, known for never lying","hi":"युधिष्ठिर, सबसे बड़े पांडव, जो कभी झूठ न बोलने के लिए जाने जाते थे"},
+    "Savitri": {"en":"Sāvitrī, who argued with Death for her husband's life","hi":"सावित्री, जिन्होंने पति के प्राणों के लिए मृत्यु से तर्क किया"},
+    "Jajali": {"en":"Jājali, an ascetic in the Mahābhārata who is taught by a trader","hi":"जाजलि, महाभारत के एक तपस्वी, जिन्हें एक व्यापारी ने सिखाया"}
   },
   "same": {
     "crow": "panchatantra",

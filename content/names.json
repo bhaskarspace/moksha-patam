@@ -37,7 +37,12 @@
     {"en":["Vamadeva","Vāmadeva"],"hi":["वामदेव"]},
     {"en":["Ashtavakra","Aṣṭāvakra"],"hi":["अष्टावक्र"]},
     {"en":["Krishna","Kṛṣṇa"],"hi":["कृष्ण"]},
-    {"en":["Yashoda","Yaśodā"],"hi":["यशोदा"]}
+    {"en":["Yashoda","Yaśodā"],"hi":["यशोदा"]},
+    {"en":["Kumbhakarna","Kumbhakarṇa"],"hi":["कुंभकर्ण"]},
+    {"en":["Kaca","Kacha"],"hi":["कच"]},
+    {"en":["Yudhishthira","Yudhiṣṭhira"],"hi":["युधिष्ठिर"]},
+    {"en":["Savitri","Sāvitrī"],"hi":["सावित्री"]},
+    {"en":["Jajali","Jājali"],"hi":["जाजलि"]}
   ],
   "gods": [
     {"en":["Yama"],"hi":["यम","यमराज"]},
@@ -73,7 +78,8 @@
     {"en":["Brahma Sutra","Brahma Sūtra"],"hi":["ब्रह्मसूत्र"]},
     {"en":["Gayatri","Gāyatrī"],"hi":["गायत्री"]},
     {"en":["Vedanta","Vedānta"],"hi":["वेदांत"]},
-    {"en":["Gṛhya Sūtras"],"hi":["गृह्यसूत्र"]}
+    {"en":["Gṛhya Sūtras"],"hi":["गृह्यसूत्र"]},
+    {"en":["Panchatantra","Pañcatantra"],"hi":["पंचतंत्र"]}
   ],
   "fable": [
     {"en":["jackal"],"hi":["सियार"]},
