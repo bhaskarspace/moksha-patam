@@ -162,6 +162,7 @@ export const REFS = (() => {
     if (sn) add(sourceOf(sn.src), n);
     for (const s of [...(r.schools || []), ...(r.views || []), ...(r.beyond || []), ...(sn?.schools || [])]) add(s.id, n);
     (r.figures || []).forEach(id => add(id, n));
+    (r.texts || []).forEach(id => add(id, n)); // a text a voice cites that is not the square's own citation
   }
   return Object.fromEntries(Object.entries(refs).map(([k, v]) => [k, [...v].sort((a, b) => a - b)]));
 })();

@@ -33,7 +33,11 @@
     {"en":["Dhaumya"],"hi":["धौम्य"]},
     {"en":["Sanjaya","Sañjaya"],"hi":["संजय"]},
     {"en":["Shandilya","Śāṇḍilya"],"hi":["शांडिल्य"]},
-    {"en":["Satyavacas"],"hi":["सत्यवचा"]}
+    {"en":["Satyavacas"],"hi":["सत्यवचा"]},
+    {"en":["Vamadeva","Vāmadeva"],"hi":["वामदेव"]},
+    {"en":["Ashtavakra","Aṣṭāvakra"],"hi":["अष्टावक्र"]},
+    {"en":["Krishna","Kṛṣṇa"],"hi":["कृष्ण"]},
+    {"en":["Yashoda","Yaśodā"],"hi":["यशोदा"]}
   ],
   "gods": [
     {"en":["Yama"],"hi":["यम","यमराज"]},

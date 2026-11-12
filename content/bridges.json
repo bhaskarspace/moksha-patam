@@ -55,7 +55,12 @@
     "Nasadiya": {"en":"The Nāsadīya, a Ṛg Veda hymn that asks how the world began","hi":"नासदीय, ऋग्वेद का एक सूक्त जो पूछता है कि संसार कैसे शुरू हुआ"},
     "gita": {"en":"The Bhagavad Gītā, Krishna's teaching on the eve of a battle","hi":"भगवद् गीता, एक युद्ध से ठीक पहले कृष्ण का उपदेश"},
     "Vishnu": {"en":"Viṣṇu, one of the three great gods of the old stories","hi":"विष्णु, पुरानी कथाओं के तीन महान देवों में से एक"},
-    "Shiva": {"en":"Śiva, one of the three great gods: the one who ends","hi":"शिव, तीन महान देवों में से एक: जो अंत करते हैं"}
+    "Shiva": {"en":"Śiva, one of the three great gods: the one who ends","hi":"शिव, तीन महान देवों में से एक: जो अंत करते हैं"},
+    "Vamadeva": {"en":"Vāmadeva, a Ṛg Veda poet who spoke before he was born","hi":"वामदेव, ऋग्वेद के एक कवि, जो जन्म से पहले ही बोले"},
+    "Ashtavakra": {"en":"Aṣṭāvakra, the sage born bent, who later taught King Janaka","hi":"अष्टावक्र, टेढ़े जन्मे ऋषि, जिन्होंने आगे चलकर राजा जनक को उपदेश दिया"},
+    "Krishna": {"en":"Kṛṣṇa, who speaks the Gītā to his friend before a battle","hi":"कृष्ण, जो युद्ध से पहले अपने मित्र को गीता सुनाते हैं"},
+    "Yashoda": {"en":"Yaśodā, who raised Kṛṣṇa in a village of cowherds","hi":"यशोदा, जिन्होंने ग्वालों के गाँव में कृष्ण को पाला"},
+    "mahabhashya": {"en":"Patañjali the grammarian, whose Great Commentary explains Pāṇini's rules","hi":"वैयाकरण पतंजलि, जिनका महाभाष्य पाणिनि के सूत्र समझाता है"}
   },
   "same": {
     "crow": "panchatantra",

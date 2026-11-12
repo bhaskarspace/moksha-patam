@@ -38,6 +38,8 @@
 // Phase 19 step 3 keys every throw by the seed, the lane, the life and the throw (src/engine/throws.js): "dice" marks an
 // account whose game the per-throw dice played otherwise than the old shared stream did. --dice=stream plays the old
 // stream, and then every account must be main's, byte for byte.
+// Phase 20 step 1 rewrites four moments (22, 29, 31, 69): "text" marks an account that tells one of them.
+const TEXT_P20 = /meant to stay shut|one small thing first|watches one more|looking at the pictures of it|बंद ही रहना था|छोटी-सी चीज़|एक और (?:देखता|देखती)|तस्वीरें एक के बाद एक/;
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
@@ -111,7 +113,7 @@ const say = (key, s, i, l) => {
 };
 const sayOne = (key, s, i, l) => {
   const text = lifeText(s, i, l), life = lifeOf(s, i, l);
-  out.push(flags.full ? `## ${key}\n${text}` : `${key} ${hash(text)}${flags.tag ? (s.above ? " above" : "") + (s.karma ? " karma" : "") + (s.door ? " door" : "") + (s.curse ? " curse" : "") + (s.witness || life.witnessed ? " witness" : "") + (s.death ? " death" : "") + (mirrorOf?.(s, i)[0]?.id === "rebel" ? " mirror" : "") + (s.rebirth ? " rebirth" : "") + (s.animal ? " animal" : "") + (s.siva ? " siva" : "") + (s.together ? " together" : "") + (s.players[i].met?.length ? " meet" : "") + (s.dice ? " dice" : "") + (s.animalname ? " animalname" : "") + (s.reborn ? " reborn" : "") + (l === "hi" && /बरस की उम्र में|घर [०-९\d]/.test(text) ? " wording" : "") : ""}`);
+  out.push(flags.full ? `## ${key}\n${text}` : `${key} ${hash(text)}${flags.tag ? (s.above ? " above" : "") + (s.karma ? " karma" : "") + (s.door ? " door" : "") + (s.curse ? " curse" : "") + (s.witness || life.witnessed ? " witness" : "") + (s.death ? " death" : "") + (mirrorOf?.(s, i)[0]?.id === "rebel" ? " mirror" : "") + (s.rebirth ? " rebirth" : "") + (s.animal ? " animal" : "") + (s.siva ? " siva" : "") + (s.together ? " together" : "") + (s.players[i].met?.length ? " meet" : "") + (s.dice ? " dice" : "") + (s.animalname ? " animalname" : "") + (s.reborn ? " reborn" : "") + (l === "hi" && /बरस की उम्र में|घर [०-९\d]/.test(text) ? " wording" : "") + (TEXT_P20.test(text) ? " text" : "") : ""}`);
   if (l === "en" && life.fates) {
     tally.lives++;
     tally.fates += life.fates.length;

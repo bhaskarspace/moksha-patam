@@ -382,6 +382,10 @@ function squareHtml(n, l) {
       more += `<p class="people"><span>${T("people")}:</span> ${r.figures.map(id => entryLink(id, l, "plink")).join(" · ")}</p>`;
       metMore.push(...r.figures);
     }
+    if (r.texts?.length) {
+      more += `<p class="people"><span>${T("codexSources")}:</span> ${r.texts.map(id => entryLink(id, l, "plink")).join(" · ")}</p>`;
+      metMore.push(...r.texts);
+    }
   }
   body += srcLine(src, l, met, { square: true });
   // the fall past the top square (merit spent) follows its god, in the snakes' own voice (REDESIGN.md Phase 12)

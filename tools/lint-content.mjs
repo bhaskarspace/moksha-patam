@@ -554,6 +554,7 @@ export function lintReport() {
     for (const [i, s] of (r.schools || []).entries()) { bilingual(`readings.${n}.schools[${i}]`, s); if (!CODEX.schools[s.id]) err(`readings.${n}.schools[${i}]`, `unknown school "${s.id}"`); }
     for (const k of ["views", "beyond"]) for (const [i, s] of (r[k] || []).entries()) { bilingual(`readings.${n}.${k}[${i}]`, s); if (!CODEX.schools[s.id]) err(`readings.${n}.${k}[${i}]`, `unknown school "${s.id}"`); }
     for (const id of r.figures || []) if (!CODEX.figures[id]) err(`readings.${n}.figures`, `unknown person "${id}"`);
+    for (const id of r.texts || []) if (!CODEX.sources[id]) err(`readings.${n}.texts`, `unknown source "${id}"`);
     if (r.scholar) bilingual(`readings.${n}.scholar`, r.scholar);
     if (r.line2) bilingual(`readings.${n}.line2`, r.line2);
   }
