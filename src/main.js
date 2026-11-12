@@ -1,6 +1,6 @@
 // Moksha Patam: the page's wiring. Rules live in engine/, drawing in render/, content in content/*.json.
 import { GOAL, TOP, ROWS, COLS, LAYOUT, BOARD_ID, BOARDS, useBoard, legendOf, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, STR, squareOf } from "./content.js";
-import { lang, urlLang, setLangValue, L, num, t, tIn } from "./i18n.js";
+import { lang, urlLang, setLangValue, L, num, t, tIn, fill } from "./i18n.js";
 import { G, defaultSetup, pname, pnameIn, cur, newState, loadSelf, saveSelf } from "./state.js";
 import { keepSeed, seedLives } from "./prefs.js";
 import { prefs, setPref, applyTheme, lifeLived, beFirst, freshViewer, firstLife, soulStore, soulFor, keepSoul, setSoulStore, saveGame, loadGame } from "./prefs.js";
@@ -479,7 +479,7 @@ function rollInfo(l) {
   // already moving on the reader's behalf: show the die, or who is rolling now
   if (G.rollQueued || (G.busy && !G.waitingCard)) {
     const mover = s.players[plan?.idx ?? s.turn];
-    const who = mover.type === "cpu" ? tIn(l, "rolling", { name: pnameIn(mover, l) }) : "";
+    const who = mover.type === "cpu" ? fill(tIn(l, "rolling", { name: pnameIn(mover, l) }), { gender: mover.gender }) : "";
     return { label: [G.face ? G.face.map(f => FACES[f] || num(f)).join(" ") : "", who].filter(Boolean).join("  ") || FACES[s.last || 6], ready: false, dot: null };
   }
   const again = plan ? plan.again : s.turn === i && s.log[0]?.k === "lSix";
@@ -534,7 +534,7 @@ const rollKey = () => (!isCloth() ? "roll" : { cowries: "rollShells", stick: "ro
 function render() {
   const state = G.state, p = cur();
   $("turnDot").style.background = COLORS[p.color];
-  $("turnName").textContent = state.winner != null ? t("wins", { name: pname(state.players[state.winner]) }) : pname(p);
+  $("turnName").textContent = state.winner != null ? fill(t("wins", { name: pname(state.players[state.winner]) }), { gender: state.players[state.winner].gender }) : pname(p);
   const human = p.type === "human";
   $("roll").disabled = G.busy || state.over || !human;
   // a year in practice before the throw (Yoga): beside Roll, never in place of it, and Space still rolls
@@ -544,7 +544,7 @@ function render() {
   // Stop here (Phase 19): a game played together ends when the people at it say so
   $("stopHere").hidden = !together(state) || state.over || !state.players.some(q => q.type === "human");
   $("stopHere").disabled = G.busy;
-  $("roll").textContent = human ? t(rollKey()) : t("rolling", { name: pname(p) });
+  $("roll").textContent = human ? t(rollKey()) : fill(t("rolling", { name: pname(p) }), { gender: p.gender });
   const six = !state.over && sixOf();
   $("hint").textContent = state.over ? t("hintOver") : six ? sixLineIn(lang, six) : isAnimal(state, state.turn) ? t("animalHint") : human ? t("hintHuman") : t("hintCpu");
   if (G.deciding) drawDecide();

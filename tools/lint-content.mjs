@@ -597,13 +597,29 @@ export function lintReport() {
       if (line.includes("खाना {")) err(`content/${f}:${i + 1}`, 'calls a square "खाना {…}": say "घर {…}" or "{…} पर"');
       // Phase 20, warnings for a reader (Bhaskar, 12 Nov): खाना as a square in any other form, and the board as a बोर्ड
       // (the cloth is a पट). खाना is also food, so only its square-like uses are flagged: before a number, after a
-      // word that counts or points at squares, and चौखाना.
+      // word that counts or points at squares. चौखाना is the grid, and stays (Bhaskar, 12 Nov).
       if (f !== "boards.json") {
         const sq = line.match(SQUARE_KHANA);
         if (sq) warn(`content/${f}:${i + 1}`, `may call a square "${sq[0].trim()}": a square is a घर`);
         if (BOARD_WORD.test(line)) warn(`content/${f}:${i + 1}`, 'says "बोर्ड": the board is the पट');
       }
     });
+  }
+
+  // Phase 20, a warning for a reader: the gesture names itself; the device does not (REDESIGN.md §5). No moment, outcome,
+  // prompt, option or echo names a device, an app or a brand, in either language. The mirrors and the scholar layer are
+  // not read: they are the texts, not the life.
+  const told = [];
+  const walkTold = (v, where, key = "") => {
+    if (typeof v === "string") { if (/^(moment|outcome|prompt|label|echo|recall|reckoning|debt|dream|holding|letgo|en|hi)$/.test(key)) told.push([where, v]); return; }
+    if (!v || typeof v !== "object") return;
+    for (const [k, x] of Object.entries(v)) if (!/^(mirror|src|scholar|schools|views|line2)$/.test(k)) walkTold(x, where, /^(en|hi)$/.test(k) ? key : k);
+  };
+  for (const [n, q] of Object.entries({ ...SQ, ...LADDERS, ...SNAKES })) walkTold({ moment: q.moment, roll: q.roll, echo: q.echo }, `square ${n}`);
+  for (const [n, sit] of Object.entries(SITUATIONS)) walkTold(sit, `situation ${n}`);
+  for (const [where, text] of told) {
+    const hit = text.match(DEVICES);
+    if (hit) warn(where, `names a device, an app or a brand ("${hit[0]}"): say the gesture`);
   }
 
   // REFERENCE.md §6: the board's own history is medieval, not ancient
@@ -613,11 +629,16 @@ export function lintReport() {
   return { errors, warnings, moments };
 }
 
-// खाना/खाने/खानों as a square (Phase 20): before a number, after a word that counts or points, or in चौखाना; a whole word
+// खाना/खाने/खानों as a square (Phase 20): before a number, or after a word that counts or points; a whole word
 // only, so सिखाने and दिखाने are not read as it
 const DEV = "\\u0900-\\u0963\\u0971-\\u097F"; // the letters and signs, not the dandas or the digits
-const SQUARE_KHANA = new RegExp(`(?<![${DEV}])(?:हर|इस|यह|यही|कोई|एक|अगला|पिछला|अंतिम|किसी भी)\\s+खान[ाेों](?![${DEV}])|(?<![${DEV}])खान[ाेों]\\s*[०-९\\d{]|चौखान`, "u");
+const SQUARE_KHANA = new RegExp(`(?<![${DEV}])(?:हर|इस|यह|यही|कोई|एक|अगला|पिछला|अंतिम|किसी भी)\\s+खान[ाेों](?![${DEV}])|(?<![${DEV}])खान[ाेों]\\s*[०-९\\d{]`, "u");
 const BOARD_WORD = /बोर्ड/u;
+// devices, apps and brands, in English and Hindi (Phase 20, the present-tense pass)
+const DEVICES = new RegExp([
+  "\\b(?:phones?|mobiles?|smartphones?|apps?|screens?|laptops?|tablets?|computers?|TVs?|televisions?|internet|online|e-?mails?|selfies?|texts? messages?|WhatsApp|Instagram|Facebook|YouTube|Google|Snapchat|TikTok|Twitter|iPhone|Android|Wi-?Fi|Bluetooth|emoji|DMs?)\\b",
+  `(?<![${DEV}])(?:फ़ोन|फोन|मोबाइल|ऐप|एप|स्क्रीन|लैपटॉप|टैबलेट|कंप्यूटर|टीवी|इंटरनेट|ऑनलाइन|ईमेल|सेल्फ़ी|सेल्फी|व्हाट्सऐप|इंस्टाग्राम|फ़ेसबुक|यूट्यूब)(?![${DEV}])`,
+].join("|"), "iu");
 
 export const lintContent = () => lintReport().errors;
 

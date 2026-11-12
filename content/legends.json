@@ -1,6 +1,6 @@
 {
   "72": {
-    "1": {"iast":"janma","en":"Birth","hi":"जन्म","gloss":{"en":"Where every pawn begins. A few charts write utpatti, origin; no snake on the board reaches this square.","hi":"हर मोहरा यहीं से चलता है। कुछ चार्ट उत्पत्ति लिखते हैं। बोर्ड का कोई साँप यहाँ तक नहीं पहुँचता।"},"src":"Schmidt-Madsen 2019, App. D1, sq. 1"},
+    "1": {"iast":"janma","en":"Birth","hi":"जन्म","gloss":{"en":"Where every pawn begins. A few charts write utpatti, origin; no snake on the board reaches this square.","hi":"हर मोहरा यहीं से चलता है। कुछ चार्ट उत्पत्ति लिखते हैं। पट का कोई साँप यहाँ तक नहीं पहुँचता।"},"src":"Schmidt-Madsen 2019, App. D1, sq. 1"},
     "2": {"iast":"māyā","en":"Illusion","hi":"माया","gloss":{"en":"Phenomenal reality, the world as it appears. Egoity's snake at 55 ends here.","hi":"दृश्य जगत, संसार जैसा दिखता है। 55 पर अहंकार का साँप यहीं उतारता है।"},"src":"Schmidt-Madsen 2019, App. D1, sq. 2"},
     "3": {"iast":"krodh","en":"Anger","hi":"क्रोध","gloss":{"en":"The first row is the passions. The snake of darkness at 63 ends here.","hi":"पहली पंक्ति विकारों की है। 63 पर तामस का साँप यहीं उतारता है।"},"src":"Schmidt-Madsen 2019, App. D1, sq. 3"},
     "4": {"iast":"lobh","en":"Greed","hi":"लोभ","gloss":{"en":"One of the passions of the first row. Hatred's snake at 16 ends here.","hi":"पहली पंक्ति का एक विकार। 16 पर द्वेष का साँप यहीं उतारता है।"},"src":"Schmidt-Madsen 2019, App. D1, sq. 4"},
@@ -54,7 +54,7 @@
     "52": {"iast":"hiṃsā","en":"Injury","hi":"हिंसा","gloss":{"en":"Its snake falls to hell at 35. Some charts send it to 34.","hi":"इसका साँप 35 पर नरक तक गिराता है। कुछ चार्ट इसे 34 तक भेजते हैं।"},"src":"Schmidt-Madsen 2019, App. D1, sq. 52"},
     "53": {"iast":"jal","en":"Water","hi":"जल","gloss":{"en":"The element water.","hi":"जल तत्त्व।"},"src":"Schmidt-Madsen 2019, App. D1, sq. 53"},
     "54": {"iast":"bhakti","en":"Devotion","hi":"भक्ति","gloss":{"en":"Its ladder rises straight to Vaikuṇṭha at 68, the goal. Some charts send it to a square above the grid instead.","hi":"इसकी सीढ़ी सीधे 68 पर वैकुंठ तक जाती है, जो लक्ष्य है। कुछ चार्ट इसे ग्रिड के ऊपर के घर तक भेजते हैं।"},"src":"Schmidt-Madsen 2019, App. D1, sq. 54"},
-    "55": {"iast":"ahaṃkār","en":"Egoity","hi":"अहंकार","gloss":{"en":"Its snake falls to illusion at 2, almost the whole board. One chart sends it to 1, another to 3.","hi":"इसका साँप 2 पर माया तक गिराता है, लगभग पूरा बोर्ड। एक चार्ट पर 1 तक, एक पर 3 तक।"},"src":"Schmidt-Madsen 2019, App. D1, sq. 55"},
+    "55": {"iast":"ahaṃkār","en":"Egoity","hi":"अहंकार","gloss":{"en":"Its snake falls to illusion at 2, almost the whole board. One chart sends it to 1, another to 3.","hi":"इसका साँप 2 पर माया तक गिराता है, लगभग पूरा पट। एक चार्ट पर 1 तक, एक पर 3 तक।"},"src":"Schmidt-Madsen 2019, App. D1, sq. 55"},
     "56": {"iast":"ākāś","en":"Space","hi":"आकाश","gloss":{"en":"The element space.","hi":"आकाश तत्त्व।"},"src":"Schmidt-Madsen 2019, App. D1, sq. 56"},
     "57": {"iast":"vāyu","en":"Air","hi":"वायु","gloss":{"en":"The element air.","hi":"वायु तत्त्व।"},"src":"Schmidt-Madsen 2019, App. D1, sq. 57"},
     "58": {"iast":"tej","en":"Fire","hi":"तेज","gloss":{"en":"The element fire.","hi":"तेज, अग्नि तत्त्व।"},"src":"Schmidt-Madsen 2019, App. D1, sq. 58"},
