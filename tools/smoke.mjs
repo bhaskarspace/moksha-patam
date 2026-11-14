@@ -870,7 +870,7 @@ await check("Phase 13: the first screen is the cloth under the veil, half the di
   }
   // every square the sheet paints carries its vignette on the board (Phase 13's 43, and Phase 20's as they come), except
   // Moksha's, which is on its card alone (the board keeps ॐ)
-  const [vg, painted] = await page.evaluate(() => [document.querySelectorAll("#cells .pic.vg").length, document.querySelectorAll("svg.sprites symbol.vg").length]);
+  const [vg, painted] = await page.evaluate(() => [document.querySelectorAll("#cells .pic.vg").length, document.querySelectorAll('svg.sprites symbol.vg[id^="sq-"]').length]);
   assert(painted >= 43 && vg === painted - 1, `${vg} vignettes on the board, of ${painted} painted`);
   assert(await page.evaluate(() => { mp.open(105); return !!document.querySelector('#leaf svg.ill use[href="#sq-105"]'); }), "Moksha's card has no vignette");
 });

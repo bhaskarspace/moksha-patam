@@ -3,20 +3,32 @@
 // ground. Drawn from art/vignettes.mjs, so a scene can be reviewed before tools/vignettes.mjs writes it into the sheet.
 // Also says what the new scenes weigh, raw and gzipped, against the 67's budget (+120 KB raw, +40 KB gzip).
 //   node tools/contact-sheet.mjs scratch/vignettes-batch-N.png <new squares…> "|" <existing squares…>
+// A square of an old cloth is written board/n (72/35, 84/90): its picture from art/cloth.mjs, on the card's paper.
 // Needs Chrome installed, as npm run smoke does.
+import fs from "node:fs";
 import zlib from "node:zlib";
 import { chromium } from "playwright";
 import { symbol } from "./vignette-parts.mjs";
 import { BOARD, squareOf } from "../src/content.js";
 const { default: SCENES } = await import("../art/vignettes.mjs");
+const { default: CLOTH } = await import("../art/cloth.mjs");
+const LEGENDS = JSON.parse(fs.readFileSync(new URL("../content/legends.json", import.meta.url), "utf8"));
 const [out, ...args] = process.argv.slice(2);
-const [newer, older] = args.join(" ").split("|").map(x => x.trim().split(/\s+/).filter(Boolean).map(Number));
+const [newer, older] = args.join(" ").split("|").map(x => x.trim().split(/\s+/).filter(Boolean));
+// a square is "n" on the 110 or "board/n" on an old cloth
+const at = k => { const [b, n] = k.includes("/") ? k.split("/") : ["110", k]; return { b, n: +n, id: b === "110" ? `sq-${n}` : `b${b}-${n}` }; };
+const sceneOf = k => { const { b, n } = at(k); return b === "110" ? SCENES[n] : CLOTH[b][n]; };
+const nameOf = k => { const { b, n } = at(k); return b === "110" ? squareOf(n).en : `${b}: ${LEGENDS[b][n].en}`; };
 const ground = n => BOARD.palette[BOARD.look?.grounds?.[Math.min(4, Math.floor((n - 1) / 20))]?.[n % 2] ?? "cream"] ?? "#f3ead6";
-const syms = [...newer, ...older].map(n => symbol(n, SCENES[n].draw().flat())).join("");
-const cell = (n, tag) => `<figure><div class="row">
-  <svg class="big" style="background:${ground(n)}" viewBox="0 0 48 48"><use href="#sq-${n}"/><rect x="0" y="0" width="12" height="9" class="guide"/><rect x="0" y="41" width="48" height="7" class="guide"/></svg>
-  <svg class="small" style="background:${ground(n)}" viewBox="0 0 48 48"><use href="#sq-${n}"/></svg></div>
-  <figcaption><b>${n}</b> ${squareOf(n).en} <i>${tag}</i></figcaption></figure>`;
+const syms = [...newer, ...older].map(k => symbol(at(k).n, sceneOf(k).draw().flat(), at(k).id)).join("");
+const groundOf = k => (at(k).b === "110" ? ground(at(k).n) : BOARD.palette.cream ?? "#f3ead6");
+const cell = (k, tag) => {
+  const { b, n, id } = at(k), guides = b === "110" ? `<rect x="0" y="0" width="12" height="9" class="guide"/><rect x="0" y="41" width="48" height="7" class="guide"/>` : "";
+  return `<figure><div class="row">
+  <svg class="big" style="background:${groundOf(k)}" viewBox="0 0 48 48"><use href="#${id}"/>${guides}</svg>
+  <svg class="small" style="background:${groundOf(k)}" viewBox="0 0 48 48"><use href="#${id}"/></svg></div>
+  <figcaption><b>${b === "110" ? n : `${b}/${n}`}</b> ${nameOf(k)} <i>${tag}</i></figcaption></figure>`;
+};
 const html = `<!doctype html><meta charset="utf-8"><style>
 body{font:13px system-ui;background:#fff;margin:16px;width:${5 * 270}px} h2{font-size:15px;margin:16px 0 6px}
 .grid{display:grid;grid-template-columns:repeat(5,262px);gap:10px} figure{margin:0} .row{display:flex;gap:8px;align-items:end}
@@ -29,7 +41,7 @@ const b = await chromium.launch({ channel: "chrome" }), p = await b.newPage({ vi
 await p.setContent(html);
 await p.screenshot({ path: out, fullPage: true });
 await b.close();
-const weight = newer.map(n => symbol(n, SCENES[n].draw().flat())).join("\n");
+const weight = newer.map(k => symbol(at(k).n, sceneOf(k).draw().flat(), at(k).id)).join("\n");
 const raw = Buffer.byteLength(weight), gz = zlib.gzipSync(weight, { level: 9 }).length;
-console.log(`wrote ${out}; the ${newer.length} new scenes weigh ${(raw / 1024).toFixed(1)} KB raw, ${(gz / 1024).toFixed(1)} KB gzipped as symbols (gross: on the page each replaces a Phase 5 sprite, so the build's growth is less)` +
-  ` (${(raw / newer.length / 1024).toFixed(2)} KB a scene; 67 at that rate: ${((raw / newer.length) * 67 / 1024).toFixed(0)} KB raw gross, of the 120 budgeted)`);
+console.log(`wrote ${out}; the ${newer.length} new pictures weigh ${(raw / 1024).toFixed(1)} KB raw, ${(gz / 1024).toFixed(1)} KB gzipped as symbols` +
+  ` (${(raw / newer.length / 1024).toFixed(2)} KB each; a 110 scene replaces a Phase 5 sprite, so the build grows by less; an old cloth's adds all of it)`);

@@ -151,6 +151,10 @@ export function buildCells() {
       const kind = n === GOAL ? " heaven goal" : heaven ? " heaven" : SNAKES[n] ? " vice" : LADDERS[n] ? " virtue" : "";
       lab.className = "lab" + kind + (light && !heaven ? " li" : "");
       lab.innerHTML = labelHtml(n);
+      // the 84's five unsurpassed heavens (Phase 20): a vimāna crown at the top right of each, clear of the number and
+      // inside the head, as the Jaina charts top those cells. In the label, so it is above the ladders' canvas; ornament,
+      // so plain mode drops it (styles.css)
+      if (BOARD.crowns?.includes(n)) lab.insertAdjacentHTML("beforeend", `<svg class="crown" viewBox="2 0 16 9.6" aria-hidden="true"><path class="dome" d="M3,9 L3,7 Q3,2.6 10,2 Q17,2.6 17,7 L17,9 Z"/><path class="door" d="M8.2,9 L8.2,7.4 Q10,5.4 11.8,7.4 L11.8,9 Z"/><circle class="finial" cx="10" cy="1.1" r="1"/></svg>`);
       const s = SNAKES[n], l = LADDERS[n];
       lab.title = s ? `${squareName(n)} (${s.skt}) → ${sqNum(s.to)}` : l ? `${squareName(n)} (${l.skt}) → ${sqNum(l.to)}` : squareName(n);
       // every square opens its card; one square at a time takes Tab, and the arrow keys move between them

@@ -2,7 +2,7 @@
 // It no longer holds the game up (REDESIGN.md Phase 11): the dice stay live while it is open, and the next roll takes
 // it away. Only a situation waiting on a choice is modal, until the choice is made, and a reckoning (REDESIGN.md Phase
 // 12), until it is read: a choice's result arriving, the one other thing a turn waits on.
-import { GOAL, TOP, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, READINGS, CODEX, ENTRY_IDS, REFS, entryOf, sourceOf, srcOfSquare, squareOf, fallOn, bridgeOf, EGO, legendOf } from "../content.js";
+import { GOAL, TOP, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, READINGS, CODEX, ENTRY_IDS, REFS, entryOf, sourceOf, srcOfSquare, squareOf, fallOn, bridgeOf, EGO, legendOf, BOARD_ID } from "../content.js";
 import { isCloth } from "../engine/cloth.js";
 import { lang, tIn, numIn, srcIn, pick, fill, castFill, ageWordsIn } from "../i18n.js";
 import { ageStep, stageOfYears, bhumikaOf, freshGunas, SANNYASA, yearsAlong, landedYears } from "../engine/self.js";
@@ -304,7 +304,7 @@ function legendHtml(n, l) {
   const more = g.scholar && deep("scholar") ? bi(l, g.scholar, "note") + `<p class="srcline"><span class="src">${esc(srcIn(l, g.scholar.src))}</span></p>` : "";
   return {
     kind, met: [], metMore: [],
-    html: frame(l, { kind, eb: T("legendOf"), big: "", sqn: sqNumIn(l, n), age: "", body, more,
+    html: frame(l, { kind, eb: T("legendOf"), big: document.getElementById(`b${BOARD_ID}-${n}`) ? illumined(`b${BOARD_ID}-${n}`) : "", sqn: sqNumIn(l, n), age: "", body, more,
       foot: up ? T("ladderTo", { n: sqNumIn(l, up.to) }) : down ? T("snakeTo", { n: down.to }) : "",
       prev: n > 1 ? sqNumIn(l, n - 1) : null, next: n < TOP ? sqNumIn(l, n + 1) : null, prevLabel: T("prevSq"), nextLabel: T("nextSq") }),
   };
