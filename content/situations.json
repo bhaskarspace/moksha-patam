@@ -884,7 +884,7 @@
         "aims": {"dharma":-10},
         "seed": {"wrong":"harm","fuse":10,"weight":3,"holds":59,"debt":{"en":"the hand that fell, at {at}","hi":"{at} बरस की उम्र में उठकर गिरा वह हाथ"},"reckoning":{"en":"Something breaks in a house {name} is visiting, and a child flinches before anyone has moved, and {name} knows where that is learned.","hi":"जिस घर में {name} मेहमान है, वहाँ कुछ टूटता है, और किसी के हिलने से पहले ही एक बच्चा सहम जाता है, और {name} {जानता|जानती} है कि यह कहाँ सीखा जाता है।"}},
         "mirror": {"took":{"en":"let the hand fall","hi":"हाथ गिर जाने दिया"}},
-        "dream": {"en":"struck a child over something broken","hi":"जिसने कुछ टूट जाने पर एक बच्ची को मारा था"}
+        "dream": {"en":"struck a child over something broken","hi":"जिसने कुछ टूट जाने पर एक बच्ची को थप्पड़ मारा था"}
       },
       {
         "id": "look",

@@ -269,6 +269,27 @@ export function lintReport() {
     const mirrorEn = (m.mirror || q.mirror).en;
     if (/^In (the )?\p{Lu}/u.test(mirrorEn)) err(where, `the mirror opens "${mirrorEn.split(" ").slice(0, 3).join(" ")}…", the Phase 2 voice; open with a connective (docs/NARRATIVE.md §2)`);
   };
+  // Phase 20: a situation's Hindi outcome is told in the present, like the English ("{name} is {age} and …"); its dream,
+  // recall, debt and witness lines stay past. Checked clause by clause after the age: the head of a clause (up to a कि,
+  // जो, जिस-, जब or जैसे, which open a clause told in its own time) may not end on a past or perfective verb; quoted
+  // speech keeps its own tense, and a participle (ठिठुरते हुए) or a subjunctive (सो सके) is not a past.
+  const PAST_HI = /(?:^|\s)(?:था|थी|थे|थीं|गया|गई|गए|गईं|लिया|ली|लिए|दिया|दी|दिए|किया|की|हुआ|हुई|हुए|चुका|चुकी|चुके|पाया|पाई|सका|सकी|पड़ा|पड़ी|पड़े|आया|आई|आए|उठा|उठी|बैठा|बैठी|निकला|निकली|रहा|रही|रहे|सुने|सुना|कहा|मारा|देखा|खाई)$/;
+  const plainHi = hi => hi.replace(/\{[a-z]+=([^{}]*)\}/g, "$1").replace(/\{[a-z]+:([^{}|]*)\|[^{}]*\}/g, "$1").replace(/\{([^{}|]*)\|[^{}]*\}/g, "$1");
+  // the first sentence is skipped only when it is the age ("{name} {age} बरस {का|की} है"): a moment that opens on its
+  // event ("उस शाम {name} …", 50's roll) is checked from its first word. "के लिए" is "for"; "सकता था" a might-have-been
+  const sentencesHi = hi => { const ss = plainHi(hi).replace(/“[^”]*”/g, "“…”").split("।"); return /\{age\} बरस/.test(hi.split("।")[0]) ? ss.slice(1) : ss; };
+  const pastHi = hi => sentencesHi(hi).flatMap(x => x.split(/[,;]/)).flatMap(c => c.split(/ कि | जो | जिस| जब | जैसे /)[0].split(/ और /)).map(c => c.replace(/[“”"’‘]/g, "").trim()).filter(c => c && PAST_HI.test(c) && !/ते हुए$|(?:के|अपने|उसके|उनके) लिए$|सक(?:ता|ती|ते) (?:था|थी|थे)$|नहीं \S+ रह(?:ा|ी|े)$/.test(c) && !/ (?:कब|कैसे|क्यों|कहाँ) /.test(` ${c} `));
+  // Phase 20's past-tense pass: a square's moments are told in the present too. Some say in the past on purpose what came
+  // before, and their event is present: the deed denied (11), the secret told (14), the teacher's word (23), the noes never
+  // said (62). Two look back on a whole life, in the English too: what was seen (103) and what was divided (106).
+  // A warning until the pass's last batch is in (TENSE_LATE); then an error, as an outcome's is.
+  const BACKSTORY = new Set([11, 14, 23, 62, 103, 106]);
+  const TENSE_LATE = new Set([25, 33, 47, 48, 52, 66, 83, 85, 86, 87, 92, 97]);
+  const tense = (where, n, hi) => {
+    if (BACKSTORY.has(n)) return;
+    const past = pastHi(hi);
+    if (past.length) (TENSE_LATE.has(n) ? warn : err)(where, `the Hindi is told in the past, not the present: ${past.map(c => `"…${c.slice(-24)}"`).join(", ")}`);
+  };
   for (let n = 1; n <= TOP; n++) {
     const q = squareOf(n), lead = leadOf(n);
     if (!q) { err(`square ${n}`, "has no content"); continue; }
@@ -316,6 +337,7 @@ export function lintReport() {
     if (!m.en?.trim() || !m.hi?.trim()) { err(where, `exists in ${m.en?.trim() ? "English" : "Hindi"} only`); continue; }
     moments.written++; band.written++;
     momentText(where, m, q);
+    tense(where, n, m.hi);
 
     // Phase 10: a square that tells one of two moments by the face it was arrived at. Only a story square below the
     // endgame: there one die is rolled and the face cannot be chosen. Snakes and ladders fire on every face, since
@@ -329,7 +351,7 @@ export function lintReport() {
     if (!(Number.isInteger(roll.faces) && roll.faces >= 1 && roll.faces <= 5)) err(rw, `faces ${roll.faces} is not 1 to 5: each moment needs a face`);
     const rm = roll.moment;
     if (!rm?.en?.trim() || !rm?.hi?.trim()) err(`${rw} moment`, "needs the other moment in both languages");
-    else momentText(`${rw} moment`, rm, q);
+    else { momentText(`${rw} moment`, rm, q); tense(`${rw} moment`, n, rm.hi); }
     if (roll.echo) { if (q.callsBack == null) err(`${rw} echo`, "has an echo but the square calls back to nothing"); join(`${rw} echo`, roll.echo); }
   }
 
@@ -365,13 +387,6 @@ export function lintReport() {
   // one bilingual and agreeing in Hindi, at least one never withheld, and every gate one a life can pass. The
   // structural rule: the option worth least advances more cheaply, never further, than the one worth most.
   const GUNAS = ["s", "r", "t"], AIMS = ["dharma", "artha", "kama"];
-  // Phase 20: a situation's Hindi outcome is told in the present, like the English ("{name} is {age} and …"); its dream,
-  // recall, debt and witness lines stay past. Checked clause by clause after the age: the head of a clause (up to a कि,
-  // जो, जिस-, जब or जैसे, which open a clause told in its own time) may not end on a past or perfective verb; quoted
-  // speech keeps its own tense, and a participle (ठिठुरते हुए) or a subjunctive (सो सके) is not a past.
-  const PAST_HI = /(?:^|\s)(?:था|थी|थे|थीं|गया|गई|गए|गईं|लिया|ली|लिए|दिया|दी|दिए|किया|की|हुआ|हुई|हुए|चुका|चुकी|चुके|पाया|पाई|सका|सकी|पड़ा|पड़ी|पड़े|आया|आई|आए|उठा|उठी|बैठा|बैठी|निकला|निकली|रहा|रही|रहे|सुने|सुना|कहा|मारा|देखा|खाई)$/;
-  const plainHi = hi => hi.replace(/\{[a-z]+=([^{}]*)\}/g, "$1").replace(/\{[a-z]+:([^{}|]*)\|[^{}]*\}/g, "$1").replace(/\{([^{}|]*)\|[^{}]*\}/g, "$1");
-  const pastHi = hi => plainHi(hi).replace(/“[^”]*”/g, "“…”").split("।").slice(1).flatMap(x => x.split(/[,;]/)).flatMap(c => c.split(/ कि | जो | जिस| जब | जैसे /)[0].split(/ और /)).map(c => c.replace(/[“”"’‘]/g, "").trim()).filter(c => c && PAST_HI.test(c) && !/ते हुए$/.test(c));
   const range = (where, r, lo, hi) => {
     if (r.min != null && !(r.min >= lo && r.min < hi)) err(where, `min ${r.min} cannot be passed`);
     if (r.max != null && !(r.max > lo && r.max <= hi)) err(where, `max ${r.max} cannot be passed`);
