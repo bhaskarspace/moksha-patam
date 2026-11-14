@@ -360,7 +360,9 @@ one-seat games each (`npm run sim 5000 1 1 --policy=…`; a game holds a seat's 
 | dishonest, after | 8.58 | 28 / 47 | 42 / 120 / 9.1% | 17.2% | 5.82 | 39.7% | 4.86 | 17.9% |
 
 The seed rule shows: the honest life plants almost nothing and almost never dies; the mixed life is where it was; the
-dishonest life plants half as much again and dies more. `tests/situations.test.mjs` holds the order under every law.
+dishonest life plants half as much again and dies more. Yoga's ordering is flat by design (honest 45.5, mixed 43.6, dishonest 34.9 a
+life): the law is practice over conduct, so a year in practice, which any life can spend, counts for more than how the
+situations were chosen, and the middle way bites only a computer that is not honest. `tests/situations.test.mjs` holds the order under every law.
 
 ---
 

@@ -2519,6 +2519,9 @@ mechanics were still moving.*
 - **The final numbers.** Liberation rate overall and per law; death rate; rebirth rate;
   median, p95, over-100; the same-moment-told-four-times share; and the three-player test
   of Phase 11 repeated on the finished game, with the same three questions.
+- **A "careful" policy** (Bhaskar, 14 Nov, at step 2's close): a human proxy beside honest, mixed and dishonest, choosing
+  the sattvic option about 70% of the time and otherwise at random, reported per life under each law. Honest per life is
+  about 90% under Nyāya and Advaita, which no person plays; the careful player is the number to read there.
 
 Note from *80 Days*: most playthroughs there reveal under ten percent of the text. A
 single life should not see most of this content. That dissolves the volume problem,
