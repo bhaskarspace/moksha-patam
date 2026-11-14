@@ -39,7 +39,7 @@ import { laneOf } from "./throws.js";
 import { pnameIn } from "../state.js";
 import { ageOf, yearsAlong, stageOfYears, titleOf, holdingOf } from "./self.js";
 import { momentOf, optionOf } from "./qbn.js";
-import { castAlong, peopleOf, introIn, beforeIn, calledIn, fatesIn, schoolOf, schoolLineIn, holderIn } from "./cast.js";
+import { castAlong, peopleOf, introIn, beforeIn, calledIn, fatesIn, schoolOf, schoolLineIn, holderIn, sameLawIn } from "./cast.js";
 import { reckoningIn, seedOf, refusalIn, carryIn, karmaOf, carried, debtIn, formIn } from "./karma.js";
 import { curseIn } from "./curse.js";
 import { isAnimal, animalLifeOf, interludeOf } from "./animal.js";
@@ -322,6 +322,8 @@ export function lifeOf(state, i, l, { live = false } = {}) {
     curse: curse && curse.closedAt == null && (liberated(state, i) || p.fell || p.dead) ? fill(curse.c.not[l] || curse.c.not.en, who) : "",
     // what the life never found out about the people in it (Phase 10C): empty with no cast
     fates,
+    // the law this life was lived under, when a member it met held that school (Phase 20): after the fates, or empty
+    sameLaw: sameLawIn(state, i, l, cc, who, lawOf(state, i).id),
     // how many lines showed a member holding a school (Phase 20), for tools/accounts.mjs
     schooled: schooled + tally.schooled,
     // how many cast returns were joined by what they witnessed (Phase 15), for tools/accounts.mjs
@@ -438,13 +440,13 @@ export function bookOf(state, i, l) {
   if (state.over) {
     const e = [L.end, L.curse].filter(Boolean).join(" ");
     if (e) out.push({ text: e, end: true });
-    if (L.fates.length) out.push({ text: L.fates.join(" "), end: true });
+    if (L.fates.length || L.sameLaw) out.push({ text: [...L.fates, L.sameLaw].filter(Boolean).join(" "), end: true });
   }
   return out;
 }
 
 // The same life as plain text, to copy or save.
 export function lifeText(state, i, l) {
-  const { title, sub, open, paras, end, curse, fates } = lifeOf(state, i, l);
-  return [[title, sub].filter(Boolean).join("\n"), open, ...paras.map(p => `${p.head}\n${p.text}`), [end, curse].filter(Boolean).join(" "), fates.join(" ")].filter(Boolean).join("\n\n") + "\n";
+  const { title, sub, open, paras, end, curse, fates, sameLaw } = lifeOf(state, i, l);
+  return [[title, sub].filter(Boolean).join("\n"), open, ...paras.map(p => `${p.head}\n${p.text}`), [end, curse].filter(Boolean).join(" "), [...fates, sameLaw].filter(Boolean).join(" ")].filter(Boolean).join("\n\n") + "\n";
 }

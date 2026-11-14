@@ -207,7 +207,7 @@ function metHtml(l) {
 function bookHtml(s, l) {
   return s.lives.map(life => {
     const b = lifeOf(life.st, s.seat, l);
-    return `<article class="cmp-life"><h4>${esc(b.title)}</h4>${b.open ? `<p>${esc(b.open)}</p>` : ""}${b.paras.map(p => `<h5>${esc(p.head)}</h5><p>${esc(p.text)}</p>`).join("")}<p class="cmp-end">${esc([b.end, b.curse].filter(Boolean).join(" "))}</p>${b.fates?.length ? `<p class="cmp-fates">${esc(b.fates.join(" "))}</p>` : ""}</article>`;
+    return `<article class="cmp-life"><h4>${esc(b.title)}</h4>${b.open ? `<p>${esc(b.open)}</p>` : ""}${b.paras.map(p => `<h5>${esc(p.head)}</h5><p>${esc(p.text)}</p>`).join("")}<p class="cmp-end">${esc([b.end, b.curse].filter(Boolean).join(" "))}</p>${b.fates?.length || b.sameLaw ? `<p class="cmp-fates">${esc([...(b.fates ?? []), b.sameLaw].filter(Boolean).join(" "))}</p>` : ""}</article>`;
   }).join("");
 }
 function paint() {
@@ -306,7 +306,7 @@ export function textOf(l = lang) {
   }
   for (const s of model.souls) for (const life of s.lives) {
     const b = lifeOf(life.st, s.seat, l);
-    out.push("", "", [b.title, b.open, ...b.paras.map(p => `${p.head}\n${p.text}`), [b.end, b.curse].filter(Boolean).join(" "), (b.fates ?? []).join(" ")].filter(Boolean).join("\n\n"));
+    out.push("", "", [b.title, b.open, ...b.paras.map(p => `${p.head}\n${p.text}`), [b.end, b.curse].filter(Boolean).join(" "), [...(b.fates ?? []), b.sameLaw].filter(Boolean).join(" ")].filter(Boolean).join("\n\n"));
   }
   return out.join("\n") + "\n";
 }

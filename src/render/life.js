@@ -75,7 +75,7 @@ function panel(game, l, T) {
       `<ol class="life-mirror">${mirrorOf(state, whose).map(m => `<li>${esc(mirrorIn(l, m))}</li>`).join("")}</ol>` +
       `<p><button type="button" class="ghost" data-act="skip">${T("mirrorSkip")}</button></p>`;
   }
-  const { sub, open, paras, end, curse, fates } = lifeOf(state, whose, l);
+  const { sub, open, paras, end, curse, fates: told, sameLaw } = lifeOf(state, whose, l), fates = [...told, sameLaw].filter(Boolean);
   // the source of a law's last word (Sāṃkhya's dancer, Sāṃkhyakārikā 59), in the scholar layer
   const lw = lawOf(state, whose).text, src = lw.endSrc && prefs.depth === "scholar" && end.endsWith(tIn(l, lw.end)) ? tIn(l, lw.endSrc) : "";
   return `<p class="life-scribe">${esc(T("citragupta"))}</p>

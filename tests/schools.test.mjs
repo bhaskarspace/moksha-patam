@@ -202,3 +202,28 @@ test("no form that agrees with the holder is left outside a {who:m|f} choice, in
   }
   assert.deepEqual(unseen, [], "a word outside a choice that may agree with the holder: template it, or pin it in FIXED with what it agrees with");
 });
+
+// Phase 20 review: the closing's one line when the life's law is the school of a member it met
+test("the same-law line is said exactly when the life's law is the school of a member it met, once, freed or not", async () => {
+  const { castAlong } = await import("../src/engine/cast.js");
+  const { yearsAlong } = await import("../src/engine/self.js");
+  const LAW_SCHOOL = { mimamsa: "mimamsa", carvaka: "carvaka", jain: "jaina", bhakti: "bhakti", nyaya: "nyaya", sankhya: "samkhya", advaita: "advaita", yoga: "yoga", board: null };
+  const seen = { said: 0, not: 0, freed: 0 };
+  for (const [law, school] of Object.entries(LAW_SCHOOL)) for (let seed = 1; seed <= 60; seed++) {
+    const s = createGame({ players: [{ name: "Meera", type: "cpu", gender: seed % 2 ? "f" : "m" }], rules: { six: true, law }, seed });
+    while (!s.over) playTurn(s);
+    if (s.players[0].rebirths) continue;
+    const p = s.players[0], along = yearsAlong(p.life || [], p.told || []).filter(e => e.via !== "stay");
+    const met = new Set(castAlong(s, 0, along).filter(c => c.meets).map(c => c.about));
+    const want = !!school && schoolsOf(s, 0, 0).some(h => h.school === school && met.has(h.who));
+    for (const l of ["en", "hi"]) {
+      const text = lifeText(s, 0, l), n = (text.match(l === "en" ? /This life was lived under the same law/g : /यह जीवन उसी नियम पर चला/g) || []).length;
+      assert.equal(n, want ? 1 : 0, `${law} seed ${seed} ${l}: said ${n} times, wanted ${want ? 1 : 0}`);
+      // after the fate lines: the last thing the account says
+      if (want) assert.match(text.trimEnd(), l === "en" ? /had lived by\.$/ : /जीवन जिया था।$/);
+    }
+    seen[want ? "said" : "not"]++;
+    if (want && p.won) seen.freed++;
+  }
+  assert.ok(seen.said > 10 && seen.not > 10, JSON.stringify(seen));
+});

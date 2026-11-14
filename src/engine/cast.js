@@ -163,6 +163,21 @@ export function holderIn(cast, who, l, player) {
   return { name: calledIn(cast, who, l) || (own ? fill(own[l] || own.en, player) : null), gender: cast[who].gender };
 }
 
+// The closing's one line for a life lived under the law of a school a member it met had held (Phase 20): said after the
+// fate lines, once, whether or not the life was freed, and never a verdict on the school. Empty otherwise. A law's id is
+// its school's but for two (jain, sankhya); the board's and the animal's are no school's, and the Buddhist has no law.
+const LAW_SCHOOL = { jain: "jaina", sankhya: "samkhya" };
+export function sameLawIn(state, i, l, cc, player, lawId) {
+  const p = state.players[i], last = cc.at(-1);
+  if (!last?.cast || !(p.dead || p.fell || liberated(state, i))) return "";
+  const met = new Set(cc.filter(c => c.meets && c.life === last.life).map(c => c.about));
+  const h = schoolsOf(state, i, last.life).find(x => x.school === (LAW_SCHOOL[lawId] ?? lawId) && met.has(x.who));
+  if (!h) return "";
+  const fam = CAST_WORDS.family[h.who], t = CAST_WORDS.sameLaw;
+  const name = calledIn(last.cast, h.who, l) || (fam ? fill(fam[l] || fam.en, player) : null);
+  return name ? fill(castFill(t[l] || t.en, { who: { name, gender: last.cast[h.who].gender } }), player) : "";
+}
+
 // How a moment calls a member by name in language l (the teacher is आनंदजी), or null for someone with no name.
 export function calledIn(cast, who, l) {
   const c = cast?.[who];

@@ -1393,6 +1393,10 @@
       "mother": {"en":"{name}'s mother","hi":"{name} की माँ"},
       "father": {"en":"{name}'s father","hi":"{name} के पिता"}
     },
+    "sameLaw": {
+      "en": "This life was lived under the same law {who} had lived by.",
+      "hi": "यह जीवन उसी नियम पर चला जिस पर {who} ने अपना जीवन जिया था।"
+    },
     "own": {
       "mother": {"en":"{his|her|their} mother","hi":"माँ"},
       "father": {"en":"{his|her|their} father","hi":"पिता"}
