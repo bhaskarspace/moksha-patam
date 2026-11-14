@@ -8,7 +8,7 @@
 // The card shows the picture whole, so there is no number's corner or name's strip to keep clear; a margin of about 4.
 // The emblems come in families, as the charts repeat their motifs: a family's base is drawn once, as the symbol cf-NAME
 // (BASES, below), and each square of the family uses it and adds its own small variation.
-import { dot, poly, shape, line, lotus, flame, moon, pot, sea, sun, bowl, crown, perched, hex } from "../tools/vignette-parts.mjs";
+import { place, dot, poly, shape, line, lotus, flame, moon, pot, sea, sun, bowl, crown, perched, crow, horse, deer, hex } from "../tools/vignette-parts.mjs";
 
 // a family's base, used whole; drawn at its own place, so most squares use it as it is
 const base = (name, { x = 0, y = 0 } = {}) => `<use href="#cf-${name}" width="48" height="48"${x || y ? ` x="${x}" y="${y}"` : ""}/>`;
@@ -35,6 +35,46 @@ const hood = (x, y, S, [body, belly, tongue] = ["malachite", "yellow", "vermilio
 // the signs the passions' cloud holds, some on both cloths
 const bolt = () => poly([[22, 12.6], [29, 12.6], [25.6, 18.6], [30.4, 18.6], [19.4, 31], [22.8, 22], [18.6, 22]], "vermilion");
 const pouch = () => [shape("M-5,5 C-7.4,1 -5.6,-3.6 -2,-4.6 L-3,-7 L3,-7 L2,-4.6 C5.6,-3.6 7.4,1 5,5 Z", "ochre", { x: 24, y: 22, s: 1.1 }), line("M20.4,17 L27.6,17")];
+const whirl = () => cline("M24,22 C25.6,22 25.6,24 24,24 C21.6,24 21.6,20.4 24,20.2 C27.6,20 27.8,25.6 24,26 C19.4,26.4 18.8,18.6 24,18.2 C29.6,17.8 31,24 28.6,27", "yellow");
+const thorn = () => [cline("M14,26 C18,18 24,26 28,18 C30,14 33,15 34,17", "malachite"), ...[[16.6, 22], [21, 21.6], [25.6, 22.4], [29.6, 16]].map(([x, y]) => poly([[x - 1, y], [x + 1, y], [x, y - 2.6]], "malachite", false))];
+const ember = () => [shape("M-6,3 C-7,-1 -3,-3 0,-2.4 C3,-3 7,-1 6,3 Z", "lac", { x: 24, y: 25 }), dot(21.4, 24.6, 1, "vermilion", false), dot(26, 25.4, 0.9, "yellow", false), cline("M22,19 C20,16 24,15 22,12 M26.4,19 C24.4,16 28.4,15 26.4,12", "shell")];
+const snapped = () => [shape("M8,20 C12,16.6 15,22.6 19.6,19.4 L20.6,22.6 C15.6,25.6 12.4,20 9.4,23.4 Z", "yellow"), shape("M40,20 C36,16.6 33,22.6 28.4,19.4 L27.4,22.6 C32.4,25.6 35.6,20 38.6,23.4 Z", "yellow"), line("M20,20.8 L22.4,19 M20.4,22 L22.8,22.4 M28,20.8 L25.6,19 M27.6,22 L25.2,22.4")];
+const feather = () => [cline("M17,31 C20,24 23,19 27,15", "malachite"), shape(oval(28, 14, 4.4, 6), "malachite"), shape(oval(28, 14, 2.6, 3.6), "indigo", {}, false), dot(28, 14, 1.4, "yellow", false)];
+const knot = () => cline("M12,24 C16,18 22,30 26,22 C29,16 22,14 21,20 C20,26 30,28 32,22 C33,19 36,20 37,22", "yellow");
+// the karma family's dust in its kinds
+const settled = Array.from({ length: 18 }, (_, k) => [13 + (k % 9) * 2.8, 33 + Math.floor(k / 9) * 2.6 + (k % 2) * 0.8]);
+const even = Array.from({ length: 25 }, (_, k) => [14 + (k % 5) * 5, 14 + Math.floor(k / 5) * 5]);
+const leaving = Array.from({ length: 16 }, (_, k) => [20 + k * 1.6 + (k > 7 ? (k - 7) * 0.8 : 0), 24 + Math.sin(k * 1.3) * (1.4 + k * 0.25)]);
+// the haṃsa, that parts milk from water: discrimination's emblem, and Brahmā's mount
+const hamsa = (x, y) => [shape("M-9,2 C-9,-2 -4,-3 2,-2 L5,-9 C6,-12 10,-12 10.6,-9.4 L8.4,-8.6 C6.6,-6 5.6,-2 8,1 C6,5 -6,5 -9,2 Z", "shell", { x, y }), poly([[x + 10.6, y - 9.4], [x + 13.4, y - 8.8], [x + 10.4, y - 7.6]], "yellow")];
+// a knife, its blade and handle
+const knife = () => [shape("M-11,1 L4,1 L4,-2 C-2,-3 -8,-2 -11,1 Z", "shell", { x: 22, y: 22 }), poly([[26, 19.4], [33, 19.4], [33, 23.6], [26, 23.6]], "ochre")];
+// a row of small flames, n of them, for a count
+const flames = (n, y = 30) => Array.from({ length: n }, (_, k) => flame(26 + (k * 16) / Math.max(1, n - 1), y, 7));
+// rows of points, for the counts the charts give
+const counts = rows => {
+  // six to a line at most, each count's lines together, from the top down
+  const lines = rows.flatMap(([n, fill]) => Array.from({ length: Math.ceil(n / 6) }, (_, k) => [Math.min(6, n - k * 6), fill]));
+  return lines.flatMap(([n, fill], r) => Array.from({ length: n }, (_, k) => dot(26 + k * 3.4, 34 - (lines.length - 1 - r) * 4.4, 1, fill)));
+};
+// a string of beads, broken, the beads fallen
+const broken = () => [cline("M13,22 C15,17 22,15 27,17", "yellow"), ...[[13, 22], [15, 18.6], [18.6, 16.6], [22.6, 16], [27, 17], [27, 27], [30.4, 28], [33.4, 25.6], [21, 28]].map(([x, y]) => dot(x, y, 1.3, "yellow"))];
+// two vimānas, small, side by side
+const pair = (a = "yellow", b = "gold-hi") => [...vimana(15, 40, 16, a), ...vimana(33, 40, 16, b)];
+// four vimānas, two and two, a heavens' plane
+const row4 = (a, b) => [[14, 24, a], [34, 24, b], [14, 43, b], [34, 43, a]].flatMap(([x, y, c]) => vimana(x, y, 13, c, false));
+// the neck heavens' ornament: beads under the vimāna
+const beads = () => Array.from({ length: 9 }, (_, k) => dot(8 + k * 4, 42.6 + 2.6 * Math.sin((k * Math.PI) / 8), 1.3, "gold"));
+const star = (x, y, r = 3) => shape(`M0,-${r} L${r * 0.27},-${r * 0.27} L${r},0 L${r * 0.27},${r * 0.27} L0,${r} L-${r * 0.27},${r * 0.27} L-${r},0 L-${r * 0.27},-${r * 0.27} Z`, "shell", { x, y });
+// a path drawn about (0, 0), turned by deg and set at (x, y): the coordinates turned, as the sprites have no transforms
+const turn = (d, deg, x, y) => {
+  const a = (deg * Math.PI) / 180, c = Math.cos(a), sn = Math.sin(a), n = d.match(/-?\d*\.?\d+/g).map(Number), out = [];
+  for (let k = 0; k < n.length; k += 2) out.push(+(x + n[k] * c - n[k + 1] * sn).toFixed(2), +(y + n[k] * sn + n[k + 1] * c).toFixed(2));
+  let k = 0;
+  return d.replace(/-?\d*\.?\d+/g, () => out[k++]);
+};
+// the lamp fallen, upturned on the ground, its oil spilt
+const tipped = (x, y) => [shape(turn("M-6,0 L6,0 C5,3 -5,3 -6,0 Z", 160, x, y), "ochre"), shape(turn("M-1.2,2.2 L1.2,2.2 L2.4,6 L-2.4,6 Z", 160, x, y), "ochre"), shape(oval(x + 9, y + 3.4, 7, 1.6), "yellow")];
 // an arrow, filled, from (x1, y1) to (x2, y2)
 const arrow = (x1, y1, x2, y2, fill = "yellow") => {
   const a = Math.atan2(y2 - y1, x2 - x1), c = Math.cos(a), s = Math.sin(a), w = 1.1, h = 3.4;
@@ -44,6 +84,10 @@ const arrow = (x1, y1, x2, y2, fill = "yellow") => {
 };
 // the 72's centre column of realms: tier k (0, earth, to 6, truth) as a path
 const tier = k => [[24 - 17 + 2 * k, 42 - 4.8 * k], [24 + 17 - 2 * k, 42 - 4.8 * k], [24 + 17 - 2 * k, 37.2 - 4.8 * k], [24 - 17 + 2 * k, 37.2 - 4.8 * k]];
+// the 72's realms, each tier its colour, earth first
+const TIER = ["malachite", "indigo", "yellow", "vermilion", "beetle", "lac", "shell"];
+// small clouds, pale, for the sky between the worlds
+const puff = (x, y, s = 1, fill = "shell") => shape("M-6,2 C-8,2 -8,-1 -5.6,-1.2 C-5.6,-4 -1.6,-4.6 -0.4,-2.4 C0.6,-4.4 4.6,-4 4.6,-1 C7,-1 7.6,2 5.4,2 Z", fill, { x, y, s });
 // a pennant on the vimāna's pole
 const pennant = fill => poly([[24, 14.8], [28.4, 16.6], [24, 18.4]], fill);
 // a soul's disc, clear, and the karma's dust on it at the given points
@@ -153,6 +197,112 @@ export default {
     65: { draw: () => [poly([[4, 22], [44, 22], [44, 44], [4, 44]], "palegreen"), line("M14,44 C18,36 26,32 23.4,22.6 M30,44 C30,36 28,30 24.6,22.6"), dot(24, 19.4, 1.7, "yellow")] },
     // Water, the element: a drop, and the water under it.
     53: { draw: () => [shape("M0,-10 C4,-4 6,0 6,3 C6,7 3,9 0,9 C-3,9 -6,7 -6,3 C-6,0 -4,-4 0,-10 Z", "indigo", { x: 24, y: 16 }), sea(4, 30, 40, 14)] },
+    // ---- families, sheet 2 ----
+    // Illusion: the rope taken for a snake (rajju-sarpa): a rope coiled in the cloud, and the shadow it throws a snake.
+    2: { draw: () => [base("cloud"), ...[26.4, 23.6, 20.8].flatMap(y => [shape(oval(23, y, 7.4, 2.4), "ochre"), line(`M18,${y - 1.2} L19.4,${y + 1.4} M21.4,${y - 2} L22.8,${y + 2} M25,${y - 2} L26.4,${y + 1.8} M28.4,${y - 1.4} L29.4,${y + 1}`)]),
+      shape("M30,21 C33,20.4 34,23 36,22.4 L36.4,24 C33.6,25 32.4,22.6 30.4,22.8 Z", "ochre"),
+      shape("M6,42 C10,38.4 14,45 18,41.6 C22,38.4 25,44 29,41 L30.4,42.6 C26,46 22.6,40.4 19.4,43.2 C15,47 11,40.4 7.4,43.6 Z", "black"), ...hood(33, 37, 13, ["black", "nila", "black"])] },
+    // Greed: the cloud, the pouch tied shut.
+    4: { draw: () => [base("cloud"), ...pouch()] },
+    // Bewilderment: the cloud, a whirl in it.
+    6: { draw: () => [base("cloud"), whirl()] },
+    // Intoxication, pride: the cloud, a cup tipped and spilling.
+    7: { draw: () => [base("cloud"), shape("M-5,-4 L5,-4 C5,1 3,4 0,4 C-3,4 -5,1 -5,-4 Z", "ochre", { x: 22, y: 20, s: 1 }), poly([[20.6, 24], [23.4, 24], [24, 27], [20, 27]], "ochre"), dot(29.4, 16.4, 1.2, "vermilion", false), dot(31.6, 19.4, 1, "vermilion", false), dot(30, 22.6, 0.9, "vermilion", false)] },
+    // The gandharvas' realm, beside the column: the celestial musicians' vīṇā.
+    11: { draw: () => [base("tiers"), poly([[4.6, 33.4], [6, 34.6], [15.4, 12.6], [14, 11.4]], "ochre"), dot(7.6, 33.4, 4.2, "ochre"), dot(13.4, 16.4, 3, "ochre"), dot(15, 10.6, 1.1, "vermilion")] },
+    // Between the worlds: the column, and the clouds beside it.
+    13: { draw: () => [base("tiers"), puff(9, 19), puff(39, 13, 0.9), puff(41, 27, 0.8)] },
+    // The atmosphere, the second realm: its tier, the sky's colour.
+    14: { draw: () => [base("tiers"), poly(tier(1), TIER[1])] },
+    // Touch: the ring, a feather.
+    31: { draw: () => [base("ring"), shape("M0,-12 C5,-8 6,0 0,10 C-6,0 -5,-8 0,-12 Z", "ochre", { x: 24, y: 24 }), line("M24,13 L24,35 M24,20 L20.4,17 M24,24 L19.6,21 M24,20 L27.6,17 M24,24 L28.4,21")] },
+    // Taste: the ring, a sweet on a leaf.
+    34: { draw: () => [base("ring"), shape("M-11,0 C-6,-5 6,-5 11,0 C6,5 -6,5 -11,0 Z", "malachite", { x: 24, y: 29 }), dot(24, 24.6, 5.4, "yellow"), ...[[22, 23], [25.6, 22.4], [24.6, 26], [21.6, 26.2]].map(([x, y]) => dot(x, y, 0.6, "ochre", false))] },
+    // The vital breath: the wind rising.
+    38: { draw: () => [base("vessel"), line("M17,22 C13,18 21,15 17,11 C14,8 17,5 19.4,5.6 M24,23 C20,19 28,16 24,12 C21,9 24,4 26.6,4.6 M31,22 C27,18 35,15 31,11 C28,8 31,5 33.4,5.6")] },
+    // The diffuse breath: the wind going all round the body.
+    40: { draw: () => [base("vessel"), line("M8,40 C2,28 6,14 18,10 C28,7 40,12 42,24 C43.4,32 40,38 36,40 M36,40 L37.4,36.4 M36,40 L39.8,40.4 M13,36 C10,28 13,20 20,17")] },
+    // The digestive fire: the fire within the vessel.
+    42: { draw: () => [base("vessel"), flame(24, 23.4, 16)] },
+    // Sarasvatī: the river that runs hidden, pale, its course in points.
+    47: { draw: () => [...river("cloth", { crest: "indigo" }), ...[[21, 8], [19.6, 13], [17, 18], [17, 23], [21, 27.4], [26, 30]].map(([x, y]) => dot(x, y, 0.9, "indigo", false))] },
+    // Activity, the second quality: the red.
+    71: { draw: () => guna("vermilion") },
+    // Inertia, the third: the black.
+    72: { draw: () => guna("black") },
+    // ---- families, sheet 3 ----
+    // Jealousy: the cloud, a thorn in it.
+    8: { draw: () => [base("cloud"), ...thorn()] },
+    // Envy: the cloud, an ember burning in it.
+    12: { draw: () => [base("cloud"), ...ember()] },
+    // Hatred: the cloud, a cord snapped.
+    16: { draw: () => [base("cloud"), ...snapped()] },
+    // Heaven, the third realm: its tier, gold.
+    23: { draw: () => [base("tiers"), poly(tier(2), TIER[2])] },
+    // The realm of majesty, the fourth.
+    32: { draw: () => [base("tiers"), poly(tier(3), TIER[3])] },
+    // The realm of men, the fifth.
+    41: { draw: () => [base("tiers"), poly(tier(4), TIER[4])] },
+    // The realm of austerity, the sixth.
+    50: { draw: () => [base("tiers"), poly(tier(5), TIER[5])] },
+    // The realm of truth, the seventh, below Vaikuṇṭha.
+    59: { draw: () => [base("tiers"), poly(tier(6), TIER[6])] },
+    // Earth, the element: the ground's mound, grass on it.
+    51: { draw: () => [shape("M-20,10 C-14,-4 -6,-10 0,-10 C6,-10 14,-4 20,10 Z", "ochre", { x: 24, y: 32 }), shape("M0,0 C1,-3 3,-5 6,-6 C4,-4 3,-2 2.4,0 Z", "malachite", { x: 22, y: 22.4 }), shape("M0,0 C-1,-3 -3,-5 -6,-6 C-4,-4 -3,-2 -2.4,0 Z", "malachite", { x: 26, y: 22.4 })] },
+    // Space, the element: the night sky, and the stars in it.
+    56: { draw: () => [dot(24, 24, 18, "nila"), ...[[16, 15], [30, 12], [35, 24], [19, 31], [28, 34], [24, 22]].map(([x, y], k) => dot(x, y, k === 5 ? 1.6 : 1, "shell", false))] },
+    // Fire, the element.
+    58: { draw: () => [flame(24, 42, 34)] },
+    // Primordial matter: the elements unparted, earth, water, fire and wind in one.
+    64: { draw: () => [dot(24, 24, 18, "paleochre"), line("M24,6 L24,42 M6,24 L42,24"), shape("M-8,4 C-6,-2 -2,-4 0,-4 C2,-4 6,-2 8,4 Z", "ochre", { x: 15, y: 33 }), shape("M0,-5 C2,-2 3,0 3,1.6 C3,3.6 1.6,4.6 0,4.6 C-1.6,4.6 -3,3.6 -3,1.6 C-3,0 -2,-2 0,-5 Z", "indigo", { x: 33, y: 32 }), flame(15, 20, 10), line("M28,15 C31,13 34,17 37,15 M29,19 C32,17 35,21 38,19")] },
+    // Brahmā's realm, beside Vaikuṇṭha: his emblems, the haṃsa he rides and his water pot.
+    69: { draw: () => [sea(4, 34, 40, 10), shape("M-9,2 C-9,-2 -4,-3 2,-2 L5,-9 C6,-12 10,-12 10.6,-9.4 L8.4,-8.6 C6.6,-6 5.6,-2 8,1 C6,5 -6,5 -9,2 Z", "shell", { x: 20, y: 31 }), poly([[30.6, 21.6], [33.4, 22.2], [30.4, 23.4]], "yellow"), pot(38, 17, 0.8, "ochre", "vermilion")] },
+    // ---- families, sheet 4 ----
+    // Joy: the lamp, a garland hung over it.
+    18: { draw: () => [base("lamp"), cline("M10,10 C18,22 32,22 40,10", "malachite"), ...Array.from({ length: 9 }, (_, k) => { const t = k / 8, x = 10 + 30 * t, y = 10 + 12 * 4 * t * (1 - t) * 0.75; return dot(x, y, 1.7, k % 2 ? "yellow" : "vermilion"); })] },
+    // The discipline of action: the lamp, a sheaf of grain gathered by the work.
+    19: { draw: () => [base("lamp"), cline("M33,38 L33,16 M33,38 L28.4,17 M33,38 L37.6,17 M33,38 L30.4,16 M33,38 L35.6,16", "malachite"), ...[[28.4, 15.4], [30.6, 13.6], [33, 13], [35.4, 13.6], [37.6, 15.4]].map(([x, y]) => shape(oval(x, y, 1.4, 3), "yellow")), poly([[30.4, 29], [35.6, 29], [35.6, 31.4], [30.4, 31.4]], "vermilion")] },
+    // Charity: the lamp, grain heaped to give, and coins.
+    20: { draw: () => [base("lamp"), shape("M-9,0 C-7,-6 -3,-9 0,-9 C3,-9 7,-6 9,0 Z", "yellow", { x: 33, y: 38 }), ...[[26.4, 35.6], [40, 35.6], [33, 26.4]].map(([x, y]) => dot(x, y, 1.8, "gold"))] },
+    // Religion: the lamp, the book on its stand.
+    22: { draw: () => [base("lamp"), poly([[26, 38], [29, 32], [37, 32], [40, 38]], "ochre"), poly([[25, 30], [41, 30], [41, 33], [25, 33]], "shell"), poly([[31, 29.4], [35, 29.4], [35, 33.6], [31, 33.6]], "vermilion")] },
+    // Good company: the lamp, and a second lamp lit from it.
+    25: { draw: () => [base("lamp"), ...lamp(32, 31, 1)] },
+    // The highest truth: the lamp, and the sun.
+    27: { draw: () => [base("lamp"), sun(33, 17, 5.4, { rays: 12 })] },
+    // Righteousness: the lamp, and the scales level.
+    28: { draw: () => [base("lamp"), poly([[32.2, 14], [33.8, 14], [33.8, 38], [32.2, 38]], "ochre"), line("M24,16 L42,16 M26,16 L24,25 M26,16 L28,25 M40,16 L38,25 M40,16 L42,25"), shape("M-4.4,0 L4.4,0 C3.6,2.4 -3.6,2.4 -4.4,0 Z", "ochre", { x: 26, y: 25 }), shape("M-4.4,0 L4.4,0 C3.6,2.4 -3.6,2.4 -4.4,0 Z", "ochre", { x: 40, y: 25 })] },
+    // The best course: the lamp, and a bird rising.
+    30: { draw: () => [base("lamp"), shape("M-9,2 C-5,-2 -2,-1 0,1 C2,-4 6,-7 10,-6 C6,-4 3,0 2,4 C-1,2 -5,1 -9,2 Z", "shell", { x: 32, y: 16 })] },
+    // Bad company: the cloud, and a crow on its edge.
+    24: { draw: () => [base("cloud"), ...crow(30, 40, { s: 1.1 })] },
+    // Sorrow: the cloud, and its rain.
+    26: { draw: () => [base("cloud"), ...[[14, 36], [20, 40], [26, 36], [32, 40], [37, 35]].map(([x, y]) => shape("M0,-3 C1.4,-1 2,0 2,1 C2,2.4 1,3 0,3 C-1,3 -2,2.4 -2,1 C-2,0 -1.4,-1 0,-3 Z", "indigo", { x, y }))] },
+    // Unrighteousness: the virtues' lamp fallen from its shelf, its oil spilt on the ground; the shelf left empty.
+    29: { draw: () => [poly([[4, 22], [44, 22], [44, 25], [4, 25]], "ochre"), line("M10,25 L10,30 M38,25 L38,30"), poly([[4, 41], [44, 41], [44, 44], [4, 44]], "paleochre"), ...tipped(16, 38)] },
+    // Ignorance: the cloud, a lamp in it gone out, its smoke.
+    44: { draw: () => [base("cloud"), shape("M-6,0 L6,0 C5,3 -5,3 -6,0 Z", "ochre", { x: 24, y: 25 }), cline("M24,23 C22,20 26,18 24,15 C22.6,13 24,11 25,10.6", "shell")] },
+    // ---- families, sheet 5 ----
+    // Knowledge: the lamp, a palm-leaf book.
+    37: { draw: () => [base("lamp"), poly([[25, 31], [43, 31], [43, 35], [25, 35]], "cloth"), line("M27,32.6 L41,32.6 M27,34 L37,34"), dot(34, 33, 0.8, "black", false)] },
+    // Right learning: the lamp, a slate with its letters.
+    45: { draw: () => [base("lamp"), poly([[26, 20], [40, 20], [40, 36], [26, 36]], "beetle"), poly([[31.6, 36], [34.4, 36], [34.4, 38], [31.6, 38]], "ochre"), cline("M28.4,24 C30,22.4 31,25.4 32.4,24 M34,24 L37.6,24 M28.4,29 L33,29 C34,28 35,30 37.4,28.4", "shell")] },
+    // Discrimination: the lamp, and the haṃsa that parts milk from water.
+    46: { draw: () => [base("lamp"), ...hamsa(32, 34)] },
+    // Good intellect: the lamp, a lotus open.
+    60: { draw: () => [base("lamp"), lotus(33, 34, 7)] },
+    // Happiness: the lamp, the full pot, its leaves and the coconut.
+    62: { draw: () => [base("lamp"), pot(33, 30.4, 0.8, "ochre", "vermilion"), ...[-1, 1].map(f => shape("M0,0 C2,-2 5,-2.6 7,-2 C5,0 2,0.6 0,0 Z", "malachite", { x: 33, y: 23.6, face: f })), dot(33, 21.4, 2.6, "lac")] },
+    // Bliss, the realm beside the gods': the column, and a lotus opened above it.
+    66: { draw: () => [base("tiers"), lotus(39, 12, 6, { fill: "vermilion", inner: "shell" })] },
+    // Injury: the cloud, a knife in it.
+    52: { draw: () => [base("cloud"), ...knife()] },
+    // Egoity: the cloud, a crown in it.
+    55: { draw: () => [base("cloud"), crown(24, 26, 12, "yellow")] },
+    // Foolishness: the cloud, a pot cracked and leaking.
+    61: { draw: () => [base("cloud"), pot(24, 22, 0.7, "ochre", "vermilion"), line("M22,17 L24.6,20 L22.6,23 L25,26"), dot(26, 29.4, 0.9, "shell", false)] },
+    // Darkness: the cloud, the sun eclipsed in it.
+    63: { draw: () => [base("cloud"), dot(24, 21, 6, "yellow"), dot(25.6, 20.2, 5.6, "black")] },
     // Vaikuṇṭha, the goal: Viṣṇu's discus and conch, his emblems and never his likeness.
     68: { draw: () => [lotus(24, 39, 9, { fill: "vermilion", inner: "shell" }), ...discus(15, 20, 8), ...conch(34, 20, 1.15)] },
   },
@@ -189,6 +339,157 @@ export default {
     77: { draw: () => [base("vimana"), pennant("yellow"), ...Array.from({ length: 9 }, (_, k) => dot(8 + k * 4, 42.6 + 2.6 * Math.sin((k * Math.PI) / 8), 1.3, "gold"))] },
     // Vaijayanta, an unsurpassed heaven: the vimāna crowned, as the board crowns its square.
     86: { draw: () => [base("vimana"), pennant("malachite"), crown(24, 23, 9, "gold")] },
+    // ---- families, sheet 2 ----
+    // Anger: the cloud, the bolt.
+    3: { draw: () => [base("cloud"), bolt()] },
+    // Delusion born of ignorance: the cloud, the whirl.
+    5: { draw: () => [base("cloud"), whirl()] },
+    // Water-bodies: the field of beings, in water.
+    23: { draw: () => [dark("nila"), base("points"), cline("M6,18 C10,16 14,20 18,18 C22,16 26,20 30,18 C34,16 38,20 42,18 M6,32 C10,30 14,34 18,32 C22,30 26,34 30,32 C34,30 38,34 42,32", "indigo")] },
+    // Fire-bodies: the field of beings, in fire.
+    25: { draw: () => [dark("vermilion"), base("points")] },
+    // Wind-bodies: the field of beings, in the wind.
+    26: { draw: () => [dark("beetle"), base("points"), cline("M6,14 C14,10 22,18 30,14 C34,12 36,9 34,7 M8,30 C16,26 24,34 34,29 C38,27 40,24 37,23", "palegreen")] },
+    // The grey stain, the dove's: the disc stippled to grey.
+    40: { draw: () => [dot(24, 24, 18, "shell"), dot(24, 24, 12, "shell"), ...Array.from({ length: 60 }, (_, k) => [24 + Math.sqrt(k + 0.5) * 1.5 * Math.cos(k * 2.4), 24 + Math.sqrt(k + 0.5) * 1.5 * Math.sin(k * 2.4)]).map(([x, y]) => dot(x, y, 0.62, "black", false))] },
+    // The red stain, the fiery.
+    41: { draw: () => stain("vermilion") },
+    // The lotus-coloured stain: the red disc opened as a lotus.
+    46: { draw: () => [...stain("vermilion"), ...[0, 60, 120, 180, 240, 300].map(d => shape(turn("M0,0 C2.4,-2.4 2.4,-6 0,-8.6 C-2.4,-6 -2.4,-2.4 0,0 Z", d, 24, 24), "shell")), dot(24, 24, 1.8, "yellow")] },
+    // Aiśāna, the second heaven: the vimāna under the moon.
+    59: { draw: () => [base("vimana"), pennant("indigo"), moon(10, 10, 3.6, "shell")] },
+    // Sānatkumāra, the third: the vimāna under the stars.
+    62: { draw: () => [base("vimana"), pennant("yellow"), ...[[8, 8], [13, 13], [40, 9], [37, 15]].map(([x, y]) => dot(x, y, 1.3, "gold"))] },
+    // ---- families, sheet 3 ----
+    // Knowledge, the mixed stage: the lamp, and right and wrong view together, a disc half light and half dark.
+    7: { draw: () => [base("lamp"), dot(32, 29, 6.4, "shell"), shape("M0,-6.4 C3.6,-6.4 6.4,-3.6 6.4,0 C6.4,3.6 3.6,6.4 0,6.4 Z", "black", { x: 32, y: 29 })] },
+    // Jealousy: the cloud, the thorn.
+    8: { draw: () => [base("cloud"), ...thorn()] },
+    // Pride that binds: the cloud, a peacock's feather in it.
+    9: { draw: () => [base("cloud"), ...feather()] },
+    // Deceit: the cloud, a cord in a knot.
+    10: { draw: () => [base("cloud"), knot()] },
+    // The specifiable souls: points come up out of the basic lifeforms' dark.
+    11: { draw: () => [dark("paleochre"), poly([[4, 26], [44, 26], [44, 44], [4, 44]], "indigo"), base("points"), ...[[12, 20], [20, 14], [27, 19], [34, 11], [39, 18], [16, 8]].map(([x, y]) => dot(x, y, 0.9, "indigo", false))] },
+    // The other basic lifeforms, the passing ones: their field, dark red.
+    21: { draw: () => [dark("lac"), base("points")] },
+    // Plant-bodies: the field of beings, green, a leaf among them.
+    27: { draw: () => [dark("malachite"), base("points"), ...[[14, 16], [32, 30]].map(([x, y]) => shape("M-5,0 C-3,-3.6 3,-3.6 5,0 C3,3.6 -3,3.6 -5,0 Z", "palegreen", { x, y }))] },
+    // Three-sensed beings: ants, in a line.
+    35: { draw: () => [dark("paleochre"), ...[[10, 34], [17, 29], [24, 25], [31, 20], [38, 15], [14, 14]].flatMap(([x, y]) => [line(`M${x - 2},${y - 2} L${x + 2},${y + 2} M${x - 2},${y + 2} L${x + 2},${y - 2}`), dot(x - 2.6, y, 1, "black", false), dot(x, y, 1.2, "black", false), dot(x + 3, y, 1.6, "black", false)])] },
+    // Four-sensed beings: bees.
+    36: { draw: () => [dark("paleochre"), ...[[12, 14], [30, 11], [22, 24], [37, 27], [13, 35], [28, 38]].flatMap(([x, y]) => [shape(oval(x - 1, y - 2.6, 2, 1.6), "shell"), shape(oval(x + 1.4, y - 2.6, 2, 1.6), "shell"), shape(oval(x, y, 3.4, 2.2), "yellow"), line(`M${x},${y - 2.2} L${x},${y + 2.2}`)])] },
+    // Māhendra, the fourth heaven: the vimāna under Indra's bow.
+    63: { draw: () => [cline("M6,24 C8,8 40,8 42,24", "vermilion"), cline("M8.4,24 C10,11 38,11 39.6,24", "yellow"), cline("M10.8,24 C12.4,14 35.6,14 37.2,24", "malachite"), base("vimana"), pennant("shell")] },
+    // Brahma and Lāntaka, the fifth and sixth: two vimānas.
+    64: { draw: () => [...vimana(15, 40, 16, "yellow"), ...vimana(33, 40, 16, "gold-hi")] },
+    // Śukra, the seventh: the vimāna under the bright planet.
+    69: { draw: () => [base("vimana"), pennant("vermilion"), shape("M0,-5 L1.2,-1.2 L5,0 L1.2,1.2 L0,5 L-1.2,1.2 L-5,0 L-1.2,-1.2 Z", "shell", { x: 10, y: 10 })] },
+    // ---- families, sheet 4 ----
+    // Asura and Suvarṇa gods: their palace, the dark disc and the golden.
+    12: { draw: () => [base("pavilion"), dot(16, 13, 5, "indigo"), dot(32, 13, 5, "gold")] },
+    // The ten groups of palace gods: ten roofs, two rows of five.
+    15: { draw: () => [poly([[4, 41], [44, 41], [44, 44], [4, 44]], "ochre"), ...Array.from({ length: 10 }, (_, k) => [8 + (k % 5) * 8, 20 + Math.floor(k / 5) * 14]).flatMap(([x, y]) => [poly([[x - 1, y], [x + 1, y], [x + 1, y + 7], [x - 1, y + 7]], "shell"), shape("M-4,0 L4,0 L3.2,-2 C1.4,-3.4 -1.4,-3.4 -3.2,-2 Z", "vermilion", { x, y })])] },
+    // Dvīpa and Udadhi gods: their palace, an island in the ocean.
+    16: { draw: () => [base("pavilion"), sea(4, 12, 40, 9), shape("M-7,0 C-5,-4 -2,-5.4 0,-5.4 C2,-5.4 5,-4 7,0 Z", "ochre", { x: 24, y: 13 }), shape("M0,0 C1,-2 2.4,-3.6 4.4,-4 C3,-2.6 2,-1.4 1.4,0 Z", "malachite", { x: 23, y: 8.4 })] },
+    // Diśā and Stanita gods: their palace, the four quarters and the thundercloud.
+    18: { draw: () => [base("pavilion"), line("M14,6 L14,18 M8,12 L20,12"), ...[[14, 5.4], [14, 18.6], [7.4, 12], [20.6, 12]].map(([x, y]) => dot(x, y, 1.2, "gold")), puff(33, 13, 1.3, "indigo")] },
+    // Vāyu and Nāga gods: their palace, the wind and the serpent's hood.
+    19: { draw: () => [base("pavilion"), line("M6,8 C10,6 14,10 18,8 C20,7 21,5 19.6,4.4 M7,14 C11,12 15,16 20,13.6"), ...hood(33, 9, 13)] },
+    // Suppressing karma: the soul's dust settled, as mud settles in still water.
+    20: { draw: () => [...soul(settled), line("M10,30 L38,30")] },
+    // Auspicious karma: the soul's dust, golden.
+    28: { draw: () => [dot(24, 24, 15, "shell"), ...even.map(([x, y]) => dot(x, y, 1.1, "gold", false))] },
+    // Karma arising in its own time: the dust going out from the soul.
+    30: { draw: () => soul(leaving) },
+    // Karma abiding: the dust held in the soul, still.
+    32: { draw: () => soul(even) },
+    // Stopping the influx: the soul walled, the dust kept outside.
+    37: { draw: () => [dot(24, 24, 15.6, "ochre"), ...soul([], 24, 12.6), ...Array.from({ length: 14 }, (_, k) => [24 + 19.4 * Math.cos((k * Math.PI) / 7), 24 + 19.4 * Math.sin((k * Math.PI) / 7)]).map(([x, y]) => dot(x, y, 0.95, "black", false))] },
+    // Sahasrāra, the eighth heaven: the vimāna under the thousand-rayed sun.
+    70: { draw: () => [base("vimana"), pennant("malachite"), sun(10, 10, 3, { rays: 20 })] },
+    // Āraṇa, the eleventh: the vimāna in the clouds.
+    73: { draw: () => [base("vimana"), pennant("lac"), puff(9, 12), puff(39, 18, 0.8)] },
+    // Acyuta, the twelfth and last of the kalpa heavens: the vimāna under three stars.
+    74: { draw: () => [base("vimana"), pennant("gold-hi"), ...[[10, 8], [17, 5], [38, 8]].map(([x, y]) => shape("M0,-3 L0.8,-0.8 L3,0 L0.8,0.8 L0,3 L-0.8,0.8 L-3,0 L-0.8,-0.8 Z", "shell", { x, y }))] },
+    // ---- families, sheet 6 ----
+    // Non-restraint: the cloud, a horse with no rein.
+    60: { draw: () => [base("cloud"), ...horse(24, 28, { s: 0.6 })] },
+    // Egoity of inertia: the cloud, a crown in black, edged light to stand off the cloud.
+    67: { draw: () => [base("cloud"), crown(24, 26, 12, "black"), cline(place("M-4.2,-0.6 L-4.2,-2.2 L-2.8,-0.9 L0,-4 L2.8,-0.9 L4.2,-2.2 L4.2,-0.6 Z", { x: 24, y: 26, s: 1.2 }), "shell")] },
+    // Egoity of activity: the cloud, a crown in red.
+    75: { draw: () => [base("cloud"), crown(24, 26, 12, "vermilion")] },
+    // Deluding karma, the strongest: the cloud, the whirl, the dust caught in it.
+    76: { draw: () => [base("cloud"), whirl(), ...[[17, 16], [31, 15], [16, 27], [32, 27], [28, 12]].map(([x, y]) => dot(x, y, 0.95, "shell", false))] },
+    // The plane of the stationary beings: the five fields side by side, earth, water, fire, wind and plant.
+    24: { draw: () => [...["gold", "nila", "vermilion", "beetle", "malachite"].map((c, k) => poly([[4 + k * 8, 4], [12 + k * 8, 4], [12 + k * 8, 44], [4 + k * 8, 44]], c)), base("points")] },
+    // The plane of fewer senses: a shell, an ant, a bee.
+    33: { draw: () => [dark("paleochre"), shape("M0,-4.4 C3,-4.4 3.6,-1 3.6,0 C3.6,1 3,4.4 0,4.4 C-3,4.4 -3.6,1 -3.6,0 C-3.6,-1 -3,-4.4 0,-4.4 Z", "shell", { x: 12, y: 30 }), line("M12,27 L12,33"), line("M20,24 L24,28 M20,28 L24,24"), dot(19.4, 26, 1, "black", false), dot(22, 26, 1.2, "black", false), dot(25, 26, 1.6, "black", false), shape(oval(34, 15.4, 2, 1.6), "shell"), shape(oval(36.4, 15.4, 2, 1.6), "shell"), shape(oval(35, 18, 3.4, 2.2), "yellow"), line("M35,15.8 L35,20.2")] },
+    // The plane of plants and animals: the field, a deer in it.
+    42: { draw: () => [dark("malachite"), base("points"), ...deer(24, 36, { s: 0.8 })] },
+    // Plants and animals turned to good: the green field, one point rising gold out of it.
+    43: { draw: () => [dark("malachite"), base("points"), dot(24, 10, 2.4, "gold"), cline("M24,30 C22,24 26,18 24,13", "gold-hi")] },
+    // The plane of humans: the field, and a mendicant's bowl.
+    51: { draw: () => [dark("paleochre"), ...Array.from({ length: 30 }, (_, k) => dot(7 + ((k * 7) % 34) + (k % 3), 8 + Math.floor(k / 6) * 5.4 + (k % 2) * 1.6, 0.75, "black", false)), bowl(24, 42, 16, "ochre")] },
+    // The gods outside, left: the heavens' vimāna, and the sun and moon, the luminaries.
+    56: { draw: () => [base("vimana"), pennant("vermilion"), sun(9, 10, 3, { rays: 10 }), moon(39, 10, 3.4, "shell")] },
+    // The plane of the heavens, row 7: four vimānas.
+    61: { draw: () => row4("yellow", "gold-hi") },
+    // The gods outside, right: the palace gods' pavilion, and the stars.
+    66: { draw: () => [base("pavilion"), ...[[8, 8], [16, 14], [32, 6], [40, 13]].map(([x, y]) => star(x, y))] },
+    // The plane of the heavens, row 8: four vimānas.
+    71: { draw: () => row4("gold-hi", "shell") },
+    // Ānata and Prāṇata, the ninth and tenth: two vimānas.
+    72: { draw: () => pair("gold-hi", "yellow") },
+    // Subhadra, the second neck heaven.
+    78: { draw: () => [base("vimana"), pennant("vermilion"), ...beads(), moon(10, 10, 3.4, "shell")] },
+    // Sujāta, the third.
+    79: { draw: () => [base("vimana"), pennant("indigo"), ...beads(), sun(10, 10, 3, { rays: 10 })] },
+    // Sumanas and Priyadarśana, the fourth and fifth: two vimānas on the ornament.
+    80: { draw: () => [...vimana(15, 39, 15, "yellow"), ...vimana(33, 39, 15, "gold-hi"), ...beads()] },
+    // Sudarśana, the sixth.
+    81: { draw: () => [base("vimana"), pennant("malachite"), ...beads(), ...[[8, 8], [13, 13], [40, 9]].map(([x, y]) => dot(x, y, 1.3, "gold"))] },
+    // Amogha, the seventh.
+    82: { draw: () => [base("vimana"), pennant("lac"), ...beads(), puff(10, 11)] },
+    // Suprabandha, the eighth.
+    83: { draw: () => [base("vimana"), pennant("gold-hi"), ...beads(), star(10, 10, 4)] },
+    // Yaśodhara, the ninth and last.
+    84: { draw: () => [base("vimana"), pennant("shell"), ...beads(), cline("M6,22 C8,8 40,8 42,22", "vermilion"), cline("M8.6,22 C10.4,11 37.6,11 39.4,22", "yellow")] },
+    // Aparājita, an unsurpassed heaven: the vimāna crowned, the moon.
+    87: { draw: () => [base("vimana"), pennant("indigo"), crown(24, 23, 9, "gold"), moon(10, 10, 3.4, "shell")] },
+    // Jayanta, an unsurpassed heaven: crowned, the sun.
+    88: { draw: () => [base("vimana"), pennant("vermilion"), crown(24, 23, 9, "gold"), sun(10, 10, 3, { rays: 10 })] },
+    // Sarvārthasiddhi, the highest: crowned, and a ring of light round it.
+    89: { draw: () => [...Array.from({ length: 13 }, (_, k) => dot(24 + 18 * Math.cos(Math.PI + (k * Math.PI) / 12), 33 + 18 * Math.sin(Math.PI + (k * Math.PI) / 12), 1.1, "gold")), base("vimana"), pennant("gold-hi"), crown(24, 23, 9, "gold")] },
+    // ---- families, sheet 5 ----
+    // Envy of another soul: the cloud, the ember.
+    13: { draw: () => [base("cloud"), ...ember()] },
+    // The five false views: the cloud, five ways pointing apart.
+    17: { draw: () => [base("cloud"), ...[0, 72, 144, 216, 288].flatMap(d => { const a = ((d - 90) * Math.PI) / 180; return arrow(24 + 4 * Math.cos(a), 21 + 3.4 * Math.sin(a), 24 + 11 * Math.cos(a), 21 + 8.6 * Math.sin(a)); })] },
+    // Loyalty to dharma: the lamp, the banner beside it.
+    29: { draw: () => [base("lamp"), poly([[32.2, 10], [33.8, 10], [33.8, 38], [32.2, 38]], "ochre"), poly([[33.8, 11], [42, 13.6], [33.8, 17]], "vermilion")] },
+    // Virtuous meditation: the lamp, a rosary.
+    44: { draw: () => [base("lamp"), ...Array.from({ length: 14 }, (_, k) => dot(33 + 6.4 * Math.cos((k * Math.PI) / 7), 28 + 6.4 * Math.sin((k * Math.PI) / 7), 1.2, "lac")), dot(33, 35.4, 1.8, "gold")] },
+    // The seven vices: the cloud, seven marks in a ring.
+    48: { draw: () => [base("cloud"), ...Array.from({ length: 7 }, (_, k) => dot(24 + 6 * Math.cos((k * 2 * Math.PI) / 7 - Math.PI / 2), 21 + 5 * Math.sin((k * 2 * Math.PI) / 7 - Math.PI / 2), 1.6, "vermilion"))] },
+    // The subsidiary vows: the lamp, the three vows and the five meditations.
+    49: { draw: () => [base("lamp"), ...counts([[3, "gold"], [5, "shell"]])] },
+    // The five great vows: the lamp, five flames.
+    50: { draw: () => [base("lamp"), ...flames(5)] },
+    // Injuring another: the cloud, the knife.
+    52: { draw: () => [base("cloud"), ...knife()] },
+    // Discipline and chastity: the lamp, the four vows and the nine.
+    53: { draw: () => [base("lamp"), ...counts([[4, "gold"], [9, "shell"]])] },
+    // The five kinds of charity: the lamp, grain heaped and five coins.
+    54: { draw: () => [base("lamp"), shape("M-9,0 C-7,-6 -3,-9 0,-9 C3,-9 7,-6 9,0 Z", "yellow", { x: 33, y: 38 }), ...[[25.6, 35.6], [40.4, 35.6], [28, 27.4], [38, 27.4], [33, 24.4]].map(([x, y]) => dot(x, y, 1.6, "gold"))] },
+    // The twelve contemplations: the lamp, the twelve and the ten.
+    55: { draw: () => [base("lamp"), ...counts([[12, "gold"], [10, "shell"]])] },
+    // Not keeping vows: the cloud, a string of beads broken.
+    58: { draw: () => [base("cloud"), ...broken()] },
+    // Discrimination: the lamp, and the haṃsa.
+    65: { draw: () => [base("lamp"), ...hamsa(32, 34)] },
+    // Desired attainments, for a sāgara: the lamp, and the ocean that measures the time.
+    68: { draw: () => [base("lamp"), sea(25, 26, 18, 8)] },
     // The black stain (kṛṣṇa leśyā), the darkest of the six colours a soul takes from its karma.
     45: { draw: () => [dot(24, 24, 18, "shell"), dot(24, 24, 12, "black")] },
     // Vijaya, the first of the five unsurpassed heavens, in the cosmic man's face: a vimāna.
