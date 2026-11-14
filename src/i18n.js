@@ -77,7 +77,8 @@ export const fill = (text, { name = "", gender = "m", age = "" } = {}) =>
 // fill() would read {friend:लेता|लेती} as the player's choice.
 export const CAST_ROLES = ["mother", "father", "teacher", "friend", "spouse", "child", "rival", "who"];
 const CAST_AGREE = new RegExp(`\\{(${CAST_ROLES.join("|")}):([^{}|]*)\\|([^{}|]*)\\}`, "g");
-const CAST_REF = new RegExp(`\\{(${CAST_ROLES.join("|")})(?:=((?:[^{}]|\\{name\\})*))?\\}`, "g");
+// the words may hold {name} and the player's own choice, {his|her|their} (Phase 20), which fill() makes after
+const CAST_REF = new RegExp(`\\{(${CAST_ROLES.join("|")})(?:=((?:[^{}]|\\{name\\}|\\{[^{}|=:]*(?:\\|[^{}|]*){1,2}\\})*))?\\}`, "g");
 export const castFill = (text, people = {}) =>
   text.replace(CAST_AGREE, (_, r, m, f) => (people[r]?.gender === "f" ? f : m)).replace(CAST_REF, (_, r, words = "") => people[r]?.name ?? words);
 

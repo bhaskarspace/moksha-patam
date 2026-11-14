@@ -232,7 +232,7 @@ export function lintReport() {
     for (const k of ["hold", "back", "fate"]) {
       const t = sc[k];
       bilingual(`${w} ${k}`, t);
-      if (!t?.hiHon?.trim()) err(`${w} ${k}`, "no honorific Hindi (hiHon)");
+      if (!t?.hiHon?.trim() && SCHOOL_ROLES[id]?.some(r => ["teacher", "mother", "father"].includes(r))) err(`${w} ${k}`, "no honorific Hindi (hiHon) for the teacher or a parent");
       for (const l of ["en", "hi", "hiHon"]) {
         if (!t?.[l]) continue;
         if (SCHOOL_WORDS.test(t[l])) err(`${w} ${k}`, `names a school in ${l}`);
@@ -272,7 +272,7 @@ export function lintReport() {
   // Phase 10C, the cast: a moment that names a member of the cast says which in `cast`, names only that one, in both
   // languages alike; a member whose gender is drawn agrees through {member:m|f} in Hindi; and the moment where a life
   // can meet a named member carries the recall the returns join reads back.
-  const refs = s => new Set([...s.matchAll(new RegExp(`\\{(${CAST_ROLES.join("|")})(?:=(?:[^{}]|\\{name\\})*)?\\}`, "g"))].map(x => x[1]));
+  const refs = s => new Set([...s.matchAll(new RegExp(`\\{(${CAST_ROLES.join("|")})(?:=(?:[^{}]|\\{name\\}|\\{[^{}|=:]*(?:\\|[^{}|]*){1,2}\\})*)?\\}`, "g"))].map(x => x[1]));
   const agrees = s => new Set([...s.matchAll(new RegExp(`\\{(${CAST_ROLES.join("|")}):[^{}|]*\\|[^{}|]*\\}`, "g"))].map(x => x[1]));
   const castText = (where, m) => {
     const used = new Set([...refs(m.en), ...refs(m.hi), ...agrees(m.en), ...agrees(m.hi)]);
@@ -649,6 +649,8 @@ export function lintReport() {
   // reachable: met on some square, or (people) through a school that is
   const reachable = new Set(Object.keys(REFS));
   for (const [id, e] of Object.entries(CODEX.figures)) if (e.school && reachable.has(e.school)) reachable.add(id);
+  // or (Phase 20) as the figure behind a school a member of the cast holds, in the scholar layer
+  for (const sc of Object.values(SCHOOLS)) reachable.add(sc.figure);
   for (const id of ENTRY_IDS) if (!reachable.has(id)) err(`codex.${id}`, "never appears on the board, so it can never be met");
 
   // the Basohli sprite sheet (CONTENT.md §7), when there is one: the seven palette colours from styles.css

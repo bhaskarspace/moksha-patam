@@ -870,7 +870,7 @@
   },
   "59": {
     "prompt": {
-      "en": "{name} is {age}. {child={name}'s daughter} breaks something precious, and {name}'s hand is already rising.",
+      "en": "{name} is {age}. {child={His|Her|Their} daughter} breaks something precious, and {name}'s hand is already rising.",
       "hi": "{name} {age} बरस {का|की} है। {child=बेटी} ने {name} की कोई प्यारी चीज़ तोड़ दी है, और {name} का हाथ उठ चुका है।",
       "cast": "daughter"
     },

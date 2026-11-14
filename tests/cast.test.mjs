@@ -61,7 +61,8 @@ test("nothing moves and nothing is drawn from the game: every game plays exactly
 // Re-pinned in Phase 20 where a ruling rewrote the text, never otherwise: the past-tense pass told these moments in the
 // present in Hindi (41's seven steps, 50's roll, 59's strike, which also says थप्पड़, not मार, which reads as killing);
 // 15, 23, 52, 62, 65, 69 and 93 are the situations' new prompts and outcomes, added, not changed.
-// 3, 18 and 53 in English: a parent in the player's own moment is "her father", never "Meera's father" (Phase 20 step 3).
+// 3, 18 and 53 in English: a parent in the player's own moment is "her father", never "Meera's father", and so is a child
+// before they are named, at 50, 59 (its moment and its prompt) and 60 (Phase 20 step 3).
 test("with the cast's names taken away, every moment and closing phrase that names the cast reads as Phase 10 wrote it", () => {
   const now = {};
   for (const { n, which, m } of MOMENTS) if (m.cast) for (const l of ["en", "hi"]) now[`${n} ${which} ${l}`] = castFill(m[l]);
@@ -127,7 +128,7 @@ test("the son and the daughter are two people, each met on their own square", ()
   assert.match(en, new RegExp(`has never once said no to the son, and does not say it now, when it matters most\\. His name is ${c.son.en}\\.`));
   // 60 names the son's son, so it never introduces: the son keeps his title until he is met
   const g = lived([60, 62]), c2 = castOf(g, 0, 0);
-  assert.match(all(g), /and Meera's son has a son\./);
+  assert.match(all(g), /and her son has a son\./);
   assert.match(all(lived([62, 60])), new RegExp(`and ${castOf(lived([62, 60]), 0, 0).son.en} has a son\\.`));
   assert.ok(c2);
 });

@@ -51,7 +51,7 @@ test("a holder the life meets is seen holding the school in the account, never b
         const life = lifeOf(s, 0, l);
         shown += life.schooled;
         const text = lifeText(s, 0, l);
-        assert.doesNotMatch(text, /Mīmāṃsā|Cārvāka|Nyāya|Sāṃkhya|Advaita|मीमांसा|चार्वाक|सांख्य|अद्वैत/, `seed ${seed} names a school`);
+        assert.doesNotMatch(text, /Mīmāṃsā|Cārvāka|Nyāya|Sāṃkhya|Advaita|\bJain\b|\bBhakti\b|\bYoga\b|Buddhis|मीमांसा|चार्वाक|सांख्य|अद्वैत|जैन|(?<!-)भक्ति|बौद्ध/, `seed ${seed} names a school`);
         assert.doesNotMatch(text, /\{who|\{name|undefined|null/, `seed ${seed} ${l} leaves a token`);
       }
     }
@@ -151,4 +151,54 @@ test("in Hindi a name from names.json is in Devanagari, and a name the person ty
     assert.match(typed, /Meera/);
     assert.doesNotMatch(typed.replace(/Meera/g, "").replace(/\([^()]*\)/g, ""), /[A-Za-z]/, `seed ${seed}: a cast name in Latin`);
   }
+});
+
+// Phase 20 review: no form that agrees with only one gender of the holder is left outside a {who:m|f} choice. Each line is
+// rendered for a male and a female holder of every role its school allows; the male render may hold no word only the
+// feminine choices have, and the female none only the masculine have. Words fixed in a line are checked apart: every
+// Hindi word outside a choice that could agree with someone (it ends as a verb, participle or adjective would) is in
+// FIXED, read and pinned with what it agrees with, so a new one fails until it is read.
+const FIXED = new Set([
+  // agree with a noun of the line, not the holder: अनुष्ठान, दलील, पक्ष, शरीर, बोझ, क्रिया-कर्म, क्षमा, यह, सब, जीव, कुछ
+  "निभाया", "आधी", "लिखी", "गई", "आधा", "पूरा", "वाला", "रहा", "दिखता", "था", "थे", "गया", "माँगा", "माँगी", "आएगा", "आया", "टिका", "टूटता", "जाए", "चला", "पता",
+  // ergative, so the verb follows its object, never the holder: उसने/उन्होंने/{who} ने …
+  "कहा", "किया", "पूछा", "बताया",
+  // invariant: the infinitive, the adverbial participle, the oblique and the possessive before a noun of the line
+  "करना", "जानना", "पूछना", "टूटना", "हुए", "करते-करते", "गाते-गाते", "गुनगुनाते", "पत्ते", "अपनी", "उसका", "उसकी", "उनका", "उनकी", "का", "की",
+  // agree with others in the line: सब सो रहे थे, जो नहीं रहे (the dead), सब … छोड़ चुके हैं, कोई पूछे
+  "रहे", "चुके", "पूछे",
+  // the auxiliary, which agrees in number and honour, never gender; the ergative and the honorific pronouns
+  "है", "हैं", "ने", "उसने", "उन्होंने", "वे", "उसके", "इसे", "उसमें", "उनमें",
+  // oblique infinitives and participles before a postposition, and the conjunctive -के, all invariant
+  "उठने", "कहने", "जाने", "बैठने", "समेटने", "होने", "करके", "गिने-चुने",
+  // postpositions, oblique nouns and adverbs
+  "के", "से", "में", "नहीं", "पहले", "सबसे", "सबके", "सीधे", "नीचे", "ऐसे", "जैसे", "कैसे", "तड़के", "दिनों", "दूसरे", "अगले", "कमरे", "घरवालों", "वालों",
+  // not verbs: nouns, pronouns, particles and adverbs
+  "अँधेरा", "आख़िरी", "इसलिए", "ईमानदारी", "किसलिए", "किसी", "कोई", "क्या", "क्षमा", "चींटी", "ज़्यादा", "जा", "बाक़ी", "भी", "या", "वादा", "वही", "सीढ़ी", "ही",
+]);
+const ENDS = /[ाीेैंॉ]$|थी$|थीं$/;
+test("no form that agrees with the holder is left outside a {who:m|f} choice, in any school's line", async () => {
+  const { schoolLineIn, HONORED } = await import("../src/engine/cast.js");
+  const choices = tpl => [...tpl.matchAll(/\{who:([^{}|]*)\|([^{}|]*)\}/g)];
+  const words = s => s.split(/[\s,;:.।?!'"“”]+/).filter(Boolean);
+  const unseen = [];
+  for (const [id, sc] of Object.entries(SCHOOLS)) for (const k of ["hold", "back", "fate"]) for (const l of ["en", "hi", "hiHon"]) {
+    const tpl = sc[k][l];
+    if (!tpl) continue;
+    const fixed = words(tpl.replace(/\{who:[^{}]*\}/g, " ").replace(/\{[^{}]*\}/g, " "));
+    if (l !== "en") for (const w of fixed) if (ENDS.test(w) && !FIXED.has(w)) unseen.push(`${id} ${k} ${l}: ${w}`);
+    const m = new Set(choices(tpl).flatMap(x => words(x[1]))), f = new Set(choices(tpl).flatMap(x => words(x[2])));
+    const mOnly = [...m].filter(w => !f.has(w)), fOnly = [...f].filter(w => !m.has(w));
+    for (const who of SCHOOL_ROLES[id]) for (const gender of ["m", "f"]) {
+      if ((who === "mother" || who === "daughter") && gender === "m") continue;
+      if ((who === "father" || who === "son") && gender === "f") continue;
+      // the honorific is said of the teacher and the parents, the familiar of the rest
+      if (l === "hiHon" && !HONORED.has(who)) continue;
+      if (l === "hi" && HONORED.has(who) && sc[k].hiHon) continue;
+      const out = words(schoolLineIn(sc[k], l === "en" ? "en" : "hi", who, { name: "X", gender }, { name: "Meera", gender: "f" })).filter(w => !fixed.includes(w));
+      const wrong = out.filter(w => (gender === "m" ? fOnly : mOnly).includes(w));
+      assert.deepEqual(wrong, [], `${id} ${k} ${l} for a ${gender === "m" ? "male" : "female"} ${who}: ${wrong.join(", ")}`);
+    }
+  }
+  assert.deepEqual(unseen, [], "a word outside a choice that may agree with the holder: template it, or pin it in FIXED with what it agrees with");
 });
