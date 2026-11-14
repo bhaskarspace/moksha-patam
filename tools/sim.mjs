@@ -160,6 +160,9 @@ export function playGame(seed, { players = 2, rules = SIM_RULES, pick = moveFor,
     L.through += plan.after.some(e => e.k === "lDoorThrough");
     log.push(...state.log.slice(0, state.log.indexOf(before)).reverse());
   }
+  // a seat born again on its own last turn, while another seat ends the game, never plays the life it is born into:
+  // it still has one, with nothing in it (livesOf counts every life in p.past and the one in the seat)
+  state.players.forEach((_, i) => now(i));
   return { log, turns, per, capped: !state.over, winner: state.winner, players: state.players, state };
 }
 
