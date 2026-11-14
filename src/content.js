@@ -11,6 +11,7 @@ import door from "../content/door.json" with { type: "json" };
 import curses from "../content/curses.json" with { type: "json" };
 import mirror from "../content/mirror.json" with { type: "json" };
 import legends from "../content/legends.json" with { type: "json" };
+import schools from "../content/schools.json" with { type: "json" };
 import { layoutOf } from "./geometry.js";
 
 // Every square is { ic, en, hi, age, moment, mirror, callsBack, src } (docs/NARRATIVE.md §11). Snakes and
@@ -36,6 +37,9 @@ export const PLAYER_NAMES = names.players;
 // a test can take them away, as sim --roll=off takes the roll moments: with none, nobody is named and every account
 // reads exactly as Phase 10 wrote it.
 export const CAST = { names: names.cast || null };
+// The schools as cast (Phase 20 step 3): what a member who holds a darśana is seen doing, by school id. Read through
+// src/engine/cast.js schoolsOf; a school drawn with no entry here yet is held silently.
+export const SCHOOLS = Object.fromEntries(Object.entries(schools).filter(([k]) => k !== "about"));
 // The door at 105 as an examination (REDESIGN.md Phase 14): the Yakṣa's question for each vice a debt holds, and the
 // ladder whose climb answers it. Read through src/engine/karma.js.
 export const DOOR = door.questions;

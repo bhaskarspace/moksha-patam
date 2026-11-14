@@ -2139,6 +2139,30 @@ await check("Phase 20: a situation's card holds the game, the computer's turn in
   await page.waitForFunction(() => !mp.busy && mp.state.turn === 0 && !document.getElementById("roll").disabled, null, { timeout: 30000 });
 });
 
+await check("Phase 20: the figure behind a member of the cast who holds a school is in the scholar layer only", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  const FIG = { mimamsa: "Ubhaya", nyaya: "Jayanta", samkhya: "Devahūti", advaita: "Gārgī" };
+  let found = null;
+  for (const seed of [13, 14, 18, 20, 4]) {
+    await page.goto(BASE + `?seed=${seed}&debug&depth=scholar`);
+    await settle(page);
+    const h = (await page.evaluate(() => mp.schools(0))).find(x => x.who === "teacher" && FIG[x.school]);
+    if (h) { found = h; break; }
+  }
+  assert(found, "no seed of five has a teacher holding a written school");
+  await page.evaluate(() => { mp.situations(false); mp.jump(19); mp.roll(1); });   // 20, where the life meets the teacher; the card is the person's once the computer has played
+  await page.waitForFunction(() => !mp.busy && mp.state.players[0].pos === 20 && !mp.deciding && mp.state.turn === 0, null, { timeout: 30000 });
+  const leaf = async () => { await page.evaluate(() => mp.open(20)); await page.waitForFunction(() => document.querySelector("#leaf h2")?.textContent, null, { timeout: 10000 }); return page.evaluate(() => document.getElementById("leaf").textContent); };
+  const deep = await leaf();
+  assert(deep.includes(FIG[found.school]), `the scholar layer does not name ${FIG[found.school]} (${JSON.stringify(found)}): ${deep.replace(/\s+/g, " ").slice(0, 900)}`);
+  await page.goto(BASE + `?seed=${await page.evaluate(() => mp.state.rng.seed)}&debug&depth=school`);
+  await settle(page);
+  await page.evaluate(() => { mp.situations(false); mp.jump(19); mp.roll(1); });
+  await page.waitForFunction(() => !mp.busy && mp.state.players[0].pos === 20 && !mp.deciding && mp.state.turn === 0, null, { timeout: 30000 });
+  const school = await leaf();
+  assert(!school.includes(FIG[found.school]), `the figure shows below the scholar layer`);
+});
+
 await check("Phase 11: nothing in the line under the board is cut: every moment and every outcome shows whole", async page => {
   await page.goto(BASE + "?seed=1&debug");
   const cut = await page.evaluate(() => {

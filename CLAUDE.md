@@ -225,7 +225,7 @@ animal's life is tagged `animalname`; with `--dice=stream`
   game on that board, with the game's other rules; `mp.board()` is the board in play). Phase 19 adds `mp.mode(m)`,
   `mp.play(n)` (n turns at once, nobody's choices noted), `mp.compareOpen()`, `mp.compareText(l)`, `mp.compareImage()`,
   `mp.share()` (`{ play, life, why }`), `mp.daily(date)`, `mp.compare(links)` and `mp.compared()`. Phase 20 adds `mp.situations(on)`
-  (`false` plays every situation square as its plain moment, as the sim's `--situations=off`; `mp.situations()` reads it). A helper that changes the
+  (`false` plays every situation square as its plain moment, as the sim's `--situations=off`; `mp.situations()` reads it). and `mp.schools(i, life)` (who holds a school in that life, read only). A helper that changes the
   game marks it `state.tampered`.
 - No physics on any card. "Debt" is the only word a player sees for a seed, and the ledger's buckets, weights, fuses
   and chances are never shown as numbers. The 1 is the threshold face and the 6 is the world's (`tests/faces.test.mjs`).

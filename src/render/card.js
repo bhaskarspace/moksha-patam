@@ -6,7 +6,7 @@ import { GOAL, TOP, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, READINGS, CODEX, ENTR
 import { isCloth } from "../engine/cloth.js";
 import { lang, tIn, numIn, srcIn, pick, fill, castFill, ageWordsIn } from "../i18n.js";
 import { ageStep, stageOfYears, bhumikaOf, freshGunas, SANNYASA, yearsAlong, landedYears } from "../engine/self.js";
-import { castOf, castAlong, peopleOf, introIn } from "../engine/cast.js";
+import { castOf, castAlong, peopleOf, introIn, schoolOf, holderIn } from "../engine/cast.js";
 import { momentOf, destOf, egoOf, optionOf, situationAt } from "../engine/qbn.js";
 import { reckonLinesIn, reckonSignIn, inferLinesIn, refusalIn, examLinesIn, debtsIn, debtIn } from "../engine/karma.js";
 import { canSit, foresee, logLaw } from "../engine/turn.js";
@@ -184,6 +184,22 @@ function momentIn(m, l, n, meeting = true) {
   const cast = last ? last.cast : castOf(G.state, i, 0), met = new Set(last ? [...last.before, ...(last.meets ? [last.about] : [])] : []);
   const intro = meeting && here && m.cast && !met.has(m.cast) && m.introduces !== false ? introIn(cast, m.cast, l) : "";
   return text(castFill(m[l] || m.en, peopleOf(cast, met, l, m.cast))) + (intro ? " " + intro : "");
+}
+// The school the member moment m is about holds in the card's subject's life (Phase 20 step 3), once this life has met
+// them or meets them here: { school, figure, scholar, name: {en, hi}, gender }, or null. Only the scholar layer says it;
+// its English names the holder, its Hindi opens on the school.
+function schoolIn(m, n) {
+  const p = subjectOf();
+  if (!p || !m?.cast) return null;
+  const i = G.state.players.indexOf(p), along = yearsAlong(p.life || [], p.told || []).filter(e => e.via !== "stay");
+  const cc = castAlong(G.state, i, along), last = cc.at(-1);
+  if (!last?.cast) return null;
+  const met = new Set([...last.before, ...(last.meets ? [last.about] : [])]);
+  if (!met.has(m.cast)) return null;
+  const h = schoolOf(G.state, i, last.life, m.cast);
+  if (!h) return null;
+  const name = Object.fromEntries(["en", "hi"].map(l => [l, holderIn(last.cast, m.cast, l, { name: pnameIn(p, l), gender: p.gender }).name]));
+  return { ...h, name, gender: last.cast[m.cast].gender };
 }
 // The stage a card's eyebrow names. On the subject's own square it is the stage they are actually in, by years,
 // and in sannyasa the bhumika they have reached rather than the one the square implies; elsewhere the square's.
@@ -377,6 +393,13 @@ function squareHtml(n, l) {
   // and Gītā 3.27 beside what prakṛti did (Sāṃkhya)
   if (pko && deep("scholar")) more += texts(l, tIn("en", "prakritiScholar"), tIn("hi", "prakritiScholar"), "note");
   if (deep("scholar") || (deep("school") && !r.schools?.length && !r.views?.length)) more += bi(l, r.scholar, "note");
+  // a member of the cast who holds a school (Phase 20): who held it before them, and the scene, in the scholar layer only
+  const held = deep("scholar") && !pending ? schoolIn(m, n) : null;
+  if (held) {
+    const say = x => castFill(held.scholar[x], { who: { name: held.name[x], gender: held.gender } });
+    more += texts(l, say("en"), say("hi"), "note") + `<p class="people"><span>${T("people")}:</span> ${[held.figure, held.school].filter(id => entryOf(id)).map(id => entryLink(id, l, "plink")).join(" · ")}</p>`;
+    metMore.push(...[held.figure, held.school].filter(id => entryOf(id)));
+  }
   if (deep("scholar")) {
     if (r.figures?.length) {
       more += `<p class="people"><span>${T("people")}:</span> ${r.figures.map(id => entryLink(id, l, "plink")).join(" · ")}</p>`;

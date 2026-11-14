@@ -17,7 +17,7 @@ import { lens, wash, stageOf, lookOf, clearOf } from "./render/age.js";
 import { ageStep } from "./engine/self.js";
 import { karmaOf, carried, plantOf, debtKey, refusalOf, examineOf, FORMS, deathFormOf } from "./engine/karma.js";
 import { curseOf } from "./engine/curse.js";
-import { castOf, meetsNamed, nameKey } from "./engine/cast.js";
+import { castOf, meetsNamed, nameKey, schoolsOf } from "./engine/cast.js";
 import { soulOf, bornOf, endOf, keepOf } from "./engine/samskara.js";
 import { isAnimal, animalRules, afterAnimal, KINDS, masterOf } from "./engine/animal.js";
 import { together, oneLife } from "./engine/mode.js";
@@ -1213,6 +1213,8 @@ if (new URLSearchParams(location.search).has("debug")) {
     compareImage: () => { if (!compareModel()) openCompare(G.state); return imageOf().toDataURL("image/png"); },
     // mp.cast(0) is player 0's cast for this game, names, genders and ages, as the account draws it (Phase 10C)
     cast: (i = 0, life = 0) => castOf(G.state, i, life),
+    // Phase 20: who holds a school in player i's life, [{ who, school }] (content/schools.json); reads only
+    schools: (i = 0, life = G.state.players[i]?.prior?.lives ?? 0) => schoolsOf(G.state, i, life),
     naming: openNaming,
     // mp.first() treats this viewer as new from here on, as ?first does: the first life's cards, every bridge untold
     first() { beFirst(); refreshCard(); return firstLife(); },

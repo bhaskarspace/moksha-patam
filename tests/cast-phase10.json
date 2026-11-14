@@ -1,7 +1,7 @@
 {
  "about": "Phase 10's text of every moment and closing phrase that names the cast, frozen before Phase 10C. With the cast's names taken away each must read exactly so (tests/cast.test.mjs).",
  "text": {
-  "3 own en": "{name} is small enough to fall asleep on {name}'s father's chest, and he sits without moving for an hour so as not to wake {name}.",
+  "3 own en": "{name} is small enough to fall asleep on {his|her|their} father's chest, and he sits without moving for an hour so as not to wake {name}.",
   "3 own hi": "{name} {इतना छोटा|इतनी छोटी} है कि पिता की छाती पर {सो जाता|सो जाती} है, और पिता घंटे भर हिलते तक नहीं कि {name} जाग न जाए।",
   "6 own en": "{name} is {age} and has found a friend. They share a biscuit by breaking it badly, and both halves get eaten anyway.",
   "6 own hi": "{name} {age} बरस {का|की} है। एक दोस्त मिल गया है। दोनों एक बिस्कुट टेढ़ा-मेढ़ा तोड़कर बाँटते हैं, और दोनों टुकड़े खा लिए जाते हैं।",
@@ -9,7 +9,7 @@
   "15 own hi": "{name} {age} बरस {का|की} है। स्कूल में उस बात पर डाँट पड़ रही है जो दोस्त ने भी की थी। दोस्त आगे आकर मान लेता है, और डाँट दोनों मिलकर खाते हैं।",
   "16 own en": "{name} is {age} and, with the friend, works out how to get the ball back from the cross neighbour's yard without asking.",
   "16 own hi": "{name} {age} बरस {का|की} है। दोस्त के साथ मिलकर तरकीब निकाली जा रही है कि खड़ूस पड़ोसी के आँगन से गेंद बिना माँगे कैसे वापस आए।",
-  "18 own en": "{name} is {age} and will not say sorry for something that was not wrong, though {name}'s mother asks three times.",
+  "18 own en": "{name} is {age} and will not say sorry for something that was not wrong, though {his|her|their} mother asks three times.",
   "18 own hi": "{name} {age} बरस {का|की} है। जो ग़लत नहीं था, उसके लिए माफ़ी नहीं माँगनी, चाहे माँ तीन बार कहे।",
   "20 own en": "{name} is {age}, is put into clean clothes, taken to meet the teacher properly, and told to be quiet.",
   "20 own hi": "{name} {age} बरस {का|की} है। साफ़ कपड़े पहनाकर गुरुजी से ठीक से मिलवाने ले जाया जाता है, और चुप रहने को कहा जाता है।",
@@ -31,7 +31,7 @@
   "50 roll hi": "उस शाम {name} बेटी के पास ज़मीन पर बैठकर एक बार माफ़ी {माँगता|माँगती} है, और कोई सफ़ाई नहीं {देता|देती}। थोड़ी देर बाद वह {name} की बाँह से टिक जाती है।",
   "52 own en": "{name} is {age} and takes a bet with the rival that cannot be won, because refusing would look like losing.",
   "52 own hi": "{name} {age} बरस {का|की} है। {name} ने प्रतिद्वंद्वी से ऐसी शर्त लगा ली जो जीती ही नहीं जा सकती, क्योंकि मना करना हार जैसा लगता।",
-  "53 own en": "{name} is {age}. {name}'s father is dying, has fresh grass strewn, sits facing {name}, and hands things over one at a time, and last of all the thing he had kept back.",
+  "53 own en": "{name} is {age}. {His|Her|Their} father is dying, has fresh grass strewn, sits facing {name}, and hands things over one at a time, and last of all the thing he had kept back.",
   "53 own hi": "{name} {age} बरस {का|की} है। पिता मरणासन्न हैं; वे ताज़ी कुशा बिछवाते हैं, {name} की ओर मुँह करके बैठते हैं, और एक-एक करके सब कुछ सौंपते हैं, और सबसे अंत में वह बात जो उन्होंने अब तक छिपा रखी थी।",
   "59 own en": "{name} is {age}. {name}'s daughter breaks something precious and {name} hits her before knowing the hand has moved. She does not cry, which is worse.",
   "59 own hi": "{name} {age} बरस {का|की} है। बेटी {name} की कोई प्यारी चीज़ तोड़ देती है, और हाथ कब उठा, यह जानने से पहले ही {name} उसे थप्पड़ मार {देता|देती} है। वह रोती नहीं। यह और बुरा है।",

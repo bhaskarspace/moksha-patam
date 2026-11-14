@@ -39,7 +39,7 @@ import { laneOf } from "./throws.js";
 import { pnameIn } from "../state.js";
 import { ageOf, yearsAlong, stageOfYears, titleOf, holdingOf } from "./self.js";
 import { momentOf, optionOf } from "./qbn.js";
-import { castAlong, peopleOf, introIn, beforeIn, calledIn, fatesIn } from "./cast.js";
+import { castAlong, peopleOf, introIn, beforeIn, calledIn, fatesIn, schoolOf, schoolLineIn, holderIn } from "./cast.js";
 import { reckoningIn, seedOf, refusalIn, carryIn, karmaOf, carried, debtIn, formIn } from "./karma.js";
 import { curseIn } from "./curse.js";
 import { isAnimal, animalLifeOf, interludeOf } from "./animal.js";
@@ -82,6 +82,10 @@ export function lifeOf(state, i, l, { live = false } = {}) {
   const choices = p.witness ?? [], rebelAt = new Map(choices.filter(w => w.chose !== w.took).map(w => [w.i, w]));
   const metI = {}, usedWit = new Set();
   let witnessed = 0;
+  // the schools as cast (Phase 20): a holder's line where the life meets them, and once where they first come back;
+  // schooled counts the lines said, which tools/accounts.mjs tags. holdDue: met, the hold line not said yet
+  const backSaid = new Set(), holdDue = new Set();
+  let schooled = 0;
   const rebelLine = e => { const w = rebelAt.get(e.i); if (w?.grace) return T("accGrace"); const t = w && SITUATIONS[w.sq]?.ego?.account; return t ? J(t) : ""; };
   // the line for member who returning at entry e, from the latest situation they saw after the life met them, or null
   const witnessOf = (who, e) => {
@@ -133,6 +137,11 @@ export function lifeOf(state, i, l, { live = false } = {}) {
     .sort((a, b) => a.at - b.at || !!b.door - !!a.door);
   let rq = 0;
   const metPairs = new Set();
+  // an ordinary moment (Phase 20, the schools as cast): not on or off a snake (the strike, 59, is one), not a death, not a debt planted
+  // or a rebellion, not where a reckoning, a refusal or the curse is told, and not the life's last
+  const eventAt = new Set(recks.filter(r => !r.meet).flatMap(r => [r.at - 1, r.at]));
+  const ordinary = (e, m, nextE, rebel) => !rebel && !SNAKES[e.n] && e.via !== "snake" && nextE?.via !== "snake" && !m?.dies && !m?.gone?.length &&
+    !eventAt.has(e.i) && !SITUATIONS[e.n]?.options?.find(o => o.id === e.told)?.seed && !((p.dead || p.fell) && e === along.at(-1));
   const reckon = upto => {
     for (; rq < recks.length && recks[rq].at <= upto; rq++) {
       const r = recks[rq];
@@ -259,7 +268,23 @@ export function lifeOf(state, i, l, { live = false } = {}) {
     const intro = c.meets && !repeat ? [introIn(c.cast, c.about, l), beforeIn(c.cast, c.about, l)].filter(Boolean).join(" ") : "";
     // a ladder climbed while the vice it heals was still held (Jain upaśama, Phase 17): the climb, and that the vice stayed
     const held = e.told === "upasama" ? " " + T("accUpasama") : "";
-    const text = fill(castFill(raw, peopleOf(c.cast, c.before, l, c.about)), { ...who, age }) + (intro ? " " + intro : "") + held;
+    // a member who holds a school (Phase 20) is seen holding it where the life meets them, and once when they come back
+    // only on an ordinary moment: never after a snake, a death, a strike, a reckoning or a curse, where the hold line
+    // waits for the holder's next ordinary moment, and is said with the back line when that is their first return
+    const school = c.cast && c.about && !repeat ? schoolOf(state, i, c.life, c.about) : null;
+    let shown = "";
+    if (school) {
+      if (c.meets) holdDue.add(c.about);
+      const back = !c.meets && !backSaid.has(c.about) && metAt[c.about] && lastTold[c.about] != null && lastTold[c.about] < toldN - 1;
+      if (ordinary(e, m, nextE, rebel) && (holdDue.has(c.about) || back)) {
+        const member = holderIn(c.cast, c.about, l, who), lines = [];
+        if (holdDue.delete(c.about)) lines.push(schoolLineIn(school.hold, l, c.about, member, who));
+        if (back) { backSaid.add(c.about); lines.push(schoolLineIn(school.back, l, c.about, member, who)); }
+        shown = lines.join(" ");
+        schooled += lines.length;
+      }
+    }
+    const text = fill(castFill(raw, peopleOf(c.cast, c.before, l, c.about)), { ...who, age }) + (intro ? " " + intro : "") + (shown ? " " + shown : "") + held;
     // a choice the ego overruled is said first, a sentence of its own, and takes the place of any other join
     para.parts.push(rebel ? rebel + " " + text : join ? join + after(raw, text, l) : text);
     if (!(repeat && e.via)) {
@@ -273,6 +298,7 @@ export function lifeOf(state, i, l, { live = false } = {}) {
   if (!live) close();
 
   const stage = s => (l === "hi" ? ASHRAMAS[s][2] : ASHRAMAS[s][1]);
+  const tally = { schooled: 0 }, fates = fatesIn(state, i, l, along, cc, who, tally);
   // what the closing holds or puts down may name someone this life met: the son, the rival
   const last = cc.at(-1), people = last ? peopleOf(last.cast, new Set([...last.before, ...(last.meets ? [last.about] : [])]), l) : {};
   const held = t => fill(castFill(t ? t[l] || t.en : "", people), who);
@@ -295,7 +321,9 @@ export function lifeOf(state, i, l, { live = false } = {}) {
     // a curse the life never bore out is closed after the end, the other way (Phase 14): empty with none
     curse: curse && curse.closedAt == null && (liberated(state, i) || p.fell || p.dead) ? fill(curse.c.not[l] || curse.c.not.en, who) : "",
     // what the life never found out about the people in it (Phase 10C): empty with no cast
-    fates: fatesIn(state, i, l, along, cc, who),
+    fates,
+    // how many lines showed a member holding a school (Phase 20), for tools/accounts.mjs
+    schooled: schooled + tally.schooled,
     // how many cast returns were joined by what they witnessed (Phase 15), for tools/accounts.mjs
     witnessed,
   };

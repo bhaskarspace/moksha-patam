@@ -9,7 +9,7 @@
 // once, at its end ("Her name is Tārā."); every later moment uses it. Their fate is drawn across every square on the
 // board that names them, landed on or not, and kept to everything this life saw: nobody dies before the last time
 // the life was with them, and the parents, the teacher and the friend are gone before square 100 says they are.
-import { CAST, CAST_WORDS, SQ, SITUATIONS, TOP, squareOf } from "../content.js";
+import { CAST, CAST_WORDS, SCHOOLS, SQ, SITUATIONS, TOP, squareOf } from "../content.js";
 import { castFill, fill, wordsIn } from "../i18n.js";
 import { makeRng, next } from "../rng.js";
 import { laneOf, streamOf } from "./throws.js";
@@ -110,6 +110,57 @@ export function castOf(state, i, life = 0) {
   cast.daughter.gap = span(1, 4);
   for (const who of MEMBERS) cast[who].fate = [next(rng), next(rng)];
   return cast;
+}
+
+// ---- The schools as cast (REDESIGN.md Phase 20 step 3) ----
+// One or two of a life's cast hold a darśana, and the account shows it in how they act, never by its name
+// (content/schools.json). The school is drawn first, uniformly from all nine, then one of the three roles it allows, so
+// no role always holds the same school and a school written later changes no draw: one not written yet is held silently.
+// A second holder, half the time, holds another school in another role. The draw is the life's at birth, off a sequence
+// of its own (seed, lane, life, rebirth), so the cast and the dice are never touched; a holder the life never meets is
+// never told. With no cast there are no holders.
+export const SCHOOL_IDS = ["mimamsa", "carvaka", "jaina", "bhakti", "nyaya", "samkhya", "advaita", "yoga", "bauddha"];
+export const SCHOOL_ROLES = {
+  mimamsa: ["teacher", "father", "rival"],
+  carvaka: ["friend", "father", "son"],
+  jaina: ["mother", "daughter", "friend"],
+  bhakti: ["daughter", "spouse", "son"],
+  nyaya: ["teacher", "rival", "father"],
+  samkhya: ["mother", "son", "teacher"],
+  advaita: ["rival", "teacher", "daughter"],
+  yoga: ["spouse", "mother", "friend"],
+  bauddha: ["mother", "spouse", "friend"],
+};
+// the teacher and the parents are spoken of in the honorific in Hindi (hiHon)
+export const HONORED = new Set(["teacher", "mother", "father"]);
+// Player i's holders for a life: [{ who, school }], one or two, or none with no cast.
+export function schoolsOf(state, i, life = 0) {
+  if (!CAST.names) return [];
+  const p = state.players[i];
+  const rng = makeRng((state.rng.seed ^ 0x7a3d5c1f ^ Math.imul(laneOf(state, i) + 1, 0x27d4eb2f) ^ Math.imul(life + 1, 0x165667b1) ^ Math.imul((p?.rebirths ?? 0) + 1, 0x632be5ab)) >>> 0);
+  const pick = xs => xs[Math.floor(next(rng) * xs.length)];
+  const first = pick(SCHOOL_IDS), out = [{ who: pick(SCHOOL_ROLES[first]), school: first }];
+  if (next(rng) < 0.5) {
+    const school = pick(SCHOOL_IDS.filter(s => s !== first));
+    out.push({ who: pick(SCHOOL_ROLES[school].filter(w => w !== out[0].who)), school });
+  }
+  return out;
+}
+// The school member who holds in that life, if any, and its written lines (null for one not written yet).
+export function schoolOf(state, i, life, who) {
+  const h = schoolsOf(state, i, life).find(x => x.who === who);
+  return h && SCHOOLS[h.school] ? { ...h, ...SCHOOLS[h.school] } : null;
+}
+// A school's line t ({en, hi, hiHon}) in language l, of member who, called name, with the player `player`.
+// A line that opens on a parent's own form ("her father") is capitalised.
+export function schoolLineIn(t, l, who, member, player) {
+  const raw = l === "hi" ? (HONORED.has(who) && t.hiHon) || t.hi : t.en, x = fill(castFill(raw, { who: member }), player);
+  return x[0].toUpperCase() + x.slice(1);
+}
+// How a school's line, said in the player's own life, calls member who: by name, or a parent as "her father" / पिता.
+export function holderIn(cast, who, l, player) {
+  const own = CAST_WORDS.own?.[who];
+  return { name: calledIn(cast, who, l) || (own ? fill(own[l] || own.en, player) : null), gender: cast[who].gender };
 }
 
 // How a moment calls a member by name in language l (the teacher is आनंदजी), or null for someone with no name.
@@ -219,7 +270,9 @@ export function castArcs(state, i, along, cc = castAlong(state, i, along)) {
 // FATES: the lines after the third take the short form, which says only when ("…died when Meera was sixty."), and the
 // rest are left unsaid. who is the player.
 const FATES = 4, FULL = 3;
-export function fatesIn(state, i, l, along, cc, who) {
+// A member who holds a school (Phase 20) and died before the player closes on the school's fate line in place of a coda.
+// tally.schooled counts those lines.
+export function fatesIn(state, i, l, along, cc, who, tally = {}) {
   const cast = cc.at(-1)?.cast, W = CAST_WORDS, words = n => wordsIn(l, Math.floor(n)), pick = t => t[l] || t.en;
   let coded = false;
   const say = (t, member, v) => fill(castFill(pick(t), { who: member }).replace(/\{(seen|at|by|pos)\}/g, (_, k) => v[k] ?? ""), who);
@@ -232,8 +285,12 @@ export function fatesIn(state, i, l, along, cc, who) {
     // the short form: "outlived" only for someone still alive when the player died, and no coda
     if (at >= FULL) return a.kind === "outlived" ? say(W.childOutlived, member, {}) : say(W.familyDied, member, { at: words(a.death) });
     if (CHILDREN.has(a.who)) return say(W.childOutlived, member, {});
-    if (family) return a.kind === "died" ? say(W.familyDied, member, { at: words(a.death) }) : say(W.familyOutlived, member, { by });
+    // only one who died before the player is closed on their school
+    const school = a.kind === "died" ? schoolOf(state, i, cc.at(-1).life, a.who) : null;
+    const held = school ? (tally.schooled = (tally.schooled ?? 0) + 1, " " + schoolLineIn(school.fate, l, a.who, member, who)) : "";
+    if (family) return a.kind === "died" ? say(W.familyDied, member, { at: words(a.death) }) + held : say(W.familyOutlived, member, { by });
     if (a.kind === "outlived") return say(a.who === "teacher" ? W.outlivedHon : W.outlived, member, { seen: words(a.seen), by });
+    if (school) return say(W.died, member, { seen: words(a.seen), at: words(a.death + a.older), pos: pick(a.who === "teacher" ? W.posHon : W.pos) }) + held;
     // at most one closing line gets the short ending after it, so it never becomes a refrain
     const k = Math.floor(a.coda * (W.codas.length + 2)), coda = k < W.codas.length && !coded ? " " + fill(pick(W.codas[k]), who) : "";
     if (coda) coded = true;

@@ -15,6 +15,7 @@
 // tells one: with the curses off, every account untagged above, karma or door must be the same as main's.
 // Phase 15 adds "witness": a game in which the ego threw on someone's choice (REDESIGN.md Phase 15), or an account that
 // joins a cast return by what they witnessed. Every account untagged witness must be the same as main's.
+// Phase 20 tags school: a member of the cast seen holding a darśana (content/schools.json).
 // Phase 16 adds "death": a game in which the death tier came (it kills now, and before it sent the life back), or someone
 // sat at the door (penance is two years a weight, and a weight-three debt no penance pays). Every account untagged death
 // must be the same as main's. Its second step adds "mirror": an account whose mirror (src/engine/mirror.js) asks first
@@ -39,7 +40,7 @@
 // account whose game the per-throw dice played otherwise than the old shared stream did. --dice=stream plays the old
 // stream, and then every account must be main's, byte for byte.
 // Phase 20 step 1 rewrites four moments (22, 29, 31, 69): "text" marks an account that tells one of them.
-const TEXT_P20 = /meant to stay shut|one small thing first|watches one more|looking at the pictures of it|बंद ही रहना था|छोटी-सी चीज़|एक और (?:देखता|देखती)|तस्वीरें एक के बाद एक/;
+const TEXT_P20 = /(?:his|her|their) father's chest|though (?:his|her|their) mother asks|(?:His|Her|Their) father is dying|meant to stay shut|one small thing first|watches one more|looking at the pictures of it|बंद ही रहना था|छोटी-सी चीज़|एक और (?:देखता|देखती)|तस्वीरें एक के बाद एक/;
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
@@ -113,7 +114,7 @@ const say = (key, s, i, l) => {
 };
 const sayOne = (key, s, i, l) => {
   const text = lifeText(s, i, l), life = lifeOf(s, i, l);
-  out.push(flags.full ? `## ${key}\n${text}` : `${key} ${hash(text)}${flags.tag ? (s.above ? " above" : "") + (s.karma ? " karma" : "") + (s.door ? " door" : "") + (s.curse ? " curse" : "") + (s.witness || life.witnessed ? " witness" : "") + (s.death ? " death" : "") + (mirrorOf?.(s, i)[0]?.id === "rebel" ? " mirror" : "") + (s.rebirth ? " rebirth" : "") + (s.animal ? " animal" : "") + (s.siva ? " siva" : "") + (s.together ? " together" : "") + (s.players[i].met?.length ? " meet" : "") + (s.dice ? " dice" : "") + (s.animalname ? " animalname" : "") + (s.reborn ? " reborn" : "") + (l === "hi" && /बरस की उम्र में|घर [०-९\d]/.test(text) ? " wording" : "") + (TEXT_P20.test(text) ? " text" : "") : ""}`);
+  out.push(flags.full ? `## ${key}\n${text}` : `${key} ${hash(text)}${flags.tag ? (s.above ? " above" : "") + (s.karma ? " karma" : "") + (s.door ? " door" : "") + (s.curse ? " curse" : "") + (s.witness || life.witnessed ? " witness" : "") + (life.schooled ? " school" : "") + (s.death ? " death" : "") + (mirrorOf?.(s, i)[0]?.id === "rebel" ? " mirror" : "") + (s.rebirth ? " rebirth" : "") + (s.animal ? " animal" : "") + (s.siva ? " siva" : "") + (s.together ? " together" : "") + (s.players[i].met?.length ? " meet" : "") + (s.dice ? " dice" : "") + (s.animalname ? " animalname" : "") + (s.reborn ? " reborn" : "") + (l === "hi" && /बरस की उम्र में|घर [०-९\d]/.test(text) ? " wording" : "") + (TEXT_P20.test(text) ? " text" : "") : ""}`);
   if (l === "en" && life.fates) {
     tally.lives++;
     tally.fates += life.fates.length;

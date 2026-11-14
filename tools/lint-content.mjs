@@ -8,13 +8,13 @@
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { GOAL, TOP, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, FALL, STR, SRC_HI, JOINS, NUM_HI, READINGS, CODEX, REFS, ENTRY_IDS, srcOfSquare, sourceOf, leadOf, squareOf, SITUATIONS, CAST, CAST_WORDS, BRIDGES, BRIDGE_SAME, whoOf, bridgeOf, BOARDS, DOOR, CURSES, MIRROR, LEGENDS } from "../src/content.js";
+import { GOAL, TOP, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, FALL, STR, SRC_HI, JOINS, NUM_HI, READINGS, CODEX, REFS, ENTRY_IDS, srcOfSquare, sourceOf, leadOf, squareOf, SITUATIONS, CAST, CAST_WORDS, BRIDGES, BRIDGE_SAME, whoOf, bridgeOf, BOARDS, DOOR, CURSES, MIRROR, LEGENDS, SCHOOLS } from "../src/content.js";
 import NAMES from "../content/names.json" with { type: "json" };
 import { ENDGAME, createGame, playTurn } from "../src/engine/turn.js";
 import { destOf, worthOf } from "../src/engine/qbn.js";
 import { ageOf, stageOfYears, yearsAlong } from "../src/engine/self.js";
 import { castFill, CAST_ROLES } from "../src/i18n.js";
-import { MEMBERS, tokenOf, castArcs } from "../src/engine/cast.js";
+import { MEMBERS, tokenOf, castArcs, SCHOOL_IDS, SCHOOL_ROLES } from "../src/engine/cast.js";
 import { pastOf } from "../src/engine/samskara.js";
 
 // Names compare without diacritics or case, so "Śaṅkara", "Sankara" and "sankara" are one name.
@@ -210,6 +210,43 @@ export function lintReport() {
       for (const t of [g.en, g.hi, g.gloss?.en, g.gloss?.hi]) if (typeof t === "string" && birthRanking(t).length) warn(w, `ranks a birth: "${birthRanking(t).join('", "')}"`);
     }
   }
+  // Phase 20 step 3, the schools as cast (content/schools.json): a school drawn, with its three roles, every role holding
+  // three or more; each line in both languages, the Hindi in the familiar and the honorific, said of the holder by
+  // {who} and agreeing through {who:m|f}; the school never named outside the scholar note; the figure in the Codex and
+  // never a name in the cast or among the players
+  const roleCount = {};
+  for (const id of SCHOOL_IDS) {
+    const roles = SCHOOL_ROLES[id];
+    if (new Set(roles ?? []).size !== 3 || roles.some(w => !MEMBERS.includes(w))) err(`school ${id}`, "does not have three roles of the cast");
+    for (const w of roles ?? []) roleCount[w] = (roleCount[w] ?? 0) + 1;
+  }
+  for (const w of MEMBERS) if ((roleCount[w] ?? 0) < 3) err(`role ${w}`, `holds ${roleCount[w] ?? 0} schools, not three or more`);
+  const nameKeys = new Set([...Object.values(NAMES.cast ?? {}), ...Object.values(NAMES.players ?? {})].flat().flat().filter(x => typeof x === "string").map(x => x.toLowerCase()));
+  const SCHOOL_WORDS = /mīmāṃsā|mimamsa|cārvāka|carvaka|nyāya|nyaya|sāṃkhya|samkhya|advaita|yoga|jain|bhakti|buddh|मीमांसा|चार्वाक|न्याय|सांख्य|अद्वैत|योग|जैन|भक्ति|बौद्ध/i;
+  for (const [id, sc] of Object.entries(SCHOOLS)) {
+    const w = `school ${id}`;
+    if (!SCHOOL_IDS.includes(id)) err(w, "is not one of the nine drawn");
+    const f = CODEX.figures?.[sc.figure];
+    if (!f) err(w, `figure ${sc.figure} is not in the Codex`);
+    else if ([f.name.en, f.name.hi].some(x => nameKeys.has(x.toLowerCase()))) err(w, `figure ${sc.figure} is a name in names.json`);
+    for (const k of ["hold", "back", "fate"]) {
+      const t = sc[k];
+      bilingual(`${w} ${k}`, t);
+      if (!t?.hiHon?.trim()) err(`${w} ${k}`, "no honorific Hindi (hiHon)");
+      for (const l of ["en", "hi", "hiHon"]) {
+        if (!t?.[l]) continue;
+        if (SCHOOL_WORDS.test(t[l])) err(`${w} ${k}`, `names a school in ${l}`);
+        if (k === "back" && !t[l].includes("{who}")) err(`${w} ${k}`, `does not name the holder with {who} in ${l}`);
+      }
+    }
+    bilingual(`${w} scholar`, sc.scholar);
+    // the English names the holder; the Hindi opens on the school, with no verb to agree with them
+    if (sc.scholar?.en && !sc.scholar.en.includes("{who}")) err(`${w} scholar`, "does not name the holder with {who} in English");
+    if (sc.scholar?.hi && (/\{who/.test(sc.scholar.hi) || !sc.scholar.hi.startsWith("यह "))) err(`${w} scholar`, "the Hindi does not open on the school (यह …)");
+    // every pronoun and agreeing form for the holder is templated: no bare he/she in English
+    for (const k of ["hold", "back", "fate"]) if (sc[k]?.en && /\b(?:he|she|his|her|him|hers)\b/i.test(sc[k].en.replace(/\{[^{}]*\}/g, ""))) err(`${w} ${k}`, "has a pronoun not templated for the holder's gender");
+  }
+
   // Phase 14, the curses (content/curses.json): said of the player, in both languages, naming a thing and never a square,
   // tied to a family of late squares that exist; and closed both ways
   const curseIds = new Set();
