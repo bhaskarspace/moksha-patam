@@ -206,6 +206,9 @@ animal's life is tagged `animalname`; with `--dice=stream`
 - `node tools/icons.mjs`: regenerates `icons/`. Only needed when the emblem changes.
 - `node tools/vignettes.mjs [squares…]`: draws the scenes in `art/vignettes.mjs` into `assets/sprites.svg` (`sq-N`, `class="vg"`).
   Run it after editing a scene or a part, then build.
+- `node tools/contact-sheet.mjs <out.png> <new squares…> "|" <existing…>`: a contact sheet for review, the new scenes above
+  existing ones at 4× (number corner and name strip shaded) and at board size, on each band's ground, with what the new
+  scenes weigh. Reads `art/vignettes.mjs` directly, so it needs no write first. Needs Chrome.
 
 ## Guardrails (REDESIGN.md §5)
 - Never break the single-file deploy.
