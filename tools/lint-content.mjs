@@ -207,6 +207,14 @@ export function lintReport() {
       if (!g.iast) err(w, "no word from the chart (iast)");
       if (!/App\. D\d, (top )?sq\. \d+/.test(g.src ?? "")) err(w, `source "${g.src}" does not name the appendix and square`);
       if (g.scholar) { bilingual(`${w} scholar`, g.scholar); if (!g.scholar.src) err(w, "a scholar note needs its source"); }
+      // Phase 20, the square's short name: what the square shows is at most 14 code points in each language, the full
+      // name staying on the card; a short name is kept only where it differs from the full one, and in both languages
+      const SHORT = 14, cp = x => [...(x ?? "")].length;
+      if (g.short) {
+        bilingual(`${w} short`, g.short);
+        if (g.short.en === g.en && g.short.hi === g.hi) err(w, "a short name the same as the full one: drop it");
+        for (const l of ["en", "hi"]) if (cp(g.short[l]) > SHORT) err(w, `short name "${g.short[l]}" is ${cp(g.short[l])} code points, over ${SHORT}`);
+      } else for (const l of ["en", "hi"]) if (cp(g[l]) > SHORT) err(w, `"${g[l]}" is ${cp(g[l])} code points, over ${SHORT}, and has no short name for the square`);
       for (const t of [g.en, g.hi, g.gloss?.en, g.gloss?.hi]) if (typeof t === "string" && birthRanking(t).length) warn(w, `ranks a birth: "${birthRanking(t).join('", "')}"`);
     }
   }

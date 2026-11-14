@@ -2637,6 +2637,28 @@ await check("Phase 19: today's life is the same seed on two devices, and a seed 
 });
 
 // ---- Phase 20: the desktop layout ----
+await check("Phase 20: an old cloth writes each square's short name in it, at most 14 code points, and the card keeps the full name", async page => {
+  for (const lang of ["en", "hi"]) {
+    await page.goto(BASE + `?seed=1&debug&lang=${lang}`);
+    for (const [b, n, short, full] of [["84", 53, { en: "Restraint vows", hi: "ब्रह्मचर्य" }, { en: "Discipline and chastity", hi: "शिक्षाव्रत, ब्रह्मचर्य" }], ["72", 21, { en: "Even breath", hi: "समान" }, { en: "Equalizing breath", hi: "समान" }]]) {
+      await page.evaluate(b => mp.board(b), b);
+      await until(page, () => !mp.busy);
+      const look = await page.evaluate(n => ({
+        long: [...document.querySelectorAll("#labels .lab .nm")].map(e => e.textContent).filter(x => [...x].length > 14),
+        clipped: [...document.querySelectorAll("#labels .lab .nm")].filter(e => e.scrollWidth > e.clientWidth + 1).map(e => e.textContent),
+        nm: document.querySelector(`#labels .lab[data-n="${n}"] .nm`).textContent, aria: document.querySelector(`#labels .lab[data-n="${n}"]`).getAttribute("aria-label"),
+      }), n);
+      assert(!look.long.length, `${b} ${lang}: names over 14 on the board: ${look.long.join(", ")}`);
+      assert(!look.clipped.length, `${b} ${lang}: names cut off on the board: ${look.clipped.join(", ")}`);
+      assert(look.nm === short[lang] && look.aria.includes(full[lang]), `${b}/${n} ${lang}: the square says "${look.nm}", its label "${look.aria}"`);
+      await page.click(`#labels .lab[data-n="${n}"]`);
+      await page.waitForFunction(() => document.getElementById("folio").open);
+      assert((await title(page)) === full[lang], `${b}/${n} ${lang}: the card's title is "${await title(page)}", not the full name`);
+      await page.evaluate(() => mp.close({ instant: true }));
+    }
+  }
+});
+
 await check("Phase 20: 1400px and wider the book is written beside the board, polite, never focused; narrower it is not drawn", async page => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto(BASE + "?debug&seed=3");

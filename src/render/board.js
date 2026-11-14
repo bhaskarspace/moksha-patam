@@ -16,6 +16,13 @@ export const ashramaOf = n => ashramaIn(lang, n);
 export const sqNumIn = (l, n) => { const top = isCloth() && legendOf(n)?.top; return top ? tIn(l, "topSq", { n: top }) : numIn(l, n); };
 export const sqNum = n => sqNumIn(lang, n);
 
+// The name an old cloth writes in square n (Phase 20): its short name where the full one is long, the full name staying
+// on the card, in the label's title and in what a screen reader says (content/legends.json "short")
+function squareShort(n) {
+  const g = legendOf(n);
+  return g?.short ? L(g.short.en, g.short.hi) : squareName(n);
+}
+
 // The board's name for square n in the current language.
 export function squareName(n) {
   if (isCloth()) { const g = legendOf(n); return g ? L(g.en, g.hi) : ""; }
@@ -34,7 +41,7 @@ export const vignette = n => !isCloth() && n !== GOAL && !!document.getElementBy
 function labelHtml(n) {
   const numEl = `<span class="n">${sqNum(n)}</span>`;
   // an old cloth writes every square's legend in it, as the charts do (Phase 18), and marks a footprint
-  if (isCloth()) return numEl + (BOARD.rules.footprints?.[n] != null ? `<span class="foot" aria-hidden="true">👣</span>` : "") + `<span class="nm">${esc(squareName(n))}</span>`;
+  if (isCloth()) return numEl + (BOARD.rules.footprints?.[n] != null ? `<span class="foot" aria-hidden="true">👣</span>` : "") + `<span class="nm${[...squareShort(n)].length > 11 ? " long" : ""}">${esc(squareShort(n))}</span>`;
   const vg = vignette(n);
   if (n === GOAL) return numEl + `<span class="om">ॐ</span><span class="dv">${t("moksha")}</span>`;
   if (HEAVEN[n]) return numEl + (vg ? "" : `<span class="ic">${art(`sq-${n}`, HEAVEN[n].ic)}</span>`) + `<span class="dv">${L(HEAVEN[n].en, HEAVEN[n].hi)}</span>`;
