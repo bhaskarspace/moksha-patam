@@ -40,7 +40,7 @@
 // account whose game the per-throw dice played otherwise than the old shared stream did. --dice=stream plays the old
 // stream, and then every account must be main's, byte for byte.
 // Phase 20 step 1 rewrites four moments (22, 29, 31, 69): "text" marks an account that tells one of them.
-const TEXT_P20 = /(?:his|her|their) father's chest|(?:His|Her|Their) daughter breaks|[Ff]or a week (?:his|her|their) daughter|and (?:his|her|their) son has a son|though (?:his|her|their) mother asks|(?:His|Her|Their) father is dying|meant to stay shut|one small thing first|watches one more|looking at the pictures of it|बंद ही रहना था|छोटी-सी चीज़|एक और (?:देखता|देखती)|तस्वीरें एक के बाद एक/;
+const TEXT_P20 = /(?:his|her|their) father's chest|(?:His|Her|Their) daughter breaks|[Ff]or a week (?:his|her|their) daughter|and (?:his|her|their) son has a son|though (?:his|her|their) mother asks|(?:His|Her|Their) father is dying|meant to stay shut|one small thing first|watches one more|looking at the pictures of it|बंद ही रहना था|छोटी-सी चीज़|एक और (?:देखता|देखती)|तस्वीरें एक के बाद एक|साल भर हर सुबह उसे|चीरकर (?:देखता|देखती) है|ख़रीद (?:लेता|लेती) है|से उधार (?:लेता|लेती) है|शर्त (?:लगाता|लगाती) है|घर सौंप (?:देता|देती) है|बात बता (?:देता|देती) है|संतरा छीलते (?:देखता|देखती) है|अपना ही हाथ (?:देखता|देखती) है|मोतियाबिंद हटाया जाता है|'मैं' (?:कहता|कहती) है|बच्चों में (?:बाँटता|बाँटती) है/;
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";

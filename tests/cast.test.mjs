@@ -63,6 +63,7 @@ test("nothing moves and nothing is drawn from the game: every game plays exactly
 // 15, 23, 52, 62, 65, 69 and 93 are the situations' new prompts and outcomes, added, not changed.
 // 3, 18 and 53 in English: a parent in the player's own moment is "her father", never "Meera's father", and so is a child
 // before they are named, at 50, 59 (its moment and its prompt) and 60 (Phase 20 step 3).
+// 48 and 52 in Hindi: the past-tense pass's fourth batch told them in the present (उधार लेता है, शर्त लगाता है).
 test("with the cast's names taken away, every moment and closing phrase that names the cast reads as Phase 10 wrote it", () => {
   const now = {};
   for (const { n, which, m } of MOMENTS) if (m.cast) for (const l of ["en", "hi"]) now[`${n} ${which} ${l}`] = castFill(m[l]);

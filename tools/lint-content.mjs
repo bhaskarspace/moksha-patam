@@ -321,7 +321,8 @@ export function lintReport() {
   // said (62). Two look back on a whole life, in the English too: what was seen (103) and what was divided (106).
   // A warning until the pass's last batch is in (TENSE_LATE); then an error, as an outcome's is.
   const BACKSTORY = new Set([11, 14, 23, 62, 103, 106]);
-  const TENSE_LATE = new Set([25, 33, 47, 48, 52, 66, 83, 85, 86, 87, 92, 97]);
+  // empty since the pass's fourth batch (Phase 20): every moment's Hindi past is an error
+  const TENSE_LATE = new Set([]);
   const tense = (where, n, hi) => {
     if (BACKSTORY.has(n)) return;
     const past = pastHi(hi);
