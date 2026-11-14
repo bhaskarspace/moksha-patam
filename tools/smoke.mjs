@@ -2618,7 +2618,8 @@ await check("Phase 20: 1400px and wider the book is written beside the board, po
   await page.goto(BASE + "?debug&seed=3");
   const before = await page.evaluate(() => ({ shown: getComputedStyle(document.getElementById("book")).display !== "none", intro: document.querySelector("#bookText .book-intro")?.textContent ?? "", live: document.getElementById("bookText").getAttribute("aria-live"), colophon: getComputedStyle(document.querySelector(".panel .colophon")).display }));
   assert(before.shown && before.intro.length > 40 && before.live === "polite" && before.colophon === "none", JSON.stringify(before));
-  await page.evaluate(() => mp.play(30));
+  // twenty turns: since Phase 20 seed 3's first life ends sooner, and the check below needs the same life going on
+  await page.evaluate(() => mp.play(20));
   await page.waitForTimeout(900);
   const after = await page.evaluate(() => {
     const t = document.getElementById("bookText"), sc = document.getElementById("bookScroll"), b = document.getElementById("book").getBoundingClientRect(), bd = document.querySelector(".board-col").getBoundingClientRect(), pn = document.querySelector(".panel").getBoundingClientRect();
@@ -2626,8 +2627,10 @@ await check("Phase 20: 1400px and wider the book is written beside the board, po
   });
   assert(after.h2 && after.paras >= 1 && !after.intro && !after.focus && after.tab.every(x => x < 0) && after.bottom && after.order && after.tabs === 2, JSON.stringify(after));
   // only what was added is written: the first paragraph is the same node after another turn
-  const same = await page.evaluate(async () => { const p = document.querySelector("#bookText p"); mp.play(4); await new Promise(r => setTimeout(r, 50)); return document.querySelector("#bookText p") === p; });
-  assert(same, "the book's first line was written again");
+  const same = await page.evaluate(async () => { const p = document.querySelector("#bookText p"), life = mp.state.players[0].rebirths ?? 0; mp.play(4); await new Promise(r => setTimeout(r, 50)); return { same: document.querySelector("#bookText p") === p, sameLife: (mp.state.players[0].rebirths ?? 0) === life }; });
+  // a new life is written whole (src/render/book.js), so this asks only of a life still going on, and says if it was not
+  assert(same.sameLife, "the life ended in those four turns: pick fewer turns, or another seed");
+  assert(same.same, "the book's first line was written again");
   // a turn is its own paragraph, and the life's āśramas are named where it enters them
   const parts = await page.evaluate(() => ({ stages: [...document.querySelectorAll("#bookText h3.book-stage")].map(h => h.textContent), paras: document.querySelectorAll("#bookText p").length }));
   assert(parts.stages.length >= 1 && parts.paras >= 4, JSON.stringify(parts));

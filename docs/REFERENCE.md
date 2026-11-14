@@ -344,6 +344,24 @@ soul never recognises (ten-life 0): recognition needs the sixth bhūmikā, which
 a life that never once chooses sattva does not get there; that is the law's answer, not a lock, and a reformed soul
 gets out more often than before (63.6 → 82.2%).
 
+Step 2 shipped 29 situations (the 28 the stubs measured, with 56 as three ways of giving the plate). On the real content,
+2,000 games a cell (the gate): mixed ten-life board 94.6, Jain 83.8, Bhakti 95.8, Nyāya 92.8, Sāṃkhya 94.6, Yoga 100;
+the reformed soul within ten board 84.2, Advaita 78.8; the only line over the gate's terms is Jain's dishonest over 100
+turns, 0.07% of lives, from waiting at a ladder's foot. The sim before (main, b4dc84e, ten situations) and after, 5,000
+one-seat games each (`npm run sim 5000 1 1 --policy=…`; a game holds a seat's every life until one is liberated):
+
+| policy | situations met a life | turns a life, median / p95 | game, median / p95 / over 100 | liberated a life | lives per liberation | lives ending in death | debts a life | a moment told 4× |
+|---|---|---|---|---|---|---|---|---|
+| honest, before | 3.11 | 27 / 45 | 44 / 149 / 15.1% | 41.6% | 2.40 | 6.8% | 0.44 | 6.9% |
+| honest, after | 5.40 | 23 / 32 | 39 / 128 / 10.6% | 46.1% | 2.17 | 0.3% | 0.15 | 1.3% |
+| mixed, before | 3.51 | 29 / 47 | 47 / 152 / 15.7% | 32.3% | 3.10 | 17.0% | 1.87 | 12.5% |
+| mixed, after | 7.19 | 27 / 42 | 46 / 161 / 16.8% | 32.0% | 3.12 | 13.1% | 1.99 | 11.1% |
+| dishonest, before | 3.81 | 29 / 48 | 45 / 140 / 13.1% | 24.1% | 4.14 | 28.6% | 3.38 | 17.0% |
+| dishonest, after | 8.58 | 28 / 47 | 42 / 120 / 9.1% | 17.2% | 5.82 | 39.7% | 4.86 | 17.9% |
+
+The seed rule shows: the honest life plants almost nothing and almost never dies; the mixed life is where it was; the
+dishonest life plants half as much again and dies more. `tests/situations.test.mjs` holds the order under every law.
+
 ---
 
 ## 8. Sources

@@ -775,45 +775,57 @@
     "options": [
       {
         "id": "give",
-        "label": {"en":"Give the guest your plate","hi":"मेहमान को अपनी थाली दे दो"},
+        "label": {"en":"Give the guest your plate, and say nothing","hi":"मेहमान को अपनी थाली दे दो, और कुछ मत कहो"},
         "move": "here",
         "cost": 1,
         "guna": "s",
         "aims": {"dharma":10,"kama":-5},
         "require": {"guna":{"t":{"max":0.55}}},
         "why": {"en":"Too tired tonight to go without.","hi":"आज भूखे रहने की हिम्मत नहीं बची।"},
-        "mirror": {"chose":{"en":"to give the guest your plate","hi":"मेहमान को अपनी थाली देना"}},
-        "dream": {"en":"gave a guest {his|her|their} own plate","hi":"जिसने एक मेहमान को अपनी थाली दे दी थी"}
+        "outcome": {"en":"{name} is {age}, gives the guest {his|her|their} own plate without a word, eats later from what is left in the pot, and nobody at the table notices.","hi":"{name} {age} बरस {का|की} है। {name} बिना कुछ कहे अपनी थाली मेहमान को दे {देता|देती} है, बाद में पतीले में जो बचा है वही {खाता|खाती} है, और मेज़ पर किसी को पता भी नहीं चलता।"},
+        "mirror": {"chose":{"en":"to give the guest your plate, and say nothing","hi":"मेहमान को अपनी थाली देना, और कुछ न कहना"}},
+        "dream": {"en":"gave a plate away without a word","hi":"जिसने बिना कुछ कहे अपनी थाली दे दी थी"}
       },
       {
-        "id": "eaten",
-        "label": {"en":"Say you have all eaten already","hi":"कह दो कि सब खा चुके हैं"},
+        "id": "sulk",
+        "label": {"en":"Give the guest your plate, and sulk all evening","hi":"मेहमान को अपनी थाली दे दो, और सारी शाम मुँह फुलाए रहो"},
+        "move": "here",
+        "cost": 1,
+        "guna": "t",
+        "aims": {"dharma":0},
+        "outcome": {"en":"{name} is {age}, gives the guest {his|her|their} own plate, and sits with nothing in front of {him|her|them} all evening, and lets the whole table feel it.","hi":"{name} {age} बरस {का|की} है। {name} मेहमान को अपनी थाली दे तो {देता|देती} है, पर सारी शाम सामने कुछ न रखे मुँह फुलाए {बैठा रहता|बैठी रहती} है, और पूरे घर को यह महसूस करा {देता|देती} है।"},
+        "mirror": {"chose":{"en":"to give the guest your plate, and sulk all evening","hi":"मेहमान को अपनी थाली देना, और सारी शाम मुँह फुलाए रहना"}},
+        "dream": {"en":"gave a guest {his|her|their} own plate, and sulked all evening","hi":"जिसने एक मेहमान को अपनी थाली दी थी, और सारी शाम मुँह फुलाए रखा था"}
+      },
+      {
+        "id": "mention",
+        "label": {"en":"Give the guest your plate, and make sure they know","hi":"मेहमान को अपनी थाली दे दो, और जता भी दो"},
         "move": "here",
         "cost": 0,
         "guna": "r",
         "aims": {"dharma":-5},
-        "outcome": {"en":"{name} is {age} and says at the door that everyone has eaten already, and the guest says of course, and goes, and dinner goes on a little quieter than before.","hi":"{name} {age} बरस {का|की} है। {name} दरवाज़े पर ही कह {देता|देती} है कि सब खा चुके हैं; मेहमान कहता है, ठीक है, और चला जाता है, और खाना पहले से थोड़ा चुपचाप चलता रहता है।"},
-        "seed": {"wrong":"lie","fuse":20,"weight":2,"holds":55,"debt":{"en":"the guest turned away at dinner, at {at}","hi":"{at} बरस की उम्र में खाने के समय लौटाया गया मेहमान"},"reckoning":{"en":"{name} arrives somewhere at dinner time, tired from the road, and is told at the door that everyone has eaten already.","hi":"{name} रास्ते से {थका हुआ|थकी हुई} कहीं खाने के समय {पहुँचता|पहुँचती} है, और दरवाज़े पर ही कह दिया जाता है कि सब खा चुके हैं।"}},
-        "mirror": {"took":{"en":"said everyone had eaten","hi":"कह दिया कि सब खा चुके हैं"}},
-        "dream": {"en":"told a guest at the door that everyone had eaten","hi":"जिसने दरवाज़े पर मेहमान से कह दिया था कि सब खा चुके हैं"}
+        "outcome": {"en":"{name} is {age}, gives the guest {his|her|their} own plate, mentions it twice over dinner, and once more at the door.","hi":"{name} {age} बरस {का|की} है। {name} मेहमान को अपनी थाली दे {देता|देती} है, खाने के दौरान दो बार यह जता {देता|देती} है, और विदा करते समय एक बार और।"},
+        "mirror": {"took":{"en":"gave the plate, and made sure the guest knew","hi":"थाली दी, और जता भी दिया"}},
+        "dream": {"en":"gave a guest {his|her|their} own plate, and said so, more than once","hi":"जिसने एक मेहमान को अपनी थाली दी थी, और यह बात एक से ज़्यादा बार जताई थी"}
       }
     ],
     "ego": {
-      "lower": "eaten",
+      "lower": "mention",
       "card": {
-        "en": "{name} is {age} and means to give the guest {his|her|their} own plate, and at the door the words come out otherwise.",
-        "hi": "{name} {age} बरस {का|की} है और मेहमान को अपनी थाली देना {चाहता|चाहती} है, पर दरवाज़े पर शब्द कुछ और ही निकलते हैं।"
+        "en": "{name} is {age} and means to give the plate and say nothing, and hears {name}’s own voice telling the table whose plate it is.",
+        "hi": "{name} {age} बरस {का|की} है और चुपचाप थाली देना {चाहता|चाहती} है, और अपनी ही आवाज़ को सबको यह बताते {सुनता|सुनती} है कि थाली किसकी है।"
       },
       "account": {
-        "en": "{name} meant to give the guest {his|her|their} own plate, and at the door the words came out otherwise.",
-        "hi": "{name} मेहमान को अपनी थाली देना {चाहता था|चाहती थी}, पर दरवाज़े पर शब्द कुछ और ही निकले।"
+        "en": "{name} meant to give the plate and say nothing, and heard {name}’s own voice telling the table whose plate it was.",
+        "hi": "{name} चुपचाप थाली देना {चाहता था|चाहती थी}, और {name} ने अपनी ही आवाज़ को सबको यह बताते सुना कि थाली किसकी थी।"
       }
     },
     "witness": {
       "spouse": {
         "give": {"en":"{who}, who had watched {name} hand the guest {his|her|their} own plate, was still there: ","hi":"{who}, जिसने {name} को अपनी थाली मेहमान को देते देखा था, अब भी साथ {who:था|थी}: "},
-        "eaten": {"en":"{who}, who had heard {name} tell the guest at the door that everyone had eaten, was still there: ","hi":"{who}, जिसने {name} को दरवाज़े पर मेहमान से यह कहते सुना था कि सब खा चुके हैं, अब भी साथ {who:था|थी}: "},
-        "rebel": {"en":"{who}, who had heard {name} tell the guest at the door that everyone had eaten, and never knew {name} had meant to give a plate, was still there: ","hi":"{who}, जिसने {name} को दरवाज़े पर मेहमान से यह कहते सुना था कि सब खा चुके हैं, और कभी नहीं जाना कि {name} अपनी थाली देना {चाहता था|चाहती थी}, अब भी साथ {who:था|थी}: "}
+        "sulk": {"en":"{who}, who had sat through the evening {name} sulked over a plate, was still there: ","hi":"{who}, जिसने वह शाम झेली थी जब {name} एक थाली के लिए मुँह फुलाए {बैठा था|बैठी थी}, अब भी साथ {who:था|थी}: "},
+        "mention": {"en":"{who}, who had heard {name} tell the table, twice, whose plate the guest was eating from, was still there: ","hi":"{who}, जिसने {name} को दो बार यह जताते सुना था कि मेहमान किसकी थाली से खा रहा है, अब भी साथ {who:था|थी}: "},
+        "rebel": {"en":"{who}, who had heard {name} tell the table whose plate it was, and never knew {name} had meant to say nothing, was still there: ","hi":"{who}, जिसने {name} को यह जताते सुना था कि थाली किसकी थी, और कभी नहीं जाना कि {name} चुप रहना {चाहता था|चाहती थी}, अब भी साथ {who:था|थी}: "}
       }
     }
   },
@@ -1095,5 +1107,50 @@
         "dream": {"en":"prayed loudly, and walked past the man at the gate","hi":"जिसने ज़ोर से प्रार्थना की थी, और दरवाज़े पर खड़े आदमी की बात अनसुनी कर दी थी"}
       }
     ]
+  },
+  "93": {
+    "prompt": {
+      "en": "{name} is {age}, has given almost everything away, and {child=the son} has come to visit, and it is nearly noon.",
+      "hi": "{name} {age} बरस {का|की} है। {name} ने लगभग सब कुछ दे दिया है, और {child=बेटा} मिलने आया है। दोपहर होने को है।",
+      "cast": "son"
+    },
+    "options": [
+      {
+        "id": "once",
+        "label": {"en":"Ask once, and let it be","hi":"एक बार पूछो, और छोड़ दो"},
+        "move": "here",
+        "cost": 2,
+        "guna": "s",
+        "aims": {"dharma":5},
+        "outcome": {"en":"{name} is {age}, asks once whether {child=the son} has eaten, hears yes, leaves it there, and goes back to sitting.","hi":"{name} {age} बरस {का|की} है। {name} एक बार {पूछता|पूछती} है कि {child=बेटे} ने खाना खाया या नहीं, ‘हाँ’ सुनकर बात वहीं छोड़ {देता|देती} है, और फिर अपनी जगह बैठ {जाता|जाती} है।","mirror":{"en":"Bharata, born again, said nothing and wanted nothing, so that nothing could hold him a second time.","hi":"दोबारा जन्मे भरत ने न कुछ कहा, न कुछ चाहा, ताकि कुछ भी उन्हें दूसरी बार बाँध न सके।"},"cast":"son","recall":{"en":"whom {name} once asked, and then let be","hi":"जिससे {name} ने एक बार पूछकर बात छोड़ दी थी"}},
+        "dream": {"en":"asked the son once whether he had eaten, and let it be","hi":"जिसने बेटे से एक बार पूछा था कि उसने खाया या नहीं, और बात छोड़ दी थी"}
+      },
+      {
+        "id": "cook",
+        "label": {"en":"Go and cook for him yourself","hi":"ख़ुद जाकर उसके लिए खाना बनाओ"},
+        "move": "here",
+        "cost": 1,
+        "guna": "r",
+        "aims": {"dharma":0},
+        "outcome": {"en":"{name} is {age}, gets up, goes into the kitchen that was given away with the house, and cooks for {child=the son}, who eats it, to be kind.","hi":"{name} {age} बरस {का|की} है। {name} उठकर उस रसोई में {जाता|जाती} है जो घर के साथ ही दे दी गई थी, और खाना पकाकर {child=बेटे} को {खिलाता|खिलाती} है, जो उसका मन रखने को खा लेता है।","cast":"son","recall":{"en":"for whom {name} once cooked in a kitchen already given away","hi":"जिसके लिए {name} ने कभी उस रसोई में खाना बनाया था जो दी जा चुकी थी"}},
+        "dream": {"en":"cooked for the son in a kitchen already given away","hi":"जिसने दे दी गई रसोई में बेटे के लिए खाना बनाया था"}
+      },
+      {
+        "id": "ask",
+        "label": {"en":"Keep asking","hi":"पूछते रहो"},
+        "move": "snake",
+        "cost": 0,
+        "guna": "t",
+        "aims": {"dharma":-5},
+        "dream": {"en":"could not stop asking whether the son had eaten","hi":"जिससे यह पूछना कभी नहीं छूटा था कि बेटे ने खाया या नहीं"}
+      }
+    ],
+    "witness": {
+      "son": {
+        "once": {"en":"{who}, whom {name} had asked once, and then let be, was waiting: ","hi":"{who}, जिससे {name} ने एक बार पूछकर बात छोड़ दी थी, {who:इंतज़ार कर रहा था|इंतज़ार कर रही थी}: "},
+        "cook": {"en":"{who}, who had eaten what {name} cooked in a kitchen given away, was waiting: ","hi":"{who}, जिसने वह खाना खाया था जो {name} ने दे दी गई रसोई में बनाया था, {who:इंतज़ार कर रहा था|इंतज़ार कर रही थी}: "},
+        "ask": {"en":"{who}, whom {name} had asked, again and again, whether there had been anything to eat, was waiting: ","hi":"{who}, जिससे {name} ने बार-बार पूछा था कि खाया या नहीं, {who:इंतज़ार कर रहा था|इंतज़ार कर रही थी}: "}
+      }
+    }
   }
 }

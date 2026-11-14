@@ -40,8 +40,9 @@ test("a rebellion is always asked about first, by what was chosen and what the l
   s.players[0].pos = 52;
   s.forceEgo = [1, 2, 3, 4, 5, 6];
   endTurn(s, resolveChoice(s, planTurn(s, 3), "return"));
-  s.forceEgo = [];
-  while (!s.over) playTurn(s);
+  // and the ego owns no face for the rest of the life, so this is the only rebellion (since Phase 20 the life may
+  // otherwise rebel again later, at 59, and the mirror asks about that one)
+  while (!s.over) { s.forceEgo = []; playTurn(s); }
   const m = mirrorOf(firstLives(s), 0);
   assert.equal(m[0].id, "rebel");
   assert.equal(mirrorIn("en", m[0]), "At forty-two you chose to give the change back, and the life kept it. Which of you was it?");

@@ -102,6 +102,12 @@
   "65 keep en": "{name} is {age} and divides it all fairly with the one {name} married, except for the few best things, which go in a trunk under the bed, and are taken out at night and looked at.",
   "65 keep hi": "{name} {age} बरस {का|की} है। {name} जीवनसाथी के साथ सब कुछ बराबर {बाँटता|बाँटती} है, सिवाय कुछ सबसे अच्छी चीज़ों के, जो पलंग के नीचे एक संदूक़ में जाती हैं, और रात को निकालकर देखी जाती हैं।",
   "65 refuse en": "{name} is {age}, will not talk about it with the one {name} married, leaves the room whenever it comes up, and in the end it is divided anyway, by others.",
-  "65 refuse hi": "{name} {age} बरस {का|की} है। {name} जीवनसाथी से इस बारे में बात नहीं {करता|करती}, जब भी बात उठती है कमरे से {चला जाता|चली जाती} है, और आख़िर में बँटवारा दूसरे ही कर देते हैं।"
+  "65 refuse hi": "{name} {age} बरस {का|की} है। {name} जीवनसाथी से इस बारे में बात नहीं {करता|करती}, जब भी बात उठती है कमरे से {चला जाता|चली जाती} है, और आख़िर में बँटवारा दूसरे ही कर देते हैं।",
+  "93 prompt en": "{name} is {age}, has given almost everything away, and the son has come to visit, and it is nearly noon.",
+  "93 once en": "{name} is {age}, asks once whether the son has eaten, hears yes, leaves it there, and goes back to sitting.",
+  "93 once hi": "{name} {age} बरस {का|की} है। {name} एक बार {पूछता|पूछती} है कि बेटे ने खाना खाया या नहीं, ‘हाँ’ सुनकर बात वहीं छोड़ {देता|देती} है, और फिर अपनी जगह बैठ {जाता|जाती} है।",
+  "93 cook en": "{name} is {age}, gets up, goes into the kitchen that was given away with the house, and cooks for the son, who eats it, to be kind.",
+  "93 cook hi": "{name} {age} बरस {का|की} है। {name} उठकर उस रसोई में {जाता|जाती} है जो घर के साथ ही दे दी गई थी, और खाना पकाकर बेटे को {खिलाता|खिलाती} है, जो उसका मन रखने को खा लेता है।",
+  "93 prompt hi": "{name} {age} बरस {का|की} है। {name} ने लगभग सब कुछ दे दिया है, और बेटा मिलने आया है। दोपहर होने को है।"
  }
 }

@@ -9,7 +9,9 @@ import { SITUATIONS, SNAKES } from "../src/content.js";
 import { fill } from "../src/i18n.js";
 import { firstLives } from "./lives.mjs";
 
-const TESTS = { 49: "first", 54: "claim", 55: "keep", 56: "eaten", 59: "strike" };
+// since Phase 20, 56 is the plate given three ways and its lower option, "mention", is no lie and no harm: it plants
+// nothing (the seed rule, docs/REFERENCE.md §6)
+const TESTS = { 49: "first", 54: "claim", 55: "keep", 56: "mention", 59: "strike" }, UNSEEDED = new Set([56]);
 const game = (pos, seed = 1) => {
   const s = createGame({ players: [{ name: "Meera", type: "cpu", gender: "f" }], rules: { six: true }, seed });
   s.players[0].pos = pos;
@@ -23,7 +25,8 @@ test("the ego tests, each naming the lower option the ego pulls toward", () => {
   assert.deepEqual(tagged, [24, 39, 49, 52, 54, 55, 56, 59, 77]);
   for (const [n, id] of Object.entries(TESTS)) {
     assert.equal(egoOf(+n).lower, id);
-    assert.ok(optionOf(+n, id).seed, `${n}.${id} plants a debt`);
+    if (UNSEEDED.has(+n)) assert.ok(!optionOf(+n, id).seed, `${n}.${id} plants nothing`);
+    else assert.ok(optionOf(+n, id).seed, `${n}.${id} plants a debt`);
   }
 });
 

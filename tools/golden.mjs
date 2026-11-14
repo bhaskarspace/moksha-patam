@@ -10,6 +10,8 @@
 // Re-pinned for Phase 19 step 3: every throw is keyed by the seed, the lane, the life and the throw (src/engine/throws.js)
 // instead of one sequence shared by every seat, so every game's log differs from Phase 18's; the page and the sim still
 // throw alike. The table plays the race, said outright, since a game of two or more is played together by default.
+// Re-pinned for Phase 20 step 2: 29 squares offer a choice (content/situations.json), so a computer's game stops at more of
+// them and its log differs from Phase 19's where it lands on one; the page and the sim still choose alike.
 //   node tools/golden.mjs [seeds=20]
 import path from "node:path";
 import { pathToFileURL } from "node:url";
