@@ -781,6 +781,161 @@ export default {
     shape("M-2.6,0 L2.6,0 L1.8,1.5 L-1.8,1.5 Z", "ochre", { x: 28, y: 31.4 }), flame(28, 31.4, 5),
   ] },
 
+  // ---- Phase 20, sheet 5 (15 Nov), the last of the plain squares, the same rules ----
+  // Cannot get out of bed, and does not know why: the sun already high in the window.
+  17: { keep: "plain", draw: () => [
+    poly([[30, 9], [42, 9], [42, 20], [30, 20]], "palegreen"), sun(36, 14.5, 2.8, { rays: 10 }), line("M36,9 L36,20"),
+    poly([[5, 33], [37, 33], [37, 36], [5, 36]], "ochre"), line("M6.5,36 L6.5,40 M35.5,36 L35.5,40"),
+    shape("M-2,0 C-2,-2 2,-2 2,0 Z", "shell", { x: 9, y: 33 }),
+    head(9.6, 28.4, { s: 0.82, hair: "black", kind: "woman" }),
+    cloth(13, 27.6, 23, 5.4, { fill: "indigo", stripe: "yellow", stripes: 2 }),
+  ] },
+  // Wins without raising the voice, by letting the other side keep talking.
+  24: { keep: "plain", draw: () => [
+    seated(13, 24, { s: 0.8, fill: "vermilion" }),
+    head(13, 18.4, { s: 0.95 }),
+    limb(15.5, 26, 20.5, 20.5, { w: 2.2, end: 1.3 }), limb(15.5, 27.4, 21, 27, { w: 2.2, end: 1.3 }),
+    line("M20.8,16 Q22.4,17.4 20.8,18.8 M22.8,15 Q25,17.4 22.8,19.8"),
+    seated(36, 24, { s: 0.8, face: -1, fill: "malachite" }),
+    head(36, 18.4, { s: 0.95, face: -1, kind: "woman", hair: "grey" }),
+    limb(34, 27.4, 31, 28.4, { w: 2.2, end: 1.2 }), limb(38, 27.4, 31.6, 28.6, { w: 2.2, end: 1.2 }),
+  ] },
+  // Yayāti's fire: the fire fed at night, and growing for it; desire is not quenched by what it is given.
+  31: { keep: "plain", draw: () => [
+    poly([[1, 1], [47, 1], [47, 41], [1, 41]], "indigo", false),
+    moon(40, 7, 3, "shell"),
+    flame(30, 39, 16),
+    seated(12, 24, { s: 0.8, fill: "yellow" }),
+    head(12, 18.4, { s: 0.95, kind: "woman" }),
+    limb(14.4, 26.4, 23, 27, { w: 2.2, end: 0 }), line("M23,27 L26.6,29.4"), dot(26.8, 29.8, 1, "ochre"),
+  ] },
+  // You are That, as the moment tells it (not Uddālaka and Śvetaketu, the mirror): across a platform, a stranger the
+  // same height, in the same colours, and the plain thought that it could be me. One passer-by between, spaced.
+  36: { keep: "plain", draw: () => [
+    poly([[1, 37], [47, 37], [47, 40], [1, 40]], "paleochre"),
+    robe(11, 20, { s: 0.66, fill: "indigo", sash: "yellow" }),
+    head(11, 14.2, { s: 0.9 }),
+    robe(25, 24, { s: 0.5, face: -1, fill: "vermilion", sash: "malachite" }),
+    head(25, 19.4, { s: 0.74, face: -1, kind: "woman", hair: "grey" }),
+    robe(38, 20, { s: 0.66, face: -1, fill: "indigo", sash: "yellow" }),
+    head(38, 14.2, { s: 0.9, face: -1 }),
+  ] },
+  // The last day: the rules read out, and one more for when the rules run out; the bundle ready by the door.
+  38: { keep: "plain", draw: () => [
+    seated(35, 22, { s: 0.8, face: -1, fill: "ochre" }),
+    head(35, 16.4, { s: 0.95, face: -1, hair: "grey" }),
+    limb(32.6, 24.6, 27.4, 23.4, { w: 2.2, end: 1.2 }),
+    // the rules on a palm leaf held out, and the one more at its end
+    shape("M14,21.8 L28,21.8 C29,21.8 29,24.6 28,24.6 L14,24.6 C13,24.6 13,21.8 14,21.8 Z", "paleochre"), line("M16,23.2 L23.4,23.2"), dot(26, 23.2, 0.7, "vermilion", false),
+    robe(12, 21, { s: 0.64, fill: "malachite", sash: "vermilion" }),
+    head(12, 15.4, { s: 0.88, kind: "woman" }),
+    line("M8,22 L4,32"), poly([[1.6, 31.4], [6.4, 31.4], [6.4, 35.6], [1.6, 35.6]], "ochre"),
+  ] },
+  // Five offerings: four fed before eating, every day, and no longer noticed.
+  49: { keep: "plain", draw: () => [
+    robe(9, 17, { s: 0.7, fill: "vermilion", sash: "yellow" }),
+    head(9, 11.2, { s: 0.92, kind: "woman" }),
+    limb(11.2, 20, 16, 23.4, { w: 2.2, end: 1.2 }), pot(18.4, 24.4, 0.42, "ochre", "malachite"),
+    ...[[22, "indigo", "black", "man"], [29, "malachite", "white", "woman"], [36, "yellow", "black", "child"], [43, "ochre", "grey", "man"]].flatMap(([x, c, hair, kind]) => [
+      shape("M-3.2,0 C-3.2,-1.5 3.2,-1.5 3.2,0 C3.2,1.5 -3.2,1.5 -3.2,0 Z", "malachite", { x: x - 2.6, y: 39 }),
+      seated(x, 28.6, { s: 0.48, face: -1, fill: c }),
+      head(x, 25.2, { s: 0.62, face: -1, hair, kind }),
+    ]),
+  ] },
+  // The white at the temple, and the son's son: three ages in one row.
+  60: { keep: "plain", draw: () => [
+    robe(36, 16, { s: 0.72, face: -1, fill: "indigo", sash: "yellow" }),
+    head(36, 10, { s: 0.95, face: -1 }),
+    seated(17, 24, { s: 0.85, fill: "vermilion" }),
+    head(17, 18, { s: 1, hair: "white", kind: "woman" }),
+    shape("M-4.6,0 C-4.6,-2.6 -1,-3.4 2,-3 C4,-2.6 4.6,-1 4.6,0 C4.6,2 2,2.6 0,2.6 C-2.6,2.6 -4.6,1.8 -4.6,0 Z", "yellow", { x: 26, y: 27.6 }),
+    head(29.4, 25, { s: 0.56, face: -1, kind: "child" }),
+    limb(19.4, 26.4, 26.6, 30, { w: 2.2, end: 1.2 }),
+  ] },
+  // Every book on the shelf read twice, and the hands open: none of it has helped.
+  68: { keep: "plain", draw: () => [
+    books(30, 40, 12, ["vermilion", "indigo", "malachite", "ochre", "vermilion"]),
+    books(31, 25, 10, ["indigo", "malachite", "yellow"]),
+    seated(14, 24, { s: 0.82, fill: "shell" }),
+    head(14, 18.4, { s: 0.96, hair: "grey" }),
+    limb(16.6, 26.8, 22, 25, { w: 2.2, end: 1.3 }), limb(12, 26.8, 18, 29.4, { w: 2.2, end: 1.3 }),
+  ] },
+  // A winter's bad chest: the shawl, the coals, and the breath counted.
+  73: { keep: "plain", draw: () => [
+    seated(14, 23, { s: 0.85, fill: "indigo" }),
+    shape("M-4.6,0 L4.6,0 L6,9 L-6.4,9 Z", "ochre", { x: 14, y: 22.6 }), line("M-4,3 L4.8,3 M-5,6 L5.4,6", { x: 14, y: 22.6 }),
+    head(14, 17.2, { s: 1, hair: "grey", kind: "woman" }),
+    shape("M0,0 C1,-1.6 3,-1.6 3.4,0 C4.4,-0.6 5.4,0.4 4.8,1.4 C3,2.2 1,2 0,0 Z", "shell", { x: 20, y: 16 }),
+    pot(32, 35, 0.6, "ochre", "vermilion"), dot(30.4, 30.2, 0.9, "vermilion"), dot(32.6, 29.6, 0.9, "yellow"), dot(34.2, 30.4, 0.9, "vermilion"),
+  ] },
+  // Watching the one they married asleep, and not able to tell whose sake the love is for.
+  78: { keep: "plain", draw: () => [
+    moon(41, 7, 2.6),
+    poly([[4, 32], [30, 32], [30, 35], [4, 35]], "ochre"), line("M5.5,35 L5.5,40 M28.5,35 L28.5,40"),
+    shape("M-3,0 C-3,-2.4 3,-2.4 3,0 Z", "shell", { x: 8, y: 32 }),
+    cloth(11, 26.4, 19, 5.6, { fill: "vermilion", stripe: "yellow", stripes: 2 }),
+    head(8.4, 26.4, { s: 0.8 }),
+    seated(39, 24, { s: 0.75, face: -1, fill: "malachite" }),
+    head(39, 18.4, { s: 0.92, face: -1, kind: "woman" }),
+  ] },
+  // Neti neti: not this, of the body, the name, the work, until the child loses interest.
+  81: { keep: "plain", draw: () => [
+    seated(14, 24, { s: 0.82, fill: "yellow" }),
+    head(14, 18.4, { s: 0.96, hair: "white" }),
+    limb(16.6, 26.4, 21.6, 21, { w: 2.2, end: 1.9 }),
+    robe(36, 23.5, { s: 0.55, face: -1, fill: "vermilion", sash: "indigo" }),
+    head(36, 18.6, { s: 0.8, face: -1, kind: "child" }),
+    limb(37.6, 26, 40.6, 22, { w: 1.9, end: 1.1 }),
+  ] },
+  // Four in the morning, out of a dream, no name and no face remembered, and not afraid.
+  82: { keep: "plain", draw: () => [
+    poly([[1, 1], [47, 1], [47, 41], [1, 41]], "indigo", false),
+    ...[[20, 6], [30, 9], [40, 5], [44, 14], [24, 13]].map(([x, y]) => dot(x, y, 0.8, "shell", false)),
+    poly([[6, 33], [38, 33], [38, 36], [6, 36]], "ochre"), line("M7.5,36 L7.5,40 M36.5,36 L36.5,40"),
+    cloth(16, 28, 21, 5, { fill: "vermilion", stripe: "yellow", stripes: 2 }),
+    seated(13, 18.4, { s: 0.7, fill: "shell" }),
+    head(13, 13.6, { s: 0.88, hair: "grey" }),
+  ] },
+  // The one thing worth knowing told, and then a walk alone, not hurried back from.
+  83: { keep: "plain", draw: () => [
+    poly([[1, 37], [47, 33], [47, 36.4], [1, 40]], "paleochre", false),
+    robe(34, 15.5, { s: 0.74, fill: "ochre", sash: "malachite" }),
+    head(34, 9.6, { s: 0.95, hair: "white" }),
+    line("M39,17 L41.6,39"), limb(35.6, 18.4, 39.6, 22, { w: 2.2, end: 1.2 }),
+    robe(11, 25, { s: 0.48, face: 1, fill: "yellow", sash: "vermilion" }),
+    head(11, 20.6, { s: 0.72, kind: "child" }),
+  ] },
+  // Lead me to light: the dark room, a house not known, and then the window comes back.
+  90: { keep: "plain", draw: () => [
+    poly([[1, 1], [47, 1], [47, 41], [1, 41]], "indigo", false),
+    poly([[28, 10], [42, 10], [42, 25], [28, 25]], "paleochre"), line("M35,10 L35,25 M28,17.5 L42,17.5"),
+    seated(15, 25, { s: 0.8, fill: "shell" }),
+    head(15, 19.4, { s: 0.95, hair: "white", kind: "woman" }),
+  ] },
+  // Aham brahmāsmi: 'I', one morning, and no edge to it: arms open at the edge of a wide field.
+  92: { keep: "plain", draw: () => [
+    sun(36, 31, 6.4, { rays: 16 }),
+    poly([[1, 31], [47, 31], [47, 41], [1, 41]], "palegreen", false), line("M1,31 L47,31"),
+    robe(17, 17.5, { s: 0.68, fill: "shell", sash: "yellow" }),
+    head(17, 12, { s: 0.92, hair: "white" }),
+    limb(15, 19.5, 8.4, 15.2, { w: 2.2, end: 1.2 }), limb(19, 19.5, 25.6, 15.2, { w: 2.2, end: 1.2 }),
+  ] },
+  // The body wearing out, heard as if about someone else's house: the old house, patched, looked at from outside.
+  95: { keep: "plain", draw: () => [
+    house(20, 38, 24, { wall: "paleochre", roof: "ochre", door: "indigo" }),
+    line("M33,26 L35,30 L33.6,33"), poly([[36, 19], [40, 19], [40, 21.6], [36, 21.6]], "vermilion"),
+    robe(9, 20, { s: 0.68, fill: "malachite", sash: "shell" }),
+    head(9, 14.2, { s: 0.92, hair: "white" }),
+  ] },
+  // Shanti: nothing waited for. Evening, the birds going home, and sitting.
+  98: { keep: "plain", draw: () => [
+    sun(36, 30, 6, { rays: 12, fill: "vermilion", ray: "yellow" }),
+    poly([[1, 30], [47, 30], [47, 41], [1, 41]], "palegreen", false), line("M1,30 L47,30"),
+    ...[[30, 12, 0.6], [37, 9, 0.5], [42, 14, 0.45]].map(([x, y, sc]) => shape("M-5,-2.2 Q-2.4,-3 0,0.6 Q2.4,-3 5,-2.2 Q2.6,-0.6 0,2.6 Q-2.6,-0.6 -5,-2.2 Z", "black", { x, y, s: sc })),
+    seated(15, 22, { s: 0.85, fill: "shell" }),
+    head(15, 16.2, { s: 1, hair: "white", kind: "woman" }),
+  ] },
+
   // ---- The divine row: seals, more pattern than figure ----
   // Indra: the thunderbolt in its ring.
   101: { keep: "middle", draw: () => [
