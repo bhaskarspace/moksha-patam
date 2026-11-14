@@ -11,7 +11,9 @@ import { chromium } from "playwright";
 import { symbol } from "./vignette-parts.mjs";
 import { BOARD, squareOf } from "../src/content.js";
 const { default: SCENES } = await import("../art/vignettes.mjs");
-const { default: CLOTH } = await import("../art/cloth.mjs");
+const { default: CLOTH, BASES } = await import("../art/cloth.mjs");
+// the cloths' families' bases, which their pictures use (art/cloth.mjs)
+const bases = Object.entries(BASES).map(([k, d]) => symbol(0, d().flat(), `cf-${k}`)).join("");
 const LEGENDS = JSON.parse(fs.readFileSync(new URL("../content/legends.json", import.meta.url), "utf8"));
 const [out, ...args] = process.argv.slice(2);
 const [newer, older] = args.join(" ").split("|").map(x => x.trim().split(/\s+/).filter(Boolean));
@@ -20,7 +22,7 @@ const at = k => { const [b, n] = k.includes("/") ? k.split("/") : ["110", k]; re
 const sceneOf = k => { const { b, n } = at(k); return b === "110" ? SCENES[n] : CLOTH[b][n]; };
 const nameOf = k => { const { b, n } = at(k); return b === "110" ? squareOf(n).en : `${b}: ${LEGENDS[b][n].en}`; };
 const ground = n => BOARD.palette[BOARD.look?.grounds?.[Math.min(4, Math.floor((n - 1) / 20))]?.[n % 2] ?? "cream"] ?? "#f3ead6";
-const syms = [...newer, ...older].map(k => symbol(at(k).n, sceneOf(k).draw().flat(), at(k).id)).join("");
+const syms = bases + [...newer, ...older].map(k => symbol(at(k).n, sceneOf(k).draw().flat(), at(k).id)).join("");
 const groundOf = k => (at(k).b === "110" ? ground(at(k).n) : BOARD.palette.cream ?? "#f3ead6");
 const cell = (k, tag) => {
   const { b, n, id } = at(k), guides = b === "110" ? `<rect x="0" y="0" width="12" height="9" class="guide"/><rect x="0" y="41" width="48" height="7" class="guide"/>` : "";
@@ -41,7 +43,8 @@ const b = await chromium.launch({ channel: "chrome" }), p = await b.newPage({ vi
 await p.setContent(html);
 await p.screenshot({ path: out, fullPage: true });
 await b.close();
-const weight = newer.map(k => symbol(at(k).n, sceneOf(k).draw().flat(), at(k).id)).join("\n");
+// with the families' bases, when the sheet has a cloth's picture: they are written once, whatever uses them
+const weight = (newer.some(k => at(k).b !== "110") ? bases + "\n" : "") + newer.map(k => symbol(at(k).n, sceneOf(k).draw().flat(), at(k).id)).join("\n");
 const raw = Buffer.byteLength(weight), gz = zlib.gzipSync(weight, { level: 9 }).length;
 console.log(`wrote ${out}; the ${newer.length} new pictures weigh ${(raw / 1024).toFixed(1)} KB raw, ${(gz / 1024).toFixed(1)} KB gzipped as symbols` +
   ` (${(raw / newer.length / 1024).toFixed(2)} KB each; a 110 scene replaces a Phase 5 sprite, so the build grows by less; an old cloth's adds all of it)`);

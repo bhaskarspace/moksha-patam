@@ -12,7 +12,7 @@ import { symbol } from "./vignette-parts.mjs";
 const root = path.resolve(import.meta.dirname, "..");
 {
   const { default: SCENES } = await import(pathToFileURL(path.join(root, "art/vignettes.mjs")).href);
-  const { default: CLOTH } = await import(pathToFileURL(path.join(root, "art/cloth.mjs")).href);
+  const { default: CLOTH, BASES } = await import(pathToFileURL(path.join(root, "art/cloth.mjs")).href);
   const args = process.argv.slice(2), want = args.map(Number).filter(Boolean), wantCloth = args.filter(a => a.includes("/"));
   const sheetPath = path.join(root, "assets/sprites.svg");
   let sheet = fs.readFileSync(sheetPath, "utf8");
@@ -26,6 +26,12 @@ const root = path.resolve(import.meta.dirname, "..");
     done.push(n);
   }
   const cloth = [];
+  // the families' bases first (cf-NAME), always all of them: the cloths' pictures use them
+  for (const [k, d] of Object.entries(BASES)) {
+    const id = `cf-${k}`, sym = symbol(0, d().flat(), id);
+    const re = new RegExp(`<symbol id="${id}"[^>]*>[\\s\\S]*?</symbol>`);
+    sheet = re.test(sheet) ? sheet.replace(re, () => sym) : sheet.replace("</svg>", () => `${sym}\n</svg>`);
+  }
   for (const [b, pics] of Object.entries(CLOTH)) {
     for (const [k, pic] of Object.entries(pics)) {
       if (args.length && !wantCloth.includes(`${b}/${k}`)) continue;
@@ -36,5 +42,5 @@ const root = path.resolve(import.meta.dirname, "..");
     }
   }
   fs.writeFileSync(sheetPath, sheet);
-  console.log(`vignettes: ${done.length} written (${done.join(", ")}); ${Object.keys(SCENES).length} drawn of the 110 (105's is the card's alone); ${cloth.length} of the old cloths' (${cloth.join(", ")})`);
+  console.log(`vignettes: ${done.length} written (${done.join(", ")}); ${Object.keys(SCENES).length} drawn of the 110 (105's is the card's alone); ${cloth.length} of the old cloths' (${cloth.join(", ")}), on ${Object.keys(BASES).length} families' bases`);
 }
