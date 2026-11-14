@@ -484,6 +484,146 @@ export default {
     shape("M-2.4,0 L2.4,0 L1.6,1.4 L-1.6,1.4 Z", "ochre", { x: 22.5, y: 38.6 }), flame(22.5, 38.6, 4),
   ] },
 
+  // ---- Phase 20, sheet 3 (15 Nov), the same rules ----
+  // Birth: the newborn in the crook of an arm, by a lamp.
+  1: { keep: "plain", draw: () => [
+    shape("M-2.4,0 L2.4,0 L1.6,1.4 L-1.6,1.4 Z", "ochre", { x: 9, y: 38.6 }), flame(9, 38.6, 5),
+    seated(31, 22, { s: 0.85, face: -1, fill: "malachite" }),
+    head(31, 16.5, { s: 1, face: -1, kind: "woman" }),
+    shape("M-6,0 C-6,-3 -2,-4 2,-3.4 C5,-3 6,-1 6,0 C6,2 3,3 0,3 C-3,3 -6,2 -6,0 Z", "vermilion", { x: 22.5, y: 27.5 }),
+    head(16.8, 25.6, { s: 0.6, kind: "child", hair: "black" }),
+    limb(28.5, 25, 20.5, 30, { w: 2.3, end: 1.3 }),
+  ] },
+  // First steps: across the room by evening, arms out, to the arms held out for it.
+  5: { keep: "plain", draw: () => [
+    robe(19, 27.5, { s: 0.45, fill: "yellow", sash: "vermilion" }),
+    head(19, 23.6, { s: 0.68, kind: "child" }),
+    limb(19.8, 29.2, 24.2, 27.2, { w: 1.8, end: 1 }), limb(18.2, 29.2, 14, 27.8, { w: 1.8, end: 1 }),
+    seated(39, 24, { s: 0.75, face: -1, fill: "indigo" }),
+    head(39, 18.5, { s: 0.92, face: -1 }),
+    limb(36.5, 26.5, 29.5, 26, { w: 2.2, end: 1.3 }), limb(37, 28, 30.5, 29.5, { w: 2.2, end: 1.3 }),
+  ] },
+  // Found out: says it was not them, the broken pot on the floor, and the one who knows.
+  11: { keep: "plain", draw: () => [
+    // the pot's body cracked open, its neck and lip rolled away from it
+    shape("M-6,0 C-7,3 -5,6 0,6.4 C5,6 7,3 6,0 L3.4,0.8 L1.2,-0.4 L-1.4,1 L-3.6,0 Z", "vermilion", { x: 13, y: 33.6 }),
+    shape("M-2.5,-6 L2.5,-6 L2,-4 C3.6,-3.6 4.2,-2.6 4,-1.6 L-4,-1.6 C-4.2,-2.6 -3.6,-3.6 -2,-4 Z", "vermilion", { x: 4.6, y: 41.2, s: 0.8 }),
+    shape("M-3.6,-7.4 L3.6,-7.4 L3.2,-5.6 L-3.2,-5.6 Z", "vermilion", { x: 4.6, y: 41.2, s: 0.8 }),
+    robe(26, 23.5, { s: 0.55, face: -1, fill: "malachite", sash: "yellow" }),
+    head(26, 18.6, { s: 0.8, face: -1, kind: "child" }),
+    robe(40, 19, { s: 0.7, face: -1, fill: "vermilion", sash: "indigo" }),
+    head(40, 13, { s: 0.95, face: -1, kind: "woman" }),
+    limb(38, 22, 35, 27, { w: 2.2, end: 1.3 }), limb(42, 22, 44.5, 27.5, { w: 2.2, end: 1.3 }),
+  ] },
+  // To the teacher's house: the house getting smaller up the road behind, and not turned to.
+  21: { keep: "plain", draw: () => [
+    poly([[35, 22], [38.5, 22], [33, 40], [19, 40]], "paleochre", false),
+    house(32, 22, 9, { wall: "shell", roof: "vermilion", door: "indigo" }),
+    robe(14, 21, { s: 0.66, face: -1, fill: "indigo", sash: "yellow" }),
+    head(14, 15.4, { s: 0.9, face: -1, kind: "child" }),
+    line("M17.5,23 L22.5,15"), poly([[20.5, 13.2], [25, 13.2], [25, 17], [20.5, 17]], "ochre"),
+    limb(15.5, 23.6, 18.6, 21.4, { w: 2.2, end: 1.2 }),
+  ] },
+  // A verse at sunrise: the sun at the edge of the field, said to every morning.
+  25: { keep: "plain", draw: () => [
+    sun(37, 31, 6, { rays: 12 }),
+    // the field's edge as a horizon, open at both sides, the sun half over it
+    poly([[1, 31], [47, 31], [47, 41], [1, 41]], "palegreen", false), line("M1,31 L47,31"),
+    robe(15, 17.5, { s: 0.72, fill: "yellow", sash: "vermilion" }),
+    head(15, 11.6, { s: 0.98, kind: "woman" }),
+    limb(16.6, 20.6, 20.8, 17.8, { w: 2.4, end: 1.5 }),
+  ] },
+  // Sugar in the tea: gone from sight, and in every sip.
+  32: { keep: "plain", draw: () => [
+    seated(15, 24, { s: 0.8, fill: "indigo" }),
+    head(15, 18.5, { s: 0.95, hair: "grey" }),
+    poly([[25, 33], [37, 33], [37, 35], [25, 35]], "ochre"), line("M26,35 L26,40 M36,35 L36,40"),
+    shape("M-3.6,-5 L3.6,-5 L2.8,1 L-2.8,1 Z", "shell", { x: 30.5, y: 32 }), line("M34,28.5 C36,28.5 36,31.5 33.4,31.5"),
+    limb(17.5, 26.5, 27.4, 25, { w: 2.2, end: 0 }), line("M27.4,25 L30.4,29.5"),
+    line("M29.5,24.5 C28.5,23 30.5,22 29.5,20.5 M32,24.5 C31,23 33,22 32,20.5"),
+  ] },
+  // Seven steps round the fire, the two tied by a cloth.
+  41: { keep: "plain", draw: () => [
+    flame(24, 39, 10),
+    robe(12, 19.5, { s: 0.66, fill: "vermilion", sash: "yellow" }),
+    head(12, 13.8, { s: 0.9, kind: "woman" }),
+    robe(36, 19.5, { s: 0.66, fill: "indigo", sash: "yellow" }),
+    head(36, 13.8, { s: 0.9 }),
+    shape("M15,25 Q24,28.6 33,25 L33,26.8 Q24,30.4 15,26.8 Z", "yellow"),
+  ] },
+  // A bad year: food borrowed from a friend, a sack of grain from one pair of hands to another.
+  48: { keep: "plain", draw: () => [
+    robe(13, 20, { s: 0.68, fill: "malachite", sash: "ochre" }),
+    head(13, 14.2, { s: 0.92, kind: "woman" }),
+    limb(15.2, 23, 21.6, 26.4, { w: 2.2, end: 1.3 }),
+    robe(36, 20, { s: 0.68, face: -1, fill: "vermilion", sash: "yellow" }),
+    head(36, 14.2, { s: 0.92, face: -1, hair: "grey" }),
+    limb(33.8, 23, 27, 26.2, { w: 2.2, end: 1.3 }),
+    shape("M-3.6,-2.6 L3.6,-2.6 C5.6,1 5.2,6.6 0,6.8 C-5.2,6.6 -5.6,1 -3.6,-2.6 Z", "paleochre", { x: 24.4, y: 28.4 }), line("M21,25.4 L27.8,25.4"),
+  ] },
+  // Raikva sitting under his cart, who knew more than the king: the bed up on its wheels, and he on the ground beneath
+  // it, between them. The one who solves it is the one nobody asked.
+  54: { keep: "plain", draw: () => [
+    line("M4,15 L9,18.4"), poly([[7, 16.6], [43, 16.6], [43, 19.6], [7, 19.6]], "ochre"),
+    line("M12,19.6 L12,31 M38,19.6 L38,31"),
+    wheel(12, 33, 6.5), wheel(38, 33, 6.5),
+    seated(23, 26, { s: 0.6, fill: "indigo" }),
+    head(23, 21.8, { s: 0.74 }),
+    limb(25.2, 28.4, 29.6, 29.8, { w: 1.9, end: 1.1 }),
+  ] },
+  // A mango eaten slowly on the step, for no one else.
+  63: { keep: "plain", draw: () => [
+    poly([[4, 34], [32, 34], [32, 40], [4, 40]], "paleochre"),
+    seated(17, 19, { s: 0.8, fill: "vermilion" }),
+    head(17, 13.5, { s: 0.95, hair: "white", kind: "woman" }),
+    limb(19.5, 21.5, 24.4, 17.6, { w: 2.3, end: 1.3 }),
+    shape("M0,-3.4 C3,-4 5,-1 4,2 C3,4.6 -1.4,4.4 -2,1.4 C-2.4,-0.6 -1.6,-2.8 0,-3.4 Z", "yellow", { x: 27.4, y: 17.4 }), shape("M0,0 C1.6,-2 4,-2.2 5,-1.6 C3.6,-0.4 1.6,0.2 0,0 Z", "malachite", { x: 27.4, y: 14 }),
+  ] },
+  // Five sheaths: at the end of the day, one thing taken off after another, laid down in a row.
+  70: { keep: "plain", draw: () => [
+    seated(13, 22, { s: 0.8, fill: "shell" }),
+    head(13, 16.5, { s: 0.95, hair: "grey", kind: "woman" }),
+    limb(15.5, 24.5, 21.5, 31.5, { w: 2.2, end: 1.3 }),
+    cloth(21, 34, 8, 5, { fill: "malachite", stripe: "vermilion", stripes: 2 }),
+    // the watch on its strap, the dial with its two hands; then the glasses
+    poly([[30, 36.2], [37.4, 36.2], [37.4, 37.8], [30, 37.8]], "ochre"), dot(33.7, 37, 2.4, "shell"), line("M33.7,37 L33.7,35.4 M33.7,37 L35,37.6"),
+    dot(40.6, 37, 1.8, "none"), dot(44.8, 37, 1.8, "none"), line("M42.4,37 L43,37"),
+  ] },
+  // The smallest room in the house, and sitting still in it, not small.
+  74: { keep: "plain", draw: () => [
+    poly([[11, 11], [41, 11], [41, 40], [11, 40]], "paleochre"),
+    poly([[14, 14], [38, 14], [38, 40], [14, 40]], "indigo"),
+    ...[[18, 18], [33, 17.5], [24.5, 16.4], [35.6, 25], [17, 26.5], [29.5, 20.6]].map(([x, y]) => dot(x, y, 0.75, "shell", false)),
+    seated(26, 27, { s: 0.7, fill: "yellow" }),
+    head(26, 22, { s: 0.85, hair: "grey" }),
+  ] },
+  // One bag: what will not go in it is left, and the bag goes over a shoulder.
+  80: { keep: "plain", draw: () => [
+    robe(15, 19, { s: 0.7, fill: "yellow", sash: "malachite" }),
+    head(15, 13.2, { s: 0.94, hair: "white" }),
+    line("M13.6,19.6 L20.4,28.6"), shape("M-3.2,-2.4 L3.2,-2.4 L2.8,3.6 L-2.8,3.6 Z", "ochre", { x: 21, y: 31 }),
+    books(28, 40, 9, ["vermilion", "indigo"]), pot(42, 36, 0.5, "shell", "vermilion"), cloth(30, 31, 7, 3, { fill: "malachite", stripes: 1 }),
+  ] },
+  // Alms: the bowl held out at a door, and the food dropped into it from the doorway; nothing kept for tomorrow.
+  84: { keep: "plain", draw: () => [
+    poly([[30, 13], [46, 13], [46, 40], [30, 40]], "paleochre"),
+    poly([[33, 21], [40, 21], [40, 40], [33, 40]], "indigo"), poly([[32, 19.4], [41, 19.4], [41, 21], [32, 21]], "ochre"),
+    robe(14, 21, { s: 0.68, fill: "indigo", sash: "shell" }),
+    head(14, 15.2, { s: 0.92, hair: "white" }),
+    limb(16, 24, 19.6, 32, { w: 2.2, end: 1.2 }),
+    bowl(25, 35, 11, "ochre"),
+    limb(35.5, 23.5, 27.4, 23.4, { w: 2.2, end: 1.4 }),
+    dot(26.6, 26.4, 0.9, "shell"), dot(25.2, 28.4, 0.9, "shell"), dot(27.2, 29.4, 0.9, "shell"),
+  ] },
+  // Half asleep in the sun, and the edge of the warmth not to be found; the cat has the same idea.
+  91: { keep: "plain", draw: () => [
+    sun(38, 12, 5.5, { rays: 14 }),
+    poly([[5, 33], [30, 33], [30, 35.4], [5, 35.4]], "ochre"), line("M6.5,35.4 L6.5,40 M28.5,35.4 L28.5,40"),
+    seated(15, 18.5, { s: 0.92, fill: "yellow" }),
+    head(15, 12.4, { s: 1, hair: "white" }),
+    cat(39, 40, { s: 0.55 }),
+  ] },
+
   // ---- The divine row: seals, more pattern than figure ----
   // Indra: the thunderbolt in its ring.
   101: { keep: "middle", draw: () => [
