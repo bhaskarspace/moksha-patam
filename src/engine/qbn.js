@@ -11,7 +11,11 @@ import { ENDGAME } from "./turn.js";
 
 // The situation on square n, or null: then the square is its story card, as it always was. Below the endgame only,
 // for now: from 94 the dice are already a choice.
-export const situationAt = n => (n < ENDGAME && SITUATIONS[n]?.options?.length ? SITUATIONS[n] : null);
+// ?debug's mp.situations(false) plays every situation square as its plain moment, as tools/sim.mjs --situations=off
+// does, for the smoke checks whose subject is something else; nothing in the game turns it off
+export let SITUATIONS_ON = true;
+export const setSituations = on => { SITUATIONS_ON = on; };
+export const situationAt = n => (SITUATIONS_ON && n < ENDGAME && SITUATIONS[n]?.options?.length ? SITUATIONS[n] : null);
 export const optionOf = (n, id) => situationAt(n)?.options.find(o => o.id === id) ?? null;
 
 // Whether a gate lets player p take an option. A range on a guna share or an aim is { min?, max? }; a stage gate lists

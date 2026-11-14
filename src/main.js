@@ -7,7 +7,7 @@ import { prefs, setPref, applyTheme, lifeLived, beFirst, freshViewer, firstLife,
 import { $, COLORS, esc, reduced, sleep, quality, forcedQuality, setQuality } from "./ui.js";
 import { die, makeRng, freshSeed } from "./rng.js";
 import { ENDGAME, planTurn, resolveChoice, endTurn, addLog, diceFor, movesFor, moveFor, gone, canSit, createGame, playTurn, spentOf, doorOf, canPractise, practisesNow, zeroOf } from "./engine/turn.js";
-import { optionsFor, situationAt, momentOf } from "./engine/qbn.js";
+import { optionsFor, situationAt, momentOf, setSituations, SITUATIONS_ON } from "./engine/qbn.js";
 import { drawThrow } from "./engine/throws.js";
 import { isCloth, randOf } from "./engine/cloth.js";
 import { COWRIES } from "./engine/dice.js";
@@ -1136,7 +1136,7 @@ new ResizeObserver(draw).observe($("cells"));
 // (mp.roll(a, b) fixes both endgame dice, and mp.pick(v) moves by one of them, 0 to sit),
 // mp.seed() reads the current game's seed and mp.seed(n) starts a new game with that seed. Phase 14 adds mp.door(),
 // mp.examine(), mp.curse(id) and mp.siva(). Phase 15 adds mp.ego(faces). Phase 17 adds mp.law(id[, "all"]) and mp.grace(face), and step 5 mp.still(n) and mp.bhumika(b). Phase 16 adds mp.die(form), mp.samskara(obj),
-// mp.dream() and mp.animal(kind). Its follow-up adds mp.sprites().
+// mp.dream() and mp.animal(kind). Its follow-up adds mp.sprites(). Phase 20 adds mp.situations(on).
 if (new URLSearchParams(location.search).has("debug")) {
   window.mp = {
     jump(n) { cur().pos = n; render(); age(true); },
@@ -1165,6 +1165,10 @@ if (new URLSearchParams(location.search).has("debug")) {
       if (G.plan?.situation && G.plan.egoFaces) { G.plan.egoFaces = faces; if (G.deciding) drawDecide(); refreshCard(); }
       return faces;
     },
+    // mp.situations(false) plays every situation square as its plain moment, as the sim's --situations=off (Phase 20);
+    // mp.situations(true) brings them back, and mp.situations() reads it (on by default). Setting it changes the game,
+    // so the game is marked tampered
+    situations(on) { if (on != null) { setSituations(!!on); if (G.state) G.state.tampered = true; } return SITUATIONS_ON; },
     // the situation on square n, or null (REDESIGN.md Phase 10)
     situation: n => situationAt(n),
     // how many dice player i (the current one by default) has spent on practice in this life

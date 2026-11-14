@@ -7,6 +7,7 @@ import { castOf, castAlong, castArcs, peopleOf, nameKey, MEMBERS } from "../src/
 import { yearsAlong } from "../src/engine/self.js";
 import { CAST, SQ, SNAKES, SITUATIONS, squareOf } from "../src/content.js";
 import { fill, castFill } from "../src/i18n.js";
+import { setPolicy } from "../src/engine/qbn.js";
 import { lintFates, lintContent } from "../tools/lint-content.mjs";
 import { playGame } from "../tools/sim.mjs";
 import PHASE10 from "./cast-phase10.json" with { type: "json" };
@@ -199,4 +200,38 @@ test("the lint: a cast member is declared, named alike in both languages, and ag
   assert.ok(lints(16, m => { m.hi = m.hi.replace("{friend=दोस्त}", "दोस्त"); }).some(e => e.includes("names the friend in one language only")));
   assert.ok(lints(23, m => { m.hi = m.hi.replace("{teacher:भूल चुके थे|भूल चुकी थीं}", "भूल चुके थे"); }).some(e => e.includes("agrees with the teacher without a {teacher:m|f} choice")));
   assert.ok(lints(15, m => { delete m.recall; }).some(e => e.includes("no recall for the returns join")));
+});
+
+// Phase 20: 65's spouse is "{spouse=the one {name} married}", a default that names the player inside it. With the cast's
+// names taken away it must read whole, in both languages, on the card's text and in the account.
+test("with the cast taken away, 65's spouse reads as the one the player married, in both languages", () => {
+  const sit = SITUATIONS[65], v = { name: "Meera", age: "40", gender: "f" }, hv = { name: "मीरा", age: "४०", gender: "f" };
+  const read = (t, l) => uncast(() => fill(castFill(t), l === "hi" ? hv : v));
+  assert.equal(read(sit.prompt.en, "en"), "Meera is 40, and the one Meera married wants to talk about dividing up everything they have.");
+  assert.equal(read(sit.prompt.hi, "hi"), "मीरा ४० बरस की है, और जीवनसाथी जो कुछ है उसके बँटवारे की बात करना चाहता है।");
+  for (const o of sit.options) {
+    assert.match(read(o.outcome.en, "en"), /the one Meera married/, o.id);
+    assert.match(read(o.outcome.hi, "hi"), /जीवनसाथी/, o.id);
+    for (const l of ["en", "hi"]) assert.doesNotMatch(read(o.outcome[l], l), /[{}]/, `${o.id} ${l}`);
+  }
+  // and in the account of lives that chose there (the computers choose give and keep)
+  const seen = new Set();
+  for (const pol of ["honest", "dishonest"]) {
+    setPolicy(pol);
+    try {
+      for (let seed = 1; seed <= 300; seed++) {
+        const s = game("Meera", "f", seed);
+        while (!s.over) playTurn(s);
+        const f = firstLives(s), k = f.players[0].life.indexOf(65);
+        if (k < 0) continue;
+        const en = uncast(() => lifeText(f, 0, "en")), hi = uncast(() => lifeText(f, 0, "hi"));
+        if (!/trunk under the bed|what any of it is for|leaves the room whenever/.test(en)) continue;
+        seen.add(/trunk/.test(en) ? "keep" : /leaves the room/.test(en) ? "refuse" : "give");
+        assert.match(en, /the one Meera married/, `seed ${seed} en`);
+        assert.match(hi, /जीवनसाथी/, `seed ${seed} hi`);
+        assert.doesNotMatch(en + hi, /\{|\}/, `seed ${seed}`);
+      }
+    } finally { setPolicy(null); }
+  }
+  assert.ok(seen.has("give") && seen.has("keep"), [...seen].join());
 });

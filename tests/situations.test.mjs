@@ -29,7 +29,7 @@ const policy = (x, fn) => { setPolicy(x); try { return fn(); } finally { setPoli
 
 test("the squares that offer a choice", () => {
   // Phase 10 B: ten, four snakes, three ladders and three story squares; Phase 20 brings them to 28
-  assert.deepEqual(Object.keys(SITUATIONS).map(Number), [11, 12, 14, 15, 19, 22, 23, 24, 28, 29, 34, 39, 44, 47, 49, 51, 52, 54, 55, 56, 59]);
+  assert.deepEqual(Object.keys(SITUATIONS).map(Number), [11, 12, 14, 15, 19, 22, 23, 24, 28, 29, 34, 39, 44, 47, 49, 51, 52, 54, 55, 56, 57, 59, 62, 65, 69, 77, 88]);
   assert.equal(situationAt(40), null);
 });
 

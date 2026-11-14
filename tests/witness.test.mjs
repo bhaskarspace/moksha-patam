@@ -20,7 +20,7 @@ const policy = (x, fn) => { setPolicy(x); try { return fn(); } finally { setPoli
 test("the ego tests, each naming the lower option the ego pulls toward", () => {
   const tagged = Object.keys(SITUATIONS).filter(n => egoOf(+n)).map(Number);
   // Phase 15 tagged five; Phase 20 adds the pride squares, whose lower option plants a debt only by the seed rule
-  assert.deepEqual(tagged, [24, 39, 49, 52, 54, 55, 56, 59]);
+  assert.deepEqual(tagged, [24, 39, 49, 52, 54, 55, 56, 59, 77]);
   for (const [n, id] of Object.entries(TESTS)) {
     assert.equal(egoOf(+n).lower, id);
     assert.ok(optionOf(+n, id).seed, `${n}.${id} plants a debt`);

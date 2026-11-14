@@ -817,6 +817,45 @@
       }
     }
   },
+  "57": {
+    "prompt": {
+      "en": "{name} is {age}, two cousins have brought their quarrel to {name} to settle, and one of them is {name}'s favourite.",
+      "hi": "{name} {age} बरस {का|की} है। दो चचेरे भाई अपना झगड़ा निपटाने {name} के पास आए हैं, और उनमें से एक {name} को ज़्यादा प्यारा है।"
+    },
+    "options": [
+      {
+        "id": "against",
+        "label": {"en":"Rule against the favourite","hi":"जो ज़्यादा प्यारा है, उसके ख़िलाफ़ फ़ैसला दो"},
+        "move": "ladder",
+        "cost": 2,
+        "guna": "s",
+        "aims": {"dharma":10},
+        "outcome": {"en":"{name} is {age}, hears them both out, and rules against the one {name} likes better, and that one does not visit for a year.","hi":"{name} {age} बरस {का|की} है। {name} दोनों की पूरी बात {सुनता|सुनती} है, और उसी के ख़िलाफ़ फ़ैसला {देता|देती} है जो ज़्यादा प्यारा है, और वह साल भर मिलने नहीं आता।","mirror":{"en":"Asked to judge between his own son Virocana and Sudhanvā, Prahlāda ruled for Sudhanvā, because it was true.","hi":"प्रह्लाद से उनके अपने बेटे विरोचन और सुधन्वा के बीच न्याय करने को कहा गया, और उन्होंने सुधन्वा के पक्ष में फ़ैसला दिया, क्योंकि वही सच था।"}},
+        "dream": {"en":"ruled against the cousin {he|she|they} liked better","hi":"जिसने ज़्यादा प्यारे भाई के ख़िलाफ़ फ़ैसला दिया था"}
+      },
+      {
+        "id": "for",
+        "label": {"en":"Rule for the favourite","hi":"जो ज़्यादा प्यारा है, उसके हक़ में फ़ैसला दो"},
+        "move": "ladder",
+        "cost": 0,
+        "guna": "r",
+        "aims": {"dharma":-10},
+        "outcome": {"en":"{name} is {age} and rules for the one {name} likes better, and the other cousin says nothing, and stops coming to anything {name} is at.","hi":"{name} {age} बरस {का|की} है। {name} उसी के हक़ में फ़ैसला {देता|देती} है जो ज़्यादा प्यारा है, दूसरा भाई कुछ नहीं कहता, और हर उस जगह आना छोड़ देता है जहाँ {name} हो।","mirror":{"en":"Dhṛtarāṣṭra judged between his own sons and his brother’s the same way, all his life.","hi":"धृतराष्ट्र ने भी जीवन भर अपने बेटों और भाई के बेटों के बीच ऐसे ही न्याय किया।"}},
+        "seed": {"wrong":"harm","fuse":20,"weight":2,"holds":62,"debt":{"en":"the quarrel ruled for the favourite, at {at}","hi":"{at} बरस की उम्र में प्यारे के हक़ में सुनाया वह फ़ैसला"},"reckoning":{"en":"The cousin {name} ruled for comes back years later with a worse quarrel, sure of winning it again, and {name} finds no way to say no.","hi":"जिस भाई के हक़ में {name} ने फ़ैसला दिया था, वह बरसों बाद इससे बड़ा झगड़ा लेकर लौटता है, फिर जीतने के भरोसे के साथ, और {name} को 'ना' कहने का कोई रास्ता नहीं मिलता।"}},
+        "dream": {"en":"ruled for the cousin {he|she|they} liked better","hi":"जिसने ज़्यादा प्यारे भाई के हक़ में फ़ैसला दिया था"}
+      },
+      {
+        "id": "refuse",
+        "label": {"en":"Refuse to judge","hi":"फ़ैसला करने से मना कर दो"},
+        "move": "here",
+        "cost": 0,
+        "guna": "t",
+        "aims": {},
+        "outcome": {"en":"{name} is {age}, says it is not {name}'s to judge, and the quarrel goes on, louder, for years.","hi":"{name} {age} बरस {का|की} है। {name} कह {देता|देती} है कि फ़ैसला करना उसका काम नहीं, और झगड़ा बरसों तक, और ज़ोर से, चलता रहता है।"},
+        "dream": {"en":"would not judge between two cousins","hi":"जिसने दो भाइयों के बीच फ़ैसला करने से मना कर दिया था"}
+      }
+    ]
+  },
   "59": {
     "prompt": {
       "en": "{name} is {age}. {child={name}'s daughter} breaks something precious, and {name}'s hand is already rising.",
@@ -871,5 +910,190 @@
         "hi": "{name} हाथ रोकना {चाहता था|चाहती थी}, पर हाथ ज़्यादा तेज़ निकला।"
       }
     }
+  },
+  "62": {
+    "prompt": {
+      "en": "{name} is {age}. {child=The son} is asking again, as always, and this time a yes will cost him more than it costs {name}.",
+      "hi": "{name} {age} बरस {का|की} है। {child=बेटा} हमेशा की तरह फिर माँग रहा है, और इस बार 'हाँ' कहना {name} से ज़्यादा उसी को महँगा पड़ेगा।",
+      "cast": "son"
+    },
+    "options": [
+      {
+        "id": "no",
+        "label": {"en":"Say no","hi":"ना कह दो"},
+        "move": "here",
+        "cost": 2,
+        "guna": "s",
+        "aims": {"dharma":5},
+        "outcome": {"en":"{name} is {age} and says no to {child=the son}, for the first time, and the door slams, and two days later {child=the son} is back, and neither of them mentions it.","hi":"{name} {age} बरस {का|की} है। {name} पहली बार {child=बेटे} को 'ना' {कहता|कहती} है, दरवाज़ा ज़ोर से बंद होता है, और दो दिन बाद {child=बेटा} लौट आता है, और दोनों में से कोई इसकी बात नहीं करता।","mirror":{"en":"Gāndhārī told Dhṛtarāṣṭra to cast off their son for the family’s sake. She could say it; he could not.","hi":"गांधारी ने धृतराष्ट्र से कहा था कि कुल के लिए बेटे को त्याग दो। वे कह सकीं; धृतराष्ट्र नहीं कह पाए।"},"cast":"son","recall":{"en":"whom {name} once told no, when it mattered most","hi":"जिसे {name} ने कभी, सबसे ज़रूरी घड़ी में, 'ना' कहा था"}},
+        "dream": {"en":"said no to the son, for the first time","hi":"जिसने पहली बार बेटे को 'ना' कहा था"}
+      },
+      {
+        "id": "yes",
+        "label": {"en":"Say yes again","hi":"फिर से हाँ कह दो"},
+        "move": "snake",
+        "cost": 0,
+        "guna": "r",
+        "aims": {"dharma":-10},
+        "seed": {"wrong":"harm","fuse":15,"weight":2,"holds":62,"debt":{"en":"the yes that should have been a no, at {at}","hi":"{at} बरस की उम्र में कहा गया वह 'हाँ' जो 'ना' होना चाहिए था"},"reckoning":{"en":"The one {name} never said no to is in trouble that a no, long ago, would have spared, and comes to {name} for the yes again, and there is nothing left to say it with.","hi":"जिसे {name} ने कभी 'ना' नहीं कहा, वह ऐसी मुसीबत में है जिससे बरसों पहले की एक 'ना' बचा लेती, और फिर 'हाँ' के लिए {name} के पास आता है, और अब 'हाँ' कहने को कुछ बचा नहीं।"}},
+        "dream": {"en":"said yes again to the son, when it mattered most","hi":"जिसने सबसे ज़रूरी घड़ी में भी बेटे को फिर 'हाँ' कह दिया था"}
+      }
+    ],
+    "witness": {
+      "son": {
+        "no": {"en":"{who}, who had been told no by {name}, once, when it mattered, was waiting: ","hi":"{who}, जिसे {name} ने एक बार, सबसे ज़रूरी घड़ी में, 'ना' कहा था, {who:इंतज़ार कर रहा था|इंतज़ार कर रही थी}: "},
+        "yes": {"en":"{who}, who had never once been told no by {name}, was waiting: ","hi":"{who}, जिसे {name} ने कभी 'ना' नहीं कहा था, {who:इंतज़ार कर रहा था|इंतज़ार कर रही थी}: "}
+      }
+    }
+  },
+  "65": {
+    "prompt": {
+      "en": "{name} is {age}, and {spouse=the one {name} married} wants to talk about dividing up everything they have.",
+      "hi": "{name} {age} बरस {का|की} है, और {spouse=जीवनसाथी} जो कुछ है उसके बँटवारे की बात करना {spouse:चाहता|चाहती} है।",
+      "cast": "spouse"
+    },
+    "options": [
+      {
+        "id": "give",
+        "label": {"en":"Ask what is needed, and let the rest go","hi":"पूछो कि किसे क्या चाहिए, और बाक़ी जाने दो"},
+        "move": "ladder",
+        "cost": 1,
+        "guna": "s",
+        "aims": {"dharma":5},
+        "outcome": {"en":"{name} is {age}, asks {spouse=the one {name} married} what any of it is for, keeps what is needed, and lets the rest go to whoever asks first.","hi":"{name} {age} बरस {का|की} है। {name} {spouse=जीवनसाथी} से {पूछता|पूछती} है कि आख़िर यह सब किसलिए है, उतना {रखता|रखती} है जितना चाहिए, और बाक़ी जो पहले माँगे उसे दे {देता|देती} है।","mirror":{"en":"Maitreyi asked the same, when she was offered half her husband’s wealth: “Will it make me immortal?”","hi":"मैत्रेयी ने भी यही पूछा था, जब उसे पति की आधी संपत्ति दी जा रही थी: “क्या इससे मैं अमर हो जाऊँगी?”"},"cast":"spouse","recall":{"en":"whom {name} once asked what any of it was for","hi":"जिससे {name} ने कभी पूछा था कि यह सब किसलिए है"}},
+        "dream": {"en":"asked what any of it was for, and let the rest go","hi":"जिसने पूछा था कि यह सब किसलिए है, और बाक़ी जाने दिया था"}
+      },
+      {
+        "id": "keep",
+        "label": {"en":"Keep the best things back","hi":"सबसे अच्छी चीज़ें अपने पास रख लो"},
+        "move": "ladder",
+        "cost": 0,
+        "guna": "r",
+        "aims": {"dharma":-5},
+        "outcome": {"en":"{name} is {age} and divides it all fairly with {spouse=the one {name} married}, except for the few best things, which go in a trunk under the bed, and are taken out at night and looked at.","hi":"{name} {age} बरस {का|की} है। {name} {spouse=जीवनसाथी} के साथ सब कुछ बराबर {बाँटता|बाँटती} है, सिवाय कुछ सबसे अच्छी चीज़ों के, जो पलंग के नीचे एक संदूक़ में जाती हैं, और रात को निकालकर देखी जाती हैं।","cast":"spouse","recall":{"en":"with whom {name} once divided everything but the trunk under the bed","hi":"जिसके साथ {name} ने कभी पलंग के नीचे वाले संदूक़ के सिवा सब कुछ बाँटा था"}},
+        "dream": {"en":"kept the best things back in a trunk under the bed","hi":"जिसने सबसे अच्छी चीज़ें पलंग के नीचे संदूक़ में रख ली थीं"}
+      },
+      {
+        "id": "refuse",
+        "label": {"en":"Refuse to talk about it","hi":"इस बारे में बात करने से मना कर दो"},
+        "move": "here",
+        "cost": 0,
+        "guna": "t",
+        "aims": {},
+        "outcome": {"en":"{name} is {age}, will not talk about it with {spouse=the one {name} married}, leaves the room whenever it comes up, and in the end it is divided anyway, by others.","hi":"{name} {age} बरस {का|की} है। {name} {spouse=जीवनसाथी} से इस बारे में बात नहीं {करता|करती}, जब भी बात उठती है कमरे से {चला जाता|चली जाती} है, और आख़िर में बँटवारा दूसरे ही कर देते हैं।","cast":"spouse","recall":{"en":"who once watched {name} leave the room rather than talk of dividing what they had","hi":"जिसने कभी {name} को बँटवारे की बात से बचकर कमरे से जाते देखा था"}},
+        "dream": {"en":"would not talk about dividing what they had","hi":"जिसने बँटवारे की बात करने से ही मना कर दिया था"}
+      }
+    ],
+    "witness": {
+      "spouse": {
+        "give": {"en":"{who}, who had heard {name} ask what any of it was for, was waiting: ","hi":"{who}, जिसने {name} को पूछते सुना था कि यह सब किसलिए है, {who:इंतज़ार कर रहा था|इंतज़ार कर रही थी}: "},
+        "keep": {"en":"{who}, who knew what {name} kept in the trunk under the bed, was waiting: ","hi":"{who}, जिसे पता था कि {name} ने पलंग के नीचे वाले संदूक़ में क्या रखा है, {who:इंतज़ार कर रहा था|इंतज़ार कर रही थी}: "},
+        "refuse": {"en":"{who}, who had divided everything without {name}, was waiting: ","hi":"{who}, जिसने {name} के बिना सब कुछ बाँटा था, {who:इंतज़ार कर रहा था|इंतज़ार कर रही थी}: "}
+      }
+    }
+  },
+  "69": {
+    "prompt": {
+      "en": "{name} is {age} and is being shown round {rival=the rival}'s new house.",
+      "hi": "{name} {age} बरस {का|की} है, और {rival=प्रतिद्वंद्वी} {name} को अपना नया घर {rival:दिखा रहा है|दिखा रही है}।",
+      "cast": "rival"
+    },
+    "options": [
+      {
+        "id": "glad",
+        "label": {"en":"Say plainly that you’re glad for them","hi":"सीधे कह दो कि तुम्हें उनके लिए ख़ुशी है"},
+        "move": "here",
+        "cost": 2,
+        "guna": "s",
+        "aims": {"dharma":5},
+        "outcome": {"en":"{name} is {age}, says plainly at the door that {name} is glad for {rival=the rival}, finds, saying it, that it is nearly true, and sleeps that night.","hi":"{name} {age} बरस {का|की} है। {name} दरवाज़े पर सीधे कह {देता|देती} है कि {rival=प्रतिद्वंद्वी} के लिए ख़ुशी है, कहते-कहते {पाता|पाती} है कि यह लगभग सच है, और उस रात नींद आ जाती है।","mirror":{"en":"At Indraprastha Duryodhana could not say it, and walked into a pool he took for the floor.","hi":"इंद्रप्रस्थ में दुर्योधन यह कह नहीं पाया, और जिसे फ़र्श समझा उस जल-कुंड में जा गिरा।"},"cast":"rival","recall":{"en":"who once heard {name} say plainly, “I’m glad for you”","hi":"जिसने कभी {name} को सीधे कहते सुना था, “तुम्हारे लिए ख़ुशी है”"}},
+        "dream": {"en":"said plainly to the rival, “I’m glad for you”","hi":"जिसने प्रतिद्वंद्वी से सीधे कहा था, “तुम्हारे लिए ख़ुशी है”"}
+      },
+      {
+        "id": "praise",
+        "label": {"en":"Praise every room","hi":"हर कमरे की तारीफ़ करो"},
+        "move": "snake",
+        "cost": 0,
+        "guna": "r",
+        "aims": {"dharma":-5},
+        "seed": {"wrong":"lie","fuse":15,"weight":1,"holds":69,"debt":{"en":"the praise of every room, at {at}","hi":"{at} बरस की उम्र में हर कमरे की वह तारीफ़"},"reckoning":{"en":"Years on, someone praises a room in {name}'s house too warmly, and {name} knows exactly what is behind it, and does not sleep.","hi":"बरसों बाद कोई {name} के घर के एक कमरे की कुछ ज़्यादा ही गर्मजोशी से तारीफ़ करता है, और {name} ठीक-ठीक {जानता|जानती} है कि उसके पीछे क्या है, और रात भर नींद नहीं आती।"}},
+        "dream": {"en":"praised every room of the rival’s house, and did not sleep","hi":"जिसने प्रतिद्वंद्वी के घर के हर कमरे की तारीफ़ की थी, और उस रात नींद नहीं आई थी"}
+      }
+    ],
+    "witness": {
+      "rival": {
+        "glad": {"en":"{who}, who had heard {name} say plainly, “I’m glad for you”, was waiting: ","hi":"{who}, जिसने {name} को सीधे कहते सुना था, “तुम्हारे लिए ख़ुशी है”, {who:इंतज़ार कर रहा था|इंतज़ार कर रही थी}: "},
+        "praise": {"en":"{who}, who had heard {name} praise every room, was waiting: ","hi":"{who}, जिसने {name} से हर कमरे की तारीफ़ सुनी थी, {who:इंतज़ार कर रहा था|इंतज़ार कर रही थी}: "}
+      }
+    }
+  },
+  "77": {
+    "prompt": {
+      "en": "{name} is {age}, it is the wedding, and {name} has been asked to say a few words.",
+      "hi": "{name} {age} बरस {का|की} है। शादी है, और {name} से दो शब्द कहने को कहा गया है।"
+    },
+    "options": [
+      {
+        "id": "toast",
+        "label": {"en":"Hand the speech to someone else","hi":"दो शब्द किसी और से कहलवाओ"},
+        "move": "here",
+        "cost": 2,
+        "guna": "s",
+        "aims": {"dharma":5},
+        "outcome": {"en":"{name} is {age}, says one line, hands the speech to the cook who has been in the kitchen since four, and sits down.","hi":"{name} {age} बरस {का|की} है। {name} एक ही पंक्ति {कहता|कहती} है, दो शब्द उस रसोइए को {सौंप देता|सौंप देती} है जो सुबह चार बजे से रसोई में है, और बैठ {जाता|जाती} है।","mirror":{"en":"Indra went towards the spirit no one knew, and it vanished, and in its place stood Umā, who told him whose the victory had been.","hi":"इंद्र उस अनजाने प्राणी की ओर बढ़े तो वह ओझल हो गया, और उसकी जगह उमा खड़ी थीं, जिन्होंने बताया कि विजय किसकी थी।"}},
+        "mirror": {"chose":{"en":"to hand the speech to someone else","hi":"दो शब्द किसी और को सौंपना"}},
+        "dream": {"en":"handed the wedding speech to the cook","hi":"जिसने शादी के दो शब्द रसोइए को सौंप दिए थे"}
+      },
+      {
+        "id": "tell",
+        "label": {"en":"Tell them none of it would exist without you","hi":"बता दो कि तुम्हारे बिना यह सब होता ही नहीं"},
+        "move": "snake",
+        "cost": 0,
+        "guna": "r",
+        "aims": {"dharma":-5},
+        "outcome": {"en":"{name} is {age} and tells everyone who will listen that none of this would exist without {name}, and they listen, and the cook in the doorway goes back to the kitchen.","hi":"{name} {age} बरस {का|की} है। {name} हर सुनने वाले को {बताता|बताती} है कि {name} के बिना यह सब होता ही नहीं, लोग सुनते हैं, और दरवाज़े पर खड़ा रसोइया वापस रसोई में चला जाता है।","mirror":{"en":"Indra and the gods said the same after a victory: “This greatness is ours.” Then a spirit no one knew appeared.","hi":"विजय के बाद इंद्र और देवताओं ने भी यही कहा था: “यह महिमा हमारी है।” तभी एक ऐसा प्राणी प्रकट हुआ जिसे कोई नहीं जानता था।"}},
+        "mirror": {"took":{"en":"claimed the whole wedding as its own","hi":"पूरी शादी को अपना बता दिया"}},
+        "dream": {"en":"told the wedding none of it would exist without {him|her|them}","hi":"जिसने शादी में कहा था कि उसके बिना यह सब होता ही नहीं"}
+      }
+    ],
+    "ego": {
+      "lower": "tell",
+      "card": {
+        "en": "{name} is {age} and means to hand the speech on, and hears {name}'s own voice beginning, “Without me…”",
+        "hi": "{name} {age} बरस {का|की} है और दो शब्द किसी और को सौंपना {चाहता|चाहती} है, और अपनी ही आवाज़ को शुरू करते {सुनता|सुनती} है, “मेरे बिना…”"
+      },
+      "account": {
+        "en": "{name} meant to hand the speech on, and heard {name}'s own voice begin, “Without me…”",
+        "hi": "{name} दो शब्द किसी और को सौंपना {चाहता था|चाहती थी}, और {name} ने अपनी ही आवाज़ को शुरू करते सुना, “मेरे बिना…”"
+      }
+    }
+  },
+  "88": {
+    "prompt": {
+      "en": "{name} is {age}, has prayed loudly where the neighbours could hear, and on the way out the man at the gate wants a word.",
+      "hi": "{name} {age} बरस {का|की} है। {name} ने इतनी ज़ोर से प्रार्थना की है कि पड़ोसी सुन सकें, और बाहर निकलते हुए दरवाज़े पर खड़ा एक आदमी कुछ कहना चाहता है।"
+    },
+    "options": [
+      {
+        "id": "talk",
+        "label": {"en":"Stop and talk with him","hi":"रुककर उससे बात करो"},
+        "move": "here",
+        "cost": 2,
+        "guna": "s",
+        "aims": {"dharma":5},
+        "outcome": {"en":"{name} is {age}, stops at the gate, listens to the man for longer than the prayer took, and goes home quietly.","hi":"{name} {age} बरस {का|की} है। {name} दरवाज़े पर {रुकता|रुकती} है, उस आदमी की बात प्रार्थना से ज़्यादा देर तक {सुनता|सुनती} है, और चुपचाप घर {जाता|जाती} है।"},
+        "dream": {"en":"stopped at the gate and listened to the man there","hi":"जिसने दरवाज़े पर रुककर वहाँ खड़े आदमी की बात सुनी थी"}
+      },
+      {
+        "id": "past",
+        "label": {"en":"Walk past him","hi":"अनसुना करके निकल जाओ"},
+        "move": "snake",
+        "cost": 0,
+        "guna": "r",
+        "aims": {"dharma":-5},
+        "outcome": {"en":"{name} is {age}, walks past the man at the gate without stopping, without looking at him, and goes home.","hi":"{name} {age} बरस {का|की} है। {name} दरवाज़े पर खड़े आदमी के पास से न रुककर, न उसकी ओर देखकर, निकल {जाता|जाती} है, और घर {पहुँचता|पहुँचती} है।"},
+        "dream": {"en":"prayed loudly, and walked past the man at the gate","hi":"जिसने ज़ोर से प्रार्थना की थी, और दरवाज़े पर खड़े आदमी की बात अनसुनी कर दी थी"}
+      }
+    ]
   }
 }
