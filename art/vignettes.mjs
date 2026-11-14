@@ -12,6 +12,15 @@ const bird = (x, y, s = 1, fill = "yellow") => shape("M-4,0 Q-2,-3 0,-1 Q2,-4 5,
 const wheel = (x, y, r) => [dot(x, y, r, "yellow"), line(`M${x - r},${y} L${x + r},${y} M${x - r / 2},${y - r * 0.87} L${x + r / 2},${y + r * 0.87} M${x + r / 2},${y - r * 0.87} L${x - r / 2},${y + r * 0.87}`), dot(x, y, r * 0.25, "vermilion")];
 const drop = (x, y) => poly([[x, y - 1.6], [x + 0.8, y + 0.4], [x - 0.8, y + 0.4]], "indigo", false);
 
+// a goose in flight seen from below, wings spread, its neck down to (x, y) where its beak holds a stick: the tortoise's
+// fable (8)
+const goose = (x, y) => [
+  shape("M-9.5,-1.6 Q-5,-6.4 -1,-1.4 L0,-0.8 L1,-1.4 Q5,-6.4 9.5,-1.6 Q5,-2.8 1.2,1.6 L0,2.4 L-1.2,1.6 Q-5,-2.8 -9.5,-1.6 Z", "shell", { x, y: y - 9.6 }),
+  limb(x, y - 8, x, y - 2.6, { w: 1.7, end: 0 }),
+  dot(x, y - 2.4, 1.5, "shell"),
+  poly([[x - 0.8, y - 1.4], [x + 0.8, y - 1.4], [x, y + 0.6]], "yellow"),
+];
+
 export default {
   // ---- The fables (26 Oct): the animal in profile at the moment of the turn ----
   // Monkey and crocodile: mid-river on the crocodile's back, the monkey points back at the tree: my heart is up there.
@@ -622,6 +631,154 @@ export default {
     seated(15, 18.5, { s: 0.92, fill: "yellow" }),
     head(15, 12.4, { s: 1, hair: "white" }),
     cat(39, 40, { s: 0.55 }),
+  ] },
+
+  // The fall's mirror: the tortoise carried through the sky by two geese, wings spread, each holding an end of the stick in its beak,
+  // the tortoise's jaws still shut on the middle of it, its legs dangling.
+  8: { keep: "plain", draw: () => [
+    ...goose(13, 23.4), ...goose(35, 23.4),
+    limb(24.6, 29.4, 24, 24.8, { w: 2.2, fill: "paleochre", end: 0 }),
+    shape("M-2.2,0.4 C-2.4,-1.8 2.4,-2 2.6,0.2 C2.6,1.8 -2.2,2.2 -2.2,0.4 Z", "paleochre", { x: 24, y: 24.2 }),
+    line("M13,23.4 L35,23.4"), dot(25.2, 24, 0.45, "black", false),
+    ...[[18.6, 33.4], [21.6, 34], [27.4, 34], [30.4, 33.4]].map(([x1, y1]) => limb(x1, y1, x1 + (x1 < 24 ? -0.6 : 0.6), y1 + 4, { w: 1.5, fill: "paleochre", end: 0 })),
+    shape("M-8,0 C-7,-6.5 7,-6.5 8,0 C4,1.8 -4,1.8 -8,0 Z", "malachite", { x: 24.6, y: 33.4 }), line("M19.6,30 L29.6,30 M21.6,28.4 L21.6,34 M27.6,28.4 L27.6,34"),
+  ] },
+  // Owned up: the friend's hand on a shoulder, and the two of them taking the scolding together.
+  15: { keep: "plain", draw: () => [
+    robe(8.5, 22.5, { s: 0.56, fill: "yellow", sash: "vermilion" }),
+    head(8.5, 17.5, { s: 0.82, kind: "child" }),
+    robe(21, 22.5, { s: 0.56, fill: "malachite", sash: "yellow" }),
+    head(21, 17.5, { s: 0.82, kind: "woman" }),
+    limb(10.4, 24.5, 19.6, 22.8, { w: 1.9, end: 1.1 }),
+    seated(39, 24, { s: 0.75, face: -1, fill: "indigo" }),
+    head(39, 18.5, { s: 0.92, face: -1, hair: "grey" }),
+    limb(36.5, 26, 33, 20.5, { w: 2.1, end: 0 }), line("M33,20.5 L33,17.6"),
+  ] },
+  // Will not say sorry for what was not wrong, though asked three times: the child standing, arms folded, and the
+  // mother asking.
+  18: { keep: "plain", draw: () => [
+    seated(13, 24, { s: 0.82, fill: "vermilion" }),
+    head(13, 18.4, { s: 0.96, kind: "woman" }),
+    limb(15.6, 26.5, 23.8, 26.2, { w: 2.2, end: 1.3 }),
+    robe(34, 22, { s: 0.62, face: -1, fill: "indigo", sash: "yellow" }),
+    head(34, 16.8, { s: 0.86, face: -1, kind: "child" }),
+    limb(36, 24.4, 31, 26.2, { w: 2, end: 1.1 }), limb(32, 24.4, 36.6, 26.6, { w: 2, end: 1.1 }),
+  ] },
+  // Come back in a year: the seeker sent away with the question, and the year to wait in moons.
+  27: { keep: "plain", draw: () => [
+    moon(19, 6.5, 2.2), moon(26, 5.5, 2.2), moon(33, 6.5, 2.2), moon(40, 5.5, 2.2),
+    seated(37, 26, { s: 0.75, face: -1, fill: "malachite" }),
+    head(37, 20.5, { s: 0.92, face: -1, hair: "white" }),
+    limb(34.5, 28, 30.6, 22, { w: 2.2, end: 1.4 }),
+    robe(15, 21, { s: 0.66, fill: "yellow", sash: "indigo" }),
+    head(15, 15.3, { s: 0.9, kind: "woman" }),
+    limb(16.6, 24, 21, 21.4, { w: 2.2, end: 1.3 }),
+  ] },
+  // 'Speak the truth', a hundred times: the slate full of the same line.
+  30: { keep: "plain", draw: () => [
+    seated(12, 25, { s: 0.7, fill: "yellow" }),
+    head(12, 20.2, { s: 0.85, kind: "child" }),
+    poly([[22, 16], [43, 16], [43, 36], [22, 36]], "shell"),
+    line("M24.5,19.5 L40.5,19.5 M24.5,22.5 L40.5,22.5 M24.5,25.5 L40.5,25.5 M24.5,28.5 L40.5,28.5 M24.5,31.5 L33,31.5"),
+    limb(14.4, 27.4, 32.6, 32, { w: 2, end: 0 }), line("M32.6,32 L34.4,30"),
+  ] },
+  // The work handed back without a mark on it: 'you don't need me for this any more'.
+  37: { keep: "plain", draw: () => [
+    seated(36, 24, { s: 0.8, face: -1, fill: "indigo" }),
+    head(36, 18.4, { s: 0.95, face: -1, kind: "woman", hair: "white" }),
+    limb(33.5, 26.5, 27, 26.4, { w: 2.2, end: 1.2 }),
+    seated(12, 25, { s: 0.68, fill: "malachite" }),
+    head(12, 20.2, { s: 0.86 }),
+    limb(14.4, 27.6, 18, 26.6, { w: 2, end: 1.2 }),
+    // the palm leaf: long and thin, the string's hole, one line of writing
+    shape("M14,24.6 L32,24.6 C33,24.6 33,27.8 32,27.8 L14,27.8 C13,27.8 13,24.6 14,24.6 Z", "paleochre"), dot(16.4, 26.2, 0.55, "shell"),
+    line("M18.6,26.2 L30.4,26.2"),
+  ] },
+  // Told after it is all over: the uncle telling it, and a house of two doors, both shut.
+  46: { keep: "plain", draw: () => [
+    poly([[31, 6], [46, 6], [46, 20], [31, 20]], "paleochre"),
+    poly([[33.5, 10], [37.5, 10], [37.5, 20], [33.5, 20]], "indigo"), poly([[39.5, 10], [43.5, 10], [43.5, 20], [39.5, 20]], "indigo"),
+    seated(13, 26, { s: 0.7, fill: "ochre" }),
+    head(13, 21, { s: 0.88, hair: "grey" }),
+    limb(15.4, 28.4, 20.6, 26, { w: 2.1, end: 1.3 }),
+    seated(32, 29, { s: 0.64, face: -1, fill: "vermilion" }),
+    head(32, 24.4, { s: 0.82, face: -1, kind: "woman" }),
+    limb(30, 31, 28.4, 26.8, { w: 1.9, end: 1.1 }),
+  ] },
+  // Too late's mirror, before it: the mongoose on guard by the sleeping child's cradle, low and alert, its snout pointed and
+  // its tail long.
+  50: { keep: "plain", draw: () => [
+    line("M18,10 L23,24 M38,10 L33,24"),
+    shape("M-10,0 C-8,5 8,5 10,0 Z", "vermilion", { x: 28, y: 24 }),
+    head(23.5, 22.6, { s: 0.55, kind: "child", hair: "black" }),
+    shape("M-10,-3 C-14,-5.6 -19.6,-4.4 -22.6,-0.6 C-19,-1.4 -15,-0.6 -10.4,-0.4 Z", "ochre", { x: 28, y: 39.6 }),
+    limb(19.6, 37.6, 19, 40.6, { w: 1.6, fill: "ochre", end: 0 }), limb(22.4, 38, 22.2, 40.6, { w: 1.6, fill: "ochre", end: 0 }),
+    limb(31.8, 37.6, 32.2, 40.6, { w: 1.6, fill: "ochre", end: 0 }), limb(34.4, 37.2, 35.2, 40.6, { w: 1.6, fill: "ochre", end: 0 }),
+    shape("M-11,-2 C-11,-5 -4,-6 2,-5.4 C5,-5.2 7,-5.8 8.4,-6.8 L13.6,-5 L8.6,-3.4 C7,-1.6 3,-0.8 -2,-0.8 C-7,-0.8 -11,-0.4 -11,-2 Z", "ochre", { x: 28, y: 39.6 }),
+    shape("M6.6,-6.4 L7.4,-8.2 L8.6,-6.8 Z", "ochre", { x: 28, y: 39.6 }),
+    line("M-16,-3.4 L-15,-0.8 M-19,-2.6 L-18.4,-0.8", { x: 28, y: 39.6 }),
+    dot(37.8, 34.6, 0.5, "black", false),
+  ] },
+  // Yama teaches's mirror: Naciketas waiting at the closed door three nights, the three moons over it.
+  53: { keep: "plain", draw: () => [
+    poly([[1, 1], [47, 1], [47, 41], [1, 41]], "indigo", false),
+    moon(20, 6, 2.2, "shell"), moon(28, 5, 2.2, "shell"), moon(36, 6, 2.2, "shell"),
+    poly([[26, 12], [44, 12], [44, 40], [26, 40]], "ochre"), poly([[29, 17], [41, 17], [41, 40], [29, 40]], "black"), line("M35,17 L35,40"),
+    seated(14, 26, { s: 0.68, fill: "yellow" }),
+    head(14, 21.2, { s: 0.86, kind: "child" }),
+  ] },
+  // The guest: the plate that was going to be theirs, set before the one who came unannounced.
+  56: { keep: "plain", draw: () => [
+    robe(14, 20, { s: 0.68, fill: "vermilion", sash: "yellow" }),
+    head(14, 14.2, { s: 0.92, kind: "woman" }),
+    limb(16.2, 23, 23, 27.2, { w: 2.2, end: 1.3 }),
+    dot(26.5, 29, 4.2, "malachite"), dot(25.4, 28.4, 1.2, "shell"), dot(27.8, 29.4, 1, "yellow"), dot(26.6, 30.6, 0.9, "vermilion"),
+    seated(38, 24, { s: 0.75, face: -1, fill: "indigo" }),
+    head(38, 18.4, { s: 0.92, face: -1, hair: "grey" }),
+  ] },
+  // At a wedding, the old rival again, and nothing left to feel: side by side under the leaves strung for it.
+  67: { keep: "plain", draw: () => [
+    line("M13,9 Q29,13 46,9"),
+    ...[16, 21, 26, 31, 36, 41].map((x, k) => shape("M-1.6,0 L1.6,0 L0,4 Z", "malachite", { x, y: 9.6 + (k > 0 && k < 5 ? 1.8 : 0.6) })),
+    robe(18, 21, { s: 0.68, fill: "malachite", sash: "vermilion" }),
+    head(18, 15.2, { s: 0.92, hair: "grey", kind: "woman" }),
+    robe(32, 21, { s: 0.68, fill: "ochre", sash: "indigo" }),
+    head(32, 15.2, { s: 0.92, hair: "white" }),
+  ] },
+  // The roof leaked on the trunk of forty years: everything spread out to dry, and some of it not worth drying.
+  75: { keep: "plain", draw: () => [
+    sun(24, 7, 3.2, { rays: 10 }),
+    // the trunk, its lid thrown back
+    poly([[3, 19], [17, 19], [18, 30], [4, 30]], "ochre"), poly([[4, 30], [18, 30], [18, 39], [4, 39]], "ochre"), line("M4,34 L18,34"),
+    cloth(22, 35, 9, 4, { fill: "vermilion", stripes: 1 }), cloth(33, 35, 9, 4, { fill: "indigo", stripe: "shell", stripes: 1 }),
+    books(24, 34, 6, ["malachite"]),
+    seated(36, 20, { s: 0.66, face: -1, fill: "yellow" }),
+    head(36, 15.4, { s: 0.85, face: -1, hair: "white" }),
+    limb(34, 22.4, 29.6, 27, { w: 2, end: 1.2 }), cloth(25, 25, 5, 4, { fill: "shell", stripe: "vermilion", stripes: 1 }),
+  ] },
+  // 'And then what?': asked again, and the palm held up at last.
+  79: { keep: "plain", draw: () => [
+    seated(13, 24, { s: 0.8, fill: "malachite" }),
+    head(13, 18.4, { s: 0.95, kind: "woman", hair: "white" }),
+    limb(15.5, 26, 20.5, 19.6, { w: 2.2, end: 0 }), line("M20.5,19.6 L21.2,16.6"),
+    seated(36, 24, { s: 0.8, face: -1, fill: "shell" }),
+    head(36, 18.4, { s: 0.95, face: -1 }),
+    limb(33.5, 26, 29, 22.5, { w: 2.2, end: 1.9 }),
+  ] },
+  // By whom? Looking at one's own hand for a long time.
+  86: { keep: "plain", draw: () => [
+    seated(16, 24, { s: 0.85, fill: "indigo" }),
+    head(16, 18, { s: 1, hair: "white" }),
+    limb(18.6, 26.6, 25.4, 22, { w: 2.3, end: 0 }),
+    shape("M0,0 C-1,-2 -1,-5 0.4,-8 L1.6,-8 L1.4,-4.6 L2.4,-9.4 L3.6,-9.4 L3.2,-4.4 L4.4,-9 L5.6,-8.8 L4.8,-4 L6,-7.6 L7.2,-7.2 L6,-2.2 C5.4,0.6 2.6,1.4 0,0 Z", "shell", { x: 25, y: 23.4 }),
+  ] },
+  // The last thought, chosen and practised every day: the lamp lit each morning, the mornings counted on the wall.
+  96: { keep: "plain", draw: () => [
+    line("M27,14 L27,20 M30,14 L30,20 M33,14 L33,20 M36,14 L36,20 M39,14 L39,20 M26,19 L40,15 M43,14 L43,20"),
+    seated(15, 24, { s: 0.82, fill: "vermilion" }),
+    head(15, 18.4, { s: 0.96, kind: "woman", hair: "white" }),
+    limb(17.6, 26.6, 25, 30, { w: 2.2, end: 1.2 }),
+    shape("M-2.6,0 L2.6,0 L1.8,1.5 L-1.8,1.5 Z", "ochre", { x: 28, y: 31.4 }), flame(28, 31.4, 5),
   ] },
 
   // ---- The divine row: seals, more pattern than figure ----
