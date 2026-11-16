@@ -448,8 +448,10 @@ omen fires a third as often and deaths halve, yet liberation falls too; the thro
 none 1.5% of the time). Games run long: 31.1% of mixed games pass
 100 turns. The stick die's mean is 3.5 like the die's but without the 3 and 4: more sixes (a quarter of throws), more
 reckonings, and more lives through, 38.3% mixed. The order honest > careful > mixed > dishonest holds under every law with
-every randomizer (above). Under cowries two lines fall below what the die gives: Mīmāṃsā's dishonest svarga 0.3% a life
-(the floor Phase 20 set on the die is 3%) and Nyāya mixed 6.1% a life (31.9% on the die).
+every randomizer (above). Nyāya's signs ride on the omen, which fires on a 6, and cowries give a 6 about one throw in 30:
+so under cowries Nyāya mixed falls 31.9 → 6.1% a life, and Mīmāṃsā's dishonest svarga to 0.3% (the floor Phase 20 set on
+the die is 3%). The stick die gives a 6 one throw in four, and its careful Nyāya rises to 64.1%. Neither is tuned: the laws
+were balanced on the die, and the setting says so ("longer games; the laws were balanced on the die").
 
 *Ablation* (`node tools/ablate.mjs 2000 1 --md`, after arXiv:2304.14486: each of the 11 ladders and 13 snakes taken away in
 turn and the same 2,000 seeds, 1–2000, played again; throws are keyed per throw, so each pair throws the same dice and
@@ -524,10 +526,13 @@ often and, under mixed, dies 5.4 points more often. The snake that matters most 
 1.9–2.6 points and a careful game's p95 falls 13 turns. Taken one at a time, 16 of the 24 change liberation by less than
 their interval can tell from nothing, under both policies; seven change neither liberation nor deaths measurably under either
 (ladders 12 → 24, 23 → 37, 28 → 45; snakes 14 → 8, 19 → 11, 39 → 22, 47 → 31). Each of the seven carries a situation,
-which is what it is on the board for. No change is proposed on these numbers.
+which is what it is on the board for. No change is proposed on these numbers. All seven
+elements with no measurable effect carry situations: choice there outweighs chance.
 
 *Together* (`npm run sim 1000 N 1 --mode=together [--length=one] [--policy=careful]`; 1,000 games a row, seeds 1–1000): the
-game's length in turns a seat, until the end of the table:
+game's length in turns a seat, until the end of the table. On these numbers one life each is the default on the page
+(16 Nov); at its end the table may go on together, and the game then plays as "until every soul is free" from there
+(`goOn` in `src/engine/turn.js`, `rules.on`):
 
 | seats | length | policy | turns a seat median / p95 / max | human lives a seat median / p95 / mean | animal lives, of all | lives liberated |
 |---|---|---|---|---|---|---|
@@ -547,20 +552,11 @@ game's length in turns a seat, until the end of the table:
 One life each, a table of three plays about 34 turns a seat (mixed); played until every soul is free, 150, and the p95
 is 466: the free game is long because the table waits for its last soul, and one soul in twenty takes ten lives or more.
 
-*Flags.* Careful over 60% a life: only Nyāya with the stick die (64.1%). Nothing here asks for a change to the board; the
-cowries' long games and their two low lines are the setting's cost, for Bhaskar's decision.
+*Flags.* Careful over 60% a life: only Nyāya with the stick die (64.1%). Nothing here asks for a change to the board, and
+none was made (16 Nov); cowries ship as measured.
 
-**Bhaskar's three-player test (to fill).** Phase 11's acceptance test repeated on the finished game: three players who have
-never seen it, ten turns each, a person and a computer (the default table), then one question answered without help. Phase
-11 read the answer two ways, so three things are recorded for each player:
-
-| player | 1. *What happened to your character?* (their words) | 2. answered without help? (the moments land) | 3. a story mentioned? (the mirrors land) |
-|---|---|---|---|
-| 1 | | | |
-| 2 | | | |
-| 3 | | | |
-
-Date, device, language, and anything they asked:
+**Phase 20 closed on the automated checks** (lint, tests, golden, smoke, the accounts against main); the three-player
+test was not run for it.
 
 ---
 

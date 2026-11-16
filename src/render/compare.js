@@ -44,7 +44,7 @@ function build(state) {
 // Lives from several games (Phase 19 step 3): each { inputs, seat, mine } is played again from what a link or the seeds
 // kept carry, or { state, seat, mine } is a game already in hand. offer, if given, is the seed not yet played, with a
 // button to play it (onPlay); onAdd(text) adds another life from a link, and answers with a string key or null.
-let hooks = { onPlay: null, onAdd: null };
+let hooks = { onPlay: null, onAdd: null, canGoOn: null, onGoOn: null };
 export const setCompareHooks = h => { hooks = { ...hooks, ...h }; };
 function buildLives(entries, offer) {
   const games = entries.map(e => {
@@ -217,6 +217,7 @@ function paint() {
       <button type="button" class="x cmp-close" aria-label="${esc(tIn(l, "close"))}">×</button></header>
     <div class="cmp-body">
       <h2 id="cmpTitle">${esc(tIn(l, "togetherTitle"))}</h2>
+      ${!model.entries && hooks.canGoOn?.() ? `<p class="cmp-offer">${esc(tIn(l, "goOnAbout"))} <button type="button" data-act="goOn">${esc(tIn(l, "goOn"))}</button></p>` : ""}
       ${model.offer ? `<p class="cmp-offer">${esc(tIn(l, "cmpPlayAbout"))} <button type="button" data-act="play">${esc(tIn(l, "cmpPlaySeed"))}</button></p>` : ""}
       <ul class="cmp-souls">${souls.map(s => {
         const last = s.lives.at(-1);
@@ -338,6 +339,7 @@ leaf.addEventListener("click", e => {
   const act = e.target.closest("[data-act]")?.dataset.act;
   if (act === "save") save();
   if (act === "play") { closeCompare(); hooks.onPlay?.(model.offer); }
+  if (act === "goOn") { closeCompare(); hooks.onGoOn?.(); }
   if (act === "copy") copy();
 });
 // the books' tabs (a phone shows one book at a time): the arrow keys, Home and End move between them

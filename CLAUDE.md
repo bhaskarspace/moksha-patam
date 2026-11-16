@@ -17,7 +17,7 @@ single static `index.html` at https://codebpr.com/moksha-patam/
 - `docs/REFERENCE.md`: philosophy-to-mechanics mapping and the history of the board.
 - `docs/LANDSCAPE.md`: comparable games.
 
-**State:** Phases 0 to 19 have shipped. Phase 8 was Life State (REDESIGN.md §4): years lived are a clock of their own
+**State:** Phases 0 to 20 have shipped; Phase 20 was the last of the plan. Phase 8 was Life State (REDESIGN.md §4): years lived are a clock of their own
 (`src/engine/self.js`) that a snake never turns back, moments say their age through `{age}`, a life ends when its years
 pass `SPAN` (110), and the life account (`src/engine/account.js`, pure) chooses each join by how a moment relates to the
 last. Gunas, aims and the bhumika are in state and never shown as numbers. Phase 9 was Dice as currency: from 94
@@ -124,6 +124,15 @@ hand is `state.tampered` and is never sent. A life born again never takes a name
 `players.again` in `content/names.json` is drawn only for that). An animal's life carries no person's name: no name is drawn for it, and it is
 called by its kind and household, "the tortoise in Vikram's house" (`animalNameIn` in `src/i18n.js`, through `pnameIn`;
 lower case inside a sentence, Hindi oblique before a postposition); a soul is called by its last human life's name.
+Phase 20, Content to full and balancing, has shipped (REDESIGN.md Phase 20): the desktop book beside the board from 1400px
+(`src/render/book.js`); 29 situations on 28 squares under the seed rule (a seed only on a lie or a harm to another,
+`seed.wrong`); the schools as cast (`content/schools.json`); all 110 squares painted and 162 cloth pictures for the 72 and
+the 84 (`art/cloth.mjs`, drawn by `node tools/vignettes.mjs` as `b72-N`/`b84-N`), the 84's crowns over top 1–5, and short
+names on the old squares (`legends.json` `short`). The 110 may be thrown with cowries or the stick die (`rules.rand`,
+`throwKind` in `src/engine/cloth.js`; the die is the default and draws as it always has; a throw of none is a year with no
+move, `plan.nil`, never a law's act). Played together, one life each is the default, and a table at its end may go on
+together (`goOn`/`canGoOn` in `src/engine/turn.js`; `rules.on` is the turn it went on at, so `replay` goes on there too).
+The final numbers, the ablation and the careful policy are in `docs/REFERENCE.md` §7; the three-player test was not run.
 Phase 7 was The Exit (REDESIGN.md §4): Moksha is square 105 (`GOAL`), partway
 along the divine row, while the board still ends at 110 (`TOP`). Since Phase 12 nothing above the exit turns back: past 105 the
 heavens (106–110) are walked. Since Phase 17 no throw passes `TOP`, and the exact throw onto it is Śiva's snake, the fall
@@ -185,6 +194,11 @@ illuminated frame (`frame.js`) and a bottom sheet below 768px (`sheet.js`).
   Balance against the p95, the share over 100, liberation per life and lives per liberation. Since Phase 18
   `--board=72|84` plays an old board as the old cloth, `--rand=own,die` by what it is thrown with, and
   `--start=six` / `--end=exact|roam` with the game's other rules; it reports turns to the goal and where they went.
+- Phase 20: `--policy=careful` (the most worth seven times in ten, else another open option: the human proxy, a column of
+  `--laws`, flagged over 60% a life); `--rand=die,cowries,stick` on the 110 prints a line a kind, and one kind plays every
+  report under it. `node tools/ablate.mjs [games] [first] [--policy=mixed,careful] [--boot=N] [--md]` takes each of the
+  110's snakes and ladders away in turn and reports the paired change in median and p95 turns, liberation and deaths a
+  life, with bootstrap intervals.
 - Phase 19: `npm run sim -- --mode=together [--length=one]` plays a table together; `--dice=stream` (sim and
   `tools/accounts.mjs`) throws off the old shared sequence. `tools/accounts.mjs --mode=together` tags `together` and
   `meet`, and with per-throw dice every game whose throws differ from the stream's is tagged `dice`; a game holding an
@@ -227,7 +241,7 @@ animal's life is tagged `animalname`; with `--dice=stream`
   grace's next throw shows under Bhakti: `mp.grace(1)` brings it). Phase 18 adds `mp.board(id[, { start, end }])` (a fresh
   game on that board, with the game's other rules; `mp.board()` is the board in play). Phase 19 adds `mp.mode(m)`,
   `mp.play(n)` (n turns at once, nobody's choices noted), `mp.compareOpen()`, `mp.compareText(l)`, `mp.compareImage()`,
-  `mp.share()` (`{ play, life, why }`), `mp.daily(date)`, `mp.compare(links)` and `mp.compared()`. Phase 20 adds `mp.situations(on)`
+  `mp.share()` (`{ play, life, why }`), `mp.daily(date)`, `mp.compare(links)` and `mp.compared()`. Phase 20 extends `mp.board(id, { rand })` (what it is thrown with, the 110 too) and `mp.mode(m, length)` (`"free"` or `"one"` for the game in play), and adds `mp.situations(on)`
   (`false` plays every situation square as its plain moment, as the sim's `--situations=off`; `mp.situations()` reads it). and `mp.schools(i, life)` (who holds a school in that life, read only). A helper that changes the
   game marks it `state.tampered`.
 - No physics on any card. "Debt" is the only word a player sees for a seed, and the ledger's buckets, weights, fuses

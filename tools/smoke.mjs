@@ -1087,6 +1087,8 @@ await check("Phase 17: a game in progress is kept after every turn and resumes o
 await check("Phase 17: the heavens last as long as the merit, and then Śiva's snake takes the life", async page => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto(BASE + "?seed=5&debug");
+  // the same soul born again in the seat: until every soul is free (one life each is the default since Phase 20)
+  await page.evaluate(() => mp.mode("together", "free"));
   const mine = () => page.waitForFunction(() => { if (document.getElementById("folio").open && !document.querySelector("#folio .leaf.reborn")) mp.close({ instant: true }); return !mp.busy && mp.state.turn === 0 && !document.getElementById("roll").disabled; }, null, { timeout: 15000, polling: 200 });
   await page.evaluate(() => { Object.assign(mp.state.players[0], { gunas: { s: 0.3, r: 0.35, t: 0.35 } }); mp.jump(104); mp.roll(2); });   // 106, with a single turn of merit
   await mine();
@@ -1117,8 +1119,8 @@ await check("Phase 17, step 3: the laws are offered once a life has been lived, 
   // the panel is folded away; the select is changed as a reader would, and says so
   await page.evaluate(() => { const s = document.getElementById("plaw0"); s.value = "carvaka"; s.dispatchEvent(new Event("change", { bubbles: true })); });
   assert(/Perception is the only means of knowing/.test(await page.textContent("#plawAbout0")), "the setup did not explain Cārvāka");
-  // between lives, on the card Śiva's snake leaves
-  await page.evaluate(() => { mp.jump(107); mp.siva(); });
+  // between lives, on the card Śiva's snake leaves (until every soul is free, so the soul is born again in the seat)
+  await page.evaluate(() => { mp.mode("together", "free"); mp.jump(107); mp.siva(); });
   await page.evaluate(() => document.getElementById("roll").click());
   await page.waitForFunction(() => document.querySelector("#folio[open] .leaf.reborn"), null, { timeout: 15000 });
   const ids = await page.evaluate(() => [...document.querySelectorAll('#leaf [data-act="law"]')].map(b => b.dataset.law));
@@ -2007,7 +2009,7 @@ await check("Phase 14 and 17: a throw that lands on 110 is Śiva's snake, and th
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto(BASE + "?seed=5&debug");
   // as a new viewer: the life Śiva's snake ends is their first life ended, counted in mp-lives as a death is
-  assert(await page.evaluate(() => { const first = mp.first(); mp.jump(107); return first; }), "mp.first did not make a first life");
+  assert(await page.evaluate(() => { const first = mp.first(); mp.mode("together", "free"); mp.jump(107); return first; }), "mp.first did not make a first life");
   const was = await page.evaluate(() => ({ en: mp.state.players[0].name || mp.state.players[0].alias?.en }));
   assert(await page.evaluate(() => mp.siva()) === 3, "mp.siva did not set the throw to 110");
   await page.evaluate(() => document.getElementById("roll").click());
@@ -2388,8 +2390,8 @@ await check("Phase 19: Together is the default for two or more seats, offered be
     return { row: !document.getElementById("ruleModeRow").hidden, val: document.getElementById("ruleMode").value, opts: [...document.querySelectorAll("#ruleMode option")].map(o => o.value) };
   });
   assert(set.row && set.val === "together" && set.opts.join() === "together,race", "the setup offers Together, chosen, and the race: " + JSON.stringify(set));
-  // how long (11 Nov): until every soul is free for two seats, one life each for three or four
-  assert(await page.evaluate(() => !document.getElementById("ruleLengthRow").hidden && document.getElementById("ruleLength").value === "free"), "two seats: until every soul is free");
+  // how long: one life each for any table (Phase 20; until every soul is free for two seats before it), and it may go on
+  assert(await page.evaluate(() => !document.getElementById("ruleLengthRow").hidden && document.getElementById("ruleLength").value === "one"), "two seats: one life each");
   await page.click('#count button[data-n="4"]');
   assert(await page.evaluate(() => document.getElementById("ruleLength").value === "one"), "four seats: one life each");
   await page.selectOption("#ruleMode", "race");
@@ -2399,7 +2401,7 @@ await check("Phase 19: Together is the default for two or more seats, offered be
   await page.evaluate(() => mp.naming());
   await page.click('#namingWhoOpts input[value="cpu"]');
   assert(await page.evaluate(() => !document.getElementById("namingMode").hidden && document.querySelector('#namingModeOpts input[value="together"]').checked), "the naming asks how to play, Together first");
-  assert(await page.evaluate(() => document.querySelector('#namingLengthOpts input[value="free"]').checked), "me and a computer: until every soul is free");
+  assert(await page.evaluate(() => document.querySelector('#namingLengthOpts input[value="one"]').checked), "me and a computer: one life each");
   await page.click('#namingWhoOpts input[value="3"]');
   assert(await page.evaluate(() => document.querySelector('#namingLengthOpts input[value="one"]').checked), "three people: one life each");
   await page.click('#namingWhoOpts input[value="1"]');
@@ -2446,7 +2448,7 @@ await check("Phase 19: a person and a computer played together run to the end; n
 await check("Phase 19: played together, a person's death by ledger is born an animal in the seat, told on the card and the line", async page => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto(BASE + "?seed=1&debug");
-  await page.evaluate(() => { mp.mode("together"); mp.jump(40); mp.years(70); mp.die("illness"); mp.roll(2); });
+  await page.evaluate(() => { mp.mode("together", "free"); mp.jump(40); mp.years(70); mp.die("illness"); mp.roll(2); });
   await page.waitForFunction(() => document.getElementById("folio").open && /It closes/.test(document.getElementById("leaf").textContent), null, { timeout: 15000 });
   await page.evaluate(() => mp.close());
   await page.waitForFunction(() => document.querySelector("#folio[open] .leaf.reborn"), null, { timeout: 15000 });
@@ -2688,6 +2690,33 @@ await check("Phase 20: the 110 thrown with cowries shows the shells, two sets in
   await until(page, () => !mp.busy);
   const back = await page.evaluate(() => ({ rand: mp.state.rules.rand ?? null, shells: document.getElementById("shells").hidden && document.getElementById("shells2").hidden, die: !document.getElementById("die").hidden }));
   assert(back.rand === null && back.shells && back.die, `back to the die: ${JSON.stringify(back)}`);
+});
+
+await check("Phase 20: played together, one life each is the default; at its end Go on together plays on, and a reload resumes it", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=1&debug");
+  await until(page, () => !mp.busy);
+  const start = await page.evaluate(() => ({ mode: mp.state.rules.mode, length: mp.state.rules.length, seats: mp.state.players.length }));
+  assert(start.mode === "together" && start.length === "one" && start.seats === 2, `the default table: ${JSON.stringify(start)}`);
+  await page.evaluate(() => mp.play(4000));
+  await until(page, () => mp.state.over && !mp.busy);
+  const end = await page.evaluate(() => ({ goOn: !document.getElementById("goOn").hidden, compare: !document.getElementById("compare").hidden, reborn: mp.state.players.map(p => p.rebirths ?? 0) }));
+  assert(end.goOn && end.compare && end.reborn.every(n => n === 0), `the end of one life each: ${JSON.stringify(end)}`);
+  // offered beside the comparison too
+  await page.click("#compare");
+  await page.waitForSelector('#compareDlg [data-act="goOn"], dialog [data-act="goOn"]', { timeout: 10000 });
+  await page.click('dialog [data-act="goOn"]');
+  await until(page, () => !mp.state.over && !mp.busy);
+  const on = await page.evaluate(() => ({ on: mp.state.rules.on, turns: mp.state.turns, reborn: mp.state.players.map(p => p.rebirths ?? 0), free: mp.state.players.map(p => !!p.free), btn: document.getElementById("goOn").hidden, line: mp.state.log.some(e => e.k === "lGoOn") }));
+  assert(on.on === on.turns && on.btn && on.line && on.reborn.some((n, i) => n === 1 || on.free[i]), `gone on: ${JSON.stringify(on)}`);
+  // kept after it went on: a reload resumes the game that went on
+  await page.evaluate(() => mp.play(3));
+  await until(page, () => !mp.busy);
+  const at = await page.evaluate(() => ({ turns: mp.state.turns, on: mp.state.rules.on, over: mp.state.over }));
+  await page.goto(BASE + "?debug");
+  await until(page, () => !mp.busy && !!mp.state);
+  const back = await page.evaluate(() => ({ turns: mp.state.turns, on: mp.state.rules.on, over: mp.state.over }));
+  assert(JSON.stringify(back) === JSON.stringify(at), `resumed: ${JSON.stringify({ at, back })}`);
 });
 
 await check("Phase 20: 1400px and wider the book is written beside the board, polite, never focused; narrower it is not drawn", async page => {

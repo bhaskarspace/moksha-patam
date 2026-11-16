@@ -549,6 +549,40 @@ function passTurn(state, plan) {
   plan.end.forEach(e => addLog(state, e));
 }
 
+// Go on together (Phase 20): a table that has played one life each, every life ended, plays on as if it had been played
+// until every soul is free. Each seat whose life its law would have had born again at the table (Śiva's snake where the
+// law is reborn by it; a death, where the law has a next life) is born again now, as endTurn would have, in turn order: the
+// same seed, lanes and sequences, the names drawn as any rebirth's. A soul let go stays free, and Cārvāka's end stays the
+// end. The turn it went on at is kept in rules.on, so replay (src/engine/compare.js) goes on at the same turn. Returns
+// whether it went on; the game is over again at once only if no seat had a next life.
+// A table with people in it goes on only for a person's soul: one that would play on for computers alone would be over
+// at once, as such a game is (passTurn).
+export const canGoOn = state => together(state) && state.rules.length === "one" && !!state.over && state.rules.on == null && onward(state);
+const onward = state => { const ws = wouldGoOn(state); return state.players.some(q => q.type === "human") ? ws.some(i => state.players[i].type === "human") : ws.length > 0; };
+const wouldGoOn = state => state.players.map((p, i) => i).filter(i => {
+  const p = state.players[i], law = lawOf(state, i);
+  if (p.free || !gone(p)) return false;
+  return p.fell ? law.siva(state, i) === "reborn" : !!(law.rebirth && p.dead);
+});
+export function goOn(state) {
+  if (!together(state) || state.rules.length !== "one" || !state.over) return false;
+  if (state.rules.on != null && state.rules.on !== (state.turns ?? 0)) return false;
+  const seats = wouldGoOn(state);
+  if (!onward(state)) return false;
+  state.rules = { ...state.rules, on: state.turns ?? 0 };
+  addLog(state, entry("lGoOn", {}, "", null));
+  for (const i of seats) {
+    const p = state.players[i], fell = !!p.fell, was = p.rebirths ?? 0;
+    bornAgain(state, i);
+    if ((p.rebirths ?? 0) > was) addLog(state, p.animal ? entry("lBornAnimal", { animal: p.animal.kind, pos: 1, sq: 1 }, "", i) : entry(fell ? "lReborn" : p.past.at(-1)?.carry ? "lBornHuman" : "lRebornDied", { pos: 1, sq: 1 }, "", i));
+  }
+  const first = state.players.findIndex(q => !gone(q));
+  if (first >= 0) state.turn = first;
+  const alive = state.players.filter(q => !gone(q)), humans = state.players.some(q => q.type === "human");
+  state.over = !alive.length || (humans && !alive.some(q => q.type === "human"));
+  return true;
+}
+
 // Śiva's snake closes player i's life and the same soul is born again in its seat (Phase 17), as Be born again would
 // begin it (src/engine/samskara.js soulOf, bornOf): the guṇas half carried, the heaviest unmet debt as prārabdha, the
 // dream, the cast in new roles. The closed life is kept in p.past, whole, with the cast it had, for its book. The

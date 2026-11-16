@@ -6,7 +6,7 @@ import { keepSeed, seedLives } from "./prefs.js";
 import { prefs, setPref, applyTheme, lifeLived, beFirst, freshViewer, firstLife, soulStore, soulFor, keepSoul, setSoulStore, saveGame, loadGame } from "./prefs.js";
 import { $, COLORS, esc, reduced, sleep, quality, forcedQuality, setQuality } from "./ui.js";
 import { die, makeRng, freshSeed } from "./rng.js";
-import { ENDGAME, planTurn, resolveChoice, endTurn, addLog, diceFor, movesFor, moveFor, gone, canSit, createGame, playTurn, spentOf, doorOf, canPractise, practisesNow, zeroOf } from "./engine/turn.js";
+import { ENDGAME, planTurn, resolveChoice, endTurn, addLog, diceFor, movesFor, moveFor, gone, canSit, createGame, playTurn, spentOf, doorOf, canPractise, practisesNow, zeroOf, goOn, canGoOn } from "./engine/turn.js";
 import { optionsFor, situationAt, momentOf, setSituations, SITUATIONS_ON } from "./engine/qbn.js";
 import { drawThrow } from "./engine/throws.js";
 import { isCloth, throwKind, RANDS_110 } from "./engine/cloth.js";
@@ -579,6 +579,8 @@ function render() {
   $("win").hidden = !state.over;
   // the lives side by side (Phase 19), for any game of two or more seats on the 110
   $("compare").hidden = !state.over || isCloth() || (state.players.length < 2 && !G.received.length);
+  // one life each, every life ended: the table may go on together, until every soul is free (Phase 20)
+  $("goOn").hidden = $("goOnNote").hidden = !canGoOn(state);
   $("sendLife").hidden = !state.over || !!sendable(state);
   $("shareSeed").hidden = !state.over;
   if (!state.over) $("shareNote").textContent = "";
@@ -780,9 +782,10 @@ const RAND_NAME = { cowries: "randCowries", stick: "randStick", die: "randDie" }
 // Together is the default whenever two or more seats are filled (Phase 19, decided 11 Nov); the race is a choice
 const MODES = [["together", "modeTogether"], ["race", "modeRace"]];
 const modeOf = setup => (setup.rules?.mode === "race" ? "race" : "together");
-// and how long it lasts (11 Nov): until every soul is free for two seats, one life each for three or four, unless chosen
-const LENGTHS = [["free", "lengthFree"], ["one", "lengthOne"]];
-const lengthFor = n => (n >= 3 ? "one" : "free");
+// and how long it lasts: one life each, unless chosen (Phase 20, 16 Nov; before it, until every soul is free for two
+// seats). A table that played one life each may go on together at its end (goOn in src/engine/turn.js).
+const LENGTHS = [["one", "lengthOne"], ["free", "lengthFree"]];
+const lengthFor = () => "one";
 const lengthOf = setup => (setup.rules?.length === "one" || setup.rules?.length === "free" ? setup.rules.length : lengthFor(setup.count));
 const lengthAbout = v => t(v === "one" ? "lengthOneAbout" : "lengthFreeAbout");
 $("ruleMode").addEventListener("change", () => { readSetup(); renderSetup(); $("ruleMode").focus(); });
@@ -958,6 +961,21 @@ $("practise").addEventListener("click", () => takeTurn({ practice: true }));
 // Stop here (Phase 19): asked once, then the game is over with every life as it stands
 $("stopHere").addEventListener("click", () => { if (!G.busy && !G.state.over && together(G.state)) $("stopAsk").showModal(); });
 $("compare").addEventListener("click", () => (G.received.length ? openReceived() : openCompare(G.state)));
+$("goOn").addEventListener("click", () => goOnTogether());
+// Go on together (Phase 20): the ended lives born again where their law has a next life, and the game plays on from here,
+// the same game, kept and resumed as any other
+function goOnTogether() {
+  if (G.busy || !goOn(G.state)) return false;
+  closeCompare();
+  closeLife();
+  clearLanded();
+  buildTokens();
+  render();
+  age(true);
+  saveGame(G.setup, G.state);
+  queueCpu();
+  return true;
+}
 $("sendLife").addEventListener("click", async () => {
   const h = await lifeHash(G.state), p = G.state.players[personOf(G.state)];
   if (h) shareLink(h, t("sendLifeText", { name: pname(p) }));
@@ -1126,6 +1144,8 @@ function openReceived() {
 }
 setCompareHooks({
   onPlay: offer => playSeed(offer),
+  canGoOn: () => !G.received.length && canGoOn(G.state),
+  onGoOn: () => goOnTogether(),
   onAdd: async text => { const k = await addLife(text); if (!k) openReceived(); return k; },
 });
 // #play=… starts that seed; #life=… adds a life and opens the comparison. The hash is taken away once read, so a reload
@@ -1218,8 +1238,11 @@ if (new URLSearchParams(location.search).has("debug")) {
     // mp.rules({ six: false }) changes the running game's rules
     rules(r) { if (r) Object.assign(G.state.rules, r); return { ...G.state.rules }; },
     // mp.mode("race" | "together") (Phase 19): how the running game, and the next, are played; mp.mode() says which
-    mode(m) {
-      if (m === "race" || m === "together") { G.state.rules.mode = m; G.setup.rules.mode = m; render(); }
+    // Phase 20: mp.mode("together", "free" | "one") sets how long the game in play lasts too (one life each is the default)
+    mode(m, length) {
+      if (m === "race" || m === "together") { G.state.rules.mode = m; G.setup.rules.mode = m; }
+      if (together(G.state) && (length === "free" || length === "one")) { G.state.rules.length = length; G.setup.rules.length = length; }
+      render();
       return together(G.state) ? "together" : "race";
     },
     lifeText: (i = 0, l) => lifeText(G.state, i, l),

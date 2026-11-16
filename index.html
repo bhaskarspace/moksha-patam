@@ -1205,6 +1205,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
               <button id="reborn" type="button" data-t="reborn" hidden>Be born again</button>
               <p id="rebornNote" class="note" data-t="rebornNote" hidden>The next life carries this one, half-remembered.</p>
               <button id="compare" type="button" data-t="compareLives" hidden>Compare the lives</button>
+              <button id="goOn" type="button" data-t="goOn" hidden>Go on together</button>
+              <p id="goOnNote" class="note" data-t="goOnAbout" hidden></p>
               <button id="sendLife" type="button" class="ghost" data-t="sendLife" hidden>Send your life</button>
               <button id="shareSeed" type="button" class="ghost" data-t="shareSeed" hidden>Play the same dice with someone</button>
               <p id="shareNote" class="note" aria-live="polite"></p>
@@ -1852,7 +1854,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         bornAgainNew: "The same soul is born again at the snake's tail, as {name}, and carries what the last life left: not its name, and not its memory.",
         bornAgainStage: "Born again",
         readPast: "Read the book of the life",
-        goOn: "Go on",
+        goOn: "Go on together",
         lifeLives: "Which life",
         fallHead: "The fall · Śiva's snake",
         fallFoot: "Land here, and Śiva's snake takes the life down, to be born again",
@@ -2012,7 +2014,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         randDie: "A die",
         randCowries: "Seven cowries",
         randStick: "The stick die",
-        rand110About: "Cowries count the shells that fall face up, none to all seven: none moves nothing, and the year still passes. The stick die shows one, two, five or six. Either throws every die of the game that moves the life; a six is a six however it is thrown.",
+        rand110About: "Cowries count the shells that fall face up, none to all seven: none moves nothing, and the year still passes. The stick die shows one, two, five or six. Either throws every die of the game that moves the life; a six is a six however it is thrown. Longer games; the laws were balanced on the die.",
         legendOf: "The legend",
         legendUncertain: "The reading of this square is uncertain.",
         legendSq: "Square {n}",
@@ -2091,6 +2093,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         lengthFreeAbout: "Each soul is born again at the table, as often as it takes, until it is let go.",
         lengthOne: "One life each",
         lengthOneAbout: "The game ends when every life at the table has ended. A soul that would be born again carries what it left into the next game.",
+        goOnAbout: "Every soul not yet free is born again at this table, and the game goes on until each is free.",
+        lGoOn: "The table goes on together: every soul not yet free is born again.",
         togetherOneText: "Every life at the table has ended. Each soul that goes on carries this life into the next game.",
         cmpBoard: "Where each life went",
         cmpBoardAlt: "The board, with the path of every life drawn on it in its player's colour.",
@@ -2466,7 +2470,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         bornAgainNew: "वही आत्मा नाग की पूँछ पर फिर से जन्म लेती है, {name} बनकर, और पिछला जीवन जो छोड़ गया वह साथ लाती है: उसका नाम नहीं, उसकी याद नहीं।",
         bornAgainStage: "फिर से {जन्मा|जन्मी}",
         readPast: "उस जीवन की बही पढ़ें",
-        goOn: "आगे चलें",
+        goOn: "साथ-साथ आगे चलें",
         lifeLives: "कौन-सा जीवन",
         fallHead: "पतन · शिव का नाग",
         fallFoot: "यहाँ पहुँचें, तो शिव का नाग जीवन को नीचे ले जाता है, फिर से जन्म के लिए",
@@ -2626,7 +2630,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         randDie: "पासा",
         randCowries: "सात कौड़ियाँ",
         randStick: "लंबा पासा",
-        rand110About: "कौड़ियाँ चित गिरी कौड़ियों को गिनती हैं, एक भी नहीं से सातों तक: एक भी नहीं तो कुछ नहीं हिलता, और बरस फिर भी बीतता है। लंबा पासा एक, दो, पाँच या छह दिखाता है। जो भी चुनें, जीवन को चलाने वाला हर दाँव उसी से फेंका जाता है; छह छह ही है, किसी से भी फेंका जाए।",
+        rand110About: "कौड़ियाँ चित गिरी कौड़ियों को गिनती हैं, एक भी नहीं से सातों तक: एक भी नहीं तो कुछ नहीं हिलता, और बरस फिर भी बीतता है। लंबा पासा एक, दो, पाँच या छह दिखाता है। जो भी चुनें, जीवन को चलाने वाला हर दाँव उसी से फेंका जाता है; छह छह ही है, किसी से भी फेंका जाए। खेल लंबे होते हैं; नियम पासे पर तौले गए थे।",
         legendOf: "लेख",
         legendUncertain: "इस घर का पाठ अनिश्चित है।",
         legendSq: "घर {n}",
@@ -2705,6 +2709,8 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
         lengthFreeAbout: "हर आत्मा इसी खेल में, जितनी बार ज़रूरी हो, फिर जन्म लेती है, जब तक मुक्त न हो जाए।",
         lengthOne: "हर किसी का एक जीवन",
         lengthOneAbout: "खेल तब समाप्त होता है जब मेज़ पर हर जीवन पूरा हो जाए। जो आत्मा फिर जन्म लेगी, वह जो छोड़ गई उसे अगले खेल में साथ ले जाती है।",
+        goOnAbout: "जो आत्मा अभी मुक्त नहीं, वह इसी मेज़ पर फिर जन्म लेती है, और खेल तब तक चलता है जब तक हर आत्मा मुक्त न हो जाए।",
+        lGoOn: "मेज़ साथ-साथ आगे चलती है: जो आत्मा अभी मुक्त नहीं, वह फिर जन्म लेती है।",
         togetherOneText: "मेज़ पर हर जीवन पूरा हुआ। जो आत्मा आगे जाती है, वह यह जीवन अगले खेल में साथ ले जाती है।",
         cmpBoard: "हर जीवन कहाँ-कहाँ गया",
         cmpBoardAlt: "पट, जिस पर हर जीवन का रास्ता उसके खिलाड़ी के रंग में खिंचा है।",
@@ -6675,7 +6681,7 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
 
   // src/engine/mode.js
   var together = (state) => state?.rules?.mode === "together";
-  var oneLife = (state) => together(state) && state.rules.length === "one";
+  var oneLife = (state) => together(state) && state.rules.length === "one" && !(state.rules.on != null && (state.turns ?? 0) >= state.rules.on);
   var liberated = (state, i) => state?.winner === i || !!state?.players?.[i]?.free;
 
   // src/engine/cast.js
@@ -7510,6 +7516,34 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     state.over = state.winner != null || !alive.length || humans && !oneLife(state) && !alive.some((q2) => q2.type === "human");
     plan.end.forEach((e) => addLog(state, e));
   }
+  var canGoOn = (state) => together(state) && state.rules.length === "one" && !!state.over && state.rules.on == null && onward(state);
+  var onward = (state) => {
+    const ws = wouldGoOn(state);
+    return state.players.some((q2) => q2.type === "human") ? ws.some((i) => state.players[i].type === "human") : ws.length > 0;
+  };
+  var wouldGoOn = (state) => state.players.map((p, i) => i).filter((i) => {
+    const p = state.players[i], law = lawOf(state, i);
+    if (p.free || !gone(p)) return false;
+    return p.fell ? law.siva(state, i) === "reborn" : !!(law.rebirth && p.dead);
+  });
+  function goOn(state) {
+    if (!together(state) || state.rules.length !== "one" || !state.over) return false;
+    if (state.rules.on != null && state.rules.on !== (state.turns ?? 0)) return false;
+    const seats = wouldGoOn(state);
+    if (!onward(state)) return false;
+    state.rules = { ...state.rules, on: state.turns ?? 0 };
+    addLog(state, entry("lGoOn", {}, "", null));
+    for (const i of seats) {
+      const p = state.players[i], fell = !!p.fell, was = p.rebirths ?? 0;
+      bornAgain(state, i);
+      if ((p.rebirths ?? 0) > was) addLog(state, p.animal ? entry("lBornAnimal", { animal: p.animal.kind, pos: 1, sq: 1 }, "", i) : entry(fell ? "lReborn" : p.past.at(-1)?.carry ? "lBornHuman" : "lRebornDied", { pos: 1, sq: 1 }, "", i));
+    }
+    const first = state.players.findIndex((q2) => !gone(q2));
+    if (first >= 0) state.turn = first;
+    const alive = state.players.filter((q2) => !gone(q2)), humans = state.players.some((q2) => q2.type === "human");
+    state.over = !alive.length || humans && !alive.some((q2) => q2.type === "human");
+    return true;
+  }
   function bornAgain(state, i) {
     const p = state.players[i], nb = nextBirth(state, i), soul = nb?.soul;
     if (!nb) return;
@@ -7597,8 +7631,9 @@ label.pick { display: grid; grid-template-columns: 1fr 150px; gap: 8px; align-it
     return {
       count: 2,
       rows: [{ name: self?.name || "", type: "human", gender: self?.gender || "" }, { name: "", type: "cpu", gender: "" }, { name: "", type: "cpu", gender: "" }, { name: "", type: "cpu", gender: "" }],
-      // me and a computer, played together (Phase 19: the default for any table of two or more seats)
-      rules: { six: true, mode: "together", length: "free" }
+      // me and a computer, played together (Phase 19: the default for any table of two or more seats), one life each
+      // (Phase 20), which may go on together at its end
+      rules: { six: true, mode: "together", length: "one" }
     };
   };
   function drawName(rng, gender, taken = /* @__PURE__ */ new Set()) {
@@ -11409,7 +11444,9 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), [...fates, sameLaw].filter(
       at2[i]++;
       return x;
     };
-    for (let t2 = 0; t2 < inputs.turns && !s.over; t2++) {
+    const onward2 = () => s.over && s.rules.on === (s.turns ?? 0) && goOn(s);
+    for (let t2 = 0; t2 < inputs.turns; t2++) {
+      if (s.over && !onward2()) break;
       const i = s.turn, p = s.players[i], human = p.type === "human", auto = lawOf(s, i).auto, life = p.rebirths ?? 0, k = p.thrown ?? 0;
       let prac = false;
       if (human) {
@@ -11463,6 +11500,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), [...fates, sameLaw].filter(
       while (tr.length <= (p.rebirths ?? 0)) tr.push([]);
       onTurn?.(s, plan, i, life);
     }
+    if (ok) onward2();
     return { state: s, traces, ok: ok && inputs.choices.every((c, i) => !c || at2[i] === c.length) };
   }
   var livesIn = (state, i) => [...(state.players[i].past ?? []).map((_, k) => pastOf(state, i, k)), state];
@@ -11572,7 +11610,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), [...fates, sameLaw].filter(
     }
     return { ...compareOf(state, traces), replayed: !!traces };
   }
-  var hooks = { onPlay: null, onAdd: null };
+  var hooks = { onPlay: null, onAdd: null, canGoOn: null, onGoOn: null };
   var setCompareHooks = (h) => {
     hooks = { ...hooks, ...h };
   };
@@ -11779,6 +11817,7 @@ ${p.text}`), [end, curse].filter(Boolean).join(" "), [...fates, sameLaw].filter(
       <button type="button" class="x cmp-close" aria-label="${esc(tIn(l, "close"))}">×</button></header>
     <div class="cmp-body">
       <h2 id="cmpTitle">${esc(tIn(l, "togetherTitle"))}</h2>
+      ${!model.entries && hooks.canGoOn?.() ? `<p class="cmp-offer">${esc(tIn(l, "goOnAbout"))} <button type="button" data-act="goOn">${esc(tIn(l, "goOn"))}</button></p>` : ""}
       ${model.offer ? `<p class="cmp-offer">${esc(tIn(l, "cmpPlayAbout"))} <button type="button" data-act="play">${esc(tIn(l, "cmpPlaySeed"))}</button></p>` : ""}
       <ul class="cmp-souls">${souls.map((s) => {
       const last2 = s.lives.at(-1);
@@ -11925,6 +11964,10 @@ ${p.text}`), [b.end, b.curse].filter(Boolean).join(" "), [...b.fates ?? [], b.sa
     if (act === "play") {
       closeCompare();
       hooks.onPlay?.(model.offer);
+    }
+    if (act === "goOn") {
+      closeCompare();
+      hooks.onGoOn?.();
     }
     if (act === "copy") copy();
   });
@@ -12580,6 +12623,7 @@ ${p.text}`), [b.end, b.curse].filter(Boolean).join(" "), [...b.fates ?? [], b.sa
     const w = state.winner, humans = state.players.filter((q2) => q2.type === "human");
     $("win").hidden = !state.over;
     $("compare").hidden = !state.over || isCloth() || state.players.length < 2 && !G.received.length;
+    $("goOn").hidden = $("goOnNote").hidden = !canGoOn(state);
     $("sendLife").hidden = !state.over || !!sendable(state);
     $("shareSeed").hidden = !state.over;
     if (!state.over) $("shareNote").textContent = "";
@@ -12755,8 +12799,8 @@ ${p.text}`), [b.end, b.curse].filter(Boolean).join(" "), [...b.fates ?? [], b.sa
   var RAND_NAME = { cowries: "randCowries", stick: "randStick", die: "randDie" };
   var MODES = [["together", "modeTogether"], ["race", "modeRace"]];
   var modeOf = (setup2) => setup2.rules?.mode === "race" ? "race" : "together";
-  var LENGTHS = [["free", "lengthFree"], ["one", "lengthOne"]];
-  var lengthFor = (n) => n >= 3 ? "one" : "free";
+  var LENGTHS = [["one", "lengthOne"], ["free", "lengthFree"]];
+  var lengthFor = () => "one";
   var lengthOf = (setup2) => setup2.rules?.length === "one" || setup2.rules?.length === "free" ? setup2.rules.length : lengthFor(setup2.count);
   var lengthAbout = (v) => t(v === "one" ? "lengthOneAbout" : "lengthFreeAbout");
   $("ruleMode").addEventListener("change", () => {
@@ -12961,6 +13005,19 @@ ${p.text}`), [b.end, b.curse].filter(Boolean).join(" "), [...b.fates ?? [], b.sa
     if (!G.busy && !G.state.over && together(G.state)) $("stopAsk").showModal();
   });
   $("compare").addEventListener("click", () => G.received.length ? openReceived() : openCompare(G.state));
+  $("goOn").addEventListener("click", () => goOnTogether());
+  function goOnTogether() {
+    if (G.busy || !goOn(G.state)) return false;
+    closeCompare();
+    closeLife();
+    clearLanded();
+    buildTokens();
+    render();
+    age(true);
+    saveGame(G.setup, G.state);
+    queueCpu();
+    return true;
+  }
   $("sendLife").addEventListener("click", async () => {
     const h = await lifeHash(G.state), p = G.state.players[personOf(G.state)];
     if (h) shareLink(h, t("sendLifeText", { name: pname(p) }));
@@ -13151,6 +13208,8 @@ ${p.text}`), [b.end, b.curse].filter(Boolean).join(" "), [...b.fates ?? [], b.sa
   }
   setCompareHooks({
     onPlay: (offer) => playSeed(offer),
+    canGoOn: () => !G.received.length && canGoOn(G.state),
+    onGoOn: () => goOnTogether(),
     onAdd: async (text2) => {
       const k = await addLife(text2);
       if (!k) openReceived();
@@ -13293,12 +13352,17 @@ ${p.text}`), [b.end, b.curse].filter(Boolean).join(" "), [...b.fates ?? [], b.sa
         return { ...G.state.rules };
       },
       // mp.mode("race" | "together") (Phase 19): how the running game, and the next, are played; mp.mode() says which
-      mode(m) {
+      // Phase 20: mp.mode("together", "free" | "one") sets how long the game in play lasts too (one life each is the default)
+      mode(m, length) {
         if (m === "race" || m === "together") {
           G.state.rules.mode = m;
           G.setup.rules.mode = m;
-          render();
         }
+        if (together(G.state) && (length === "free" || length === "one")) {
+          G.state.rules.length = length;
+          G.setup.rules.length = length;
+        }
+        render();
         return together(G.state) ? "together" : "race";
       },
       lifeText: (i = 0, l) => lifeText2(G.state, i, l),

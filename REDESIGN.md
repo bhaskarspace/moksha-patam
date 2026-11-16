@@ -2453,7 +2453,33 @@ the solo default is decided on the record.
 
 ---
 
-### Phase 20 — Content to full, and balancing
+### Phase 20 — Content to full, and balancing  ✅ SHIPPED
+
+> **Shipped** (16 Nov, branch `phase-20-content-balancing`, one PR in six steps, each reviewed by Bhaskar).
+> - *Step 0, the desktop page:* from 1400px the book of the life is written beside the board (`src/render/book.js`), polite
+>   and never focused; 768–1400px board and panel centred; the phone untouched.
+> - *Step 1, text:* the mirrors that were glosses became scenes, their commentary moved to the school voices; the present-
+>   tense pass on 21–50 ("the gesture names itself; the device does not", with a device lint); the "oldest" bridges varied;
+>   no varṇa word outside the Codex (lint); Manu only in citations.
+> - *Step 2, situations:* 29 situations on 28 squares (from ten; 56 is three ways of giving the plate), with the intention variants at 44, 51 and 56 and square 15's picture
+>   not meant for you. **Changed from the brief: the seed rule.** A seed only on a lie or a harm to another (`seed.wrong`),
+>   one consequence per act, harms weighing 2; Mīmāṃsā's dishonest svarga floor 3%; the reformed soul in the sim.
+>   050323f did not pass smoke as committed (corrected in 9baa916).
+> - *Step 3, schools as cast:* a cast member may hold a darśana per life, seeded and salted by lane (`content/schools.json`),
+>   with the figure who held it in the scholar layer only.
+> - *Step 4, art:* **67 vignettes, not 76** (the 43 already drawn, so all 110 squares painted; 105 stays the card's);
+>   **162 cloth pictures** for the 72 and the 84 (`art/cloth.mjs`, in emblem families), the 84's crowns over top 1–5 (off in
+>   plain mode), and a short name per old square where it differs (`legends.json` `short`, at most 14 code points).
+> - *Step 5, balancing:* report only; no snake, ladder, rule or content changed. The ablation harness (`tools/ablate.mjs`),
+>   the careful policy (`qbn.js`), the randomizer as a setting on the 110 (die default and byte-identical; cowries at
+>   p = 0.45, "longer games; the laws were balanced on the die"; the stick die), Together lengths, and the final numbers
+>   in `docs/REFERENCE.md` §7. Played together, **one life each is now the default**, and at its end the table may **go on
+>   together** until every soul is free (`goOn`, `rules.on`, replayed at the same turn).
+> - **The Sufi 101 is dropped** from this phase: the brief builds it only from a chart read square by square with its
+>   legends, 13 snakes and 17 ladders, as Appendix D reads the 72 and the 84, and no such reading is in hand; never from the
+>   six squares the articles name.
+> - **The three-player test was not run;** Phase 20 closed on the automated checks (lint, tests, golden, smoke, the
+>   accounts against main).
 
 *Last on purpose. Everything here is measurement or content that would be wasted while the
 mechanics were still moving.*
@@ -2542,8 +2568,8 @@ makes the replay wanted.
   for a player who has finished a life and wants to read it. Never first.
 
 **Done when:** the content counts above are met; the ablation table exists and has been
-read; the randomizer is a setting; the final numbers are in `docs/REFERENCE.md`; and three
-first-time players can say what happened to their character.
+read; the randomizer is a setting; and the final numbers are in `docs/REFERENCE.md`. (The three-player test was not run;
+Phase 20 closed on the automated checks.)
 
 ---
 
