@@ -22,8 +22,9 @@ const lived = (life, told) => {
 const all = (s, l = "en") => lifeOf(s, 0, l).paras.map(p => p.text).join(" ");
 const opening = (m, l = "en") => fill(m[l], { name: "Meera", gender: "f", age: "" }).split(/[.।]/)[1].trim().slice(0, 40);
 
-test("ten squares tell two moments, chosen from the sim: the snake tails a life lands on most", () => {
-  assert.deepEqual(ROLLS, [8, 11, 31, 43, 46, 50, 52, 58, 64, 71]);
+test("the squares that tell two moments, chosen from the sim: the snake tails a life lands on most", () => {
+  // Phase 10 chose ten; Phase 20 made 11 and 52 situations, their two moments two of the options
+  assert.deepEqual(ROLLS, [8, 31, 43, 46, 50, 58, 64, 71]);
 });
 
 test("the face decides, by the event's valence: a misfortune on the high faces, a good thing on the low", () => {

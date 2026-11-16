@@ -57,7 +57,7 @@ test("a forced reckoning is met: it leaves the ledger and is recorded where it w
   const s = game(18, 10), p = s.players[0];
   playTurn(s, 2, undefined, () => "fx");
   s.forceOmen = true;
-  const plan = playTurn(s, 3);
+  const plan = playTurn(s, 3, undefined, () => "stay"); // 23 is a situation since Phase 20
   assert.equal(plan.reckon.src, 20);
   assert.equal(p.karma.agami.length + p.karma.prarabdha.length, 0);
   assert.equal(p.reckonings.length, 1);

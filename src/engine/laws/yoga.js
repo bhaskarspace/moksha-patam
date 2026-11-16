@@ -8,7 +8,7 @@
 import { board } from "./board.js";
 import { SNAKES, TOP } from "../../content.js";
 import { canSit } from "../turn.js";
-import { situationAt } from "../qbn.js";
+import { situationAt, POLICY } from "../qbn.js";
 
 export const NIRODHA_CAP = 3;
 // the stillness player p has stored
@@ -16,9 +16,11 @@ export const stillness = p => p.nirodha ?? 0;
 const earthly = p => p.pos >= 1 && p.pos <= 100;
 // whether a 0 among the moves would be the law's: not Phase 9's year in practice, which a sannyāsin from 94 has already
 const letsGo = (p, dice) => stillness(p) > 0 && earthly(p) && !(dice.length > 1 && canSit(p));
-// a snake's head that bites on landing: not a situation's square, where the snake is a choice (a computer that dodged those
-// would never be tested, and would plant a third of the debts it does)
-const bites = n => !!SNAKES[n] && !situationAt(n);
+// a snake's head that bites on landing. On a situation's square the snake is a choice: it bites a computer that might
+// take it (mixed or dishonest), and not an honest one, which never would, so it still meets every situation and is
+// tested by it (Phase 17 kept every situation out: once all 28 were in, Phase 20, every snake below 94 had one, and the
+// computer never practised before the endgame)
+const bites = n => !!SNAKES[n] && (!situationAt(n) || POLICY !== "honest");
 // a throw its computer lets go: one that lands on a snake's head that bites, or on Śiva's square
 const bad = (p, v) => bites(p.pos + v) || p.pos + v === TOP;
 

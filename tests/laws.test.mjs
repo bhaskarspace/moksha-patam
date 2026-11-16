@@ -6,7 +6,7 @@ import { createGame, playTurn, planTurn, resolveChoice, endTurn, addLog, movesFo
 import { LAWS, lawOf, choosable, canChoose, setLaw } from "../src/engine/laws/index.js";
 import { board } from "../src/engine/laws/board.js";
 import { soulOf, bornOf, endOf, keepOf, storeWith } from "../src/engine/samskara.js";
-import { optionOf, choiceFor, situationAt } from "../src/engine/qbn.js";
+import { optionOf, choiceFor, situationAt, setPolicy } from "../src/engine/qbn.js";
 import { carried, answerOf, examineOf, refusalOf, inferLinesIn, reckonSignIn, reckonLinesIn, refusalIn, debtIn } from "../src/engine/karma.js";
 import { leadOf } from "../src/engine/laws/sankhya.js";
 import { yearsAlong } from "../src/engine/self.js";
@@ -195,8 +195,10 @@ const at = (law, life, extra = {}) => {
 };
 
 test("Jain: a ladder waits at its foot, the 1 climbs it on a later turn, and any other throw loses it", () => {
+  // 23 is a situation since Phase 20: the option that climbs at once, costing no year
+  const said = () => "said";
   const s = at("jain", [18, 20]), p = s.players[0];
-  playTurn(s, [3], () => 3);
+  playTurn(s, [3], () => 3, said);
   assert.equal(p.pos, 23, "landed at Devotion's foot and stayed");
   assert.ok(s.log.some(e => e.k === "lAtFoot"));
   s.turn = 0;
@@ -207,13 +209,13 @@ test("Jain: a ladder waits at its foot, the 1 climbs it on a later turn, and any
   assert.ok(last.via === "ladder" && last.from === 23);
   // another throw from the foot walks on
   const t = at("jain", [18, 20]);
-  playTurn(t, [3], () => 3);
+  playTurn(t, [3], () => 3, said);
   t.turn = 0;
   playTurn(t, [2], () => 2);
   assert.equal(t.players[0].pos, 25);
   // under the board's law the ladder is taken on landing, as ever
   const b = at("board", [18, 20]);
-  playTurn(b, [3], () => 3);
+  playTurn(b, [3], () => 3, said);
   assert.equal(b.players[0].pos, 37);
 });
 
@@ -328,7 +330,7 @@ test("Bhakti: Devotion is the one ladder to the end, and the life reads it as a 
 
 test("Jain: at a ladder's foot a life may wait, a year a throw; once waiting only the 1 moves it, up the ladder", () => {
   const s = at("jain", [18, 20]), p = s.players[0];
-  playTurn(s, [3], () => 3);
+  playTurn(s, [3], () => 3, () => "said"); // 23 is a situation since Phase 20
   s.turn = 0;
   assert.deepEqual(movesFor(s, [4]), [4, 0], "move on, or wait");
   assert.deepEqual(movesFor(s, [1]), [1], "the 1 climbs");
@@ -392,6 +394,12 @@ test("Yoga: a stored stillness lets a throw go: the life stays and the year pass
 test("Yoga: its computer sits with nothing stored and a snake's head within a throw, and lets a throw onto one go", () => {
   const s = at("yoga", [18, 20, 25]);
   assert.ok(practisesNow(s), "29 is within a throw of 25");
+  // 29 is a situation since Phase 20: its snake bites a computer that might take it, mixed (its own) or dishonest, and
+  // not an honest one, which never would, and so still meets the situation
+  setPolicy("honest");
+  try { assert.ok(!practisesNow(at("yoga", [18, 20, 25])), "an honest computer is not bitten at a situation"); } finally { setPolicy(null); }
+  setPolicy("dishonest");
+  try { assert.ok(practisesNow(at("yoga", [18, 20, 25])), "a dishonest one is"); } finally { setPolicy(null); }
   const f = at("yoga", [18, 20]);
   assert.ok(!practisesNow(f), "no snake's head from 21 to 26");
   const g = at("yoga", [18, 20, 25], { nirodha: 1 });

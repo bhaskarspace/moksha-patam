@@ -9,7 +9,9 @@ import { SITUATIONS, SNAKES } from "../src/content.js";
 import { fill } from "../src/i18n.js";
 import { firstLives } from "./lives.mjs";
 
-const TESTS = { 49: "first", 54: "claim", 55: "keep", 56: "eaten", 59: "strike" };
+// since Phase 20, 56 is the plate given three ways and its lower option, "mention", is no lie and no harm: it plants
+// nothing (the seed rule, docs/REFERENCE.md §6)
+const TESTS = { 49: "first", 54: "claim", 55: "keep", 56: "mention", 59: "strike" }, UNSEEDED = new Set([56]);
 const game = (pos, seed = 1) => {
   const s = createGame({ players: [{ name: "Meera", type: "cpu", gender: "f" }], rules: { six: true }, seed });
   s.players[0].pos = pos;
@@ -17,12 +19,14 @@ const game = (pos, seed = 1) => {
 };
 const policy = (x, fn) => { setPolicy(x); try { return fn(); } finally { setPolicy(null); } };
 
-test("five situations are ego tests, each naming the lower option the ego pulls toward", () => {
+test("the ego tests, each naming the lower option the ego pulls toward", () => {
   const tagged = Object.keys(SITUATIONS).filter(n => egoOf(+n)).map(Number);
-  assert.deepEqual(tagged, [49, 54, 55, 56, 59]);
+  // Phase 15 tagged five; Phase 20 adds the pride squares, whose lower option plants a debt only by the seed rule
+  assert.deepEqual(tagged, [24, 39, 49, 52, 54, 55, 56, 59, 77]);
   for (const [n, id] of Object.entries(TESTS)) {
     assert.equal(egoOf(+n).lower, id);
-    assert.ok(optionOf(+n, id).seed, `${n}.${id} plants a debt`);
+    if (UNSEEDED.has(+n)) assert.ok(!optionOf(+n, id).seed, `${n}.${id} plants nothing`);
+    else assert.ok(optionOf(+n, id).seed, `${n}.${id} plants a debt`);
   }
 });
 

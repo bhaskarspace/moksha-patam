@@ -6,7 +6,7 @@
 // years after it. compareOf reads a game and its traces into what the comparison screen draws (src/render/compare.js):
 // each soul's lives, how each ended, the situations two lives met and what each did there, and the lives that crossed. The
 // guṇas are kept as numbers here and are only ever drawn as shapes. Pure.
-import { createGame, playTurn, throwDice, diceFor, movesFor, moveFor, spentOf, canPractise, practisesNow } from "./turn.js";
+import { createGame, playTurn, throwDice, diceFor, movesFor, moveFor, spentOf, canPractise, practisesNow, goOn } from "./turn.js";
 import { lawOf, setLaw, canChoose } from "./laws/index.js";
 import { pastOf, endOf } from "./samskara.js";
 import { liberated } from "./mode.js";
@@ -38,7 +38,10 @@ export function replay(inputs, onTurn = null) {
     at[i]++;
     return x;
   };
-  for (let t = 0; t < inputs.turns && !s.over; t++) {
+  // a table that went on together (Phase 20, rules.on) goes on at the turn it did
+  const onward = () => s.over && s.rules.on === (s.turns ?? 0) && goOn(s);
+  for (let t = 0; t < inputs.turns; t++) {
+    if (s.over && !onward()) break;
     const i = s.turn, p = s.players[i], human = p.type === "human", auto = lawOf(s, i).auto, life = p.rebirths ?? 0, k = p.thrown ?? 0;
     let prac = false;
     if (human) {
@@ -81,6 +84,7 @@ export function replay(inputs, onTurn = null) {
     while (tr.length <= (p.rebirths ?? 0)) tr.push([]);
     onTurn?.(s, plan, i, life);
   }
+  if (ok) onward();
   return { state: s, traces, ok: ok && inputs.choices.every((c, i) => !c || at[i] === c.length) };
 }
 

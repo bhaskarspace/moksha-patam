@@ -44,7 +44,7 @@ function build(state) {
 // Lives from several games (Phase 19 step 3): each { inputs, seat, mine } is played again from what a link or the seeds
 // kept carry, or { state, seat, mine } is a game already in hand. offer, if given, is the seed not yet played, with a
 // button to play it (onPlay); onAdd(text) adds another life from a link, and answers with a string key or null.
-let hooks = { onPlay: null, onAdd: null };
+let hooks = { onPlay: null, onAdd: null, canGoOn: null, onGoOn: null };
 export const setCompareHooks = h => { hooks = { ...hooks, ...h }; };
 function buildLives(entries, offer) {
   const games = entries.map(e => {
@@ -207,7 +207,7 @@ function metHtml(l) {
 function bookHtml(s, l) {
   return s.lives.map(life => {
     const b = lifeOf(life.st, s.seat, l);
-    return `<article class="cmp-life"><h4>${esc(b.title)}</h4>${b.open ? `<p>${esc(b.open)}</p>` : ""}${b.paras.map(p => `<h5>${esc(p.head)}</h5><p>${esc(p.text)}</p>`).join("")}<p class="cmp-end">${esc([b.end, b.curse].filter(Boolean).join(" "))}</p>${b.fates?.length ? `<p class="cmp-fates">${esc(b.fates.join(" "))}</p>` : ""}</article>`;
+    return `<article class="cmp-life"><h4>${esc(b.title)}</h4>${b.open ? `<p>${esc(b.open)}</p>` : ""}${b.paras.map(p => `<h5>${esc(p.head)}</h5><p>${esc(p.text)}</p>`).join("")}<p class="cmp-end">${esc([b.end, b.curse].filter(Boolean).join(" "))}</p>${b.fates?.length || b.sameLaw ? `<p class="cmp-fates">${esc([...(b.fates ?? []), b.sameLaw].filter(Boolean).join(" "))}</p>` : ""}</article>`;
   }).join("");
 }
 function paint() {
@@ -217,6 +217,7 @@ function paint() {
       <button type="button" class="x cmp-close" aria-label="${esc(tIn(l, "close"))}">×</button></header>
     <div class="cmp-body">
       <h2 id="cmpTitle">${esc(tIn(l, "togetherTitle"))}</h2>
+      ${!model.entries && hooks.canGoOn?.() ? `<p class="cmp-offer">${esc(tIn(l, "goOnAbout"))} <button type="button" data-act="goOn">${esc(tIn(l, "goOn"))}</button></p>` : ""}
       ${model.offer ? `<p class="cmp-offer">${esc(tIn(l, "cmpPlayAbout"))} <button type="button" data-act="play">${esc(tIn(l, "cmpPlaySeed"))}</button></p>` : ""}
       <ul class="cmp-souls">${souls.map(s => {
         const last = s.lives.at(-1);
@@ -283,7 +284,8 @@ export function imageOf(l = lang) {
     drawRibbon(c, s, inner - 36, 26, pad + 36, y + 72);
     y += rowH;
   }
-  c.fillStyle = pal("lac"); c.font = `italic 400 20px ${serif}`;
+  // no italic Devanagari (Phase 20)
+  c.fillStyle = pal("lac"); c.font = `${l === "hi" ? "" : "italic "}400 20px ${serif}`;
   c.fillText(tIn(l, "cmpFoot"), pad, H - pad + 10);
   return cv;
 }
@@ -305,7 +307,7 @@ export function textOf(l = lang) {
   }
   for (const s of model.souls) for (const life of s.lives) {
     const b = lifeOf(life.st, s.seat, l);
-    out.push("", "", [b.title, b.open, ...b.paras.map(p => `${p.head}\n${p.text}`), [b.end, b.curse].filter(Boolean).join(" "), (b.fates ?? []).join(" ")].filter(Boolean).join("\n\n"));
+    out.push("", "", [b.title, b.open, ...b.paras.map(p => `${p.head}\n${p.text}`), [b.end, b.curse].filter(Boolean).join(" "), [...(b.fates ?? []), b.sameLaw].filter(Boolean).join(" ")].filter(Boolean).join("\n\n"));
   }
   return out.join("\n") + "\n";
 }
@@ -337,6 +339,7 @@ leaf.addEventListener("click", e => {
   const act = e.target.closest("[data-act]")?.dataset.act;
   if (act === "save") save();
   if (act === "play") { closeCompare(); hooks.onPlay?.(model.offer); }
+  if (act === "goOn") { closeCompare(); hooks.onGoOn?.(); }
   if (act === "copy") copy();
 });
 // the books' tabs (a phone shows one book at a time): the arrow keys, Home and End move between them

@@ -7,6 +7,8 @@ export const together = state => state?.rules?.mode === "together";
 // How long a game played together lasts (Phase 19, 11 Nov): "free", until every soul is let go, born again in its seat
 // as often as it takes; or "one", one life each, the game over when every seat's life has ended, and a soul that would be
 // born again carries its saṃskāra into the next game (Be born again). Together with no length is "free".
-export const oneLife = state => together(state) && state.rules.length === "one";
+// Since Phase 20 one life each is the default, and a table that has played it may go on together (goOn in turn.js): the
+// turn it went on at is kept in the rules (rules.on), so a game played again from its inputs goes on at the same turn.
+export const oneLife = state => together(state) && state.rules.length === "one" && !(state.rules.on != null && (state.turns ?? 0) >= state.rules.on);
 // Whether seat i's life was let go: the race's winner, or a seat freed in a game played together
 export const liberated = (state, i) => state?.winner === i || !!state?.players?.[i]?.free;

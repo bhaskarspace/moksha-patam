@@ -16,6 +16,13 @@ export const ashramaOf = n => ashramaIn(lang, n);
 export const sqNumIn = (l, n) => { const top = isCloth() && legendOf(n)?.top; return top ? tIn(l, "topSq", { n: top }) : numIn(l, n); };
 export const sqNum = n => sqNumIn(lang, n);
 
+// The name an old cloth writes in square n (Phase 20): its short name where the full one is long, the full name staying
+// on the card, in the label's title and in what a screen reader says (content/legends.json "short")
+function squareShort(n) {
+  const g = legendOf(n);
+  return g?.short ? L(g.short.en, g.short.hi) : squareName(n);
+}
+
 // The board's name for square n in the current language.
 export function squareName(n) {
   if (isCloth()) { const g = legendOf(n); return g ? L(g.en, g.hi) : ""; }
@@ -34,7 +41,7 @@ export const vignette = n => !isCloth() && n !== GOAL && !!document.getElementBy
 function labelHtml(n) {
   const numEl = `<span class="n">${sqNum(n)}</span>`;
   // an old cloth writes every square's legend in it, as the charts do (Phase 18), and marks a footprint
-  if (isCloth()) return numEl + (BOARD.rules.footprints?.[n] != null ? `<span class="foot" aria-hidden="true">👣</span>` : "") + `<span class="nm">${esc(squareName(n))}</span>`;
+  if (isCloth()) return numEl + (BOARD.rules.footprints?.[n] != null ? `<span class="foot" aria-hidden="true">👣</span>` : "") + `<span class="nm${[...squareShort(n)].length > 11 ? " long" : ""}">${esc(squareShort(n))}</span>`;
   const vg = vignette(n);
   if (n === GOAL) return numEl + `<span class="om">ॐ</span><span class="dv">${t("moksha")}</span>`;
   if (HEAVEN[n]) return numEl + (vg ? "" : `<span class="ic">${art(`sq-${n}`, HEAVEN[n].ic)}</span>`) + `<span class="dv">${L(HEAVEN[n].en, HEAVEN[n].hi)}</span>`;
@@ -131,6 +138,9 @@ export function buildCells() {
   const board = $("board");
   board.style.setProperty("--cols", COLS);
   board.style.setProperty("--rows", ROWS);
+  // the board's width for its height (Phase 20): the grid and, over it, the superstructure's 0.9 of a row, so a desktop
+  // page sizes the column to fill the screen's height on any board (styles.css .board-col)
+  board.closest(".board-col")?.style.setProperty("--ar", (COLS / (ROWS + ($("vimana")?.hidden === false ? 0.9 : 0))).toFixed(4));
   for (let r = ROWS - 1; r >= 0; r--) {
     for (let c = 0; c < COLS; c++) {
       const n = LAYOUT.cell[`${c},${r}`];
@@ -148,6 +158,10 @@ export function buildCells() {
       const kind = n === GOAL ? " heaven goal" : heaven ? " heaven" : SNAKES[n] ? " vice" : LADDERS[n] ? " virtue" : "";
       lab.className = "lab" + kind + (light && !heaven ? " li" : "");
       lab.innerHTML = labelHtml(n);
+      // the 84's five unsurpassed heavens (Phase 20): a vimāna crown at the top right of each, clear of the number and
+      // inside the head, as the Jaina charts top those cells. In the label, so it is above the ladders' canvas; ornament,
+      // so plain mode drops it (styles.css)
+      if (BOARD.crowns?.includes(n)) lab.insertAdjacentHTML("beforeend", `<svg class="crown" viewBox="2 0 16 9.6" aria-hidden="true"><path class="dome" d="M3,9 L3,7 Q3,2.6 10,2 Q17,2.6 17,7 L17,9 Z"/><path class="door" d="M8.2,9 L8.2,7.4 Q10,5.4 11.8,7.4 L11.8,9 Z"/><circle class="finial" cx="10" cy="1.1" r="1"/></svg>`);
       const s = SNAKES[n], l = LADDERS[n];
       lab.title = s ? `${squareName(n)} (${s.skt}) → ${sqNum(s.to)}` : l ? `${squareName(n)} (${l.skt}) → ${sqNum(l.to)}` : squareName(n);
       // every square opens its card; one square at a time takes Tab, and the arrow keys move between them

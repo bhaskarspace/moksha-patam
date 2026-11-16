@@ -22,8 +22,9 @@ export const defaultSetup = () => {
   return {
     count: 2,
     rows: [{ name: self?.name || "", type: "human", gender: self?.gender || "" }, { name: "", type: "cpu", gender: "" }, { name: "", type: "cpu", gender: "" }, { name: "", type: "cpu", gender: "" }],
-    // me and a computer, played together (Phase 19: the default for any table of two or more seats)
-    rules: { six: true, mode: "together", length: "free" },
+    // me and a computer, played together (Phase 19: the default for any table of two or more seats), one life each
+    // (Phase 20), which may go on together at its end
+    rules: { six: true, mode: "together", length: "one" },
   };
 };
 

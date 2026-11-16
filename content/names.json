@@ -33,7 +33,21 @@
     {"en":["Dhaumya"],"hi":["धौम्य"]},
     {"en":["Sanjaya","Sañjaya"],"hi":["संजय"]},
     {"en":["Shandilya","Śāṇḍilya"],"hi":["शांडिल्य"]},
-    {"en":["Satyavacas"],"hi":["सत्यवचा"]}
+    {"en":["Satyavacas"],"hi":["सत्यवचा"]},
+    {"en":["Vamadeva","Vāmadeva"],"hi":["वामदेव"]},
+    {"en":["Ashtavakra","Aṣṭāvakra"],"hi":["अष्टावक्र"]},
+    {"en":["Krishna","Kṛṣṇa"],"hi":["कृष्ण"]},
+    {"en":["Yashoda","Yaśodā"],"hi":["यशोदा"]},
+    {"en":["Kumbhakarna","Kumbhakarṇa"],"hi":["कुंभकर्ण"]},
+    {"en":["Kaca","Kacha"],"hi":["कच"]},
+    {"en":["Yudhishthira","Yudhiṣṭhira"],"hi":["युधिष्ठिर"]},
+    {"en":["Savitri","Sāvitrī"],"hi":["सावित्री"]},
+    {"en":["Jajali","Jājali"],"hi":["जाजलि"]},
+    {"en":["Jaratkaru","Jaratkāru"],"hi":["जरत्कारु"]},
+    {"en":["Dasharatha","Daśaratha"],"hi":["दशरथ"]},
+    {"en":["Draupadi","Draupadī"],"hi":["द्रौपदी"]},
+    {"en":["Nahusha","Nahuṣa"],"hi":["नहुष"]},
+    {"en":["Gandhari","Gāndhārī"],"hi":["गांधारी"]}
   ],
   "gods": [
     {"en":["Yama"],"hi":["यम","यमराज"]},
@@ -69,7 +83,9 @@
     {"en":["Brahma Sutra","Brahma Sūtra"],"hi":["ब्रह्मसूत्र"]},
     {"en":["Gayatri","Gāyatrī"],"hi":["गायत्री"]},
     {"en":["Vedanta","Vedānta"],"hi":["वेदांत"]},
-    {"en":["Gṛhya Sūtras"],"hi":["गृह्यसूत्र"]}
+    {"en":["Gṛhya Sūtras"],"hi":["गृह्यसूत्र"]},
+    {"en":["Panchatantra","Pañcatantra"],"hi":["पंचतंत्र"]},
+    {"en":["Samnyasa Upanishads","Saṃnyāsa Upaniṣads"],"hi":["संन्यास उपनिषदों","संन्यास उपनिषद्"]}
   ],
   "fable": [
     {"en":["jackal"],"hi":["सियार"]},

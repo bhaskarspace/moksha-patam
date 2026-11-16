@@ -17,7 +17,10 @@ export const num = n => numIn(lang, n);
 // a citation keeps its Latin digits in Hindi, on every board: a reference is given as it is cited (Bhaskar, 3 Nov)
 export const srcIn = (l, s) => (l === "hi" ? SRC_HI.reduce((a, [en, hi]) => a.replace(en, hi), s) : s);
 export const srcText = s => srcIn(lang, s);
-export const tIn = (l, k, v = {}) => (STR[l][k] ?? STR.en[k]).replace(/\{(\w+)\}/g, (m, x, at, all) => named(v[x] ?? "", l, all.slice(0, at), all.slice(at + m.length))).replace(/\d/g, d => numIn(l, d));
+// a reference inside a line (Nyāyasūtra 1.1.5, गीता (3.27), सांख्यकारिका 59) keeps its Latin digits too (Bhaskar, 12 Nov);
+// every other digit in a Hindi line is said in Devanagari
+export const CITE = /(\d+(?:[.–]\d+)+|(?:सांख्यकारिका|मंत्र) \d+)|\d/g;
+export const tIn = (l, k, v = {}) => (STR[l][k] ?? STR.en[k]).replace(/\{(\w+)\}/g, (m, x, at, all) => named(v[x] ?? "", l, all.slice(0, at), all.slice(at + m.length))).replace(CITE, (m, c) => c ?? numIn(l, m));
 export const t = (k, v = {}) => tIn(lang, k, v);
 
 // ---- An animal's life is named by its kind and its household, never by a person's name (reviewed 11 Nov) ----
@@ -74,7 +77,8 @@ export const fill = (text, { name = "", gender = "m", age = "" } = {}) =>
 // fill() would read {friend:लेता|लेती} as the player's choice.
 export const CAST_ROLES = ["mother", "father", "teacher", "friend", "spouse", "child", "rival", "who"];
 const CAST_AGREE = new RegExp(`\\{(${CAST_ROLES.join("|")}):([^{}|]*)\\|([^{}|]*)\\}`, "g");
-const CAST_REF = new RegExp(`\\{(${CAST_ROLES.join("|")})(?:=((?:[^{}]|\\{name\\})*))?\\}`, "g");
+// the words may hold {name} and the player's own choice, {his|her|their} (Phase 20), which fill() makes after
+const CAST_REF = new RegExp(`\\{(${CAST_ROLES.join("|")})(?:=((?:[^{}]|\\{name\\}|\\{[^{}|=:]*(?:\\|[^{}|]*){1,2}\\})*))?\\}`, "g");
 export const castFill = (text, people = {}) =>
   text.replace(CAST_AGREE, (_, r, m, f) => (people[r]?.gender === "f" ? f : m)).replace(CAST_REF, (_, r, words = "") => people[r]?.name ?? words);
 

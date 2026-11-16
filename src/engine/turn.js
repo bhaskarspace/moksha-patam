@@ -38,7 +38,7 @@ export function rollDice(rng, n) {
 }
 // The current player's next throw of n dice, as the page and tools/sim.mjs both throw it (Phase 19): its own sequence,
 // keyed by the seed, the lane, the life and the throws it has made (src/engine/throws.js)
-export const throwDice = (state, n) => drawThrow(state, n).dice;
+export const throwDice = (state, n) => drawThrow(state, n, { kind: cloth.throwKind(state) }).dice;
 // ---- Roll-dependent squares (REDESIGN.md Phase 10) ----
 // A story square below the endgame may tell one of two moments, by how fast the player arrived: the face of the
 // die moved by, never the distance. A slow arrival noticed what was there; a fast one went straight past it, or it
@@ -73,7 +73,10 @@ export const doorOf = (state, i) => { const law = lawOf(state, i); return { boun
 export function movesFor(state, dice) {
   // an old cloth (Phase 18): the throw is the move
   if (cloth.isCloth()) return cloth.movesFor(state, dice);
-  const p = state.players[state.turn], out = [...new Set(dice)].filter(v => p.pos + v <= TOP);
+  // a throw that counts nothing (seven cowries face down, Phase 20) moves nothing: a year with no move, and no die of 0 is
+  // ever a move beside another, so a 0 never stands for sitting or a law's act. A die never shows 0.
+  if (dice.length && dice.every(d => d === 0)) return [0];
+  const p = state.players[state.turn], out = [...new Set(dice)].filter(v => v && p.pos + v <= TOP);
   if (dice.length > 1 && canSit(p)) out.push(0);
   return lawOf(state).movesFor(state, dice, out);
 }
@@ -220,7 +223,15 @@ export function planTurn(state, v, dice = [v]) {
   }
   const spare = [...dice];
   if (v) spare.splice(spare.indexOf(v), 1);
-  if (dice.length > 1) pre.push(entry(v ? "lDice" : "lDiceSit", { a: dice[0], b: dice[1], v }, "", idx));
+  // nothing thrown (Phase 20): every shell face down; the year passes on the square, and it is no sitting and no act
+  const nil = !v && dice.length > 0 && dice.every(d => d === 0);
+  if (dice.length > 1 && !nil) pre.push(entry(v ? "lDice" : "lDiceSit", { a: dice[0], b: dice[1], v }, "", idx));
+  if (nil) {
+    const years = turnYears(p.years ?? 0, { sit: true }), died = years > SPAN;
+    after.push(entry("lNil", { pos: from, sq: from }, "", idx));
+    if (died) end.push(entry(from === GOAL ? "lDiedDoor" : "lDied", { pos: from, age: years, sq: from }, "death", idx));
+    return resolve(state, { idx, v, dice, spare: [], sit: true, nil: true, from, path, target: from, final: from, jump: null, win: false, died, again: false, told: [null], exam: null, pre, after, end }, years);
+  }
   if (!v) {
     // a year sat out: no walk, no landing, and the year still passes. At a door that has refused the life it is a year
     // of the examination (REDESIGN.md Phase 14): one question, and the door opens when nothing is owed. A life whose
@@ -538,6 +549,40 @@ function passTurn(state, plan) {
   plan.end.forEach(e => addLog(state, e));
 }
 
+// Go on together (Phase 20): a table that has played one life each, every life ended, plays on as if it had been played
+// until every soul is free. Each seat whose life its law would have had born again at the table (Śiva's snake where the
+// law is reborn by it; a death, where the law has a next life) is born again now, as endTurn would have, in turn order: the
+// same seed, lanes and sequences, the names drawn as any rebirth's. A soul let go stays free, and Cārvāka's end stays the
+// end. The turn it went on at is kept in rules.on, so replay (src/engine/compare.js) goes on at the same turn. Returns
+// whether it went on; the game is over again at once only if no seat had a next life.
+// A table with people in it goes on only for a person's soul: one that would play on for computers alone would be over
+// at once, as such a game is (passTurn).
+export const canGoOn = state => together(state) && state.rules.length === "one" && !!state.over && state.rules.on == null && onward(state);
+const onward = state => { const ws = wouldGoOn(state); return state.players.some(q => q.type === "human") ? ws.some(i => state.players[i].type === "human") : ws.length > 0; };
+const wouldGoOn = state => state.players.map((p, i) => i).filter(i => {
+  const p = state.players[i], law = lawOf(state, i);
+  if (p.free || !gone(p)) return false;
+  return p.fell ? law.siva(state, i) === "reborn" : !!(law.rebirth && p.dead);
+});
+export function goOn(state) {
+  if (!together(state) || state.rules.length !== "one" || !state.over) return false;
+  if (state.rules.on != null && state.rules.on !== (state.turns ?? 0)) return false;
+  const seats = wouldGoOn(state);
+  if (!onward(state)) return false;
+  state.rules = { ...state.rules, on: state.turns ?? 0 };
+  addLog(state, entry("lGoOn", {}, "", null));
+  for (const i of seats) {
+    const p = state.players[i], fell = !!p.fell, was = p.rebirths ?? 0;
+    bornAgain(state, i);
+    if ((p.rebirths ?? 0) > was) addLog(state, p.animal ? entry("lBornAnimal", { animal: p.animal.kind, pos: 1, sq: 1 }, "", i) : entry(fell ? "lReborn" : p.past.at(-1)?.carry ? "lBornHuman" : "lRebornDied", { pos: 1, sq: 1 }, "", i));
+  }
+  const first = state.players.findIndex(q => !gone(q));
+  if (first >= 0) state.turn = first;
+  const alive = state.players.filter(q => !gone(q)), humans = state.players.some(q => q.type === "human");
+  state.over = !alive.length || (humans && !alive.some(q => q.type === "human"));
+  return true;
+}
+
 // Śiva's snake closes player i's life and the same soul is born again in its seat (Phase 17), as Be born again would
 // begin it (src/engine/samskara.js soulOf, bornOf): the guṇas half carried, the heaviest unmet debt as prārabdha, the
 // dream, the cast in new roles. The closed life is kept in p.past, whole, with the cast it had, for its book. The
@@ -568,11 +613,21 @@ function bornAgain(state, i) {
 // The name of a life born again in seat i: never one any life in this game has had (at the table now, in a seat's lives
 // before, or as the table sat down; compared as names are, nameKey), nor one its soul's cast carries. Drawn from the
 // players' names as before (the same draw, kept whenever its name is new to the game); when a long game has used every one of them, from the names kept for that (players.again in
-// content/names.json), then from the cast's, passing over any name a living life's cast now has, so no book being
-// written loses a member's name. Only if all are spent is a name used again.
+// content/names.json), then from the cast's. Never a name any other living life's cast now has (Phase 20): the cast
+// passes over a name at the table, so such a name would rename a member some book, finished or not, has named, and the book
+// beside the board is never rewritten. Only if all are spent is a name used again.
 function nameAgain(state, i, rng, soul) {
   const lived = [...state.players.flatMap(q => [...(q.past ?? []), q]), ...(state.table ?? [])];
   const keys = new Set([...lived.flatMap(q => [q.name, q.alias?.en, q.alias?.hi]), ...soul.cast.flatMap(c => [c.en, c.hi])].filter(Boolean).map(nameKey));
+  const living = new Set();
+  if (CAST.names) {
+    state.players.forEach((q, j) => {
+      // a life that has ended is still read, so its cast keeps its names too
+      if (j === i) return;
+      for (const m of Object.values(castOf(state, j, q.prior?.lives ?? 0) ?? {})) [m.en, m.hi].filter(Boolean).forEach(x => living.add(nameKey(x)));
+    });
+  }
+  living.forEach(k => keys.add(k));
   const free = ([en, hi]) => !keys.has(nameKey(en)) && !keys.has(nameKey(hi));
   // the draw before this rule, which most games keep: only a name used before is drawn again
   const was = drawName(rng, "", new Set([...state.players.flatMap(q => [q.name.trim(), q.alias?.en]), ...soul.cast.map(c => c.en)].filter(Boolean)));
@@ -582,10 +637,10 @@ function nameAgain(state, i, rng, soul) {
   let pool = players.filter(x => free([x.en, x.hi]));
   if (!pool.length) pool = of(PLAYER_NAMES.again).filter(x => free([x.en, x.hi]));
   if (!pool.length && CAST.names) {
-    const casts = state.players.map((q, j) => (gone(q) ? null : castOf(state, j, q.prior?.lives ?? 0)));
-    for (const c of casts) for (const m of Object.values(c ?? {})) [m.en, m.hi].filter(Boolean).forEach(x => keys.add(nameKey(x)));
     pool = ["m", "f", "either"].flatMap(gd => (CAST.names[gd] ?? []).map(([en, hi]) => ({ en, hi, gender: gd === "either" ? "n" : gd }))).filter(x => free([x.en, x.hi]));
   }
+  // all spent: a name used before, but still none a living book's cast has
+  if (!pool.length) pool = players.filter(x => !living.has(nameKey(x.en)) && !living.has(nameKey(x.hi)));
   if (!pool.length) pool = players;
   return pool[Math.floor(next(rng) * pool.length)];
 }

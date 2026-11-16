@@ -90,8 +90,9 @@ export function cloth(x, y, w, h, { fill = "vermilion", stripe = "yellow", strip
 }
 
 // ---- The sheet ----
-export function symbol(n, parts) {
-  return `<symbol id="sq-${n}" class="vg" viewBox="0 0 ${SIZE} ${SIZE}"><g stroke="${hex("black")}" stroke-width="${LINE}" stroke-linejoin="round" stroke-linecap="round">${parts.join("")}</g></symbol>`;
+// id: sq-N for the 110's squares, b72-N and b84-N for the old cloths' (art/cloth.mjs)
+export function symbol(n, parts, id = `sq-${n}`) {
+  return `<symbol id="${id}" class="vg" viewBox="0 0 ${SIZE} ${SIZE}"><g stroke="${hex("black")}" stroke-width="${LINE}" stroke-linejoin="round" stroke-linecap="round">${parts.join("")}</g></symbol>`;
 }
 
 

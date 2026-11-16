@@ -15,6 +15,7 @@
 // tells one: with the curses off, every account untagged above, karma or door must be the same as main's.
 // Phase 15 adds "witness": a game in which the ego threw on someone's choice (REDESIGN.md Phase 15), or an account that
 // joins a cast return by what they witnessed. Every account untagged witness must be the same as main's.
+// Phase 20 tags school: a member of the cast seen holding a darśana (content/schools.json).
 // Phase 16 adds "death": a game in which the death tier came (it kills now, and before it sent the life back), or someone
 // sat at the door (penance is two years a weight, and a weight-three debt no penance pays). Every account untagged death
 // must be the same as main's. Its second step adds "mirror": an account whose mirror (src/engine/mirror.js) asks first
@@ -33,10 +34,13 @@
 // through its rebirths until it is let go, every account of it tagged "together", and one that tells a meeting with the
 // other seat "meet". A game of one seat is never played together. Without the flag every account must be main's.
 // Its follow-up (11 Nov) names an animal's life by its kind and household, drawing it no name: every game holding one is
-// tagged "animalname", and every account untagged animalname must be main's.
+// tagged "animalname", and every account untagged animalname must be main's. Phase 20 tags "reborn" every account of a
+// game in which a seat was born again: names are no longer handed back, so every account untagged reborn must be main's.
 // Phase 19 step 3 keys every throw by the seed, the lane, the life and the throw (src/engine/throws.js): "dice" marks an
 // account whose game the per-throw dice played otherwise than the old shared stream did. --dice=stream plays the old
 // stream, and then every account must be main's, byte for byte.
+// Phase 20 step 1 rewrites four moments (22, 29, 31, 69): "text" marks an account that tells one of them.
+const TEXT_P20 = /(?:his|her|their) father's chest|(?:His|Her|Their) daughter breaks|[Ff]or a week (?:his|her|their) daughter|and (?:his|her|their) son has a son|though (?:his|her|their) mother asks|(?:His|Her|Their) father is dying|meant to stay shut|one small thing first|watches one more|among three children|looking at the pictures of it|बंद ही रहना था|छोटी-सी चीज़|एक और (?:देखता|देखती)|तस्वीरें एक के बाद एक|साल भर हर सुबह उसे|चीरकर (?:देखता|देखती) है|ख़रीद (?:लेता|लेती) है|से उधार (?:लेता|लेती) है|शर्त (?:लगाता|लगाती) है|घर सौंप (?:देता|देती) है|बात बता (?:देता|देती) है|संतरा छीलते (?:देखता|देखती) है|अपना ही हाथ (?:देखता|देखती) है|मोतियाबिंद हटाया जाता है|'मैं' (?:कहता|कहती) है|बच्चों में (?:बाँटता|बाँटती) है/;
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
@@ -90,6 +94,9 @@ const playOne = (players, seed, rules) => {
   // an animal's life is named by its kind and household, and no name is drawn for it (reviewed 11 Nov): a game that
   // holds one is tagged "animalname", for its own account, a meeting with it, and a human name after it the draw shifts
   s.animalname = s.players.some(p => [...(p.past ?? []), p].some(q => q.animal));
+  // Phase 20: the cast passes over every name the game has had, and a life born again takes none a living cast has, so
+  // no member a book has named is renamed: every account of a game in which a seat was born again is tagged "reborn"
+  s.reborn = s.players.some(p => p.past?.length);
   return s;
 };
 const hash = t => crypto.createHash("sha256").update(t).digest("hex");
@@ -101,13 +108,13 @@ const say = (key, s, i, l) => {
   if (!past.length) return sayOne(key, s, i, l);
   [...past.map((_, k) => pastOf(s, i, k)), s].forEach((v, k) => {
     if (k) v = { ...v, siva: true, together: s.together, dice: s.dice };
-    v = { ...v, animalname: s.animalname };
+    v = { ...v, animalname: s.animalname, reborn: s.reborn };
     sayOne(k ? `${key} siva${k}` : key, v, i, l);
   });
 };
 const sayOne = (key, s, i, l) => {
   const text = lifeText(s, i, l), life = lifeOf(s, i, l);
-  out.push(flags.full ? `## ${key}\n${text}` : `${key} ${hash(text)}${flags.tag ? (s.above ? " above" : "") + (s.karma ? " karma" : "") + (s.door ? " door" : "") + (s.curse ? " curse" : "") + (s.witness || life.witnessed ? " witness" : "") + (s.death ? " death" : "") + (mirrorOf?.(s, i)[0]?.id === "rebel" ? " mirror" : "") + (s.rebirth ? " rebirth" : "") + (s.animal ? " animal" : "") + (s.siva ? " siva" : "") + (s.together ? " together" : "") + (s.players[i].met?.length ? " meet" : "") + (s.dice ? " dice" : "") + (s.animalname ? " animalname" : "") + (l === "hi" && /बरस की उम्र में|घर [०-९\d]/.test(text) ? " wording" : "") : ""}`);
+  out.push(flags.full ? `## ${key}\n${text}` : `${key} ${hash(text)}${flags.tag ? (s.above ? " above" : "") + (s.karma ? " karma" : "") + (s.door ? " door" : "") + (s.curse ? " curse" : "") + (s.witness || life.witnessed ? " witness" : "") + (life.schooled || life.sameLaw ? " school" : "") + (s.death ? " death" : "") + (mirrorOf?.(s, i)[0]?.id === "rebel" ? " mirror" : "") + (s.rebirth ? " rebirth" : "") + (s.animal ? " animal" : "") + (s.siva ? " siva" : "") + (s.together ? " together" : "") + (s.players[i].met?.length ? " meet" : "") + (s.dice ? " dice" : "") + (s.animalname ? " animalname" : "") + (s.reborn ? " reborn" : "") + (l === "hi" && /बरस की उम्र में|घर [०-९\d]/.test(text) ? " wording" : "") + (TEXT_P20.test(text) ? " text" : "") : ""}`);
   if (l === "en" && life.fates) {
     tally.lives++;
     tally.fates += life.fates.length;

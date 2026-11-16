@@ -84,7 +84,10 @@ test("together: lives that cross are kept in both books, once a square in a life
     if (i >= 0) for (const l of ["en", "hi"]) {
       const life = lifeOf(st, i, l), text = life.paras.map(x => x.text).join(" ");
       const m = s.players[i].met[0];
-      assert.ok(text.includes(m.with[l]), `seed ${seed} ${l}: the account names who was met`);
+      // an animal is called by its kind (Phase 19): lower case inside an English sentence ("the tortoise in Kabīr's
+      // house"), and in Hindi oblique before a postposition ("कबीर के घर के कछुए का")
+      const w = m.with[l], forms = [w, w.charAt(0).toLowerCase() + w.slice(1), w.replace(/ का /g, " के ").replace(/आ$/, "ए").replace(/ा$/, "े")];
+      assert.ok(forms.some(f => text.includes(f)), `seed ${seed} ${l}: the account names who was met`);
     }
   }
   assert.ok(met > 0);

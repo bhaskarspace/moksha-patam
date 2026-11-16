@@ -8,13 +8,13 @@
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { GOAL, TOP, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, FALL, STR, SRC_HI, JOINS, NUM_HI, READINGS, CODEX, REFS, ENTRY_IDS, srcOfSquare, sourceOf, leadOf, squareOf, SITUATIONS, CAST, CAST_WORDS, BRIDGES, BRIDGE_SAME, whoOf, bridgeOf, BOARDS, DOOR, CURSES, MIRROR, LEGENDS } from "../src/content.js";
+import { GOAL, TOP, ASHRAMAS, LADDERS, SNAKES, SQ, HEAVEN, FALL, STR, SRC_HI, JOINS, NUM_HI, READINGS, CODEX, REFS, ENTRY_IDS, srcOfSquare, sourceOf, leadOf, squareOf, SITUATIONS, CAST, CAST_WORDS, BRIDGES, BRIDGE_SAME, whoOf, bridgeOf, BOARDS, DOOR, CURSES, MIRROR, LEGENDS, SCHOOLS } from "../src/content.js";
 import NAMES from "../content/names.json" with { type: "json" };
 import { ENDGAME, createGame, playTurn } from "../src/engine/turn.js";
 import { destOf, worthOf } from "../src/engine/qbn.js";
 import { ageOf, stageOfYears, yearsAlong } from "../src/engine/self.js";
 import { castFill, CAST_ROLES } from "../src/i18n.js";
-import { MEMBERS, tokenOf, castArcs } from "../src/engine/cast.js";
+import { MEMBERS, tokenOf, castArcs, SCHOOL_IDS, SCHOOL_ROLES } from "../src/engine/cast.js";
 import { pastOf } from "../src/engine/samskara.js";
 
 // Names compare without diacritics or case, so "Śaṅkara", "Sankara" and "sankara" are one name.
@@ -207,9 +207,54 @@ export function lintReport() {
       if (!g.iast) err(w, "no word from the chart (iast)");
       if (!/App\. D\d, (top )?sq\. \d+/.test(g.src ?? "")) err(w, `source "${g.src}" does not name the appendix and square`);
       if (g.scholar) { bilingual(`${w} scholar`, g.scholar); if (!g.scholar.src) err(w, "a scholar note needs its source"); }
+      // Phase 20, the square's short name: what the square shows is at most 14 code points in each language, the full
+      // name staying on the card; a short name is kept only where it differs from the full one, and in both languages
+      const SHORT = 14, cp = x => [...(x ?? "")].length;
+      if (g.short) {
+        bilingual(`${w} short`, g.short);
+        if (g.short.en === g.en && g.short.hi === g.hi) err(w, "a short name the same as the full one: drop it");
+        for (const l of ["en", "hi"]) if (cp(g.short[l]) > SHORT) err(w, `short name "${g.short[l]}" is ${cp(g.short[l])} code points, over ${SHORT}`);
+      } else for (const l of ["en", "hi"]) if (cp(g[l]) > SHORT) err(w, `"${g[l]}" is ${cp(g[l])} code points, over ${SHORT}, and has no short name for the square`);
       for (const t of [g.en, g.hi, g.gloss?.en, g.gloss?.hi]) if (typeof t === "string" && birthRanking(t).length) warn(w, `ranks a birth: "${birthRanking(t).join('", "')}"`);
     }
   }
+  // Phase 20 step 3, the schools as cast (content/schools.json): a school drawn, with its three roles, every role holding
+  // three or more; each line in both languages, the Hindi in the familiar and the honorific, said of the holder by
+  // {who} and agreeing through {who:m|f}; the school never named outside the scholar note; the figure in the Codex and
+  // never a name in the cast or among the players
+  const roleCount = {};
+  for (const id of SCHOOL_IDS) {
+    const roles = SCHOOL_ROLES[id];
+    if (new Set(roles ?? []).size !== 3 || roles.some(w => !MEMBERS.includes(w))) err(`school ${id}`, "does not have three roles of the cast");
+    for (const w of roles ?? []) roleCount[w] = (roleCount[w] ?? 0) + 1;
+  }
+  for (const w of MEMBERS) if ((roleCount[w] ?? 0) < 3) err(`role ${w}`, `holds ${roleCount[w] ?? 0} schools, not three or more`);
+  const nameKeys = new Set([...Object.values(NAMES.cast ?? {}), ...Object.values(NAMES.players ?? {})].flat().flat().filter(x => typeof x === "string").map(x => x.toLowerCase()));
+  const SCHOOL_WORDS = /mīmāṃsā|mimamsa|cārvāka|carvaka|nyāya|nyaya|sāṃkhya|samkhya|advaita|yoga|jain|bhakti|buddh|मीमांसा|चार्वाक|न्याय|सांख्य|अद्वैत|योग|जैन|भक्ति|बौद्ध/i;
+  for (const [id, sc] of Object.entries(SCHOOLS)) {
+    const w = `school ${id}`;
+    if (!SCHOOL_IDS.includes(id)) err(w, "is not one of the nine drawn");
+    const f = CODEX.figures?.[sc.figure];
+    if (!f) err(w, `figure ${sc.figure} is not in the Codex`);
+    else if ([f.name.en, f.name.hi].some(x => nameKeys.has(x.toLowerCase()))) err(w, `figure ${sc.figure} is a name in names.json`);
+    for (const k of ["hold", "back", "fate"]) {
+      const t = sc[k];
+      bilingual(`${w} ${k}`, t);
+      if (!t?.hiHon?.trim() && SCHOOL_ROLES[id]?.some(r => ["teacher", "mother", "father"].includes(r))) err(`${w} ${k}`, "no honorific Hindi (hiHon) for the teacher or a parent");
+      for (const l of ["en", "hi", "hiHon"]) {
+        if (!t?.[l]) continue;
+        if (SCHOOL_WORDS.test(t[l])) err(`${w} ${k}`, `names a school in ${l}`);
+        if (k === "back" && !t[l].includes("{who}")) err(`${w} ${k}`, `does not name the holder with {who} in ${l}`);
+      }
+    }
+    bilingual(`${w} scholar`, sc.scholar);
+    // the English names the holder; the Hindi opens on the school, with no verb to agree with them
+    if (sc.scholar?.en && !sc.scholar.en.includes("{who}")) err(`${w} scholar`, "does not name the holder with {who} in English");
+    if (sc.scholar?.hi && (/\{who/.test(sc.scholar.hi) || !sc.scholar.hi.startsWith("यह "))) err(`${w} scholar`, "the Hindi does not open on the school (यह …)");
+    // every pronoun and agreeing form for the holder is templated: no bare he/she in English
+    for (const k of ["hold", "back", "fate"]) if (sc[k]?.en && /\b(?:he|she|his|her|him|hers)\b/i.test(sc[k].en.replace(/\{[^{}]*\}/g, ""))) err(`${w} ${k}`, "has a pronoun not templated for the holder's gender");
+  }
+
   // Phase 14, the curses (content/curses.json): said of the player, in both languages, naming a thing and never a square,
   // tied to a family of late squares that exist; and closed both ways
   const curseIds = new Set();
@@ -235,7 +280,7 @@ export function lintReport() {
   // Phase 10C, the cast: a moment that names a member of the cast says which in `cast`, names only that one, in both
   // languages alike; a member whose gender is drawn agrees through {member:m|f} in Hindi; and the moment where a life
   // can meet a named member carries the recall the returns join reads back.
-  const refs = s => new Set([...s.matchAll(new RegExp(`\\{(${CAST_ROLES.join("|")})(?:=(?:[^{}]|\\{name\\})*)?\\}`, "g"))].map(x => x[1]));
+  const refs = s => new Set([...s.matchAll(new RegExp(`\\{(${CAST_ROLES.join("|")})(?:=(?:[^{}]|\\{name\\}|\\{[^{}|=:]*(?:\\|[^{}|]*){1,2}\\})*)?\\}`, "g"))].map(x => x[1]));
   const agrees = s => new Set([...s.matchAll(new RegExp(`\\{(${CAST_ROLES.join("|")}):[^{}|]*\\|[^{}|]*\\}`, "g"))].map(x => x[1]));
   const castText = (where, m) => {
     const used = new Set([...refs(m.en), ...refs(m.hi), ...agrees(m.en), ...agrees(m.hi)]);
@@ -268,6 +313,28 @@ export function lintReport() {
     // §2: the mirror attaches to the moment; the Phase 2 opener is the thing being replaced
     const mirrorEn = (m.mirror || q.mirror).en;
     if (/^In (the )?\p{Lu}/u.test(mirrorEn)) err(where, `the mirror opens "${mirrorEn.split(" ").slice(0, 3).join(" ")}…", the Phase 2 voice; open with a connective (docs/NARRATIVE.md §2)`);
+  };
+  // Phase 20: a situation's Hindi outcome is told in the present, like the English ("{name} is {age} and …"); its dream,
+  // recall, debt and witness lines stay past. Checked clause by clause after the age: the head of a clause (up to a कि,
+  // जो, जिस-, जब or जैसे, which open a clause told in its own time) may not end on a past or perfective verb; quoted
+  // speech keeps its own tense, and a participle (ठिठुरते हुए) or a subjunctive (सो सके) is not a past.
+  const PAST_HI = /(?:^|\s)(?:था|थी|थे|थीं|गया|गई|गए|गईं|लिया|ली|लिए|दिया|दी|दिए|किया|की|हुआ|हुई|हुए|चुका|चुकी|चुके|पाया|पाई|सका|सकी|पड़ा|पड़ी|पड़े|आया|आई|आए|उठा|उठी|बैठा|बैठी|निकला|निकली|रहा|रही|रहे|सुने|सुना|कहा|मारा|देखा|खाई)$/;
+  const plainHi = hi => hi.replace(/\{[a-z]+=([^{}]*)\}/g, "$1").replace(/\{[a-z]+:([^{}|]*)\|[^{}]*\}/g, "$1").replace(/\{([^{}|]*)\|[^{}]*\}/g, "$1");
+  // the first sentence is skipped only when it is the age ("{name} {age} बरस {का|की} है"): a moment that opens on its
+  // event ("उस शाम {name} …", 50's roll) is checked from its first word. "के लिए" is "for"; "सकता था" a might-have-been
+  const sentencesHi = hi => { const ss = plainHi(hi).replace(/“[^”]*”/g, "“…”").split("।"); return /\{age\} बरस/.test(hi.split("।")[0]) ? ss.slice(1) : ss; };
+  const pastHi = hi => sentencesHi(hi).flatMap(x => x.split(/[,;]/)).flatMap(c => c.split(/ कि | जो | जिस| जब | जैसे /)[0].split(/ और /)).map(c => c.replace(/[“”"’‘]/g, "").trim()).filter(c => c && PAST_HI.test(c) && !/ते हुए$|(?:के|अपने|उसके|उनके) लिए$|सक(?:ता|ती|ते) (?:था|थी|थे)$|नहीं \S+ रह(?:ा|ी|े)$/.test(c) && !/ (?:कब|कैसे|क्यों|कहाँ) /.test(` ${c} `));
+  // Phase 20's past-tense pass: a square's moments are told in the present too. Some say in the past on purpose what came
+  // before, and their event is present: the deed denied (11), the secret told (14), the teacher's word (23), the noes never
+  // said (62). Two look back on a whole life, in the English too: what was seen (103) and what was divided (106).
+  // A warning until the pass's last batch is in (TENSE_LATE); then an error, as an outcome's is.
+  const BACKSTORY = new Set([11, 14, 23, 62, 103, 106]);
+  // empty since the pass's fourth batch (Phase 20): every moment's Hindi past is an error
+  const TENSE_LATE = new Set([]);
+  const tense = (where, n, hi) => {
+    if (BACKSTORY.has(n)) return;
+    const past = pastHi(hi);
+    if (past.length) (TENSE_LATE.has(n) ? warn : err)(where, `the Hindi is told in the past, not the present: ${past.map(c => `"…${c.slice(-24)}"`).join(", ")}`);
   };
   for (let n = 1; n <= TOP; n++) {
     const q = squareOf(n), lead = leadOf(n);
@@ -316,6 +383,7 @@ export function lintReport() {
     if (!m.en?.trim() || !m.hi?.trim()) { err(where, `exists in ${m.en?.trim() ? "English" : "Hindi"} only`); continue; }
     moments.written++; band.written++;
     momentText(where, m, q);
+    tense(where, n, m.hi);
 
     // Phase 10: a square that tells one of two moments by the face it was arrived at. Only a story square below the
     // endgame: there one die is rolled and the face cannot be chosen. Snakes and ladders fire on every face, since
@@ -329,7 +397,7 @@ export function lintReport() {
     if (!(Number.isInteger(roll.faces) && roll.faces >= 1 && roll.faces <= 5)) err(rw, `faces ${roll.faces} is not 1 to 5: each moment needs a face`);
     const rm = roll.moment;
     if (!rm?.en?.trim() || !rm?.hi?.trim()) err(`${rw} moment`, "needs the other moment in both languages");
-    else momentText(`${rw} moment`, rm, q);
+    else { momentText(`${rw} moment`, rm, q); tense(`${rw} moment`, n, rm.hi); }
     if (roll.echo) { if (q.callsBack == null) err(`${rw} echo`, "has an echo but the square calls back to nothing"); join(`${rw} echo`, roll.echo); }
   }
 
@@ -391,7 +459,14 @@ export function lintReport() {
       if (!(Number.isInteger(o.cost) && o.cost >= 0 && o.cost <= 8)) err(ow, `cost ${o.cost} is not a whole number of years, 0 to 8`);
       if (!GUNAS.includes(o.guna)) err(ow, `guna "${o.guna}" is not s, r or t`);
       for (const [k, d] of Object.entries(o.aims || {})) if (!AIMS.includes(k) || typeof d !== "number") err(ow, `aims.${k} is not an aim with a number`);
-      if (o.outcome) { if (!o.outcome.en?.trim() || !o.outcome.hi?.trim()) err(`${ow} outcome`, "needs both languages"); else momentText(`${ow} outcome`, o.outcome, q); }
+      if (o.outcome) {
+        if (!o.outcome.en?.trim() || !o.outcome.hi?.trim()) err(`${ow} outcome`, "needs both languages");
+        else {
+          momentText(`${ow} outcome`, o.outcome, q);
+          const past = pastHi(o.outcome.hi);
+          if (past.length) err(`${ow} outcome`, `the Hindi is told in the past, not the present: ${past.map(c => `"…${c.slice(-24)}"`).join(", ")}`);
+        }
+      }
       else if (!q.moment) err(ow, "has no outcome, and the square has no moment of its own to tell");
       if (o.require) {
         // §2.5: a withheld option says why, or the player loses the thread
@@ -403,8 +478,12 @@ export function lintReport() {
       } else if (o.why) err(ow, "has a reason for being withheld, but no gate");
       // Phase 12: the seed a choice plants (src/engine/karma.js). One ledger: a debt is planted only by a choice that also
       // moves the player toward rajas or tamas and away from dharma, so what is coming and what they are becoming agree.
+      // Phase 20: and only by a wrong done to someone, said in `wrong`: a lie, of any guna, or a harm to another person.
+      // A self-regarding choice teaches by its outcome and its dream, and plants nothing; one that slides down a snake has
+      // had its consequence, unless it is also a lie or a harm (one consequence for one act).
       if (o.seed) {
         const sd = o.seed, sw = `${ow} seed`;
+        if (!["lie", "harm"].includes(sd.wrong)) err(sw, `wrong "${sd.wrong}" is not "lie" or "harm": a debt is planted only by a lie or by a harm to another`);
         if (!["r", "t"].includes(o.guna)) err(sw, `plants a debt on a choice whose guna is "${o.guna}", not r or t`);
         if ((o.aims?.dharma ?? 0) > 0) err(sw, "plants a debt on a choice that adds dharma");
         if (!(Number.isInteger(sd.fuse) && sd.fuse > 0)) err(sw, `fuse ${sd.fuse} is not a positive whole number of years`);
@@ -438,13 +517,12 @@ export function lintReport() {
         if (lo.cost > hi.cost) err(w, `the option worth least (${lo.id}) costs more years than the one worth most (${hi.id})`);
       }
     }
-    // Phase 15: an ego test names its lower option, the one the ego takes the life to, which plants a debt and is worth
-    // least; and says, in the moment's voice and in the account's, what the life meant and did instead
+    // Phase 15: an ego test names its lower option, the one the ego takes the life to, which is worth least (since
+    // Phase 20 it plants a debt only by the seed rule above, like any option); and says, in the moment's voice and in the account's, what the life meant and did instead
     if (sit.ego) {
       const ew = `${w} ego`, lower = opts.find(o => o.id === sit.ego.lower);
       if (!lower) err(ew, `lower "${sit.ego.lower}" is not an option here`);
       else {
-        if (!lower.seed) err(ew, `lower "${lower.id}" plants no debt: the ego pulls toward a debt`);
         if (opts.some(o => worthOf(o) < worthOf(lower))) err(ew, `lower "${lower.id}" is not the option worth least`);
       }
       bilingual(`${ew} card`, sit.ego.card);
@@ -554,6 +632,7 @@ export function lintReport() {
     for (const [i, s] of (r.schools || []).entries()) { bilingual(`readings.${n}.schools[${i}]`, s); if (!CODEX.schools[s.id]) err(`readings.${n}.schools[${i}]`, `unknown school "${s.id}"`); }
     for (const k of ["views", "beyond"]) for (const [i, s] of (r[k] || []).entries()) { bilingual(`readings.${n}.${k}[${i}]`, s); if (!CODEX.schools[s.id]) err(`readings.${n}.${k}[${i}]`, `unknown school "${s.id}"`); }
     for (const id of r.figures || []) if (!CODEX.figures[id]) err(`readings.${n}.figures`, `unknown person "${id}"`);
+    for (const id of r.texts || []) if (!CODEX.sources[id]) err(`readings.${n}.texts`, `unknown source "${id}"`);
     if (r.scholar) bilingual(`readings.${n}.scholar`, r.scholar);
     if (r.line2) bilingual(`readings.${n}.line2`, r.line2);
   }
@@ -579,6 +658,8 @@ export function lintReport() {
   // reachable: met on some square, or (people) through a school that is
   const reachable = new Set(Object.keys(REFS));
   for (const [id, e] of Object.entries(CODEX.figures)) if (e.school && reachable.has(e.school)) reachable.add(id);
+  // or (Phase 20) as the figure behind a school a member of the cast holds, in the scholar layer
+  for (const sc of Object.values(SCHOOLS)) reachable.add(sc.figure);
   for (const id of ENTRY_IDS) if (!reachable.has(id)) err(`codex.${id}`, "never appears on the board, so it can never be met");
 
   // the Basohli sprite sheet (CONTENT.md §7), when there is one: the seven palette colours from styles.css
@@ -595,7 +676,62 @@ export function lintReport() {
       if (line.includes("\uFFFD")) err(`content/${f}:${i + 1}`, "has a replacement character (U+FFFD): a character was lost in an encoding round trip");
       // a square in Hindi is a घर, or said by its number alone ("{pos} पर"); "खाना" is food (Bhaskar, 29 Oct)
       if (line.includes("खाना {")) err(`content/${f}:${i + 1}`, 'calls a square "खाना {…}": say "घर {…}" or "{…} पर"');
+      // Phase 20, warnings for a reader (Bhaskar, 12 Nov): खाना as a square in any other form, and the board as a बोर्ड
+      // (the cloth is a पट). खाना is also food, so only its square-like uses are flagged: before a number, after a
+      // word that counts or points at squares. चौखाना is the grid, and stays (Bhaskar, 12 Nov).
+      if (f !== "boards.json") {
+        const sq = line.match(SQUARE_KHANA);
+        if (sq) warn(`content/${f}:${i + 1}`, `may call a square "${sq[0].trim()}": a square is a घर`);
+        if (BOARD_WORD.test(line)) warn(`content/${f}:${i + 1}`, 'says "बोर्ड": the board is the पट');
+      }
     });
+  }
+
+  // Phase 20, a warning for a reader: the gesture names itself; the device does not (REDESIGN.md §5). No moment, outcome,
+  // prompt, option or echo names a device, an app or a brand, in either language. The mirrors and the scholar layer are
+  // not read: they are the texts, not the life.
+  const told = [];
+  const walkTold = (v, where, key = "") => {
+    if (typeof v === "string") { if (/^(moment|outcome|prompt|label|echo|recall|reckoning|debt|dream|holding|letgo|en|hi)$/.test(key)) told.push([where, v]); return; }
+    if (!v || typeof v !== "object") return;
+    for (const [k, x] of Object.entries(v)) if (!/^(mirror|src|scholar|schools|views|line2)$/.test(k)) walkTold(x, where, /^(en|hi)$/.test(k) ? key : k);
+  };
+  for (const [n, q] of Object.entries({ ...SQ, ...LADDERS, ...SNAKES })) walkTold({ moment: q.moment, roll: q.roll, echo: q.echo }, `square ${n}`);
+  for (const [n, sit] of Object.entries(SITUATIONS)) walkTold(sit, `situation ${n}`);
+  for (const [where, text] of told) {
+    const hit = text.match(DEVICES);
+    if (hit) warn(where, `names a device, an app or a brand ("${hit[0]}"): say the gesture`);
+  }
+
+  // A reference keeps its Latin digits in Hindi (Bhaskar, 12 Nov): every citation (a square's src, a snake's, the Hindi
+  // names of SRC_HI, a strings key ending Src), and every reference inside a Hindi line (३.२७, सांख्यकारिका ५९). A
+  // figure's dates are dates, and a square's number is said in Devanagari; neither is a reference.
+  const DEV_CITE = /[०-९]+(?:[.–][०-९]+)+|(?:सांख्यकारिका|मंत्र) [०-९]+/u;
+  const srcs = [...Object.entries({ ...SQ, ...LADDERS, ...SNAKES }).flatMap(([n, q]) => [[`square ${n} src`, q.src]]), ...SRC_HI.map(([en, hi]) => [`strings.SRC_HI ${en}`, hi]), ...Object.entries(STR.hi).filter(([k]) => /Src$/.test(k)).map(([k, v]) => [`strings.${k}`, v])];
+  for (const [w, s] of srcs) if (typeof s === "string" && /[०-९]/.test(s)) err(w, `a citation with Devanagari digits ("${s}"): a reference keeps its Latin digits`);
+  for (const f of fs.readdirSync(path.join(root, "content")).filter(f => f.endsWith(".json"))) {
+    const walk = (v, where, hi) => {
+      if (typeof v === "string") { const m = hi && v.match(DEV_CITE); if (m) err(where, `cites "${m[0]}" in Devanagari digits: a reference keeps its Latin digits`); return; }
+      if (!v || typeof v !== "object") return;
+      for (const [k, x] of Object.entries(v)) if (k !== "NUM_HI" && k !== "dates") walk(x, `${where}.${k}`, hi || k === "hi");
+    };
+    walk(JSON.parse(fs.readFileSync(path.join(root, "content", f), "utf8")), f.replace(".json", ""), false);
+  }
+
+  // No varṇa word in what a player reads (Bhaskar, 12 Nov): क्षत्रिय, ब्राह्मण, वैश्य, शूद्र, वर्ण, and kṣatriya, brahmin,
+  // brāhmaṇa, vaiśya, śūdra, varṇa, caste, in either language, anywhere but the Codex (which says what the texts held)
+  // and a file's own "about" note. The thirteen found on 12 Nov were all rewritten (Bhaskar's ruling).
+  for (const f of fs.readdirSync(path.join(root, "content")).filter(f => f.endsWith(".json") && f !== "codex.json")) {
+    const walk = (v, where) => {
+      if (typeof v === "string") {
+        const m = v.match(VARNA);
+        if (m) err(where, `says "${m[0]}": no varṇa word in what a player reads`);
+        return;
+      }
+      if (!v || typeof v !== "object") return;
+      for (const [k, x] of Object.entries(v)) if (k !== "about") walk(x, `${where}.${k}`);
+    };
+    walk(JSON.parse(fs.readFileSync(path.join(root, "content", f), "utf8")), f.replace(".json", ""));
   }
 
   // REFERENCE.md §6: the board's own history is medieval, not ancient
@@ -604,6 +740,19 @@ export function lintReport() {
 
   return { errors, warnings, moments };
 }
+
+// खाना/खाने/खानों as a square (Phase 20): before a number, or after a word that counts or points; a whole word
+// only, so सिखाने and दिखाने are not read as it
+const DEV = "\\u0900-\\u0963\\u0971-\\u097F"; // the letters and signs, not the dandas or the digits
+const SQUARE_KHANA = new RegExp(`(?<![${DEV}])(?:हर|इस|यह|यही|कोई|एक|अगला|पिछला|अंतिम|किसी भी)\\s+खान[ाेों](?![${DEV}])|(?<![${DEV}])खान[ाेों]\\s*[०-९\\d{]`, "u");
+const BOARD_WORD = /बोर्ड/u;
+// varṇa words, whole words only: not वर्णन (a description) or स्वर्ण (gold); ब्राह्मणी is one
+const VARNA = new RegExp(`(?<![${DEV}])(?:क्षत्रिय|ब्राह्मण|वैश्य|शूद्र|वर्ण)(?:ों|ो|ी|ियों|े)?(?![${DEV}])|\\bk[sṣ]h?atriyas?\\b|\\bbrahmins?\\b|\\bbr[aā]hma[nṇ]as?\\b|\\bvai[sś]yas?\\b|\\b[sś]h?[uū]dras?\\b|\\bvar[nṇ]as?\\b|\\bcastes?\\b`, "iu");
+// devices, apps and brands, in English and Hindi (Phase 20, the present-tense pass)
+const DEVICES = new RegExp([
+  "\\b(?:phones?|mobiles?|smartphones?|apps?|screens?|laptops?|tablets?|computers?|TVs?|televisions?|internet|online|e-?mails?|selfies?|texts? messages?|WhatsApp|Instagram|Facebook|YouTube|Google|Snapchat|TikTok|Twitter|iPhone|Android|Wi-?Fi|Bluetooth|emoji|DMs?)\\b",
+  `(?<![${DEV}])(?:फ़ोन|फोन|मोबाइल|ऐप|एप|स्क्रीन|लैपटॉप|टैबलेट|कंप्यूटर|टीवी|इंटरनेट|ऑनलाइन|ईमेल|सेल्फ़ी|सेल्फी|व्हाट्सऐप|इंस्टाग्राम|फ़ेसबुक|यूट्यूब)(?![${DEV}])`,
+].join("|"), "iu");
 
 export const lintContent = () => lintReport().errors;
 

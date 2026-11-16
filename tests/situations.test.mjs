@@ -8,7 +8,8 @@ import { lifeOf } from "../src/engine/account.js";
 import { SITUATIONS, SQ, squareOf } from "../src/content.js";
 import { fill, castFill, wordsIn } from "../src/i18n.js";
 import { lintContent } from "../tools/lint-content.mjs";
-import { playGame } from "../tools/sim.mjs";
+import { playGame, livesOf, SIM_RULES } from "../tools/sim.mjs";
+import { LAWS } from "../src/engine/laws/index.js";
 import { setAttached } from "../src/engine/karma.js";
 import { MERIT_AT } from "../src/engine/turn.js";
 
@@ -27,15 +28,16 @@ const lived = (life, told) => {
 const all = (s, l = "en") => lifeOf(s, 0, l).paras.map(p => p.text).join(" ");
 const policy = (x, fn) => { setPolicy(x); try { return fn(); } finally { setPolicy(null); } };
 
-test("ten squares offer a choice: four snakes, three ladders and three story squares", () => {
-  assert.deepEqual(Object.keys(SITUATIONS).map(Number), [12, 19, 28, 47, 49, 51, 54, 55, 56, 59]);
-  assert.equal(situationAt(44), null);
+test("the squares that offer a choice", () => {
+  // Phase 10 B: ten, four snakes, three ladders and three story squares; Phase 20 brings them to 28
+  assert.deepEqual(Object.keys(SITUATIONS).map(Number), [11, 12, 14, 15, 19, 22, 23, 24, 28, 29, 34, 39, 44, 47, 49, 51, 52, 54, 55, 56, 57, 59, 62, 65, 69, 77, 88, 93]);
+  assert.equal(situationAt(40), null);
 });
 
 test("a square without a situation is resolved at once, exactly as before", () => {
-  const plan = planTurn(game(40), 4);
+  const plan = planTurn(game(68), 4); // 44 is a situation since Phase 20; 72 is not
   assert.equal(plan.situation, undefined);
-  assert.deepEqual(plan.jump, { kind: "ladder", to: 63 });
+  assert.deepEqual(plan.jump, { kind: "ladder", to: 89 });
 });
 
 test("on a situation the turn waits for the choice, and the choice is the move", () => {
@@ -162,8 +164,30 @@ test("the lint: cheaper, never further; never every option withheld; a gate says
   const opt = (sit, id) => sit.options.find(o => o.id === id);
   assert.ok(lints(28, s => { opt(s, "lie").cost = 2; }).some(e => e.includes("situations.28: the option worth least (lie) costs more years")));
   assert.ok(lints(12, s => { opt(s, "lie").move = "ladder"; opt(s, "laugh").move = "here"; }).some(e => e.includes("goes further than the one worth most (laugh)")));
-  assert.ok(lints(56, s => { opt(s, "eaten").require = { guna: { r: { max: 0.5 } } }; opt(s, "eaten").why = opt(s, "give").why; }).some(e => e.includes("can withhold every option")));
+  // 56's give is withheld past a tamas of 0.55; the same gate on sulk and mention withholds every option
+  assert.ok(lints(56, s => { for (const id of ["sulk", "mention"]) { opt(s, id).require = { guna: { t: { max: 0.55 } } }; opt(s, id).why = opt(s, "give").why; } }).some(e => e.includes("can withhold every option")));
   assert.ok(lints(59, s => { delete opt(s, "look").why; }).some(e => e.includes("situations.59.look why")));
   assert.ok(lints(59, s => { opt(s, "look").require = { guna: { r: { min: 2 } } }; }).some(e => e.includes("min 2 cannot be passed")));
   assert.ok(lints(55, s => { opt(s, "return").move = "ladder"; }).some(e => e.includes("takes a ladder on a square that has none")));
+});
+
+// Phase 20, step 2: with the situations at 29, the order holds under every law a person can choose: a life won per life
+// lived, honest above mixed above dishonest, each policy playing every seat. Cārvāka has no win to order. Deterministic
+// (the seeds are fixed); the gate's larger run (2,000 games a cell, docs/REFERENCE.md §7) gave the margins this rests on,
+// the narrowest Yoga's 45.9 / 42.8 / 34.0.
+test("under every law, a life wins more often honest than mixed, and mixed than dishonest", () => {
+  const GAMES = 1000, out = {};
+  for (const law of Object.values(LAWS).filter(l => l.choosable && l.id !== "carvaka").map(l => l.id)) {
+    const rate = policy => {
+      setPolicy(policy);
+      try {
+        let won = 0, lives = 0;
+        for (let i = 1; i <= GAMES; i++) { const L = livesOf(playGame(i, { players: 1, rules: { ...SIM_RULES, law } })); won += L.filter(x => x.won).length; lives += L.length; }
+        return won / lives;
+      } finally { setPolicy(null); }
+    };
+    const [h, m, d] = ["honest", "mixed", "dishonest"].map(rate);
+    out[law] = [h, m, d].map(x => +(100 * x).toFixed(1));
+    assert.ok(h > m && m > d, `${law}: ${out[law].join(" / ")}`);
+  }
 });

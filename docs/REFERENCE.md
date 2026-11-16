@@ -305,6 +305,16 @@ is good or a shell.
 6. **Sanskrit terms in code and UI**, glossed on first appearance, not translated away.
    `prarabdha`, not `pendingKarma`.
 7. **Say "medieval" not "ancient"** about the board's own history, per §4.
+8. **Address (Phase 20).** An option's label is the player speaking to their own character, in तुम ("कह दो",
+   "लौटकर दे दो"); the mirrors and every system line address the player as आप, with no gendered verb.
+9. **Tense (Phase 20).** A situation's outcome is told in the present in both languages, like the English moment
+   ("{name} is {age} and …"); its dream, recall, debt and witness lines stay past. The lint holds the Hindi, clause by
+   clause (`pastHi` in `tools/lint-content.mjs`).
+10. **The seed rule (Phase 20).** A debt is planted only by a wrong done to someone, said in `seed.wrong`: a lie, of any
+    guṇa, or a harm to another person. A self-regarding choice teaches by its outcome and its dream and plants nothing,
+    and one that slides down a snake has had its consequence unless it is also a lie or a harm (one consequence for one
+    act). Harms weigh 2 on purpose: the difference between a fib and hurting someone is the moral content of the rule.
+    Intention variants (44, 51, 56) carry no new state; the account tells them apart.
 
 ---
 
@@ -322,6 +332,231 @@ Markovian, since the fuse queue and the guṇa state both carry history. The
 liberation-time distribution under Mīmāṃsā (deterministic consequence, full
 information) against Cārvāka (no memory at all) should differ in shape, not only in
 mean. If they do not, the laws are flavour text and the design has failed its own test.
+
+**Phase 20, the situations at 28.** The gate the content was balanced against, in its real terms: honest > mixed >
+dishonest under every law; mixed souls liberated within ten lives ≥ 80% under every law but Mīmāṃsā and Advaita; no game
+over 100 turns; and a soul dishonest for three lives and honest from the fourth (`REFORM` in `tools/sim.mjs`) liberated
+within ten under every law but Cārvāka. The per-life ±4 points it began with was a working gate. Harms weigh 2 on
+purpose (§6 rule 10), and Jain ten-life 86.8 → 83.6 and Bhakti per-life 37.9 → 32.7 are its cost. More choices widen
+honest from dishonest, which is the point of them: Mīmāṃsā's dishonest svarga falls under the 5% floor Phase 17 set,
+and the floor is 3% (`tests/balance.test.mjs`): svarga stays reachable, rarely. Under Advaita an always-dishonest
+soul never recognises (ten-life 0): recognition needs the sixth bhūmikā, which rests on sattva's share of a life, and
+a life that never once chooses sattva does not get there; that is the law's answer, not a lock, and a reformed soul
+gets out more often than before (63.6 → 82.2%).
+
+Step 2 shipped 29 situations (the 28 the stubs measured, with 56 as three ways of giving the plate). On the real content,
+2,000 games a cell (the gate): mixed ten-life board 94.6, Jain 83.8, Bhakti 95.8, Nyāya 92.8, Sāṃkhya 94.6, Yoga 100;
+the reformed soul within ten board 84.2, Advaita 78.8; the only line over the gate's terms is Jain's dishonest over 100
+turns, 0.07% of lives, from waiting at a ladder's foot. The sim before (main, b4dc84e, ten situations) and after, 5,000
+one-seat games each (`npm run sim 5000 1 1 --policy=…`; a game holds a seat's every life until one is liberated):
+
+| policy | situations met a life | turns a life, median / p95 | game, median / p95 / over 100 | liberated a life | lives per liberation | lives ending in death | debts a life | a moment told 4× |
+|---|---|---|---|---|---|---|---|---|
+| honest, before | 3.11 | 27 / 45 | 44 / 149 / 15.1% | 41.6% | 2.40 | 6.8% | 0.44 | 6.9% |
+| honest, after | 5.40 | 23 / 32 | 39 / 128 / 10.6% | 46.1% | 2.17 | 0.3% | 0.15 | 1.3% |
+| mixed, before | 3.51 | 29 / 47 | 47 / 152 / 15.7% | 32.3% | 3.10 | 17.0% | 1.87 | 12.5% |
+| mixed, after | 7.19 | 27 / 42 | 46 / 161 / 16.8% | 32.0% | 3.12 | 13.1% | 1.99 | 11.1% |
+| dishonest, before | 3.81 | 29 / 48 | 45 / 140 / 13.1% | 24.1% | 4.14 | 28.6% | 3.38 | 17.0% |
+| dishonest, after | 8.58 | 28 / 47 | 42 / 120 / 9.1% | 17.2% | 5.82 | 39.7% | 4.86 | 17.9% |
+
+The seed rule shows: the honest life plants almost nothing and almost never dies; the mixed life is where it was; the
+dishonest life plants half as much again and dies more. Yoga's ordering is flat by design (honest 45.5, mixed 43.6, dishonest 34.9 a
+life): the law is practice over conduct, so a year in practice, which any life can spend, counts for more than how the
+situations were chosen, and the middle way bites only a computer that is not honest. `tests/situations.test.mjs` holds the order under every law.
+
+
+**Phase 20 step 5, the final numbers.** Every table here is from commit `a4e8381` (the content of Steps 1–4 and the step 5
+harness; the die draws exactly as at `d137972`: golden on 20 seeds, and 2,000 seeds of accounts byte-identical). The 110,
+the board's law, one seat unless said; a game is one seat's every life until one is liberated. Policies: honest (the most
+worth), **careful** (the most worth seven times in ten, otherwise another open option at random: the proxy for a person who
+means well, `qbn.js`), mixed (any open option, the game's own computer), dishonest (the least worth). Nothing in Step 5
+changes a snake, a ladder, a rule or a word of content: these are reports.
+
+*Overall* (`npm run sim 5000 1 1 --policy=…`; 5,000 games a row, seeds 1–5000):
+
+| policy | game median / p95 / over 100 | turns a life median / p95 | liberated a life | lives per liberation | died a life (ledger / years / door) | Śiva's snake, born again, a life | games with a moment told 4× | choice cards a life (least worth taken) |
+|---|---|---|---|---|---|---|---|---|
+| honest | 39 / 128 / 10.6% | 23 / 32 | 46.1% | 2.17 | 0.3% (0.2% / 0.1% / 0.1%) | 53.6% | 1.3% | 5.40 (5.1%) |
+| careful | 44 / 161 / 15.6% | 25 / 38 | 39.0% | 2.56 | 4.4% (2.4% / 1.5% / 0.5%) | 56.6% | 7.0% | 6.26 (27.2%) |
+| mixed | 46 / 161 / 16.8% | 27 / 42 | 32.0% | 3.12 | 13.1% (8.4% / 3.6% / 1.0%) | 54.9% | 11.1% | 7.19 (47.8%) |
+| dishonest | 42 / 120 / 9.1% | 28 / 47 | 17.2% | 5.82 | 39.7% (30.7% / 6.5% / 2.4%) | 43.1% | 17.9% | 8.58 (99.9%) |
+
+**Per law, the die.** One seat, 2,000 games a column (seeds 1–2000) for a life, and 500 souls of up to ten lives (seeds 1–500) for ten lives; "own" is the law's own computer.
+
+| law | win a life: honest / careful / mixed / dishonest / own | souls won within ten lives: same order | turns a life median / p95, mixed | died a life, ledger / years / door, mixed |
+|---|---|---|---|---|
+| board (mokṣa) | 45.5% / 39.6% / 31.0% / 17.0% / 31.0% | 99.6% / 97.6% / 94.6% / 62.4% / 94.6% | 27 / 42 | 8.1/4.0/0.9 |
+| Mīmāṃsā (svarga) | 38.2% / 19.2% / 11.5% / 3.5% / 38.2% | 98.4% / 83.6% / 66.0% / 20.6% / 98.4% | 27 / 41 | 8.9/3.5/0.0 |
+| Cārvāka (none) | 0.0% / 0.0% / 0.0% / 0.0% / 0.0% | 0.0% / 0.0% / 0.0% / 0.0% / 0.0% | 28 / 44 | 0.0/0.6/0.0 |
+| Jain | 36.8% / 30.4% / 24.7% / 16.6% / 36.8% | 98.8% / 95.4% / 83.8% / 55.4% / 98.8% | 41 / 63 | 15.5/7.9/1.5 |
+| Bhakti | 46.5% / 40.5% / 34.0% / 23.8% / 46.5% | 99.4% / 99.2% / 95.8% / 86.6% / 99.4% | 25 / 40 | 4.8/2.6/0.7 |
+| Nyāya | 90.6% / 50.3% / 31.9% / 9.0% / 31.9% | 100.0% / 99.2% / 92.8% / 46.8% / 92.8% | 27 / 42 | 8.0/3.4/0.0 |
+| Sāṃkhya | 45.5% / 39.6% / 31.0% / 17.0% / 42.9% | 99.6% / 97.6% / 94.6% / 62.4% / 99.4% | 27 / 42 | 8.1/4.0/0.9 |
+| Advaita | 90.1% / 47.1% / 9.6% / 0.0% / 9.6% | 100.0% / 100.0% / 62.8% / 0.0% / 62.8% | 27 / 41 | 8.5/3.2/0.0 |
+| Yoga | 45.9% / 43.3% / 42.8% / 34.0% / 42.8% | 99.6% / 100.0% / 100.0% / 97.2% / 100.0% | 29 / 42 | 0.3/0.3/0.5 |
+
+Win by life 1 / 3 / 5 / 10 (per cent of souls alive at that life), the die:
+
+| law | honest | careful | mixed | dishonest |
+|---|---|---|---|---|
+| board (mokṣa) | 42/47/42/50 | 40/37/38/25 | 35/26/27/16 | 20/9/8/9 |
+| Mīmāṃsā (svarga) | 37/34/32/33 | 30/19/16/15 | 19/9/9/10 | 6/4/3/1 |
+| Cārvāka (none) | 0/—/—/— | 0/—/—/— | 0/—/—/— | 0/—/—/— |
+| Jain | 40/39/27/33 | 34/26/30/28 | 29/18/14/11 | 17/8/4/6 |
+| Bhakti | 43/49/62/0 | 39/40/43/50 | 38/34/31/9 | 27/17/20/15 |
+| Nyāya | 95/64/100/— | 70/38/41/43 | 47/17/21/20 | 15/7/8/4 |
+| Sāṃkhya | 42/47/42/50 | 40/37/38/25 | 35/26/27/16 | 20/9/8/9 |
+| Advaita | 90/100/—/— | 44/54/38/100 | 8/8/9/8 | 0/0/0/0 |
+| Yoga | 42/45/41/33 | 46/35/55/100 | 46/32/46/100 | 38/27/28/22 |
+
+**Honest > careful > mixed > dishonest under every randomizer.** Win a life, honest / careful / mixed / dishonest, same seeds and sizes:
+
+| law | die | cowries | stick die | order holds |
+|---|---|---|---|---|
+| board (mokṣa) | 45.5% / 39.6% / 31.0% / 17.0% | 44.3% / 32.0% / 26.2% / 15.0% | 49.6% / 44.5% / 38.3% / 21.6% | yes |
+| Mīmāṃsā (svarga) | 38.2% / 19.2% / 11.5% / 3.5% | 18.9% / 4.3% / 2.1% / 0.3% | 45.3% / 27.0% / 19.3% / 6.3% | yes |
+| Cārvāka (none) | 0.0% / 0.0% / 0.0% / 0.0% | 0.0% / 0.0% / 0.0% / 0.0% | 0.0% / 0.0% / 0.0% / 0.0% | yes (nothing is won) |
+| Jain | 36.8% / 30.4% / 24.7% / 16.6% | 29.9% / 23.1% / 17.9% / 12.9% | 40.8% / 36.1% / 28.2% / 18.2% | yes |
+| Bhakti | 46.5% / 40.5% / 34.0% / 23.8% | 46.8% / 37.2% / 29.6% / 21.0% | 51.2% / 46.3% / 42.0% / 31.6% | yes |
+| Nyāya | 90.6% / 50.3% / 31.9% / 9.0% | 51.0% / 13.7% / 6.1% / 0.9% | 94.8% / 64.1% / 44.9% / 14.3% | yes |
+| Sāṃkhya | 45.5% / 39.6% / 31.0% / 17.0% | 44.3% / 32.0% / 26.2% / 15.0% | 49.6% / 44.5% / 38.3% / 21.6% | yes |
+| Advaita | 90.1% / 47.1% / 9.6% / 0.0% | 92.9% / 48.3% / 10.2% / 0.0% | 91.5% / 47.2% / 11.1% / 0.1% | yes |
+| Yoga | 45.9% / 43.3% / 42.8% / 34.0% | 44.4% / 40.8% / 37.8% / 33.1% | 49.6% / 49.1% / 46.3% / 41.0% | yes |
+
+Flag (stick): Nyāya: careful wins 64.1% a life, over 60%.
+
+Sāṃkhya's four policy columns are the board's because `--policy` overrides prakṛti's choosing; its "own" column is the law.
+Cārvāka wins nothing by design. Advaita's honest 90% is recognition from the sixth bhūmikā, which only a sattvic life reaches.
+Nyāya's honest 90.6% is the door that opens on no win: release by a life ended with nothing owed, which honest lives nearly
+always are.
+
+*The randomizer on the 110* (`npm run sim 2000 1 1 --rand=die,cowries,stick --policy=…`; 2,000 games a row, seeds 1–2000).
+The die is the default and unchanged; cowries are seven shells at p = 0.45, the stick die 1-2-5-6; the omen and the six's
+second throw come on a count of six however it is thrown, and a throw of none is a year with no move:
+
+| kind | policy | game median / p95 / over 100 | turns a life median / p95 | liberated a life | lives per liberation | died a life | reckonings a life | throws of none a life | sixes a life |
+|---|---|---|---|---|---|---|---|---|---|
+| die | mixed | 49 / 166 / 17.9% | 27 / 42 | 31.0% | 3.22 | 13.1% | 0.91 | 0.00 | 5.42 |
+| cowries | mixed | 63 / 279 / 31.1% | 30 / 49 | 26.2% | 3.82 | 7.1% | 0.29 | 0.38 | 1.20 |
+| stick | mixed | 40 / 134 / 11.5% | 27 / 41 | 38.3% | 2.61 | 13.1% | 1.14 | 0.00 | 7.95 |
+| die | careful | 44 / 153 / 15.2% | 25 / 37 | 39.6% | 2.53 | 4.4% | 0.59 | 0.00 | 5.10 |
+| cowries | careful | 53 / 259 / 25.3% | 27 / 42 | 32.0% | 3.13 | 2.2% | 0.21 | 0.35 | 1.09 |
+| stick | careful | 37 / 131 / 11.2% | 25 / 37 | 44.5% | 2.24 | 4.8% | 0.69 | 0.00 | 7.49 |
+
+What the kinds do: a six is rarer with cowries (seven shells give six face up 3.2% of the time against a die's 16.7%), so the
+omen fires a third as often and deaths halve, yet liberation falls too; the throws are smaller (a mean count of 3.15, and
+none 1.5% of the time). Games run long: 31.1% of mixed games pass
+100 turns. The stick die's mean is 3.5 like the die's but without the 3 and 4: more sixes (a quarter of throws), more
+reckonings, and more lives through, 38.3% mixed. The order honest > careful > mixed > dishonest holds under every law with
+every randomizer (above). Nyāya's signs ride on the omen, which fires on a 6, and cowries give a 6 about one throw in 30:
+so under cowries Nyāya mixed falls 31.9 → 6.1% a life, and Mīmāṃsā's dishonest svarga to 0.3% (the floor Phase 20 set on
+the die is 3%). The stick die gives a 6 one throw in four, and its careful Nyāya rises to 64.1%. Neither is tuned: the laws
+were balanced on the die, and the setting says so ("longer games; the laws were balanced on the die").
+
+*Ablation* (`node tools/ablate.mjs 2000 1 --md`, after arXiv:2304.14486: each of the 11 ladders and 13 snakes taken away in
+turn and the same 2,000 seeds, 1–2000, played again; throws are keyed per throw, so each pair throws the same dice and
+differs only by the board; 95% intervals from 1,000 paired bootstrap resamples over seeds; sorted by the size of the change
+in liberation). Śiva's snake at 110 is a rule of the board (the exact throw onto the top), not an entry among the snakes,
+and is not ablated. A situation whose option climbs or slides by the element taken away stays instead, noted:
+
+**Mixed.** 2,000 one-seat games, seeds 1–2000, 1,000 paired bootstrap resamples
+
+Base: game median 49, p95 166; liberated 31.0% a life; deaths 13.1% a life.
+
+| removed | Δ median turns | Δ p95 turns | Δ liberated a life (pts) | Δ deaths a life (pts) | note |
+|---|---|---|---|---|---|
+| ladder 51→67 | −1 [−2, +2] | −8 [−18, +4] | −2.8 [−4.1, −1.5] | +5.4 [+4.5, +6.3] | situation 51 stays |
+| snake 99→61 | −2 [−4, ±0] | −3 [−14, +5] | +1.9 [+0.9, +3.1] | −1.2 [−1.7, −0.6] |  |
+| snake 69→52 | +1 [±0, +3] | +1 [−7, +9] | +1.9 [+1.0, +2.7] | −2.7 [−3.3, −2.1] | situation 69 stays |
+| ladder 34→53 | ±0 [−1, +2] | −5 [−14, +2] | +1.5 [+0.6, +2.4] | −1.0 [−1.6, −0.3] | situation 34 stays |
+| snake 77→58 | ±0 [−1, +2] | −4 [−11, +3] | +1.2 [+0.3, +2.1] | −2.4 [−3.0, −1.8] | situation 77 stays |
+| ladder 44→63 | ±0 [−2, +2] | −1 [−11, +8] | −1.0 [−2.1, +0.2] | +3.2 [+2.5, +3.9] | situation 44 stays |
+| ladder 57→75 | ±0 [−1, +2] | −9 [−17, −1] | −1.0 [−1.7, −0.2] | +2.1 [+1.5, +2.7] | situation 57 stays |
+| ladder 6→15 | ±0 [−2, +3] | −12 [−20, −2] | +1.0 [−0.3, +2.4] | +1.1 [+0.2, +2.1] |  |
+| snake 88→71 | −2 [−3, ±0] | −1 [−8, +5] | +0.9 [+0.2, +1.6] | −0.8 [−1.3, −0.4] | situation 88 stays |
+| snake 62→46 | +1 [±0, +2] | +2 [−2, +9] | +0.8 [+0.2, +1.5] | −1.9 [−2.5, −1.4] | situation 62 stays |
+| snake 29→17 | −1 [−2, +1] | ±0 [−7, +10] | +0.6 [−0.2, +1.4] | −0.9 [−1.4, −0.4] | situation 29 stays |
+| ladder 12→24 | ±0 [−1, +3] | −5 [−13, +3] | +0.5 [−0.5, +1.5] | +0.5 [−0.1, +1.2] | situation 12 stays |
+| ladder 72→89 | ±0 [−1, +3] | −7 [−15, +3] | +0.4 [−0.8, +1.7] | +1.8 [+1.1, +2.5] |  |
+| ladder 23→37 | ±0 [−1, +3] | +1 [−6, +10] | −0.4 [−1.4, +0.6] | +0.1 [−0.6, +0.8] | situation 23 stays |
+| snake 47→31 | −1 [−2, +1] | −3 [−10, +5] | −0.4 [−1.2, +0.5] | −0.3 [−1.0, +0.4] | situation 47 stays |
+| ladder 28→45 | +2 [±0, +4] | −4 [−13, +9] | +0.3 [−0.8, +1.6] | −0.1 [−1.0, +0.8] | situation 28 stays |
+| snake 93→64 | ±0 [−1, +1] | +1 [−5, +8] | +0.3 [−0.4, +1.0] | −0.9 [−1.3, −0.4] | situation 93 stays |
+| snake 55→43 | ±0 [−1, +2] | +5 [−1, +17] | +0.3 [−0.6, +1.1] | −1.2 [−2.0, −0.4] | situation 55 stays |
+| snake 59→50 | +1 [±0, +3] | +6 [±0, +16] | +0.3 [−0.5, +1.0] | −2.2 [−2.9, −1.5] | situation 59 stays |
+| snake 39→22 | −2 [−3, ±0] | −1 [−9, +7] | +0.3 [−0.5, +1.2] | −0.6 [−1.2, ±0.0] | situation 39 stays |
+| ladder 85→94 | +1 [−1, +3] | −4 [−15, +6] | −0.1 [−1.2, +0.9] | +1.1 [+0.5, +1.7] |  |
+| ladder 65→83 | ±0 [−1, +2] | −4 [−10, +4] | +0.1 [−0.8, +1.1] | +1.3 [+0.7, +1.9] | situation 65 stays |
+| snake 14→8 | ±0 [−1, +2] | −2 [−10, +6] | +0.1 [−0.8, +1.0] | −0.2 [−0.8, +0.4] | situation 14 stays |
+| snake 19→11 | ±0 [−1, +2] | −1 [−8, +7] | +0.1 [−0.8, +1.0] | −0.6 [−1.3, +0.1] | situation 19 stays |
+
+**Careful.** 2,000 one-seat games, seeds 1–2000, 1,000 paired bootstrap resamples
+
+Base: game median 44, p95 153; liberated 39.6% a life; deaths 4.4% a life.
+
+| removed | Δ median turns | Δ p95 turns | Δ liberated a life (pts) | Δ deaths a life (pts) | note |
+|---|---|---|---|---|---|
+| snake 99→61 | −3 [−5, −1] | −13 [−25, −5] | +2.6 [+1.5, +3.8] | −0.6 [−1.0, −0.2] |  |
+| ladder 51→67 | +2 [±0, +4] | +12 [±0, +21] | −2.6 [−3.8, −1.3] | +1.8 [+1.2, +2.4] | situation 51 stays |
+| snake 69→52 | ±0 [−1, +1] | −2 [−10, +5] | +1.0 [+0.3, +1.8] | −0.7 [−1.0, −0.3] | situation 69 stays |
+| ladder 44→63 | +2 [+1, +4] | +4 [−7, +14] | −1.0 [−2.1, +0.1] | +1.3 [+0.9, +1.8] | situation 44 stays |
+| ladder 6→15 | ±0 [−1, +3] | +10 [−2, +21] | −0.7 [−2.3, +0.7] | +0.6 [±0.0, +1.1] |  |
+| snake 47→31 | ±0 [−1, +1] | +4 [−5, +10] | −0.5 [−1.3, +0.2] | ±0.0 [−0.4, +0.5] | situation 47 stays |
+| ladder 12→24 | +1 [±0, +3] | +3 [−8, +15] | −0.5 [−1.6, +0.5] | +0.2 [−0.3, +0.7] | situation 12 stays |
+| ladder 85→94 | +1 [−1, +3] | +8 [−5, +17] | +0.5 [−0.9, +1.8] | ±0.0 [−0.4, +0.4] |  |
+| ladder 57→75 | +1 [±0, +3] | ±0 [−10, +9] | −0.5 [−1.4, +0.4] | +0.8 [+0.4, +1.2] | situation 57 stays |
+| ladder 65→83 | +1 [±0, +3] | +2 [−8, +10] | −0.5 [−1.5, +0.6] | +0.4 [±0.0, +0.8] | situation 65 stays |
+| snake 59→50 | ±0 [±0, +2] | +3 [−5, +10] | +0.4 [−0.1, +1.1] | −1.1 [−1.6, −0.7] | situation 59 stays |
+| snake 77→58 | ±0 [−1, +1] | ±0 [−9, +7] | +0.4 [−0.3, +1.1] | −0.8 [−1.2, −0.5] | situation 77 stays |
+| snake 39→22 | −1 [−2, ±0] | −2 [−10, +6] | +0.4 [−0.3, +1.1] | −0.3 [−0.6, +0.1] | situation 39 stays |
+| snake 62→46 | ±0 [−1, +1] | +5 [−1, +13] | +0.4 [−0.1, +0.9] | −0.9 [−1.3, −0.6] | situation 62 stays |
+| ladder 34→53 | ±0 [−2, +2] | +1 [−8, +11] | +0.4 [−0.6, +1.3] | −0.1 [−0.4, +0.3] | situation 34 stays |
+| ladder 23→37 | +1 [±0, +3] | +9 [−3, +17] | −0.3 [−1.5, +0.8] | +0.1 [−0.4, +0.5] | situation 23 stays |
+| snake 93→64 | ±0 [−1, +1] | +3 [−3, +8] | −0.3 [−0.7, +0.1] | −0.2 [−0.3, ±0.0] | situation 93 stays |
+| ladder 28→45 | +1 [−1, +3] | +13 [±0, +23] | +0.2 [−1.0, +1.4] | −0.3 [−0.8, +0.2] | situation 28 stays |
+| snake 19→11 | ±0 [−1, +1] | −1 [−9, +5] | +0.2 [−0.4, +0.9] | −0.1 [−0.5, +0.3] | situation 19 stays |
+| snake 29→17 | ±0 [−1, +1] | −2 [−9, +1] | +0.2 [−0.3, +0.7] | −0.1 [−0.3, +0.1] | situation 29 stays |
+| snake 88→71 | −1 [−2, ±0] | −2 [−9, +2] | +0.2 [−0.4, +0.7] | −0.1 [−0.4, +0.2] | situation 88 stays |
+| snake 14→8 | ±0 [−1, +1] | +2 [−6, +8] | −0.1 [−0.7, +0.4] | ±0.0 [−0.3, +0.2] | situation 14 stays |
+| snake 55→43 | ±0 [−1, +2] | +4 [−5, +12] | ±0.0 [−0.8, +0.7] | −0.9 [−1.4, −0.4] | situation 55 stays |
+| ladder 72→89 | +2 [+1, +4] | +10 [−6, +17] | ±0.0 [−1.2, +1.2] | +0.2 [−0.3, +0.7] |  |
+
+What it says: the ladder that matters most is 51 → 67 (the sick child): without it a life is liberated 2.6–2.8 points less
+often and, under mixed, dies 5.4 points more often. The snake that matters most is 99 → 61: without it liberation rises
+1.9–2.6 points and a careful game's p95 falls 13 turns. Taken one at a time, 16 of the 24 change liberation by less than
+their interval can tell from nothing, under both policies; seven change neither liberation nor deaths measurably under either
+(ladders 12 → 24, 23 → 37, 28 → 45; snakes 14 → 8, 19 → 11, 39 → 22, 47 → 31). Each of the seven carries a situation,
+which is what it is on the board for. No change is proposed on these numbers. All seven
+elements with no measurable effect carry situations: choice there outweighs chance.
+
+*Together* (`npm run sim 1000 N 1 --mode=together [--length=one] [--policy=careful]`; 1,000 games a row, seeds 1–1000): the
+game's length in turns a seat, until the end of the table. On these numbers one life each is the default on the page
+(16 Nov); at its end the table may go on together, and the game then plays as "until every soul is free" from there
+(`goOn` in `src/engine/turn.js`, `rules.on`):
+
+| seats | length | policy | turns a seat median / p95 / max | human lives a seat median / p95 / mean | animal lives, of all | lives liberated |
+|---|---|---|---|---|---|---|
+| 2 | one life each | mixed | 31 / 44 / 64 | 1 / 1 / 1.00 | 0.0% | 35.6% |
+| 2 | one life each | careful | 28 / 40 / 53 | 1 / 1 / 1.00 | 0.0% | 43.5% |
+| 3 | one life each | mixed | 34 / 48 / 67 | 1 / 1 / 1.00 | 0.0% | 35.1% |
+| 3 | one life each | careful | 30 / 42 / 55 | 1 / 1 / 1.00 | 0.0% | 43.1% |
+| 4 | one life each | mixed | 35 / 49 / 67 | 1 / 1 / 1.00 | 0.0% | 35.3% |
+| 4 | one life each | careful | 32 / 43 / 55 | 1 / 1 / 1.00 | 0.0% | 43.0% |
+| 2 | until every soul is free | mixed | 116 / 437 / 1381 | 2 / 11 / 3.56 | 10.4% | 28.1% |
+| 2 | until every soul is free | careful | 74 / 241 / 575 | 2 / 7 / 2.53 | 3.4% | 39.6% |
+| 3 | until every soul is free | mixed | 150 / 466 / 1381 | 2 / 10 / 3.53 | 10.3% | 28.3% |
+| 3 | until every soul is free | careful | 93 / 262 / 575 | 2 / 7 / 2.53 | 3.2% | 39.6% |
+| 4 | until every soul is free | mixed | 179 / 522 / 1381 | 2 / 10 / 3.51 | 10.3% | 28.5% |
+| 4 | until every soul is free | careful | 114 / 298 / 575 | 2 / 7 / 2.56 | 3.3% | 39.0% |
+
+One life each, a table of three plays about 34 turns a seat (mixed); played until every soul is free, 150, and the p95
+is 466: the free game is long because the table waits for its last soul, and one soul in twenty takes ten lives or more.
+
+*Flags.* Careful over 60% a life: only Nyāya with the stick die (64.1%). Nothing here asks for a change to the board, and
+none was made (16 Nov); cowries ship as measured.
+
+**Phase 20 closed on the automated checks** (lint, tests, golden, smoke, the accounts against main); the three-player
+test was not run for it.
 
 ---
 

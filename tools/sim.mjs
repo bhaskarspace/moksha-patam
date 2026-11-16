@@ -14,7 +14,7 @@
 // Phase 12 adds the fall: nothing above the exit turns back, and the throw past the top ends the life. The report adds
 // how lives end, lives per liberation, the turns spent in 106–110, and a square at or above 94 landed on four times or
 // more. --pick=phase9 plays the endgame by Phase 9's choice, which walks past the exit when the bigger die does.
-// Phase 10 B adds the situations: --policy=honest|dishonest|mixed is how every computer chooses (mixed, any open
+// Phase 10 B adds the situations: --policy=honest|careful|dishonest|mixed is how every computer chooses (mixed, any open
 // option, is the game's own), and the report adds where a life is on the board at fifty and seventy and what it
 // became: the guna mix, dharma and the highest bhumika. --situations=off takes them away.
 // Phase 14 adds the door as an examination, Śiva's snake and the curse: the fall split into the throw past 110 and the
@@ -42,6 +42,7 @@ import { pathToFileURL } from "node:url";
 import { setDice } from "../src/engine/throws.js";
 import { createGame, playTurn, moveFor, movesFor, planTurn, rollDice, diceFor, setEndgame, ENDGAME, canSit, spentOf, inHeaven } from "../src/engine/turn.js";
 import { SQ, SITUATIONS, CURSES, BOARDS, BOARD, LADDERS, SNAKES, useBoard } from "../src/content.js";
+import { RANDS_110 } from "../src/engine/cloth.js";
 import { curseIn } from "../src/engine/curse.js";
 import { setPolicy, setEgo, worthOf, optionOf } from "../src/engine/qbn.js";
 import { SPAN, setSpan, yearsAlong, BHUMIKA_AT, TURYA, setPractice } from "../src/engine/self.js";
@@ -126,7 +127,7 @@ export function playGame(seed, { players = 2, rules = SIM_RULES, pick = moveFor,
       // opening on no win (Nyāya)
       practice: 0, letGo: 0, recognise: 0, through: 0 } });
   const per = state.players.map(() => [fresh()]), now = i => { const a = per[i], k = state.players[i].rebirths ?? 0; while (a.length <= k) a.push(fresh()); return a[k]; };
-  let played = 0;
+  let played = 0, sixes = 0;
   while (!state.over && played++ < CAP) {
     turns[state.turn]++;
     const w = now(state.turn);
@@ -137,6 +138,7 @@ export function playGame(seed, { players = 2, rules = SIM_RULES, pick = moveFor,
     const before = state.log[0];
     // the turn throws what the game would (nothing with the merit spent, or for a year in practice before the throw, Yoga)
     const plan = playTurn(state, undefined, pick), p = state.players[plan.idx];
+    sixes += plan.dice?.filter(d => d === 6).length ?? 0;
     if (p.bhumika != null && !plan.fell) w.seen.add(p.bhumika);
     const k = w.karma;
     if (plan.plant) k.planted++;
@@ -160,7 +162,10 @@ export function playGame(seed, { players = 2, rules = SIM_RULES, pick = moveFor,
     L.through += plan.after.some(e => e.k === "lDoorThrough");
     log.push(...state.log.slice(0, state.log.indexOf(before)).reverse());
   }
-  return { log, turns, per, capped: !state.over, winner: state.winner, players: state.players, state };
+  // a seat born again on its own last turn, while another seat ends the game, never plays the life it is born into:
+  // it still has one, with nothing in it (livesOf counts every life in p.past and the one in the seat)
+  state.players.forEach((_, i) => now(i));
+  return { log, turns, per, capped: !state.over, winner: state.winner, players: state.players, state, sixes };
 }
 
 // The seed of a soul's life k: the seed itself for the first, then a hash of the two, so a chain is fixed by its seed.
@@ -168,10 +173,14 @@ export const lifeSeed = (seed, k) => (k ? (Math.imul(seed ^ 0x85ebca6b, 0x27d4eb
 // One soul's lives from a seed: each a single computer's game, born of the last, until a liberation or n lives.
 // A death by ledger is followed by its animal interlude (src/engine/animal.js) before the next human life: each is kept
 // on the life it follows, as interludes [{ kind, round, earned, throws }].
-export function playLives(seed, n, { rules = SIM_RULES, pick = moveFor } = {}) {
+// policyAt(k), when given, is how the computer chooses in the soul's life k (from 0): REFORM is dishonest for three
+// lives and honest from the fourth (Phase 20), to show that a soul that changes can still get out
+export const REFORM = k => (k < 3 ? "dishonest" : "honest");
+export function playLives(seed, n, { rules = SIM_RULES, pick = moveFor, policyAt = null } = {}) {
   const out = [];
   let born = null;
   for (let k = 0; k < n; k++) {
+    if (policyAt) setPolicy(policyAt(k));
     const g = playGame(lifeSeed(seed, k), { players: 1, rules, pick, born });
     out.push(g);
     // the law's win ends the soul's count, as liberation does (svarga's return is the page's, not the measure's); a law
@@ -215,10 +224,38 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   // --dice=stream: every seat's throws off the game's one sequence, as before Phase 19 step 3 (src/engine/throws.js)
   if (flags.dice === "stream") setDice("stream");
   const pick = PICKS[flags.pick || "plain"];
+  const pct = x => `${(x * 100).toFixed(1)}%`;
+  // Phase 20: --rand on the 110 is what every movement throw is thrown with (src/engine/cloth.js throwKind). One kind
+  // plays everything below under it (--laws, --mode, the report); a list prints one line a kind and stops: the game's
+  // median / p95 / over 100, turns a life, liberation and deaths a life, the omen's reckonings a life, and the throws
+  // that counted nothing (cowries) or were sixes, a life.
+  if (flags.rand && (!flags.board || flags.board === "110")) {
+    const kinds = flags.rand.split(",");
+    for (const k of kinds) if (!["die", ...RANDS_110].includes(k)) throw new Error(`the 110 is thrown with die, ${RANDS_110.join(" or ")}`);
+    if (kinds.length === 1) { if (kinds[0] !== "die") SIM_RULES.rand = kinds[0]; }
+    else {
+      console.log(`${games} one-seat games a kind, seeds ${first}–${first + games - 1}, policy ${flags.policy ?? "mixed"}`);
+      console.log("kind".padEnd(9) + "game med/p95/>100".padStart(20) + "life med/p95".padStart(14) + "liberated".padStart(11) + "lives/lib".padStart(10) + "died".padStart(8) + "reckoned".padStart(10) + "nil".padStart(7) + "sixes".padStart(7));
+      for (const k of kinds) {
+        const r = k === "die" ? SIM_RULES : { ...SIM_RULES, rand: k }, len = [], life = [];
+        let lives = 0, won = 0, died = 0, reck = 0, nil = 0, six = 0;
+        for (let sd = first; sd < first + games; sd++) {
+          const g = playGame(sd, { players: 1, rules: r, pick });
+          len.push(g.turns[0]);
+          for (const x of livesOf(g)) { lives++; won += x.won; died += !!x.p.death; life.push(g.per[0][x.k].turns); }
+          for (const e of g.log) { if (e.k === "lNil") nil++; }
+          reck += g.per[0].reduce((a, w) => a + w.karma.fired, 0);
+          six += g.sixes ?? 0;
+        }
+        const G = summarise(len), L = summarise(life);
+        console.log(k.padEnd(9) + `${G.median} / ${G.p95} / ${pct(G.over100)}`.padStart(20) + `${L.median} / ${L.p95}`.padStart(14) + pct(won / lives).padStart(11) + (lives / won).toFixed(2).padStart(10) + pct(died / lives).padStart(8) + (reck / lives).toFixed(2).padStart(10) + (nil / lives).toFixed(2).padStart(7) + (six / lives).toFixed(2).padStart(7));
+      }
+      process.exit(0);
+    }
+  }
   // --law: every computer plays under that law (Phase 17, src/engine/laws/index.js); --policy still says how it chooses
   if (flags.law && !LAWS[flags.law]) throw new Error(`no law ${flags.law}: ${Object.keys(LAWS).join(", ")}`);
   const rules = flags.law ? { ...SIM_RULES, law: flags.law } : SIM_RULES;
-  const pct = x => `${(x * 100).toFixed(1)}%`;
   if (flags.board && flags.board !== "110") {
     if (!BOARDS[flags.board]?.rules) throw new Error(`no old board ${flags.board}: ${Object.keys(BOARDS).join(", ")}`);
     useBoard(flags.board);
@@ -247,7 +284,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   if (flags.laws) {
     const ids = flags.laws === "all" ? Object.values(LAWS).filter(l => l.choosable).map(l => l.id) : flags.laws.split(",");
     for (const id of ids) if (!LAWS[id]) throw new Error(`no law ${id}: ${Object.keys(LAWS).join(", ")}`);
-    const POL = ["honest", "mixed", "dishonest", "own"], souls = Math.max(1, Math.floor(games / 4));
+    const POL = ["honest", "careful", "mixed", "dishonest", "own"], souls = Math.max(1, Math.floor(games / 4));
     console.log(`${games} single-player games and ${souls} souls of up to ten lives a column, seeds from ${first}`);
     for (const id of ids) {
       const law = LAWS[id], kind = law.exit()?.kind ?? "none", rules = { ...SIM_RULES, law: id }, cols = [];
@@ -271,15 +308,24 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
         }
         cols.push(c);
       }
+      // a soul dishonest for its first three lives and honest from the fourth: won within ten, and of those after life 3
+      const reform = { ten: 0, late: 0 };
+      for (let s = first; s < first + souls; s++) {
+        const lives = playLives(s, 10, { rules, pick, policyAt: REFORM }).flatMap(livesOf).slice(0, 10), w = lives.findIndex(x => x.won);
+        reform.ten += w >= 0; reform.late += w >= 3;
+      }
       setPolicy(null);
       const row = (label, f) => console.log(`  ${label.padEnd(30)}${cols.map(c => String(f(c)).padStart(15)).join("")}`);
       const md = xs => summarise(xs.length ? xs : [0]);
       console.log(`\n${id} (its win: ${kind})`);
       row("", (c, j = cols.indexOf(c)) => POL[j]);
       row("win a life", c => pct(c.won / c.lives));
+      // Phase 20: a careful soul (the human proxy) liberated in more than six lives in ten is flagged
+      { const c = cols[POL.indexOf("careful")]; if (c.won / c.lives > 0.6) console.log(`  FLAG careful wins ${pct(c.won / c.lives)} a life, over 60%`); }
       row("lives per win", c => (c.won ? (c.lives / c.won).toFixed(2) : "—"));
       row("win by life 1 / 3 / 5 / 10", c => c.at.map((n, j) => (n ? Math.round((100 * c.by[j]) / n) : "—")).join("/"));
       row("souls won within ten lives", c => pct(c.ten / souls));
+      console.log(`  ${"reformed (dishonest 1–3, then honest)".padEnd(30)}${pct(reform.ten / souls).padStart(15)} within ten lives, ${pct(reform.late / souls)} from life 4 on`);
       row("turns a life, median / p95", c => `${md(c.turns).median} / ${md(c.turns).p95}`);
       row("years a life, median / p95", c => `${md(c.years).median} / ${md(c.years).p95}`);
       row("died: ledger / years / door", c => [c.ledger, c.yearsOut, c.door].map(n => (100 * n / c.lives).toFixed(1)).join("/"));
