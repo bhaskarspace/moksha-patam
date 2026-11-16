@@ -60,11 +60,16 @@ export function drawThrow(state, n, { i = state.turn, kind = null, forced = null
   const r = stream ? state.rng : throwRng(state, i, k), rt = stream ? state.rng : throwRng(state, i, k, TUMBLES);
   let frames, dice, up = null;
   if (kind) {
-    frames = Array.from({ length: TUMBLE }, () => throwOf(rt, kind));
-    const t = forced != null ? null : throwOf(stream ? r : throwRng(state, i, k, CLOTH), kind);
-    dice = [forced?.[0] ?? t.v];
-    up = t?.up ?? null;
-    frames = frames.map(f => ({ v: [f.v], up: f.up ?? null }));
+    // n throws of the randomizer (Phase 20: the 110's endgame thrown with cowries is two throws of seven shells); one
+    // throw draws exactly as an old cloth's always has, and up stays its shells. ups is every throw's, in order.
+    frames = Array.from({ length: TUMBLE }, () => Array.from({ length: n }, () => throwOf(rt, kind)));
+    const rc = forced != null ? null : stream ? r : throwRng(state, i, k, CLOTH);
+    const ts = rc && Array.from({ length: n }, () => throwOf(rc, kind));
+    dice = Array.from({ length: n }, (_, d) => forced?.[d] ?? forced?.[0] ?? ts[d].v);
+    up = ts?.[0].up ?? null;
+    frames = frames.map(fs => ({ v: fs.map(f => f.v), up: fs[0].up ?? null, ups: fs.map(f => f.up ?? null) }));
+    if (!stream) p.thrown = k + 1;
+    return { frames, dice, up, ups: ts ? ts.map(t => t.up ?? null) : null };
   } else {
     frames = Array.from({ length: TUMBLE }, () => ({ v: Array.from({ length: n }, () => die(rt)), up: null }));
     dice = forced ? Array.from({ length: n }, (_, d) => forced[d] ?? forced[0]) : Array.from({ length: n }, () => die(r));

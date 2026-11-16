@@ -2659,6 +2659,37 @@ await check("Phase 20: an old cloth writes each square's short name in it, at mo
   }
 });
 
+await check("Phase 20: the 110 thrown with cowries shows the shells, two sets in the endgame, and a throw of none is a year with no move", async page => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto(BASE + "?seed=1&debug");
+  // the setup offers the 110 the die, cowries and the stick die, the die first
+  const opts = await page.evaluate(() => [...document.querySelectorAll("#ruleRand option")].map(o => o.value).join(","));
+  assert(opts === "own,cowries,stick", `the 110's randomizers: ${opts}`);
+  await page.evaluate(() => mp.board("110", { rand: "cowries" }));
+  await until(page, () => !mp.busy && mp.state.turn === 0);
+  const look = await page.evaluate(() => ({ rand: mp.state.rules.rand, shells: !document.getElementById("shells").hidden && document.querySelectorAll("#shells span").length, die: document.getElementById("die").hidden, roll: document.getElementById("roll").textContent }));
+  assert(look.rand === "cowries" && look.shells === 7 && look.die && /Throw the shells/.test(look.roll), `the cowries on the 110: ${JSON.stringify(look)}`);
+  // no shell face up: nothing moves, a year passes, and the line says so
+  const before = await page.evaluate(() => ({ pos: mp.state.players[0].pos, years: Math.floor(mp.state.players[0].years) }));
+  await page.evaluate(() => mp.roll(0));
+  await page.waitForFunction(() => /No shell fell face up/.test(document.getElementById("landed").textContent), null, { timeout: 15000 });
+  const after = await page.evaluate(() => ({ pos: mp.state.players[0].pos, years: Math.floor(mp.state.players[0].years) }));
+  assert(after.pos === before.pos && after.years === before.years + 1, `a throw of none: ${JSON.stringify({ before, after })}`);
+  // the endgame: two throws, two sets of shells, and the choice between them
+  await page.waitForFunction(() => { if (document.getElementById("folio").open) mp.close({ instant: true }); return !mp.busy && mp.state.turn === 0; }, null, { timeout: 20000, polling: 200 });
+  await page.evaluate(() => { mp.jump(95); mp.roll(2, 4); });
+  await page.waitForFunction(() => !document.getElementById("pick").hidden, null, { timeout: 15000 });
+  const two = await page.evaluate(() => ({ a: !document.getElementById("shells").hidden && document.querySelectorAll("#shells span.up").length, b: !document.getElementById("shells2").hidden && document.querySelectorAll("#shells2 span.up").length, die2: document.getElementById("die2").hidden }));
+  assert(two.a === 2 && two.b === 4 && two.die2, `the endgame's shells: ${JSON.stringify(two)}`);
+  await page.click("#pick button");
+  await page.waitForFunction(() => { if (document.getElementById("folio").open) mp.close({ instant: true }); return !mp.busy; }, null, { timeout: 20000, polling: 200 });
+  // the die again: no shells
+  await page.evaluate(() => mp.board("110"));
+  await until(page, () => !mp.busy);
+  const back = await page.evaluate(() => ({ rand: mp.state.rules.rand ?? null, shells: document.getElementById("shells").hidden && document.getElementById("shells2").hidden, die: !document.getElementById("die").hidden }));
+  assert(back.rand === null && back.shells && back.die, `back to the die: ${JSON.stringify(back)}`);
+});
+
 await check("Phase 20: 1400px and wider the book is written beside the board, polite, never focused; narrower it is not drawn", async page => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto(BASE + "?debug&seed=3");

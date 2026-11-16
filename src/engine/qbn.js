@@ -47,6 +47,7 @@ export const worthOf = o => (o.aims?.dharma ?? 0) + (GUNA_WORTH[o.guna] ?? 0);
 // Cārvāka's takes the most wealth and pleasure ("pleasure"), and Sāṃkhya's prakṛti chooses by the guṇa leading, the
 // cheapest in years under tamas ("inert"). The sim's --policy, when given, overrides them all.
 export let POLICY = "mixed", FORCED = null;
+export const CAREFUL = 0.7;
 // setPolicy(null) puts back the game's own: mixed, and each law its own way
 export const setPolicy = x => { POLICY = x ?? "mixed"; FORCED = x ?? null; };
 export const policyOr = x => FORCED ?? x;
@@ -56,6 +57,14 @@ export function choiceFor(state, sit, policy = POLICY) {
   if (policy === "honest" || policy === "dishonest") {
     const sign = policy === "honest" ? -1 : 1;
     return [...open].sort((a, b) => sign * (worthOf(a) - worthOf(b)))[0].id;
+  }
+  // "careful" (Phase 20, the sim's proxy for a person who means well): the most worth seven times in ten, otherwise any
+  // other open option, off a sequence of its own (never the dice, never the mixed computer's). The page never plays it.
+  if (policy === "careful") {
+    const ranked = [...open].sort((a, b) => worthOf(b) - worthOf(a));
+    const rng = makeRng((state.rng.seed ^ 0x6a09e667 ^ Math.imul(laneOf(state, state.turn) + 1, 0x9e3779b1) ^ Math.imul((p.life?.length ?? 0) + 1, 0x85ebca6b) ^ Math.imul(p.rebirths ?? 0, 0x632be5ab)) >>> 0);
+    if (ranked.length < 2 || next(rng) < CAREFUL) return ranked[0].id;
+    return ranked[1 + Math.floor(next(rng) * (ranked.length - 1))].id;
   }
   if (policy === "pleasure") return [...open].sort((a, b) => pleasureOf(b) - pleasureOf(a))[0].id;
   // the cheapest in years, then the least worth: inertia (Sāṃkhya's tamas)

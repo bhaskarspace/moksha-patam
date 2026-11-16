@@ -10,6 +10,10 @@ import { drawThrow } from "./throws.js";
 export const isCloth = () => BOARD.rules?.engine === "cloth";
 // what the board is thrown with: the game's setting, else the board's own
 export const randOf = state => (state.rules?.rand && state.rules.rand !== "own" ? state.rules.rand : BOARD.rules?.rand ?? "die");
+// What a throw is drawn with (Phase 20): an old cloth's randomizer; on the 110 the setup's cowries or stick die, or null
+// for the die, which draws exactly as it always has (src/engine/throws.js)
+export const RANDS_110 = ["cowries", "stick"];
+export const throwKind = state => (isCloth() ? randOf(state) : RANDS_110.includes(state.rules?.rand) ? state.rules.rand : null);
 
 // Every pawn begins in square 1, where the old charts begin (Schmidt-Madsen 2019, ch. 5, pp. 214, 217). The log begins
 // with the old game, and names no law: the board's is its own.

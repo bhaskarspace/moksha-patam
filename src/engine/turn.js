@@ -38,7 +38,7 @@ export function rollDice(rng, n) {
 }
 // The current player's next throw of n dice, as the page and tools/sim.mjs both throw it (Phase 19): its own sequence,
 // keyed by the seed, the lane, the life and the throws it has made (src/engine/throws.js)
-export const throwDice = (state, n) => drawThrow(state, n).dice;
+export const throwDice = (state, n) => drawThrow(state, n, { kind: cloth.throwKind(state) }).dice;
 // ---- Roll-dependent squares (REDESIGN.md Phase 10) ----
 // A story square below the endgame may tell one of two moments, by how fast the player arrived: the face of the
 // die moved by, never the distance. A slow arrival noticed what was there; a fast one went straight past it, or it
@@ -73,7 +73,10 @@ export const doorOf = (state, i) => { const law = lawOf(state, i); return { boun
 export function movesFor(state, dice) {
   // an old cloth (Phase 18): the throw is the move
   if (cloth.isCloth()) return cloth.movesFor(state, dice);
-  const p = state.players[state.turn], out = [...new Set(dice)].filter(v => p.pos + v <= TOP);
+  // a throw that counts nothing (seven cowries face down, Phase 20) moves nothing: a year with no move, and no die of 0 is
+  // ever a move beside another, so a 0 never stands for sitting or a law's act. A die never shows 0.
+  if (dice.length && dice.every(d => d === 0)) return [0];
+  const p = state.players[state.turn], out = [...new Set(dice)].filter(v => v && p.pos + v <= TOP);
   if (dice.length > 1 && canSit(p)) out.push(0);
   return lawOf(state).movesFor(state, dice, out);
 }
@@ -220,7 +223,15 @@ export function planTurn(state, v, dice = [v]) {
   }
   const spare = [...dice];
   if (v) spare.splice(spare.indexOf(v), 1);
-  if (dice.length > 1) pre.push(entry(v ? "lDice" : "lDiceSit", { a: dice[0], b: dice[1], v }, "", idx));
+  // nothing thrown (Phase 20): every shell face down; the year passes on the square, and it is no sitting and no act
+  const nil = !v && dice.length > 0 && dice.every(d => d === 0);
+  if (dice.length > 1 && !nil) pre.push(entry(v ? "lDice" : "lDiceSit", { a: dice[0], b: dice[1], v }, "", idx));
+  if (nil) {
+    const years = turnYears(p.years ?? 0, { sit: true }), died = years > SPAN;
+    after.push(entry("lNil", { pos: from, sq: from }, "", idx));
+    if (died) end.push(entry(from === GOAL ? "lDiedDoor" : "lDied", { pos: from, age: years, sq: from }, "death", idx));
+    return resolve(state, { idx, v, dice, spare: [], sit: true, nil: true, from, path, target: from, final: from, jump: null, win: false, died, again: false, told: [null], exam: null, pre, after, end }, years);
+  }
   if (!v) {
     // a year sat out: no walk, no landing, and the year still passes. At a door that has refused the life it is a year
     // of the examination (REDESIGN.md Phase 14): one question, and the door opens when nothing is owed. A life whose
